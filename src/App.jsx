@@ -5442,4 +5442,3 @@ export default function TFTClash(){
   );
 }
 
-export default TFTClash;
