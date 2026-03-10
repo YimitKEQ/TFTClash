@@ -1,3 +1,6 @@
 {
-  "rewrites": [{ "source": "/(?!riot\\.txt)(.*)", "destination": "/" }]
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/" }
+  ]
 }
