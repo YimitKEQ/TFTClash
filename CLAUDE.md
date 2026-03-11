@@ -62,34 +62,36 @@ Before editing, always check current line count and brace balance.
 
 ---
 
-## File Structure (App.jsx major sections)
+## File Structure (App.jsx — 5764 lines as of 2026-03-12)
 
 | Lines | Section |
 |-------|---------|
-| 1–170 | Constants, helpers, stats engine |
+| 1–170 | Constants, helpers, stats engine, PTS constant |
 | 116–131 | Achievements |
 | 172–233 | SEED data (24 players) |
-| 234–403 | Auth, champion system, GCSS (template literal — don't touch) |
+| 234–403 | Auth, champion system, **GCSS** (template literal — don't touch) |
 | 404–963 | Atoms + components (Hexbg, Panel, Btn, Av, etc.) |
 | 965–1134 | Navbar |
 | 1135–1194 | StandingsTable |
 | 1195–1394 | HomeScreen |
-| 1396–1725 | BracketScreen |
+| 1396–1725 | BracketScreen ← task #1 (PIN removal) |
 | 1731–1993 | PlayerProfileScreen |
-| 1994–2165 | LeaderboardScreen |
-| 2167–2534 | ClashReport, ResultsScreen, AutoLogin |
-| 2541–2743 | HofScreen |
-| 2745–2798 | ArchiveScreen |
+| 1994–2165 | LeaderboardScreen ← task #8 |
+| 2167–2534 | ClashReport, ResultsScreen ← task #3, AutoLogin |
+| 2541–2743 | HofScreen ← task #4 |
+| 2745–2798 | ArchiveScreen ← task #5 |
 | 2800–3222 | AdminPanel |
-| 3224–3699 | ScrimsScreen |
+| 3224–3699 | ScrimsScreen ← task #2 |
 | 3700–3864 | PricingScreen |
-| 3865–4072 | MilestonesScreen, ChallengesScreen |
+| 3865–4072 | MilestonesScreen ← task #6, ChallengesScreen |
 | 4074–4279 | SignUpScreen, LoginScreen |
-| 4280–4459 | AccountScreen |
+| 4280–4459 | AccountScreen ← task #7 |
 | 4460–4603 | SeasonRecapScreen |
 | 4605–4679 | AICommentaryPanel |
-| 4680–4907 | HostApplyScreen, HostDashboardScreen |
-| 5016–5123 | Root TFTClash() component |
+| 4680–5074 | HostApplyScreen, HostDashboardScreen |
+| 5075–5340 | RulesScreen ← added 2026-03-12 |
+| 5341–5490 | FAQScreen ← added 2026-03-12 |
+| 5491–5764 | Root TFTClash() component |
 
 ---
 
