@@ -1050,6 +1050,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"leaderboard",label:"Leaderboard"},
     {id:"results",label:"Results"},
     {id:"archive",label:"Archive"},
+    {id:"rules",label:"Rules"},
+    {id:"faq",label:"FAQ"},
     {id:"pricing",label:"💰 Pricing"},
     ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
   ];
@@ -1057,9 +1059,10 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   const DRAWER_ITEMS=[
     {id:"hof",icon:"🏛",label:"Hall of Fame"},
     {id:"archive",icon:"📁",label:"Archive"},
+    {id:"rules",icon:"📋",label:"Tournament Rules"},
+    {id:"faq",icon:"❓",label:"FAQ"},
     {id:"challenges",icon:"⚡",label:"Challenges & XP"},
     {id:"milestones",icon:"🎁",label:"Milestones & Rewards"},
-
     {id:"pricing",icon:"💰",label:"Pricing & Plans"},
     {id:"account",icon:"👤",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up"},
     ...(isAdmin?[{id:"scrims",icon:"🎮",label:"Scrims"},{id:"admin",icon:"⬡",label:"Admin Panel"}]:[]),
@@ -5338,6 +5341,315 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
   );
 }
 
+// ─── RULES SCREEN ─────────────────────────────────────────────────────────────
+function RulesScreen({setScreen}){
+  const [tab,setTab]=useState("format");
+  const TABS=[
+    {id:"format",label:"Format"},
+    {id:"points",label:"Points & Ties"},
+    {id:"checkin",label:"Check-in"},
+    {id:"edgecases",label:"Edge Cases"},
+    {id:"conduct",label:"Conduct"},
+  ];
+  return(
+    <div className="page wrap">
+      <div style={{marginBottom:32}}>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Official</div>
+        <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Tournament Rules</h1>
+        <p style={{fontSize:14,color:"#9CA3AF",maxWidth:600,lineHeight:1.7}}>TFT Clash follows rules based on the official Riot EMEA Esports rulebook, adapted for our community format. All participants are expected to read and understand these rules before competing.</p>
+      </div>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:24}}>
+        {TABS.map(t=>(
+          <Btn key={t.id} v={tab===t.id?"primary":"dark"} s="sm" onClick={()=>setTab(t.id)}>{t.label}</Btn>
+        ))}
+      </div>
+
+      {tab==="format"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Clash Format</h2>
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Standard Format (24 players)</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>24 players → 3 lobbies of 8 → 3–5 games per lobby → cumulative points determine final standings. No elimination stage at this size — everyone plays all rounds.</div>
+              </div>
+              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Lobby Seeding</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Players are seeded by rank using <span style={{color:"#4ECDC4",fontWeight:600}}>snake-draft</span> so each lobby has a balanced mix of skill levels. Random draw is used when players have equal LP.</div>
+                <div style={{marginTop:12,background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
+                  <div className="cond" style={{fontSize:11,color:"#6B7280",marginBottom:8,letterSpacing:".06em",textTransform:"uppercase"}}>Snake seeding example — 3 lobbies</div>
+                  <div className="mono" style={{fontSize:12,color:"#4ECDC4",marginBottom:4}}>Lobby A: seeds 1, 6, 7, 12, 13, 18, 19, 24</div>
+                  <div className="mono" style={{fontSize:12,color:"#9B72CF",marginBottom:4}}>Lobby B: seeds 2, 5, 8, 11, 14, 17, 20, 23</div>
+                  <div className="mono" style={{fontSize:12,color:"#E8A838"}}>Lobby C: seeds 3, 4, 9, 10, 15, 16, 21, 22</div>
+                </div>
+              </div>
+              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Multi-Stage Format (32+ players)</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:12}}>For larger events, a two-stage Swiss format is used. Lobbies are reseeded every 2 games based on standings.</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+                  {[["Stage 1","Multiple lobbies · top 4 per lobby advance","#9B72CF"],["Stage 2","Survivors · reseeded lobbies · top 4 advance","#4ECDC4"],["Finals","Top 8 overall · single lobby · 1 winner","#E8A838"]].map(([s,d,c])=>(
+                    <div key={s} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
+                      <div style={{fontWeight:700,fontSize:13,color:c,marginBottom:4}}>{s}</div>
+                      <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{d}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
+              <div>
+                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Swiss Reseeding</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>After every 2 games, lobbies reseed based on current standings — top performers face each other, making each round harder as you advance. Points reset between days but <span style={{color:"#4ECDC4"}}>not</span> between stages on Finals Day.</div>
+              </div>
+            </div>
+          </Panel>
+          <Panel style={{padding:"24px",background:"rgba(232,168,56,.03)",border:"1px solid rgba(232,168,56,.15)"}}>
+            <h3 style={{fontSize:15,color:"#E8A838",marginBottom:10}}>Result Submission</h3>
+            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>The <span style={{color:"#F2EDE4",fontWeight:600}}>1st and 2nd place finishers</span> in each lobby MUST screenshot the end-of-game results screen and submit it to an admin via Discord or the platform. Failure to submit may result in disciplinary action. Admins enter results within ~10 minutes of each game ending.</div>
+          </Panel>
+        </div>
+      )}
+
+      {tab==="points"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:4,fontFamily:"'Playfair Display',serif"}}>Tournament Point System</h2>
+            <div style={{fontSize:13,color:"#6B7280",marginBottom:20}}>Per-game placement points — used in all TFT Clash events. Based on the official 2026 EMEA Esports rulebook.</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:8,marginBottom:24}}>
+              {[[1,"8","#E8A838"],[2,"7","#C0C0C0"],[3,"6","#CD7F32"],[4,"5","#4ECDC4"],[5,"4","#9CA3AF"],[6,"3","#9CA3AF"],[7,"2","#9CA3AF"],[8,"1","#9CA3AF"]].map(([place,pts,color])=>(
+                <div key={place} style={{background:"#0A0F1A",borderRadius:8,padding:"14px 8px",textAlign:"center",border:"1px solid rgba(242,237,228,.06)"}}>
+                  <div className="cond" style={{fontSize:10,color:"#6B7280",marginBottom:4,textTransform:"uppercase",letterSpacing:".04em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
+                  <div className="mono" style={{fontSize:20,fontWeight:700,color:color,lineHeight:1}}>{pts}</div>
+                  <div style={{fontSize:9,color:"#4A4438",marginTop:2}}>pts</div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"16px",fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>
+              <strong style={{color:"#C4B5FD"}}>DNP (Did Not Play):</strong> 0 points — worse than last place. Players who miss a game without notifying admins receive DNP. Two DNPs triggers a disqualification review.
+            </div>
+          </Panel>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Tiebreakers</h2>
+            <div style={{fontSize:13,color:"#9CA3AF",marginBottom:16,lineHeight:1.7}}>When players are tied on cumulative points (for reseeding, cut-offs, or final placement), ties are broken in this exact order:</div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {[["1","Total Tournament Points","The raw cumulative score. Applied first in all contexts.","#E8A838"],["2","Wins + Top 4s","Count of 1st place finishes × 2, plus top-4 finishes. Higher score wins.","#4ECDC4"],["3","Best Placement Counts","Who has more 1sts? Then more 2nds? Counts position-by-position.","#9B72CF"],["4","Most Recent Game","Better finish in the most recent game, then the game before that.","#C4B5FD"],["5","Random","Last resort only — random sort between tied positions.","#6B7280"]].map(([n,title,desc,color])=>(
+                <div key={n} style={{display:"flex",gap:14,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
+                  <div style={{width:26,height:26,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{n}</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:color,marginBottom:3}}>{title}</div>
+                    <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
+      )}
+
+      {tab==="checkin"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Registration & Check-in</h2>
+            <div style={{display:"flex",flexDirection:"column",gap:20}}>
+              <div>
+                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Registration</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Registration opens at least 24 hours before each clash and closes 30 minutes before start. You must have an account with a valid Riot ID linked. Registering indicates your commitment to play — only sign up if you intend to show up.</div>
+              </div>
+              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
+              <div>
+                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Check-in Window</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:14}}>Check-in opens <span style={{color:"#F2EDE4"}}>60 minutes before start</span> and closes <span style={{color:"#F2EDE4"}}>15 minutes before start</span>. You must actively click "Check In" — being registered is not enough.</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8}}>
+                  {[["T-60min","Check-in opens","#4ECDC4"],["T-30min","Registration closes","#9CA3AF"],["T-15min","Check-in closes · roster locked","#E8A838"],["T-10min","Lobbies generated & seeded","#9B72CF"],["T-5min","Lobby codes sent to players","#C4B5FD"],["T-0","Games begin","#52C47C"]].map(([time,event,color])=>(
+                    <div key={time} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
+                      <div className="mono" style={{fontSize:12,fontWeight:700,color:color,marginBottom:3}}>{time}</div>
+                      <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>{event}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
+              <div>
+                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Auto-Drop & Waitlist</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Players who registered but did not check in by the deadline are <span style={{color:"#F87171"}}>automatically removed</span>. Their spots are offered to waitlisted players in order. Waitlisted players must also check in to confirm availability.</div>
+              </div>
+              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
+              <div>
+                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Grace Period</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>After lobby codes are sent, there is a <span style={{color:"#F2EDE4"}}>5-minute grace period</span> before the game begins. If you haven't joined and haven't contacted an admin by then, the lobby starts without you (DNP for that game).</div>
+              </div>
+            </div>
+          </Panel>
+          <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 20px",fontSize:13,color:"#9CA3AF",lineHeight:1.7}}>
+            <strong style={{color:"#E8A838"}}>Important:</strong> Dropping from a tournament without a legitimate reason (emergency, illness) may result in a ban from the next clash cycle. If you need to withdraw, tell an admin before the event starts.
+          </div>
+        </div>
+      )}
+
+      {tab==="edgecases"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Uneven Numbers & Byes</h2>
+            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:16}}>Lobbies hold up to 8 players. When total player count is not a multiple of 8, these rules apply:</div>
+            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
+              {[["Lobby of 7","Fully valid — game runs normally. 8th place simply doesn't exist that game. Scoring is identical for the 7 players present."],["Lobby of 6","Allowed but not preferred. Admin will attempt to merge lobbies or promote from waitlist before running a 6-player lobby."],["BYE (advancement stages)","When a Stage 2 lobby can't be filled to 8, top-seeded players receive a BYE — they advance automatically. BYE = 0 points added (neutral, not rewarded, not penalized)."]].map(([title,desc])=>(
+                <div key={title} style={{background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
+                  <div style={{fontWeight:700,fontSize:13,color:"#4ECDC4",marginBottom:4}}>{title}</div>
+                  <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>No-Shows & Disconnections</h2>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {[["Doesn't join lobby","Game starts after 5-min grace. Player receives DNP (0 pts) for that game.","#F87171"],["Disconnects mid-game","Riot-assigned final placement counts — no exceptions. Remakes only considered for server-wide outages or first-carousel DC, at admin discretion.","#EAB308"],["Drops out between rounds","Removed from roster. No mid-tournament replacement in competitive format.","#9CA3AF"],["Two DNPs","Admin prompted to review for disqualification from remainder of the clash.","#F87171"]].map(([title,desc,color])=>(
+                <div key={title} style={{display:"flex",gap:12,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:color,flexShrink:0,marginTop:5}}/>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:3}}>{title}</div>
+                    <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:12,fontFamily:"'Playfair Display',serif"}}>Pauses</h2>
+            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:14}}>Type <span className="mono" style={{color:"#4ECDC4",background:"rgba(78,205,196,.08)",padding:"2px 6px",borderRadius:4}}>/pause</span> in game chat to pause and contact an admin. Abuse of the pause feature results in disciplinary action.</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
+              {[["Max per game (player)","10 min"],["Max total per tournament","25 min"],["Max per game (all players)","30 min"]].map(([l,v])=>(
+                <div key={l} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
+                  <div style={{fontSize:11,color:"#6B7280",marginBottom:4,lineHeight:1.5}}>{l}</div>
+                  <div className="mono" style={{fontSize:15,fontWeight:700,color:"#C4B5FD"}}>{v}</div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
+      )}
+
+      {tab==="conduct"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:6,fontFamily:"'Playfair Display',serif"}}>Code of Conduct</h2>
+            <div style={{fontSize:13,color:"#6B7280",marginBottom:20,lineHeight:1.7}}>All participants are bound by these rules. Violations result in warnings, point deductions, suspension, or permanent ban depending on severity.</div>
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {[["🎯","Play to win","Always play to the best of your ability. Intentionally underperforming or tanking games is a bannable offense."],["🚫","No collusion","Any agreement to soft-play allies, split prizes, or manipulate results is prohibited. This includes ghosting and external signaling."],["📵","No coaching during games","Receiving tips or build orders from anyone outside the lobby during an active game is strictly prohibited."],["🐛","No bugs or exploits","Do not knowingly use in-game bugs for advantage. Pause and report to an admin immediately if you encounter one."],["🔐","No account sharing","Playing under another person's account (ringing) is a permanent ban offense. Compete only on your registered account."],["🤝","Respect everyone","Harassment, hate speech, discrimination, and abusive behavior are not tolerated — in-game, Discord, or on the platform."],["📸","Screenshot obligation","1st and 2nd place must submit end-of-game screenshots. Failure may result in a point deduction."]].map(([icon,title,desc])=>(
+                <div key={title} style={{display:"flex",gap:14,background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
+                  <div style={{fontSize:20,flexShrink:0,width:28,textAlign:"center"}}>{icon}</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:3}}>{title}</div>
+                    <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+          <Panel style={{padding:"24px",background:"rgba(248,113,113,.03)",border:"1px solid rgba(248,113,113,.15)"}}>
+            <h3 style={{fontSize:15,color:"#F87171",marginBottom:12}}>Disciplinary Actions</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[["Official Warning","Minor first offenses. Noted on your record."],["Point Deduction","Applied at end of day/stage — never mid-game."],["Round/Match Forfeiture","Result nullified or replaced with 0 points."],["Tournament Suspension","Banned from one or more upcoming clashes."],["Permanent Ban","Ringing, extreme misconduct, or repeated major violations."]].map(([action,desc])=>(
+                <div key={action} style={{display:"flex",gap:10,alignItems:"flex-start",fontSize:13,paddingBottom:8,borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+                  <span style={{color:"#F87171",fontWeight:700,minWidth:168,flexShrink:0}}>{action}</span>
+                  <span style={{color:"#9CA3AF",lineHeight:1.5}}>{desc}</span>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── FAQ SCREEN ───────────────────────────────────────────────────────────────
+function FAQScreen({setScreen}){
+  const [open,setOpen]=useState(null);
+  const FAQS=[
+    {cat:"Getting Started",items:[
+      {q:"How do I join a TFT Clash?",a:"Create a free account, link your Riot ID in your profile, then register for the next upcoming clash on the Home screen. Competing is always free — no subscription required."},
+      {q:"Do I need Pro or Host to play?",a:"No. The free Player tier lets you compete in all clashes. Pro ($4.99/mo) unlocks extended stats, career graphs, and profile customization. Host ($19.99/mo) lets you run your own events."},
+      {q:"How do I link my Riot ID?",a:"Go to My Account → Edit Profile and enter your Riot ID (e.g. Username#TAG). This is used to verify your in-game account and for lobby invites."},
+    ]},
+    {cat:"Registration & Check-in",items:[
+      {q:"What's the difference between registering and checking in?",a:"Registration means you want to play. Check-in confirms you're present on the day. A check-in window opens 60 minutes before start — you must click Check In during that window. If you registered but don't check in, you're auto-removed and your spot goes to the waitlist."},
+      {q:"What happens if I'm on the waitlist?",a:"Waitlisted players are offered spots in order as registered players fail to check in. Stay available and keep the site open — you'll be notified if a slot opens for you."},
+      {q:"Can I register last minute?",a:"Registration closes 30 minutes before start. After that, the only way in is through the waitlist during the check-in window."},
+      {q:"I checked in but missed the lobby — what happens?",a:"If you haven't joined within the 5-minute grace period after the lobby code was sent, the game starts without you and you receive DNP (0 points) for that game. Contact an admin immediately if you're having technical issues."},
+    ]},
+    {cat:"Format & Scoring",items:[
+      {q:"How many games do I play per clash?",a:"In our standard 24-player format, each player plays 3–5 games in the same lobby. Final standings are determined by cumulative placement points across all games."},
+      {q:"How are lobbies decided?",a:"Lobbies are seeded by ladder rank using snake-draft — each lobby gets a balanced spread of skill levels. Unranked or equal-LP players are placed randomly."},
+      {q:"What's the points system?",a:"Official Riot EMEA placement points per game: 1st=8, 2nd=7, 3rd=6, 4th=5, 5th=4, 6th=3, 7th=2, 8th=1."},
+      {q:"What if there aren't enough players for full 8-player lobbies?",a:"Lobbies of 7 are completely valid — scoring is identical for the 7 present. For advancement stages, top seeds may receive a BYE (0 points, neutral)."},
+      {q:"Do clash points carry over between events?",a:"In-game tournament points (1st=8pts etc.) are used only within a single clash. Season points — shown on the leaderboard — are separate and accumulate across all clashes in the season."},
+    ]},
+    {cat:"Disconnections & Edge Cases",items:[
+      {q:"What if I disconnect mid-game?",a:"Your Riot-assigned final placement counts — no exceptions. The result stands regardless of disconnect reason. Remakes are only considered for server-wide outages affecting multiple players, or a disconnect before your first augment selection — and only at admin discretion."},
+      {q:"What if someone no-shows their lobby?",a:"After the 5-minute grace period the game starts. The absent player receives DNP (0 points). In larger events, a waitlist player may be called in to fill the spot."},
+      {q:"Can I pause a game?",a:"Yes. Type /pause in game chat to pause and contact an admin. Maximum 10 minutes per pause, 25 minutes total across the entire tournament. Abusing pauses results in disciplinary action."},
+      {q:"What if I have to drop out mid-tournament?",a:"Tell an admin immediately. Dropping without a legitimate reason may result in a ban from the next clash cycle. Legitimate reasons (emergency, illness) are handled at admin discretion with no penalty."},
+    ]},
+    {cat:"Conduct & Fairness",items:[
+      {q:"Is soft-playing a friend allowed?",a:"Absolutely not. Soft play and collusion are among the most serious offenses. Always play to win. Penalties range from point forfeiture to permanent ban."},
+      {q:"Can I stream my games?",a:"Yes, you're free to stream your own POV. We recommend a delay to prevent opponents watching your stream for info. Using stream information to coach yourself or others during a game is prohibited."},
+      {q:"What if I see someone cheating?",a:"Report it to an admin privately with any screenshot evidence. All reports are investigated — you won't be penalized for reporting in good faith."},
+      {q:"Can I get banned?",a:"Yes. Account sharing (ringing), extreme harassment, collusion, or repeated violations result in suspension or permanent ban. All decisions are at admin discretion."},
+    ]},
+    {cat:"Leaderboard & Season",items:[
+      {q:"How are season points awarded?",a:"Your final placement in each clash earns season points. The better you finish, the more season points you earn. These accumulate across all clashes throughout the season."},
+      {q:"How are leaderboard ties broken?",a:"In order: total points → wins+top4s (wins count twice) → most favorable placement counts (most 1sts, then 2nds…) → most recent game result → random."},
+      {q:"Is there a reward for winning the season?",a:"Yes — the season champion is inducted into the Hall of Fame with a permanent record. Future seasons may include real prizes as the platform grows."},
+    ]},
+  ];
+  let qi=0;
+  return(
+    <div className="page wrap">
+      <div style={{marginBottom:32}}>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Help</div>
+        <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Frequently Asked Questions</h1>
+        <p style={{fontSize:14,color:"#9CA3AF",maxWidth:560,lineHeight:1.7}}>Everything you need to know about competing in TFT Clash. Can't find your answer? Ask in Discord.</p>
+      </div>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:32}}>
+        <Btn v="primary" s="sm" onClick={()=>setScreen("rules")}>View Full Rules →</Btn>
+        <Btn v="dark" s="sm" onClick={()=>setScreen("pricing")}>Pricing & Plans</Btn>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:28}}>
+        {FAQS.map(section=>(
+          <div key={section.cat}>
+            <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10,paddingBottom:8,borderBottom:"1px solid rgba(78,205,196,.2)"}}>{section.cat}</div>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {section.items.map(item=>{
+                const idx=qi++;
+                const isOpen=open===idx;
+                return(
+                  <div key={idx} style={{background:"#111827",borderRadius:10,border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.06)"),overflow:"hidden",transition:"border-color .15s"}}>
+                    <button onClick={()=>setOpen(isOpen?null:idx)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",padding:"16px 20px",background:"none",border:"none",cursor:"pointer",textAlign:"left",gap:16}}>
+                      <span style={{fontSize:14,fontWeight:600,color:isOpen?"#F2EDE4":"#C8BFB0",lineHeight:1.5,flex:1}}>{item.q}</span>
+                      <span style={{fontSize:18,color:"#9B72CF",flexShrink:0,transition:"transform .2s",display:"inline-block",transform:isOpen?"rotate(45deg)":"none"}}>+</span>
+                    </button>
+                    {isOpen&&(
+                      <div style={{padding:"0 20px 18px",fontSize:13,color:"#9CA3AF",lineHeight:1.8,borderTop:"1px solid rgba(242,237,228,.05)"}}>{item.a}</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{marginTop:40,background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"24px",textAlign:"center"}}>
+        <div style={{fontSize:24,marginBottom:10}}>💬</div>
+        <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:8}}>Still have questions?</h3>
+        <p style={{fontSize:13,color:"#9CA3AF",maxWidth:380,margin:"0 auto 16px",lineHeight:1.6}}>Ask in the TFT Clash Discord server or reach out to an admin before your first clash.</p>
+        <Btn v="ghost" onClick={()=>setScreen("rules")}>Read the Full Rules →</Btn>
+      </div>
+    </div>
+  );
+}
+
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function TFTClash(){
   const [screen,setScreen]=useState("home");
@@ -5419,6 +5731,8 @@ export default function TFTClash(){
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo}/>}
         {screen==="milestones" &&<MilestonesScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
         {screen==="challenges" &&<ChallengesScreen currentUser={currentUser} players={players} toast={toast}/>}
+        {screen==="rules"      &&<RulesScreen setScreen={navTo}/>}
+        {screen==="faq"        &&<FAQScreen setScreen={navTo}/>}
         {screen==="pricing"    &&<PricingScreen currentPlan="free" toast={toast}/>}
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||SEED[0]} players={players} toast={toast} setScreen={navTo}/>}
