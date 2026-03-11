@@ -139,6 +139,10 @@ const ACHIEVEMENTS=[
   {id:"veteran",        tier:"silver",    icon:"🪖",  name:"Veteran",            desc:"20 total games across the season",                     check:p=>p.games>=20},
   {id:"season_finisher",tier:"gold",      icon:"🎖️",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:p=>p.games>=28},
   {id:"champion",       tier:"legendary", icon:"⚜️",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>p.name===SEASON_CHAMPION.name},
+  // ── RARE / EASTER EGG ────────────────────────────────────
+  {id:"dishsoap",       tier:"legendary", icon:"🧼",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:p=>p.name==="Dishsoap"||p.riotId?.toLowerCase().includes("dishsoap")},
+  {id:"perfect_lobby",  tier:"legendary", icon:"🌀",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:p=>(p.clashHistory||[]).some(g=>g.placement===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(v=>v<=3):true))},
+  {id:"silent_grinder", tier:"gold",      icon:"👁",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins — pure consistency", check:p=>p.pts>=400&&p.wins===0},
 ];
 
 const MILESTONES=[
@@ -335,19 +339,19 @@ const ACTIVE_SPONSOR=null;
 // ─── PREMIUM TIERS ────────────────────────────────────────────────────────────
 const PREMIUM_TIERS=[
   {
-    id:"free", name:"Player", price:"$0", period:"forever", color:"#6B7280",
+    id:"free", name:"Player", price:"€0", period:"forever", color:"#6B7280",
     desc:"Compete in every weekly clash. Always free.",
     features:["Enter every TFT Clash event","Full season stats & leaderboard","Personal profile with career history","Achievements, milestones & XP ranks","Hall of Fame & rival tracking","Discord results sharing"],
     cta:"You're In", ctaV:"dark",
   },
   {
-    id:"pro", name:"Pro", price:"$4.99", period:"/ month", color:"#E8A838", popular:true,
+    id:"pro", name:"Pro", price:"€4.99", period:"/ month", color:"#E8A838", popular:true,
     desc:"For players who take the season seriously.",
-    features:["Everything in Player","Season Recap card (shareable PNG)","Extended stat history — all seasons","Priority check-in & reserved slot","Pro badge on profile & leaderboard","Early access to new features","Ad-free experience"],
+    features:["Everything in Player","Season Recap card (shareable PNG)","Extended stat history — all seasons","Priority check-in & reserved slot","Pro badge on profile & leaderboard","Exclusive Discord channels (tactics, meta, pro-only)","Early access to new features","Ad-free experience"],
     cta:"Go Pro", ctaV:"primary",
   },
   {
-    id:"org", name:"Host", price:"$19.99", period:"/ month", color:"#9B72CF",
+    id:"org", name:"Host", price:"€24.99", period:"/ month", color:"#9B72CF",
     desc:"Run your own TFT Clash circuit on our platform.",
     features:["Everything in Pro","Create & manage your own clash events","Custom branding on tournament pages","Private / invite-only clashes","Advanced admin dashboard","CSV data export","Dedicated support"],
     cta:"Apply to Host", ctaV:"purple",
@@ -1041,12 +1045,11 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   // Desktop nav
   const DESKTOP_NAV=[
     {id:"home",label:"Home"},
+    {id:"roster",label:"Roster"},
     {id:"bracket",label:"Bracket"},
     {id:"leaderboard",label:"Leaderboard"},
     {id:"results",label:"Results"},
-    {id:"hof",label:"Hall of Fame"},
     {id:"archive",label:"Archive"},
-    {id:"milestones",label:"Milestones"},
     {id:"pricing",label:"💰 Pricing"},
     ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
   ];
@@ -1111,7 +1114,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
       {/* Desktop top nav */}
       <nav className="top-nav">
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:56,display:"flex",alignItems:"center",gap:0}}>
+        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:62,display:"flex",alignItems:"center",gap:0}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginRight:24,flexShrink:0}}>
             <svg width="24" height="24" viewBox="0 0 60 70" fill="none">
               <path d="M30 2L58 18L58 52L30 68L2 52L2 18Z" fill="none" stroke="#E8A838" strokeWidth="2.5"/>
@@ -1125,8 +1128,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
           <div style={{display:"flex",alignItems:"center",gap:0,flex:1,overflowX:"auto",scrollbarWidth:"none"}}>
             {DESKTOP_NAV.map(l=>(
               <button key={l.id} onClick={()=>setScreen(l.id)}
-                style={{background:"none",border:"none",padding:"6px 13px",fontSize:13,fontWeight:600,
-                  color:screen===l.id?"#E8A838":"#6B7280",cursor:"pointer",whiteSpace:"nowrap",
+                style={{background:"none",border:"none",padding:"8px 14px",fontSize:14,fontWeight:600,
+                  color:screen===l.id?"#E8A838":"#9CA3AF",cursor:"pointer",whiteSpace:"nowrap",
                   borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
                   transition:"all .15s",marginBottom:-1}}>
                 {l.label}
@@ -1322,13 +1325,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 12px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20,marginBottom:20}}>
             <Dot size={6}/><span className="cond" style={{fontSize:11,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 — Season Active · Weekly Clash</span>
           </div>
-          <h1 className="au1" style={{fontWeight:900,fontSize:"clamp(38px,6vw,68px)",color:"#F2EDE4",lineHeight:.88,letterSpacing:"-.02em",marginBottom:16}}>
+          <h1 className="au1" style={{fontWeight:900,fontSize:"clamp(44px,6.5vw,74px)",color:"#F2EDE4",lineHeight:.88,letterSpacing:"-.02em",marginBottom:18}}>
             The<br/><span style={{color:"#E8A838",fontStyle:"italic",textShadow:"0 0 60px rgba(232,168,56,.35)"}}>Convergence</span><br/>Awaits
           </h1>
-          <p className="au2" style={{fontSize:14,color:"#6B7280",lineHeight:1.6,marginBottom:18,maxWidth:380}}>
-            The official TFT Clash platform. Weekly tournaments, seasonal standings, and a living record of every champion, every clutch, every comeback.
+          <p className="au2" style={{fontSize:15,color:"#9CA3AF",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
+            The competitive TFT platform. Weekly Saturday tournaments, seasonal point standings, and a permanent record of every champion crowned.
           </p>
-          <div className="au2" className="grid-4" style={{marginBottom:22}}>
+          <div className="grid-4" style={{marginBottom:22}}>
             <StatBox label="Players" val={players.length}/>
             <StatBox label="Checked In" val={checkedN} c="#6EE7B7"/>
             <StatBox label="Season Pts" val={players.reduce((s,p)=>s+p.pts,0)}/>
@@ -1400,42 +1403,40 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       <div style={{marginTop:20}}>
         <SponsorBanner onNavigate={setScreen}/>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginTop:14}} className="grid-2">
-        <Panel accent style={{padding:"18px"}}>
-          <div style={{marginTop:6}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Season Standings</h3>
-            {top5.map((p,i)=>(
-              <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer"}}>
-                <div className="mono" style={{fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",minWidth:16}}>{i+1}</div>
-                <Av name={p.name} size={26} rank={p.rank}/>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:600,fontSize:13,color:"#E8A838",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-                </div>
-                <div className="mono" style={{fontSize:15,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
-              </div>
-            ))}
-            {top5.length===0&&<div style={{color:"#4A4438",fontSize:13,textAlign:"center",padding:16}}>No players yet</div>}
-          </div>
-        </Panel>
-        <Panel style={{padding:"18px"}}>
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Recent Clashes</h3>
-          {PAST_CLASHES.slice(0,3).map(c=>(
-            <div key={c.id} onClick={()=>setScreen("archive")} style={{padding:"10px 12px",background:"#0F1520",border:"1px solid rgba(242,237,228,.07)",borderRadius:9,marginBottom:8,cursor:"pointer",transition:"border-color .15s"}}
-              onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
-              onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.07)"}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:5}}>
-                <span style={{fontWeight:700,fontSize:13,color:"#E8A838"}}>{c.name}</span>
-                <span className="cond" style={{fontSize:10,color:"#6B7280"}}>{c.date}</span>
-              </div>
-              <div style={{display:"flex",alignItems:"center",gap:7}}>
-                <span style={{fontSize:15}}>🏆</span>
-                <span onClick={e=>{e.stopPropagation();const p=players.find(pl=>pl.name===c.champion);if(p){setProfilePlayer(p);setScreen("profile");}}} style={{fontWeight:700,color:"#E8A838",fontSize:13,cursor:"pointer",textDecoration:"underline",textDecorationStyle:"dotted"}}>{c.champion}</span>
-                <span style={{color:"#4A4438",fontSize:12}}>· {c.top3.slice(1).join(", ")}</span>
-              </div>
-            </div>
-          ))}
-        </Panel>
+
+      {/* Discord CTA */}
+      <div style={{background:"linear-gradient(90deg,rgba(88,101,242,.1),rgba(88,101,242,.05))",border:"1px solid rgba(88,101,242,.3)",borderRadius:12,padding:"14px 18px",marginTop:14,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+        <div style={{fontSize:24,flexShrink:0}}>💬</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Join the TFT Clash Discord</div>
+          <div style={{fontSize:12,color:"#9CA3AF",marginTop:2}}>Tournament alerts, results, tactics channels, and the community. Pro members get exclusive access.</div>
+        </div>
+        <Btn v="dark" s="sm" onClick={()=>toast("Discord link coming soon — server in setup!","success")} style={{background:"rgba(88,101,242,.15)",border:"1px solid rgba(88,101,242,.4)",color:"#818CF8",flexShrink:0}}>Join Discord →</Btn>
       </div>
+
+      <Panel accent style={{padding:"18px",marginTop:14}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
+          <h3 style={{fontSize:16,color:"#F2EDE4",fontWeight:700}}>Season Standings</h3>
+          <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Full Leaderboard →</Btn>
+        </div>
+        {top5.map((p,i)=>(
+          <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer",transition:"opacity .15s"}}
+            onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
+            onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+            <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",minWidth:20,textAlign:"center"}}>{i+1}</div>
+            <Av name={p.name} size={30} rank={p.rank}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+              <div style={{fontSize:11,color:"#6B7280",marginTop:1}}>{p.rank} · {p.region}</div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
+              <div style={{fontSize:10,color:"#6B7280"}}>pts</div>
+            </div>
+          </div>
+        ))}
+        {top5.length===0&&<div style={{color:"#4A4438",fontSize:13,textAlign:"center",padding:24}}>No players yet</div>}
+      </Panel>
     </div>
   );
 }
@@ -1878,7 +1879,12 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
                 )}
               </div>
             </div>
-            {[["Games",s.games,"#9CA3AF"],["Wins",s.wins,"#E8A838"],["Top 4",s.top4,"#4ECDC4"],["Bot 4",s.bot4,"#F87171"],["PPG",s.ppg,"#EAB308"],["Best Streak",player.bestStreak||0,"#EAB308"],["Best Haul",(player.bestHaul||0)+"pts","#E8A838"]].map(([l,v,c])=>(
+            {(()=>{
+              const allSorted=[...allPlayers].sort((a,b)=>b.pts-a.pts);
+              const rank=allSorted.findIndex(p=>p.id===player.id)+1||"—";
+              const consistency=s.games>0?Math.round((s.top4/s.games)*100)+"%":"—";
+              return[["Games",s.games,"#9CA3AF"],["Wins",s.wins,"#E8A838"],["Top 4",s.top4,"#4ECDC4"],["Bot 4",s.bot4,"#F87171"],["Season Rank","#"+rank,"#E8A838"],["Consistency",consistency,"#52C47C"],["PPG",s.ppg,"#EAB308"],["Best Streak",player.bestStreak||0,"#EAB308"],["Best Haul",(player.bestHaul||0)+"pts","#E8A838"]];
+            })().map(([l,v,c])=>(
               <div key={l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
                 <span style={{fontSize:13,color:"#9CA3AF"}}>{l}</span>
                 <span className="mono" style={{fontSize:15,fontWeight:700,color:c}}>{v}</span>
@@ -2480,8 +2486,8 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
           )}
 
           <div style={{display:"flex",flexDirection:"column",gap:8,maxWidth:580,margin:"0 auto"}}>
-            {revealed.map((idx,ri)=>{
-              const p=sorted[idx];const pos=idx+1;const isLast=ri===revealed.length-1;
+            {(phase>=2?[...revealed].sort((a,b)=>a-b):revealed).map((idx,ri)=>{
+              const p=sorted[idx];const pos=idx+1;const isLast=phase>=2?pos===1:ri===revealed.length-1;
               const isWin=pos===1,isTop3=pos<=3,isTop4=pos<=4;
               const st=computeStats(p);
               return(
@@ -3829,8 +3835,8 @@ function PricingScreen({currentPlan,toast}){
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16,marginBottom:48,alignItems:"start"}}>
         {PREMIUM_TIERS.map(tier=>{
           const isPopular=tier.popular;
-          const monthlyPrice=parseFloat(tier.price.replace("$",""))||0;
-          const displayPrice=billing==="annual"&&monthlyPrice>0?"$"+(monthlyPrice*.8).toFixed(2):tier.price;
+          const monthlyPrice=parseFloat(tier.price.replace("€",""))||0;
+          const displayPrice=billing==="annual"&&monthlyPrice>0?"€"+(monthlyPrice*.8).toFixed(2):tier.price;
           return(
             <div key={tier.id} onMouseEnter={()=>setHovered(tier.id)} onMouseLeave={()=>setHovered(null)}
               style={{position:"relative",background:isPopular?"linear-gradient(135deg,rgba(232,168,56,.07),rgba(8,8,15,.98))":"#111827",
@@ -3860,7 +3866,7 @@ function PricingScreen({currentPlan,toast}){
                   <span style={{fontSize:13,color:"#6B7280",marginLeft:4}}>{tier.period}</span>
                 </div>
                 {billing==="annual"&&monthlyPrice>0&&(
-                  <div style={{fontSize:11,color:"#6EE7B7"}}>Billed ${(monthlyPrice*.8*12).toFixed(0)}/year — save ${(monthlyPrice*.2*12).toFixed(0)}</div>
+                  <div style={{fontSize:11,color:"#6EE7B7"}}>Billed €{(monthlyPrice*.8*12).toFixed(0)}/year — save €{(monthlyPrice*.2*12).toFixed(0)}</div>
                 )}
                 <div style={{fontSize:13,color:"#9CA3AF",marginTop:6,lineHeight:1.5}}>{tier.desc}</div>
               </div>
@@ -3873,8 +3879,8 @@ function PricingScreen({currentPlan,toast}){
               </button>
               <div style={{borderTop:"1px solid rgba(242,237,228,.06)",paddingTop:20}}>
                 {tier.features.map((f,fi)=>(
-                  <div key={fi} style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
-                    <span style={{color:tier.color,fontSize:13,flexShrink:0,marginTop:1}}>✓</span>
+                  <div key={fi} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                    <span style={{color:tier.color,fontSize:13,flexShrink:0}}>✓</span>
                     <span style={{fontSize:13,color:"#C8BFB0",lineHeight:1.5}}>{f}</span>
                   </div>
                 ))}
@@ -3885,7 +3891,7 @@ function PricingScreen({currentPlan,toast}){
       </div>
 
       {/* Feature comparison table */}
-      <Panel style={{overflow:"hidden",marginBottom:40}}>
+      <Panel style={{overflow:"auto",marginBottom:40}}>
         <div style={{padding:"16px 20px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
           <h3 style={{fontSize:16,color:"#F2EDE4"}}>Feature Comparison</h3>
         </div>
