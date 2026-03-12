@@ -549,21 +549,6 @@ function Sel({value,onChange,children,style}){
   );
 }
 
-function Av({name,size,rank}){
-  const sz=size||32;
-  const c=rank?rc(rank):"#E8A838";
-  return(
-    <div style={{position:"relative",flexShrink:0,width:sz,height:sz}}>
-      <div style={{width:sz,height:sz,borderRadius:"50%",background:`linear-gradient(135deg,#1C2030,#252A3A)`,
-        border:`2px solid ${c}44`,display:"flex",alignItems:"center",justifyContent:"center",
-        fontSize:sz*.38,fontWeight:700,color:c,fontFamily:"'Playfair Display',serif"}}>
-        {name.charAt(0).toUpperCase()}
-      </div>
-      <div style={{position:"absolute",bottom:0,right:0,width:sz*.28,height:sz*.28,
-        borderRadius:"50%",background:c,border:"2px solid #08080F"}}/>
-    </div>
-  );
-}
 
 function TierBadge({pts}){
   const t=tier(pts);
@@ -829,7 +814,6 @@ function AwardCard({award,onClick}){
       </div>
       {award.winner&&(
         <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#0F1520",borderRadius:9,border:"1px solid rgba(242,237,228,.06)"}}>
-          <Av name={award.winner.name} size={32} rank={award.winner.rank}/>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:award.color,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{award.winner.name}</div>
             <div style={{fontSize:11,color:"#6B7280"}}>{award.winner.rank} · {award.winner.region}</div>
@@ -924,7 +908,6 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
               borderRadius:10,padding:"10px 12px",transition:"all .15s"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:locked?0:10}}>
                 {got&&<div className="mono" style={{fontSize:24,fontWeight:700,color:isWin?"#E8A838":isTop4?"#4ECDC4":"#6B7280",lineHeight:1,minWidth:22,textAlign:"center"}}>{got}</div>}
-                <Av name={p.name} size={30} rank={p.rank}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                   <div style={{display:"flex",gap:5,marginTop:2}}></div>
@@ -1049,10 +1032,13 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"bracket",label:"Bracket"},
     {id:"leaderboard",label:"Leaderboard"},
     {id:"results",label:"Results"},
+    {id:"hof",label:"Hall of Fame"},
     {id:"archive",label:"Archive"},
+    {id:"milestones",label:"Milestones"},
+    {id:"challenges",label:"Challenges"},
     {id:"rules",label:"Rules"},
     {id:"faq",label:"FAQ"},
-    {id:"pricing",label:"💰 Pricing"},
+    {id:"pricing",label:"Pricing"},
     ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
   ];
 
@@ -1152,12 +1138,9 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
             {/* Auth */}
             {currentUser?(
               <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <button onClick={()=>setScreen("account")} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:20,padding:"4px 12px 4px 4px",cursor:"pointer",transition:"all .15s"}}
+                <button onClick={()=>setScreen("account")} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:20,padding:"6px 14px",cursor:"pointer",transition:"all .15s"}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.6)"}
                   onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}>
-                  <div style={{width:24,height:24,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#08080F"}}>
-                    {currentUser.username.charAt(0).toUpperCase()}
-                  </div>
                   <span style={{fontSize:12,fontWeight:600,color:"#E8A838"}}>{currentUser.username}</span>
                 </button>
               </div>
@@ -1179,7 +1162,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       <nav className="bottom-nav">
         {PRIMARY.map(l=>{
           const isMore=l.id==="more";
-          const active=isMore?["hof","archive","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard"].includes(screen):screen===l.id;
+          const active=isMore?["hof","archive","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq"].includes(screen):screen===l.id;
           return(
             <button key={l.id} className={active?"active":""} onClick={()=>{if(isMore){setDrawer(d=>!d);}else setScreen(l.id);}}>
               <span className="icon">{l.icon}</span>
@@ -1205,25 +1188,26 @@ function StandingsTable({rows,compact,onRowClick}){
       {label}{sortKey===k?(asc?" ↑":" ↓"):""}
     </span>
   );
+  const cols=compact?"28px 1fr 60px 55px 50px":"28px 1fr 70px 70px 50px 55px";
   return(
-    <Panel style={{overflow:"hidden"}}>
-      <div style={{display:"grid",gridTemplateColumns:compact?"28px 1fr 60px 55px 50px":"28px 1.2fr 80px 70px 60px 60px",padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",background:"#0A0F1A"}}>
+    <Panel style={{overflowX:"auto"}}>
+      <div style={{minWidth:compact?260:380}}>
+      <div style={{display:"grid",gridTemplateColumns:cols,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",background:"#0A0F1A"}}>
         <span className="cond" style={{fontSize:9,fontWeight:700,color:"#4A4438",letterSpacing:".1em"}}>#</span>
         <H k="name" label="Player"/><H k="pts" label="Pts"/><H k="avg" label="Avg"/><H k="games" label="G"/>
-        {!compact&&<H k="wins" label="Wins"/>}
+        {!compact&&<H k="wins" label="W"/>}
       </div>
       {sorted.map((p,i)=>{
         const avg=parseFloat(p.avg)||0;
         const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438";
         return(
           <div key={p.id} onClick={onRowClick?()=>onRowClick(p):undefined}
-            style={{display:"grid",gridTemplateColumns:compact?"28px 1fr 60px 55px 50px":"28px 1.2fr 80px 70px 60px 60px",
+            style={{display:"grid",gridTemplateColumns:cols,
               padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",
               background:i===0?"rgba(232,168,56,.04)":i<3?"rgba(232,168,56,.02)":"transparent",
               alignItems:"center",cursor:onRowClick?"pointer":"default"}}>
             <div className="mono" style={{fontSize:13,fontWeight:800,color:rankCol}}>{i+1}</div>
             <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
-              <Av name={p.name} size={26} rank={p.rank}/>
               <div style={{minWidth:0}}>
                 <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",display:"flex",alignItems:"center",gap:5,overflow:"hidden"}}>
                   <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
@@ -1236,10 +1220,7 @@ function StandingsTable({rows,compact,onRowClick}){
                 </div>}
               </div>
             </div>
-            <div>
-              <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
-              {!compact&&<Bar val={p.pts} max={maxPts} h={2}/>}
-            </div>
+            <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
             <div className="mono" style={{fontSize:11,color:"#6B7280"}}>{p.games||0}</div>
             {!compact&&<div className="mono" style={{fontSize:13,color:"#6EE7B7"}}>{p.wins||0}</div>}
@@ -1247,6 +1228,7 @@ function StandingsTable({rows,compact,onRowClick}){
         );
       })}
       {rows.length===0&&<div style={{textAlign:"center",padding:40,color:"#3A3628",fontSize:14}}>No data yet</div>}
+      </div>
     </Panel>
   );
 }
@@ -1427,7 +1409,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
             onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
             <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",minWidth:20,textAlign:"center"}}>{i+1}</div>
-            <Av name={p.name} size={30} rank={p.rank}/>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
               <div style={{fontSize:11,color:"#6B7280",marginTop:1}}>{p.rank} · {p.region}</div>
@@ -1520,7 +1501,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
                   onMouseEnter={e=>e.currentTarget.style.borderColor=homie?"rgba(155,114,207,.5)":"rgba(82,196,124,.45)"}
                   onMouseLeave={e=>e.currentTarget.style.borderColor=homie?"rgba(155,114,207,.25)":"rgba(82,196,124,.2)"}>
                   <div style={{position:"relative",flexShrink:0}}>
-                    <Av name={p.name} size={40} rank={p.rank}/>
                     {homie&&<div style={{position:"absolute",top:-4,right:-4,fontSize:12}}>💜</div>}
                   </div>
                   <div style={{flex:1,minWidth:0}}>
@@ -1558,7 +1538,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
                 style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"12px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,opacity:.7,transition:"opacity .15s"}}
                 onMouseEnter={e=>e.currentTarget.style.opacity="1"}
                 onMouseLeave={e=>e.currentTarget.style.opacity=".7"}>
-                <Av name={p.name} size={40} rank={p.rank}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:700,fontSize:14,color:"#9CA3AF",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                   <div style={{display:"flex",gap:6}}>
@@ -1718,7 +1697,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
                           onMouseEnter={e=>e.currentTarget.style.background=isMe?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)"}
                           onMouseLeave={e=>e.currentTarget.style.background=isMe?"rgba(155,114,207,.08)":"transparent"}>
                           <div className="mono" style={{fontSize:12,fontWeight:800,color:pi===0?"#E8A838":pi===1?"#C0C0C0":pi===2?"#CD7F32":"#4A4438",minWidth:18,textAlign:"center"}}>{pi+1}</div>
-                          <Av name={p.name} size={30} rank={p.rank}/>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{display:"flex",alignItems:"center",gap:5}}>
                               <span style={{fontWeight:isMe?700:600,fontSize:13,color:isMe?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
@@ -2006,7 +1984,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
               return(
                 <div key={op.id} style={{padding:"13px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:i%2===0?"rgba(255,255,255,.01)":"transparent"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                    <Av name={op.name} size={28} rank={op.rank}/>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{op.name}</div>
                       <div style={{fontSize:11,color:"#6B7280"}}>{op.rank} · {op.region}</div>
@@ -2095,7 +2072,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
             return(
               <Panel key={p.id} hover style={{padding:"18px 14px",textAlign:"center",border:"1px solid "+MCOLS[ri]+"44",marginTop:ri===0?0:14,cursor:"pointer"}} onClick={()=>open(p)}>
                 <div style={{fontSize:26,marginBottom:6}}>{MEDALS[ri]}</div>
-                <Av name={p.name} size={44} rank={p.rank}/>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#F2EDE4",marginTop:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                 <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:5,flexWrap:"wrap"}}>
                   <Tag color="#4ECDC4" size="sm">{p.region}</Tag>
@@ -2135,7 +2111,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
             return(
               <Panel key={p.id} hover style={{padding:"16px",cursor:"pointer",border:"1px solid "+(i<3?MCOLS[i]+"44":"rgba(242,237,228,.08)")}} onClick={()=>open(p)}>
                 <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
-                  <Av name={p.name} size={42} rank={p.rank}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div className="mono" style={{fontSize:12,fontWeight:700,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",marginBottom:2}}>#{i+1}</div>
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>
@@ -2168,8 +2143,9 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
       )}
 
       {tab==="stats"&&(
-        <Panel style={{overflow:"hidden"}}>
-          <div style={{display:"grid",gridTemplateColumns:"28px 1.2fr 65px 80px 65px 65px 80px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
+        <Panel style={{overflowX:"auto"}}>
+          <div style={{minWidth:420}}>
+          <div style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
             {["#","Player","PPG","Avg","T1%","T4%","B4%"].map(h=>(
               <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
             ))}
@@ -2177,10 +2153,9 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
           {sorted.map((p,i)=>{
             const s2=computeStats(p);
             return(
-              <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1.2fr 65px 80px 65px 65px 80px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
+              <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
                 <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#4A4438"}}>{i+1}</span>
                 <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                  <Av name={p.name} size={22} rank={p.rank}/>
                   <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
                 </div>
                 <span className="mono" style={{fontSize:13,fontWeight:700,color:"#EAB308"}}>{s2.ppg}</span>
@@ -2191,23 +2166,24 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
               </div>
             );
           })}
+          </div>
         </Panel>
       )}
 
       {tab==="streaks"&&(
-        <Panel style={{overflow:"hidden"}}>
-          <div style={{display:"grid",gridTemplateColumns:"28px 1.2fr 80px 80px 80px 80px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-            {["#","Player","Best Streak","Current","Comeback%","Clutch%"].map(h=>(
+        <Panel style={{overflowX:"auto"}}>
+          <div style={{minWidth:400}}>
+          <div style={{display:"grid",gridTemplateColumns:"28px 1fr 80px 70px 80px 70px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
+            {["#","Player","Best","Now","Comeback%","Clutch%"].map(h=>(
               <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
             ))}
           </div>
           {[...sorted].sort((a,b)=>(b.bestStreak||0)-(a.bestStreak||0)).map((p,i)=>{
             const s2=computeStats(p);
             return(
-              <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1.2fr 80px 80px 80px 80px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
+              <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 80px 70px 80px 70px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
                 <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#4A4438"}}>{i+1}</span>
                 <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                  <Av name={p.name} size={22} rank={p.rank}/>
                   <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}{isHotStreak(p)?" 🔥":""}{isOnTilt(p)?" 💀":""}</span>
                 </div>
                 <span className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{p.bestStreak||0}🔥</span>
@@ -2219,6 +2195,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
               </div>
             );
           })}
+          </div>
         </Panel>
       )}
     </div>
@@ -2266,7 +2243,6 @@ function ClashReport({clashData,players}){
                   <td className="mono" style={{padding:"11px 12px",textAlign:"center",fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438"}}>{i+1}</td>
                   <td style={{padding:"11px 12px"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      <Av name={p.name} size={24} rank={p.rank}/>
                       <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</span>
                       {p.name===mostImproved&&<Tag color="#52C47C" size="sm">📈 Improved</Tag>}
                     </div>
@@ -2502,7 +2478,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
                     cursor:setProfilePlayer?"pointer":"default",
                     boxShadow:isLast&&isWin?"0 0 24px rgba(232,168,56,.2)":"none"}}>
                   <div className="mono" style={{fontSize:isWin?26:20,fontWeight:800,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":pos<=4?"#4ECDC4":"#6B7280",minWidth:28,textAlign:"center",lineHeight:1}}>{pos}</div>
-                  <Av name={p.name} size={isWin?40:32} rank={p.rank}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:700,fontSize:isWin?17:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                     <div style={{display:"flex",gap:8,marginTop:3,flexWrap:"wrap"}}>
@@ -2539,7 +2514,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
                     style={{display:"grid",gridTemplateColumns:"32px 1fr 70px 70px 70px 100px",padding:"11px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",background:i===0?"rgba(232,168,56,.04)":"transparent",cursor:setProfilePlayer?"pointer":"default"}}>
                     <div className="mono" style={{fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438"}}>{i+1}</div>
                     <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
-                      <Av name={p.name} size={28} rank={p.rank}/>
                       <div style={{minWidth:0}}>
                         <div style={{fontWeight:600,fontSize:14,color:"#E8A838",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                         <div style={{fontSize:11,color:"#6B7280"}}>{p.rank}</div>
@@ -2700,7 +2674,6 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                       onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(242,237,228,.07)";}}>
                       <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
                         <div className="mono" style={{fontSize:10,fontWeight:700,color:i===0?"#C0C0C0":i===1?"#CD7F32":"#6B7280",minWidth:12}}>{i+2}</div>
-                        <Av name={p.name} size={20} rank={p.rank}/>
                         <span style={{fontWeight:600,fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
                         <span className="mono" style={{fontSize:11,fontWeight:700,color:"#E8A838"}}>{p.pts}</span>
                       </div>
@@ -2726,7 +2699,6 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                 <div className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7280",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{r.title}</div>
                 <div className="mono" style={{fontSize:24,fontWeight:700,color:"#E8A838",lineHeight:1,marginBottom:10}}>{r.value}</div>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,cursor:"pointer"}} onClick={e=>{e.stopPropagation();openProfile(r.holder);}}>
-                  <Av name={r.holder} size={26} rank={r.rank}/>
                   <div>
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{r.holder}</div>
                     <Tag color={rc(r.rank)} size="sm">{r.rank}</Tag>
@@ -2760,13 +2732,11 @@ function HofScreen({players,setScreen,setProfilePlayer}){
             <div key={i} style={{padding:"11px",background:"#0F1520",borderRadius:9,marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:7}}>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <Av name={a} size={22} rank="Challenger"/>
                   <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{a}</span>
                 </div>
                 <span className="mono" style={{fontSize:12,color:"#6B7280"}}>{wa}W — {wb}W</span>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{b}</span>
-                  <Av name={b} size={22} rank="Grandmaster"/>
                 </div>
               </div>
               <div style={{display:"flex",gap:1,height:4,borderRadius:99,overflow:"hidden"}}>
@@ -2795,7 +2765,6 @@ function HofScreen({players,setScreen,setProfilePlayer}){
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>🎖 Retired Legends</h3>
             {RETIRED_LEGENDS.map((l,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 0",borderBottom:i<RETIRED_LEGENDS.length-1?"1px solid rgba(242,237,228,.06)":"none"}}>
-                <Av name={l.name} size={32} rank={l.rank}/>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{l.name}</div>
                   <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{l.reason}</div>
@@ -3028,7 +2997,6 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement}){
               {players.map(p=>(
                 <Panel key={p.id} style={{padding:"14px",background:p.banned?"rgba(127,29,29,.15)":"#111827"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-                    <Av name={p.name} size={36} rank={p.rank}/>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:700,fontSize:14,color:p.banned?"#F87171":"#F2EDE4",display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}>
                         {p.name}
@@ -3060,7 +3028,6 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement}){
           <Panel style={{overflow:"hidden",marginBottom:14}}>
             {players.map(p=>(
               <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
-                <Av name={p.name} size={28} rank={p.rank}/>
                 <span style={{fontWeight:600,fontSize:14,color:"#F2EDE4",flex:1}}>{p.name}</span>
                 <span className="mono" style={{fontSize:13,color:"#6B7280",minWidth:50}}>Now: <span style={{color:"#E8A838"}}>{p.pts}</span></span>
                 <div style={{width:110,flexShrink:0}}>
@@ -3607,7 +3574,6 @@ function ScrimsScreen({players,toast}){
                       <div style={{display:"grid",gridTemplateColumns:"28px 1fr 52px 48px 48px 48px 48px 48px",gap:"0 8px",alignItems:"center",padding:"9px 14px"}}>
                         <div className="mono" style={{fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",textAlign:"center"}}>{i+1}</div>
                         <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-                          <Av name={p.name} size={24} rank={p.rank}/>
                           <div style={{minWidth:0}}>
                             <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                             <div style={{fontSize:10,color:"#4A4438"}}>{p.games}g{p.streak>=3?" · 🔥"+p.streak:""}</div>
@@ -3686,7 +3652,6 @@ function ScrimsScreen({players,toast}){
                                 <tr key={p.id} style={{background:ri%2===0?"rgba(255,255,255,.01)":"transparent",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                                   <td style={{padding:"10px 14px"}}>
                                     <div style={{display:"flex",alignItems:"center",gap:8}}>
-                                      <Av name={p.name} size={22} rank={p.rank}/>
                                       <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>{p.name}</span>
                                     </div>
                                   </td>
@@ -4003,7 +3968,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
           {myPlayer&&(
             <Panel style={{padding:"16px",marginBottom:20,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.2)"}}>
               <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-                <Av name={myPlayer.name} size={48} rank={myPlayer.rank}/>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:4}}>Your Progress</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -4147,7 +4111,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(232,168,56,.04)"}
                 onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":"rgba(255,255,255,.01)"}>
                 <div className="mono" style={{minWidth:24,fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438"}}>{i+1}</div>
-                <Av name={p.name} size={36} rank={p.rank}/>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{p.name}</div>
                   <div style={{display:"flex",gap:4}}>
@@ -5209,7 +5172,6 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
           <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Registered Players — Weekly Clash #15</h3>
           {players.slice(0,12).map((p,i)=>(
             <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<11?"1px solid rgba(242,237,228,.05)":"none"}}>
-              <Av name={p.name} size={28} rank={p.rank}/>
               <div style={{flex:1}}>
                 <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</div>
                 <div style={{fontSize:11,color:"#6B7280"}}>{p.rank} · {p.region}</div>
@@ -5566,7 +5528,7 @@ function RulesScreen({setScreen}){
 
 // ─── FAQ SCREEN ───────────────────────────────────────────────────────────────
 function FAQScreen({setScreen}){
-  const [open,setOpen]=useState(null);
+  const [open,setOpen]=useState(new Set());
   const FAQS=[
     {cat:"Getting Started",items:[
       {q:"How do I join a TFT Clash?",a:"Create a free account, link your Riot ID in your profile, then register for the next upcoming clash on the Home screen. Competing is always free — no subscription required."},
@@ -5623,10 +5585,10 @@ function FAQScreen({setScreen}){
             <div style={{display:"flex",flexDirection:"column",gap:4}}>
               {section.items.map(item=>{
                 const idx=qi++;
-                const isOpen=open===idx;
+                const isOpen=open.has(idx);
                 return(
                   <div key={idx} style={{background:"#111827",borderRadius:10,border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.06)"),overflow:"hidden",transition:"border-color .15s"}}>
-                    <button onClick={()=>setOpen(isOpen?null:idx)} style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",padding:"16px 20px",background:"none",border:"none",cursor:"pointer",textAlign:"left",gap:16}}>
+                    <button onClick={()=>setOpen(prev=>{const s=new Set(prev);isOpen?s.delete(idx):s.add(idx);return s;})} style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",padding:"16px 20px",background:"none",border:"none",cursor:"pointer",textAlign:"left",gap:16}}>
                       <span style={{fontSize:14,fontWeight:600,color:isOpen?"#F2EDE4":"#C8BFB0",lineHeight:1.5,flex:1}}>{item.q}</span>
                       <span style={{fontSize:18,color:"#9B72CF",flexShrink:0,transition:"transform .2s",display:"inline-block",transform:isOpen?"rotate(45deg)":"none"}}>+</span>
                     </button>
@@ -5667,8 +5629,17 @@ export default function TFTClash(){
   function removeToast(id){setToasts(ts=>ts.filter(t=>t.id!==id));}
   function navTo(s){
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
+    window.history.pushState({screen:s},'','#'+s);
     setScreen(s);
   }
+  useEffect(()=>{
+    const h=window.location.hash.slice(1);
+    if(h&&h!=="home"){setScreen(h);}
+    window.history.replaceState({screen:h||"home"},'','#'+(h||"home"));
+    function onPop(e){setScreen(e.state&&e.state.screen?e.state.screen:"home");}
+    window.addEventListener("popstate",onPop);
+    return ()=>window.removeEventListener("popstate",onPop);
+  },[]);
   function handleLogin(user){
     setCurrentUser(user); // null = guest continue
     setAuthScreen(null);

@@ -118,6 +118,17 @@ Key blockers: real auth (Supabase/Firebase), DB for results, Stripe for subscrip
 
 ---
 
+### [ ] #11 — FAQ: Update content to reflect actual score submission flow
+**File:** `App.jsx` ~L5568 (`FAQScreen`)
+
+The current FAQ says players screenshot and submit to admin via Discord. Update to reflect that:
+- Results are entered directly on the bracket/lobby page (no screenshots)
+- Players fill in placements on the site themselves (or admin does)
+- Remove/update references to "screenshot obligation" and Discord submission
+- Also update the relevant bullet in RulesScreen > Format > "Result Submission" panel
+
+---
+
 ## Completed
 
 ### Session 2 — 2026-03-12
