@@ -30,7 +30,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User session persists across browser refresh — no re-login required
   4. Role-based access is enforced: admin-only screens are inaccessible to player accounts
   5. The app is live at a custom domain on Vercel with a production Supabase database
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Next.js scaffold, Tailwind design tokens, shared layout, and UI primitives
+- [ ] 01-02-PLAN.md — Supabase schema (profiles table, RLS), TypeScript types, and client helpers
+- [ ] 01-03-PLAN.md — Auth pages (email/password + Discord OAuth), session middleware, and RBAC
+- [ ] 01-04-PLAN.md — Vercel deployment config and live deployment verification
 
 ### Phase 2: Payments
 **Goal**: Users can subscribe to Pro and Host tiers via Stripe, and the subscription status gates the correct features throughout the app
@@ -87,7 +93,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation and Auth | 0/TBD | Not started | - |
+| 1. Foundation and Auth | 0/4 | Planning complete | - |
 | 2. Payments | 0/TBD | Not started | - |
 | 3. Clash Runner | 0/TBD | Not started | - |
 | 4. Season and Profiles | 0/TBD | Not started | - |
