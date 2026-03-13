@@ -5695,6 +5695,241 @@ function FAQScreen({setScreen}){
   );
 }
 
+// ─── AEGIS SHOWCASE ───────────────────────────────────────────────────────────
+function AegisShowcaseScreen({setScreen}){
+  const [tab,setTab]=useState("standings");
+
+  const TOP8=[
+    {place:1,ign:"D0PA#111",pts:29,games:[7,7,8,7],prize:60},
+    {place:2,ign:"LC Abyss#CAPO",pts:28,games:[8,7,7,6],prize:40},
+    {place:3,ign:"vnck#NA1",pts:25,games:[5,6,6,8],prize:30},
+    {place:4,ign:"Ken Kitade",pts:23,games:[6,5,7,5],prize:20},
+    {place:5,ign:"Hydro#1000",pts:22,games:[5,8,6,3],prize:17},
+    {place:6,ign:"arzootft#na1",pts:21,games:[8,6,3,4],prize:13},
+    {place:7,ign:"ryt hardpuzzle#na2",pts:19,games:[7,8,2,2],prize:10},
+    {place:8,ign:"Talelelelelelel#NA1",pts:18,games:[6,7,4,1],prize:10},
+  ];
+
+  const REST=[
+    {place:9,ign:"koke na gringa#na1",pts:16},{place:10,ign:"LUNA Arcanine#NA3",pts:16},
+    {place:11,ign:"Mujjiwaraa#na1",pts:16},{place:12,ign:"Gerinha #777",pts:15},
+    {place:13,ign:"Haykaroo#PHI",pts:15},{place:14,ign:"Pun#TFT",pts:13},
+    {place:15,ign:"Xenor#NA1",pts:13},{place:16,ign:"Politicess#na1",pts:11},
+    {place:17,ign:"PoGamoRNA#NA1",pts:8},{place:18,ign:"MGC Fizz#mgc",pts:8},
+    {place:19,ign:"Lukwer#Kata",pts:7},{place:20,ign:"kininaru#oreo",pts:7},
+    {place:21,ign:"XcorpionTFT",pts:5},{place:22,ign:"Hoshimi Miyabi#3110",pts:5},
+    {place:23,ign:"ChunChunMaru#KSuba",pts:4},{place:24,ign:"LC Dominus#CAPO",pts:3},
+    {place:25,ign:"YoonEna#joshu",pts:2},{place:26,ign:"i love cat memes#xaste",pts:2},
+    {place:27,ign:"bourbon#GGG",pts:2},{place:28,ign:"MarksM #3004",pts:2},
+    {place:29,ign:"Theonelukeyg#NA1",pts:1},{place:30,ign:"BESTIAROCK22#9708",pts:1},
+    {place:31,ign:"PowerPuff Tundie#na1",pts:1},{place:32,ign:"Only Lowroll#NA1",pts:1},
+  ];
+
+  const STAGES=[
+    {id:"q",label:"Top 4 Stage",sub:"2 Games · 32 Players",icon:"⚔",color:"#9B72CF",
+     bullets:["32 players split into lobbies of 8","Best of 1 per lobby","Top 4 per lobby advance · 5th–6th go to LCQ · Bottom 2 eliminated","All lobbies run in parallel"]},
+    {id:"ps",label:"Point Stage",sub:"4 Games · ~16 Players",icon:"📊",color:"#4ECDC4",
+     bullets:["Qualifying players earn EMEA points each game (1st=8 … 8th=1)","Cumulative points across 4 games","Top 8 by total points advance to Finals","Tiebreaker: most recent game placement"]},
+    {id:"f",label:"Finals",sub:"Best of 2 · Top 8",icon:"🏆",color:"#E8A838",
+     bullets:["Single lobby of 8 finalists","Best of 2 games with EMEA scoring","$200 prize pool distributed to top 8","Tiebreaker: Game 2 placement → avg placement"]},
+  ];
+
+  const FEATURES=[
+    {icon:"⚙",title:"Custom Formats",desc:"Top 4 qualifier, point stage, double elim, Swiss — build it your way. We replicate any bracket structure you've used in Excel."},
+    {icon:"📡",title:"Live Score Input",desc:"Admins enter placements per game. Standings update instantly for every participant watching."},
+    {icon:"🎯",title:"Automated Lobby Seeding",desc:"Platform auto-generates lobbies per stage based on your format rules — no manual reshuffling."},
+    {icon:"👤",title:"Player Profiles & History",desc:"Every participant gets a profile with full tournament history, per-game placements, and career stats."},
+    {icon:"💰",title:"Prize Tracking",desc:"Prize pool, payout tiers, and per-place prizes displayed publicly on the tournament page."},
+    {icon:"🏷",title:"White-Label Ready",desc:"Your org name, your sponsors, your branding. Aegis Esports × ZenMarket — all surfaced front and center."},
+    {icon:"📣",title:"Sponsor Integration",desc:"Sponsor logos, callouts, and links woven into tournament pages, standings, and result cards."},
+    {icon:"📈",title:"Season Leaderboards",desc:"Run recurring showdowns as a season — cumulative standings, Hall of Fame, player milestones."},
+  ];
+
+  const placeCol=(p)=>{
+    if(p===1)return"#FFD700";
+    if(p===2)return"#C0C0C0";
+    if(p===3)return"#CD7F32";
+    if(p<=8)return"#9B72CF";
+    return"#4A5568";
+  };
+
+  const gameCol=(g)=>{
+    if(g>=7)return"#FFD700";
+    if(g>=5)return"#9B72CF";
+    if(g>=3)return"#4ECDC4";
+    return"#6B7280";
+  };
+
+  return(
+    <div className="page" style={{maxWidth:960}}>
+
+      {/* ── Header ── */}
+      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.14) 0%,rgba(232,168,56,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"32px 28px",marginBottom:24,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:160,height:160,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
+        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
+          <div>
+            <div style={{display:"flex",gap:8,marginBottom:10}}>
+              <div className="cond" style={{background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.35)",borderRadius:5,padding:"3px 10px",fontSize:11,color:"#E8A838",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Client Demo</div>
+              <div className="cond" style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.3)",borderRadius:5,padding:"3px 10px",fontSize:11,color:"#4ECDC4",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Live Data</div>
+            </div>
+            <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:700,color:"#F2EDE4",marginBottom:5,lineHeight:1.2}}>
+              Aegis Esports TFT Showdown <span style={{color:"#E8A838"}}>#151</span>
+            </h1>
+            <div style={{fontSize:14,color:"#9CA3AF",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
+            <div style={{fontSize:12,color:"#6B7280"}}>North America · 32+ players · 6 games · $200 prize pool</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div className="cond" style={{fontSize:10,color:"#4A5568",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#9B72CF",letterSpacing:".02em"}}>TFT Clash</div>
+            <div style={{fontSize:11,color:"#4A5568",marginTop:2}}>Tournament Platform</div>
+          </div>
+        </div>
+        <div style={{display:"flex",gap:28,marginTop:24,flexWrap:"wrap"}}>
+          {[["32+","Players"],["6","Games"],["$200","Prize Pool"],["#151","Edition"]].map(([val,lbl])=>(
+            <div key={lbl}>
+              <div style={{fontSize:26,fontWeight:700,color:"#F2EDE4",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{val}</div>
+              <div className="cond" style={{fontSize:11,color:"#6B7280",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{lbl}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Tab bar ── */}
+      <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
+        {[["standings","Standings"],["format","Format"],["features","Platform Features"]].map(([id,lbl])=>(
+          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"9px 12px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===id?"rgba(155,114,207,.22)":"transparent",color:tab===id?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{lbl}</button>
+        ))}
+      </div>
+
+      {/* ── STANDINGS TAB ── */}
+      {tab==="standings"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <Panel style={{padding:"22px 24px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#E8A838",margin:0}}>Finals — Top 8</h2>
+              <div style={{display:"flex",gap:6}}>
+                {["G3","G4","G5","G6"].map(g=>(
+                  <div key={g} className="cond" style={{width:28,textAlign:"center",fontSize:12,color:"#4A5568",fontWeight:700,letterSpacing:".05em"}}>{g}</div>
+                ))}
+                <div className="cond" style={{width:52,textAlign:"right",fontSize:12,color:"#4A5568",fontWeight:700,letterSpacing:".05em"}}>PTS</div>
+                <div style={{width:44}}/>
+              </div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:5}}>
+              {TOP8.map((p)=>(
+                <div key={p.ign} style={{display:"flex",alignItems:"center",gap:10,background:p.place===1?"rgba(255,215,0,.07)":p.place<=3?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",borderRadius:8,padding:"10px 12px",border:"1px solid "+(p.place===1?"rgba(255,215,0,.2)":p.place<=3?"rgba(155,114,207,.14)":"rgba(242,237,228,.04)")}}>
+                  <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(0,0,0,.3)",border:"2px solid "+placeCol(p.place),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:placeCol(p.place),flexShrink:0}}>{p.place}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:14,fontWeight:600,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.ign}</div>
+                  </div>
+                  <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                    {p.games.map((g,i)=>(
+                      <div key={i} style={{width:26,height:26,borderRadius:5,background:"rgba(0,0,0,.3)",border:"1px solid rgba(255,255,255,.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:gameCol(g)}}>{g}</div>
+                    ))}
+                  </div>
+                  <div className="cond" style={{fontSize:17,fontWeight:700,color:"#C4B5FD",minWidth:52,textAlign:"right"}}>{p.pts}<span style={{fontSize:10,color:"#4A5568",marginLeft:2}}>pts</span></div>
+                  <div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.22)",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Barlow Condensed',sans-serif",minWidth:38,textAlign:"center"}}>${p.prize}</div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel style={{padding:"20px 24px"}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:"#6B7280",marginBottom:14}}>Remaining Field — Point Stage Results</h3>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:5}}>
+              {REST.map((p)=>(
+                <div key={p.ign} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,.02)",borderRadius:6,padding:"7px 10px",border:"1px solid rgba(242,237,228,.04)"}}>
+                  <div className="cond" style={{fontSize:11,color:"#4A5568",fontWeight:700,minWidth:22,textAlign:"right"}}>#{p.place}</div>
+                  <div style={{fontSize:12,color:"#9CA3AF",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.ign}</div>
+                  <div className="cond" style={{fontSize:12,color:"#6B7280",fontWeight:700}}>{p.pts}p</div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"14px 18px",fontSize:12,color:"#6B7280",lineHeight:1.7}}>
+            <span style={{color:"#C4B5FD",fontWeight:600}}>Data sourced from:</span> Aegis Esports TFT Showdown #151 (Presented by ZenMarket) · Official spreadsheet · All placements verified.
+          </div>
+        </div>
+      )}
+
+      {/* ── FORMAT TAB ── */}
+      {tab==="format"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <Panel style={{padding:"24px"}}>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#E8A838",marginBottom:6}}>Tournament Format</h2>
+            <div style={{fontSize:13,color:"#6B7280",marginBottom:28}}>Showdown #151 ran a 3-stage format over 6 total games. This is the same structure we replicate on TFT Clash.</div>
+            <div style={{display:"flex",flexDirection:"column",gap:0}}>
+              {STAGES.map((s,i)=>(
+                <div key={s.id} style={{display:"flex",gap:16}}>
+                  <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+                    <div style={{width:46,height:46,borderRadius:12,background:"rgba(0,0,0,.4)",border:"2px solid "+s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{s.icon}</div>
+                    {i<STAGES.length-1&&<div style={{width:2,flex:1,minHeight:32,background:"linear-gradient(to bottom,"+s.color+"50,"+STAGES[i+1].color+"50)",margin:"4px 0"}}/>}
+                  </div>
+                  <div style={{flex:1,paddingBottom:i<STAGES.length-1?28:0}}>
+                    <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:8}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#F2EDE4"}}>{s.label}</div>
+                      <div className="cond" style={{background:"rgba(0,0,0,.3)",border:"1px solid "+s.color+"40",borderRadius:4,padding:"2px 8px",fontSize:11,fontWeight:700,color:s.color}}>{s.sub}</div>
+                    </div>
+                    <div style={{display:"flex",flexDirection:"column",gap:5}}>
+                      {s.bullets.map((b,bi)=>(
+                        <div key={bi} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+                          <div style={{width:5,height:5,borderRadius:"50%",background:s.color,flexShrink:0,marginTop:6}}/>
+                          <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6}}>{b}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel style={{padding:"22px 24px"}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:"#F2EDE4",marginBottom:14}}>EMEA Points System</h3>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
+              {[[1,"#FFD700"],[2,"#C0C0C0"],[3,"#CD7F32"],[4,"#9B72CF"],[5,"#6B7280"],[6,"#6B7280"],[7,"#6B7280"],[8,"#4A5568"]].map(([place,col])=>(
+                <div key={place} style={{display:"flex",flexDirection:"column",alignItems:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,padding:"10px 14px",minWidth:50}}>
+                  <div className="cond" style={{fontSize:17,fontWeight:700,color:col}}>{9-place}</div>
+                  <div style={{fontSize:10,color:"#4A5568",marginTop:3}}>pts</div>
+                  <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{"#"+place}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:12,color:"#6B7280",lineHeight:1.8}}>
+              <span style={{color:"#F2EDE4",fontWeight:600}}>Tiebreakers:</span> (1) Most recent game placement · (2) Highest single-game score · (3) Average placement across all games · (4) Coin flip
+            </div>
+          </Panel>
+        </div>
+      )}
+
+      {/* ── FEATURES TAB ── */}
+      {tab==="features"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:10}}>
+            {FEATURES.map((f)=>(
+              <Panel key={f.title} style={{padding:"20px"}}>
+                <div style={{fontSize:26,marginBottom:10}}>{f.icon}</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6}}>{f.title}</div>
+                <div style={{fontSize:13,color:"#6B7280",lineHeight:1.7}}>{f.desc}</div>
+              </Panel>
+            ))}
+          </div>
+
+          <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.13) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"28px"}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
+            <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.7,marginBottom:20}}>This entire page was built from your actual Showdown #151 spreadsheet data — your format, your players, your results, your branding. This is exactly what your community would see every week, live, no Excel required.</div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              <button onClick={()=>setScreen("host-apply")} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
+              <button onClick={()=>setScreen("pricing")} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function TFTClash(){
   const [screen,setScreen]=useState("home");
@@ -5792,6 +6027,7 @@ export default function TFTClash(){
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||SEED[0]} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer}/>}
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
+        {screen==="aegis-showcase"&&<AegisShowcaseScreen setScreen={navTo}/>}
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo}/>}
         {screen==="host-dashboard"&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
