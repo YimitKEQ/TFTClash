@@ -1,0 +1,10 @@
+# Planning & dev docs — not needed for deployment
+.planning/
+docs/
+CLAUDE.md
+HANDOFF-NEXT-CHAT.md
+README.md
+START.bat
+*.py
+*.xlsx
+*.txt.txt
