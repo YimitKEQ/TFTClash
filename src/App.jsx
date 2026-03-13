@@ -362,11 +362,11 @@ const PREMIUM_TIERS=[
 const GCSS=`
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body,#root{background:#08080F;}
+html,body,#root{background:#07070E;}
 html{color:#C8BFB0;font-family:'Barlow',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%;}
 body{overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);min-height:100vh;}
-::-webkit-scrollbar{width:3px;background:#0F1520;}
-::-webkit-scrollbar-thumb{background:#C8882A55;border-radius:2px;}
+::-webkit-scrollbar{width:4px;background:#0A0F1A;}
+::-webkit-scrollbar-thumb{background:rgba(232,168,56,.3);border-radius:3px;}
 input,select,textarea{font-family:'Barlow',sans-serif;outline:none;color:#F2EDE4;-webkit-appearance:none;appearance:none;}
 button{font-family:'Barlow',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input::placeholder{color:#6B7280!important;opacity:1!important;}
@@ -400,28 +400,29 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
 /* ── mobile bottom nav ───────────────────────────────────────── */
 .bottom-nav{
   position:fixed;bottom:0;left:0;right:0;z-index:200;
-  background:rgba(8,8,15,.97);
-  border-top:1px solid rgba(232,168,56,.12);
+  background:rgba(7,7,14,.98);
+  border-top:1px solid rgba(232,168,56,.2);
+  box-shadow:0 -4px 24px rgba(0,0,0,.5),0 -1px 0 rgba(232,168,56,.06);
   display:flex;
   padding-bottom:env(safe-area-inset-bottom);
-  backdrop-filter:blur(16px);
+  backdrop-filter:blur(20px);
 }
 .bottom-nav button{
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;padding:9px 4px;background:none;border:none;
-  font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  color:#6B7280;transition:color .15s;font-family:'Barlow Condensed',sans-serif;
-  -webkit-tap-highlight-color:transparent;min-height:52px;
+  font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  color:#6B7280;transition:color .2s,text-shadow .2s;font-family:'Barlow Condensed',sans-serif;
+  -webkit-tap-highlight-color:transparent;min-height:54px;
 }
 .bottom-nav button.active{color:#E8A838;}
-.bottom-nav button span.icon{font-size:18px;line-height:1;}
+.bottom-nav button span.icon{font-size:20px;line-height:1;}
 
 /* ── desktop top nav (hidden on mobile) ──────────────────────── */
 .top-nav{
   position:sticky;top:0;z-index:100;
-  background:rgba(8,8,15,.95);
-  border-bottom:1px solid rgba(232,168,56,.1);
-  backdrop-filter:blur(16px);
+  background:rgba(7,7,14,.97);
+  border-bottom:1px solid rgba(232,168,56,.15);
+  backdrop-filter:blur(20px);
   display:none;
 }
 @media(min-width:768px){
@@ -455,7 +456,7 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
 
 /* ── More drawer ─────────────────────────────────────────────── */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:190;animation:fadeup .2s ease;}
-.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#0F1520;border-right:1px solid rgba(232,168,56,.15);z-index:195;animation:slide-drawer .22s ease;display:flex;flex-direction:column;padding:32px 0;}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:linear-gradient(180deg,#0E1826,#08101A);border-right:1px solid rgba(232,168,56,.2);z-index:195;animation:slide-drawer .22s ease;display:flex;flex-direction:column;padding:32px 0;box-shadow:4px 0 32px rgba(0,0,0,.6);}
 
 /* ── esports glow enhancements ───────────────────────────────── */
 @keyframes gold-shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
@@ -474,7 +475,7 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
 .gold-shimmer{background:linear-gradient(90deg,#C4882A,#FFD700,#E8A838,#FFD700,#C4882A);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gold-shimmer 4s linear infinite;}
 
 /* Top nav enhancements */
-.top-nav{box-shadow:0 1px 0 rgba(232,168,56,.08),0 4px 32px rgba(0,0,0,.6);}
+.top-nav{box-shadow:0 1px 0 rgba(232,168,56,.12),0 8px 40px rgba(0,0,0,.7);}
 .top-nav button:hover{color:#F2EDE4!important;}
 .top-nav button[data-active="true"]{color:#E8A838!important;text-shadow:0 0 12px rgba(232,168,56,.5);}
 
@@ -485,14 +486,14 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
 
 /* Standings row hover */
 .standings-row{transition:background .15s,transform .1s,box-shadow .15s;}
-.standings-row:hover{background:rgba(232,168,56,.06)!important;transform:translateX(3px);box-shadow:inset 3px 0 0 rgba(232,168,56,.5);}
+.standings-row:hover{background:rgba(232,168,56,.08)!important;transform:translateX(4px);box-shadow:inset 4px 0 0 rgba(232,168,56,.65),0 2px 20px rgba(232,168,56,.06);}
 .standings-row-1{background:rgba(232,168,56,.05)!important;}
 .standings-row-1 .rank-num{color:#E8A838!important;text-shadow:0 0 12px rgba(232,168,56,.8);}
 .standings-row-2 .rank-num{text-shadow:0 0 8px rgba(192,192,192,.7);}
 .standings-row-3 .rank-num{text-shadow:0 0 8px rgba(205,127,50,.7);}
 
 /* Stat boxes glow on hover */
-.stat-box{background:#111827;border:1px solid rgba(242,237,228,.08);border-radius:10px;padding:14px 12px;text-align:center;transition:border-color .2s,box-shadow .2s,transform .15s;cursor:default;}
+.stat-box{background:linear-gradient(145deg,#131C2A,#0D1421);border:1px solid rgba(242,237,228,.1);border-radius:12px;padding:16px 14px;text-align:center;transition:border-color .2s,box-shadow .2s,transform .15s;cursor:default;}
 .stat-box:hover{border-color:rgba(232,168,56,.3);box-shadow:0 0 20px rgba(232,168,56,.08);transform:translateY(-2px);}
 
 /* Countdown neon digits */
@@ -502,7 +503,7 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5),0 0 16px rgba(155,114,207,.12)!important;border-color:rgba(155,114,207,.6)!important;}
 
 /* Panel hover shimmer line */
-.panel-hover-shimmer{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,168,56,.4),transparent);opacity:0;transition:opacity .3s;}
+.panel-hover-shimmer{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(232,168,56,.55),transparent);opacity:0;transition:opacity .3s;}
 
 /* Btn primary pulse */
 .btn-primary-glow{box-shadow:0 4px 20px rgba(232,168,56,.3),0 0 40px rgba(232,168,56,.1)!important;transition:box-shadow .2s,transform .15s!important;}
@@ -518,6 +519,22 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5
 /* Live dot pulse enhanced */
 @keyframes live-ping{0%{transform:scale(1);opacity:1}70%{transform:scale(2.5);opacity:0}100%{transform:scale(1);opacity:0}}
 .live-dot-ring{animation:live-ping 1.8s cubic-bezier(0,.2,.8,1) infinite;}
+
+/* ── nav active underline ────────────────────────────────── */
+.top-nav button{position:relative;}
+.top-nav button[data-active="true"]::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:#E8A838;border-radius:2px;box-shadow:0 0 8px rgba(232,168,56,.8);}
+
+/* ── section divider ─────────────────────────────────────── */
+.section-div{height:1px;background:linear-gradient(90deg,rgba(232,168,56,.3),rgba(155,114,207,.15),transparent);margin:16px 0;}
+
+/* ── input focus bg ──────────────────────────────────────── */
+input:focus,select:focus,textarea:focus{background:#192237!important;}
+
+/* ── row champion highlight ──────────────────────────────── */
+.row-champion{background:linear-gradient(90deg,rgba(232,168,56,.09),rgba(232,168,56,.03),transparent)!important;}
+
+/* ── deep card variant ───────────────────────────────────── */
+.card-deep{background:linear-gradient(160deg,#0A1020,#060D18)!important;border-color:rgba(155,114,207,.18)!important;}
 `;
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
@@ -525,15 +542,16 @@ function Hexbg(){
   return(
     <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
       <div className="scanlines" style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none"}}/>
-      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:.03}} xmlns="http://www.w3.org/2000/svg">
+      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:.04}} xmlns="http://www.w3.org/2000/svg">
         <defs><pattern id="hxp" x="0" y="0" width="60" height="104" patternUnits="userSpaceOnUse">
           <path d="M30 2L58 18L58 50L30 66L2 50L2 18Z" fill="none" stroke="#E8A838" strokeWidth="1"/>
           <path d="M30 38L58 54L58 86L30 102L2 86L2 54Z" fill="none" stroke="#E8A838" strokeWidth="1"/>
         </pattern></defs>
         <rect width="100%" height="100%" fill="url(#hxp)"/>
       </svg>
-      <div style={{position:"absolute",top:"-20%",right:"0",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.04),transparent 65%)"}}/>
-      <div style={{position:"absolute",bottom:"0",left:"-15%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(78,205,196,.03),transparent 65%)"}}/>
+      <div style={{position:"absolute",top:"-20%",right:"0",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.08),transparent 65%)"}}/>
+      <div style={{position:"absolute",bottom:"0",left:"-15%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(78,205,196,.06),transparent 65%)"}}/>
+      <div style={{position:"absolute",top:"40%",left:"35%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(155,114,207,.04),transparent 65%)"}}/>
     </div>
   );
 }
@@ -547,7 +565,7 @@ function Panel({children,style,glow,accent,danger,color,hover,onClick}){
     <div onClick={onClick}
       onMouseEnter={hover?()=>setHov(true):undefined}
       onMouseLeave={hover?()=>setHov(false):undefined}
-      style={Object.assign({background:"#111827",border:"1px solid "+bdr,borderRadius:12,position:"relative",overflow:"hidden",
+      style={Object.assign({background:"linear-gradient(160deg,#131C2B,#0C1320)",border:"1px solid "+bdr,borderRadius:14,position:"relative",overflow:"hidden",
         boxShadow:hover&&hov?"0 12px 56px rgba(232,168,56,.18),0 4px 16px rgba(0,0,0,.5)":shd,
         transition:"box-shadow .2s,transform .2s",
         transform:hover&&hov?"translateY(-2px)":"none",
@@ -564,7 +582,7 @@ function Btn({children,onClick,v,s,disabled,full,style}){
   const pad=size==="sm"?"6px 13px":size==="lg"?"14px 32px":size==="xl"?"18px 44px":"11px 20px";
   const fs=size==="sm"?12:size==="lg"?14:size==="xl"?16:13;
   const VS={
-    primary:{background:"linear-gradient(135deg,#E8A838,#D4922A)",color:"#08080F",border:"none",boxShadow:"0 4px 20px rgba(232,168,56,.25)"},
+    primary:{background:"linear-gradient(135deg,#F0B544,#D4922A)",color:"#07070E",border:"none",boxShadow:"0 4px 24px rgba(232,168,56,.3)"},
     ghost:{background:"transparent",color:"#E8A838",border:"1px solid rgba(232,168,56,.35)"},
     danger:{background:"rgba(220,38,38,.1)",color:"#F87171",border:"1px solid rgba(220,38,38,.35)"},
     success:{background:"rgba(82,196,124,.1)",color:"#6EE7B7",border:"1px solid rgba(82,196,124,.35)"},
@@ -591,10 +609,10 @@ function Inp({value,onChange,placeholder,type,onKeyDown,style}){
     <input type={type||"text"} value={value} onChange={e=>onChange(e.target.value)}
       placeholder={placeholder} onKeyDown={onKeyDown}
       onFocus={()=>setF(true)} onBlur={()=>setF(false)}
-      style={Object.assign({width:"100%",background:"#1C2030",
-        border:f?"1px solid rgba(232,168,56,.55)":"1px solid rgba(242,237,228,.12)",
+      style={Object.assign({width:"100%",background:"#141E30",
+        border:f?"1px solid rgba(232,168,56,.6)":"1px solid rgba(242,237,228,.11)",
         borderRadius:8,padding:"12px 14px",color:"#F2EDE4",fontSize:15,
-        transition:"border .15s",lineHeight:1.4,minHeight:46},style||{})}/>
+        transition:"border .15s,background .15s",lineHeight:1.4,minHeight:46},style||{})}/>
   );
 }
 
@@ -602,7 +620,7 @@ function Sel({value,onChange,children,style}){
   return(
     <div style={{position:"relative",...(style?.width?{width:style.width}:{})}}>
       <select value={value} onChange={e=>onChange(e.target.value)}
-        style={Object.assign({width:"100%",background:"#1C2030",border:"1px solid rgba(242,237,228,.12)",
+        style={Object.assign({width:"100%",background:"#141E30",border:"1px solid rgba(242,237,228,.11)",
           borderRadius:8,padding:"12px 36px 12px 14px",color:"#F2EDE4",fontSize:15,minHeight:46,
           appearance:"none",cursor:"pointer"},style||{})}>
         {children}
@@ -794,10 +812,10 @@ function SponsorBanner({sponsor,onNavigate}){
 function ChampionHeroCard({champion,onClick}){
   const c=champion||SEASON_CHAMPION;
   return(
-    <div onClick={onClick} style={{position:"relative",overflow:"hidden",borderRadius:12,
-      background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(155,114,207,.06),rgba(8,8,15,.98))",
-      border:"1px solid rgba(232,168,56,.5)",
-      boxShadow:"0 0 40px rgba(232,168,56,.1)",
+    <div onClick={onClick} style={{position:"relative",overflow:"hidden",borderRadius:16,
+      background:"linear-gradient(135deg,rgba(232,168,56,.16),rgba(155,114,207,.08),rgba(7,7,14,.98))",
+      border:"1px solid rgba(232,168,56,.55)",
+      boxShadow:"0 0 50px rgba(232,168,56,.14),0 4px 24px rgba(0,0,0,.4)",
       padding:"20px 22px",cursor:onClick?"pointer":"default",
       animation:"pulse-gold 4s infinite"}}>
       <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
@@ -1271,7 +1289,7 @@ function StandingsTable({rows,compact,onRowClick}){
               padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",
               background:i===0?"rgba(232,168,56,.04)":i<3?"rgba(232,168,56,.02)":"transparent",
               alignItems:"center",cursor:onRowClick?"pointer":"default"}}>
-            <div className="mono rank-num" style={{fontSize:13,fontWeight:800,color:rankCol}}>{i+1}</div>
+            <div className="mono rank-num" style={{fontSize:15,fontWeight:900,color:rankCol,minWidth:22,textAlign:"center"}}>{i+1}</div>
             <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
               <div style={{minWidth:0}}>
                 <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",display:"flex",alignItems:"center",gap:5,overflow:"hidden"}}>
@@ -1285,7 +1303,7 @@ function StandingsTable({rows,compact,onRowClick}){
                 </div>}
               </div>
             </div>
-            <div className="mono pts-glow" style={{fontSize:16,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
+            <div className="mono pts-glow" style={{fontSize:18,fontWeight:800,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
             <div className="mono" style={{fontSize:11,color:"#6B7280"}}>{p.games||0}</div>
             {!compact&&<div className="mono" style={{fontSize:13,color:"#6EE7B7"}}>{p.wins||0}</div>}
@@ -1325,9 +1343,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const top5=[...players].sort((a,b)=>b.pts-a.pts).slice(0,5);
 
   const StatBox=({label,val,c})=>(
-    <div style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
-      <div className="mono" style={{fontSize:24,fontWeight:700,color:c||"#E8A838",lineHeight:1}}>{val}</div>
-      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9CA3AF",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
+    <div style={{background:"linear-gradient(145deg,#131C2A,#0D1421)",border:"1px solid rgba(242,237,228,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+      <div className="mono" style={{fontSize:26,fontWeight:800,color:c||"#E8A838",lineHeight:1}}>{val}</div>
+      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9CA3AF",marginTop:5,letterSpacing:".05em",textTransform:"uppercase"}}>{label}</div>
     </div>
   );
 
@@ -1375,7 +1393,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 12px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20,marginBottom:20}}>
             <Dot size={6}/><span className="cond" style={{fontSize:11,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 — Season Active · Weekly Clash</span>
           </div>
-          <h1 className="au1" style={{fontWeight:900,fontSize:"clamp(44px,6.5vw,74px)",color:"#F2EDE4",lineHeight:.88,letterSpacing:"-.02em",marginBottom:18}}>
+          <h1 className="au1" style={{fontWeight:900,fontSize:"clamp(48px,7vw,82px)",color:"#F2EDE4",lineHeight:.86,letterSpacing:"-.03em",marginBottom:20}}>
             The<br/><span style={{color:"#E8A838",fontStyle:"italic",textShadow:"0 0 60px rgba(232,168,56,.35)"}}>Convergence</span><br/>Awaits
           </h1>
           <p className="au2" style={{fontSize:15,color:"#9CA3AF",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
@@ -1388,12 +1406,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             <StatBox label="Games" val={players.reduce((s,p)=>s+(p.games||0),0)} c="#4ECDC4"/>
           </div>
           {/* Countdown */}
-          <div style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:"18px",textAlign:"center"}}>
+          <div style={{background:"linear-gradient(145deg,#0F1827,#090E1A)",border:"1px solid rgba(232,168,56,.18)",borderRadius:14,padding:"20px",textAlign:"center"}}>
             <div className="cond" style={{fontSize:11,fontWeight:700,color:"#6B7280",letterSpacing:".12em",textTransform:"uppercase",marginBottom:12}}>⏳ Clash #14 In</div>
             <div style={{display:"flex",justifyContent:"center",gap:16}}>
               {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
                 <div key={l} style={{textAlign:"center"}}>
-                  <div className="mono countdown-digit" style={{fontSize:30,fontWeight:700,color:"#E8A838",lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+                  <div className="mono countdown-digit" style={{fontSize:36,fontWeight:800,color:"#E8A838",lineHeight:1}}>{String(v).padStart(2,"0")}</div>
                   <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginTop:3}}>{l}</div>
                 </div>
               ))}
@@ -1466,7 +1484,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       <Panel accent style={{padding:"18px",marginTop:14}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-          <h3 style={{fontSize:16,color:"#F2EDE4",fontWeight:700}}>Season Standings</h3>
+          <h3 style={{fontSize:17,color:"#F2EDE4",fontWeight:700,letterSpacing:"-.01em"}}>Season Standings</h3>
           <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Full Leaderboard →</Btn>
         </div>
         {top5.map((p,i)=>(
