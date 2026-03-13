@@ -1185,7 +1185,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       {/* Desktop top nav */}
       <nav className="top-nav">
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:62,display:"flex",alignItems:"center",gap:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginRight:24,flexShrink:0}}>
+          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:24,flexShrink:0,cursor:"pointer"}}>
             <svg className="hex-logo" width="24" height="24" viewBox="0 0 60 70" fill="none">
               <path d="M30 2L58 18L58 52L30 68L2 52L2 18Z" fill="none" stroke="#E8A838" strokeWidth="2.5"/>
               <path d="M30 15L46 24L46 42L30 51L14 42L14 24Z" fill="rgba(232,168,56,.15)" stroke="#E8A838" strokeWidth="1.5"/>
