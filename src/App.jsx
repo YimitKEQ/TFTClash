@@ -2941,7 +2941,7 @@ function ArchiveScreen({players,currentUser}){
 
 
 
-function AdminPanel({players,setPlayers,toast,setAnnouncement}){
+function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen}){
   const [tab,setTab]=useState("dashboard");
   const [editP,setEditP]=useState(null);
   const [noteTarget,setNoteTarget]=useState(null);
@@ -3264,7 +3264,12 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement}){
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
             <h3 style={{fontSize:16,color:"#F2EDE4"}}>Host Applications</h3>
-            <div style={{fontSize:12,color:"#6B7280"}}>{hostApps.filter(a=>a.status==="pending").length} pending review</div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:12,color:"#6B7280"}}>{hostApps.filter(a=>a.status==="pending").length} pending review</div>
+              <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.18)",border:"1px solid rgba(155,114,207,.4)",borderRadius:7,padding:"6px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
+                <span>🏆</span> Aegis Client Demo
+              </button>
+            </div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {hostApps.map(app=>(
@@ -6032,7 +6037,7 @@ export default function TFTClash(){
         {screen==="host-dashboard"&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
         {screen==="scrims"     &&isAdmin&&<ScrimsScreen players={players} toast={toast}/>}
-        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement}/>}
+        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo}/>}
         {screen==="admin"      &&!isAdmin&&(
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
             <div style={{fontSize:38,marginBottom:14}}>🔒</div>
