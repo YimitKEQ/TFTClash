@@ -5700,77 +5700,122 @@ function FAQScreen({setScreen}){
   );
 }
 
-// ─── AEGIS SHOWCASE ───────────────────────────────────────────────────────────
+// ─── AEGIS SHOWCASE ─────────────────────────────────────────────────────────────────────────────
 function AegisShowcaseScreen({setScreen}){
-  const [tab,setTab]=useState("standings");
+  const [tab,setTab]=useState("format");
+  const [lobbyRound,setLobbyRound]=useState("G2");
+  const [showAll,setShowAll]=useState(false);
 
-  const TOP8=[
-    {place:1,ign:"D0PA#111",pts:29,games:[7,7,8,7],prize:60},
-    {place:2,ign:"LC Abyss#CAPO",pts:28,games:[8,7,7,6],prize:40},
-    {place:3,ign:"vnck#NA1",pts:25,games:[5,6,6,8],prize:30},
-    {place:4,ign:"Ken Kitade",pts:23,games:[6,5,7,5],prize:20},
-    {place:5,ign:"Hydro#1000",pts:22,games:[5,8,6,3],prize:17},
-    {place:6,ign:"arzootft#na1",pts:21,games:[8,6,3,4],prize:13},
-    {place:7,ign:"ryt hardpuzzle#na2",pts:19,games:[7,8,2,2],prize:10},
-    {place:8,ign:"Talelelelelelel#NA1",pts:18,games:[6,7,4,1],prize:10},
+  const STANDINGS=[
+    {place:1, ign:"D0PA#111",              g1:5,g2:6,g3:7,g4:7,g5:8,g6:7,total:29,prize:60},
+    {place:2, ign:"LC Abyss#CAPO",         g1:5,g2:5,g3:8,g4:7,g5:7,g6:6,total:28,prize:40},
+    {place:3, ign:"vnck#NA1",              g1:5,g2:5,g3:5,g4:6,g5:6,g6:8,total:25,prize:30},
+    {place:4, ign:"Ken Kitade",            g1:5,g2:8,g3:6,g4:5,g5:7,g6:5,total:23,prize:20},
+    {place:5, ign:"Hydro#1000",            g1:5,g2:6,g3:5,g4:8,g5:6,g6:3,total:22,prize:17},
+    {place:6, ign:"arzootft #na1",         g1:5,g2:8,g3:8,g4:6,g5:3,g6:4,total:21,prize:13},
+    {place:7, ign:"ryt hardpuzzle#na2",    g1:5,g2:8,g3:7,g4:8,g5:2,g6:2,total:19,prize:10},
+    {place:8, ign:"Talelelelelelel#NA1",   g1:5,g2:6,g3:6,g4:7,g5:4,g6:1,total:18,prize:10},
+    {place:9, ign:"koke na gringa#na1",    g1:5,g2:8,g3:4,g4:4,g5:8,g6:null,total:16,prize:0},
+    {place:10,ign:"LUNA Arcanine#NA3",     g1:5,g2:8,g3:8,g4:4,g5:4,g6:null,total:16,prize:0},
+    {place:11,ign:"Mujjiwaraa#na1",        g1:5,g2:7,g3:7,g4:6,g5:3,g6:null,total:16,prize:0},
+    {place:12,ign:"Gerinha #777",          g1:5,g2:7,g3:5,g4:5,g5:5,g6:null,total:15,prize:0},
+    {place:13,ign:"Haykaroo#PHI",          g1:5,g2:7,g3:8,g4:2,g5:5,g6:null,total:15,prize:0},
+    {place:14,ign:"Pun#TFT",              g1:5,g2:6,g3:3,g4:8,g5:2,g6:null,total:13,prize:0},
+    {place:15,ign:"Xenor#NA1",             g1:5,g2:8,g3:7,g4:5,g5:1,g6:null,total:13,prize:0},
+    {place:16,ign:"Politicess#na1",        g1:5,g2:8,g3:6,g4:4,g5:1,g6:null,total:11,prize:0},
+    {place:17,ign:"PoGamoRNA#NA1",         g1:5,g2:5,g3:5,g4:3,g5:null,g6:null,total:8,prize:0},
+    {place:18,ign:"MGC Fizz#mgc",          g1:5,g2:7,g3:6,g4:2,g5:null,g6:null,total:8,prize:0},
+    {place:19,ign:"Lukwer#Kata",           g1:5,g2:7,g3:4,g4:3,g5:null,g6:null,total:7,prize:0},
+    {place:20,ign:"kininaru#oreo",         g1:5,g2:5,g3:4,g4:3,g5:null,g6:null,total:7,prize:0},
+    {place:21,ign:"XcorpionTFT",           g1:5,g2:5,g3:3,g4:2,g5:null,g6:null,total:5,prize:0},
+    {place:22,ign:"Hoshimi Miyabi#3110",   g1:5,g2:5,g3:4,g4:1,g5:null,g6:null,total:5,prize:0},
+    {place:23,ign:"ChunChunMaru#KSuba",    g1:5,g2:6,g3:3,g4:1,g5:null,g6:null,total:4,prize:0},
+    {place:24,ign:"LC Dominus#CAPO",       g1:5,g2:8,g3:3,g4:0,g5:null,g6:null,total:3,prize:0},
+    {place:25,ign:"YoonEna#joshu",         g1:5,g2:7,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
+    {place:26,ign:"i love cat memes#xaste",g1:5,g2:7,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
+    {place:27,ign:"bourbon#GGG",           g1:5,g2:6,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
+    {place:28,ign:"MarksM #3004",          g1:5,g2:5,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
+    {place:29,ign:"Theonelukeyg#NA1",      g1:5,g2:7,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
+    {place:30,ign:"BESTIAROCK22#9708",     g1:5,g2:6,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
+    {place:31,ign:"PowerPuff Tundie#na1",  g1:5,g2:6,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
+    {place:32,ign:"Only Lowroll#NA1",      g1:5,g2:5,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
   ];
 
-  const REST=[
-    {place:9,ign:"koke na gringa#na1",pts:16},{place:10,ign:"LUNA Arcanine#NA3",pts:16},
-    {place:11,ign:"Mujjiwaraa#na1",pts:16},{place:12,ign:"Gerinha #777",pts:15},
-    {place:13,ign:"Haykaroo#PHI",pts:15},{place:14,ign:"Pun#TFT",pts:13},
-    {place:15,ign:"Xenor#NA1",pts:13},{place:16,ign:"Politicess#na1",pts:11},
-    {place:17,ign:"PoGamoRNA#NA1",pts:8},{place:18,ign:"MGC Fizz#mgc",pts:8},
-    {place:19,ign:"Lukwer#Kata",pts:7},{place:20,ign:"kininaru#oreo",pts:7},
-    {place:21,ign:"XcorpionTFT",pts:5},{place:22,ign:"Hoshimi Miyabi#3110",pts:5},
-    {place:23,ign:"ChunChunMaru#KSuba",pts:4},{place:24,ign:"LC Dominus#CAPO",pts:3},
-    {place:25,ign:"YoonEna#joshu",pts:2},{place:26,ign:"i love cat memes#xaste",pts:2},
-    {place:27,ign:"bourbon#GGG",pts:2},{place:28,ign:"MarksM #3004",pts:2},
-    {place:29,ign:"Theonelukeyg#NA1",pts:1},{place:30,ign:"BESTIAROCK22#9708",pts:1},
-    {place:31,ign:"PowerPuff Tundie#na1",pts:1},{place:32,ign:"Only Lowroll#NA1",pts:1},
-  ];
+  const LOBBIES={
+    G1:[
+      {name:"Lobby 1", note:"Qualifier",players:[{ign:"Talelelelelelel#NA1",pts:5},{ign:"YoonEna#joshu",pts:5},{ign:"BrazilianKlein#NA1",pts:5},{ign:"52HzGrimlocking#NA13",pts:5}]},
+      {name:"Lobby 2", note:"Qualifier",players:[{ign:"koke na gringa#na1",pts:5},{ign:"Hastyles4#Na",pts:5},{ign:"MarksM #3004",pts:5},{ign:"TheDeadlyinx",pts:5}]},
+      {name:"Lobby 3", note:"Qualifier",players:[{ign:"Ken Kitade",pts:5},{ign:"reddell#010",pts:5},{ign:"Minimalrage19",pts:5},{ign:"MassiveBBC",pts:5}]},
+      {name:"Lobby 4", note:"Qualifier",players:[{ign:"vnck#NA1",pts:5},{ign:"Theonelukeyg#NA1",pts:5},{ign:"BESTIAROCK22#9708",pts:5},{ign:"AshSvr#Na1",pts:5}]},
+      {name:"Lobby 5", note:"Qualifier",players:[{ign:"Xenor#NA1",pts:5},{ign:"bourbon#GGG",pts:5},{ign:"alandioss#NA2",pts:5},{ign:"DUSK Hallo#weens",pts:5}]},
+      {name:"Lobby 6", note:"Qualifier",players:[{ign:"Lukwer#Kata",pts:5},{ign:"Hoshimi Miyabi#3110",pts:5},{ign:"ASaltedSam#1330",pts:5},{ign:"Grepizza#4389",pts:5}]},
+      {name:"Lobby 7", note:"Qualifier",players:[{ign:"LC Abyss#CAPO",pts:5},{ign:"MGC Fizz#mgc",pts:5},{ign:"Braven#8888",pts:5},{ign:"Zuko#louee",pts:5}]},
+      {name:"Lobby 8", note:"Qualifier",players:[{ign:"Hydro#1000",pts:5},{ign:"LC Dominus#CAPO",pts:5},{ign:"Nabitona#na1",pts:5},{ign:"YukiAruu",pts:5}]},
+    ],
+    G2:[
+      {name:"Lobby 9",  note:"Qualifier 2",players:[{ign:"koke na gringa#na1",pts:8},{ign:"Talelelelelelel#NA1",pts:6},{ign:"MarksM #3004",pts:5},{ign:"TheDeadlyinx",pts:4},{ign:"Hastyles4#Na",pts:2},{ign:"52HzGrimlocking#NA13",pts:1},{ign:"YoonEna#joshu",pts:7},{ign:"BrazilianKlein#NA1",pts:3}]},
+      {name:"Lobby 10", note:"Qualifier 2",players:[{ign:"Ken Kitade",pts:8},{ign:"Theonelukeyg#NA1",pts:7},{ign:"vnck#NA1",pts:5},{ign:"BESTIAROCK22#9708",pts:6},{ign:"MassiveBBC",pts:4},{ign:"AshSvr#Na1",pts:3},{ign:"reddell#010",pts:2},{ign:"Minimalrage19",pts:1}]},
+      {name:"Lobby 11", note:"Qualifier 2",players:[{ign:"Xenor#NA1",pts:8},{ign:"Lukwer#Kata",pts:7},{ign:"bourbon#GGG",pts:6},{ign:"Hoshimi Miyabi#3110",pts:5},{ign:"alandioss#NA2",pts:4},{ign:"ASaltedSam#1330",pts:3},{ign:"DUSK Hallo#weens",pts:2},{ign:"Grepizza#4389",pts:1}]},
+      {name:"Lobby 12", note:"Qualifier 2",players:[{ign:"LC Dominus#CAPO",pts:8},{ign:"MGC Fizz#mgc",pts:7},{ign:"Hydro#1000",pts:6},{ign:"LC Abyss#CAPO",pts:5},{ign:"Braven#8888",pts:4},{ign:"Zuko#louee",pts:3},{ign:"YukiAruu",pts:2},{ign:"Nabitona#na1",pts:0}]},
+      {name:"Lobby 13", note:"Qualifier 2",players:[{ign:"LUNA Arcanine#NA3",pts:8},{ign:"i love cat memes#xaste",pts:7},{ign:"D0PA#111",pts:6},{ign:"XcorpionTFT",pts:5},{ign:"LC AnkallE#CAPO",pts:4},{ign:"Ego#8421",pts:3},{ign:"xrebel#rebel",pts:2},{ign:"Danzel#NA0",pts:1}]},
+      {name:"Lobby 14", note:"Qualifier 2",players:[{ign:"ryt hardpuzzle#na2",pts:8},{ign:"Gerinha #777",pts:7},{ign:"PowerPuff Tundie#na1",pts:6},{ign:"PoGamoRNA#NA1",pts:5},{ign:"Emrys#pog",pts:4},{ign:"patobsg #NA1",pts:3},{ign:"moeen#moeen",pts:2},{ign:"SamerNAs#NAs",pts:1}]},
+      {name:"Lobby 15", note:"Qualifier 2",players:[{ign:"arzootft #na1",pts:8},{ign:"Haykaroo#PHI",pts:7},{ign:"Pun#TFT",pts:6},{ign:"kininaru#oreo",pts:5},{ign:"LC DYAMZ #L33T",pts:4},{ign:"Yonah#0724",pts:3},{ign:"cancelmyfuneral#na1",pts:2},{ign:"NoSoyAntonio21#NA2",pts:1}]},
+      {name:"Lobby 16", note:"Qualifier 2",players:[{ign:"Politicess#na1",pts:8},{ign:"Mujjiwaraa#na1",pts:7},{ign:"ChunChunMaru#KSuba",pts:6},{ign:"Only Lowroll#NA1",pts:5},{ign:"LevitateNA#Buff",pts:4},{ign:"Candyland player#NA1",pts:3}]},
+    ],
+    G3:[
+      {name:"Lobby 17",note:"Point Stage · Game 1",players:[{ign:"arzootft #na1",pts:8},{ign:"Xenor#NA1",pts:7},{ign:"Talelelelelelel#NA1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Hoshimi Miyabi#3110",pts:4},{ign:"XcorpionTFT",pts:3},{ign:"YoonEna#joshu",pts:2},{ign:"BESTIAROCK22#9708",pts:1}]},
+      {name:"Lobby 18",note:"Point Stage · Game 1",players:[{ign:"Haykaroo#PHI",pts:8},{ign:"ryt hardpuzzle#na2",pts:7},{ign:"Ken Kitade",pts:6},{ign:"vnck#NA1",pts:5},{ign:"PoGamoRNA#NA1",pts:5},{ign:"kininaru#oreo",pts:4},{ign:"ChunChunMaru#KSuba",pts:3},{ign:"Politicess#na1",pts:6}]},
+      {name:"Lobby 19",note:"Point Stage · Game 1",players:[{ign:"LC Abyss#CAPO",pts:8},{ign:"Mujjiwaraa#na1",pts:7},{ign:"MGC Fizz#mgc",pts:6},{ign:"Pun#TFT",pts:3},{ign:"koke na gringa#na1",pts:4},{ign:"i love cat memes#xaste",pts:2},{ign:"PowerPuff Tundie#na1",pts:1},{ign:"Theonelukeyg#NA1",pts:1}]},
+      {name:"Lobby 20",note:"Point Stage · Game 1",players:[{ign:"LUNA Arcanine#NA3",pts:8},{ign:"D0PA#111",pts:7},{ign:"Lukwer#Kata",pts:4},{ign:"Hydro#1000",pts:5},{ign:"LC Dominus#CAPO",pts:3},{ign:"MarksM #3004",pts:2},{ign:"Only Lowroll#NA1",pts:1},{ign:"bourbon#GGG",pts:2}]},
+    ],
+    G4:[
+      {name:"Lobby 21",note:"Point Stage · Game 2",players:[{ign:"ryt hardpuzzle#na2",pts:8},{ign:"Talelelelelelel#NA1",pts:7},{ign:"D0PA#111",pts:7},{ign:"Mujjiwaraa#na1",pts:6},{ign:"arzootft #na1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Xenor#NA1",pts:5},{ign:"koke na gringa#na1",pts:4}]},
+      {name:"Lobby 22",note:"Point Stage · Game 2",players:[{ign:"Pun#TFT",pts:8},{ign:"Hydro#1000",pts:8},{ign:"LC Abyss#CAPO",pts:7},{ign:"vnck#NA1",pts:6},{ign:"Politicess#na1",pts:4},{ign:"kininaru#oreo",pts:3},{ign:"Haykaroo#PHI",pts:2},{ign:"XcorpionTFT",pts:2}]},
+      {name:"Lobby 23",note:"Point Stage · Game 2",players:[{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Ken Kitade",pts:5},{ign:"MGC Fizz#mgc",pts:2},{ign:"Lukwer#Kata",pts:3},{ign:"PoGamoRNA#NA1",pts:3},{ign:"Hoshimi Miyabi#3110",pts:1},{ign:"LC Dominus#CAPO",pts:0}]},
+    ],
+    G5:[
+      {name:"Lobby 24",note:"Point Stage · Game 3",players:[{ign:"koke na gringa#na1",pts:8},{ign:"Ken Kitade",pts:7},{ign:"Hydro#1000",pts:6},{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Talelelelelelel#NA1",pts:4},{ign:"arzootft #na1",pts:3},{ign:"ryt hardpuzzle#na2",pts:2},{ign:"Xenor#NA1",pts:1}]},
+      {name:"Lobby 25",note:"Point Stage · Game 3",players:[{ign:"D0PA#111",pts:8},{ign:"LC Abyss#CAPO",pts:7},{ign:"vnck#NA1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Haykaroo#PHI",pts:5},{ign:"Mujjiwaraa#na1",pts:3},{ign:"Pun#TFT",pts:2},{ign:"Politicess#na1",pts:1}]},
+    ],
+    G6:[
+      {name:"Finals",note:"Final Lobby",players:[{ign:"vnck#NA1",pts:8},{ign:"D0PA#111",pts:7},{ign:"LC Abyss#CAPO",pts:6},{ign:"Ken Kitade",pts:5},{ign:"arzootft #na1",pts:4},{ign:"Hydro#1000",pts:3},{ign:"ryt hardpuzzle#na2",pts:2},{ign:"Talelelelelelel#NA1",pts:1}]},
+    ],
+  };
 
-  const STAGES=[
-    {id:"q",label:"Top 4 Stage",sub:"2 Games · 32 Players",icon:"⚔",color:"#9B72CF",
-     bullets:["32 players split into lobbies of 8","Best of 1 per lobby","Top 4 per lobby advance · 5th–6th go to LCQ · Bottom 2 eliminated","All lobbies run in parallel"]},
-    {id:"ps",label:"Point Stage",sub:"4 Games · ~16 Players",icon:"📊",color:"#4ECDC4",
-     bullets:["Qualifying players earn EMEA points each game (1st=8 … 8th=1)","Cumulative points across 4 games","Top 8 by total points advance to Finals","Tiebreaker: most recent game placement"]},
-    {id:"f",label:"Finals",sub:"Best of 2 · Top 8",icon:"🏆",color:"#E8A838",
-     bullets:["Single lobby of 8 finalists","Best of 2 games with EMEA scoring","$200 prize pool distributed to top 8","Tiebreaker: Game 2 placement → avg placement"]},
-  ];
+  const ROUND_META={
+    G1:{label:"Game 1",tag:"Top 4 Qualifier",color:"#9B72CF",desc:"All participants compete. Top 4 per lobby advance to Game 2. Scores are NOT counted toward points but saved as tiebreaker if needed."},
+    G2:{label:"Game 2",tag:"Top 4 Qualifier",color:"#9B72CF",desc:"Survivors compete again. Top 4 per lobby advance to the Point Stage. G1 and G2 placements are the tiebreaker chain (most recent first)."},
+    G3:{label:"Game 3",tag:"Point Stage · Game 1",color:"#4ECDC4",desc:"EMEA scoring begins: 1st = 8pts, 2nd = 7pts ... 8th = 1pt. Cumulative totals tracked. Lowest scorers eliminated after results."},
+    G4:{label:"Game 4",tag:"Point Stage · Game 2",color:"#4ECDC4",desc:"Points accumulate. Field narrows as lowest-total players are eliminated after each game."},
+    G5:{label:"Game 5",tag:"Point Stage · Game 3",color:"#4ECDC4",desc:"Top 8 by cumulative total after this game advance to the Finals. All others are eliminated."},
+    G6:{label:"Game 6",tag:"Finals",color:"#E8A838",desc:"The top 8 players in one final lobby. Highest cumulative total wins the tournament. Tiebreaker: most recent game placement."},
+  };
 
-  const FEATURES=[
-    {icon:"⚙",title:"Custom Formats",desc:"Top 4 qualifier, point stage, double elim, Swiss — build it your way. We replicate any bracket structure you've used in Excel."},
-    {icon:"📡",title:"Live Score Input",desc:"Admins enter placements per game. Standings update instantly for every participant watching."},
-    {icon:"🎯",title:"Automated Lobby Seeding",desc:"Platform auto-generates lobbies per stage based on your format rules — no manual reshuffling."},
-    {icon:"👤",title:"Player Profiles & History",desc:"Every participant gets a profile with full tournament history, per-game placements, and career stats."},
-    {icon:"💰",title:"Prize Tracking",desc:"Prize pool, payout tiers, and per-place prizes displayed publicly on the tournament page."},
-    {icon:"🏷",title:"White-Label Ready",desc:"Your org name, your sponsors, your branding. Aegis Esports × ZenMarket — all surfaced front and center."},
-    {icon:"📣",title:"Sponsor Integration",desc:"Sponsor logos, callouts, and links woven into tournament pages, standings, and result cards."},
-    {icon:"📈",title:"Season Leaderboards",desc:"Run recurring showdowns as a season — cumulative standings, Hall of Fame, player milestones."},
-  ];
-
-  const placeCol=(p)=>{
+  const placeCol=function(p){
     if(p===1)return"#FFD700";
     if(p===2)return"#C0C0C0";
     if(p===3)return"#CD7F32";
+    if(p<=4)return"#52C47C";
     if(p<=8)return"#9B72CF";
     return"#4A5568";
   };
 
-  const gameCol=(g)=>{
-    if(g>=7)return"#FFD700";
+  const ptCol=function(g){
+    if(g===null||g===undefined)return"#2D3748";
+    if(g>=7)return"#E8A838";
     if(g>=5)return"#9B72CF";
     if(g>=3)return"#4ECDC4";
-    return"#6B7280";
+    if(g>=1)return"#6B7280";
+    return"#F87171";
   };
 
-  return(
-    <div className="page" style={{maxWidth:960}}>
+  const displayed=showAll?STANDINGS:STANDINGS.slice(0,16);
 
-      {/* ── Header ── */}
-      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.14) 0%,rgba(232,168,56,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"32px 28px",marginBottom:24,position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:-30,right:-30,width:160,height:160,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.18) 0%,transparent 70%)",pointerEvents:"none"}}/>
+  return(
+    <div className="page" style={{maxWidth:1040}}>
+
+      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.13) 0%,rgba(232,168,56,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"28px",marginBottom:20,position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.14) 0%,transparent 70%)",pointerEvents:"none"}}/>
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
           <div>
             <div style={{display:"flex",gap:8,marginBottom:10}}>
@@ -5781,152 +5826,256 @@ function AegisShowcaseScreen({setScreen}){
               Aegis Esports TFT Showdown <span style={{color:"#E8A838"}}>#151</span>
             </h1>
             <div style={{fontSize:14,color:"#9CA3AF",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
-            <div style={{fontSize:12,color:"#6B7280"}}>North America · 32+ players · 6 games · $200 prize pool</div>
+            <div style={{fontSize:12,color:"#6B7280"}}>North America · 40+ participants · 6 games · $200 prize pool</div>
           </div>
           <div style={{textAlign:"right"}}>
             <div className="cond" style={{fontSize:10,color:"#4A5568",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#9B72CF",letterSpacing:".02em"}}>TFT Clash</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:700,color:"#9B72CF"}}>TFT Clash</div>
             <div style={{fontSize:11,color:"#4A5568",marginTop:2}}>Tournament Platform</div>
           </div>
         </div>
-        <div style={{display:"flex",gap:28,marginTop:24,flexWrap:"wrap"}}>
-          {[["32+","Players"],["6","Games"],["$200","Prize Pool"],["#151","Edition"]].map(([val,lbl])=>(
-            <div key={lbl}>
-              <div style={{fontSize:26,fontWeight:700,color:"#F2EDE4",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{val}</div>
-              <div className="cond" style={{fontSize:11,color:"#6B7280",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{lbl}</div>
+        <div style={{display:"flex",gap:28,marginTop:20,flexWrap:"wrap"}}>
+          {[["40+","Participants"],["16","Lobbies"],["6","Games"],["$200","Prize Pool"]].map(function(arr){return(
+            <div key={arr[1]}>
+              <div style={{fontSize:24,fontWeight:700,color:"#F2EDE4",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{arr[0]}</div>
+              <div className="cond" style={{fontSize:11,color:"#6B7280",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{arr[1]}</div>
             </div>
-          ))}
+          );})}
         </div>
       </div>
 
-      {/* ── Tab bar ── */}
       <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
-        {[["standings","Standings"],["format","Format"],["features","Platform Features"]].map(([id,lbl])=>(
-          <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:"9px 12px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===id?"rgba(155,114,207,.22)":"transparent",color:tab===id?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{lbl}</button>
-        ))}
+        {[["format","Format & Rules"],["standings","Full Standings"],["lobbies","Lobbies"],["platform","Platform"]].map(function(arr){return(
+          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"9px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+        );})}
       </div>
 
-      {/* ── STANDINGS TAB ── */}
-      {tab==="standings"&&(
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <Panel style={{padding:"22px 24px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
-              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#E8A838",margin:0}}>Finals — Top 8</h2>
-              <div style={{display:"flex",gap:6}}>
-                {["G3","G4","G5","G6"].map(g=>(
-                  <div key={g} className="cond" style={{width:28,textAlign:"center",fontSize:12,color:"#4A5568",fontWeight:700,letterSpacing:".05em"}}>{g}</div>
-                ))}
-                <div className="cond" style={{width:52,textAlign:"right",fontSize:12,color:"#4A5568",fontWeight:700,letterSpacing:".05em"}}>PTS</div>
-                <div style={{width:44}}/>
-              </div>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:5}}>
-              {TOP8.map((p)=>(
-                <div key={p.ign} style={{display:"flex",alignItems:"center",gap:10,background:p.place===1?"rgba(255,215,0,.07)":p.place<=3?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",borderRadius:8,padding:"10px 12px",border:"1px solid "+(p.place===1?"rgba(255,215,0,.2)":p.place<=3?"rgba(155,114,207,.14)":"rgba(242,237,228,.04)")}}>
-                  <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(0,0,0,.3)",border:"2px solid "+placeCol(p.place),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:placeCol(p.place),flexShrink:0}}>{p.place}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontSize:14,fontWeight:600,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.ign}</div>
-                  </div>
-                  <div style={{display:"flex",gap:4,alignItems:"center"}}>
-                    {p.games.map((g,i)=>(
-                      <div key={i} style={{width:26,height:26,borderRadius:5,background:"rgba(0,0,0,.3)",border:"1px solid rgba(255,255,255,.08)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:gameCol(g)}}>{g}</div>
-                    ))}
-                  </div>
-                  <div className="cond" style={{fontSize:17,fontWeight:700,color:"#C4B5FD",minWidth:52,textAlign:"right"}}>{p.pts}<span style={{fontSize:10,color:"#4A5568",marginLeft:2}}>pts</span></div>
-                  <div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.22)",borderRadius:6,padding:"3px 8px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Barlow Condensed',sans-serif",minWidth:38,textAlign:"center"}}>${p.prize}</div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <Panel style={{padding:"20px 24px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:14,color:"#6B7280",marginBottom:14}}>Remaining Field — Point Stage Results</h3>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:5}}>
-              {REST.map((p)=>(
-                <div key={p.ign} style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,.02)",borderRadius:6,padding:"7px 10px",border:"1px solid rgba(242,237,228,.04)"}}>
-                  <div className="cond" style={{fontSize:11,color:"#4A5568",fontWeight:700,minWidth:22,textAlign:"right"}}>#{p.place}</div>
-                  <div style={{fontSize:12,color:"#9CA3AF",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.ign}</div>
-                  <div className="cond" style={{fontSize:12,color:"#6B7280",fontWeight:700}}>{p.pts}p</div>
-                </div>
-              ))}
-            </div>
-          </Panel>
-
-          <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"14px 18px",fontSize:12,color:"#6B7280",lineHeight:1.7}}>
-            <span style={{color:"#C4B5FD",fontWeight:600}}>Data sourced from:</span> Aegis Esports TFT Showdown #151 (Presented by ZenMarket) · Official spreadsheet · All placements verified.
-          </div>
-        </div>
-      )}
-
-      {/* ── FORMAT TAB ── */}
       {tab==="format"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"20px 22px"}}>
+            <div className="cond" style={{fontSize:11,color:"#9B72CF",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Official Format Announcement</div>
+            <div style={{fontSize:15,color:"#F2EDE4",fontWeight:700,marginBottom:10}}>New Format</div>
+            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:12}}>
+              I'll keep this up for this <span style={{color:"#F2EDE4",fontWeight:600}}>@Weeklies</span> again as we're using a new format and some people may have missed last week. The format is as follows:
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:14,paddingLeft:14,borderLeft:"3px solid rgba(155,114,207,.5)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div className="cond" style={{background:"rgba(155,114,207,.2)",border:"1px solid rgba(155,114,207,.4)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#C4B5FD",fontWeight:700,flexShrink:0}}>G1 – G2</div>
+                <div style={{fontSize:14,color:"#F2EDE4",fontWeight:600}}>Top 4 Qualifier</div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div className="cond" style={{background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#E8A838",fontWeight:700,flexShrink:0}}>G3 – G6</div>
+                <div style={{fontSize:14,color:"#F2EDE4",fontWeight:600}}>Point System</div>
+              </div>
+            </div>
+            <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"12px 14px",fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>
+              <span style={{color:"#F87171",fontWeight:700}}>Reminder:</span> Games 1-2 are <span style={{color:"#F87171",fontWeight:600}}>NOT used in the point system</span>, but are used in tiebreakers if necessary, using the <span style={{color:"#F2EDE4",fontWeight:600}}>most recent placement</span> until the tie is broken!
+            </div>
+          </div>
+
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#E8A838",marginBottom:6}}>Tournament Format</h2>
-            <div style={{fontSize:13,color:"#6B7280",marginBottom:28}}>Showdown #151 ran a 3-stage format over 6 total games. This is the same structure we replicate on TFT Clash.</div>
+            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#E8A838",marginBottom:20}}>Stage Breakdown</h2>
             <div style={{display:"flex",flexDirection:"column",gap:0}}>
-              {STAGES.map((s,i)=>(
-                <div key={s.id} style={{display:"flex",gap:16}}>
+              {[
+                {label:"Game 1",sub:"Top 4 Qualifier",color:"#9B72CF",icon:"1",
+                  bullets:["All participants split into lobbies of up to 8","Top 4 per lobby advance · bottom 4 eliminated","Score does NOT count toward cumulative total","Saved as G1 tiebreaker if needed at end of tournament"]},
+                {label:"Game 2",sub:"Top 4 Qualifier",color:"#9B72CF",icon:"2",
+                  bullets:["Survivors from G1 compete again in new lobbies","Top 4 per lobby advance to the Point Stage","G2 placement is the first tiebreaker (most recent)","G1 is the second tiebreaker if G2 doesn't break it"]},
+                {label:"Games 3 – 5",sub:"Point Stage",color:"#4ECDC4",icon:"*",
+                  bullets:["EMEA scoring: 1st=8pts · 2nd=7pts · 3rd=6pts · 4th=5pts · 5th=4pts · 6th=3pts · 7th=2pts · 8th=1pt","Points accumulate across all point stage games","Progressive elimination after each game — lowest scorers cut","Top 8 by cumulative total after G5 advance to Finals"]},
+                {label:"Game 6",sub:"Finals",color:"#E8A838",icon:"F",
+                  bullets:["Single lobby of 8 finalists","Points still count — highest cumulative total wins","Champion awarded $60 · runner-up $40 · top 8 all paid","Tiebreaker: G6 placement → G5 → G4 → G3 → G2 → G1"]},
+              ].map(function(s,i,arr){return(
+                <div key={s.label} style={{display:"flex",gap:14}}>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                    <div style={{width:46,height:46,borderRadius:12,background:"rgba(0,0,0,.4)",border:"2px solid "+s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{s.icon}</div>
-                    {i<STAGES.length-1&&<div style={{width:2,flex:1,minHeight:32,background:"linear-gradient(to bottom,"+s.color+"50,"+STAGES[i+1].color+"50)",margin:"4px 0"}}/>}
+                    <div style={{width:40,height:40,borderRadius:10,background:"rgba(0,0,0,.5)",border:"2px solid "+s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:s.color,flexShrink:0,fontFamily:"'Barlow Condensed',sans-serif"}}>{s.icon}</div>
+                    {i<arr.length-1&&<div style={{width:2,flex:1,minHeight:24,background:"rgba(255,255,255,.05)",margin:"4px 0"}}/>}
                   </div>
-                  <div style={{flex:1,paddingBottom:i<STAGES.length-1?28:0}}>
-                    <div style={{display:"flex",alignItems:"baseline",gap:10,marginBottom:8}}>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#F2EDE4"}}>{s.label}</div>
-                      <div className="cond" style={{background:"rgba(0,0,0,.3)",border:"1px solid "+s.color+"40",borderRadius:4,padding:"2px 8px",fontSize:11,fontWeight:700,color:s.color}}>{s.sub}</div>
+                  <div style={{flex:1,paddingBottom:i<arr.length-1?20:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#F2EDE4"}}>{s.label}</div>
+                      <div className="cond" style={{background:"rgba(0,0,0,.4)",border:"1px solid "+s.color+"45",borderRadius:4,padding:"2px 8px",fontSize:10,fontWeight:700,color:s.color}}>{s.sub}</div>
                     </div>
-                    <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                      {s.bullets.map((b,bi)=>(
+                    <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                      {s.bullets.map(function(b,bi){return(
                         <div key={bi} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-                          <div style={{width:5,height:5,borderRadius:"50%",background:s.color,flexShrink:0,marginTop:6}}/>
-                          <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6}}>{b}</div>
+                          <div style={{width:4,height:4,borderRadius:"50%",background:s.color,flexShrink:0,marginTop:7}}/>
+                          <div style={{fontSize:12,color:"#9CA3AF",lineHeight:1.6}}>{b}</div>
                         </div>
-                      ))}
+                      );})}
                     </div>
                   </div>
                 </div>
-              ))}
+              );})}
             </div>
           </Panel>
 
           <Panel style={{padding:"22px 24px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:"#F2EDE4",marginBottom:14}}>EMEA Points System</h3>
-            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
-              {[[1,"#FFD700"],[2,"#C0C0C0"],[3,"#CD7F32"],[4,"#9B72CF"],[5,"#6B7280"],[6,"#6B7280"],[7,"#6B7280"],[8,"#4A5568"]].map(([place,col])=>(
-                <div key={place} style={{display:"flex",flexDirection:"column",alignItems:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,padding:"10px 14px",minWidth:50}}>
-                  <div className="cond" style={{fontSize:17,fontWeight:700,color:col}}>{9-place}</div>
-                  <div style={{fontSize:10,color:"#4A5568",marginTop:3}}>pts</div>
-                  <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{"#"+place}</div>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:15,color:"#F2EDE4",marginBottom:14}}>Points Table (Games 3 – 6)</h3>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:16}}>
+              {[[1,8,"#FFD700","1st"],[2,7,"#C0C0C0","2nd"],[3,6,"#CD7F32","3rd"],[4,5,"#52C47C","4th"],[5,4,"#9B72CF","5th"],[6,3,"#4ECDC4","6th"],[7,2,"#6B7280","7th"],[8,1,"#4A5568","8th"]].map(function(row){return(
+                <div key={row[0]} style={{display:"flex",flexDirection:"column",alignItems:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.05)",borderRadius:8,padding:"10px 12px",minWidth:54}}>
+                  <div className="cond" style={{fontSize:18,fontWeight:700,color:row[2]}}>{row[1]}</div>
+                  <div style={{fontSize:10,color:"#4A5568",marginTop:1}}>pts</div>
+                  <div style={{fontSize:11,color:"#6B7280",marginTop:3}}>{row[3]}</div>
                 </div>
-              ))}
+              );})}
             </div>
-            <div style={{fontSize:12,color:"#6B7280",lineHeight:1.8}}>
-              <span style={{color:"#F2EDE4",fontWeight:600}}>Tiebreakers:</span> (1) Most recent game placement · (2) Highest single-game score · (3) Average placement across all games · (4) Coin flip
+            <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"12px 14px",fontSize:12,color:"#9CA3AF",lineHeight:1.8}}>
+              <span style={{color:"#E8A838",fontWeight:600}}>Tiebreaker chain:</span> Equal cumulative totals are broken by most recent game placement — G6 first, then G5, G4, G3, then G2 and G1 (the qualifier games).
             </div>
           </Panel>
         </div>
       )}
 
-      {/* ── FEATURES TAB ── */}
-      {tab==="features"&&(
+      {tab==="standings"&&(
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(250px,1fr))",gap:10}}>
-            {FEATURES.map((f)=>(
-              <Panel key={f.title} style={{padding:"20px"}}>
-                <div style={{fontSize:26,marginBottom:10}}>{f.icon}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6}}>{f.title}</div>
-                <div style={{fontSize:13,color:"#6B7280",lineHeight:1.7}}>{f.desc}</div>
-              </Panel>
-            ))}
+          <Panel style={{padding:"20px 22px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8}}>
+              <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#E8A838",margin:0}}>All Participants — Final Standings</h2>
+              <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                {[["G1","#9B72CF"],["G2","#9B72CF"],["G3","#4ECDC4"],["G4","#4ECDC4"],["G5","#4ECDC4"],["G6","#E8A838"],["PTS","#F2EDE4"]].map(function(arr){return(
+                  <div key={arr[0]} className="cond" style={{width:arr[0]==="PTS"?36:26,textAlign:"center",fontSize:11,color:arr[1],fontWeight:700,letterSpacing:".04em"}}>{arr[0]}</div>
+                );})}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap"}}>
+              {[["G1–G2","Qualifier (no pts)","#9B72CF"],["G3–G5","Point Stage","#4ECDC4"],["G6","Finals","#E8A838"]].map(function(arr){return(
+                <div key={arr[0]} style={{display:"flex",alignItems:"center",gap:5}}>
+                  <div style={{width:10,height:10,borderRadius:2,background:arr[2]+"30",border:"1px solid "+arr[2]+"50"}}/>
+                  <div style={{fontSize:11,color:"#6B7280"}}><span style={{color:arr[2],fontWeight:600}}>{arr[0]}</span> {arr[1]}</div>
+                </div>
+              );})}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:3}}>
+              {displayed.map(function(p){return(
+                <div key={p.ign} style={{display:"flex",alignItems:"center",gap:8,background:p.place===1?"rgba(255,215,0,.06)":p.place<=3?"rgba(155,114,207,.05)":p.place<=8?"rgba(255,255,255,.025)":"rgba(255,255,255,.015)",borderRadius:7,padding:"7px 10px",border:"1px solid "+(p.place===1?"rgba(255,215,0,.18)":p.place<=3?"rgba(155,114,207,.12)":p.place<=8?"rgba(155,114,207,.05)":"rgba(242,237,228,.03)")}}>
+                  <div style={{width:22,fontWeight:700,fontSize:11,color:placeCol(p.place),textAlign:"right",flexShrink:0,fontFamily:"'Barlow Condensed',sans-serif"}}>{p.place}</div>
+                  <div style={{flex:1,fontSize:13,color:p.place<=8?"#F2EDE4":"#9CA3AF",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.ign}</div>
+                  {p.prize>0&&<div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.2)",borderRadius:4,padding:"1px 6px",fontSize:10,fontWeight:700,color:"#4ECDC4",fontFamily:"'Barlow Condensed',sans-serif",flexShrink:0}}>${p.prize}</div>}
+                  <div style={{display:"flex",gap:2,flexShrink:0}}>
+                    {[p.g1,p.g2,p.g3,p.g4,p.g5,p.g6].map(function(g,i){
+                      var isQ=i<2;
+                      var isFin=i===5;
+                      var hasVal=g!==null&&g!==undefined;
+                      return(
+                        <div key={i} style={{width:26,height:22,borderRadius:4,background:hasVal?"rgba(0,0,0,.4)":"rgba(255,255,255,.015)",border:"1px solid "+(hasVal?(isQ?"rgba(155,114,207,.22)":isFin?"rgba(232,168,56,.28)":"rgba(78,205,196,.22)"):"rgba(255,255,255,.03)"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:hasVal?ptCol(g):"#1F2937"}}>
+                          {hasVal?g:"—"}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="cond" style={{fontSize:15,fontWeight:700,color:"#C4B5FD",minWidth:34,textAlign:"right",flexShrink:0}}>{p.total}</div>
+                </div>
+              );})}
+            </div>
+            {!showAll&&(
+              <button onClick={function(){setShowAll(true);}} style={{width:"100%",marginTop:10,padding:"9px",background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.18)",borderRadius:8,color:"#9B72CF",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
+                Show all {STANDINGS.length} participants
+              </button>
+            )}
+            {showAll&&(
+              <button onClick={function(){setShowAll(false);}} style={{width:"100%",marginTop:10,padding:"9px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,color:"#4A5568",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
+                Collapse
+              </button>
+            )}
+          </Panel>
+        </div>
+      )}
+
+      {tab==="lobbies"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.02)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.05)"}}>
+            {["G1","G2","G3","G4","G5","G6"].map(function(r){
+              var colors={"G1":"#9B72CF","G2":"#9B72CF","G3":"#4ECDC4","G4":"#4ECDC4","G5":"#4ECDC4","G6":"#E8A838"};
+              var labels={"G1":"Game 1","G2":"Game 2","G3":"Game 3","G4":"Game 4","G5":"Game 5","G6":"Finals"};
+              var active=lobbyRound===r;
+              return(
+                <button key={r} onClick={function(){setLobbyRound(r);}} style={{flex:1,padding:"8px 4px",borderRadius:7,border:"none",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",transition:"all .15s",background:active?"rgba(255,255,255,.08)":"transparent",color:active?colors[r]:"#4A5568",outline:"none",textTransform:"uppercase",fontWeight:700,fontSize:11}}>
+                  <div>{r}</div>
+                  <div style={{fontSize:9,fontWeight:400,marginTop:1,color:active?colors[r]+"AA":"#374151"}}>{labels[r]}</div>
+                </button>
+              );
+            })}
           </div>
 
-          <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.13) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"28px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
-            <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.7,marginBottom:20}}>This entire page was built from your actual Showdown #151 spreadsheet data — your format, your players, your results, your branding. This is exactly what your community would see every week, live, no Excel required.</div>
+          {(function(){
+            var meta=ROUND_META[lobbyRound];
+            return(
+              <div style={{background:"rgba(0,0,0,.35)",border:"1px solid "+meta.color+"30",borderRadius:10,padding:"14px 18px"}}>
+                <div className="cond" style={{fontSize:11,color:meta.color,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>{meta.tag}</div>
+                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.7}}>{meta.desc}</div>
+              </div>
+            );
+          })()}
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:10}}>
+            {(LOBBIES[lobbyRound]||[]).map(function(lobby){
+              var sorted=[].concat(lobby.players).sort(function(a,b){return b.pts-a.pts;});
+              var meta=ROUND_META[lobbyRound];
+              var isQual=lobbyRound==="G1"||lobbyRound==="G2";
+              return(
+                <Panel key={lobby.name} style={{padding:"16px"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:"#F2EDE4"}}>{lobby.name}</div>
+                    <div className="cond" style={{fontSize:10,color:meta.color,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(0,0,0,.3)",border:"1px solid "+meta.color+"30",borderRadius:4,padding:"2px 7px"}}>{lobby.note}</div>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:3}}>
+                    {sorted.map(function(pl,idx){
+                      var top4=idx<4&&isQual;
+                      var winner=!isQual&&idx===0;
+                      return(
+                        <div key={pl.ign} style={{display:"flex",alignItems:"center",gap:8,background:winner?"rgba(255,215,0,.07)":top4?"rgba(82,196,124,.05)":"rgba(255,255,255,.02)",borderRadius:6,padding:"6px 8px",border:"1px solid "+(winner?"rgba(255,215,0,.18)":top4?"rgba(82,196,124,.1)":"rgba(242,237,228,.03)")}}>
+                          <div style={{width:20,height:20,borderRadius:"50%",background:"rgba(0,0,0,.45)",border:"1px solid "+placeCol(idx+1),display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:placeCol(idx+1),flexShrink:0}}>{idx+1}</div>
+                          <div style={{flex:1,fontSize:12,color:top4||winner?"#F2EDE4":"#9CA3AF",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pl.ign}</div>
+                          <div style={{display:"flex",alignItems:"center",gap:4}}>
+                            {top4&&<div className="cond" style={{fontSize:9,color:"#52C47C",fontWeight:700,background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.2)",borderRadius:3,padding:"1px 5px"}}>ADV</div>}
+                            <div className="cond" style={{fontSize:13,fontWeight:700,color:isQual?"#9CA3AF":ptCol(pl.pts),minWidth:20,textAlign:"right"}}>{pl.pts===0?"DNF":pl.pts}</div>
+                            {!isQual&&<div style={{fontSize:10,color:"#4A5568"}}>pts</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </Panel>
+              );
+            })}
+          </div>
+
+          {lobbyRound==="G1"&&(
+            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.14)",borderRadius:8,padding:"12px 16px",fontSize:12,color:"#6B7280",lineHeight:1.7}}>
+              <span style={{color:"#C4B5FD",fontWeight:600}}>Note on Game 1:</span> Each lobby shows the players who competed. All listed players qualified (top 4) so their displayed score is 5 — the minimum qualifying placement worth 5 points in EMEA scoring. G1 scores are only referenced for tiebreaking, never added to cumulative totals.
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab==="platform"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
+            {[
+              {icon:"⚙",title:"Custom Formats",desc:"Top 4 qualifier, point stage, double elim, Swiss — any bracket structure you've run in Excel, we replicate it live."},
+              {icon:"📡",title:"Live Score Input",desc:"Admins enter placements per game. Standings refresh instantly. Every player sees the update in real time."},
+              {icon:"🎯",title:"Automated Seeding",desc:"Platform auto-generates lobby assignments per stage based on your format rules. No manual reshuffling."},
+              {icon:"👤",title:"Player Profiles",desc:"Full history across every tournament — per-game placements, career stats, trends, and achievements."},
+              {icon:"💰",title:"Prize Display",desc:"Prize pool, tier breakdown, and per-place payouts shown publicly on the tournament page throughout the event."},
+              {icon:"🏷",title:"Org Branding",desc:"Your name, your sponsors, your logo front and center. Aegis Esports x ZenMarket — this page is already an example."},
+              {icon:"📈",title:"Season Series",desc:"Run #151, #152, #153 as a season — cumulative leaderboard, Hall of Fame, and season recap auto-generated."},
+              {icon:"📋",title:"Full Archives",desc:"Every past tournament preserved with lobby logs, standings, and stats. Shareable link for each event."},
+            ].map(function(f){return(
+              <Panel key={f.title} style={{padding:"18px"}}>
+                <div style={{fontSize:24,marginBottom:10}}>{f.icon}</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:5}}>{f.title}</div>
+                <div style={{fontSize:12,color:"#6B7280",lineHeight:1.7}}>{f.desc}</div>
+              </Panel>
+            );})}
+          </div>
+          <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"26px"}}>
+            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:19,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
+            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:18}}>This entire page was generated from your Showdown #151 spreadsheet — your exact format, every lobby, every placement, all 40+ players. No Excel. No manual updates. This is what your community sees live, every week.</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <button onClick={()=>setScreen("host-apply")} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
-              <button onClick={()=>setScreen("pricing")} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
+              <button onClick={function(){setScreen("host-apply");}} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"10px 20px",fontSize:12,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
+              <button onClick={function(){setScreen("pricing");}} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"10px 20px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
             </div>
           </div>
         </div>
