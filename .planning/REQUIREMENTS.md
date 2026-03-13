@@ -84,39 +84,39 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 1 | Pending |
-| FOUND-02 | Phase 1 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| PAY-01 | Phase 2 | Pending |
-| PAY-02 | Phase 2 | Pending |
-| PAY-03 | Phase 2 | Pending |
-| CLASH-01 | Phase 3 | Pending |
-| CLASH-02 | Phase 3 | Pending |
-| CLASH-03 | Phase 3 | Pending |
-| CLASH-04 | Phase 3 | Pending |
-| CLASH-05 | Phase 3 | Pending |
-| CLASH-06 | Phase 3 | Pending |
-| CLASH-07 | Phase 3 | Pending |
-| CLASH-08 | Phase 3 | Pending |
-| SEASON-01 | Phase 4 | Pending |
-| SEASON-02 | Phase 4 | Pending |
-| SEASON-03 | Phase 4 | Pending |
-| SEASON-04 | Phase 4 | Pending |
-| SEASON-05 | Phase 4 | Pending |
-| HOST-01 | Phase 5 | Pending |
-| HOST-02 | Phase 5 | Pending |
-| HOST-03 | Phase 5 | Pending |
-| HOST-04 | Phase 5 | Pending |
-| HOST-05 | Phase 5 | Pending |
+| FOUND-01 | Phase 1 — Foundation and Auth | Pending |
+| FOUND-02 | Phase 1 — Foundation and Auth | Pending |
+| AUTH-01 | Phase 1 — Foundation and Auth | Pending |
+| AUTH-02 | Phase 1 — Foundation and Auth | Pending |
+| AUTH-03 | Phase 1 — Foundation and Auth | Pending |
+| AUTH-04 | Phase 1 — Foundation and Auth | Pending |
+| PAY-01 | Phase 2 — Payments | Pending |
+| PAY-02 | Phase 2 — Payments | Pending |
+| PAY-03 | Phase 2 — Payments | Pending |
+| CLASH-01 | Phase 3 — Clash Runner | Pending |
+| CLASH-02 | Phase 3 — Clash Runner | Pending |
+| CLASH-03 | Phase 3 — Clash Runner | Pending |
+| CLASH-04 | Phase 3 — Clash Runner | Pending |
+| CLASH-05 | Phase 3 — Clash Runner | Pending |
+| CLASH-06 | Phase 3 — Clash Runner | Pending |
+| CLASH-07 | Phase 3 — Clash Runner | Pending |
+| CLASH-08 | Phase 3 — Clash Runner | Pending |
+| SEASON-01 | Phase 4 — Season and Profiles | Pending |
+| SEASON-02 | Phase 4 — Season and Profiles | Pending |
+| SEASON-03 | Phase 4 — Season and Profiles | Pending |
+| SEASON-04 | Phase 4 — Season and Profiles | Pending |
+| SEASON-05 | Phase 4 — Season and Profiles | Pending |
+| HOST-01 | Phase 5 — Host Marketplace | Pending |
+| HOST-02 | Phase 5 — Host Marketplace | Pending |
+| HOST-03 | Phase 5 — Host Marketplace | Pending |
+| HOST-04 | Phase 5 — Host Marketplace | Pending |
+| HOST-05 | Phase 5 — Host Marketplace | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
 - Mapped to phases: 22
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after initial definition*
+*Last updated: 2026-03-13 after roadmap creation*
