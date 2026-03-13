@@ -456,13 +456,76 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
 /* ── More drawer ─────────────────────────────────────────────── */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:190;animation:fadeup .2s ease;}
 .drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#0F1520;border-right:1px solid rgba(232,168,56,.15);z-index:195;animation:slide-drawer .22s ease;display:flex;flex-direction:column;padding:32px 0;}
+
+/* ── esports glow enhancements ───────────────────────────────── */
+@keyframes gold-shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
+@keyframes neon-flicker{0%,19%,21%,23%,25%,54%,56%,100%{text-shadow:0 0 20px rgba(232,168,56,.7),0 0 40px rgba(232,168,56,.35),0 0 80px rgba(232,168,56,.15)}20%,24%,55%{text-shadow:none;}}
+@keyframes border-glow{0%,100%{border-color:rgba(155,114,207,.3)}50%{border-color:rgba(155,114,207,.7);box-shadow:0 0 20px rgba(155,114,207,.2)}}
+@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
+
+/* Scanline overlay */
+.scanlines::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);}
+
+/* Logo hex glow */
+.hex-logo{filter:drop-shadow(0 0 6px rgba(232,168,56,.55));transition:filter .3s;}
+.hex-logo:hover{filter:drop-shadow(0 0 14px rgba(232,168,56,.95)) drop-shadow(0 0 30px rgba(232,168,56,.4));}
+
+/* Gold shimmer text */
+.gold-shimmer{background:linear-gradient(90deg,#C4882A,#FFD700,#E8A838,#FFD700,#C4882A);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gold-shimmer 4s linear infinite;}
+
+/* Top nav enhancements */
+.top-nav{box-shadow:0 1px 0 rgba(232,168,56,.08),0 4px 32px rgba(0,0,0,.6);}
+.top-nav button:hover{color:#F2EDE4!important;}
+.top-nav button[data-active="true"]{color:#E8A838!important;text-shadow:0 0 12px rgba(232,168,56,.5);}
+
+/* Bottom nav active glow */
+.bottom-nav button.active{color:#E8A838;text-shadow:0 0 10px rgba(232,168,56,.6);}
+.bottom-nav button.active .icon{filter:drop-shadow(0 0 5px rgba(232,168,56,.7));}
+.bottom-nav button{transition:color .2s,text-shadow .2s;}
+
+/* Standings row hover */
+.standings-row{transition:background .15s,transform .1s,box-shadow .15s;}
+.standings-row:hover{background:rgba(232,168,56,.06)!important;transform:translateX(3px);box-shadow:inset 3px 0 0 rgba(232,168,56,.5);}
+.standings-row-1{background:rgba(232,168,56,.05)!important;}
+.standings-row-1 .rank-num{color:#E8A838!important;text-shadow:0 0 12px rgba(232,168,56,.8);}
+.standings-row-2 .rank-num{text-shadow:0 0 8px rgba(192,192,192,.7);}
+.standings-row-3 .rank-num{text-shadow:0 0 8px rgba(205,127,50,.7);}
+
+/* Stat boxes glow on hover */
+.stat-box{background:#111827;border:1px solid rgba(242,237,228,.08);border-radius:10px;padding:14px 12px;text-align:center;transition:border-color .2s,box-shadow .2s,transform .15s;cursor:default;}
+.stat-box:hover{border-color:rgba(232,168,56,.3);box-shadow:0 0 20px rgba(232,168,56,.08);transform:translateY(-2px);}
+
+/* Countdown neon digits */
+.countdown-digit{text-shadow:0 0 20px rgba(232,168,56,.7),0 0 40px rgba(232,168,56,.3)!important;}
+
+/* Input neon focus */
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5),0 0 16px rgba(155,114,207,.12)!important;border-color:rgba(155,114,207,.6)!important;}
+
+/* Panel hover shimmer line */
+.panel-hover-shimmer{position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,168,56,.4),transparent);opacity:0;transition:opacity .3s;}
+
+/* Btn primary pulse */
+.btn-primary-glow{box-shadow:0 4px 20px rgba(232,168,56,.3),0 0 40px rgba(232,168,56,.1)!important;transition:box-shadow .2s,transform .15s!important;}
+.btn-primary-glow:hover{box-shadow:0 6px 30px rgba(232,168,56,.5),0 0 60px rgba(232,168,56,.2)!important;transform:translateY(-1px)!important;}
+
+/* How-it-works step number neon */
+.step-num{box-shadow:0 0 12px rgba(155,114,207,.3);transition:box-shadow .2s,background .2s;}
+.step-num:hover{box-shadow:0 0 20px rgba(155,114,207,.5);background:rgba(155,114,207,.2)!important;}
+
+/* Points badge glow */
+.pts-glow{text-shadow:0 0 12px rgba(232,168,56,.6);}
+
+/* Live dot pulse enhanced */
+@keyframes live-ping{0%{transform:scale(1);opacity:1}70%{transform:scale(2.5);opacity:0}100%{transform:scale(1);opacity:0}}
+.live-dot-ring{animation:live-ping 1.8s cubic-bezier(0,.2,.8,1) infinite;}
 `;
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
 function Hexbg(){
   return(
     <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
-      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:.025}} xmlns="http://www.w3.org/2000/svg">
+      <div className="scanlines" style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none"}}/>
+      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:.03}} xmlns="http://www.w3.org/2000/svg">
         <defs><pattern id="hxp" x="0" y="0" width="60" height="104" patternUnits="userSpaceOnUse">
           <path d="M30 2L58 18L58 50L30 66L2 50L2 18Z" fill="none" stroke="#E8A838" strokeWidth="1"/>
           <path d="M30 38L58 54L58 86L30 102L2 86L2 54Z" fill="none" stroke="#E8A838" strokeWidth="1"/>
@@ -1105,22 +1168,23 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       <nav className="top-nav">
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:62,display:"flex",alignItems:"center",gap:0}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginRight:24,flexShrink:0}}>
-            <svg width="24" height="24" viewBox="0 0 60 70" fill="none">
+            <svg className="hex-logo" width="24" height="24" viewBox="0 0 60 70" fill="none">
               <path d="M30 2L58 18L58 52L30 68L2 52L2 18Z" fill="none" stroke="#E8A838" strokeWidth="2.5"/>
               <path d="M30 15L46 24L46 42L30 51L14 42L14 24Z" fill="rgba(232,168,56,.15)" stroke="#E8A838" strokeWidth="1.5"/>
             </svg>
             <div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:"#E8A838",lineHeight:1}}>TFT Clash</div>
+              <div className="gold-shimmer" style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:0,flex:1,overflowX:"auto",scrollbarWidth:"none"}}>
             {DESKTOP_NAV.map(l=>(
               <button key={l.id} onClick={()=>setScreen(l.id)}
+                data-active={screen===l.id?"true":undefined}
                 style={{background:"none",border:"none",padding:"8px 14px",fontSize:14,fontWeight:600,
                   color:screen===l.id?"#E8A838":"#9CA3AF",cursor:"pointer",whiteSpace:"nowrap",
                   borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
-                  transition:"all .15s",marginBottom:-1}}>
+                  transition:"all .2s",marginBottom:-1}}>
                 {l.label}
               </button>
             ))}
@@ -1202,11 +1266,12 @@ function StandingsTable({rows,compact,onRowClick}){
         const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438";
         return(
           <div key={p.id} onClick={onRowClick?()=>onRowClick(p):undefined}
+            className={"standings-row"+(i===0?" standings-row-1":i===1?" standings-row-2":i===2?" standings-row-3":"")}
             style={{display:"grid",gridTemplateColumns:cols,
               padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",
               background:i===0?"rgba(232,168,56,.04)":i<3?"rgba(232,168,56,.02)":"transparent",
               alignItems:"center",cursor:onRowClick?"pointer":"default"}}>
-            <div className="mono" style={{fontSize:13,fontWeight:800,color:rankCol}}>{i+1}</div>
+            <div className="mono rank-num" style={{fontSize:13,fontWeight:800,color:rankCol}}>{i+1}</div>
             <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
               <div style={{minWidth:0}}>
                 <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",display:"flex",alignItems:"center",gap:5,overflow:"hidden"}}>
@@ -1220,7 +1285,7 @@ function StandingsTable({rows,compact,onRowClick}){
                 </div>}
               </div>
             </div>
-            <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
+            <div className="mono pts-glow" style={{fontSize:16,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
             <div className="mono" style={{fontSize:11,color:"#6B7280"}}>{p.games||0}</div>
             {!compact&&<div className="mono" style={{fontSize:13,color:"#6EE7B7"}}>{p.wins||0}</div>}
@@ -1328,7 +1393,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             <div style={{display:"flex",justifyContent:"center",gap:16}}>
               {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
                 <div key={l} style={{textAlign:"center"}}>
-                  <div className="mono" style={{fontSize:30,fontWeight:700,color:"#E8A838",lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+                  <div className="mono countdown-digit" style={{fontSize:30,fontWeight:700,color:"#E8A838",lineHeight:1}}>{String(v).padStart(2,"0")}</div>
                   <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginTop:3}}>{l}</div>
                 </div>
               ))}
