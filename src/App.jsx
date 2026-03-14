@@ -1460,6 +1460,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const checkedN=players.filter(p=>p.checkedIn).length;
   const top5=[...players].sort((a,b)=>b.pts-a.pts).slice(0,5);
   const linkedPlayer=currentUser?players.find(p=>p.name===currentUser.username):null;
+  const alreadyRegistered=currentUser&&players.find(p=>p.riotId&&p.riotId.toLowerCase()===(currentUser.riotId||"").toLowerCase());
+  const profileComplete=currentUser&&currentUser.riotId&&currentUser.riotId.trim().length>0;
   const s2=linkedPlayer?computeStats(linkedPlayer):null;
   const myRankIdx=linkedPlayer?[...players].sort((a,b)=>b.pts-a.pts).findIndex(p=>p.id===linkedPlayer.id)+1:0;
   const tPhase=tournamentState?tournamentState.phase:"registration";
@@ -1472,6 +1474,20 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     if(!linkedPlayer)return;
     setPlayers(ps=>ps.map(p=>p.id===linkedPlayer.id?{...p,checkedIn:true}:p));
     toast("You're checked in! Good luck, "+linkedPlayer.name+" ✓","success");
+  }
+
+  function registerFromAccount(){
+    if(!currentUser||!profileComplete){return;}
+    if(players.length>=64){toast("Tournament is full","error");return;}
+    if(alreadyRegistered){toast("You're already registered!","error");return;}
+    const lp=Math.floor(Math.random()*2000)+900;
+    const ri=Math.min(Math.floor(lp/300),RANKS.length-1);
+    const np={id:Date.now()%100000,name:currentUser.username,riotId:currentUser.riotId,rank:RANKS[ri],lp,
+      region:currentUser.region||"EUW",pts:0,wins:0,top4:0,games:0,avg:"0",
+      bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,
+      role:"player",banned:false,notes:"",clashHistory:[],sparkline:[]};
+    setPlayers(p=>[...p,np]);
+    toast(currentUser.username+" registered for Clash #14! ✓","success");
   }
 
   function phaseStatusText(){
@@ -1615,19 +1631,65 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         {/* Right: Register + Roster */}
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <Panel accent style={{padding:"20px"}}>
-            <div style={{marginTop:6}}>
-              <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join Clash #14</h3>
-              <div style={{fontSize:12,color:"#BECBD9",marginBottom:14}}>Saturday 8PM EST · Season 16 · Set 16</div>
-              <div style={{display:"grid",gap:12,marginBottom:14}}>
-                <Inp value={name} onChange={setName} placeholder="Display Name" onKeyDown={e=>e.key==="Enter"&&register()}/>
-                <Inp value={riot} onChange={setRiot} placeholder="Riot ID (Name#TAG)" onKeyDown={e=>e.key==="Enter"&&register()}/>
-                <Sel value={region} onChange={setRegion}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel>
+            <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join Clash #14</h3>
+            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>Saturday 8PM EST · Season 16 · Set 16</div>
+
+            {/* Not logged in */}
+            {!currentUser&&(
+              <div>
+                <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
+                  <div style={{fontSize:20,flexShrink:0}}>🔒</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Account required to register</div>
+                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Create a free account with your Riot ID to join the clash. Takes 30 seconds — competing is always free.</div>
+                  </div>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  <Btn v="primary" full onClick={()=>onAuthClick("signup")}>Create Account →</Btn>
+                  <Btn v="dark" onClick={()=>onAuthClick("login")}>Sign In</Btn>
+                </div>
               </div>
-              <div style={{display:"flex",gap:8}}>
-                <Btn v="primary" full onClick={register}>Register</Btn>
-                <Btn v="dark" onClick={()=>{const add=SEED.filter(s=>!players.find(p=>p.id===s.id)).slice(0,8-players.length);setPlayers(p=>[...p,...add]);toast(add.length+" demo players added","success");}}>Demo</Btn>
+            )}
+
+            {/* Logged in but Riot ID missing */}
+            {currentUser&&!profileComplete&&(
+              <div>
+                <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
+                  <div style={{fontSize:20,flexShrink:0}}>⚠️</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Complete your profile first</div>
+                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Add your Riot ID in your account settings to register for clashes.</div>
+                  </div>
+                </div>
+                <Btn v="primary" full onClick={()=>setScreen("account")}>Complete Profile →</Btn>
               </div>
-            </div>
+            )}
+
+            {/* Already registered */}
+            {currentUser&&profileComplete&&alreadyRegistered&&(
+              <div style={{background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
+                <div style={{fontSize:24,marginBottom:8}}>✅</div>
+                <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:4}}>You're registered!</div>
+                <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Playing as <span style={{color:"#F2EDE4",fontWeight:600}}>{currentUser.username}</span> · {currentUser.riotId}</div>
+                <div style={{fontSize:11,color:"#9AAABF"}}>Check-in opens 60 min before start</div>
+              </div>
+            )}
+
+            {/* Ready to register */}
+            {currentUser&&profileComplete&&!alreadyRegistered&&(
+              <div>
+                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.1)",borderRadius:10,padding:"12px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#08080F",flexShrink:0}}>
+                    {currentUser.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{currentUser.username}</div>
+                    <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{currentUser.riotId} · {currentUser.region||"EUW"}</div>
+                  </div>
+                </div>
+                <Btn v="primary" full onClick={registerFromAccount}>Register for Clash #14 →</Btn>
+              </div>
+            )}
           </Panel>
 
           {/* How it works */}
