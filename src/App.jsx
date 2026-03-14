@@ -360,15 +360,15 @@ const PREMIUM_TIERS=[
 
 
 const GCSS=`
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body,#root{background:#07070E;}
-html{color:#C8BFB0;font-family:'Barlow',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%;}
+html{color:#D4CEC9;font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;}
 body{overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);min-height:100vh;}
 ::-webkit-scrollbar{width:4px;background:#0A0F1A;}
 ::-webkit-scrollbar-thumb{background:rgba(232,168,56,.3);border-radius:3px;}
-input,select,textarea{font-family:'Barlow',sans-serif;outline:none;color:#F2EDE4;-webkit-appearance:none;appearance:none;}
-button{font-family:'Barlow',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+input,select,textarea{font-family:'Inter',sans-serif;outline:none;color:#F2EDE4;-webkit-appearance:none;appearance:none;}
+button{font-family:'Inter',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input::placeholder{color:#6B7280!important;opacity:1!important;}
 select option{background:#1C2030;color:#F2EDE4;}
 h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
@@ -535,6 +535,15 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── deep card variant ───────────────────────────────────── */
 .card-deep{background:linear-gradient(160deg,#0A1020,#060D18)!important;border-color:rgba(155,114,207,.18)!important;}
+/* ── standings row hover ───────────────────────────────────────────── */
+.standings-row{transition:background .15s;}
+.standings-row:hover{background:rgba(242,237,228,.05)!important;}
+.standings-row-1:hover{background:rgba(232,168,56,.13)!important;}
+/* ── me row highlight ─────────────────────────────────────────────── */
+.standings-row-me{background:rgba(155,114,207,.1)!important;border-left:2px solid #9B72CF!important;}
+/* ── float animation ───────────────────────────────────────────────── */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes glow-text{0%,100%{text-shadow:0 0 14px rgba(232,168,56,.5)}50%{text-shadow:0 0 32px rgba(232,168,56,.9),0 0 64px rgba(232,168,56,.3)}}
 `;
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
@@ -1084,7 +1093,63 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
 
 // ─── NAVBAR (desktop top + mobile bottom) ────────────────────────────────────
-function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,currentUser,onAuthClick}){
+const NOTIF_SEED=[
+  {id:1,icon:"⚔",title:"Clash #14 is LIVE",body:"Round 1 underway. 24 players across 3 lobbies. Check your lobby.",time:"2 min ago",read:false},
+  {id:2,icon:"✅",title:"Check-in Opened",body:"Confirm your spot for Clash #14 before 8PM EST.",time:"1h ago",read:false},
+  {id:3,icon:"🏆",title:"Results: Clash #13",body:"Levitate takes the crown. Full standings available.",time:"7 days ago",read:true},
+  {id:4,icon:"📈",title:"You climbed to #1",body:"Your leaderboard position improved after Clash #13.",time:"7 days ago",read:true},
+  {id:5,icon:"📢",title:"Season 16 Active",body:"Clash points are live. Every clash counts toward Grand Finals.",time:"2 weeks ago",read:true},
+];
+function NotificationBell({notifications,onMarkAllRead}){
+  const [open,setOpen]=useState(false);
+  const unread=notifications.filter(n=>!n.read).length;
+  return(
+    <div style={{position:"relative"}}>
+      <button onClick={()=>setOpen(o=>!o)}
+        style={{position:"relative",background:"none",border:"none",padding:"6px 8px",cursor:"pointer",color:"#9CA3AF",fontSize:16,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8,transition:"color .15s"}}
+        onMouseEnter={e=>e.currentTarget.style.color="#E8A838"}
+        onMouseLeave={e=>e.currentTarget.style.color="#9CA3AF"}>
+        <span>🔔</span>
+        {unread>0&&(
+          <div style={{position:"absolute",top:1,right:1,width:14,height:14,borderRadius:"50%",background:"#E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:900,color:"#07070E",lineHeight:1}}>
+            {unread>9?"9+":unread}
+          </div>
+        )}
+      </button>
+      {open&&(
+        <>
+          <div style={{position:"fixed",inset:0,zIndex:149}} onClick={()=>setOpen(false)}/>
+          <div style={{position:"absolute",right:0,top:"calc(100% + 8px)",width:300,background:"linear-gradient(160deg,#0F1828,#0B1220)",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,boxShadow:"0 20px 56px rgba(0,0,0,.7)",zIndex:150,overflow:"hidden"}}>
+            <div style={{padding:"12px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(232,168,56,.04)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:7}}>
+                <span style={{fontSize:13,fontWeight:700,color:"#F2EDE4"}}>Notifications</span>
+                {unread>0&&<span style={{background:"#E8A838",color:"#07070E",fontSize:9,fontWeight:800,borderRadius:99,padding:"2px 7px"}}>{unread} new</span>}
+              </div>
+              {unread>0&&<button onClick={()=>onMarkAllRead()} style={{background:"none",border:"none",cursor:"pointer",color:"#9B72CF",fontSize:11,fontWeight:600,fontFamily:"inherit"}}>Mark all read</button>}
+            </div>
+            <div style={{maxHeight:360,overflowY:"auto"}}>
+              {notifications.length===0
+                ?<div style={{padding:"28px 14px",textAlign:"center",color:"#4A4438",fontSize:13}}>All caught up!</div>
+                :notifications.map(n=>(
+                  <div key={n.id} style={{padding:"12px 14px",borderBottom:"1px solid rgba(242,237,228,.05)",background:n.read?"transparent":"rgba(232,168,56,.03)",display:"flex",gap:10,alignItems:"flex-start"}}>
+                    <div style={{fontSize:16,flexShrink:0,marginTop:2}}>{n.icon}</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:n.read?400:600,fontSize:12,color:n.read?"#9CA3AF":"#F2EDE4",marginBottom:2,lineHeight:1.4}}>{n.title}</div>
+                      <div style={{fontSize:11,color:"#6B7280",lineHeight:1.5}}>{n.body}</div>
+                      <div style={{fontSize:10,color:"#4A4438",marginTop:4}}>{n.time}</div>
+                    </div>
+                    {!n.read&&<div style={{width:6,height:6,borderRadius:"50%",background:"#E8A838",flexShrink:0,marginTop:5}}/>}
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,currentUser,onAuthClick,notifications,onMarkAllRead}){
   const [pwModal,setPwModal]=useState(false);
   const [pw,setPw]=useState("");
   const [drawer,setDrawer]=useState(false);
@@ -1217,6 +1282,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
             <div style={{fontSize:12,color:"#6B7280",whiteSpace:"nowrap"}}>
               <span style={{color:"#6EE7B7",fontWeight:700}}>{checkedIn}</span>/{players.length}
             </div>
+            <NotificationBell notifications={notifications||[]} onMarkAllRead={onMarkAllRead||function(){}}/>
             {/* Auth */}
             {currentUser?(
               <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -1259,7 +1325,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 }
 
 // ─── STANDINGS TABLE ──────────────────────────────────────────────────────────
-function StandingsTable({rows,compact,onRowClick}){
+function StandingsTable({rows,compact,onRowClick,myName}){
   const [sortKey,setSortKey]=useState("pts");
   const [asc,setAsc]=useState(false);
   function toggle(k){if(sortKey===k)setAsc(a=>!a);else{setSortKey(k);setAsc(false);}}
@@ -1283,13 +1349,14 @@ function StandingsTable({rows,compact,onRowClick}){
         const avg=parseFloat(p.avg)||0;
         const top3=i<3;
         const top8=i<8&&i>=3;
+        const isMe=myName&&p.name===myName;
         const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":top8?"#6B7280":"#3A3628";
-        const rowBg=i===0?"rgba(232,168,56,.09)":i===1?"rgba(192,192,192,.06)":i===2?"rgba(205,127,50,.06)":top8?"rgba(255,255,255,.02)":"transparent";
-        const rowBorder=i===0?"rgba(232,168,56,.22)":i===1?"rgba(192,192,192,.15)":i===2?"rgba(205,127,50,.15)":top8?"rgba(242,237,228,.05)":"transparent";
+        const rowBg=isMe?"rgba(155,114,207,.1)":i===0?"rgba(232,168,56,.09)":i===1?"rgba(192,192,192,.06)":i===2?"rgba(205,127,50,.06)":top8?"rgba(255,255,255,.02)":"transparent";
+        const rowBorder=isMe?"rgba(155,114,207,.45)":i===0?"rgba(232,168,56,.22)":i===1?"rgba(192,192,192,.15)":i===2?"rgba(205,127,50,.15)":top8?"rgba(242,237,228,.05)":"transparent";
         const nameCol=top3?"#F2EDE4":top8?"#C8BFB0":"#6B7280";
         const ptsCol=top3?"#E8A838":top8?"#B8A878":"#6B7280";
         return(
-          <div key={p.id} onClick={onRowClick?()=>onRowClick(p):undefined}
+          <div key={p.id} id={isMe?"lb-me-row":undefined} onClick={onRowClick?()=>onRowClick(p):undefined}
             className={"standings-row"+(i===0?" standings-row-1":i===1?" standings-row-2":i===2?" standings-row-3":"")}
             style={{display:"grid",gridTemplateColumns:cols,
               padding:top3?"13px 14px":"9px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",
@@ -1347,6 +1414,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   const checkedN=players.filter(p=>p.checkedIn).length;
   const top5=[...players].sort((a,b)=>b.pts-a.pts).slice(0,5);
+  const linkedPlayer=currentUser?players.find(p=>p.name===currentUser.username):null;
+  const s2=linkedPlayer?computeStats(linkedPlayer):null;
+  const myRankIdx=linkedPlayer?[...players].sort((a,b)=>b.pts-a.pts).findIndex(p=>p.id===linkedPlayer.id)+1:0;
 
   const StatBox=({label,val,c})=>(
     <div style={{background:"linear-gradient(145deg,#131C2A,#0D1421)",border:"1px solid rgba(242,237,228,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
@@ -1393,6 +1463,25 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
+      {currentUser&&linkedPlayer&&s2&&(
+        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.04))",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"16px 18px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Your Season Standing</div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              {[["#"+myRankIdx,"Rank","#E8A838"],[linkedPlayer.pts,"Season Pts","#E8A838"],[linkedPlayer.wins,"Wins","#6EE7B7"],[s2.avgPlacement,"Avg","#4ECDC4"]].map(([v,l,c])=>(
+                <div key={l} style={{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",textAlign:"center",minWidth:60}}>
+                  <div className="mono" style={{fontSize:18,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
+                  <div style={{fontSize:10,color:"#6B7280",marginTop:4,fontWeight:600,textTransform:"uppercase"}}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,flexShrink:0}}>
+            <Btn v="purple" s="sm" onClick={()=>{setProfilePlayer(linkedPlayer);setScreen("profile");}}>My Profile →</Btn>
+            <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Standings</Btn>
+          </div>
+        </div>
+      )}
       <div className="grid-home">
         {/* Left: Hero */}
         <div>
@@ -2120,7 +2209,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
 
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
-function LeaderboardScreen({players,setScreen,setProfilePlayer}){
+function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
   const [tab,setTab]=useState("season");
   const [search,setSearch]=useState("");
   const [regionFilter,setRegionFilter]=useState("All");
@@ -2134,6 +2223,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
   });
   const sorted=[...filtered].sort((a,b)=>b.pts-a.pts);
   const top3=sorted.slice(0,3);
+  const myLbIdx=currentUser?sorted.findIndex(p=>p.name===currentUser.username):-1;
 
   function open(p){setProfilePlayer(p);setScreen("profile");}
 
@@ -2189,9 +2279,10 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer}){
       <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
         <div style={{flex:1,minWidth:160}}><Inp value={search} onChange={setSearch} placeholder="Search players..."/></div>
         <Sel value={regionFilter} onChange={setRegionFilter} style={{width:140}}><option value="All">All Regions</option>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel>
+        {currentUser&&myLbIdx>=0&&<Btn v="purple" s="sm" onClick={()=>document.getElementById("lb-me-row")?.scrollIntoView({behavior:"smooth",block:"center"})}>My Position #{myLbIdx+1}</Btn>}
       </div>
 
-      {tab==="season"&&<StandingsTable rows={sorted} onRowClick={open}/>}
+      {tab==="season"&&<StandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
 
       {tab==="cards"&&(
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
@@ -2869,7 +2960,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 }
 
 // ─── ARCHIVE ──────────────────────────────────────────────────────────────────
-function ArchiveScreen({players,currentUser}){
+function ArchiveScreen({players,currentUser,setScreen}){
   const [open,setOpen]=useState(null);
   const all=[...PAST_CLASHES,
     {id:9,name:"Clash #9",date:"Feb 1 2026",season:"S16",champion:"Wrainbash",top3:["Wrainbash","Setsuko","Levitate"],players:24,lobbies:3,report:null},
@@ -3374,7 +3465,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen}){
 
 
 // ─── SCRIMS SCREEN ────────────────────────────────────────────────────────────
-function ScrimsScreen({players,toast}){
+function ScrimsScreen({players,toast,setScreen}){
   const [tab,setTab]=useState("log");
   const [sessions,setSessions]=useState([]);
   const [activeId,setActiveId]=useState(null);
@@ -5462,7 +5553,7 @@ function RulesScreen({setScreen}){
           </Panel>
           <Panel style={{padding:"24px",background:"rgba(232,168,56,.03)",border:"1px solid rgba(232,168,56,.15)"}}>
             <h3 style={{fontSize:15,color:"#E8A838",marginBottom:10}}>Result Submission</h3>
-            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>The <span style={{color:"#F2EDE4",fontWeight:600}}>1st and 2nd place finishers</span> in each lobby MUST screenshot the end-of-game results screen and submit it to an admin via Discord or the platform. Failure to submit may result in disciplinary action. Admins enter results within ~10 minutes of each game ending.</div>
+            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Results are entered <span style={{color:"#F2EDE4",fontWeight:600}}>directly on the platform</span> — players enter their placement on the Bracket page after each round. No screenshots required.</div>
           </Panel>
         </div>
       )}
@@ -5592,7 +5683,7 @@ function RulesScreen({setScreen}){
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:6,fontFamily:"'Playfair Display',serif"}}>Code of Conduct</h2>
             <div style={{fontSize:13,color:"#6B7280",marginBottom:20,lineHeight:1.7}}>All participants are bound by these rules. Violations result in warnings, point deductions, suspension, or permanent ban depending on severity.</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {[["🎯","Play to win","Always play to the best of your ability. Intentionally underperforming or tanking games is a bannable offense."],["🚫","No collusion","Any agreement to soft-play allies, split prizes, or manipulate results is prohibited. This includes ghosting and external signaling."],["📵","No coaching during games","Receiving tips or build orders from anyone outside the lobby during an active game is strictly prohibited."],["🐛","No bugs or exploits","Do not knowingly use in-game bugs for advantage. Pause and report to an admin immediately if you encounter one."],["🔐","No account sharing","Playing under another person's account (ringing) is a permanent ban offense. Compete only on your registered account."],["🤝","Respect everyone","Harassment, hate speech, discrimination, and abusive behavior are not tolerated - in-game, Discord, or on the platform."],["📸","Screenshot obligation","1st and 2nd place must submit end-of-game screenshots. Failure may result in a point deduction."]].map(([icon,title,desc])=>(
+              {[["🎯","Play to win","Always play to the best of your ability. Intentionally underperforming or tanking games is a bannable offense."],["🚫","No collusion","Any agreement to soft-play allies, split prizes, or manipulate results is prohibited. This includes ghosting and external signaling."],["📵","No coaching during games","Receiving tips or build orders from anyone outside the lobby during an active game is strictly prohibited."],["🐛","No bugs or exploits","Do not knowingly use in-game bugs for advantage. Pause and report to an admin immediately if you encounter one."],["🔐","No account sharing","Playing under another person's account (ringing) is a permanent ban offense. Compete only on your registered account."],["🤝","Respect everyone","Harassment, hate speech, discrimination, and abusive behavior are not tolerated - in-game, Discord, or on the platform."],["📸","Result submission","All players enter their placement directly on the Bracket page. Discrepancies should be raised to an admin immediately."]].map(([icon,title,desc])=>(
                 <div key={title} style={{display:"flex",gap:14,background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
                   <div style={{fontSize:20,flexShrink:0,width:28,textAlign:"center"}}>{icon}</div>
                   <div>
@@ -6372,6 +6463,7 @@ export default function TFTClash(){
   const [screen,setScreen]=useState("home");
   const [players,setPlayers]=useState(SEED);
   const [isAdmin,setIsAdmin]=useState(false);
+  const [notifications,setNotifications]=useState(NOTIF_SEED);
   const [toasts,setToasts]=useState([]);
   const [disputes]=useState([]);
   const [announcement,setAnnouncement]=useState("⚡ Clash #14 is LIVE NOW - Round 1 underway! 24 players across 3 lobbies. Good luck!");
@@ -6380,6 +6472,7 @@ export default function TFTClash(){
   const [currentUser,setCurrentUser]=useState(null); // null = guest
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
 
+  function markAllRead(){setNotifications(ns=>ns.map(n=>({...n,read:true})));}
   function toast(msg,type){const id=Date.now()+Math.random();setToasts(ts=>[...ts,{id,msg,type}]);}
   function removeToast(id){setToasts(ts=>ts.filter(t=>t.id!==id));}
   function navTo(s){
@@ -6445,12 +6538,12 @@ export default function TFTClash(){
       <Hexbg/>
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
-          currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)}/>
+          currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead}/>
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
         {screen==="bracket"    &&<BracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo}/>}
-        {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
+        {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
         {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser}/>}
         {screen==="results"    &&<ResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
         {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
@@ -6468,7 +6561,7 @@ export default function TFTClash(){
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo}/>}
         {screen==="host-dashboard"&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
-        {screen==="scrims"     &&isAdmin&&<ScrimsScreen players={players} toast={toast}/>}
+        {screen==="scrims"     &&isAdmin&&<ScrimsScreen players={players} toast={toast} setScreen={navTo}/>}
         {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo}/>}
         {screen==="admin"      &&!isAdmin&&(
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
