@@ -425,12 +425,6 @@ h1,h2,h3,h4{font-family:'Cinzel',Georgia,serif;font-weight:700;}
   backdrop-filter:blur(20px);
   display:none;
 }
-.top-nav-row2{
-  display:flex;overflow-x:auto;scrollbar-width:none;
-  border-top:1px solid rgba(242,237,228,.05);
-  background:rgba(0,0,0,.2);
-}
-.top-nav-row2::-webkit-scrollbar{display:none;}
 @media(min-width:768px){
   .top-nav{display:block;}
   .bottom-nav{display:none;}
@@ -1193,14 +1187,19 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"more",icon:"☰",label:"More"},
   ];
 
-  // Desktop nav — all items in scrollable second row
-  const ALL_NAV=[
+  const [desktopMore,setDesktopMore]=useState(false);
+
+  // Desktop nav
+  const DESKTOP_PRIMARY=[
     {id:"home",label:"Home"},
     {id:"roster",label:"Roster"},
     {id:"bracket",label:"Bracket"},
     {id:"leaderboard",label:"Leaderboard"},
     {id:"results",label:"Results"},
     {id:"hof",label:"Hall of Fame"},
+    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
+  ];
+  const DESKTOP_MORE=[
     {id:"archive",label:"Archive"},
     {id:"aegis-showcase",label:"AEGIS #151"},
     {id:"milestones",label:"Milestones"},
@@ -1208,8 +1207,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"rules",label:"Rules"},
     {id:"faq",label:"FAQ"},
     {id:"pricing",label:"Pricing"},
-    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
   ];
+  const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
 
   const DRAWER_ITEMS=[
     {id:"hof",icon:"🏛",label:"Hall of Fame"},
@@ -1276,16 +1275,51 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
       {/* Desktop top nav — two-row layout */}
       <nav className="top-nav">
-        {/* Row 1: branding + auth/admin */}
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",height:50,display:"flex",alignItems:"center",gap:0}}>
-          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:"auto",flexShrink:0,cursor:"pointer"}}>
-            <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:30,height:30,objectFit:"contain"}}/>
+        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:60,display:"flex",alignItems:"center",gap:0}}>
+          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:20,flexShrink:0,cursor:"pointer"}}>
+            <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:32,height:32,objectFit:"contain"}}/>
             <div>
-              <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:13,fontWeight:700,lineHeight:1}}>TFT Clash</div>
+              <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:0,flex:1,overflow:"hidden"}}>
+            {DESKTOP_PRIMARY.map(l=>(
+              <button key={l.id} onClick={()=>setScreen(l.id)}
+                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
+                  color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
+                  borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
+                  transition:"all .2s",marginBottom:-1}}>
+                {l.label}
+              </button>
+            ))}
+            <div style={{position:"relative",flexShrink:0}}>
+              <button onClick={()=>setDesktopMore(o=>!o)}
+                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
+                  color:desktopMoreActive?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
+                  borderBottom:desktopMoreActive?"2px solid #E8A838":"2px solid transparent",
+                  transition:"all .2s",marginBottom:-1}}>
+                More ▾
+              </button>
+              {desktopMore&&(
+                <>
+                  <div style={{position:"fixed",inset:0,zIndex:98}} onClick={()=>setDesktopMore(false)}/>
+                  <div style={{position:"absolute",left:0,top:"calc(100% + 4px)",minWidth:180,background:"linear-gradient(160deg,#0F1828,#0B1220)",
+                    border:"1px solid rgba(232,168,56,.2)",borderRadius:12,boxShadow:"0 16px 48px rgba(0,0,0,.7)",zIndex:99,overflow:"hidden"}}>
+                    {DESKTOP_MORE.map(l=>(
+                      <button key={l.id} onClick={()=>{setScreen(l.id);setDesktopMore(false);}}
+                        style={{display:"block",width:"100%",textAlign:"left",background:screen===l.id?"rgba(232,168,56,.08)":"none",
+                          border:"none",padding:"11px 16px",fontSize:13,fontWeight:600,
+                          color:screen===l.id?"#E8A838":"#C8BFB0",cursor:"pointer",transition:"all .15s",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginLeft:8,flexShrink:0}}>
             {dispCount>0&&(
               <button onClick={()=>setScreen("admin")} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.4)",borderRadius:20,cursor:"pointer",animation:"pulse-red 2s infinite"}}>
                 <Dot color="#EF4444" size={6}/>
@@ -1312,20 +1346,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               ?<Btn v="ghost" s="sm" onClick={()=>setPwModal(true)}>Admin</Btn>
               :<Btn v="crimson" s="sm" onClick={()=>{setIsAdmin(false);toast("Admin off","success");}}>● Admin</Btn>
             }
-          </div>
-        </div>
-        {/* Row 2: all nav items — scrollable */}
-        <div className="top-nav-row2">
-          <div style={{maxWidth:1400,margin:"0 auto",padding:"0 8px",display:"flex",alignItems:"center",gap:0}}>
-            {ALL_NAV.map(l=>(
-              <button key={l.id} onClick={()=>setScreen(l.id)}
-                style={{background:"none",border:"none",padding:"6px 10px",fontSize:12,fontWeight:600,
-                  color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
-                  borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
-                  transition:"all .2s",marginBottom:-1,flexShrink:0}}>
-                {l.label}
-              </button>
-            ))}
           </div>
         </div>
       </nav>
@@ -1413,6 +1433,80 @@ function StandingsTable({rows,compact,onRowClick,myName}){
   );
 }
 
+
+// ─── PARTNER EVENT CARD ───────────────────────────────────────────────────────
+function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
+  const [registered,setRegistered]=useState(false);
+  const [showForm,setShowForm]=useState(false);
+  const [customIgn,setCustomIgn]=useState("");
+
+  function doRegister(){
+    var ign=customIgn.trim();
+    if(!ign){toast("Enter your Riot ID to register","error");return;}
+    setRegistered(true);setShowForm(false);
+    toast("Registered for Aegis Showdown #151! GL HF ⚡","success");
+  }
+
+  return(
+    <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(155,114,207,.35)",borderRadius:16,overflow:"hidden",transition:"border-color .2s"}}
+      onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.65)"}
+      onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.35)"}>
+      {/* Announcement strip */}
+      <div style={{background:"rgba(232,168,56,.07)",borderBottom:"1px solid rgba(232,168,56,.18)",padding:"9px 16px",display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:14,flexShrink:0}}>📢</span>
+        <span style={{color:"#E8A838",fontWeight:600,fontSize:12,lineHeight:1.4}}>
+          Showdown #152 sign-ups are <span style={{color:"#6EE7B7"}}>OPEN</span> · Sat 22 Mar 8PM EST · 64 spots · Presented by <span style={{color:"#C4B5FD"}}>ZenMarket</span>
+        </span>
+      </div>
+      {/* Card body */}
+      <div style={{padding:"18px 20px",cursor:"pointer"}} onClick={()=>setScreen("aegis-showcase")}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+          <div style={{width:40,height:40,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🏆</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>Aegis Esports TFT Showdown</div>
+            <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>Presented by ZenMarket</div>
+          </div>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap",flexShrink:0}}>
+            <span style={{background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#6EE7B7",display:"flex",alignItems:"center",gap:4}}>
+              <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+            </span>
+            <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#E8A838"}}>64p</span>
+            <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>Swiss</span>
+          </div>
+        </div>
+        <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:14}}>
+          Official partner clash for Aegis Esports — open to all ranked players. Prizes, broadcast, and full bracket. Season points separate from TFT Clash standings.
+        </div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}} onClick={e=>e.stopPropagation()}>
+          {registered?(
+            <div style={{display:"flex",alignItems:"center",gap:8,flex:1,background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:9,padding:"8px 14px"}}>
+              <span style={{fontSize:14}}>✅</span>
+              <span style={{fontSize:12,fontWeight:600,color:"#6EE7B7"}}>Registered!</span>
+              <Btn v="dark" s="sm" style={{marginLeft:"auto"}} onClick={()=>setScreen("aegis-showcase")}>View Event →</Btn>
+            </div>
+          ):(
+            <>
+              {showForm?(
+                <div style={{flex:1,display:"flex",gap:6,flexWrap:"wrap"}}>
+                  <Inp value={customIgn} onChange={setCustomIgn} placeholder={currentUser?currentUser.riotId||"Your Riot ID#TAG":"Riot ID#TAG"} style={{flex:1,minWidth:140}}/>
+                  <Btn v="purple" onClick={doRegister}>Confirm ⚡</Btn>
+                  <Btn v="dark" onClick={()=>setShowForm(false)}>Cancel</Btn>
+                </div>
+              ):(
+                <>
+                  <Btn v="purple" s="sm" onClick={()=>{if(!currentUser){onAuthClick("login");return;}setCustomIgn(currentUser.riotId||"");setShowForm(true);}}>
+                    {currentUser?"Register for #152 →":"Sign In to Register"}
+                  </Btn>
+                  <Btn v="dark" s="sm" onClick={()=>setScreen("aegis-showcase")}>View Event</Btn>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState}){
@@ -1712,27 +1806,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <Btn v="dark" s="sm" onClick={()=>setScreen("aegis-showcase")}>View All →</Btn>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
-          <div style={{background:"linear-gradient(145deg,#0D1520,#111827)",border:"1px solid rgba(155,114,207,.35)",borderRadius:16,padding:"20px",cursor:"pointer",transition:"border-color .2s"}}
-            onClick={()=>setScreen("aegis-showcase")}
-            onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.7)"}
-            onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.35)"}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-              <div style={{width:40,height:40,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>&#127942;</div>
-              <div>
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>Aegis Esports Showdown</div>
-                <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>Presented by ZenMarket</div>
-              </div>
-            </div>
-            <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:12}}>
-              <span style={{background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,color:"#6EE7B7",display:"flex",alignItems:"center",gap:4}}>
-                <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",display:"inline-block"}}/>LIVE
-              </span>
-              <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,color:"#E8A838"}}>32 Players</span>
-              <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>Swiss</span>
-            </div>
-            <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:14}}>Official partner clash for Aegis Esports — open to all ranked players. Prizes, broadcast, and full bracket.</div>
-            <Btn v="purple" s="sm" full onClick={e=>{e.stopPropagation();setScreen("aegis-showcase");}}>View Event →</Btn>
-          </div>
+          <PartnerEventCard currentUser={currentUser} onAuthClick={onAuthClick} setScreen={setScreen} toast={toast}/>
         </div>
       </div>
       {/* Bottom row */}
@@ -4824,6 +4898,8 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
   const [username,setUsername]=useState("");
   const [riotId,setRiotId]=useState("");
   const [region,setRegion]=useState("EUW");
+  const [secondRiotId,setSecondRiotId]=useState("");
+  const [secondRegion,setSecondRegion]=useState("NA");
   const [bio,setBio]=useState("");
   const [twitch,setTwitch]=useState("");
   const [twitter,setTwitter]=useState("");
@@ -4844,7 +4920,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
     setTimeout(()=>{
       const newUser={
         id:"u"+Date.now(),email:email.trim(),username:username.trim(),
-        riotId:riotId.trim(),region,bio:bio.trim(),
+        riotId:riotId.trim(),region,mainRegion:region,secondRiotId:secondRiotId.trim(),secondRegion,bio:bio.trim(),
         twitch:twitch.trim(),twitter:twitter.trim(),youtube:youtube.trim(),
         slug:username.trim().toLowerCase().replace(/\s+/g,"-"),
         verified:false,role:"player",createdAt:"Mar 2026",linkedPlayerId:null,
@@ -4926,7 +5002,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
                 <Inp value={riotId} onChange={setRiotId} placeholder="Name#TAG"/>
               </div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Region</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Main Region</div>
                 <Sel value={region} onChange={setRegion}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel>
               </div>
               <div>
@@ -5047,13 +5123,16 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
   const [twitch,setTwitch]=useState(user.twitch||"");
   const [twitter,setTwitter]=useState(user.twitter||"");
   const [youtube,setYoutube]=useState(user.youtube||"");
+  const [mainRegion,setMainRegion]=useState(user.mainRegion||user.region||"EUW");
+  const [secondRiotId,setSecondRiotId]=useState(user.secondRiotId||"");
+  const [secondRegion,setSecondRegion]=useState(user.secondRegion||"NA");
 
   const linkedPlayer=players.find(p=>p.id===user.linkedPlayerId||p.name===user.username);
   const s=linkedPlayer?computeStats(linkedPlayer):null;
   const myAchievements=linkedPlayer?ACHIEVEMENTS.filter(a=>{try{return a.check(linkedPlayer);}catch{return false;}}):[];
   const tierCols={bronze:"#CD7F32",silver:"#C0C0C0",gold:"#E8A838",legendary:"#9B72CF"};
 
-  function save(){onUpdate({...user,bio,twitch,twitter,youtube});setEdit(false);toast("Profile updated ✓","success");}
+  function save(){onUpdate({...user,bio,twitch,twitter,youtube,mainRegion,secondRiotId,secondRegion,region:mainRegion});setEdit(false);toast("Profile updated ✓","success");}
 
   const rankColor=linkedPlayer?rc(linkedPlayer.rank):"#9B72CF";
   const myMilestones=linkedPlayer?MILESTONES.filter(m=>{try{return m.check(linkedPlayer);}catch{return false;}}):[];
@@ -5154,10 +5233,20 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                   <span style={{color:"#BECBD9",fontSize:13}}>Twitch</span>
                   <span style={{color:user.twitch?"#9147FF":"#9AAABF",fontSize:13}}>{user.twitch?"twitch.tv/"+user.twitch:"-"}</span>
                 </div>
-                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0"}}>
+                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
                   <span style={{color:"#BECBD9",fontSize:13}}>Twitter</span>
                   <span style={{color:user.twitter?"#1DA1F2":"#9AAABF",fontSize:13}}>{user.twitter?"@"+user.twitter:"-"}</span>
                 </div>
+                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
+                  <span style={{color:"#BECBD9",fontSize:13}}>Main Region</span>
+                  <span style={{color:"#4ECDC4",fontSize:13,fontWeight:600}}>{user.mainRegion||user.region||"EUW"}</span>
+                </div>
+                {(user.secondRiotId)&&(
+                  <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0"}}>
+                    <span style={{color:"#BECBD9",fontSize:13}}>Secondary Account</span>
+                    <span style={{color:"#C4B5FD",fontSize:13}}>{user.secondRiotId} <span style={{color:"#9AAABF"}}>({user.secondRegion||"NA"})</span></span>
+                  </div>
+                )}
               </div>
             </>
           ):(
@@ -5185,6 +5274,23 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                 <div>
                   <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Twitter / X handle</div>
                   <Inp value={twitter} onChange={setTwitter} placeholder="@yourhandle"/>
+                </div>
+                <div>
+                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Main Region</div>
+                  <Sel value={mainRegion} onChange={setMainRegion}>
+                    {["EUW","EUNE","NA","KR","BR","LAN"].map(r=><option key={r} value={r}>{r}</option>)}
+                  </Sel>
+                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>This is the server your primary Riot account competes on. We mostly host EUW and NA clashes.</div>
+                </div>
+                <div>
+                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Secondary Account <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:8}}>
+                    <Inp value={secondRiotId} onChange={setSecondRiotId} placeholder="SecondIGN#TAG"/>
+                    <Sel value={secondRegion} onChange={setSecondRegion}>
+                      {["NA","EUW","EUNE","KR","BR","LAN"].map(r=><option key={r} value={r}>{r}</option>)}
+                    </Sel>
+                  </div>
+                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>Add a second account if you play on both EU and NA. Allows you to register with either Riot ID.</div>
                 </div>
               </div>
             </>
