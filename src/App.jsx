@@ -360,7 +360,7 @@ const PREMIUM_TIERS=[
 
 
 const GCSS=`
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body,#root{background:#07070E;}
 html{color:#D4CEC9;font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;}
@@ -371,9 +371,9 @@ input,select,textarea{font-family:'Inter',sans-serif;outline:none;color:#F2EDE4;
 button{font-family:'Inter',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input::placeholder{color:#6B7280!important;opacity:1!important;}
 select option{background:#1C2030;color:#F2EDE4;}
-h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
+h1,h2,h3,h4{font-family:'Cinzel',Georgia,serif;font-weight:700;}
 .mono{font-family:'JetBrains Mono',monospace!important;}
-.cond{font-family:'Barlow Condensed',sans-serif!important;}
+.cond{font-family:'Inter',sans-serif!important;}
 
 /* ── animations ─────────────────────────────────────────────── */
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
@@ -411,7 +411,7 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;}
   flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;padding:9px 4px;background:none;border:none;
   font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-  color:#6B7280;transition:color .2s,text-shadow .2s;font-family:'Barlow Condensed',sans-serif;
+  color:#6B7280;transition:color .2s,text-shadow .2s;font-family:'Inter',sans-serif;
   -webkit-tap-highlight-color:transparent;min-height:54px;
 }
 .bottom-nav button.active{color:#E8A838;}
@@ -839,14 +839,14 @@ function ChampionHeroCard({champion,onClick}){
           <div style={{width:56,height:56,borderRadius:"50%",
             background:"rgba(232,168,56,.15)",border:"2px solid #E8A838",
             display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:22,fontWeight:700,color:"#E8A838",fontFamily:"'Playfair Display',serif",
+            fontSize:22,fontWeight:700,color:"#E8A838",fontFamily:"'Cinzel',serif",
             margin:"0 auto",boxShadow:"0 0 20px rgba(232,168,56,.3)"}}>
             {c.name.charAt(0)}
           </div>
         </div>
         <div style={{flex:1,minWidth:0}}>
           <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:2}}>{c.season} Champion</div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(16px,3vw,24px)",fontWeight:900,color:"#E8A838",lineHeight:1,textShadow:"0 0 20px rgba(232,168,56,.4)"}}>{c.name}</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(16px,3vw,24px)",fontWeight:900,color:"#E8A838",lineHeight:1,textShadow:"0 0 20px rgba(232,168,56,.4)"}}>{c.name}</div>
           <div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap"}}>
             <Tag color="#E8A838" size="sm">👑 {c.title}</Tag>
             <Tag color="#4ECDC4" size="sm">{c.rank}</Tag>
@@ -1064,7 +1064,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
     <Panel glow={!locked} style={{border:locked?"1px solid rgba(82,196,124,.3)":undefined,animation:locked?"lock-flash .9s ease":undefined}}>
       <div style={{padding:"12px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center",gap:8,flexWrap:"wrap"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:34,height:34,background:locked?"rgba(82,196,124,.1)":"rgba(232,168,56,.1)",border:"1px solid "+(locked?"rgba(82,196,124,.3)":"rgba(232,168,56,.28)"),borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:locked?"#6EE7B7":"#E8A838",fontFamily:"'Barlow Condensed',sans-serif",flexShrink:0}}>
+          <div style={{width:34,height:34,background:locked?"rgba(82,196,124,.1)":"rgba(232,168,56,.1)",border:"1px solid "+(locked?"rgba(82,196,124,.3)":"rgba(232,168,56,.28)"),borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,color:locked?"#6EE7B7":"#E8A838",fontFamily:"'Inter',sans-serif",flexShrink:0}}>
             {lbl}
           </div>
           <div>
@@ -1224,7 +1224,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
           <div className="drawer-overlay" onClick={()=>setDrawer(false)}/>
           <div className="drawer">
             <div style={{padding:"0 20px 20px",borderBottom:"1px solid rgba(242,237,228,.08)",marginBottom:16}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#E8A838"}}>TFT Clash</div>
+              <div style={{fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,color:"#E8A838"}}>TFT Clash</div>
               <div style={{fontSize:12,color:"#6B7280"}}>Season 16</div>
             </div>
             {DRAWER_ITEMS.map(l=>(
@@ -1256,7 +1256,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               <path d="M30 15L46 24L46 42L30 51L14 42L14 24Z" fill="rgba(232,168,56,.15)" stroke="#E8A838" strokeWidth="1.5"/>
             </svg>
             <div>
-              <div className="gold-shimmer" style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
+              <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
@@ -1973,7 +1973,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
           <div style={{width:72,height:72,borderRadius:"50%",
             background:`linear-gradient(135deg,${rc(player.rank)}33,${rc(player.rank)}11)`,
             border:`3px solid ${player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"}`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Playfair Display',serif",flexShrink:0,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Cinzel',serif",flexShrink:0,
             boxShadow:player.name===SEASON_CHAMPION.name?"0 0 24px rgba(232,168,56,.4)":"none"}}>
             {player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
             {player.name.charAt(0)}
@@ -2251,7 +2251,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
             return(
               <Panel key={p.id} hover style={{padding:"18px 14px",textAlign:"center",border:"1px solid "+MCOLS[ri]+"44",marginTop:ri===0?0:14,cursor:"pointer"}} onClick={()=>open(p)}>
                 <div style={{fontSize:26,marginBottom:6}}>{MEDALS[ri]}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#F2EDE4",marginTop:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,color:"#F2EDE4",marginTop:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                 <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:5,flexWrap:"wrap"}}>
                   <Tag color="#4ECDC4" size="sm">{p.region}</Tag>
                   <ClashRankBadge xp={estimateXp(p)} size="sm"/>
@@ -2608,11 +2608,11 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
               </div>
               <div style={{position:"relative",animation:"champ-reveal .9s ease both"}}>
                 <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".28em",textTransform:"uppercase",marginBottom:16,opacity:.8}}>⚔ Season 16 - Grand Finalist ⚔</div>
-                <div style={{width:90,height:90,borderRadius:"50%",background:`linear-gradient(135deg,${rc(champ.rank)}44,${rc(champ.rank)}11)`,border:`3px solid ${rc(champ.rank)}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,fontWeight:700,color:rc(champ.rank),margin:"0 auto 12px",fontFamily:"'Playfair Display',serif",animation:"crown-glow 2s infinite"}}>
+                <div style={{width:90,height:90,borderRadius:"50%",background:`linear-gradient(135deg,${rc(champ.rank)}44,${rc(champ.rank)}11)`,border:`3px solid ${rc(champ.rank)}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36,fontWeight:700,color:rc(champ.rank),margin:"0 auto 12px",fontFamily:"'Cinzel',serif",animation:"crown-glow 2s infinite"}}>
                   {champ.name.charAt(0)}
                 </div>
                 <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}}>🏆 Champion</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(32px,5vw,56px)",fontWeight:900,color:"#E8A838",textShadow:"0 0 80px rgba(232,168,56,.6),0 4px 24px rgba(0,0,0,.8)",lineHeight:1,marginBottom:8}}>{champ.name}</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(32px,5vw,56px)",fontWeight:900,color:"#E8A838",textShadow:"0 0 80px rgba(232,168,56,.6),0 4px 24px rgba(0,0,0,.8)",lineHeight:1,marginBottom:8}}>{champ.name}</div>
                 <div className="mono" style={{fontSize:28,fontWeight:700,color:"#E8A838",marginBottom:6}}>{champ.pts} <span style={{fontSize:16,color:"#9CA3AF",fontWeight:400}}>season pts</span></div>
                 <div style={{display:"flex",gap:16,justifyContent:"center",marginBottom:20,flexWrap:"wrap"}}>
                   {[["AVP",computeStats(champ).avgPlacement,avgCol(computeStats(champ).avgPlacement)],["Wins",computeStats(champ).wins,"#6EE7B7"],["Top4%",computeStats(champ).top4Rate+"%","#C4B5FD"],["Clutch",computeStats(champ).clutchRate+"%","#9B72CF"]].map(([l,v,c])=>(
@@ -2805,12 +2805,12 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                   border:`3px solid ${rc(king.rank)}`,
                   display:"flex",alignItems:"center",justifyContent:"center",
                   fontSize:"clamp(20px,4vw,32px)",fontWeight:700,color:rc(king.rank),
-                  fontFamily:"'Playfair Display',serif",
+                  fontFamily:"'Cinzel',serif",
                   margin:"0 auto 10px",flexShrink:0,boxShadow:`0 0 24px ${rc(king.rank)}44`}}>
                   {king.name.charAt(0)}
                 </div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".18em",textTransform:"uppercase",marginBottom:4}}>Current Leader</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(18px,3vw,28px)",fontWeight:900,color:"#E8A838",textShadow:"0 0 32px rgba(232,168,56,.5)",lineHeight:1.1}}>{king.name}</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(18px,3vw,28px)",fontWeight:900,color:"#E8A838",textShadow:"0 0 32px rgba(232,168,56,.5)",lineHeight:1.1}}>{king.name}</div>
                 <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:6,flexWrap:"wrap"}}>
                   <Tag color={rc(king.rank)} size="sm">{king.rank}</Tag>
                   <Tag color="#4ECDC4" size="sm">{king.region}</Tag>
@@ -3363,7 +3363,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen}){
             <h3 style={{fontSize:16,color:"#F2EDE4"}}>Host Applications</h3>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontSize:12,color:"#6B7280"}}>{hostApps.filter(a=>a.status==="pending").length} pending review</div>
-              <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.18)",border:"1px solid rgba(155,114,207,.4)",borderRadius:7,padding:"6px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
+              <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.18)",border:"1px solid rgba(155,114,207,.4)",borderRadius:7,padding:"6px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
                 <span>🏆</span> Aegis Client Demo
               </button>
             </div>
@@ -4505,7 +4505,7 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:36,marginBottom:8,animation:"crown-glow 3s infinite"}}>⚔</div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#E8A838",letterSpacing:"-.01em"}}>TFT Clash</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838",letterSpacing:"-.01em"}}>TFT Clash</div>
           <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>Create your account</div>
         </div>
 
@@ -4625,7 +4625,7 @@ function LoginScreen({onLogin,onGoSignUp,toast}){
       <div style={{width:"100%",maxWidth:420}}>
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:36,marginBottom:8,animation:"crown-glow 3s infinite"}}>⚔</div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#E8A838"}}>TFT Clash</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838"}}>TFT Clash</div>
           <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>Sign in to your account</div>
         </div>
 
@@ -5035,7 +5035,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
           <div>
             <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6}}>TFT Clash · Season 16 Recap</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(24px,5vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{player.name}</div>
+            <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(24px,5vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{player.name}</div>
             <div style={{marginTop:8}}><ClashRankBadge xp={estimateXp(player)} size="sm"/></div>
           </div>
           <div style={{textAlign:"right"}}>
@@ -5514,7 +5514,7 @@ function RulesScreen({setScreen}){
       {tab==="format"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Clash Format</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>Clash Format</h2>
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Standard Format (24 players)</div>
@@ -5561,7 +5561,7 @@ function RulesScreen({setScreen}){
       {tab==="points"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:4,fontFamily:"'Playfair Display',serif"}}>Tournament Point System</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:4,fontFamily:"'Cinzel',serif"}}>Tournament Point System</h2>
             <div style={{fontSize:13,color:"#6B7280",marginBottom:20}}>Per-game placement points - used in all TFT Clash events. Based on the official 2026 EMEA Esports rulebook.</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:8,marginBottom:24}}>
               {[[1,"8","#E8A838"],[2,"7","#C0C0C0"],[3,"6","#CD7F32"],[4,"5","#4ECDC4"],[5,"4","#9CA3AF"],[6,"3","#9CA3AF"],[7,"2","#9CA3AF"],[8,"1","#9CA3AF"]].map(([place,pts,color])=>(
@@ -5577,7 +5577,7 @@ function RulesScreen({setScreen}){
             </div>
           </Panel>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Tiebreakers</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>Tiebreakers</h2>
             <div style={{fontSize:13,color:"#9CA3AF",marginBottom:16,lineHeight:1.7}}>When players are tied on cumulative points (for reseeding, cut-offs, or final placement), ties are broken in this exact order:</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[["1","Total Tournament Points","The raw cumulative score. Applied first in all contexts.","#E8A838"],["2","Wins + Top 4s","Count of 1st place finishes × 2, plus top-4 finishes. Higher score wins.","#4ECDC4"],["3","Best Placement Counts","Who has more 1sts? Then more 2nds? Counts position-by-position.","#9B72CF"],["4","Most Recent Game","Better finish in the most recent game, then the game before that.","#C4B5FD"],["5","Random","Last resort only - random sort between tied positions.","#6B7280"]].map(([n,title,desc,color])=>(
@@ -5597,7 +5597,7 @@ function RulesScreen({setScreen}){
       {tab==="checkin"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Registration & Check-in</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>Registration & Check-in</h2>
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               <div>
                 <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Registration</div>
@@ -5637,7 +5637,7 @@ function RulesScreen({setScreen}){
       {tab==="edgecases"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>Uneven Numbers & Byes</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>Uneven Numbers & Byes</h2>
             <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:16}}>Lobbies hold up to 8 players. When total player count is not a multiple of 8, these rules apply:</div>
             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
               {[["Lobby of 7","Fully valid - game runs normally. 8th place simply doesn't exist that game. Scoring is identical for the 7 players present."],["Lobby of 6","Allowed but not preferred. Admin will attempt to merge lobbies or promote from waitlist before running a 6-player lobby."],["BYE (advancement stages)","When a Stage 2 lobby can't be filled to 8, top-seeded players receive a BYE - they advance automatically. BYE = 0 points added (neutral, not rewarded, not penalized)."]].map(([title,desc])=>(
@@ -5649,7 +5649,7 @@ function RulesScreen({setScreen}){
             </div>
           </Panel>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Playfair Display',serif"}}>No-Shows & Disconnections</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>No-Shows & Disconnections</h2>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
               {[["Doesn't join lobby","Game starts after 5-min grace. Player receives DNP (0 pts) for that game.","#F87171"],["Disconnects mid-game","Riot-assigned final placement counts - no exceptions. Remakes only considered for server-wide outages or first-carousel DC, at admin discretion.","#EAB308"],["Drops out between rounds","Removed from roster. No mid-tournament replacement in competitive format.","#9CA3AF"],["Two DNPs","Admin prompted to review for disqualification from remainder of the clash.","#F87171"]].map(([title,desc,color])=>(
                 <div key={title} style={{display:"flex",gap:12,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
@@ -5663,7 +5663,7 @@ function RulesScreen({setScreen}){
             </div>
           </Panel>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:12,fontFamily:"'Playfair Display',serif"}}>Pauses</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:12,fontFamily:"'Cinzel',serif"}}>Pauses</h2>
             <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:14}}>Type <span className="mono" style={{color:"#4ECDC4",background:"rgba(78,205,196,.08)",padding:"2px 6px",borderRadius:4}}>/pause</span> in game chat to pause and contact an admin. Abuse of the pause feature results in disciplinary action.</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
               {[["Max per game (player)","10 min"],["Max total per tournament","25 min"],["Max per game (all players)","30 min"]].map(([l,v])=>(
@@ -5680,7 +5680,7 @@ function RulesScreen({setScreen}){
       {tab==="conduct"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:6,fontFamily:"'Playfair Display',serif"}}>Code of Conduct</h2>
+            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:6,fontFamily:"'Cinzel',serif"}}>Code of Conduct</h2>
             <div style={{fontSize:13,color:"#6B7280",marginBottom:20,lineHeight:1.7}}>All participants are bound by these rules. Violations result in warnings, point deductions, suspension, or permanent ban depending on severity.</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[["🎯","Play to win","Always play to the best of your ability. Intentionally underperforming or tanking games is a bannable offense."],["🚫","No collusion","Any agreement to soft-play allies, split prizes, or manipulate results is prohibited. This includes ghosting and external signaling."],["📵","No coaching during games","Receiving tips or build orders from anyone outside the lobby during an active game is strictly prohibited."],["🐛","No bugs or exploits","Do not knowingly use in-game bugs for advantage. Pause and report to an admin immediately if you encounter one."],["🔐","No account sharing","Playing under another person's account (ringing) is a permanent ban offense. Compete only on your registered account."],["🤝","Respect everyone","Harassment, hate speech, discrimination, and abusive behavior are not tolerated - in-game, Discord, or on the platform."],["📸","Result submission","All players enter their placement directly on the Bracket page. Discrepancies should be raised to an admin immediately."]].map(([icon,title,desc])=>(
@@ -5993,7 +5993,7 @@ function AegisShowcaseScreen({setScreen}){
               <div className="cond" style={{background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.35)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#E8A838",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Client Demo</div>
               <div className="cond" style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.3)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#4ECDC4",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Live Data</div>
             </div>
-            <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:700,color:"#F2EDE4",marginBottom:6,lineHeight:1.2}}>
+            <h1 style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:700,color:"#F2EDE4",marginBottom:6,lineHeight:1.2}}>
               Aegis Esports TFT Showdown <span style={{color:"#E8A838"}}>#151</span>
             </h1>
             <div style={{fontSize:15,color:"#9CA3AF",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
@@ -6003,14 +6003,14 @@ function AegisShowcaseScreen({setScreen}){
             <img src="/Aegis_Esports.png" alt="Aegis Esports" style={{height:48,width:"auto",objectFit:"contain"}}/>
             <div>
               <div className="cond" style={{fontSize:11,color:"#4A5568",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#9B72CF"}}>TFT Clash</div>
+              <div style={{fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,color:"#9B72CF"}}>TFT Clash</div>
             </div>
           </div>
         </div>
         <div style={{display:"flex",gap:32,marginTop:20,flexWrap:"wrap"}}>
           {[["62+","Participants"],["16","G1 Lobbies"],["6","Games"],["$200","Prize Pool"]].map(function(arr){return(
             <div key={arr[1]}>
-              <div style={{fontSize:26,fontWeight:700,color:"#F2EDE4",fontFamily:"'Playfair Display',serif",lineHeight:1}}>{arr[0]}</div>
+              <div style={{fontSize:26,fontWeight:700,color:"#F2EDE4",fontFamily:"'Cinzel',serif",lineHeight:1}}>{arr[0]}</div>
               <div className="cond" style={{fontSize:12,color:"#6B7280",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{arr[1]}</div>
             </div>
           );})}
@@ -6019,7 +6019,7 @@ function AegisShowcaseScreen({setScreen}){
 
       <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
         {[["format","Format"],["standings","Standings"],["lobbies","Lobbies"],["host","Host Tools"],["platform","Platform"]].map(function(arr){return(
-          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
         );})}
       </div>
 
@@ -6043,7 +6043,7 @@ function AegisShowcaseScreen({setScreen}){
           </div>
 
           <Panel style={{padding:"24px"}}>
-            <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#E8A838",marginBottom:20}}>Stage Breakdown</h2>
+            <h2 style={{fontFamily:"'Cinzel',serif",fontSize:18,color:"#E8A838",marginBottom:20}}>Stage Breakdown</h2>
             <div style={{display:"flex",flexDirection:"column",gap:0}}>
               {[
                 {label:"Game 1",sub:"Qualifier Round 1",color:"#9B72CF",icon:"1",count:"62+ players · 16 lobbies",
@@ -6061,12 +6061,12 @@ function AegisShowcaseScreen({setScreen}){
               ].map(function(s,i,arr){return(
                 <div key={s.label} style={{display:"flex",gap:14}}>
                   <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-                    <div style={{width:42,height:42,borderRadius:10,background:"rgba(0,0,0,.5)",border:"2px solid "+s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,color:s.color,flexShrink:0,fontFamily:"'Barlow Condensed',sans-serif"}}>{s.icon}</div>
+                    <div style={{width:42,height:42,borderRadius:10,background:"rgba(0,0,0,.5)",border:"2px solid "+s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,color:s.color,flexShrink:0,fontFamily:"'Inter',sans-serif"}}>{s.icon}</div>
                     {i<arr.length-1&&<div style={{width:2,flex:1,minHeight:24,background:"rgba(255,255,255,.05)",margin:"4px 0"}}/>}
                   </div>
                   <div style={{flex:1,paddingBottom:i<arr.length-1?22:0}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700,color:"#F2EDE4"}}>{s.label}</div>
+                      <div style={{fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,color:"#F2EDE4"}}>{s.label}</div>
                       <div className="cond" style={{background:"rgba(0,0,0,.4)",border:"1px solid "+s.color+"45",borderRadius:4,padding:"2px 8px",fontSize:11,fontWeight:700,color:s.color}}>{s.sub}</div>
                       <div className="cond" style={{fontSize:11,color:"#4A5568"}}>{s.count}</div>
                     </div>
@@ -6085,7 +6085,7 @@ function AegisShowcaseScreen({setScreen}){
           </Panel>
 
           <Panel style={{padding:"22px 24px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:16,color:"#F2EDE4",marginBottom:14}}>Points Table - Games 3 to 6</h3>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:16,color:"#F2EDE4",marginBottom:14}}>Points Table - Games 3 to 6</h3>
             <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
               {[[1,8,"#FFD700","1st"],[2,7,"#C0C0C0","2nd"],[3,6,"#CD7F32","3rd"],[4,5,"#52C47C","4th"],[5,4,"#9B72CF","5th"],[6,3,"#4ECDC4","6th"],[7,2,"#6B7280","7th"],[8,1,"#4A5568","8th"]].map(function(row){return(
                 <div key={row[0]} style={{display:"flex",flexDirection:"column",alignItems:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.05)",borderRadius:8,padding:"12px 14px",minWidth:58}}>
@@ -6107,7 +6107,7 @@ function AegisShowcaseScreen({setScreen}){
           <Panel style={{padding:"20px 22px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
               <div>
-                <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:18,color:"#E8A838",margin:0}}>All Participants</h2>
+                <h2 style={{fontFamily:"'Cinzel',serif",fontSize:18,color:"#E8A838",margin:0}}>All Participants</h2>
                 <div style={{fontSize:13,color:"#6B7280",marginTop:3}}>{STANDINGS.length} players · {STANDINGS.filter(function(p){return p.place<=32;}).length} reached point stage</div>
               </div>
               <div style={{display:"flex",gap:6,alignItems:"center"}}>
@@ -6131,10 +6131,10 @@ function AegisShowcaseScreen({setScreen}){
                 var rowBorder=p.place===1?"rgba(255,215,0,.18)":p.place<=3?"rgba(155,114,207,.12)":p.place<=8?"rgba(155,114,207,.05)":isElim?"rgba(248,113,113,.08)":"rgba(242,237,228,.03)";
                 return(
                   <div key={p.ign} style={{display:"flex",alignItems:"center",gap:8,background:rowBg,borderRadius:7,padding:"8px 10px",border:"1px solid "+rowBorder}}>
-                    <div style={{width:24,fontWeight:700,fontSize:12,color:isElim?"#4A5568":placeCol(p.place),textAlign:"right",flexShrink:0,fontFamily:"'Barlow Condensed',sans-serif"}}>{p.place}</div>
+                    <div style={{width:24,fontWeight:700,fontSize:12,color:isElim?"#4A5568":placeCol(p.place),textAlign:"right",flexShrink:0,fontFamily:"'Inter',sans-serif"}}>{p.place}</div>
                     <div style={{flex:1,fontSize:14,color:p.place<=8&&!isElim?"#F2EDE4":isElim?"#6B7280":"#9CA3AF",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.ign}</div>
                     {isElim&&<div className="cond" style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.18)",borderRadius:4,padding:"1px 6px",fontSize:11,color:"#F87171",flexShrink:0}}>OUT G2</div>}
-                    {p.prize>0&&<div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.2)",borderRadius:4,padding:"1px 6px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Barlow Condensed',sans-serif",flexShrink:0}}>${p.prize}</div>}
+                    {p.prize>0&&<div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.2)",borderRadius:4,padding:"1px 6px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Inter',sans-serif",flexShrink:0}}>${p.prize}</div>}
                     <div style={{display:"flex",gap:2,flexShrink:0}}>
                       {[p.g1,p.g2,p.g3,p.g4,p.g5,p.g6].map(function(g,i){
                         var isQ=i<2;
@@ -6153,12 +6153,12 @@ function AegisShowcaseScreen({setScreen}){
               })}
             </div>
             {!showAll&&(
-              <button onClick={function(){setShowAll(true);}} style={{width:"100%",marginTop:10,padding:"10px",background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.18)",borderRadius:8,color:"#9B72CF",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
+              <button onClick={function(){setShowAll(true);}} style={{width:"100%",marginTop:10,padding:"10px",background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.18)",borderRadius:8,color:"#9B72CF",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
                 Show all {STANDINGS.length} participants (includes G2 eliminated)
               </button>
             )}
             {showAll&&(
-              <button onClick={function(){setShowAll(false);}} style={{width:"100%",marginTop:10,padding:"10px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,color:"#4A5568",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
+              <button onClick={function(){setShowAll(false);}} style={{width:"100%",marginTop:10,padding:"10px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,color:"#4A5568",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
                 Collapse
               </button>
             )}
@@ -6174,7 +6174,7 @@ function AegisShowcaseScreen({setScreen}){
               var labels={"G1":"Game 1","G2":"Game 2","G3":"Game 3","G4":"Game 4","G5":"Game 5","G6":"Finals"};
               var active=lobbyRound===r;
               return(
-                <button key={r} onClick={function(){setLobbyRound(r);setEditMode(false);}} style={{flex:1,padding:"9px 4px",borderRadius:7,border:"none",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",transition:"all .15s",background:active?"rgba(255,255,255,.08)":"transparent",color:active?colors[r]:"#4A5568",outline:"none",textTransform:"uppercase",fontWeight:700,fontSize:12}}>
+                <button key={r} onClick={function(){setLobbyRound(r);setEditMode(false);}} style={{flex:1,padding:"9px 4px",borderRadius:7,border:"none",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",transition:"all .15s",background:active?"rgba(255,255,255,.08)":"transparent",color:active?colors[r]:"#4A5568",outline:"none",textTransform:"uppercase",fontWeight:700,fontSize:12}}>
                   <div>{r}</div>
                   <div style={{fontSize:10,fontWeight:400,marginTop:1,color:active?colors[r]+"AA":"#374151"}}>{labels[r]}</div>
                 </button>
@@ -6189,7 +6189,7 @@ function AegisShowcaseScreen({setScreen}){
             </div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
               <div className="cond" style={{fontSize:12,color:"#6B7280",padding:"4px 10px",background:"rgba(255,255,255,.03)",borderRadius:6,border:"1px solid rgba(255,255,255,.06)"}}>{roundMeta.count}</div>
-              <button onClick={function(){setEditMode(function(p){return !p;});setScores({});}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(editMode?"rgba(78,205,196,.4)":"rgba(155,114,207,.3)"),background:editMode?"rgba(78,205,196,.1)":"rgba(155,114,207,.08)",color:editMode?"#4ECDC4":"#C4B5FD",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
+              <button onClick={function(){setEditMode(function(p){return !p;});setScores({});}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(editMode?"rgba(78,205,196,.4)":"rgba(155,114,207,.3)"),background:editMode?"rgba(78,205,196,.1)":"rgba(155,114,207,.08)",color:editMode?"#4ECDC4":"#C4B5FD",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
                 {editMode?"Save Results":"Enter Results"}
               </button>
             </div>
@@ -6209,7 +6209,7 @@ function AegisShowcaseScreen({setScreen}){
               return(
                 <Panel key={lobby.name} style={{padding:"16px"}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#F2EDE4"}}>{lobby.name}</div>
+                    <div style={{fontFamily:"'Cinzel',serif",fontSize:15,fontWeight:700,color:"#F2EDE4"}}>{lobby.name}</div>
                     <div className="cond" style={{fontSize:11,color:roundMeta.color,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(0,0,0,.3)",border:"1px solid "+roundMeta.color+"30",borderRadius:4,padding:"2px 7px"}}>{lobby.note}</div>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",gap:4}}>
@@ -6233,7 +6233,7 @@ function AegisShowcaseScreen({setScreen}){
                                 var taken=usedPlaces[place]&&assignedPlace!==place;
                                 var selected=assignedPlace===place;
                                 return(
-                                  <button key={place} onClick={function(){toggleScore(lobby.name,pl.ign,place);}} disabled={taken} style={{width:26,height:26,borderRadius:5,border:"1px solid "+(selected?"#4ECDC4":taken?"rgba(255,255,255,.04)":"rgba(255,255,255,.1)"),background:selected?"rgba(78,205,196,.2)":taken?"rgba(255,255,255,.02)":"rgba(255,255,255,.03)",color:selected?"#4ECDC4":taken?"#2D3748":"#6B7280",fontSize:11,fontWeight:700,cursor:taken?"not-allowed":"pointer",fontFamily:"'Barlow Condensed',sans-serif"}}>{place}</button>
+                                  <button key={place} onClick={function(){toggleScore(lobby.name,pl.ign,place);}} disabled={taken} style={{width:26,height:26,borderRadius:5,border:"1px solid "+(selected?"#4ECDC4":taken?"rgba(255,255,255,.04)":"rgba(255,255,255,.1)"),background:selected?"rgba(78,205,196,.2)":taken?"rgba(255,255,255,.02)":"rgba(255,255,255,.03)",color:selected?"#4ECDC4":taken?"#2D3748":"#6B7280",fontSize:11,fontWeight:700,cursor:taken?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif"}}>{place}</button>
                                 );
                               })}
                             </div>
@@ -6271,14 +6271,14 @@ function AegisShowcaseScreen({setScreen}){
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.02)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
             {[["setup","Tournament Setup"],["signup","Sign-Up Page"],["run","Run Tournament"],["announce","Announcements"]].map(function(arr){return(
-              <button key={arr[0]} onClick={function(){setHostSetupTab(arr[0]);}} style={{flex:1,padding:"9px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",transition:"all .15s",background:hostSetupTab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:hostSetupTab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+              <button key={arr[0]} onClick={function(){setHostSetupTab(arr[0]);}} style={{flex:1,padding:"9px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",letterSpacing:".05em",transition:"all .15s",background:hostSetupTab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:hostSetupTab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
             );})}
           </div>
 
           {hostSetupTab==="setup"&&(
             <Panel style={{padding:"22px"}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18,flexWrap:"wrap",gap:10}}>
-                <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#F2EDE4",margin:0}}>New Tournament</h3>
+                <h3 style={{fontFamily:"'Cinzel',serif",fontSize:17,color:"#F2EDE4",margin:0}}>New Tournament</h3>
                 <div style={{display:"flex",gap:6,alignItems:"center"}}>
                   <img src="/Aegis_Esports.png" alt="Aegis Esports" style={{height:28,width:"auto",opacity:.85}}/>
                 </div>
@@ -6302,13 +6302,13 @@ function AegisShowcaseScreen({setScreen}){
                   <div style={{fontSize:12,color:"#6B7280",marginBottom:8,fontWeight:600}}>Format</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     {[["qualifier+points","Qualifier + Point Stage"],["swiss","Swiss"],["single-elim","Single Elimination"],["double-elim","Double Elimination"]].map(function(arr){return(
-                      <button key={arr[0]} onClick={function(){setSetupFormat(arr[0]);}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(setupFormat===arr[0]?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),background:setupFormat===arr[0]?"rgba(155,114,207,.15)":"rgba(255,255,255,.02)",color:setupFormat===arr[0]?"#C4B5FD":"#6B7280",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{arr[1]}</button>
+                      <button key={arr[0]} onClick={function(){setSetupFormat(arr[0]);}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(setupFormat===arr[0]?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),background:setupFormat===arr[0]?"rgba(155,114,207,.15)":"rgba(255,255,255,.02)",color:setupFormat===arr[0]?"#C4B5FD":"#6B7280",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{arr[1]}</button>
                     );})}
                   </div>
                 </div>
                 <div style={{display:"flex",gap:10,marginTop:4}}>
-                  <button onClick={function(){setSignupOpen(true);setHostSetupTab("signup");}} style={{padding:"10px 22px",borderRadius:8,border:"none",background:"#9B72CF",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Open Sign-Up</button>
-                  <button onClick={function(){setHostSetupTab("run");}} style={{padding:"10px 22px",borderRadius:8,border:"1px solid rgba(232,168,56,.3)",background:"rgba(232,168,56,.06)",color:"#E8A838",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Run Tournament</button>
+                  <button onClick={function(){setSignupOpen(true);setHostSetupTab("signup");}} style={{padding:"10px 22px",borderRadius:8,border:"none",background:"#9B72CF",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Open Sign-Up</button>
+                  <button onClick={function(){setHostSetupTab("run");}} style={{padding:"10px 22px",borderRadius:8,border:"1px solid rgba(232,168,56,.3)",background:"rgba(232,168,56,.06)",color:"#E8A838",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Run Tournament</button>
                 </div>
               </div>
             </Panel>
@@ -6319,16 +6319,16 @@ function AegisShowcaseScreen({setScreen}){
               <Panel style={{padding:"22px"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:10}}>
                   <div>
-                    <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#F2EDE4",margin:0,marginBottom:4}}>{setupName}</h3>
+                    <h3 style={{fontFamily:"'Cinzel',serif",fontSize:17,color:"#F2EDE4",margin:0,marginBottom:4}}>{setupName}</h3>
                     <div style={{fontSize:12,color:"#6B7280"}}>Sign-up page {signupOpen?<span style={{color:"#52C47C",fontWeight:700}}>OPEN</span>:<span style={{color:"#F87171",fontWeight:700}}>CLOSED</span>} &nbsp;·&nbsp; {registeredPlayers.length}/{setupMaxPlayers||64} players</div>
                   </div>
                   <div style={{display:"flex",gap:8}}>
-                    <button onClick={function(){setSignupOpen(function(v){return !v;});}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid "+(signupOpen?"rgba(248,113,113,.4)":"rgba(82,196,124,.4)"),background:signupOpen?"rgba(248,113,113,.08)":"rgba(82,196,124,.08)",color:signupOpen?"#F87171":"#52C47C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{signupOpen?"Close Sign-Up":"Reopen Sign-Up"}</button>
+                    <button onClick={function(){setSignupOpen(function(v){return !v;});}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid "+(signupOpen?"rgba(248,113,113,.4)":"rgba(82,196,124,.4)"),background:signupOpen?"rgba(248,113,113,.08)":"rgba(82,196,124,.08)",color:signupOpen?"#F87171":"#52C47C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{signupOpen?"Close Sign-Up":"Reopen Sign-Up"}</button>
                   </div>
                 </div>
                 <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.18)",borderRadius:8,padding:"12px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
                   <div style={{flex:1,fontSize:13,color:"#9CA3AF",fontFamily:"monospace"}}>tftclash.gg/join/{setupName.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")}</div>
-                  <button onClick={function(){}} style={{padding:"5px 12px",borderRadius:6,border:"1px solid rgba(155,114,207,.3)",background:"rgba(155,114,207,.1)",color:"#C4B5FD",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Copy Link</button>
+                  <button onClick={function(){}} style={{padding:"5px 12px",borderRadius:6,border:"1px solid rgba(155,114,207,.3)",background:"rgba(155,114,207,.1)",color:"#C4B5FD",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Copy Link</button>
                 </div>
                 {signupOpen&&(
                   <div style={{display:"flex",gap:8,marginBottom:14}}>
@@ -6338,7 +6338,7 @@ function AegisShowcaseScreen({setScreen}){
                       if(registeredPlayers.includes(signupIgn.trim()))return;
                       setRegisteredPlayers(function(prev){return [...prev, signupIgn.trim()];});
                       setSignupIgn("");
-                    }} style={{padding:"10px 18px",borderRadius:8,border:"none",background:"#9B72CF",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase",flexShrink:0}}>Register</button>
+                    }} style={{padding:"10px 18px",borderRadius:8,border:"none",background:"#9B72CF",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase",flexShrink:0}}>Register</button>
                   </div>
                 )}
                 <div style={{display:"flex",flexDirection:"column",gap:4}}>
@@ -6358,7 +6358,7 @@ function AegisShowcaseScreen({setScreen}){
 
           {hostSetupTab==="run"&&(
           <Panel style={{padding:"22px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#F2EDE4",marginBottom:16}}>Tournament Controls</h3>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:17,color:"#F2EDE4",marginBottom:16}}>Tournament Controls</h3>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:10}}>
               {[
                 {label:"Open Check-In",desc:"Allow players to check in for the next round",color:"#52C47C",icon:"✓"},
@@ -6370,10 +6370,10 @@ function AegisShowcaseScreen({setScreen}){
                 <div key={ctrl.label} style={{background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"14px 16px",display:"flex",flexDirection:"column",gap:8}}>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
                     <div style={{fontSize:18}}>{ctrl.icon}</div>
-                    <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:14,fontWeight:700,color:"#F2EDE4",letterSpacing:".04em"}}>{ctrl.label}</div>
+                    <div style={{fontFamily:"'Inter',sans-serif",fontSize:14,fontWeight:700,color:"#F2EDE4",letterSpacing:".04em"}}>{ctrl.label}</div>
                   </div>
                   <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>{ctrl.desc}</div>
-                  <button style={{padding:"7px 12px",borderRadius:7,border:"1px solid "+ctrl.color+"40",background:ctrl.color+"12",color:ctrl.color,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Activate</button>
+                  <button style={{padding:"7px 12px",borderRadius:7,border:"1px solid "+ctrl.color+"40",background:ctrl.color+"12",color:ctrl.color,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Activate</button>
                 </div>
               );})}
             </div>
@@ -6382,7 +6382,7 @@ function AegisShowcaseScreen({setScreen}){
 
           {hostSetupTab==="announce"&&(
           <Panel style={{padding:"22px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#F2EDE4",marginBottom:16}}>Compose Announcement</h3>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:17,color:"#F2EDE4",marginBottom:16}}>Compose Announcement</h3>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               <textarea
                 value={draftMsg}
@@ -6393,8 +6393,8 @@ function AegisShowcaseScreen({setScreen}){
               <div style={{display:"flex",gap:8,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
                 <div style={{fontSize:12,color:"#4A5568"}}>{draftMsg.length} characters</div>
                 <div style={{display:"flex",gap:8}}>
-                  <button onClick={function(){setDraftMsg("");}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,.08)",background:"transparent",color:"#6B7280",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Clear</button>
-                  <button onClick={function(){if(draftMsg.trim()){setSentMsg(draftMsg);setDraftMsg("");}}} style={{padding:"7px 20px",borderRadius:7,border:"none",background:"#9B72CF",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Post Announcement</button>
+                  <button onClick={function(){setDraftMsg("");}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,.08)",background:"transparent",color:"#6B7280",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Clear</button>
+                  <button onClick={function(){if(draftMsg.trim()){setSentMsg(draftMsg);setDraftMsg("");}}} style={{padding:"7px 20px",borderRadius:7,border:"none",background:"#9B72CF",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Post Announcement</button>
                 </div>
               </div>
               {sentMsg&&(
@@ -6413,7 +6413,7 @@ function AegisShowcaseScreen({setScreen}){
                       <div className="cond" style={{fontSize:12,color:"#E8A838",fontWeight:700,marginBottom:3}}>{sa.label}</div>
                       <div style={{fontSize:13,color:"#6B7280",lineHeight:1.6}}>{sa.text}</div>
                     </div>
-                    <button onClick={function(){setDraftMsg(sa.text);}} style={{padding:"5px 12px",borderRadius:6,border:"1px solid rgba(155,114,207,.3)",background:"rgba(155,114,207,.08)",color:"#C4B5FD",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Use</button>
+                    <button onClick={function(){setDraftMsg(sa.text);}} style={{padding:"5px 12px",borderRadius:6,border:"1px solid rgba(155,114,207,.3)",background:"rgba(155,114,207,.08)",color:"#C4B5FD",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Use</button>
                   </div>
                 );})}
               </div>
@@ -6439,17 +6439,17 @@ function AegisShowcaseScreen({setScreen}){
             ].map(function(f){return(
               <Panel key={f.title} style={{padding:"18px"}}>
                 <div style={{fontSize:24,marginBottom:10}}>{f.icon}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6}}>{f.title}</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6}}>{f.title}</div>
                 <div style={{fontSize:13,color:"#6B7280",lineHeight:1.7}}>{f.desc}</div>
               </Panel>
             );})}
           </div>
           <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"26px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:20,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
             <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.8,marginBottom:18}}>This entire page was generated from your Showdown #151 spreadsheet - your exact format, every lobby, every placement, all 62+ players. No Excel. No manual updates. This is what your community sees live, every week.</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <button onClick={function(){setScreen("host-apply");}} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
-              <button onClick={function(){setScreen("pricing");}} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
+              <button onClick={function(){setScreen("host-apply");}} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
+              <button onClick={function(){setScreen("pricing");}} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
             </div>
           </div>
         </div>
