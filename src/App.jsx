@@ -5813,7 +5813,7 @@ function AegisShowcaseScreen({setScreen}){
     G4:[
       {name:"Lobby 21",note:"Point Stage · Game 2",players:[{ign:"ryt hardpuzzle#na2",pts:8},{ign:"Talelelelelelel#NA1",pts:7},{ign:"D0PA#111",pts:7},{ign:"Mujjiwaraa#na1",pts:6},{ign:"arzootft #na1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Xenor#NA1",pts:5},{ign:"koke na gringa#na1",pts:4}]},
       {name:"Lobby 22",note:"Point Stage · Game 2",players:[{ign:"Pun#TFT",pts:8},{ign:"Hydro#1000",pts:8},{ign:"LC Abyss#CAPO",pts:7},{ign:"vnck#NA1",pts:6},{ign:"Politicess#na1",pts:4},{ign:"kininaru#oreo",pts:3},{ign:"Haykaroo#PHI",pts:2},{ign:"XcorpionTFT",pts:2}]},
-      {name:"Lobby 23",note:"Point Stage · Game 2",players:[{ign:"Ken Kitade",pts:5},{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Lukwer#Kata",pts:3},{ign:"PoGamoRNA#NA1",pts:3},{ign:"MGC Fizz#mgc",pts:2},{ign:"Hoshimi Miyabi#3110",pts:1},{ign:"LC Dominus#CAPO",pts:0}]},
+      {name:"Lobby 23",note:"Point Stage · Game 2",players:[{ign:"Ken Kitade",pts:5},{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Lukwer#Kata",pts:3},{ign:"PoGamoRNA#NA1",pts:3},{ign:"MGC Fizz#mgc",pts:2},{ign:"Hoshimi Miyabi#3110",pts:1},{ign:"ChunChunMaru#KSuba",pts:1},{ign:"LC Dominus#CAPO",pts:0}]},
     ],
     G5:[
       {name:"Lobby 24",note:"Point Stage · Game 3",players:[{ign:"koke na gringa#na1",pts:8},{ign:"Ken Kitade",pts:7},{ign:"Hydro#1000",pts:6},{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Talelelelelelel#NA1",pts:4},{ign:"arzootft #na1",pts:3},{ign:"ryt hardpuzzle#na2",pts:2},{ign:"Xenor#NA1",pts:1}]},
@@ -5878,7 +5878,7 @@ function AegisShowcaseScreen({setScreen}){
   var roundMeta=ROUND_META[lobbyRound];
 
   return(
-    <div className="page" style={{maxWidth:1100}}>
+    <div className="page" style={{maxWidth:820,margin:"0 auto"}}>
 
       <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.13) 0%,rgba(232,168,56,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"28px",marginBottom:20,position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.14) 0%,transparent 70%)",pointerEvents:"none"}}/>
@@ -5912,7 +5912,7 @@ function AegisShowcaseScreen({setScreen}){
 
       <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
         {[["format","Format"],["standings","Standings"],["lobbies","Lobbies"],["host","Host Tools"],["platform","Platform"]].map(function(arr){return(
-          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"9px 4px",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
         );})}
       </div>
 
@@ -6229,19 +6229,6 @@ function AegisShowcaseScreen({setScreen}){
             </div>
           </Panel>
 
-          <Panel style={{padding:"22px"}}>
-            <h3 style={{fontFamily:"'Playfair Display',serif",fontSize:17,color:"#F2EDE4",marginBottom:14}}>Lobby Code Entry</h3>
-            <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.7,marginBottom:14}}>Enter the TFT lobby codes for each group. Players see these instantly when published. Codes are hidden until you click Publish.</div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {["Lobby 17","Lobby 18","Lobby 19","Lobby 20"].map(function(lname){return(
-                <div key={lname} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div className="cond" style={{width:80,fontSize:13,fontWeight:700,color:"#9B72CF",flexShrink:0}}>{lname}</div>
-                  <input placeholder="Enter lobby code..." style={{flex:1,background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:14,fontFamily:"'Inter',sans-serif",outline:"none"}}/>
-                  <button style={{padding:"7px 14px",borderRadius:7,border:"1px solid rgba(78,205,196,.3)",background:"rgba(78,205,196,.08)",color:"#4ECDC4",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Publish</button>
-                </div>
-              );})}
-            </div>
-          </Panel>
         </div>
       )}
 
