@@ -6,7 +6,7 @@ const RCOLS = {Iron:"#8C7B6B",Bronze:"#CD7F32",Silver:"#A8B2CC",Gold:"#E8A838",P
 const REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
 // Fixed scoring - not configurable
 const PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
-const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#6B7280"}];
+const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#8E9BAE"}];
 
 function rc(r){return RCOLS[r]||"#A8B2CC";}
 function tier(pts){return TIERS.find(t=>pts>=t.min)||TIERS[TIERS.length-1];}
@@ -14,7 +14,7 @@ function tier(pts){return TIERS.find(t=>pts>=t.min)||TIERS[TIERS.length-1];}
 // Avg placement colour coding
 function avgCol(avg){
   const n=parseFloat(avg)||0;
-  if(n===0)return"#6B7280";
+  if(n===0)return"#8E9BAE";
   if(n<3.0)return"#4ade80"; // green
   if(n<=5.0)return"#facc15"; // yellow
   return"#f87171"; // red
@@ -22,7 +22,7 @@ function avgCol(avg){
 
 // ─── PLATFORM RANKING SYSTEM ─────────────────────────────────────────────────
 const CLASH_RANKS=[
-  {id:"iron",       name:"Iron",        icon:"⚙",  color:"#6B7280", minXp:0,    maxXp:200},
+  {id:"iron",       name:"Iron",        icon:"⚙",  color:"#8E9BAE", minXp:0,    maxXp:200},
   {id:"bronze",     name:"Bronze",      icon:"🥉",  color:"#CD7F32", minXp:200,  maxXp:500},
   {id:"silver",     name:"Silver",      icon:"🥈",  color:"#C0C0C0", minXp:500,  maxXp:900},
   {id:"gold",       name:"Gold",        icon:"🥇",  color:"#E8A838", minXp:900,  maxXp:1400},
@@ -339,7 +339,7 @@ const ACTIVE_SPONSOR=null;
 // ─── PREMIUM TIERS ────────────────────────────────────────────────────────────
 const PREMIUM_TIERS=[
   {
-    id:"free", name:"Player", price:"€0", period:"forever", color:"#6B7280",
+    id:"free", name:"Player", price:"€0", period:"forever", color:"#8E9BAE",
     desc:"Compete in every weekly clash. Always free.",
     features:["Enter every TFT Clash event","Full season stats & leaderboard","Personal profile with career history","Achievements, milestones & XP ranks","Hall of Fame & rival tracking","Discord results sharing"],
     cta:"You're In", ctaV:"dark",
@@ -649,7 +649,7 @@ function Sel({value,onChange,children,style}){
           appearance:"none",cursor:"pointer"},style||{})}>
         {children}
       </select>
-      <div style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none",color:"#6B7280",fontSize:11}}>▼</div>
+      <div style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none",color:"#8E9BAE",fontSize:11}}>▼</div>
     </div>
   );
 }
@@ -679,11 +679,11 @@ function ClashRankBadge({xp,size,showProgress}){
       {showProgress&&next&&(
         <div>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
-            <span style={{fontSize:10,color:"#6B7280"}}>{current} / {needed} XP</span>
+            <span style={{fontSize:10,color:"#8E9BAE"}}>{current} / {needed} XP</span>
             <span style={{fontSize:10,color:rank.color,fontWeight:700}}>{pct}%</span>
           </div>
           <Bar val={current} max={needed} color={rank.color} h={4}/>
-          <div style={{fontSize:10,color:"#4A4438",marginTop:3}}>Next: {next.icon} {next.name}</div>
+          <div style={{fontSize:10,color:"#6B7A8E",marginTop:3}}>Next: {next.icon} {next.name}</div>
         </div>
       )}
     </div>
@@ -694,7 +694,7 @@ function ClashRankBadge({xp,size,showProgress}){
 function AvgBadge({avg}){
   const n=parseFloat(avg)||0;
   const c=avgCol(avg);
-  if(n===0)return<span className="mono" style={{fontSize:13,color:"#6B7280"}}>-</span>;
+  if(n===0)return<span className="mono" style={{fontSize:13,color:"#8E9BAE"}}>-</span>;
   return(
     <div style={{display:"inline-flex",alignItems:"center",gap:5}}>
       <span className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{n.toFixed(2)}</span>
@@ -734,7 +734,7 @@ function Divider({label}){
   return(
     <div style={{display:"flex",alignItems:"center",gap:10,margin:"14px 0"}}>
       <div style={{flex:1,height:1,background:"rgba(242,237,228,.07)"}}/>
-      {label&&<span className="cond" style={{fontSize:9,fontWeight:700,color:"#4A4438",letterSpacing:".14em",textTransform:"uppercase"}}>{label}</span>}
+      {label&&<span className="cond" style={{fontSize:9,fontWeight:700,color:"#6B7A8E",letterSpacing:".14em",textTransform:"uppercase"}}>{label}</span>}
       <div style={{flex:1,height:1,background:"rgba(242,237,228,.07)"}}/>
     </div>
   );
@@ -750,7 +750,7 @@ function Toast({msg,type,onClose}){
       minWidth:260,maxWidth:360}}>
       <span style={{fontSize:17,color:c}}>{type==="success"?"✓":type==="error"?"✕":"ℹ"}</span>
       <span style={{flex:1,color:"#F2EDE4",fontSize:14,lineHeight:1.4}}>{msg}</span>
-      <button onClick={onClose} style={{background:"none",border:"none",color:"#6B7280",cursor:"pointer",fontSize:20,lineHeight:1,padding:"2px 4px",minWidth:28,minHeight:28}}>×</button>
+      <button onClick={onClose} style={{background:"none",border:"none",color:"#8E9BAE",cursor:"pointer",fontSize:20,lineHeight:1,padding:"2px 4px",minWidth:28,minHeight:28}}>×</button>
     </div>
   );
 }
@@ -814,7 +814,7 @@ function SponsorBanner({sponsor,onNavigate}){
       </div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontWeight:700,fontSize:13,color:s.isPromo?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.name}</div>
-        <div style={{fontSize:11,color:"#6B7280",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.tagline}</div>
+        <div style={{fontSize:11,color:"#8E9BAE",marginTop:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.tagline}</div>
       </div>
       <div style={{background:s.isPromo?"rgba(155,114,207,.15)":"rgba(255,255,255,.05)",
         border:"1px solid "+(s.isPromo?"rgba(155,114,207,.4)":"rgba(242,237,228,.1)"),
@@ -871,7 +871,7 @@ function ChampionHeroCard({champion,onClick}){
           {[["Pts",c.pts,"#E8A838"],["AVP",c.avgPlacement,avgCol(c.avgPlacement)],["Wins",c.wins,"#6EE7B7"],["Clutch",c.clutches+"×","#9B72CF"]].map(([l,v,col])=>(
             <div key={l} style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.12)",borderRadius:7,padding:"6px 10px",textAlign:"center"}}>
               <div className="mono" style={{fontSize:15,fontWeight:700,color:col,lineHeight:1}}>{v}</div>
-              <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase",marginTop:2}}>{l}</div>
+              <div className="cond" style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase",marginTop:2}}>{l}</div>
             </div>
           ))}
         </div>
@@ -890,8 +890,8 @@ function MilestoneCard({milestone,unlocked}){
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:unlocked?8:0}}>
         <span style={{fontSize:22,filter:unlocked?"none":"grayscale(1)"}}>{milestone.icon}</span>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontWeight:700,fontSize:13,color:unlocked?"#F2EDE4":"#6B7280"}}>{milestone.name}</div>
-          <div style={{fontSize:11,color:"#6B7280",marginTop:1}}>{milestone.desc}</div>
+          <div style={{fontWeight:700,fontSize:13,color:unlocked?"#F2EDE4":"#8E9BAE"}}>{milestone.name}</div>
+          <div style={{fontSize:11,color:"#8E9BAE",marginTop:1}}>{milestone.desc}</div>
         </div>
         {unlocked&&<div style={{fontSize:10,color:"#6EE7B7",fontWeight:700}}>✓</div>}
       </div>
@@ -914,14 +914,14 @@ function AwardCard({award,onClick}){
         <div style={{width:44,height:44,background:award.color+"18",border:"1px solid "+award.color+"44",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{award.icon}</div>
         <div>
           <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{award.title}</div>
-          <div style={{fontSize:11,color:"#6B7280",marginTop:1}}>{award.desc}</div>
+          <div style={{fontSize:11,color:"#8E9BAE",marginTop:1}}>{award.desc}</div>
         </div>
       </div>
       {award.winner&&(
         <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"#0F1520",borderRadius:9,border:"1px solid rgba(242,237,228,.06)"}}>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:award.color,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{award.winner.name}</div>
-            <div style={{fontSize:11,color:"#6B7280"}}>{award.winner.rank} · {award.winner.region}</div>
+            <div style={{fontSize:11,color:"#8E9BAE"}}>{award.winner.rank} · {award.winner.region}</div>
           </div>
           <div style={{textAlign:"right",flexShrink:0}}>
             <div className="mono" style={{fontSize:14,fontWeight:700,color:award.color}}>{award.stat}</div>
@@ -941,10 +941,10 @@ function FileDisputeModal({targetPlayer,claimPlacement,onSubmit,onClose}){
       <Panel danger style={{width:"100%",maxWidth:460,padding:"24px"}}>
         <div style={{marginTop:6}}>
           <div className="cond" style={{fontSize:16,fontWeight:800,color:"#F87171",marginBottom:4,letterSpacing:".08em",textTransform:"uppercase"}}>⚑ File Dispute</div>
-          <div style={{fontSize:13,color:"#9CA3AF",marginBottom:20}}>Flagging <span style={{color:"#F2EDE4",fontWeight:700}}>{targetPlayer}</span> - claimed <span style={{color:"#E8A838",fontWeight:800,fontFamily:"monospace"}}>#{claimPlacement}</span></div>
-          <label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Reason <span style={{color:"#F87171"}}>*</span></label>
+          <div style={{fontSize:13,color:"#A8B4C4",marginBottom:20}}>Flagging <span style={{color:"#F2EDE4",fontWeight:700}}>{targetPlayer}</span> - claimed <span style={{color:"#E8A838",fontWeight:800,fontFamily:"monospace"}}>#{claimPlacement}</span></div>
+          <label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Reason <span style={{color:"#F87171"}}>*</span></label>
           <Inp value={reason} onChange={setReason} placeholder="Why is this placement wrong?" style={{marginBottom:14}}/>
-          <label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Screenshot URL (optional)</label>
+          <label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Screenshot URL (optional)</label>
           <Inp value={url} onChange={setUrl} placeholder="https://imgur.com/..." style={{marginBottom:20}}/>
           <div style={{display:"flex",gap:10}}>
             <Btn v="danger" full onClick={()=>{if(!reason.trim())return;onSubmit({reason:reason.trim(),url:url.trim(),target:targetPlayer,placement:claimPlacement,ts:Date.now()});onClose();}}>Submit</Btn>
@@ -998,8 +998,8 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
           onSubmit={d=>onFlag&&onFlag(d)} onClose={()=>setDisputeTarget(null)}/>
       )}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-        <span className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7280",letterSpacing:".12em",textTransform:"uppercase"}}>Placements</span>
-        <span className="mono" style={{fontSize:12,color:allSet?"#6EE7B7":"#6B7280"}}>
+        <span className="cond" style={{fontSize:10,fontWeight:700,color:"#8E9BAE",letterSpacing:".12em",textTransform:"uppercase"}}>Placements</span>
+        <span className="mono" style={{fontSize:12,color:allSet?"#6EE7B7":"#8E9BAE"}}>
           <span style={{color:allSet?"#6EE7B7":"#E8A838",fontWeight:700}}>{placed}</span>/{roster.length}
         </span>
       </div>
@@ -1012,7 +1012,7 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
               border:"1px solid "+(got?(isWin?"rgba(232,168,56,.35)":isTop4?"rgba(78,205,196,.2)":"rgba(242,237,228,.08)"):"rgba(242,237,228,.08)"),
               borderRadius:10,padding:"10px 12px",transition:"all .15s"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:locked?0:10}}>
-                {got&&<div className="mono" style={{fontSize:24,fontWeight:700,color:isWin?"#E8A838":isTop4?"#4ECDC4":"#6B7280",lineHeight:1,minWidth:22,textAlign:"center"}}>{got}</div>}
+                {got&&<div className="mono" style={{fontSize:24,fontWeight:700,color:isWin?"#E8A838":isTop4?"#4ECDC4":"#8E9BAE",lineHeight:1,minWidth:22,textAlign:"center"}}>{got}</div>}
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                   <div style={{display:"flex",gap:5,marginTop:2}}></div>
@@ -1028,7 +1028,7 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
                     return(
                       <button key={place} className="place-btn" onClick={taken?undefined:()=>onPlace(p.id,place)}
                         style={{background:isMe?(place===1?"#E8A838":isTop?"#4ECDC4":"#374151"):"#1A1F2E",
-                          color:isMe?"#08080F":(taken?"#2D3748":isTop?"#9CA3AF":"#6B7280"),
+                          color:isMe?"#08080F":(taken?"#2D3748":isTop?"#A8B4C4":"#8E9BAE"),
                           opacity:taken?.18:1,cursor:taken?"not-allowed":"pointer"}}>
                         {place}
                       </button>
@@ -1046,7 +1046,7 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
           const who=roster.find(p=>results[p.id]===place);
           return(
             <div key={place} style={{background:"#1C2030",borderRadius:5,padding:"4px 3px",textAlign:"center"}}>
-              <div className="mono" style={{fontSize:9,fontWeight:700,color:place===1?"#E8A838":place<=4?"#4ECDC4":"#4A4438"}}>{place}</div>
+              <div className="mono" style={{fontSize:9,fontWeight:700,color:place===1?"#E8A838":place<=4?"#4ECDC4":"#6B7A8E"}}>{place}</div>
               <div style={{fontSize:9,color:who?"#C8BFB0":"#2D3748",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginTop:1}}>{who?who.name.substring(0,5):"-"}</div>
             </div>
           );
@@ -1084,7 +1084,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
           </div>
           <div>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{isFinals?"Grand Finals":lobbyNum!==undefined?"Lobby "+(lobbyNum+1)+" · R"+round:"Round "+round}</div>
-            <div style={{fontSize:12,color:"#6B7280"}}>Host: <span style={{color:"#E8A838",fontWeight:600}}>{host?.name||"-"}</span></div>
+            <div style={{fontSize:12,color:"#8E9BAE"}}>Host: <span style={{color:"#E8A838",fontWeight:600}}>{host?.name||"-"}</span></div>
           </div>
           {locked?<Tag color="#52C47C">✓ Locked</Tag>:paused?<Tag color="#EAB308">⏸ Paused</Tag>:<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20}}><Dot/><span className="cond" style={{fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Live</span></div>}
         </div>
@@ -1121,9 +1121,9 @@ function NotificationBell({notifications,onMarkAllRead}){
   return(
     <div style={{position:"relative"}}>
       <button onClick={()=>setOpen(o=>!o)}
-        style={{position:"relative",background:"none",border:"none",padding:"6px 8px",cursor:"pointer",color:"#9CA3AF",fontSize:16,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8,transition:"color .15s"}}
+        style={{position:"relative",background:"none",border:"none",padding:"6px 8px",cursor:"pointer",color:"#A8B4C4",fontSize:16,lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:8,transition:"color .15s"}}
         onMouseEnter={e=>e.currentTarget.style.color="#E8A838"}
-        onMouseLeave={e=>e.currentTarget.style.color="#9CA3AF"}>
+        onMouseLeave={e=>e.currentTarget.style.color="#A8B4C4"}>
         <span>🔔</span>
         {unread>0&&(
           <div style={{position:"absolute",top:1,right:1,width:14,height:14,borderRadius:"50%",background:"#E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontWeight:900,color:"#07070E",lineHeight:1}}>
@@ -1144,14 +1144,14 @@ function NotificationBell({notifications,onMarkAllRead}){
             </div>
             <div style={{maxHeight:360,overflowY:"auto"}}>
               {notifications.length===0
-                ?<div style={{padding:"28px 14px",textAlign:"center",color:"#4A4438",fontSize:13}}>All caught up!</div>
+                ?<div style={{padding:"28px 14px",textAlign:"center",color:"#6B7A8E",fontSize:13}}>All caught up!</div>
                 :notifications.map(n=>(
                   <div key={n.id} style={{padding:"12px 14px",borderBottom:"1px solid rgba(242,237,228,.05)",background:n.read?"transparent":"rgba(232,168,56,.03)",display:"flex",gap:10,alignItems:"flex-start"}}>
                     <div style={{fontSize:16,flexShrink:0,marginTop:2}}>{n.icon}</div>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:n.read?400:600,fontSize:12,color:n.read?"#9CA3AF":"#F2EDE4",marginBottom:2,lineHeight:1.4}}>{n.title}</div>
-                      <div style={{fontSize:11,color:"#6B7280",lineHeight:1.5}}>{n.body}</div>
-                      <div style={{fontSize:10,color:"#4A4438",marginTop:4}}>{n.time}</div>
+                      <div style={{fontWeight:n.read?400:600,fontSize:12,color:n.read?"#A8B4C4":"#F2EDE4",marginBottom:2,lineHeight:1.4}}>{n.title}</div>
+                      <div style={{fontSize:11,color:"#8E9BAE",lineHeight:1.5}}>{n.body}</div>
+                      <div style={{fontSize:10,color:"#6B7A8E",marginTop:4}}>{n.time}</div>
                     </div>
                     {!n.read&&<div style={{width:6,height:6,borderRadius:"50%",background:"#E8A838",flexShrink:0,marginTop:5}}/>}
                   </div>
@@ -1222,7 +1222,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
           <Panel glow style={{width:"100%",maxWidth:340,padding:"26px"}}>
             <div style={{marginTop:6}}>
               <h3 style={{color:"#F2EDE4",fontSize:18,marginBottom:4}}>Admin Access</h3>
-              <div style={{fontSize:13,color:"#6B7280",marginBottom:16}}>Hint: <span style={{color:"#E8A838",fontWeight:600}}>admin</span></div>
+              <div style={{fontSize:13,color:"#8E9BAE",marginBottom:16}}>Hint: <span style={{color:"#E8A838",fontWeight:600}}>admin</span></div>
               <Inp value={pw} onChange={setPw} type="password" placeholder="Enter password..." onKeyDown={e=>e.key==="Enter"&&tryLogin()} style={{marginBottom:14}}/>
               <div style={{display:"flex",gap:10}}>
                 <Btn v="primary" full onClick={tryLogin}>Login</Btn>
@@ -1242,7 +1242,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:36,height:36,objectFit:"contain"}}/>
               <div>
                 <div style={{fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,color:"#E8A838"}}>TFT Clash</div>
-                <div style={{fontSize:12,color:"#6B7280"}}>Season 16</div>
+                <div style={{fontSize:12,color:"#8E9BAE"}}>Season 16</div>
               </div>
             </div>
             {DRAWER_ITEMS.map(l=>(
@@ -1272,7 +1272,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
             <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:34,height:34,objectFit:"contain"}}/>
             <div>
               <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
-              <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
+              <div className="cond" style={{fontSize:9,color:"#8E9BAE",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:0,flex:1,overflowX:"auto",scrollbarWidth:"none"}}>
@@ -1280,7 +1280,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               <button key={l.id} onClick={()=>setScreen(l.id)}
                 data-active={screen===l.id?"true":undefined}
                 style={{background:"none",border:"none",padding:"8px 14px",fontSize:14,fontWeight:600,
-                  color:screen===l.id?"#E8A838":"#9CA3AF",cursor:"pointer",whiteSpace:"nowrap",
+                  color:screen===l.id?"#E8A838":"#A8B4C4",cursor:"pointer",whiteSpace:"nowrap",
                   borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
                   transition:"all .2s",marginBottom:-1}}>
                 {l.label}
@@ -1294,7 +1294,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
                 <span style={{fontSize:11,fontWeight:700,color:"#F87171"}}>{dispCount}</span>
               </button>
             )}
-            <div style={{fontSize:12,color:"#6B7280",whiteSpace:"nowrap"}}>
+            <div style={{fontSize:12,color:"#8E9BAE",whiteSpace:"nowrap"}}>
               <span style={{color:"#6EE7B7",fontWeight:700}}>{checkedIn}</span>/{players.length}
             </div>
             <NotificationBell notifications={notifications||[]} onMarkAllRead={onMarkAllRead||function(){}}/>
@@ -1347,7 +1347,7 @@ function StandingsTable({rows,compact,onRowClick,myName}){
   const sorted=[...rows].sort((a,b)=>{const va=parseFloat(a[sortKey])||0,vb=parseFloat(b[sortKey])||0;return asc?va-vb:vb-va;});
   const maxPts=Math.max(...rows.map(r=>r.pts||0),1);
   const H=({k,label})=>(
-    <span onClick={()=>toggle(k)} className="cond" style={{fontSize:10,fontWeight:700,color:sortKey===k?"#E8A838":"#4A4438",letterSpacing:".1em",textTransform:"uppercase",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap"}}>
+    <span onClick={()=>toggle(k)} className="cond" style={{fontSize:10,fontWeight:700,color:sortKey===k?"#E8A838":"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap"}}>
       {label}{sortKey===k?(asc?" ↑":" ↓"):""}
     </span>
   );
@@ -1356,7 +1356,7 @@ function StandingsTable({rows,compact,onRowClick,myName}){
     <Panel style={{overflowX:"auto"}}>
       <div style={{minWidth:compact?260:380}}>
       <div style={{display:"grid",gridTemplateColumns:cols,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",background:"#0A0F1A"}}>
-        <span className="cond" style={{fontSize:9,fontWeight:700,color:"#4A4438",letterSpacing:".1em"}}>#</span>
+        <span className="cond" style={{fontSize:9,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em"}}>#</span>
         <H k="name" label="Player"/><H k="pts" label="Pts"/><H k="avg" label="Avg"/><H k="games" label="G"/>
         {!compact&&<H k="wins" label="W"/>}
       </div>
@@ -1365,11 +1365,11 @@ function StandingsTable({rows,compact,onRowClick,myName}){
         const top3=i<3;
         const top8=i<8&&i>=3;
         const isMe=myName&&p.name===myName;
-        const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":top8?"#6B7280":"#3A3628";
+        const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":top8?"#8E9BAE":"#3A3628";
         const rowBg=isMe?"rgba(155,114,207,.1)":i===0?"rgba(232,168,56,.09)":i===1?"rgba(192,192,192,.06)":i===2?"rgba(205,127,50,.06)":top8?"rgba(255,255,255,.02)":"transparent";
         const rowBorder=isMe?"rgba(155,114,207,.45)":i===0?"rgba(232,168,56,.22)":i===1?"rgba(192,192,192,.15)":i===2?"rgba(205,127,50,.15)":top8?"rgba(242,237,228,.05)":"transparent";
-        const nameCol=top3?"#F2EDE4":top8?"#C8BFB0":"#6B7280";
-        const ptsCol=top3?"#E8A838":top8?"#B8A878":"#6B7280";
+        const nameCol=top3?"#F2EDE4":top8?"#C8BFB0":"#8E9BAE";
+        const ptsCol=top3?"#E8A838":top8?"#B8A878":"#8E9BAE";
         return(
           <div key={p.id} id={isMe?"lb-me-row":undefined} onClick={onRowClick?()=>onRowClick(p):undefined}
             className={"standings-row"+(i===0?" standings-row-1":i===1?" standings-row-2":i===2?" standings-row-3":"")}
@@ -1393,7 +1393,7 @@ function StandingsTable({rows,compact,onRowClick,myName}){
             </div>
             <div className="mono pts-glow" style={{fontSize:top3?20:15,fontWeight:800,color:ptsCol,lineHeight:1}}>{p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
-            <div className="mono" style={{fontSize:11,color:top8?"#6B7280":"#4A4438"}}>{p.games||0}</div>
+            <div className="mono" style={{fontSize:11,color:top8?"#8E9BAE":"#6B7A8E"}}>{p.games||0}</div>
             {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#4A7060":"#374151"}}>{p.wins||0}</div>}
           </div>
         );
@@ -1463,7 +1463,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const StatBox=({label,val,c})=>(
     <div style={{background:"linear-gradient(145deg,#131C2A,#0D1421)",border:"1px solid rgba(242,237,228,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
       <div className="mono" style={{fontSize:26,fontWeight:800,color:c||"#E8A838",lineHeight:1}}>{val}</div>
-      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9CA3AF",marginTop:5,letterSpacing:".05em",textTransform:"uppercase"}}>{label}</div>
+      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#A8B4C4",marginTop:5,letterSpacing:".05em",textTransform:"uppercase"}}>{label}</div>
     </div>
   );
 
@@ -1496,7 +1496,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{fontSize:22}}>{myCheckedIn?"✅":"⏰"}</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{myCheckedIn?"You're checked in!":"Check-in is open"}</div>
-            <div style={{fontSize:12,color:"#9CA3AF"}}>{myCheckedIn?"Good luck today, "+linkedPlayer.name+"!":"Confirm you're ready for today's clash"}</div>
+            <div style={{fontSize:12,color:"#A8B4C4"}}>{myCheckedIn?"Good luck today, "+linkedPlayer.name+"!":"Confirm you're ready for today's clash"}</div>
           </div>
           {!myCheckedIn&&<Btn v="primary" onClick={handleCheckIn}>Check In Now →</Btn>}
           {myCheckedIn&&<div style={{fontSize:12,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,padding:"6px 14px"}}>✓ Checked In</div>}
@@ -1509,7 +1509,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{fontSize:22}}>👤</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
-            <div style={{fontSize:12,color:"#9CA3AF"}}>Public profile URL · Career stats · Match history · Bio & social links</div>
+            <div style={{fontSize:12,color:"#A8B4C4"}}>Public profile URL · Career stats · Match history · Bio & social links</div>
           </div>
           <div style={{display:"flex",gap:8,flexShrink:0}}>
             <Btn v="purple" s="sm" onClick={()=>onAuthClick("signup")}>Sign Up Free</Btn>
@@ -1535,7 +1535,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               {[["#"+myRankIdx,"Rank","#E8A838"],[linkedPlayer.pts,"Season Pts","#E8A838"],[linkedPlayer.wins,"Wins","#6EE7B7"],[s2.avgPlacement,"Avg","#4ECDC4"]].map(([v,l,c])=>(
                 <div key={l} style={{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",textAlign:"center",minWidth:60}}>
                   <div className="mono" style={{fontSize:18,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-                  <div style={{fontSize:10,color:"#6B7280",marginTop:4,fontWeight:600,textTransform:"uppercase"}}>{l}</div>
+                  <div style={{fontSize:10,color:"#8E9BAE",marginTop:4,fontWeight:600,textTransform:"uppercase"}}>{l}</div>
                 </div>
               ))}
             </div>
@@ -1556,7 +1556,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <h1 className="au1 display" style={{color:"#F2EDE4",lineHeight:.88,letterSpacing:"-.02em",marginBottom:20}}>
             The<br/><span style={{color:"#E8A838",fontStyle:"italic",textShadow:"0 0 60px rgba(232,168,56,.4),0 0 120px rgba(232,168,56,.15)"}}>Convergence</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Awaits</span>
           </h1>
-          <p className="au2" style={{fontSize:15,color:"#9CA3AF",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
+          <p className="au2" style={{fontSize:15,color:"#A8B4C4",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
             The competitive TFT platform. Weekly Saturday tournaments, seasonal point standings, and a permanent record of every champion crowned.
           </p>
           <div className="grid-4" style={{marginBottom:22}}>
@@ -1587,7 +1587,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
               <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join Clash #14</h3>
-              <div style={{fontSize:12,color:"#6B7280",marginBottom:14}}>Saturday 8PM EST · Season 16 · Set 16</div>
+              <div style={{fontSize:12,color:"#8E9BAE",marginBottom:14}}>Saturday 8PM EST · Season 16 · Set 16</div>
               <div style={{display:"grid",gap:12,marginBottom:14}}>
                 <Inp value={name} onChange={setName} placeholder="Display Name" onKeyDown={e=>e.key==="Enter"&&register()}/>
                 <Inp value={riot} onChange={setRiot} placeholder="Riot ID (Name#TAG)" onKeyDown={e=>e.key==="Enter"&&register()}/>
@@ -1613,7 +1613,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                 <div style={{width:28,height:28,borderRadius:8,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#9B72CF",flexShrink:0}}>{n}</div>
                 <div>
                   <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{t}</div>
-                  <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>{d}</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.5}}>{d}</div>
                 </div>
               </div>
             ))}
@@ -1623,7 +1623,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{background:"rgba(78,205,196,.04)",border:"1px solid rgba(78,205,196,.2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             <div>
               <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{players.length} players registered</div>
-              <div style={{fontSize:12,color:"#6B7280",marginTop:2}}>{checkedN} checked in for Clash #14</div>
+              <div style={{fontSize:12,color:"#8E9BAE",marginTop:2}}>{checkedN} checked in for Clash #14</div>
             </div>
             <Btn v="teal" s="sm" onClick={()=>setScreen("roster")}>View Roster →</Btn>
           </div>
@@ -1640,7 +1640,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         <div style={{fontSize:24,flexShrink:0}}>💬</div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Join the TFT Clash Discord</div>
-          <div style={{fontSize:12,color:"#9CA3AF",marginTop:2}}>Tournament alerts, results, tactics channels, and the community. Pro members get exclusive access.</div>
+          <div style={{fontSize:12,color:"#A8B4C4",marginTop:2}}>Tournament alerts, results, tactics channels, and the community. Pro members get exclusive access.</div>
         </div>
         <Btn v="dark" s="sm" onClick={()=>toast("Discord link coming soon - server in setup!","success")} style={{background:"rgba(88,101,242,.15)",border:"1px solid rgba(88,101,242,.4)",color:"#818CF8",flexShrink:0}}>Join Discord →</Btn>
       </div>
@@ -1654,18 +1654,18 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer",transition:"opacity .15s"}}
             onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
             onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-            <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",minWidth:20,textAlign:"center"}}>{i+1}</div>
+            <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7A8E",minWidth:20,textAlign:"center"}}>{i+1}</div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-              <div style={{fontSize:11,color:"#6B7280",marginTop:1}}>{p.rank} · {p.region}</div>
+              <div style={{fontSize:11,color:"#8E9BAE",marginTop:1}}>{p.rank} · {p.region}</div>
             </div>
             <div style={{textAlign:"right"}}>
               <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
-              <div style={{fontSize:10,color:"#6B7280"}}>pts</div>
+              <div style={{fontSize:10,color:"#8E9BAE"}}>pts</div>
             </div>
           </div>
         ))}
-        {top5.length===0&&<div style={{color:"#4A4438",fontSize:13,textAlign:"center",padding:24}}>No players yet</div>}
+        {top5.length===0&&<div style={{color:"#6B7A8E",fontSize:13,textAlign:"center",padding:24}}>No players yet</div>}
       </Panel>
     </div>
   );
@@ -1702,7 +1702,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>Player Roster</h2>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-          <span style={{fontSize:13,color:"#6B7280"}}>{players.length} registered</span>
+          <span style={{fontSize:13,color:"#8E9BAE"}}>{players.length} registered</span>
           <span style={{fontSize:13,color:"#6EE7B7",fontWeight:600}}>{players.filter(p=>p.checkedIn).length} checked in</span>
         </div>
       </div>
@@ -1723,7 +1723,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
             <option value="name">Sort: Name</option>
           </Sel>
         </div>
-        {search&&<div style={{marginTop:10,fontSize:12,color:"#6B7280"}}>{filtered.length} result{filtered.length!==1?"s":""} for "{search}"</div>}
+        {search&&<div style={{marginTop:10,fontSize:12,color:"#8E9BAE"}}>{filtered.length} result{filtered.length!==1?"s":""} for "{search}"</div>}
       </Panel>
 
       {/* Checked In section */}
@@ -1732,7 +1732,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
             <div style={{width:8,height:8,borderRadius:"50%",background:"#6EE7B7"}}/>
             <span style={{fontSize:12,fontWeight:700,color:"#6EE7B7",letterSpacing:".08em",textTransform:"uppercase"}}>Checked In - Clash #14</span>
-            <span style={{fontSize:12,color:"#4A4438"}}>({checkedIn.length})</span>
+            <span style={{fontSize:12,color:"#6B7A8E"}}>({checkedIn.length})</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:8}}>
             {checkedIn.map((p,i)=>{
@@ -1761,7 +1761,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
                   </div>
                   <div style={{textAlign:"right",flexShrink:0}}>
                     <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
-                    <div style={{fontSize:10,color:"#6B7280"}}>pts · #{rank}</div>
+                    <div style={{fontSize:10,color:"#8E9BAE"}}>pts · #{rank}</div>
                   </div>
                 </div>
               );
@@ -1774,9 +1774,9 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
       {notChecked.length>0&&(
         <div>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:"#4A4438"}}/>
-            <span style={{fontSize:12,fontWeight:700,color:"#4A4438",letterSpacing:".08em",textTransform:"uppercase"}}>Not Yet Checked In</span>
-            <span style={{fontSize:12,color:"#4A4438"}}>({notChecked.length})</span>
+            <div style={{width:8,height:8,borderRadius:"50%",background:"#6B7A8E"}}/>
+            <span style={{fontSize:12,fontWeight:700,color:"#6B7A8E",letterSpacing:".08em",textTransform:"uppercase"}}>Not Yet Checked In</span>
+            <span style={{fontSize:12,color:"#6B7A8E"}}>({notChecked.length})</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:8}}>
             {notChecked.map(p=>(
@@ -1785,13 +1785,13 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
                 onMouseEnter={e=>e.currentTarget.style.opacity="1"}
                 onMouseLeave={e=>e.currentTarget.style.opacity=".7"}>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:700,fontSize:14,color:"#9CA3AF",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+                  <div style={{fontWeight:700,fontSize:14,color:"#A8B4C4",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
                   <div style={{display:"flex",gap:6}}>
                     <ClashRankBadge rank={p.rank}/>
                     <Tag color="#4ECDC4" size="sm">{p.region}</Tag>
                   </div>
                 </div>
-                <div className="mono" style={{fontSize:14,color:"#4A4438"}}>{p.pts}pts</div>
+                <div className="mono" style={{fontSize:14,color:"#6B7A8E"}}>{p.pts}pts</div>
               </div>
             ))}
           </div>
@@ -1801,8 +1801,8 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
       {filtered.length===0&&(
         <div style={{textAlign:"center",padding:"60px 20px"}}>
           <div style={{fontSize:40,marginBottom:12}}>🔍</div>
-          <div style={{color:"#6B7280",fontSize:15}}>No players match your search.</div>
-          <div style={{color:"#4A4438",fontSize:13,marginTop:6}}>Try a different name or clear the filters.</div>
+          <div style={{color:"#8E9BAE",fontSize:15}}>No players match your search.</div>
+          <div style={{color:"#6B7A8E",fontSize:13,marginTop:6}}>Try a different name or clear the filters.</div>
         </div>
       )}
     </div>
@@ -1897,7 +1897,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>
           Bracket - Round {round}
-          <span style={{fontSize:13,fontWeight:400,color:"#6B7280",marginLeft:10}}>{lobbies.length} {lobbies.length===1?"Lobby":"Lobbies"} · {checkedIn.length} players</span>
+          <span style={{fontSize:13,fontWeight:400,color:"#8E9BAE",marginLeft:10}}>{lobbies.length} {lobbies.length===1?"Lobby":"Lobbies"} · {checkedIn.length} players</span>
         </h2>
         {isAdmin&&(
           <div style={{display:"flex",gap:8}}>
@@ -1913,7 +1913,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
         <div style={{textAlign:"center",padding:"60px 20px"}}>
           <div style={{fontSize:48,marginBottom:16}}>🎮</div>
           <h3 style={{color:"#F2EDE4",marginBottom:8}}>No players checked in</h3>
-          <p style={{color:"#6B7280",fontSize:14,marginBottom:20}}>Players need to check in before the bracket can be generated.</p>
+          <p style={{color:"#8E9BAE",fontSize:14,marginBottom:20}}>Players need to check in before the bracket can be generated.</p>
           <Btn v="primary" onClick={()=>setScreen("home")}>← Back to Home</Btn>
         </div>
       )}
@@ -1922,7 +1922,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
         <>
           {/* Find my lobby */}
           <Panel style={{padding:"14px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-            <span style={{fontSize:13,color:"#9CA3AF",flexShrink:0}}>🔍 Find your lobby:</span>
+            <span style={{fontSize:13,color:"#A8B4C4",flexShrink:0}}>🔍 Find your lobby:</span>
             <Inp value={mySearch} onChange={setMySearch} placeholder="Your name or Riot ID" onKeyDown={e=>e.key==="Enter"&&findMyLobby()}/>
             <Btn v="purple" s="sm" onClick={findMyLobby}>Find Me</Btn>
             {effectiveHighlight!==null&&<span style={{fontSize:12,color:"#6EE7B7",fontWeight:600}}>You are in Lobby {effectiveHighlight+1}</span>}
@@ -1934,7 +1934,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
               <span style={{fontSize:22}}>🏆</span>
               <div>
                 <div style={{fontWeight:700,color:"#E8A838",fontSize:15}}>Clash Complete!</div>
-                <div style={{fontSize:12,color:"#9CA3AF"}}>All rounds locked. View final standings on the Leaderboard.</div>
+                <div style={{fontSize:12,color:"#A8B4C4"}}>All rounds locked. View final standings on the Leaderboard.</div>
               </div>
               <Btn v="primary" s="sm" style={{marginLeft:"auto"}} onClick={()=>setScreen("leaderboard")}>View Results →</Btn>
             </div>
@@ -1944,8 +1944,8 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
               <div key={r} style={{flex:1,minWidth:80,background:r<round?"rgba(82,196,124,.08)":r===round?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",
                 border:"1px solid "+(r<round?"rgba(82,196,124,.3)":r===round?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),
                 borderRadius:8,padding:"10px 14px",textAlign:"center"}}>
-                <div style={{fontSize:11,fontWeight:700,color:r<round?"#6EE7B7":r===round?"#E8A838":"#4A4438",letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>Round {r}</div>
-                <div style={{fontSize:11,color:r<round?"#6EE7B7":r===round?"#E8A838":"#4A4438"}}>{r<round?"Complete ✓":r===round?"In Progress":"Upcoming"}</div>
+                <div style={{fontSize:11,fontWeight:700,color:r<round?"#6EE7B7":r===round?"#E8A838":"#6B7A8E",letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>Round {r}</div>
+                <div style={{fontSize:11,color:r<round?"#6EE7B7":r===round?"#E8A838":"#6B7A8E"}}>{r<round?"Complete ✓":r===round?"In Progress":"Upcoming"}</div>
               </div>
             ))}
           </div>
@@ -1975,7 +1975,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
                       </div>
                       <div>
                         <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Lobby {li+1}</div>
-                        <div style={{fontSize:11,color:"#6B7280"}}>{lobby.length} players{isMyLobby?" · Your Lobby":""}</div>
+                        <div style={{fontSize:11,color:"#8E9BAE"}}>{lobby.length} players{isMyLobby?" · Your Lobby":""}</div>
                       </div>
                     </div>
                     {isMyLobby&&<div style={{fontSize:12,fontWeight:700,color:"#9B72CF",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"3px 10px"}}>YOU</div>}
@@ -1995,14 +1995,14 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
                             transition:"background .15s"}}
                           onMouseEnter={e=>e.currentTarget.style.background=isMe?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)"}
                           onMouseLeave={e=>e.currentTarget.style.background=isMe?"rgba(155,114,207,.08)":"transparent"}>
-                          <div className="mono" style={{fontSize:12,fontWeight:800,color:pi===0?"#E8A838":pi===1?"#C0C0C0":pi===2?"#CD7F32":"#4A4438",minWidth:18,textAlign:"center"}}>{pi+1}</div>
+                          <div className="mono" style={{fontSize:12,fontWeight:800,color:pi===0?"#E8A838":pi===1?"#C0C0C0":pi===2?"#CD7F32":"#6B7A8E",minWidth:18,textAlign:"center"}}>{pi+1}</div>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{display:"flex",alignItems:"center",gap:5}}>
                               <span style={{fontWeight:isMe?700:600,fontSize:13,color:isMe?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
                               {homie&&<span style={{fontSize:10}}>💜</span>}
                               {isHotStreak(p)&&<span style={{fontSize:10}}>🔥</span>}
                             </div>
-                            <div style={{fontSize:10,color:"#6B7280"}}>{p.rank} · {p.region}</div>
+                            <div style={{fontSize:10,color:"#8E9BAE"}}>{p.rank} · {p.region}</div>
                           </div>
                           <div className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts}pts</div>
                         </div>
@@ -2051,7 +2051,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
             <Panel style={{padding:"24px",marginTop:24,textAlign:"center"}}>
               <div style={{fontSize:32,marginBottom:12}}>🏆</div>
               <h3 style={{color:"#E8A838",fontSize:20,marginBottom:8}}>Grand Finals</h3>
-              <p style={{color:"#6B7280",fontSize:14}}>All rounds complete. Finals results locked in.</p>
+              <p style={{color:"#8E9BAE",fontSize:14}}>All rounds complete. Finals results locked in.</p>
             </Panel>
           )}
         </>
@@ -2086,8 +2086,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
   const StatCard=({label,val,sub,c,big})=>(
     <div style={{background:"#0F1520",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
       <div className="mono" style={{fontSize:big?26:18,fontWeight:700,color:c||"#E8A838",lineHeight:1}}>{val}</div>
-      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9CA3AF",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
-      {sub&&<div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{sub}</div>}
+      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#A8B4C4",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
+      {sub&&<div style={{fontSize:11,color:"#8E9BAE",marginTop:2}}>{sub}</div>}
     </div>
   );
 
@@ -2106,7 +2106,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
           <span style={{fontSize:22,animation:"crown-glow 2s infinite"}}>👑</span>
           <div style={{flex:1}}>
             <div style={{fontWeight:800,fontSize:14,color:"#E8A838"}}>{SEASON_CHAMPION.title}</div>
-            <div style={{fontSize:11,color:"#9CA3AF"}}>Reigning champion since {SEASON_CHAMPION.since}</div>
+            <div style={{fontSize:11,color:"#A8B4C4"}}>Reigning champion since {SEASON_CHAMPION.since}</div>
           </div>
           <Tag color="#E8A838">Season {SEASON_CHAMPION.season}</Tag>
         </div>
@@ -2136,7 +2136,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
               <Tag color={rc(player.rank)}>{player.rank}</Tag>
               <Tag color="#4ECDC4">{player.region}</Tag>
               <ClashRankBadge xp={estimateXp(player)} size="sm"/>
-              <span className="mono" style={{fontSize:12,color:"#6B7280"}}>{player.riotId}</span>
+              <span className="mono" style={{fontSize:12,color:"#8E9BAE"}}>{player.riotId}</span>
             </div>
             <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
               {achievements.slice(0,5).map(a=>(
@@ -2169,18 +2169,18 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Career Stats</h3>
             {/* AVP dual display - prominent */}
             <div style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:9,padding:"12px 14px",marginBottom:12}}>
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#6B7280",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Average Placement</div>
+              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#8E9BAE",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Average Placement</div>
               <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:10,color:"#9CA3AF",marginBottom:3}}>Career AVP</div>
+                  <div style={{fontSize:10,color:"#A8B4C4",marginBottom:3}}>Career AVP</div>
                   <div className="mono" style={{fontSize:24,fontWeight:700,color:avgCol(s.avgPlacement),lineHeight:1}}>{s.avgPlacement}</div>
-                  <div style={{fontSize:9,color:"#4A4438",marginTop:2}}>all games · lower is better</div>
+                  <div style={{fontSize:9,color:"#6B7A8E",marginTop:2}}>all games · lower is better</div>
                 </div>
                 {s.perClashAvp&&(
                   <div style={{flex:1,paddingLeft:12,borderLeft:"1px solid rgba(242,237,228,.07)"}}>
-                    <div style={{fontSize:10,color:"#9CA3AF",marginBottom:3}}>Per-Clash AVP</div>
+                    <div style={{fontSize:10,color:"#A8B4C4",marginBottom:3}}>Per-Clash AVP</div>
                     <div className="mono" style={{fontSize:24,fontWeight:700,color:avgCol(s.perClashAvp),lineHeight:1}}>{s.perClashAvp}</div>
-                    <div style={{fontSize:9,color:"#4A4438",marginTop:2}}>avg within each event</div>
+                    <div style={{fontSize:9,color:"#6B7A8E",marginTop:2}}>avg within each event</div>
                   </div>
                 )}
               </div>
@@ -2189,10 +2189,10 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
               const allSorted=[...allPlayers].sort((a,b)=>b.pts-a.pts);
               const rank=allSorted.findIndex(p=>p.id===player.id)+1||"-";
               const consistency=s.games>0?Math.round((s.top4/s.games)*100)+"%":"-";
-              return[["Games",s.games,"#9CA3AF"],["Wins",s.wins,"#E8A838"],["Top 4",s.top4,"#4ECDC4"],["Bot 4",s.bot4,"#F87171"],["Season Rank","#"+rank,"#E8A838"],["Consistency",consistency,"#52C47C"],["PPG",s.ppg,"#EAB308"],["Best Streak",player.bestStreak||0,"#EAB308"],["Best Haul",(player.bestHaul||0)+"pts","#E8A838"]];
+              return[["Games",s.games,"#A8B4C4"],["Wins",s.wins,"#E8A838"],["Top 4",s.top4,"#4ECDC4"],["Bot 4",s.bot4,"#F87171"],["Season Rank","#"+rank,"#E8A838"],["Consistency",consistency,"#52C47C"],["PPG",s.ppg,"#EAB308"],["Best Streak",player.bestStreak||0,"#EAB308"],["Best Haul",(player.bestHaul||0)+"pts","#E8A838"]];
             })().map(([l,v,c])=>(
               <div key={l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
-                <span style={{fontSize:13,color:"#9CA3AF"}}>{l}</span>
+                <span style={{fontSize:13,color:"#A8B4C4"}}>{l}</span>
                 <span className="mono" style={{fontSize:15,fontWeight:700,color:c}}>{v}</span>
               </div>
             ))}
@@ -2203,7 +2203,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
               {[["Top 1%",s.top1Rate+"%","#E8A838"],["Top 4%",s.top4Rate+"%","#4ECDC4"],["Bot 4%",s.bot4Rate+"%","#F87171"],["Comeback",s.comebackRate+"%","#52C47C"],["Clutch",s.clutchRate+"%","#9B72CF"]].map(([l,v,c])=>(
                 <div key={l} style={{marginBottom:10}}>
                   <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                    <span style={{fontSize:12,color:"#9CA3AF"}}>{l}</span>
+                    <span style={{fontSize:12,color:"#A8B4C4"}}>{l}</span>
                     <span className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{v}</span>
                   </div>
                   <Bar val={parseFloat(v)} max={100} color={c} h={3}/>
@@ -2224,7 +2224,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
                   return(
                     <div key={r.id} style={{display:"flex",alignItems:"center",gap:7,padding:"7px 10px",background:unlocked?"rgba(232,168,56,.04)":"rgba(255,255,255,.02)",borderRadius:7,border:"1px solid "+(unlocked?r.color+"33":"rgba(242,237,228,.05)"),opacity:unlocked?1:.4}}>
                       <span style={{fontSize:14}}>{r.icon}</span>
-                      <span style={{fontSize:11,fontWeight:600,color:unlocked?r.color:"#6B7280"}}>{r.name}</span>
+                      <span style={{fontSize:11,fontWeight:600,color:unlocked?r.color:"#8E9BAE"}}>{r.name}</span>
                       {unlocked&&playerXp>=r.minXp&&getClashRank(playerXp).id===r.id&&<span style={{fontSize:10,color:r.color,marginLeft:"auto"}}>▲</span>}
                     </div>
                   );
@@ -2241,20 +2241,20 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
           <div className="grid-4" style={{marginBottom:18}}>
             {[["R1",s.roundAvgs.r1,"#4ECDC4"],["R2",s.roundAvgs.r2,"#9B72CF"],["R3",s.roundAvgs.r3,"#EAB308"],["Finals",s.roundAvgs.finals,"#E8A838"]].map(([l,v,c])=>(
               <div key={l} style={{background:"#0F1520",borderRadius:10,padding:"14px",textAlign:"center"}}>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".08em",marginBottom:8}}>{l}</div>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#8E9BAE",textTransform:"uppercase",letterSpacing:".08em",marginBottom:8}}>{l}</div>
                 {v?<><div className="mono" style={{fontSize:22,fontWeight:700,color:avgCol(v),lineHeight:1}}>{v}</div>
                   <div style={{fontSize:10,color:avgCol(v),marginTop:4}}>{parseFloat(v)<3?"Great":parseFloat(v)<5?"OK":"Rough"}</div></>
-                :<div className="mono" style={{fontSize:18,color:"#4A4438"}}>-</div>}
+                :<div className="mono" style={{fontSize:18,color:"#6B7A8E"}}>-</div>}
               </div>
             ))}
           </div>
-          <div style={{fontSize:13,color:"#9CA3AF",marginBottom:12}}>Per-clash round breakdown:</div>
+          <div style={{fontSize:13,color:"#A8B4C4",marginBottom:12}}>Per-clash round breakdown:</div>
           {(player.clashHistory||[]).slice(0,6).map((g,i)=>(
             <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 60px 60px 60px 60px 60px",gap:6,padding:"9px 0",borderBottom:"1px solid rgba(242,237,228,.05)",alignItems:"center"}}>
-              <div><div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{g.name}</div><div style={{fontSize:11,color:"#6B7280"}}>{g.date}</div></div>
+              <div><div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{g.name}</div><div style={{fontSize:11,color:"#8E9BAE"}}>{g.date}</div></div>
               {["r1","r2","r3","finals"].map(rk=>{
                 const v=g.roundPlacements?.[rk];
-                return <div key={rk} style={{textAlign:"center"}}>{v?<span className="mono" style={{fontSize:13,fontWeight:700,color:v===1?"#E8A838":v<=4?"#4ECDC4":"#F87171"}}>#{v}</span>:<span style={{color:"#4A4438"}}>-</span>}</div>;
+                return <div key={rk} style={{textAlign:"center"}}>{v?<span className="mono" style={{fontSize:13,fontWeight:700,color:v===1?"#E8A838":v<=4?"#4ECDC4":"#F87171"}}>#{v}</span>:<span style={{color:"#6B7A8E"}}>-</span>}</div>;
               })}
               <div className="mono" style={{fontSize:13,fontWeight:700,color:"#E8A838",textAlign:"center"}}>+{g.pts}</div>
             </div>
@@ -2266,18 +2266,18 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
         <Panel style={{overflow:"hidden"}}>
           <div style={{padding:"12px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}><h3 style={{fontSize:15,color:"#F2EDE4"}}>Clash History</h3></div>
           {(player.clashHistory||[]).length===0
-            ?<div style={{textAlign:"center",padding:40,color:"#4A4438"}}>No history yet</div>
+            ?<div style={{textAlign:"center",padding:40,color:"#6B7A8E"}}>No history yet</div>
             :(player.clashHistory||[]).map((g,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:g.placement===1?"rgba(232,168,56,.03)":"transparent"}}>
-                <div className="mono" style={{fontSize:22,fontWeight:700,color:g.placement===1?"#E8A838":g.placement<=4?"#4ECDC4":"#6B7280",minWidth:24,textAlign:"center"}}>{g.placement}</div>
+                <div className="mono" style={{fontSize:22,fontWeight:700,color:g.placement===1?"#E8A838":g.placement<=4?"#4ECDC4":"#8E9BAE",minWidth:24,textAlign:"center"}}>{g.placement}</div>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4"}}>{g.name}</div>
-                  <div style={{fontSize:12,color:"#6B7280"}}>{g.date}</div>
+                  <div style={{fontSize:12,color:"#8E9BAE"}}>{g.date}</div>
                   {g.claimedClutch&&<Tag color="#9B72CF" size="sm">🎯 Clutch</Tag>}
                 </div>
                 <div style={{textAlign:"right"}}>
                   <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>+{g.pts}pts</div>
-                  <div className="cond" style={{fontSize:9,color:"#6B7280",textTransform:"uppercase"}}>{g.placement===1?"🏆 Champion":g.placement<=4?"Top 4":"Bot 4"}</div>
+                  <div className="cond" style={{fontSize:9,color:"#8E9BAE",textTransform:"uppercase"}}>{g.placement===1?"🏆 Champion":g.placement<=4?"Top 4":"Bot 4"}</div>
                 </div>
               </div>
             ))
@@ -2290,13 +2290,13 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:10}}>
             <div>
               <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:2}}>Rivals & Head-to-Head</h3>
-              <p style={{fontSize:12,color:"#6B7280"}}>Track your record against every player you've shared a lobby with.</p>
+              <p style={{fontSize:12,color:"#8E9BAE"}}>Track your record against every player you've shared a lobby with.</p>
             </div>
           </div>
           <Panel style={{overflow:"hidden"}}>
             <div style={{padding:"10px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:12,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".08em"}}>All opponents</span>
-              <span style={{fontSize:11,color:"#6B7280"}}>{allPlayers.filter(p=>p.id!==player.id).length} players</span>
+              <span style={{fontSize:12,fontWeight:700,color:"#8E9BAE",textTransform:"uppercase",letterSpacing:".08em"}}>All opponents</span>
+              <span style={{fontSize:11,color:"#8E9BAE"}}>{allPlayers.filter(p=>p.id!==player.id).length} players</span>
             </div>
             {allPlayers.filter(p=>p.id!==player.id).map((op,i)=>{
               // Deterministic H2H based on ids
@@ -2311,12 +2311,12 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
                   <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{op.name}</div>
-                      <div style={{fontSize:11,color:"#6B7280"}}>{op.rank} · {op.region}</div>
+                      <div style={{fontSize:11,color:"#8E9BAE"}}>{op.rank} · {op.region}</div>
                     </div>
                     <div style={{textAlign:"right",flexShrink:0}}>
                       <div className="mono" style={{fontSize:14}}>
                         <span style={{color:"#6EE7B7",fontWeight:700}}>{mW}W</span>
-                        <span style={{color:"#4A4438",margin:"0 4px"}}>-</span>
+                        <span style={{color:"#6B7A8E",margin:"0 4px"}}>-</span>
                         <span style={{color:"#F87171",fontWeight:700}}>{tW}L</span>
                       </div>
                       <div style={{fontSize:10,color:ahead?"#6EE7B7":tied?"#E8A838":"#F87171",fontWeight:600,marginTop:2}}>
@@ -2342,8 +2342,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
             return(
               <Panel key={a.id} style={{padding:"16px",opacity:unlocked?1:.4,border:"1px solid "+(unlocked?"rgba(232,168,56,.3)":"rgba(242,237,228,.07)")}}>
                 <div style={{fontSize:26,marginBottom:6}}>{a.icon}</div>
-                <div style={{fontWeight:700,fontSize:14,color:unlocked?"#F2EDE4":"#6B7280",marginBottom:4}}>{a.name}</div>
-                <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>{a.desc}</div>
+                <div style={{fontWeight:700,fontSize:14,color:unlocked?"#F2EDE4":"#8E9BAE",marginBottom:4}}>{a.name}</div>
+                <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.5}}>{a.desc}</div>
                 {unlocked&&<div style={{marginTop:8}}><Tag color="#E8A838" size="sm">Unlocked</Tag></div>}
               </Panel>
             );
@@ -2380,7 +2380,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
           <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:3}}>Leaderboard</h2>
-          <p style={{color:"#6B7280",fontSize:13}}>Season 16 · tap a player for full profile</p>
+          <p style={{color:"#8E9BAE",fontSize:13}}>Season 16 · tap a player for full profile</p>
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {["season","cards","stats","streaks"].map(t=>(
@@ -2404,12 +2404,12 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
                   <ClashRankBadge xp={estimateXp(p)} size="sm"/>
                 </div>
                 <div className="mono" style={{fontSize:26,fontWeight:700,color:MCOLS[ri],marginTop:8,lineHeight:1}}>{p.pts}</div>
-                <div className="cond" style={{fontSize:9,color:"#6B7280",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Season Points</div>
+                <div className="cond" style={{fontSize:9,color:"#8E9BAE",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Season Points</div>
                 <div style={{display:"flex",justifyContent:"center",gap:12,flexWrap:"wrap"}}>
                   {[["Avg",s2.avgPlacement,avgCol(s2.avgPlacement)],["W",s2.wins,"#6EE7B7"],["T4%",s2.top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
                     <div key={l} style={{textAlign:"center"}}>
                       <div className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
-                      <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
+                      <div className="cond" style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
                     </div>
                   ))}
                 </div>
@@ -2439,7 +2439,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
               <Panel key={p.id} hover style={{padding:"16px",cursor:"pointer",border:"1px solid "+(i<3?MCOLS[i]+"44":"rgba(242,237,228,.08)")}} onClick={()=>open(p)}>
                 <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:12}}>
                   <div style={{flex:1,minWidth:0}}>
-                    <div className="mono" style={{fontSize:12,fontWeight:700,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",marginBottom:2}}>#{i+1}</div>
+                    <div className="mono" style={{fontSize:12,fontWeight:700,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7A8E",marginBottom:2}}>#{i+1}</div>
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>
                       <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{p.name}</span>
                       {isHotStreak(p)&&"🔥"}{isOnTilt(p)&&"💀"}
@@ -2452,13 +2452,13 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
                 {/* Season pts - big number */}
                 <div style={{background:"rgba(232,168,56,.06)",borderRadius:8,padding:"10px",textAlign:"center",marginBottom:10}}>
                   <div className="mono" style={{fontSize:28,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
-                  <div className="cond" style={{fontSize:9,color:"#6B7280",letterSpacing:".1em",textTransform:"uppercase",marginTop:3}}>Season Points</div>
+                  <div className="cond" style={{fontSize:9,color:"#8E9BAE",letterSpacing:".1em",textTransform:"uppercase",marginTop:3}}>Season Points</div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
                   {[["Avg",s2.avgPlacement,avgCol(s2.avgPlacement)],["Wins",s2.wins,"#6EE7B7"],["T4%",s2.top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
                     <div key={l} style={{background:"#0F1520",borderRadius:7,padding:"7px",textAlign:"center"}}>
                       <div className="mono" style={{fontSize:14,fontWeight:700,color:c}}>{v}</div>
-                      <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
+                      <div className="cond" style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
                     </div>
                   ))}
                 </div>
@@ -2474,14 +2474,14 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
           <div style={{minWidth:420}}>
           <div style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
             {["#","Player","PPG","Avg","T1%","T4%","B4%"].map(h=>(
-              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
+              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
             ))}
           </div>
           {sorted.map((p,i)=>{
             const s2=computeStats(p);
             return(
               <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
-                <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#4A4438"}}>{i+1}</span>
+                <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#6B7A8E"}}>{i+1}</span>
                 <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
                   <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
                 </div>
@@ -2502,14 +2502,14 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
           <div style={{minWidth:400}}>
           <div style={{display:"grid",gridTemplateColumns:"28px 1fr 80px 70px 80px 70px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
             {["#","Player","Best","Now","Comeback%","Clutch%"].map(h=>(
-              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
+              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
             ))}
           </div>
           {[...sorted].sort((a,b)=>(b.bestStreak||0)-(a.bestStreak||0)).map((p,i)=>{
             const s2=computeStats(p);
             return(
               <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 80px 70px 80px 70px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
-                <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#4A4438"}}>{i+1}</span>
+                <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#6B7A8E"}}>{i+1}</span>
                 <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
                   <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}{isHotStreak(p)?" 🔥":""}{isOnTilt(p)?" 💀":""}</span>
                 </div>
@@ -2546,7 +2546,7 @@ function ClashReport({clashData,players}){
   const biggestUpset=report?.biggestUpset||null;
 
   if(sorted.length===0)return(
-    <div style={{padding:"20px",color:"#6B7280",fontSize:14,textAlign:"center"}}>No detailed data for this clash yet.</div>
+    <div style={{padding:"20px",color:"#8E9BAE",fontSize:14,textAlign:"center"}}>No detailed data for this clash yet.</div>
   );
 
   return(
@@ -2557,7 +2557,7 @@ function ClashReport({clashData,players}){
           <thead>
             <tr style={{background:"#0A0F1A"}}>
               {["#","Player","R1","R2","R3","Finals","Clash Pts"].map(h=>(
-                <th key={h} className="cond" style={{padding:"9px 12px",textAlign:h==="Player"?"left":"center",fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)"}}>{h}</th>
+                <th key={h} className="cond" style={{padding:"9px 12px",textAlign:h==="Player"?"left":"center",fontSize:10,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)"}}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -2567,7 +2567,7 @@ function ClashReport({clashData,players}){
               const clashPts=p.entry?.clashPts||p.entry?.pts||0;
               return(
                 <tr key={p.id} style={{background:i===0?"rgba(232,168,56,.04)":i%2===0?"rgba(255,255,255,.01)":"transparent",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
-                  <td className="mono" style={{padding:"11px 12px",textAlign:"center",fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438"}}>{i+1}</td>
+                  <td className="mono" style={{padding:"11px 12px",textAlign:"center",fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7A8E"}}>{i+1}</td>
                   <td style={{padding:"11px 12px"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
                       <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</span>
@@ -2578,7 +2578,7 @@ function ClashReport({clashData,players}){
                     const v=rp[rk];
                     return(
                       <td key={rk} style={{padding:"11px 8px",textAlign:"center"}}>
-                        {v?<span className="mono" style={{fontSize:13,fontWeight:700,color:v===1?"#E8A838":v<=4?"#4ECDC4":"#F87171"}}>#{v}</span>:<span style={{color:"#4A4438",fontSize:12}}>-</span>}
+                        {v?<span className="mono" style={{fontSize:13,fontWeight:700,color:v===1?"#E8A838":v<=4?"#4ECDC4":"#F87171"}}>#{v}</span>:<span style={{color:"#6B7A8E",fontSize:12}}>-</span>}
                       </td>
                     );
                   })}
@@ -2600,7 +2600,7 @@ function ClashReport({clashData,players}){
               <span style={{fontSize:22}}>📈</span>
               <div><div style={{fontWeight:700,fontSize:14,color:"#6EE7B7"}}>Most Improved</div>
               <div style={{fontWeight:700,color:"#F2EDE4",fontSize:13}}>{mostImproved}</div>
-              <div style={{fontSize:11,color:"#6B7280"}}>Above their season average</div></div>
+              <div style={{fontSize:11,color:"#8E9BAE"}}>Above their season average</div></div>
             </div>
           </Panel>
         )}
@@ -2629,7 +2629,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
   const MEDALS=["🥇","🥈","🥉"];
   const PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
 
-  if(!champ)return<div className="page wrap" style={{textAlign:"center",color:"#6B7280",paddingTop:60}}>Complete a clash first!</div>;
+  if(!champ)return<div className="page wrap" style={{textAlign:"center",color:"#8E9BAE",paddingTop:60}}>Complete a clash first!</div>;
 
   const top3=[sorted[1],sorted[0],sorted[2]].filter(Boolean);
   const REWARDS=["👑 Clash Crown","🖼 Icon","🎨 Frame","📦 Loot Orb","📦 Loot Orb","","",""];
@@ -2657,7 +2657,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
     ctx.fillStyle=gold;ctx.fillRect(0,0,900,3);
     ctx.font="bold 13px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="4px";
     ctx.fillText("TFT CLASH S16 — FINAL RESULTS",40,44);ctx.letterSpacing="0px";
-    ctx.font="11px monospace";ctx.fillStyle="#6B7280";
+    ctx.font="11px monospace";ctx.fillStyle="#8E9BAE";
     ctx.fillText(CLASH_DATE+"  ·  "+sorted.length+" players",40,64);
     ctx.fillStyle="rgba(232,168,56,0.1)";
     ctx.beginPath();ctx.roundRect(40,85,820,100,8);ctx.fill();
@@ -2665,12 +2665,12 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
     ctx.font="bold 40px serif";ctx.fillStyle="#E8A838";ctx.fillText("👑",55,152);
     ctx.font="bold 28px serif";ctx.fillStyle="#F2EDE4";ctx.fillText(champ.name,110,150);
     ctx.font="bold 22px monospace";ctx.fillStyle="#E8A838";ctx.fillText(champ.pts+" pts",110,174);
-    ctx.font="11px monospace";ctx.fillStyle="#6B7280";ctx.fillText("Champion · AVP: "+computeStats(champ).avgPlacement,110,194);
+    ctx.font="11px monospace";ctx.fillStyle="#8E9BAE";ctx.fillText("Champion · AVP: "+computeStats(champ).avgPlacement,110,194);
     sorted.slice(0,8).forEach((p,i)=>{
       const x=40+(i>3?440:0);const iy=i>3?i-4:i;
-      const c2=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7280";
+      const c2=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#8E9BAE";
       ctx.font="bold 14px monospace";ctx.fillStyle=c2;ctx.fillText("#"+(i+1),x,210+iy*36);
-      ctx.font="14px sans-serif";ctx.fillStyle=i<3?"#F2EDE4":"#9CA3AF";ctx.fillText(p.name,x+36,210+iy*36);
+      ctx.font="14px sans-serif";ctx.fillStyle=i<3?"#F2EDE4":"#A8B4C4";ctx.fillText(p.name,x+36,210+iy*36);
       ctx.font="bold 14px monospace";ctx.fillStyle="#E8A838";ctx.fillText(p.pts+"pts",x+200,210+iy*36);
       const av=computeStats(p).avgPlacement;
       ctx.font="12px monospace";ctx.fillStyle=parseFloat(av)<3?"#4ade80":parseFloat(av)<5?"#facc15":"#f87171";
@@ -2679,7 +2679,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
     ctx.fillStyle="rgba(232,168,56,0.15)";ctx.fillRect(0,488,900,32);
     ctx.font="bold 11px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="2px";
     ctx.fillText("TFT CLASH  ·  tftclash.gg",40,508);ctx.letterSpacing="0px";
-    ctx.font="11px monospace";ctx.fillStyle="#6B7280";ctx.fillText("#TFTClash  #TFT",700,508);
+    ctx.font="11px monospace";ctx.fillStyle="#8E9BAE";ctx.fillText("#TFTClash  #TFT",700,508);
     const a=document.createElement("a");a.download="TFTClash-Results.png";a.href=canvas.toDataURL("image/png");a.click();
     toast("Results card downloaded ✓","success");
   }
@@ -2692,7 +2692,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
         <div style={{flex:1,minWidth:0}}>
           <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Season 16</div>
           <h1 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(22px,3.5vw,34px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME} — Final Results</h1>
-          <div style={{fontSize:12,color:"#6B7280",marginTop:3}}>{CLASH_DATE} · {sorted.length} players · {Math.ceil(sorted.length/8)} lobbies</div>
+          <div style={{fontSize:12,color:"#8E9BAE",marginTop:3}}>{CLASH_DATE} · {sorted.length} players · {Math.ceil(sorted.length/8)} lobbies</div>
         </div>
         <div style={{display:"flex",gap:8,flexShrink:0}}>
           <Btn v="dark" s="sm" onClick={shareDiscord}>Discord</Btn>
@@ -2719,7 +2719,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
           {[["Season Pts",champ.pts,"#E8A838"],["Wins",champ.wins,"#6EE7B7"],["Avg",computeStats(champ).avgPlacement,avgCol(computeStats(champ).avgPlacement)],["Top4%",computeStats(champ).top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
             <div key={l} style={{textAlign:"center",padding:"10px 16px",background:"rgba(0,0,0,.3)",borderRadius:10,minWidth:64}}>
               <div className="mono" style={{fontSize:20,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-              <div style={{fontSize:10,color:"#6B7280",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em",marginTop:4}}>{l}</div>
+              <div style={{fontSize:10,color:"#8E9BAE",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em",marginTop:4}}>{l}</div>
             </div>
           ))}
         </div>
@@ -2738,14 +2738,14 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
                 style={{background:isGold?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(isGold?"rgba(232,168,56,.3)":"rgba(255,255,255,.07)"),borderRadius:14,padding:"20px 14px",textAlign:"center",cursor:"pointer",borderTop:"3px solid "+col,paddingTop:isGold?28:20}}>
                 <div style={{fontSize:28,marginBottom:8}}>{MEDALS[actualRank]}</div>
                 <div style={{fontFamily:"'Cinzel',serif",fontSize:isGold?17:14,fontWeight:700,color:"#F2EDE4",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-                <div style={{fontSize:11,color:"#6B7280",marginBottom:10}}>{p.rank} · {p.region}</div>
+                <div style={{fontSize:11,color:"#8E9BAE",marginBottom:10}}>{p.rank} · {p.region}</div>
                 <div className="mono" style={{fontSize:isGold?28:20,fontWeight:800,color:col,lineHeight:1}}>{p.pts}</div>
-                <div style={{fontSize:9,color:"#6B7280",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginTop:3}}>Season Pts</div>
+                <div style={{fontSize:9,color:"#8E9BAE",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginTop:3}}>Season Pts</div>
                 <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:10}}>
                   {[["W",computeStats(p).wins,"#6EE7B7"],["Avg",computeStats(p).avgPlacement,avgCol(computeStats(p).avgPlacement)]].map(([l,v,c])=>(
                     <div key={l} style={{textAlign:"center"}}>
                       <div className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
-                      <div style={{fontSize:9,color:"#4A4438",textTransform:"uppercase"}}>{l}</div>
+                      <div style={{fontSize:9,color:"#6B7A8E",textTransform:"uppercase"}}>{l}</div>
                     </div>
                   ))}
                 </div>
@@ -2767,13 +2767,13 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
         <Panel style={{overflow:"hidden"}}>
           <div style={{display:"grid",gridTemplateColumns:"36px 1fr 80px 80px 70px 80px 110px",padding:"10px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.08)"}}>
             {["#","Player","Pts","Avg","Wins","T4%","Reward"].map(h=>(
-              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
+              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
             ))}
           </div>
           {sorted.map((p,i)=>{
             const st=computeStats(p);
             const isTop3=i<3;
-            const col=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7280";
+            const col=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#8E9BAE";
             return(
               <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
                 style={{display:"grid",gridTemplateColumns:"36px 1fr 80px 80px 70px 80px 110px",padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",background:i===0?"rgba(232,168,56,.05)":i<3?"rgba(255,255,255,.015)":"transparent",cursor:"pointer",transition:"background .12s"}}
@@ -2789,14 +2789,14 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
                       {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>💜</span>}
                       {isHotStreak(p)&&<span style={{fontSize:10}}>🔥</span>}
                     </div>
-                    <div style={{fontSize:11,color:"#6B7280"}}>{p.rank} · {p.region}</div>
+                    <div style={{fontSize:11,color:"#8E9BAE"}}>{p.rank} · {p.region}</div>
                   </div>
                 </div>
                 <div className="mono" style={{fontSize:15,fontWeight:700,color:isTop3?col:"#C8BFB0"}}>{p.pts}</div>
                 <AvgBadge avg={parseFloat(p.avg)||0}/>
                 <div className="mono" style={{fontSize:13,color:"#6EE7B7"}}>{st.wins}</div>
                 <div className="mono" style={{fontSize:13,color:"#4ECDC4"}}>{st.top4Rate}%</div>
-                <div style={{fontSize:12}}>{REWARDS[i]?<Tag color={col} size="sm">{REWARDS[i]}</Tag>:<span style={{color:"#4A4438"}}>—</span>}</div>
+                <div style={{fontSize:12}}>{REWARDS[i]?<Tag color={col} size="sm">{REWARDS[i]}</Tag>:<span style={{color:"#6B7A8E"}}>—</span>}</div>
               </div>
             );
           })}
@@ -2816,7 +2816,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
             <span style={{fontSize:24}}>🎁</span>
             <div style={{flex:1}}>
               <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:3}}>Milestone Rewards Unlocked</div>
-              <div style={{fontSize:13,color:"#9CA3AF"}}>Some players earned new milestones this clash.</div>
+              <div style={{fontSize:13,color:"#A8B4C4"}}>Some players earned new milestones this clash.</div>
             </div>
             <Btn v="purple" s="sm" onClick={()=>setScreen("milestones")}>View →</Btn>
           </div>
@@ -2827,7 +2827,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
       {tab==="report"&&(
         <Panel style={{padding:"20px"}}>
           <h3 style={{fontFamily:"'Cinzel',serif",fontSize:16,color:"#F2EDE4",marginBottom:4}}>{CLASH_NAME} — Round by Round</h3>
-          <p style={{fontSize:13,color:"#6B7280",marginBottom:20}}>{CLASH_DATE} · {sorted.length} players</p>
+          <p style={{fontSize:13,color:"#8E9BAE",marginBottom:20}}>{CLASH_DATE} · {sorted.length} players</p>
           <ClashReport clashData={{id:"latest",name:CLASH_NAME,date:CLASH_DATE,season:"S16",champion:champ.name,top3:sorted.slice(0,3).map(p=>p.name),players:sorted.length,lobbies:Math.ceil(sorted.length/8),report:{mostImproved:sorted[3]?.name,biggestUpset:(sorted[4]?.name||"")+" beat "+(sorted[0]?.name||"")}}} players={players}/>
         </Panel>
       )}
@@ -2863,7 +2863,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
           <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
           <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Hall of Fame</h2>
         </div>
-        <p style={{color:"#6B7280",fontSize:13}}>Fight for your place in history. These records are forever.</p>
+        <p style={{color:"#8E9BAE",fontSize:13}}>Fight for your place in history. These records are forever.</p>
       </div>
 
       {/* Cinematic full-width throne banner */}
@@ -2906,21 +2906,21 @@ function HofScreen({players,setScreen,setProfilePlayer}){
               <div>
                 <div style={{textAlign:"center",marginBottom:16}}>
                   <div className="mono" style={{fontSize:"clamp(32px,6vw,64px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 40px rgba(232,168,56,.4)"}}>{king.pts}</div>
-                  <div className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7280",letterSpacing:".16em",textTransform:"uppercase"}}>Season Points</div>
+                  <div className="cond" style={{fontSize:10,fontWeight:700,color:"#8E9BAE",letterSpacing:".16em",textTransform:"uppercase"}}>Season Points</div>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(80px,1fr))",gap:8,marginBottom:16}}>
                   {[["AVP",kingStats.avgPlacement,avgCol(kingStats.avgPlacement),"lower=better"],["Win Rate",kingStats.top1Rate+"%","#6EE7B7",""],["Top 4",kingStats.top4Rate+"%","#C4B5FD",""],["PPG",kingStats.ppg,"#EAB308",""],["Streak",king.bestStreak+"🔥","#F87171","best"],["Clutch",kingStats.clutchRate+"%","#9B72CF",""]].map(([l,v,c,hint])=>(
                     <div key={l} style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.12)",borderRadius:8,padding:"10px 6px",textAlign:"center"}}>
                       <div className="mono" style={{fontSize:"clamp(13px,2vw,18px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-                      <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
-                      {hint&&<div style={{fontSize:8,color:"#4A4438",marginTop:1}}>{hint}</div>}
+                      <div className="cond" style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
+                      {hint&&<div style={{fontSize:8,color:"#6B7A8E",marginTop:1}}>{hint}</div>}
                     </div>
                   ))}
                 </div>
                 {/* Gap to challengers */}
                 <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,padding:"10px 14px",marginBottom:10}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:11,color:"#9CA3AF"}}>Lead over 2nd place</span>
+                    <span style={{fontSize:11,color:"#A8B4C4"}}>Lead over 2nd place</span>
                     <span className="mono" style={{fontSize:14,fontWeight:700,color:kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"}}>+{kingGap} pts</span>
                   </div>
                   <Bar val={king.pts} max={king.pts+kingGap} color={kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"} h={4}/>
@@ -2929,7 +2929,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
               {/* RIGHT: Challengers closing in */}
               <div style={{minWidth:"clamp(130px,20vw,180px)"}}>
-                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#6B7280",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}}>⚔ Challengers</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#8E9BAE",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}}>⚔ Challengers</div>
                 {challengers.map((p,i)=>{
                   const diff=king.pts-p.pts;
                   return(
@@ -2937,7 +2937,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                       onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.3)";}}
                       onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(242,237,228,.07)";}}>
                       <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
-                        <div className="mono" style={{fontSize:10,fontWeight:700,color:i===0?"#C0C0C0":i===1?"#CD7F32":"#6B7280",minWidth:12}}>{i+2}</div>
+                        <div className="mono" style={{fontSize:10,fontWeight:700,color:i===0?"#C0C0C0":i===1?"#CD7F32":"#8E9BAE",minWidth:12}}>{i+2}</div>
                         <span style={{fontWeight:600,fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
                         <span className="mono" style={{fontSize:11,fontWeight:700,color:"#E8A838"}}>{p.pts}</span>
                       </div>
@@ -2960,7 +2960,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
             <div style={{marginTop:6,display:"flex",alignItems:"flex-start",gap:14}}>
               <div style={{width:48,height:48,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{r.icon}</div>
               <div style={{flex:1}}>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7280",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{r.title}</div>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#8E9BAE",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{r.title}</div>
                 <div className="mono" style={{fontSize:24,fontWeight:700,color:"#E8A838",lineHeight:1,marginBottom:10}}>{r.value}</div>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,cursor:"pointer"}} onClick={e=>{e.stopPropagation();openProfile(r.holder);}}>
                   <div>
@@ -2969,15 +2969,15 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                   </div>
                   <span style={{marginLeft:"auto",fontSize:11,color:"#E8A838"}}>↗</span>
                 </div>
-                <div>{(r.runner||[]).map((ru,i)=><div key={i} style={{fontSize:12,color:"#6B7280",marginTop:2}}><span style={{color:i===0?"#C0C0C0":"#CD7F32",marginRight:5}}>{i===0?"2nd":"3rd"}</span>{ru}</div>)}</div>
+                <div>{(r.runner||[]).map((ru,i)=><div key={i} style={{fontSize:12,color:"#8E9BAE",marginTop:2}}><span style={{color:i===0?"#C0C0C0":"#CD7F32",marginRight:5}}>{i===0?"2nd":"3rd"}</span>{ru}</div>)}</div>
               </div>
             </div>
             {selectedRecord?.id===r.id&&r.history.length>0&&(
               <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid rgba(232,168,56,.15)"}}>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#6B7280",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Record History</div>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#8E9BAE",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Record History</div>
                 {(r.history||[]).map((h,i)=>(
                   <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",background:"#0F1520",borderRadius:7,marginBottom:5}}>
-                    <span className="mono" style={{fontSize:11,color:"#6B7280"}}>{h.season}</span>
+                    <span className="mono" style={{fontSize:11,color:"#8E9BAE"}}>{h.season}</span>
                     <span style={{fontWeight:600,fontSize:13,color:"#C8BFB0",flex:1}}>{h.holder}</span>
                     <span className="mono" style={{fontSize:12,color:"#E8A838"}}>{h.value}</span>
                   </div>
@@ -2998,7 +2998,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{a}</span>
                 </div>
-                <span className="mono" style={{fontSize:12,color:"#6B7280"}}>{wa}W - {wb}W</span>
+                <span className="mono" style={{fontSize:12,color:"#8E9BAE"}}>{wa}W - {wb}W</span>
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
                   <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{b}</span>
                 </div>
@@ -3016,10 +3016,10 @@ function HofScreen({players,setScreen,setProfilePlayer}){
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>📅 Season Timeline</h3>
             {[{s:"S14",ch:"xQc_TFT",pts:1240},{s:"S15",ch:"Dishsoap",pts:924},{s:"S16",ch:"-",active:true}].map((s,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 0",borderBottom:i<2?"1px solid rgba(242,237,228,.06)":"none"}}>
-                <div style={{width:32,height:32,background:s.active?"rgba(232,168,56,.1)":"rgba(255,255,255,.04)",border:"1px solid "+(s.active?"rgba(232,168,56,.4)":"rgba(242,237,228,.1)"),borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:s.active?"#E8A838":"#6B7280",flexShrink:0}}>{s.s}</div>
+                <div style={{width:32,height:32,background:s.active?"rgba(232,168,56,.1)":"rgba(255,255,255,.04)",border:"1px solid "+(s.active?"rgba(232,168,56,.4)":"rgba(242,237,228,.1)"),borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:s.active?"#E8A838":"#8E9BAE",flexShrink:0}}>{s.s}</div>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:600,fontSize:13,color:s.active?"#E8A838":"#F2EDE4"}}>{s.active?"In Progress":s.ch}</div>
-                  {!s.active&&<div className="mono" style={{fontSize:11,color:"#6B7280"}}>{s.pts} pts</div>}
+                  {!s.active&&<div className="mono" style={{fontSize:11,color:"#8E9BAE"}}>{s.pts} pts</div>}
                 </div>
                 {s.active?<Dot size={6}/>:<span style={{fontSize:13}}>🏆</span>}
               </div>
@@ -3031,7 +3031,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
               <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 0",borderBottom:i<RETIRED_LEGENDS.length-1?"1px solid rgba(242,237,228,.06)":"none"}}>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{l.name}</div>
-                  <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>{l.reason}</div>
+                  <div style={{fontSize:11,color:"#8E9BAE",marginTop:2}}>{l.reason}</div>
                 </div>
                 <div className="mono" style={{fontSize:14,fontWeight:700,color:"#9B72CF"}}>{l.pts}pts</div>
               </div>
@@ -3061,7 +3061,7 @@ function ArchiveScreen({players,currentUser,setScreen}){
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
         <div style={{flex:1}}>
           <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Archive</h2>
-          <p style={{color:"#6B7280",fontSize:13}}>{all.length} events · 2 seasons</p>
+          <p style={{color:"#8E9BAE",fontSize:13}}>{all.length} events · 2 seasons</p>
         </div>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
@@ -3073,23 +3073,23 @@ function ArchiveScreen({players,currentUser,setScreen}){
                 <div style={{width:34,height:34,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#E8A838",flexShrink:0}}>#{c.id}</div>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{c.name}</div>
-                  <div className="cond" style={{fontSize:11,color:"#6B7280",marginTop:2}}>{c.date} · {c.season} · {c.players}p · {c.lobbies} {c.lobbies===1?"lobby":"lobbies"}</div>
+                  <div className="cond" style={{fontSize:11,color:"#8E9BAE",marginTop:2}}>{c.date} · {c.season} · {c.players}p · {c.lobbies} {c.lobbies===1?"lobby":"lobbies"}</div>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
                   <span style={{fontSize:14}}>🏆</span><span style={{fontWeight:700,color:"#E8A838",fontSize:13}}>{c.champion}</span>
-                  <span style={{color:"#6B7280",fontSize:14,marginLeft:6}}>{open===c.id?"▲":"▼"}</span>
+                  <span style={{color:"#8E9BAE",fontSize:14,marginLeft:6}}>{open===c.id?"▲":"▼"}</span>
                 </div>
               </div>
               {open===c.id&&(
                 <div style={{padding:"14px 16px",background:"#0D121E",borderTop:"1px solid rgba(242,237,228,.07)"}}>
                   <div style={{marginBottom:14}}>
-                    <div style={{fontSize:12,fontWeight:700,color:"#9CA3AF",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>Top 8 Finishers</div>
+                    <div style={{fontSize:12,fontWeight:700,color:"#A8B4C4",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>Top 8 Finishers</div>
                     <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:6}}>
                       {c.top3.map((name,i)=>(
                         <div key={i} style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"8px 10px",textAlign:"center"}}>
                           <div style={{fontSize:16,marginBottom:4}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":"🏅"}</div>
                           <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{name}</div>
-                          <div style={{fontSize:10,color:"#6B7280",marginTop:2}}>#{i+1}</div>
+                          <div style={{fontSize:10,color:"#8E9BAE",marginTop:2}}>#{i+1}</div>
                         </div>
                       ))}
                     </div>
@@ -3106,7 +3106,7 @@ function ArchiveScreen({players,currentUser,setScreen}){
                       <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#9B72CF"}}>#{myPos}</div>
                       <div>
                         <div style={{fontWeight:700,fontSize:13,color:"#C4B5FD"}}>Your Position</div>
-                        <div style={{fontSize:12,color:"#9CA3AF"}}>{currentUser.username} finished #{myPos} in this event</div>
+                        <div style={{fontSize:12,color:"#A8B4C4"}}>{currentUser.username} finished #{myPos} in this event</div>
                       </div>
                     </div>
                   )}
@@ -3193,7 +3193,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
         <div style={{width:38,height:38,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>⬡</div>
-        <div><h2 style={{color:"#F2EDE4",fontSize:18}}>Admin Panel</h2><div style={{fontSize:11,color:"#6B7280"}}>{seasonName}</div></div>
+        <div><h2 style={{color:"#F2EDE4",fontSize:18}}>Admin Panel</h2><div style={{fontSize:11,color:"#8E9BAE"}}>{seasonName}</div></div>
       </div>
 
       {/* Tab pills - scrollable on mobile */}
@@ -3211,7 +3211,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             {[["Players",players.length,"#E8A838"],["In",players.filter(p=>p.checkedIn).length,"#6EE7B7"],["Banned",players.filter(p=>p.banned).length,"#F87171"],["Events",scheduledEvents.length,"#C4B5FD"]].map(([l,v,c])=>(
               <Panel key={l} style={{padding:"16px",textAlign:"center"}}>
                 <div className="mono" style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9CA3AF",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{l}</div>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#A8B4C4",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{l}</div>
               </Panel>
             ))}
           </div>
@@ -3226,7 +3226,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               <div key={i} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 14px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                 <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
                 <span style={{fontSize:13,color:"#C8BFB0",flex:1}}>{l.msg}</span>
-                <span className="mono" style={{fontSize:10,color:"#4A4438",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleTimeString()}</span>
+                <span className="mono" style={{fontSize:10,color:"#6B7A8E",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleTimeString()}</span>
               </div>
             ))}
           </Panel>
@@ -3244,10 +3244,10 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                 </div>
                 <div className="grid-2" style={{marginBottom:14}}>
                   {[["Display Name","name"],["Riot ID","riotId"],["Region","region"]].map(([l,k])=>(
-                    <div key={k}><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{l}</label>
+                    <div key={k}><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{l}</label>
                     <Inp value={editP[k]||""} onChange={v=>setEditP(e=>({...e,[k]:v}))} placeholder={l}/></div>
                   ))}
-                  <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Role</label>
+                  <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Role</label>
                   <Sel value={editP.role||"player"} onChange={v=>setEditP(e=>({...e,role:v}))}>{["player","host","mod","admin"].map(r=><option key={r} value={r}>{r}</option>)}</Sel></div>
                 </div>
                 <div style={{display:"flex",gap:10}}>
@@ -3268,7 +3268,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                         {p.banned&&<Tag color="#F87171" size="sm">BANNED</Tag>}
                         {p.checkedIn&&<Tag color="#52C47C" size="sm">✓ In</Tag>}
                       </div>
-                      <div style={{fontSize:12,color:"#6B7280",marginTop:2}}>{p.riotId} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span></div>
+                      <div style={{fontSize:12,color:"#8E9BAE",marginTop:2}}>{p.riotId} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span></div>
                       {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:3}}>📌 {p.notes}</div>}
                     </div>
                     <div style={{display:"flex",gap:6,flexWrap:"wrap",flexShrink:0}}>
@@ -3280,7 +3280,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   </div>
                 </Panel>
               ))}
-              {players.length===0&&<div style={{textAlign:"center",padding:40,color:"#4A4438",fontSize:14}}>No players</div>}
+              {players.length===0&&<div style={{textAlign:"center",padding:40,color:"#6B7A8E",fontSize:14}}>No players</div>}
             </div>
           )}
         </div>
@@ -3288,12 +3288,12 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       {tab==="scores"&&(
         <div>
-          <p style={{fontSize:13,color:"#9CA3AF",marginBottom:14}}>Override season points. All changes are logged.</p>
+          <p style={{fontSize:13,color:"#A8B4C4",marginBottom:14}}>Override season points. All changes are logged.</p>
           <Panel style={{overflow:"hidden",marginBottom:14}}>
             {players.map(p=>(
               <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                 <span style={{fontWeight:600,fontSize:14,color:"#F2EDE4",flex:1}}>{p.name}</span>
-                <span className="mono" style={{fontSize:13,color:"#6B7280",minWidth:50}}>Now: <span style={{color:"#E8A838"}}>{p.pts}</span></span>
+                <span className="mono" style={{fontSize:13,color:"#8E9BAE",minWidth:50}}>Now: <span style={{color:"#E8A838"}}>{p.pts}</span></span>
                 <div style={{width:110,flexShrink:0}}>
                   <Inp value={scoreEdit[p.id]!==undefined?scoreEdit[p.id]:""} onChange={v=>setScoreEdit(e=>({...e,[p.id]:v}))} placeholder={String(p.pts)} type="number"/>
                 </div>
@@ -3312,7 +3312,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
           <Panel style={{padding:"20px"}}>
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Tournament Phase</h3>
             <div style={{marginBottom:12,padding:"10px 12px",background:"#0F1520",borderRadius:8,border:"1px solid rgba(242,237,228,.07)"}}>
-              <div style={{fontSize:11,color:"#6B7280",marginBottom:3,textTransform:"uppercase",letterSpacing:".06em",fontWeight:700}}>Current Phase</div>
+              <div style={{fontSize:11,color:"#8E9BAE",marginBottom:3,textTransform:"uppercase",letterSpacing:".06em",fontWeight:700}}>Current Phase</div>
               <div style={{fontWeight:700,fontSize:14,color:{registration:"#9B72CF",checkin:"#E8A838",inprogress:"#52C47C",complete:"#4ECDC4"}[tournamentState?tournamentState.phase:"registration"]||"#9B72CF"}}>
                 {{registration:"Registration Open",checkin:"Check-in Open",inprogress:"In Progress — Round "+(tournamentState?tournamentState.round:1),complete:"Complete"}[tournamentState?tournamentState.phase:"registration"]||"Registration"}
               </div>
@@ -3350,16 +3350,16 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{marginTop:6}}>
               <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Schedule Event</h3>
               <div style={{display:"grid",gap:12,marginBottom:14}}>
-                <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Name</label><Inp value={newEvent.name} onChange={v=>setNewEvent(e=>({...e,name:v}))} placeholder="Clash #15"/></div>
+                <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Name</label><Inp value={newEvent.name} onChange={v=>setNewEvent(e=>({...e,name:v}))} placeholder="Clash #15"/></div>
                 <div className="grid-2">
-                  <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={newEvent.type} onChange={v=>setNewEvent(e=>({...e,type:v}))}>{["SCHEDULED","FLASH","INVITATIONAL","WEEKLY"].map(t=><option key={t}>{t}</option>)}</Sel></div>
-                  <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={newEvent.format} onChange={v=>setNewEvent(e=>({...e,format:v}))}>{["Swiss","Single Lobby","Round Robin","Finals Only"].map(f=><option key={f}>{f}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={newEvent.type} onChange={v=>setNewEvent(e=>({...e,type:v}))}>{["SCHEDULED","FLASH","INVITATIONAL","WEEKLY"].map(t=><option key={t}>{t}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={newEvent.format} onChange={v=>setNewEvent(e=>({...e,format:v}))}>{["Swiss","Single Lobby","Round Robin","Finals Only"].map(f=><option key={f}>{f}</option>)}</Sel></div>
                 </div>
                 <div className="grid-2">
-                  <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date</label><Inp type="date" value={newEvent.date} onChange={v=>setNewEvent(e=>({...e,date:v}))}/></div>
-                  <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Time</label><Inp type="time" value={newEvent.time} onChange={v=>setNewEvent(e=>({...e,time:v}))}/></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date</label><Inp type="date" value={newEvent.date} onChange={v=>setNewEvent(e=>({...e,date:v}))}/></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Time</label><Inp type="time" value={newEvent.time} onChange={v=>setNewEvent(e=>({...e,time:v}))}/></div>
                 </div>
-                <div><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Cap</label><Sel value={newEvent.cap} onChange={v=>setNewEvent(e=>({...e,cap:v}))}>{[8,16,24,32,48,64].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                <div><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Cap</label><Sel value={newEvent.cap} onChange={v=>setNewEvent(e=>({...e,cap:v}))}>{[8,16,24,32,48,64].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
               </div>
               <Btn v="primary" full onClick={()=>{if(!newEvent.name||!newEvent.date)return;setScheduledEvents(es=>[...es,{...newEvent,id:Date.now(),status:"upcoming",cap:parseInt(newEvent.cap)||8}]);addAudit("ACTION","Scheduled: "+newEvent.name);setNewEvent({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});toast("Scheduled","success");}}>Schedule</Btn>
             </div>
@@ -3373,14 +3373,14 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                       <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{ev.name}</span>
                       <Tag color={EVENT_COLS[ev.type]||"#E8A838"} size="sm">{ev.type}</Tag>
                     </div>
-                    <div style={{fontSize:12,color:"#9CA3AF"}}>{ev.date} · {ev.time}</div>
-                    <div className="cond" style={{fontSize:11,color:"#6B7280",marginTop:2}}>{ev.format} · {ev.cap}p</div>
+                    <div style={{fontSize:12,color:"#A8B4C4"}}>{ev.date} · {ev.time}</div>
+                    <div className="cond" style={{fontSize:11,color:"#8E9BAE",marginTop:2}}>{ev.format} · {ev.cap}p</div>
                   </div>
                   <Btn s="sm" v="danger" onClick={()=>{setScheduledEvents(es=>es.filter(e=>e.id!==ev.id));addAudit("ACTION","Cancelled: "+ev.name);}}>✕</Btn>
                 </div>
               </Panel>
             ))}
-            {scheduledEvents.length===0&&<div style={{textAlign:"center",padding:32,color:"#4A4438",fontSize:14}}>No events scheduled</div>}
+            {scheduledEvents.length===0&&<div style={{textAlign:"center",padding:32,color:"#6B7A8E",fontSize:14}}>No events scheduled</div>}
           </div>
         </div>
       )}
@@ -3389,7 +3389,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         <div className="grid-2">
           <Panel style={{padding:"20px"}}>
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Season Config</h3>
-            <label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Season Name</label>
+            <label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Season Name</label>
             <Inp value={seasonName} onChange={setSeasonName} placeholder="Season name" style={{marginBottom:14}}/>
             <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Renamed: "+seasonName);toast("Saved","success");}}>Save</Btn>
             <Divider label="Stats"/>
@@ -3397,7 +3397,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               {[["Players",players.length],["Total Pts",players.reduce((s,p)=>s+p.pts,0)],["Games",players.reduce((s,p)=>s+(p.games||0),0)],["Clashes",PAST_CLASHES.length+1]].map(([l,v])=>(
                 <div key={l} style={{background:"#0F1520",borderRadius:9,padding:"11px",textAlign:"center"}}>
                   <div className="mono" style={{fontSize:20,fontWeight:700,color:"#E8A838"}}>{v}</div>
-                  <div className="cond" style={{fontSize:10,color:"#6B7280",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
+                  <div className="cond" style={{fontSize:10,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
                 </div>
               ))}
             </div>
@@ -3405,7 +3405,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
           <Panel danger style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
               <h3 style={{fontSize:15,color:"#F87171",marginBottom:8}}>⚠ Danger Zone</h3>
-              <p style={{fontSize:13,color:"#9CA3AF",marginBottom:16}}>These actions are irreversible and logged.</p>
+              <p style={{fontSize:13,color:"#A8B4C4",marginBottom:16}}>These actions are irreversible and logged.</p>
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 <Btn v="danger" full onClick={()=>{if(window.confirm("Reset ALL stats?")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0})));addAudit("DANGER","Stats reset");toast("Reset","success");}}}>Reset Season Stats</Btn>
                 <Btn v="danger" full onClick={()=>{if(window.confirm("Clear ALL players?")){setPlayers([]);addAudit("DANGER","Players cleared");}}}>Clear All Players</Btn>
@@ -3421,8 +3421,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
               <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Send Broadcast</h3>
-              <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={broadType} onChange={setBroadType}>{["NOTICE","ALERT","UPDATE","RESULT","INFO"].map(t=><option key={t}>{t}</option>)}</Sel></div>
-              <div style={{marginBottom:16}}><label style={{display:"block",fontSize:11,color:"#9CA3AF",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label><Inp value={broadMsg} onChange={setBroadMsg} placeholder="Your announcement..."/></div>
+              <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={broadType} onChange={setBroadType}>{["NOTICE","ALERT","UPDATE","RESULT","INFO"].map(t=><option key={t}>{t}</option>)}</Sel></div>
+              <div style={{marginBottom:16}}><label style={{display:"block",fontSize:11,color:"#A8B4C4",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label><Inp value={broadMsg} onChange={setBroadMsg} placeholder="Your announcement..."/></div>
               <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Sent","success");}}>Send</Btn>
             </div>
           </Panel>
@@ -3431,7 +3431,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             {announcements.map(a=>(
               <div key={a.id} style={{padding:"11px",background:"#0F1520",border:"1px solid rgba(242,237,228,.07)",borderRadius:9,marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
                 <div><Tag color="#E8A838" size="sm">{a.type}</Tag><div style={{fontSize:13,color:"#C8BFB0",marginTop:6}}>{a.msg}</div></div>
-                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");}} style={{background:"none",border:"none",color:"#6B7280",cursor:"pointer",fontSize:20,lineHeight:1,flexShrink:0,minWidth:28,minHeight:28}}>×</button>
+                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");}} style={{background:"none",border:"none",color:"#8E9BAE",cursor:"pointer",fontSize:20,lineHeight:1,flexShrink:0,minWidth:28,minHeight:28}}>×</button>
               </div>
             ))}
           </Panel>
@@ -3442,14 +3442,14 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         <Panel style={{overflow:"hidden"}}>
           <div style={{padding:"12px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
             <h3 style={{fontSize:15,color:"#F2EDE4"}}>Audit Log</h3>
-            <span className="mono" style={{fontSize:11,color:"#6B7280"}}>{auditLog.length} entries</span>
+            <span className="mono" style={{fontSize:11,color:"#8E9BAE"}}>{auditLog.length} entries</span>
           </div>
           <div style={{maxHeight:500,overflowY:"auto"}}>
             {auditLog.map((l,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                 <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
                 <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{l.msg}</span>
-                <span className="mono" style={{fontSize:10,color:"#4A4438",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
+                <span className="mono" style={{fontSize:10,color:"#6B7A8E",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
               </div>
             ))}
           </div>
@@ -3461,7 +3461,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
             <h3 style={{fontSize:16,color:"#F2EDE4"}}>Host Applications</h3>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{fontSize:12,color:"#6B7280"}}>{hostApps.filter(a=>a.status==="pending").length} pending review</div>
+              <div style={{fontSize:12,color:"#8E9BAE"}}>{hostApps.filter(a=>a.status==="pending").length} pending review</div>
               <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.18)",border:"1px solid rgba(155,114,207,.4)",borderRadius:7,padding:"6px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
                 <span>🏆</span> Aegis Client Demo
               </button>
@@ -3479,8 +3479,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                         {app.status==="pending"?"⏳ Pending":app.status==="approved"?"✓ Approved":"✗ Rejected"}
                       </Tag>
                     </div>
-                    <div style={{fontSize:12,color:"#6B7280",marginBottom:8}}>{app.email} · {app.freq} · Applied {app.submittedAt}</div>
-                    <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6,padding:"10px 12px",background:"rgba(255,255,255,.02)",borderRadius:7,border:"1px solid rgba(242,237,228,.06)"}}>"{app.reason}"</div>
+                    <div style={{fontSize:12,color:"#8E9BAE",marginBottom:8}}>{app.email} · {app.freq} · Applied {app.submittedAt}</div>
+                    <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.6,padding:"10px 12px",background:"rgba(255,255,255,.02)",borderRadius:7,border:"1px solid rgba(242,237,228,.06)"}}>"{app.reason}"</div>
                   </div>
                   {app.status==="pending"&&(
                     <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
@@ -3501,7 +3501,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <h3 style={{fontSize:16,color:"#F2EDE4"}}>Org Sponsorship Slots</h3>
             <Btn v="primary" s="sm" onClick={()=>toast("Add sponsorship (mock)","success")}>+ Add Slot</Btn>
           </div>
-          <div style={{marginBottom:20,padding:"14px 16px",background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,fontSize:13,color:"#9CA3AF",lineHeight:1.6}}>
+          <div style={{marginBottom:20,padding:"14px 16px",background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,fontSize:13,color:"#A8B4C4",lineHeight:1.6}}>
             Org sponsorships let a brand pay to have their tag shown next to a specific player's name on the leaderboard and their profile - like a jersey sponsor. You assign them manually here.
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -3512,7 +3512,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   <div style={{width:40,height:40,background:s.color+"18",border:"1px solid "+s.color+"44",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,color:s.color,flexShrink:0}}>{s.logo}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{s.org}</div>
-                    <div style={{fontSize:12,color:"#6B7280"}}>Sponsoring: <span style={{color:s.color}}>{p?.name||"Player #"+pid}</span></div>
+                    <div style={{fontSize:12,color:"#8E9BAE"}}>Sponsoring: <span style={{color:s.color}}>{p?.name||"Player #"+pid}</span></div>
                   </div>
                   <div style={{display:"flex",gap:8}}>
                     <OrgSponsorTag playerId={parseInt(pid)}/>
@@ -3526,19 +3526,19 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <h4 style={{fontSize:14,color:"#C4B5FD",marginBottom:12}}>Add New Sponsorship</h4>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
               <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#9CA3AF",marginBottom:5}}>Org Name</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#A8B4C4",marginBottom:5}}>Org Name</div>
                 <Inp value="" onChange={()=>{}} placeholder="e.g. ProGuides"/>
               </div>
               <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#9CA3AF",marginBottom:5}}>Logo Text</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#A8B4C4",marginBottom:5}}>Logo Text</div>
                 <Inp value="" onChange={()=>{}} placeholder="e.g. PG"/>
               </div>
               <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#9CA3AF",marginBottom:5}}>Accent Colour</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#A8B4C4",marginBottom:5}}>Accent Colour</div>
                 <Inp value="" onChange={()=>{}} placeholder="#4ECDC4"/>
               </div>
               <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#9CA3AF",marginBottom:5}}>Assign to Player</div>
+                <div style={{fontSize:11,fontWeight:600,color:"#A8B4C4",marginBottom:5}}>Assign to Player</div>
                 <Sel value="" onChange={()=>{}}>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel>
               </div>
             </div>
@@ -3550,10 +3550,10 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
       {tab==="settings"&&(
         <Panel style={{padding:"20px",maxWidth:480}}>
           <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Role Hierarchy</h3>
-          {[["Admin","Full access, all tabs","#E8A838"],["Mod","Disputes, check-in, scores","#9B72CF"],["Host","Lobby management","#4ECDC4"],["Player","Self-placement only","#6B7280"]].map(([r,d,c])=>(
+          {[["Admin","Full access, all tabs","#E8A838"],["Mod","Disputes, check-in, scores","#9B72CF"],["Host","Lobby management","#4ECDC4"],["Player","Self-placement only","#8E9BAE"]].map(([r,d,c])=>(
             <div key={r} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 0",borderBottom:"1px solid rgba(242,237,228,.06)"}}>
               <Tag color={c}>{r}</Tag>
-              <span style={{fontSize:13,color:"#9CA3AF"}}>{d}</span>
+              <span style={{fontSize:13,color:"#A8B4C4"}}>{d}</span>
             </div>
           ))}
         </Panel>
@@ -3678,7 +3678,7 @@ function ScrimsScreen({players,toast,setScreen}){
           <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Scrims Lab</h2>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
             <Tag color="#9B72CF">Admin Only</Tag>
-            <span style={{fontSize:12,color:"#6B7280"}}>{allGames.length} games logged · {sessions.length} sessions</span>
+            <span style={{fontSize:12,color:"#8E9BAE"}}>{allGames.length} games logged · {sessions.length} sessions</span>
           </div>
         </div>
         <div style={{display:"flex",gap:6}}>
@@ -3695,13 +3695,13 @@ function ScrimsScreen({players,toast,setScreen}){
             {/* Session selector */}
             <Panel style={{padding:"14px 16px",background:"#0A0F1A",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:11,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>Active Session</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#8E9BAE",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>Active Session</div>
                 <Sel value={activeId||""} onChange={v=>setActiveId(parseInt(v)||null)} style={{width:"100%"}}>
                   <option value="">- Select session -</option>
                   {sessions.map(s=><option key={s.id} value={s.id}>{s.name} ({s.games.length}/{s.targetGames}){s.active?"":" · Ended"}</option>)}
                 </Sel>
               </div>
-              {session&&<Tag color={session.active?"#52C47C":"#6B7280"} size="sm">{session.active?"Active":"Ended"}</Tag>}
+              {session&&<Tag color={session.active?"#52C47C":"#8E9BAE"} size="sm">{session.active?"Active":"Ended"}</Tag>}
               {session&&session.active&&<Btn v="danger" s="sm" onClick={()=>stopSession(session.id)}>End Session</Btn>}
             </Panel>
 
@@ -3727,7 +3727,7 @@ function ScrimsScreen({players,toast,setScreen}){
                       background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7}}>
                       <span style={{fontSize:12,fontWeight:600,color:"#C4B5FD"}}>{p.name}</span>
                       <button onClick={()=>setScrimRoster(r=>r.filter(x=>x.id!==p.id))}
-                        style={{background:"none",border:"none",color:"#6B7280",cursor:"pointer",fontSize:15,lineHeight:1,padding:0}}>×</button>
+                        style={{background:"none",border:"none",color:"#8E9BAE",cursor:"pointer",fontSize:15,lineHeight:1,padding:0}}>×</button>
                     </div>
                   ))}
                 </div>
@@ -3742,20 +3742,20 @@ function ScrimsScreen({players,toast,setScreen}){
                     Game {session?session.games.length+1:1}{session?" / "+session.targetGames:""}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <div className="mono" style={{fontSize:18,fontWeight:700,color:timerActive?"#E8A838":"#4A4438",minWidth:54}}>{fmt(timer)}</div>
+                    <div className="mono" style={{fontSize:18,fontWeight:700,color:timerActive?"#E8A838":"#6B7A8E",minWidth:54}}>{fmt(timer)}</div>
                     <Btn v="dark" s="sm" onClick={()=>setTimerActive(t=>!t)}>{timerActive?"⏸":"▶"}</Btn>
                     <Btn v="dark" s="sm" onClick={()=>{setTimer(0);setTimerActive(false);}}>↺</Btn>
                   </div>
                 </div>
                 <div className="grid-2" style={{marginBottom:14,gap:10}}>
                   <div>
-                    <div style={{fontSize:11,fontWeight:700,color:"#9CA3AF",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Tag</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"#A8B4C4",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Tag</div>
                     <Sel value={gameTag} onChange={setGameTag}>
                       {["standard","draft comp","test run","ranked sim","meta test"].map(t=><option key={t} value={t}>{t}</option>)}
                     </Sel>
                   </div>
                   <div>
-                    <div style={{fontSize:11,fontWeight:700,color:"#9CA3AF",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Note</div>
+                    <div style={{fontSize:11,fontWeight:700,color:"#A8B4C4",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Note</div>
                     <Inp value={gameNote} onChange={setGameNote} placeholder="comp, pivot, notes..."/>
                   </div>
                 </div>
@@ -3771,11 +3771,11 @@ function ScrimsScreen({players,toast,setScreen}){
 
           {/* Recent games sidebar */}
           <div>
-            <div style={{fontSize:12,fontWeight:700,color:"#6B7280",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Recent Games</div>
+            <div style={{fontSize:12,fontWeight:700,color:"#8E9BAE",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Recent Games</div>
             {allGames.length===0&&(
               <Panel style={{padding:"24px",textAlign:"center"}}>
                 <div style={{fontSize:24,marginBottom:8}}>🎮</div>
-                <div style={{fontSize:13,color:"#4A4438"}}>No games logged yet. Record a game to see it here.</div>
+                <div style={{fontSize:13,color:"#6B7A8E"}}>No games logged yet. Record a game to see it here.</div>
               </Panel>
             )}
             {[...allGames].reverse().slice(0,8).map((g,gi)=>{
@@ -3788,11 +3788,11 @@ function ScrimsScreen({players,toast,setScreen}){
                     <div style={{display:"flex",gap:6,alignItems:"center"}}>
                       <span className="cond mono" style={{fontSize:11,fontWeight:800,color:"#9B72CF"}}>G{allGames.length-gi}</span>
                       {g.tag!=="standard"&&<Tag color="#4ECDC4" size="sm">{g.tag}</Tag>}
-                      {g.duration>0&&<span className="mono" style={{fontSize:9,color:"#4A4438"}}>{fmt(g.duration)}</span>}
+                      {g.duration>0&&<span className="mono" style={{fontSize:9,color:"#6B7A8E"}}>{fmt(g.duration)}</span>}
                     </div>
-                    <span style={{fontSize:10,color:"#4A4438"}}>{sessionName}</span>
+                    <span style={{fontSize:10,color:"#6B7A8E"}}>{sessionName}</span>
                   </div>
-                  {g.note&&<div style={{fontSize:10,color:"#6B7280",marginBottom:6,fontStyle:"italic"}}>"{g.note}"</div>}
+                  {g.note&&<div style={{fontSize:10,color:"#8E9BAE",marginBottom:6,fontStyle:"italic"}}>"{g.note}"</div>}
                   {/* Name + placement rows */}
                   <div style={{display:"flex",flexDirection:"column",gap:3}}>
                     {sorted.map(([pid,place])=>{
@@ -3801,7 +3801,7 @@ function ScrimsScreen({players,toast,setScreen}){
                       const c=place===1?"#E8A838":place===2?"#C0C0C0":place===3?"#CD7F32":place<=4?"#4ECDC4":"#F87171";
                       return(
                         <div key={pid} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                          <span style={{fontSize:12,color:place<=4?"#D1C9BC":"#6B7280",fontWeight:place<=4?600:400,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
+                          <span style={{fontSize:12,color:place<=4?"#D1C9BC":"#8E9BAE",fontWeight:place<=4?600:400,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
                           <div style={{width:22,height:22,borderRadius:5,background:c+"22",border:"1px solid "+c+"55",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginLeft:6}}>
                             <span className="mono" style={{fontSize:11,fontWeight:700,color:c}}>{place}</span>
                           </div>
@@ -3820,7 +3820,7 @@ function ScrimsScreen({players,toast,setScreen}){
       {tab==="stats"&&(
         <div>
           {scrimStats.length===0?(
-            <div style={{textAlign:"center",padding:60,color:"#4A4438",fontSize:14}}>Log some games first to see stats.</div>
+            <div style={{textAlign:"center",padding:60,color:"#6B7A8E",fontSize:14}}>Log some games first to see stats.</div>
           ):(
             <>
               {/* Summary stat strip */}
@@ -3833,7 +3833,7 @@ function ScrimsScreen({players,toast,setScreen}){
                 ].map(({label,val,c})=>(
                   <div key={label} style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
                     <div className="mono" style={{fontSize:22,fontWeight:700,color:c,lineHeight:1}}>{val}</div>
-                    <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9CA3AF",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
+                    <div className="cond" style={{fontSize:9,fontWeight:700,color:"#A8B4C4",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
                   </div>
                 ))}
               </div>
@@ -3843,9 +3843,9 @@ function ScrimsScreen({players,toast,setScreen}){
                 {/* Header row */}
                 <div style={{display:"grid",gridTemplateColumns:"28px 1fr 52px 48px 48px 48px 48px 48px",gap:"0 8px",alignItems:"center",padding:"8px 14px",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
                   <div/>
-                  <div style={{fontSize:10,fontWeight:700,color:"#4A4438",textTransform:"uppercase",letterSpacing:".08em"}}>Player</div>
+                  <div style={{fontSize:10,fontWeight:700,color:"#6B7A8E",textTransform:"uppercase",letterSpacing:".08em"}}>Player</div>
                   {["AVG","WIN%","TOP4","BEST","WRST","PTS"].map(h=>(
-                    <div key={h} style={{fontSize:9,fontWeight:700,color:"#4A4438",textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>{h}</div>
+                    <div key={h} style={{fontSize:9,fontWeight:700,color:"#6B7A8E",textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>{h}</div>
                   ))}
                 </div>
                 {scrimStats.map((p,i)=>{
@@ -3856,11 +3856,11 @@ function ScrimsScreen({players,toast,setScreen}){
                       background:isFirst?"rgba(232,168,56,.04)":"transparent"}}>
                       {/* Main stat row */}
                       <div style={{display:"grid",gridTemplateColumns:"28px 1fr 52px 48px 48px 48px 48px 48px",gap:"0 8px",alignItems:"center",padding:"9px 14px"}}>
-                        <div className="mono" style={{fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438",textAlign:"center"}}>{i+1}</div>
+                        <div className="mono" style={{fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7A8E",textAlign:"center"}}>{i+1}</div>
                         <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
                           <div style={{minWidth:0}}>
                             <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-                            <div style={{fontSize:10,color:"#4A4438"}}>{p.games}g{p.streak>=3?" · 🔥"+p.streak:""}</div>
+                            <div style={{fontSize:10,color:"#6B7A8E"}}>{p.games}g{p.streak>=3?" · 🔥"+p.streak:""}</div>
                           </div>
                         </div>
                         <div className="mono" style={{fontSize:13,fontWeight:700,color:avgC,textAlign:"center"}}>{p.avg}</div>
@@ -3892,7 +3892,7 @@ function ScrimsScreen({players,toast,setScreen}){
       {tab==="history"&&(
         <div>
           {allGames.length===0?(
-            <div style={{textAlign:"center",padding:60,color:"#4A4438",fontSize:14}}>No games logged yet.</div>
+            <div style={{textAlign:"center",padding:60,color:"#6B7A8E",fontSize:14}}>No games logged yet.</div>
           ):(
             <>
               {sessions.map(sess=>{
@@ -3901,9 +3901,9 @@ function ScrimsScreen({players,toast,setScreen}){
                   <div key={sess.id} style={{marginBottom:32}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
                       <h3 style={{fontSize:16,color:"#F2EDE4"}}>{sess.name}</h3>
-                      <Tag color={sess.active?"#52C47C":"#6B7280"} size="sm">{sess.active?"Active":"Ended"}</Tag>
-                      <span style={{fontSize:12,color:"#6B7280"}}>{sess.games.length} games · {sess.createdAt}</span>
-                      {sess.notes&&<span style={{fontSize:12,color:"#4A4438"}}>- {sess.notes}</span>}
+                      <Tag color={sess.active?"#52C47C":"#8E9BAE"} size="sm">{sess.active?"Active":"Ended"}</Tag>
+                      <span style={{fontSize:12,color:"#8E9BAE"}}>{sess.games.length} games · {sess.createdAt}</span>
+                      {sess.notes&&<span style={{fontSize:12,color:"#6B7A8E"}}>- {sess.notes}</span>}
                     </div>
 
                     {/* Placement matrix table */}
@@ -3912,9 +3912,9 @@ function ScrimsScreen({players,toast,setScreen}){
                         <table style={{width:"100%",borderCollapse:"collapse",minWidth:420}}>
                           <thead>
                             <tr style={{background:"#0A0F1A"}}>
-                              <th style={{padding:"9px 14px",textAlign:"left",fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>Player</th>
+                              <th style={{padding:"9px 14px",textAlign:"left",fontSize:10,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>Player</th>
                               {sess.games.map((g,gi)=>(
-                                <th key={g.id} style={{padding:"9px 10px",textAlign:"center",fontSize:10,fontWeight:700,color:"#4A4438",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>
+                                <th key={g.id} style={{padding:"9px 10px",textAlign:"center",fontSize:10,fontWeight:700,color:"#6B7A8E",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>
                                   G{gi+1}
                                   {g.tag!=="standard"&&<div style={{fontSize:8,color:"#4ECDC4",fontWeight:400,textTransform:"none",letterSpacing:0}}>{g.tag}</div>}
                                 </th>
@@ -3966,7 +3966,7 @@ function ScrimsScreen({players,toast,setScreen}){
                           {/* Notes row */}
                           <tfoot>
                             <tr style={{background:"#0A0F1A",borderTop:"1px solid rgba(242,237,228,.06)"}}>
-                              <td style={{padding:"7px 14px",fontSize:10,color:"#4A4438",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Notes</td>
+                              <td style={{padding:"7px 14px",fontSize:10,color:"#6B7A8E",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Notes</td>
                               {sess.games.map(g=>(
                                 <td key={g.id} style={{padding:"7px 6px",textAlign:"center",fontSize:10,color:"#4ECDC4",maxWidth:60}}>
                                   {g.note||"-"}
@@ -3993,15 +3993,15 @@ function ScrimsScreen({players,toast,setScreen}){
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>New Session</h3>
             <div style={{display:"grid",gap:12,marginBottom:14}}>
               <div>
-                <div style={{fontSize:11,fontWeight:700,color:"#9CA3AF",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Session Name</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#A8B4C4",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Session Name</div>
                 <Inp value={newName} onChange={setNewName} placeholder="Friday Grind"/>
               </div>
               <div>
-                <div style={{fontSize:11,fontWeight:700,color:"#9CA3AF",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Notes / Goals</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#A8B4C4",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Notes / Goals</div>
                 <Inp value={newNotes} onChange={setNewNotes} placeholder="Focus area, comps to test..."/>
               </div>
               <div>
-                <div style={{fontSize:11,fontWeight:700,color:"#9CA3AF",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Target Games</div>
+                <div style={{fontSize:11,fontWeight:700,color:"#A8B4C4",marginBottom:6,textTransform:"uppercase",letterSpacing:".06em"}}>Target Games</div>
                 <Sel value={newTarget} onChange={setNewTarget}>
                   {[1,2,3,4,5,6,7,8,10,12].map(n=><option key={n} value={n}>{n} games</option>)}
                 </Sel>
@@ -4018,11 +4018,11 @@ function ScrimsScreen({players,toast,setScreen}){
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
                       {s.name}{s.active&&<Dot size={5} color="#9B72CF"/>}
                     </div>
-                    {s.notes&&<div style={{fontSize:12,color:"#6B7280",marginBottom:6}}>{s.notes}</div>}
+                    {s.notes&&<div style={{fontSize:12,color:"#8E9BAE",marginBottom:6}}>{s.notes}</div>}
                     <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
                       <Tag color="#9B72CF" size="sm">{s.games.length}/{s.targetGames} games</Tag>
-                      <span className="cond" style={{fontSize:10,color:"#4A4438"}}>{s.createdAt}</span>
-                      {!s.active&&<Tag color="#6B7280" size="sm">Ended</Tag>}
+                      <span className="cond" style={{fontSize:10,color:"#6B7A8E"}}>{s.createdAt}</span>
+                      {!s.active&&<Tag color="#8E9BAE" size="sm">Ended</Tag>}
                       {s.games.length>=s.targetGames&&s.active&&<Tag color="#E8A838" size="sm">Target reached!</Tag>}
                     </div>
                   </div>
@@ -4066,7 +4066,7 @@ function PricingScreen({currentPlan,toast}){
         <h1 style={{fontSize:"clamp(28px,5vw,48px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:12}}>
           Competing is free.<br/><span style={{color:"#E8A838"}}>Going further costs less than a coffee.</span>
         </h1>
-        <p style={{fontSize:16,color:"#9CA3AF",maxWidth:520,margin:"0 auto 24px"}}>
+        <p style={{fontSize:16,color:"#A8B4C4",maxWidth:520,margin:"0 auto 24px"}}>
           TFT Clash runs weekly tournaments every season. Entry is always free. Pro gives serious players deeper tools and a reserved spot.
         </p>
         {/* Billing toggle */}
@@ -4076,7 +4076,7 @@ function PricingScreen({currentPlan,toast}){
               style={{background:billing===b?"rgba(232,168,56,.15)":"none",
                 border:"1px solid "+(billing===b?"rgba(232,168,56,.4)":"transparent"),
                 borderRadius:99,padding:"7px 20px",fontSize:13,fontWeight:700,
-                color:billing===b?"#E8A838":"#6B7280",cursor:"pointer",transition:"all .2s",textTransform:"capitalize"}}>
+                color:billing===b?"#E8A838":"#8E9BAE",cursor:"pointer",transition:"all .2s",textTransform:"capitalize"}}>
               {b}{b==="annual"&&<span style={{marginLeft:6,fontSize:10,background:"rgba(82,196,124,.15)",color:"#6EE7B7",padding:"1px 6px",borderRadius:99,border:"1px solid rgba(82,196,124,.3)"}}>-20%</span>}
             </button>
           ))}
@@ -4115,12 +4115,12 @@ function PricingScreen({currentPlan,toast}){
                 </div>
                 <div style={{marginBottom:6}}>
                   <span className="mono" style={{fontSize:36,fontWeight:700,color:"#F2EDE4"}}>{displayPrice}</span>
-                  <span style={{fontSize:13,color:"#6B7280",marginLeft:4}}>{tier.period}</span>
+                  <span style={{fontSize:13,color:"#8E9BAE",marginLeft:4}}>{tier.period}</span>
                 </div>
                 {billing==="annual"&&monthlyPrice>0&&(
                   <div style={{fontSize:11,color:"#6EE7B7"}}>Billed €{(monthlyPrice*.8*12).toFixed(0)}/year - save €{(monthlyPrice*.2*12).toFixed(0)}</div>
                 )}
-                <div style={{fontSize:13,color:"#9CA3AF",marginTop:6,lineHeight:1.5}}>{tier.desc}</div>
+                <div style={{fontSize:13,color:"#A8B4C4",marginTop:6,lineHeight:1.5}}>{tier.desc}</div>
               </div>
               <button onClick={()=>toast(tier.id==="free"?"You're already on Free!":tier.id==="org"?"Opening contact form...":"Starting free trial... (mock)","success")}
                 style={{width:"100%",padding:"12px 20px",background:isPopular?"linear-gradient(90deg,#E8A838,#C8882A)":tier.id==="org"?"rgba(155,114,207,.15)":"rgba(255,255,255,.05)",
@@ -4167,7 +4167,7 @@ function PricingScreen({currentPlan,toast}){
             <span style={{fontSize:13,color:"#C8BFB0"}}>{feat}</span>
             {vals.map((v,vi)=>(
               <div key={vi} style={{textAlign:"center"}}>
-                <span style={{fontSize:13,fontWeight:600,color:v==="✓"?["#6B7280","#E8A838","#9B72CF"][vi]:v==="-"?"#2D3748":"#F2EDE4"}}>{v}</span>
+                <span style={{fontSize:13,fontWeight:600,color:v==="✓"?["#8E9BAE","#E8A838","#9B72CF"][vi]:v==="-"?"#2D3748":"#F2EDE4"}}>{v}</span>
               </div>
             ))}
           </div>
@@ -4186,7 +4186,7 @@ function PricingScreen({currentPlan,toast}){
       <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(8,8,15,.98))",border:"1px solid rgba(155,114,207,.3)",borderRadius:14,padding:"28px 24px",textAlign:"center",marginBottom:40}}>
         <div style={{fontSize:28,marginBottom:10}}>📢</div>
         <h3 style={{fontSize:20,color:"#F2EDE4",marginBottom:8}}>Want to sponsor a tournament?</h3>
-        <p style={{fontSize:14,color:"#9CA3AF",maxWidth:480,margin:"0 auto 20px",lineHeight:1.6}}>
+        <p style={{fontSize:14,color:"#A8B4C4",maxWidth:480,margin:"0 auto 20px",lineHeight:1.6}}>
           Reach thousands of active TFT players directly. Sponsor a clash, get your logo on the results card, and be featured in every share.
         </p>
         <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
@@ -4201,7 +4201,7 @@ function PricingScreen({currentPlan,toast}){
         {FAQS.map((faq,i)=>(
           <Panel key={i} style={{padding:"16px 20px",marginBottom:8}}>
             <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:6}}>{faq.q}</div>
-            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6}}>{faq.a}</div>
+            <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.6}}>{faq.a}</div>
           </Panel>
         ))}
       </div>
@@ -4230,7 +4230,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
         <div style={{flex:1}}>
           <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Achievements & Milestones</h2>
-          <p style={{color:"#6B7280",fontSize:13,marginTop:4}}>Earn badges. Collect titles. Leave a mark.</p>
+          <p style={{color:"#8E9BAE",fontSize:13,marginTop:4}}>Earn badges. Collect titles. Leave a mark.</p>
         </div>
       </div>
 
@@ -4240,7 +4240,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
           <button key={v} onClick={()=>setTab(v)}
             style={{flex:1,padding:"8px 12px",borderRadius:7,border:"none",cursor:"pointer",fontWeight:700,fontSize:13,
               background:tab===v?"#1E2A3A":"transparent",
-              color:tab===v?"#F2EDE4":"#6B7280",transition:"all .15s"}}>
+              color:tab===v?"#F2EDE4":"#8E9BAE",transition:"all .15s"}}>
             {l}
           </button>
         ))}
@@ -4261,7 +4261,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                       return(
                         <div key={tier} style={{background:"rgba(255,255,255,.03)",borderRadius:8,padding:"6px 12px",textAlign:"center"}}>
                           <div style={{fontSize:11,fontWeight:700,color:tierCols[tier]}}>{tierLabels[tier]}</div>
-                          <div style={{fontSize:16,fontWeight:800,color:"#F2EDE4",marginTop:2}}>{earned}<span style={{fontSize:12,color:"#6B7280"}}>/{total}</span></div>
+                          <div style={{fontSize:16,fontWeight:800,color:"#F2EDE4",marginTop:2}}>{earned}<span style={{fontSize:12,color:"#8E9BAE"}}>/{total}</span></div>
                         </div>
                       );
                     })}
@@ -4269,7 +4269,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                 </div>
                 <div style={{textAlign:"center"}}>
                   <div className="mono" style={{fontSize:28,fontWeight:800,color:"#9B72CF"}}>{ACHIEVEMENTS.filter(a=>a.check(myPlayer)).length}</div>
-                  <div style={{fontSize:11,color:"#6B7280"}}>of {ACHIEVEMENTS.length} unlocked</div>
+                  <div style={{fontSize:11,color:"#8E9BAE"}}>of {ACHIEVEMENTS.length} unlocked</div>
                 </div>
               </div>
             </Panel>
@@ -4281,7 +4281,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
               <button key={v} onClick={()=>setFilterTier(v)}
                 style={{padding:"6px 14px",borderRadius:20,border:"1px solid "+(filterTier===v?(v==="all"?"rgba(242,237,228,.4)":tierCols[v]+"88"):"rgba(242,237,228,.1)"),
                   background:filterTier===v?(v==="all"?"rgba(242,237,228,.06)":tierCols[v]+"22"):"transparent",
-                  color:filterTier===v?(v==="all"?"#F2EDE4":tierCols[v]):"#6B7280",
+                  color:filterTier===v?(v==="all"?"#F2EDE4":tierCols[v]):"#8E9BAE",
                   fontSize:12,fontWeight:700,cursor:"pointer",transition:"all .15s"}}>
                 {l}
               </button>
@@ -4314,15 +4314,15 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                     </div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
-                        <span style={{fontWeight:700,fontSize:14,color:unlocked?col:"#9CA3AF"}}>{a.name}</span>
+                        <span style={{fontWeight:700,fontSize:14,color:unlocked?col:"#A8B4C4"}}>{a.name}</span>
                         <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:10,
                           background:col+"22",color:col,border:"1px solid "+col+"44"}}>
                           {tierLabels[a.tier]}
                         </span>
                         {unlocked&&<span style={{fontSize:12,color:"#6EE7B7"}}>✓</span>}
                       </div>
-                      <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5,marginBottom:6}}>{a.desc}</div>
-                      <div style={{fontSize:11,color:"#4A4438"}}>{earnedBy} player{earnedBy!==1?"s":""} earned this</div>
+                      <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.5,marginBottom:6}}>{a.desc}</div>
+                      <div style={{fontSize:11,color:"#6B7A8E"}}>{earnedBy} player{earnedBy!==1?"s":""} earned this</div>
                     </div>
                   </div>
                 </div>
@@ -4356,7 +4356,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                     {m.pts&&(
                       <div style={{marginBottom:6}}>
                         <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                          <span style={{fontSize:12,color:"#6B7280"}}>{myPlayer?myPlayer.pts:0} / {m.pts} pts</span>
+                          <span style={{fontSize:12,color:"#8E9BAE"}}>{myPlayer?myPlayer.pts:0} / {m.pts} pts</span>
                           <span style={{fontSize:12,color:"#E8A838",fontWeight:700}}>{pctProgress}%</span>
                         </div>
                         <div style={{height:4,background:"rgba(242,237,228,.08)",borderRadius:4}}>
@@ -4368,7 +4368,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                       <span style={{fontSize:11}}>🎁</span>
                       <span style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{m.reward}</span>
                     </div>
-                    <div style={{fontSize:11,color:"#4A4438",marginTop:6}}>{earnedBy} player{earnedBy!==1?"s":""} unlocked this</div>
+                    <div style={{fontSize:11,color:"#6B7A8E",marginTop:6}}>{earnedBy} player{earnedBy!==1?"s":""} unlocked this</div>
                   </div>
                 </div>
               </Panel>
@@ -4381,7 +4381,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
         <Panel style={{overflow:"hidden"}}>
           <div style={{padding:"13px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
             <h3 style={{fontSize:15,color:"#F2EDE4",margin:0}}>Achievement Leaderboard</h3>
-            <p style={{fontSize:12,color:"#6B7280",margin:"4px 0 0"}}>Most achievements earned this season</p>
+            <p style={{fontSize:12,color:"#8E9BAE",margin:"4px 0 0"}}>Most achievements earned this season</p>
           </div>
           {sorted.map((p,i)=>{
             const earned=ACHIEVEMENTS.filter(a=>{try{return a.check(p);}catch{return false;}});
@@ -4394,7 +4394,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                   background:i%2===0?"transparent":"rgba(255,255,255,.01)"}}
                 onMouseEnter={e=>e.currentTarget.style.background="rgba(232,168,56,.04)"}
                 onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":"rgba(255,255,255,.01)"}>
-                <div className="mono" style={{minWidth:24,fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#4A4438"}}>{i+1}</div>
+                <div className="mono" style={{minWidth:24,fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#6B7A8E"}}>{i+1}</div>
                 <div style={{flex:1}}>
                   <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{p.name}</div>
                   <div style={{display:"flex",gap:4}}>
@@ -4404,7 +4404,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
                 </div>
                 <div style={{textAlign:"right"}}>
                   <div className="mono" style={{fontSize:18,fontWeight:800,color:"#9B72CF"}}>{earned.length}</div>
-                  <div style={{fontSize:10,color:"#6B7280"}}>achievements</div>
+                  <div style={{fontSize:10,color:"#8E9BAE"}}>achievements</div>
                 </div>
               </div>
             );
@@ -4435,7 +4435,7 @@ function ChallengesScreen({currentUser,players,toast}){
       </div>
       <div style={{marginBottom:20}}>
         <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Challenges</h2>
-        <p style={{fontSize:13,color:"#6B7280"}}>Complete challenges to earn XP and climb the platform ranks.</p>
+        <p style={{fontSize:13,color:"#8E9BAE"}}>Complete challenges to earn XP and climb the platform ranks.</p>
       </div>
 
       {/* XP / Rank overview */}
@@ -4445,11 +4445,11 @@ function ChallengesScreen({currentUser,players,toast}){
           <div style={{flex:1,minWidth:200}}>
             <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
               <span style={{fontSize:16,fontWeight:700,color:rankInfo.rank.color}}>{rankInfo.rank.name}</span>
-              {rankInfo.next&&<span style={{fontSize:12,color:"#6B7280"}}>→ {rankInfo.next.icon} {rankInfo.next.name}</span>}
+              {rankInfo.next&&<span style={{fontSize:12,color:"#8E9BAE"}}>→ {rankInfo.next.icon} {rankInfo.next.name}</span>}
             </div>
             <Bar val={rankInfo.current} max={rankInfo.needed||1} color={rankInfo.rank.color} h={6}/>
             <div style={{display:"flex",justifyContent:"space-between",marginTop:5}}>
-              <span className="mono" style={{fontSize:11,color:"#6B7280"}}>{xp} total XP</span>
+              <span className="mono" style={{fontSize:11,color:"#8E9BAE"}}>{xp} total XP</span>
               <span className="mono" style={{fontSize:11,color:rankInfo.rank.color}}>{rankInfo.pct}% to next rank</span>
             </div>
           </div>
@@ -4468,7 +4468,7 @@ function ChallengesScreen({currentUser,players,toast}){
           {/* Daily */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".14em",textTransform:"uppercase"}}>Daily Challenges</div>
-            <div style={{fontSize:11,color:"#6B7280"}}>Resets in <span style={{color:"#F87171",fontWeight:700}}>{dailyReset}</span></div>
+            <div style={{fontSize:11,color:"#8E9BAE"}}>Resets in <span style={{color:"#F87171",fontWeight:700}}>{dailyReset}</span></div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
             {DAILY_CHALLENGES.map(c=>(
@@ -4477,15 +4477,15 @@ function ChallengesScreen({currentUser,players,toast}){
                   <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{c.icon}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{c.name}</div>
-                    <div style={{fontSize:12,color:"#9CA3AF"}}>{c.desc}</div>
+                    <div style={{fontSize:12,color:"#A8B4C4"}}>{c.desc}</div>
                     <div style={{marginTop:8}}>
                       <Bar val={c.progress} max={c.goal} color="#E8A838" h={4}/>
-                      <div style={{fontSize:10,color:"#6B7280",marginTop:3}}>{c.progress}/{c.goal} completed</div>
+                      <div style={{fontSize:10,color:"#8E9BAE",marginTop:3}}>{c.progress}/{c.goal} completed</div>
                     </div>
                   </div>
                   <div style={{textAlign:"center",flexShrink:0}}>
                     <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>+{c.xp}</div>
-                    <div style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase"}}>XP</div>
+                    <div style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase"}}>XP</div>
                   </div>
                 </div>
               </div>
@@ -4495,7 +4495,7 @@ function ChallengesScreen({currentUser,players,toast}){
           {/* Weekly */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
             <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>Weekly Challenges</div>
-            <div style={{fontSize:11,color:"#6B7280"}}>Resets in <span style={{color:"#9B72CF",fontWeight:700}}>{weeklyReset}</span></div>
+            <div style={{fontSize:11,color:"#8E9BAE"}}>Resets in <span style={{color:"#9B72CF",fontWeight:700}}>{weeklyReset}</span></div>
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
             {WEEKLY_CHALLENGES.map(c=>{
@@ -4506,15 +4506,15 @@ function ChallengesScreen({currentUser,players,toast}){
                     <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{done?"✅":c.icon}</div>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:700,fontSize:14,color:done?"#6EE7B7":"#F2EDE4",marginBottom:2}}>{c.name}</div>
-                      <div style={{fontSize:12,color:"#9CA3AF"}}>{c.desc}</div>
+                      <div style={{fontSize:12,color:"#A8B4C4"}}>{c.desc}</div>
                       <div style={{marginTop:8}}>
                         <Bar val={c.progress} max={c.goal} color={done?"#6EE7B7":"#9B72CF"} h={4}/>
-                        <div style={{fontSize:10,color:"#6B7280",marginTop:3}}>{c.progress}/{c.goal} {done?"- Completed! 🎉":""}</div>
+                        <div style={{fontSize:10,color:"#8E9BAE",marginTop:3}}>{c.progress}/{c.goal} {done?"- Completed! 🎉":""}</div>
                       </div>
                     </div>
                     <div style={{textAlign:"center",flexShrink:0}}>
                       <div className="mono" style={{fontSize:16,fontWeight:700,color:done?"#6EE7B7":"#9B72CF"}}>+{c.xp}</div>
-                      <div style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase"}}>XP</div>
+                      <div style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase"}}>XP</div>
                     </div>
                   </div>
                 </div>
@@ -4525,7 +4525,7 @@ function ChallengesScreen({currentUser,players,toast}){
       )}
 
       {tab==="completed"&&(
-        <div style={{textAlign:"center",padding:"48px 20px",color:"#6B7280"}}>
+        <div style={{textAlign:"center",padding:"48px 20px",color:"#8E9BAE"}}>
           <div style={{fontSize:36,marginBottom:12}}>🎖️</div>
           <div style={{fontSize:15,fontWeight:600,color:"#F2EDE4",marginBottom:6}}>1 weekly challenge completed</div>
           <div style={{fontSize:13}}>Keep playing to unlock more</div>
@@ -4541,13 +4541,13 @@ function ChallengesScreen({currentUser,players,toast}){
             {icon:"🥇",action:"1st place - Top 2 finish",xp:"+50 XP",time:"Feb 28 2026",c:"#E8A838"},
             {icon:"🛡",action:"Survived top 4",xp:"+15 XP",time:"Feb 28 2026",c:"#4ECDC4"},
             {icon:"⬆",action:"Ranked up: Silver → Gold",xp:"RANK UP",time:"Feb 22 2026",c:"#EAB308"},
-            {icon:"🎮",action:"Completed a game",xp:"+25 XP",time:"Feb 22 2026",c:"#6B7280"},
+            {icon:"🎮",action:"Completed a game",xp:"+25 XP",time:"Feb 22 2026",c:"#8E9BAE"},
           ].map((e,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<5?"1px solid rgba(242,237,228,.05)":"none"}}>
               <div style={{width:32,height:32,background:"rgba(255,255,255,.04)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{e.icon}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:13,color:"#F2EDE4"}}>{e.action}</div>
-                <div style={{fontSize:11,color:"#6B7280"}}>{e.time}</div>
+                <div style={{fontSize:11,color:"#8E9BAE"}}>{e.time}</div>
               </div>
               <div className="mono" style={{fontSize:13,fontWeight:700,color:e.c,flexShrink:0}}>{e.xp}</div>
             </div>
@@ -4605,7 +4605,7 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
         <div style={{textAlign:"center",marginBottom:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:72,height:72,objectFit:"contain",marginBottom:12}}/>
           <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838",letterSpacing:"-.01em"}}>TFT Clash</div>
-          <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>Create your account</div>
+          <div style={{fontSize:13,color:"#8E9BAE",marginTop:4}}>Create your account</div>
         </div>
 
         {/* Step indicator */}
@@ -4619,10 +4619,10 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
                     background:active?"#E8A838":done?"rgba(82,196,124,.2)":"rgba(255,255,255,.05)",
                     border:"1px solid "+(active?"#E8A838":done?"rgba(82,196,124,.5)":"rgba(242,237,228,.12)"),
                     display:"flex",alignItems:"center",justifyContent:"center",
-                    fontSize:12,fontWeight:700,color:active?"#08080F":done?"#6EE7B7":"#4A4438"}}>
+                    fontSize:12,fontWeight:700,color:active?"#08080F":done?"#6EE7B7":"#6B7A8E"}}>
                     {done?"✓":i+1}
                   </div>
-                  <span style={{fontSize:12,fontWeight:600,color:active?"#E8A838":done?"#6EE7B7":"#4A4438"}}>{label}</span>
+                  <span style={{fontSize:12,fontWeight:600,color:active?"#E8A838":done?"#6EE7B7":"#6B7A8E"}}>{label}</span>
                 </div>
                 {i===0&&<div style={{width:40,height:1,background:"rgba(242,237,228,.12)",margin:"0 10px"}}/>}
               </div>
@@ -4634,19 +4634,19 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
           {step===1&&(
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Email</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Email</div>
                 <Inp value={email} onChange={setEmail} placeholder="you@email.com" type="email"/>
               </div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Username</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Username</div>
                 <Inp value={username} onChange={setUsername} placeholder="Your display name"/>
               </div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Password</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Password</div>
                 <Inp value={pw} onChange={setPw} placeholder="6+ characters" type="password"/>
               </div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Confirm Password</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Confirm Password</div>
                 <Inp value={pw2} onChange={setPw2} placeholder="Repeat password" type="password" onKeyDown={e=>e.key==="Enter"&&nextStep()}/>
               </div>
               <Btn v="primary" full onClick={nextStep} style={{marginTop:4}}>Continue →</Btn>
@@ -4656,26 +4656,26 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
           {step===2&&(
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Riot ID <span style={{color:"#F87171"}}>*</span></div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Riot ID <span style={{color:"#F87171"}}>*</span></div>
                 <Inp value={riotId} onChange={setRiotId} placeholder="Name#TAG"/>
               </div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Region</div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Region</div>
                 <Sel value={region} onChange={setRegion}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel>
               </div>
               <div>
-                <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Bio <span style={{color:"#4A4438",fontWeight:400}}>(optional)</span></div>
+                <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Bio <span style={{color:"#6B7A8E",fontWeight:400}}>(optional)</span></div>
                 <textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="Tell the lobby who you are..."
                   style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,
                     padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:72,
                     outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
               </div>
               <div style={{background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,padding:"14px"}}>
-                <div style={{fontSize:12,fontWeight:700,color:"#E8A838",marginBottom:10}}>Social Links <span style={{color:"#4A4438",fontWeight:400}}>(optional)</span></div>
+                <div style={{fontSize:12,fontWeight:700,color:"#E8A838",marginBottom:10}}>Social Links <span style={{color:"#6B7A8E",fontWeight:400}}>(optional)</span></div>
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
                   {[["🟣 Twitch",twitch,setTwitch,"twitch.tv/yourname"],["🐦 Twitter",twitter,setTwitter,"@yourhandle"],["🔴 YouTube",youtube,setYoutube,"youtube.com/yourchannel"]].map(([label,val,setter,ph])=>(
                     <div key={label} style={{display:"flex",alignItems:"center",gap:8}}>
-                      <span style={{fontSize:13,minWidth:90,color:"#9CA3AF"}}>{label}</span>
+                      <span style={{fontSize:13,minWidth:90,color:"#A8B4C4"}}>{label}</span>
                       <Inp value={val} onChange={setter} placeholder={ph}/>
                     </div>
                   ))}
@@ -4689,7 +4689,7 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
           )}
         </Panel>
 
-        <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"#6B7280"}}>
+        <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"#8E9BAE"}}>
           Already have an account?{" "}
           <span onClick={onGoLogin} style={{color:"#E8A838",fontWeight:600,cursor:"pointer"}}>Sign in</span>
         </div>
@@ -4725,17 +4725,17 @@ function LoginScreen({onLogin,onGoSignUp,toast}){
         <div style={{textAlign:"center",marginBottom:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:72,height:72,objectFit:"contain",marginBottom:12}}/>
           <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838"}}>TFT Clash</div>
-          <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>Sign in to your account</div>
+          <div style={{fontSize:13,color:"#8E9BAE",marginTop:4}}>Sign in to your account</div>
         </div>
 
         <Panel style={{padding:"28px 24px"}}>
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Email</div>
+              <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Email</div>
               <Inp value={email} onChange={setEmail} placeholder="you@email.com" type="email"/>
             </div>
             <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Password</div>
+              <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Password</div>
               <Inp value={pw} onChange={setPw} placeholder="Your password" type="password" onKeyDown={e=>e.key==="Enter"&&submit()}/>
             </div>
             <div style={{textAlign:"right",marginTop:-6}}>
@@ -4747,18 +4747,18 @@ function LoginScreen({onLogin,onGoSignUp,toast}){
           {/* Demo hint */}
           <div style={{marginTop:20,padding:"12px 14px",background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.12)",borderRadius:9}}>
             <div style={{fontSize:11,fontWeight:700,color:"#E8A838",marginBottom:4}}>Demo accounts</div>
-            <div style={{fontSize:11,color:"#6B7280"}}>dishsoap@gmail.com / any 6+ char password</div>
-            <div style={{fontSize:11,color:"#6B7280"}}>k3soju@gmail.com / any 6+ char password</div>
+            <div style={{fontSize:11,color:"#8E9BAE"}}>dishsoap@gmail.com / any 6+ char password</div>
+            <div style={{fontSize:11,color:"#8E9BAE"}}>k3soju@gmail.com / any 6+ char password</div>
           </div>
         </Panel>
 
-        <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"#6B7280"}}>
+        <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"#8E9BAE"}}>
           No account?{" "}
           <span onClick={onGoSignUp} style={{color:"#E8A838",fontWeight:600,cursor:"pointer"}}>Create one free</span>
         </div>
-        <div style={{textAlign:"center",marginTop:8,fontSize:12,color:"#4A4438"}}>
+        <div style={{textAlign:"center",marginTop:8,fontSize:12,color:"#6B7A8E"}}>
           Playing without an account?{" "}
-          <span onClick={()=>onLogin(null)} style={{color:"#6B7280",cursor:"pointer",textDecoration:"underline"}}>Continue as guest</span>
+          <span onClick={()=>onLogin(null)} style={{color:"#8E9BAE",cursor:"pointer",textDecoration:"underline"}}>Continue as guest</span>
         </div>
       </div>
     </div>
@@ -4821,12 +4821,12 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               {linkedPlayer&&isHotStreak(linkedPlayer)&&<span style={{fontSize:14}}>🔥</span>}
             </div>
             {linkedPlayer&&(
-              <div style={{fontSize:13,color:"#6B7280",marginBottom:8}}>{linkedPlayer.riotId} · {linkedPlayer.region}</div>
+              <div style={{fontSize:13,color:"#8E9BAE",marginBottom:8}}>{linkedPlayer.riotId} · {linkedPlayer.region}</div>
             )}
             {user.bio?(
-              <p style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6,margin:0,maxWidth:480}}>{user.bio}</p>
+              <p style={{fontSize:13,color:"#A8B4C4",lineHeight:1.6,margin:0,maxWidth:480}}>{user.bio}</p>
             ):(
-              <p style={{fontSize:13,color:"#4A4438",fontStyle:"italic",margin:0}}>No bio yet - tell people who you are.</p>
+              <p style={{fontSize:13,color:"#6B7A8E",fontStyle:"italic",margin:0}}>No bio yet - tell people who you are.</p>
             )}
             {/* Socials */}
             {(user.twitch||user.twitter||user.youtube)&&(
@@ -4840,8 +4840,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
           {linkedPlayer&&(
             <div style={{textAlign:"center",flexShrink:0}}>
               <div className="mono" style={{fontSize:40,fontWeight:900,color:"#E8A838",lineHeight:1}}>{linkedPlayer.pts}</div>
-              <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>Clash Points</div>
-              <div style={{fontSize:12,color:"#9CA3AF",marginTop:4}}>Season Rank #{[...players].sort((a,b)=>b.pts-a.pts).findIndex(p=>p.id===linkedPlayer.id)+1}</div>
+              <div style={{fontSize:11,color:"#8E9BAE",marginTop:2}}>Clash Points</div>
+              <div style={{fontSize:12,color:"#A8B4C4",marginTop:4}}>Season Rank #{[...players].sort((a,b)=>b.pts-a.pts).findIndex(p=>p.id===linkedPlayer.id)+1}</div>
             </div>
           )}
         </div>
@@ -4852,7 +4852,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
         {[["profile","👤 Profile"],["stats","📊 Stats"],["achievements","🏅 Achievements"],["history","📋 History"]].map(([v,l])=>(
           <button key={v} onClick={()=>setTab(v)} style={{flex:1,padding:"8px 10px",borderRadius:7,border:"none",cursor:"pointer",
             fontWeight:700,fontSize:12,background:tab===v?"#1E2A3A":"transparent",
-            color:tab===v?"#F2EDE4":"#6B7280",transition:"all .15s"}}>
+            color:tab===v?"#F2EDE4":"#8E9BAE",transition:"all .15s"}}>
             {l}
           </button>
         ))}
@@ -4868,20 +4868,20 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               </div>
               <div style={{display:"grid",gap:12}}>
                 <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#6B7280",fontSize:13}}>Username</span>
+                  <span style={{color:"#8E9BAE",fontSize:13}}>Username</span>
                   <span style={{color:"#F2EDE4",fontSize:13,fontWeight:600}}>{user.username}</span>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#6B7280",fontSize:13}}>Bio</span>
-                  <span style={{color:"#9CA3AF",fontSize:13,maxWidth:280,textAlign:"right"}}>{user.bio||"-"}</span>
+                  <span style={{color:"#8E9BAE",fontSize:13}}>Bio</span>
+                  <span style={{color:"#A8B4C4",fontSize:13,maxWidth:280,textAlign:"right"}}>{user.bio||"-"}</span>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#6B7280",fontSize:13}}>Twitch</span>
-                  <span style={{color:user.twitch?"#9147FF":"#4A4438",fontSize:13}}>{user.twitch?"twitch.tv/"+user.twitch:"-"}</span>
+                  <span style={{color:"#8E9BAE",fontSize:13}}>Twitch</span>
+                  <span style={{color:user.twitch?"#9147FF":"#6B7A8E",fontSize:13}}>{user.twitch?"twitch.tv/"+user.twitch:"-"}</span>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0"}}>
-                  <span style={{color:"#6B7280",fontSize:13}}>Twitter</span>
-                  <span style={{color:user.twitter?"#1DA1F2":"#4A4438",fontSize:13}}>{user.twitter?"@"+user.twitter:"-"}</span>
+                  <span style={{color:"#8E9BAE",fontSize:13}}>Twitter</span>
+                  <span style={{color:user.twitter?"#1DA1F2":"#6B7A8E",fontSize:13}}>{user.twitter?"@"+user.twitter:"-"}</span>
                 </div>
               </div>
             </>
@@ -4896,19 +4896,19 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               </div>
               <div style={{display:"grid",gap:12}}>
                 <div>
-                  <div style={{fontSize:12,color:"#6B7280",marginBottom:5}}>Bio</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",marginBottom:5}}>Bio</div>
                   <textarea value={bio} onChange={e=>setBio(e.target.value)} maxLength={160}
                     placeholder="Tell people who you are..."
                     style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.15)",borderRadius:8,
                       padding:"10px 12px",color:"#F2EDE4",fontSize:13,resize:"none",height:72,fontFamily:"inherit",boxSizing:"border-box"}}/>
-                  <div style={{fontSize:11,color:"#4A4438",marginTop:2,textAlign:"right"}}>{bio.length}/160</div>
+                  <div style={{fontSize:11,color:"#6B7A8E",marginTop:2,textAlign:"right"}}>{bio.length}/160</div>
                 </div>
                 <div>
-                  <div style={{fontSize:12,color:"#6B7280",marginBottom:5}}>Twitch username</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",marginBottom:5}}>Twitch username</div>
                   <Inp value={twitch} onChange={setTwitch} placeholder="your_twitch_name"/>
                 </div>
                 <div>
-                  <div style={{fontSize:12,color:"#6B7280",marginBottom:5}}>Twitter / X handle</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",marginBottom:5}}>Twitter / X handle</div>
                   <Inp value={twitter} onChange={setTwitter} placeholder="@yourhandle"/>
                 </div>
               </div>
@@ -4934,7 +4934,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                 ].map(({l,v,c})=>(
                   <div key={l} style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
                     <div className="mono" style={{fontSize:20,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-                    <div style={{fontSize:10,color:"#6B7280",marginTop:5,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
+                    <div style={{fontSize:10,color:"#8E9BAE",marginTop:5,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
                   </div>
                 ))}
               </div>
@@ -4949,8 +4949,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
           ):(
             <div style={{textAlign:"center",padding:"48px 20px"}}>
               <div style={{fontSize:40,marginBottom:12}}>📊</div>
-              <div style={{color:"#6B7280",fontSize:14}}>No stats linked to your account yet.</div>
-              <div style={{color:"#4A4438",fontSize:12,marginTop:6}}>Your account name must match a registered player.</div>
+              <div style={{color:"#8E9BAE",fontSize:14}}>No stats linked to your account yet.</div>
+              <div style={{color:"#6B7A8E",fontSize:12,marginTop:6}}>Your account name must match a registered player.</div>
             </div>
           )}
         </>
@@ -4981,8 +4981,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                       display:"flex",gap:10,alignItems:"center"}}>
                       <div style={{fontSize:22,flexShrink:0}}>{a.icon}</div>
                       <div>
-                        <div style={{fontWeight:700,fontSize:13,color:unlocked?col:"#6B7280"}}>{a.name}</div>
-                        <div style={{fontSize:11,color:"#4A4438",marginTop:2}}>{a.desc}</div>
+                        <div style={{fontWeight:700,fontSize:13,color:unlocked?col:"#8E9BAE"}}>{a.name}</div>
+                        <div style={{fontSize:11,color:"#6B7A8E",marginTop:2}}>{a.desc}</div>
                       </div>
                       {unlocked&&<div style={{marginLeft:"auto",color:"#6EE7B7",fontSize:14,flexShrink:0}}>✓</div>}
                     </div>
@@ -4991,7 +4991,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               </div>
             </>
           ):(
-            <div style={{textAlign:"center",padding:"48px 20px",color:"#6B7280"}}>No player data linked yet.</div>
+            <div style={{textAlign:"center",padding:"48px 20px",color:"#8E9BAE"}}>No player data linked yet.</div>
           )}
         </div>
       )}
@@ -5009,14 +5009,14 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                   border:"1px solid "+(g.placement===1?"rgba(232,168,56,.4)":g.placement<=4?"rgba(82,196,124,.25)":"rgba(242,237,228,.08)"),
                   display:"flex",alignItems:"center",justifyContent:"center",
                   fontSize:13,fontWeight:800,
-                  color:g.placement===1?"#E8A838":g.placement<=4?"#6EE7B7":"#6B7280",
+                  color:g.placement===1?"#E8A838":g.placement<=4?"#6EE7B7":"#8E9BAE",
                   flexShrink:0}}>#{g.placement}</div>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>
                     {g.placement===1?"🏆 Victory":g.placement<=4?"Top 4 Finish":"Outside Top 4"}
                     {g.clutch&&<span style={{marginLeft:6,fontSize:11,color:"#9B72CF",fontWeight:700}}>⚡ Clutch</span>}
                   </div>
-                  <div style={{fontSize:11,color:"#6B7280",marginTop:2}}>
+                  <div style={{fontSize:11,color:"#8E9BAE",marginTop:2}}>
                     R1: #{g.r1} · R2: #{g.r2} · R3: #{g.r3}
                   </div>
                 </div>
@@ -5024,7 +5024,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               </div>
             ))
           ):(
-            <div style={{textAlign:"center",padding:"40px 20px",color:"#4A4438"}}>No clash history yet.</div>
+            <div style={{textAlign:"center",padding:"40px 20px",color:"#6B7A8E"}}>No clash history yet.</div>
           )}
         </Panel>
       )}
@@ -5069,21 +5069,21 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.fillText(rank.icon+" "+rank.name.toUpperCase(),40,150);
 
     // Season position
-    ctx.font="bold 11px monospace";ctx.fillStyle="#6B7280";ctx.letterSpacing="2px";
+    ctx.font="bold 11px monospace";ctx.fillStyle="#8E9BAE";ctx.letterSpacing="2px";
     ctx.fillText("SEASON RANKING",40,210);ctx.letterSpacing="0px";
     ctx.font="bold 80px monospace";ctx.fillStyle="#E8A838";
     ctx.fillText("#"+position,40,290);
-    ctx.font="bold 14px sans-serif";ctx.fillStyle="#9CA3AF";
+    ctx.font="bold 14px sans-serif";ctx.fillStyle="#A8B4C4";
     ctx.fillText("of "+players.length+" players",40,315);
 
     // Stats grid
-    const stats=[["PTS",player.pts,"#E8A838"],["WINS",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,s.avgPlacement<3?"#6EE7B7":s.avgPlacement<5?"#EAB308":"#F87171"],["TOP4",s.top4,"#C4B5FD"],["GAMES",s.games,"#9CA3AF"],["STREAK",player.bestStreak||0,"#F97316"]];
+    const stats=[["PTS",player.pts,"#E8A838"],["WINS",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,s.avgPlacement<3?"#6EE7B7":s.avgPlacement<5?"#EAB308":"#F87171"],["TOP4",s.top4,"#C4B5FD"],["GAMES",s.games,"#A8B4C4"],["STREAK",player.bestStreak||0,"#F97316"]];
     stats.forEach(([l,v,c],i)=>{
       const x=40+(i%3)*250,y=380+Math.floor(i/3)*100;
       ctx.fillStyle="rgba(255,255,255,0.03)";
       ctx.beginPath();ctx.roundRect(x,y,220,80,8);ctx.fill();
       ctx.font="bold 28px monospace";ctx.fillStyle=c;ctx.fillText(String(v),x+16,y+46);
-      ctx.font="bold 10px monospace";ctx.fillStyle="#6B7280";ctx.letterSpacing="2px";
+      ctx.font="bold 10px monospace";ctx.fillStyle="#8E9BAE";ctx.letterSpacing="2px";
       ctx.fillText(l,x+16,y+66);ctx.letterSpacing="0px";
     });
 
@@ -5100,14 +5100,14 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     // Season statement
     const stmts=[`${player.name} dominated Season 16 with ${s.top1Rate}% win rate.`,`Consistent performer - AVP of ${s.avgPlacement} across ${s.games} games.`,`${player.name} showed up every week. ${s.wins} victories speak for themselves.`];
     const stmt=stmts[player.id%stmts.length];
-    ctx.font="italic 15px serif";ctx.fillStyle="#9CA3AF";
+    ctx.font="italic 15px serif";ctx.fillStyle="#A8B4C4";
     ctx.fillText(stmt.length>60?stmt.slice(0,60)+"...":stmt,40,800);
 
     // Footer
     ctx.fillStyle="rgba(232,168,56,0.1)";ctx.fillRect(0,940,800,60);
     ctx.font="bold 11px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="2px";
     ctx.fillText("TFTCLASH.GG",40,975);ctx.letterSpacing="0px";
-    ctx.font="11px monospace";ctx.fillStyle="#6B7280";
+    ctx.font="11px monospace";ctx.fillStyle="#8E9BAE";
     ctx.fillText("Season 16 · "+new Date().toLocaleDateString(),200,975);
     ctx.fillText("#TFTClash  #TFT  #Season16",500,975);
 
@@ -5139,15 +5139,15 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
           </div>
           <div style={{textAlign:"right"}}>
             <div className="mono" style={{fontSize:"clamp(32px,6vw,60px)",fontWeight:700,color:"#E8A838",lineHeight:1}}>#{position}</div>
-            <div style={{fontSize:12,color:"#6B7280"}}>of {players.length} players</div>
+            <div style={{fontSize:12,color:"#8E9BAE"}}>of {players.length} players</div>
           </div>
         </div>
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
-          {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#9CA3AF"],["Best Streak",(player.bestStreak||0)+"🔥","#F97316"]].map(([l,v,c])=>(
+          {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#A8B4C4"],["Best Streak",(player.bestStreak||0)+"🔥","#F97316"]].map(([l,v,c])=>(
             <div key={l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"12px 14px"}}>
               <div className="mono" style={{fontSize:"clamp(18px,3vw,26px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-              <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:700,textTransform:"uppercase",marginTop:4,letterSpacing:".08em"}}>{l}</div>
+              <div className="cond" style={{fontSize:9,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase",marginTop:4,letterSpacing:".08em"}}>{l}</div>
             </div>
           ))}
         </div>
@@ -5162,8 +5162,8 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         )}
 
         <div style={{borderTop:"1px solid rgba(242,237,228,.06)",paddingTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <span style={{fontSize:10,color:"#4A4438",fontFamily:"monospace"}}>tftclash.gg/p/{player.name.toLowerCase()}</span>
-          <span style={{fontSize:10,color:"#4A4438"}}>#TFTClash</span>
+          <span style={{fontSize:10,color:"#6B7A8E",fontFamily:"monospace"}}>tftclash.gg/p/{player.name.toLowerCase()}</span>
+          <span style={{fontSize:10,color:"#6B7A8E"}}>#TFTClash</span>
         </div>
       </div>
 
@@ -5225,7 +5225,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
         <div style={{fontSize:22}}>🎙️</div>
         <div style={{flex:1}}>
           <div style={{fontWeight:700,fontSize:15,color:"#C4B5FD"}}>Press Box</div>
-          <div style={{fontSize:12,color:"#6B7280"}}>AI-generated post-game commentary</div>
+          <div style={{fontSize:12,color:"#8E9BAE"}}>AI-generated post-game commentary</div>
         </div>
         {!generated&&<Btn v="purple" s="sm" onClick={generate} disabled={loading}>{loading?"Writing...":"Generate"}</Btn>}
         {generated&&<Btn v="dark" s="sm" onClick={()=>{setGenerated(false);setCommentary("");}}>Regenerate</Btn>}
@@ -5245,7 +5245,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
         </div>
       )}
       {!generated&&!loading&&(
-        <div style={{textAlign:"center",padding:"20px",color:"#6B7280",fontSize:13}}>
+        <div style={{textAlign:"center",padding:"20px",color:"#8E9BAE",fontSize:13}}>
           Hit Generate after your clash to get an AI write-up of the results
         </div>
       )}
@@ -5271,8 +5271,8 @@ function HostApplyScreen({currentUser,toast,setScreen}){
     <div className="page wrap" style={{maxWidth:560,margin:"0 auto",textAlign:"center",paddingTop:60}}>
       <div style={{fontSize:48,marginBottom:16}}>🎮</div>
       <h2 style={{color:"#F2EDE4",marginBottom:10}}>Application Submitted!</h2>
-      <p style={{fontSize:14,color:"#9CA3AF",marginBottom:8,lineHeight:1.7}}>We review all host applications within 48 hours. You'll be notified at <span style={{color:"#E8A838"}}>{currentUser?.email||"your email"}</span> once approved.</p>
-      <p style={{fontSize:13,color:"#6B7280",marginBottom:24}}>Approved hosts unlock a dedicated tournament dashboard to create and manage their own clashes.</p>
+      <p style={{fontSize:14,color:"#A8B4C4",marginBottom:8,lineHeight:1.7}}>We review all host applications within 48 hours. You'll be notified at <span style={{color:"#E8A838"}}>{currentUser?.email||"your email"}</span> once approved.</p>
+      <p style={{fontSize:13,color:"#8E9BAE",marginBottom:24}}>Approved hosts unlock a dedicated tournament dashboard to create and manage their own clashes.</p>
       <Btn v="primary" onClick={()=>setScreen("home")}>Back to Home</Btn>
     </div>
   );
@@ -5283,21 +5283,21 @@ function HostApplyScreen({currentUser,toast,setScreen}){
       <div style={{marginBottom:28}}>
         <div style={{fontSize:32,marginBottom:10}}>🎮</div>
         <h2 style={{color:"#F2EDE4",fontSize:22,marginBottom:8}}>Apply to Host</h2>
-        <p style={{fontSize:14,color:"#9CA3AF",lineHeight:1.6}}>Host status gives you your own tournament dashboard to create and run TFT Clash events. All hosts are manually reviewed and approved by our admin team.</p>
+        <p style={{fontSize:14,color:"#A8B4C4",lineHeight:1.6}}>Host status gives you your own tournament dashboard to create and run TFT Clash events. All hosts are manually reviewed and approved by our admin team.</p>
       </div>
 
       <Panel style={{padding:"24px"}}>
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <div>
-            <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Your Name / Handle</div>
+            <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Your Name / Handle</div>
             <Inp value={name} onChange={setName} placeholder="Display name"/>
           </div>
           <div>
-            <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Org / Community Name <span style={{color:"#4A4438",fontWeight:400}}>(optional)</span></div>
+            <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Org / Community Name <span style={{color:"#6B7A8E",fontWeight:400}}>(optional)</span></div>
             <Inp value={org} onChange={setOrg} placeholder="e.g. TFT Academy, PG Clashes..."/>
           </div>
           <div>
-            <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Planned Event Frequency</div>
+            <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Planned Event Frequency</div>
             <Sel value={freq} onChange={setFreq}>
               <option value="weekly">Weekly</option>
               <option value="biweekly">Bi-weekly</option>
@@ -5306,14 +5306,14 @@ function HostApplyScreen({currentUser,toast,setScreen}){
             </Sel>
           </div>
           <div>
-            <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Why do you want to host? <span style={{color:"#F87171"}}>*</span></div>
+            <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Why do you want to host? <span style={{color:"#F87171"}}>*</span></div>
             <textarea value={reason} onChange={e=>setReason(e.target.value)}
               placeholder="Tell us about your community, experience, and what kind of clashes you want to run..."
               style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,
                 padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:100,
                 outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
           </div>
-          <div style={{background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,padding:"14px",fontSize:12,color:"#9CA3AF",lineHeight:1.7}}>
+          <div style={{background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,padding:"14px",fontSize:12,color:"#A8B4C4",lineHeight:1.7}}>
             <strong style={{color:"#E8A838"}}>What you get when approved:</strong> Your own Host Dashboard, ability to create public or private clashes, custom tournament rules, entry fee events (admin approved), and a Host badge on your profile.
           </div>
           <Btn v="primary" full onClick={submit}>Submit Application →</Btn>
@@ -5359,7 +5359,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
             <h2 style={{color:"#F2EDE4",fontSize:20}}>Host Dashboard</h2>
             <Tag color="#9B72CF">🎮 Host</Tag>
           </div>
-          <p style={{fontSize:13,color:"#6B7280"}}>Manage your tournaments and registrations.</p>
+          <p style={{fontSize:13,color:"#8E9BAE"}}>Manage your tournaments and registrations.</p>
         </div>
         <Btn v="primary" onClick={()=>setShowCreate(s=>!s)}>{showCreate?"Cancel":"+ New Tournament"}</Btn>
       </div>
@@ -5370,33 +5370,33 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
           <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Create Tournament</h3>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
             <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Tournament Name</div>
+              <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Tournament Name</div>
               <Inp value={tName} onChange={setTName} placeholder="e.g. Weekly Clash #15"/>
             </div>
             <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Date</div>
+              <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Date</div>
               <Inp value={tDate} onChange={setTDate} placeholder="Mar 13 2026"/>
             </div>
             <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Max Players</div>
+              <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Max Players</div>
               <Sel value={tSize} onChange={setTSize}>{[8,16,24,32,48,64].map(n=><option key={n} value={n}>{n} players</option>)}</Sel>
             </div>
             <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Entry Fee <span style={{color:"#4A4438",fontWeight:400}}>(requires admin approval)</span></div>
+              <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Entry Fee <span style={{color:"#6B7A8E",fontWeight:400}}>(requires admin approval)</span></div>
               <Inp value={tEntryFee} onChange={setTEntryFee} placeholder="Leave blank = free"/>
             </div>
           </div>
           <div style={{marginBottom:12}}>
-            <div style={{fontSize:12,fontWeight:600,color:"#9CA3AF",marginBottom:6}}>Custom Rules <span style={{color:"#4A4438",fontWeight:400}}>(optional)</span></div>
+            <div style={{fontSize:12,fontWeight:600,color:"#A8B4C4",marginBottom:6}}>Custom Rules <span style={{color:"#6B7A8E",fontWeight:400}}>(optional)</span></div>
             <textarea value={tRules} onChange={e=>setTRules(e.target.value)} placeholder="Any special rules, format notes, or tiebreaker info..."
               style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:72,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
             <div onClick={()=>setTInvite(v=>!v)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
               <div style={{width:36,height:20,borderRadius:99,background:tInvite?"rgba(155,114,207,.3)":"rgba(255,255,255,.08)",border:"1px solid "+(tInvite?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),position:"relative",transition:"all .2s"}}>
-                <div style={{width:14,height:14,borderRadius:"50%",background:tInvite?"#C4B5FD":"#4A4438",position:"absolute",top:2,left:tInvite?18:2,transition:"left .2s"}}/>
+                <div style={{width:14,height:14,borderRadius:"50%",background:tInvite?"#C4B5FD":"#6B7A8E",position:"absolute",top:2,left:tInvite?18:2,transition:"left .2s"}}/>
               </div>
-              <span style={{fontSize:13,color:"#9CA3AF"}}>Invite-only registration</span>
+              <span style={{fontSize:13,color:"#A8B4C4"}}>Invite-only registration</span>
             </div>
           </div>
           {tEntryFee&&(
@@ -5423,16 +5423,16 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
                     <span style={{fontWeight:700,fontSize:16,color:"#F2EDE4"}}>{t.name}</span>
-                    <Tag color={t.status==="upcoming"?"#6EE7B7":t.status==="pending_approval"?"#E8A838":"#6B7280"} size="sm">
+                    <Tag color={t.status==="upcoming"?"#6EE7B7":t.status==="pending_approval"?"#E8A838":"#8E9BAE"} size="sm">
                       {t.status==="upcoming"?"✓ Live":t.status==="pending_approval"?"⏳ Pending Approval":"Draft"}
                     </Tag>
                     {t.invite&&<Tag color="#9B72CF" size="sm">🔒 Invite Only</Tag>}
                     {t.entryFee&&<Tag color="#EAB308" size="sm">💰 {t.entryFee}</Tag>}
                   </div>
-                  <div style={{fontSize:13,color:"#6B7280",marginBottom:8}}>📅 {t.date} · 👥 {t.registered}/{t.size} registered</div>
+                  <div style={{fontSize:13,color:"#8E9BAE",marginBottom:8}}>📅 {t.date} · 👥 {t.registered}/{t.size} registered</div>
                   <div style={{marginTop:8}}>
                     <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
-                    <div style={{fontSize:10,color:"#6B7280",marginTop:3}}>{t.size-t.registered} spots remaining</div>
+                    <div style={{fontSize:10,color:"#8E9BAE",marginTop:3}}>{t.size-t.registered} spots remaining</div>
                   </div>
                 </div>
                 <div style={{display:"flex",gap:8,flexShrink:0}}>
@@ -5443,7 +5443,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
             </Panel>
           ))}
           {tournaments.length===0&&(
-            <div style={{textAlign:"center",padding:"48px",color:"#6B7280"}}>
+            <div style={{textAlign:"center",padding:"48px",color:"#8E9BAE"}}>
               <div style={{fontSize:32,marginBottom:12}}>🎮</div>
               <div style={{fontSize:14}}>No tournaments yet. Create your first one above.</div>
             </div>
@@ -5458,7 +5458,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
             <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<11?"1px solid rgba(242,237,228,.05)":"none"}}>
               <div style={{flex:1}}>
                 <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</div>
-                <div style={{fontSize:11,color:"#6B7280"}}>{p.rank} · {p.region}</div>
+                <div style={{fontSize:11,color:"#8E9BAE"}}>{p.rank} · {p.region}</div>
               </div>
               <Tag color="#6EE7B7" size="sm">✓ Registered</Tag>
             </div>
@@ -5468,10 +5468,10 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
 
       {tab==="stats"&&(
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12}}>
-          {[["Tournaments Run","2","#E8A838"],["Total Players Hosted","24","#6EE7B7"],["Avg Registration","12","#9CA3AF"],["Completion Rate","100%","#4ECDC4"]].map(([l,v,c])=>(
+          {[["Tournaments Run","2","#E8A838"],["Total Players Hosted","24","#6EE7B7"],["Avg Registration","12","#A8B4C4"],["Completion Rate","100%","#4ECDC4"]].map(([l,v,c])=>(
             <Panel key={l} style={{padding:"18px",textAlign:"center"}}>
               <div className="mono" style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-              <div className="cond" style={{fontSize:10,color:"#6B7280",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{l}</div>
+              <div className="cond" style={{fontSize:10,color:"#8E9BAE",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{l}</div>
             </Panel>
           ))}
         </div>
@@ -5528,7 +5528,7 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
         <h1 style={{fontSize:"clamp(28px,5vw,52px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:16}}>
           Fantasy TFT<br/><span style={{color:"#9B72CF"}}>is coming.</span>
         </h1>
-        <p style={{fontSize:"clamp(14px,2vw,17px)",color:"#9CA3AF",maxWidth:520,margin:"0 auto 32px",lineHeight:1.7}}>
+        <p style={{fontSize:"clamp(14px,2vw,17px)",color:"#A8B4C4",maxWidth:520,margin:"0 auto 32px",lineHeight:1.7}}>
           Draft your dream lineup before each clash. Score points based on how your picks actually place. The ultimate way to have skin in every lobby - without playing a single game.
         </p>
         {!joined?(
@@ -5542,7 +5542,7 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
           <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"16px 24px",display:"inline-block"}}>
             <div style={{fontSize:20,marginBottom:6}}>✅</div>
             <div style={{fontWeight:700,fontSize:16,color:"#6EE7B7",marginBottom:4}}>You're on the waitlist!</div>
-            <div style={{fontSize:13,color:"#9CA3AF"}}>We'll email {email} when Fantasy TFT launches in Season 17.</div>
+            <div style={{fontSize:13,color:"#A8B4C4"}}>We'll email {email} when Fantasy TFT launches in Season 17.</div>
           </div>
         )}
       </div>
@@ -5555,7 +5555,7 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
             <Panel key={i} style={{padding:"20px"}}>
               <div style={{fontSize:28,marginBottom:12}}>{h.icon}</div>
               <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:6}}>{h.title}</div>
-              <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6}}>{h.desc}</div>
+              <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.6}}>{h.desc}</div>
             </Panel>
           ))}
         </div>
@@ -5565,10 +5565,10 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
       <Panel style={{padding:"24px",marginBottom:40,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.2)"}}>
         <h3 style={{fontSize:17,color:"#C4B5FD",marginBottom:16}}>Scoring System Preview</h3>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10}}>
-          {[["1st place","10 pts","#E8A838"],["2nd place","7 pts","#C0C0C0"],["3rd place","5 pts","#CD7F32"],["4th place","3 pts","#4ECDC4"],["5th-8th","0 pts","#6B7280"],["Exact call","+3 bonus","#9B72CF"],["Clutch win","+2 bonus","#F97316"],["Win streak","+1/game","#EAB308"]].map(([l,v,c])=>(
+          {[["1st place","10 pts","#E8A838"],["2nd place","7 pts","#C0C0C0"],["3rd place","5 pts","#CD7F32"],["4th place","3 pts","#4ECDC4"],["5th-8th","0 pts","#8E9BAE"],["Exact call","+3 bonus","#9B72CF"],["Clutch win","+2 bonus","#F97316"],["Win streak","+1/game","#EAB308"]].map(([l,v,c])=>(
             <div key={l} style={{background:"#111827",borderRadius:9,padding:"12px",textAlign:"center",border:"1px solid rgba(242,237,228,.06)"}}>
               <div className="mono" style={{fontSize:16,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-              <div style={{fontSize:11,color:"#6B7280",marginTop:4}}>{l}</div>
+              <div style={{fontSize:11,color:"#8E9BAE",marginTop:4}}>{l}</div>
             </div>
           ))}
         </div>
@@ -5578,7 +5578,7 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
       <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.06),rgba(155,114,207,.06))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"24px",textAlign:"center"}}>
         <div style={{fontSize:24,marginBottom:10}}>⚔️</div>
         <h3 style={{fontSize:18,color:"#F2EDE4",marginBottom:8}}>Already competing in TFT Clash?</h3>
-        <p style={{fontSize:13,color:"#9CA3AF",maxWidth:480,margin:"0 auto 16px",lineHeight:1.6}}>
+        <p style={{fontSize:13,color:"#A8B4C4",maxWidth:480,margin:"0 auto 16px",lineHeight:1.6}}>
           Fantasy TFT is built on top of our weekly clash results. The better you know the players, the better your draft. Jump into the current season while you wait.
         </p>
         <Btn v="ghost" onClick={()=>setScreen("leaderboard")}>View Season Standings →</Btn>
@@ -5602,7 +5602,7 @@ function RulesScreen({setScreen}){
       <div style={{marginBottom:32}}>
         <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Official</div>
         <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Tournament Rules</h1>
-        <p style={{fontSize:14,color:"#9CA3AF",maxWidth:600,lineHeight:1.7}}>TFT Clash follows rules based on the official Riot EMEA Esports rulebook, adapted for our community format. All participants are expected to read and understand these rules before competing.</p>
+        <p style={{fontSize:14,color:"#A8B4C4",maxWidth:600,lineHeight:1.7}}>TFT Clash follows rules based on the official Riot EMEA Esports rulebook, adapted for our community format. All participants are expected to read and understand these rules before competing.</p>
       </div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:24}}>
         {TABS.map(t=>(
@@ -5617,14 +5617,14 @@ function RulesScreen({setScreen}){
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Standard Format (24 players)</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>24 players → 3 lobbies of 8 → 3–5 games per lobby → cumulative points determine final standings. No elimination stage at this size - everyone plays all rounds.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>24 players → 3 lobbies of 8 → 3–5 games per lobby → cumulative points determine final standings. No elimination stage at this size - everyone plays all rounds.</div>
               </div>
               <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Lobby Seeding</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Players are seeded by rank using <span style={{color:"#4ECDC4",fontWeight:600}}>snake-draft</span> so each lobby has a balanced mix of skill levels. Random draw is used when players have equal LP.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>Players are seeded by rank using <span style={{color:"#4ECDC4",fontWeight:600}}>snake-draft</span> so each lobby has a balanced mix of skill levels. Random draw is used when players have equal LP.</div>
                 <div style={{marginTop:12,background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
-                  <div className="cond" style={{fontSize:11,color:"#6B7280",marginBottom:8,letterSpacing:".06em",textTransform:"uppercase"}}>Snake seeding example - 3 lobbies</div>
+                  <div className="cond" style={{fontSize:11,color:"#8E9BAE",marginBottom:8,letterSpacing:".06em",textTransform:"uppercase"}}>Snake seeding example - 3 lobbies</div>
                   <div className="mono" style={{fontSize:12,color:"#4ECDC4",marginBottom:4}}>Lobby A: seeds 1, 6, 7, 12, 13, 18, 19, 24</div>
                   <div className="mono" style={{fontSize:12,color:"#9B72CF",marginBottom:4}}>Lobby B: seeds 2, 5, 8, 11, 14, 17, 20, 23</div>
                   <div className="mono" style={{fontSize:12,color:"#E8A838"}}>Lobby C: seeds 3, 4, 9, 10, 15, 16, 21, 22</div>
@@ -5633,12 +5633,12 @@ function RulesScreen({setScreen}){
               <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Multi-Stage Format (32+ players)</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:12}}>For larger events, a two-stage Swiss format is used. Lobbies are reseeded every 2 games based on standings.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8,marginBottom:12}}>For larger events, a two-stage Swiss format is used. Lobbies are reseeded every 2 games based on standings.</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
                   {[["Stage 1","Multiple lobbies · top 4 per lobby advance","#9B72CF"],["Stage 2","Survivors · reseeded lobbies · top 4 advance","#4ECDC4"],["Finals","Top 8 overall · single lobby · 1 winner","#E8A838"]].map(([s,d,c])=>(
                     <div key={s} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
                       <div style={{fontWeight:700,fontSize:13,color:c,marginBottom:4}}>{s}</div>
-                      <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{d}</div>
+                      <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.6}}>{d}</div>
                     </div>
                   ))}
                 </div>
@@ -5646,13 +5646,13 @@ function RulesScreen({setScreen}){
               <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
               <div>
                 <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Swiss Reseeding</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>After every 2 games, lobbies reseed based on current standings - top performers face each other, making each round harder as you advance. Points reset between days but <span style={{color:"#4ECDC4"}}>not</span> between stages on Finals Day.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>After every 2 games, lobbies reseed based on current standings - top performers face each other, making each round harder as you advance. Points reset between days but <span style={{color:"#4ECDC4"}}>not</span> between stages on Finals Day.</div>
               </div>
             </div>
           </Panel>
           <Panel style={{padding:"24px",background:"rgba(232,168,56,.03)",border:"1px solid rgba(232,168,56,.15)"}}>
             <h3 style={{fontSize:15,color:"#E8A838",marginBottom:10}}>Result Submission</h3>
-            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Results are entered <span style={{color:"#F2EDE4",fontWeight:600}}>directly on the platform</span> — players enter their placement on the Bracket page after each round. No screenshots required.</div>
+            <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>Results are entered <span style={{color:"#F2EDE4",fontWeight:600}}>directly on the platform</span> — players enter their placement on the Bracket page after each round. No screenshots required.</div>
           </Panel>
         </div>
       )}
@@ -5661,30 +5661,30 @@ function RulesScreen({setScreen}){
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:4,fontFamily:"'Cinzel',serif"}}>Tournament Point System</h2>
-            <div style={{fontSize:13,color:"#6B7280",marginBottom:20}}>Per-game placement points - used in all TFT Clash events. Based on the official 2026 EMEA Esports rulebook.</div>
+            <div style={{fontSize:13,color:"#8E9BAE",marginBottom:20}}>Per-game placement points - used in all TFT Clash events. Based on the official 2026 EMEA Esports rulebook.</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:8,marginBottom:24}}>
-              {[[1,"8","#E8A838"],[2,"7","#C0C0C0"],[3,"6","#CD7F32"],[4,"5","#4ECDC4"],[5,"4","#9CA3AF"],[6,"3","#9CA3AF"],[7,"2","#9CA3AF"],[8,"1","#9CA3AF"]].map(([place,pts,color])=>(
+              {[[1,"8","#E8A838"],[2,"7","#C0C0C0"],[3,"6","#CD7F32"],[4,"5","#4ECDC4"],[5,"4","#A8B4C4"],[6,"3","#A8B4C4"],[7,"2","#A8B4C4"],[8,"1","#A8B4C4"]].map(([place,pts,color])=>(
                 <div key={place} style={{background:"#0A0F1A",borderRadius:8,padding:"14px 8px",textAlign:"center",border:"1px solid rgba(242,237,228,.06)"}}>
-                  <div className="cond" style={{fontSize:10,color:"#6B7280",marginBottom:4,textTransform:"uppercase",letterSpacing:".04em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
+                  <div className="cond" style={{fontSize:10,color:"#8E9BAE",marginBottom:4,textTransform:"uppercase",letterSpacing:".04em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
                   <div className="mono" style={{fontSize:20,fontWeight:700,color:color,lineHeight:1}}>{pts}</div>
-                  <div style={{fontSize:9,color:"#4A4438",marginTop:2}}>pts</div>
+                  <div style={{fontSize:9,color:"#6B7A8E",marginTop:2}}>pts</div>
                 </div>
               ))}
             </div>
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"16px",fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>
+            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"16px",fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>
               <strong style={{color:"#C4B5FD"}}>DNP (Did Not Play):</strong> 0 points - worse than last place. Players who miss a game without notifying admins receive DNP. Two DNPs triggers a disqualification review.
             </div>
           </Panel>
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>Tiebreakers</h2>
-            <div style={{fontSize:13,color:"#9CA3AF",marginBottom:16,lineHeight:1.7}}>When players are tied on cumulative points (for reseeding, cut-offs, or final placement), ties are broken in this exact order:</div>
+            <div style={{fontSize:13,color:"#A8B4C4",marginBottom:16,lineHeight:1.7}}>When players are tied on cumulative points (for reseeding, cut-offs, or final placement), ties are broken in this exact order:</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              {[["1","Total Tournament Points","The raw cumulative score. Applied first in all contexts.","#E8A838"],["2","Wins + Top 4s","Count of 1st place finishes × 2, plus top-4 finishes. Higher score wins.","#4ECDC4"],["3","Best Placement Counts","Who has more 1sts? Then more 2nds? Counts position-by-position.","#9B72CF"],["4","Most Recent Game","Better finish in the most recent game, then the game before that.","#C4B5FD"],["5","Random","Last resort only - random sort between tied positions.","#6B7280"]].map(([n,title,desc,color])=>(
+              {[["1","Total Tournament Points","The raw cumulative score. Applied first in all contexts.","#E8A838"],["2","Wins + Top 4s","Count of 1st place finishes × 2, plus top-4 finishes. Higher score wins.","#4ECDC4"],["3","Best Placement Counts","Who has more 1sts? Then more 2nds? Counts position-by-position.","#9B72CF"],["4","Most Recent Game","Better finish in the most recent game, then the game before that.","#C4B5FD"],["5","Random","Last resort only - random sort between tied positions.","#8E9BAE"]].map(([n,title,desc,color])=>(
                 <div key={n} style={{display:"flex",gap:14,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
                   <div style={{width:26,height:26,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{n}</div>
                   <div>
                     <div style={{fontWeight:700,fontSize:13,color:color,marginBottom:3}}>{title}</div>
-                    <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                    <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.6}}>{desc}</div>
                   </div>
                 </div>
               ))}
@@ -5700,17 +5700,17 @@ function RulesScreen({setScreen}){
             <div style={{display:"flex",flexDirection:"column",gap:20}}>
               <div>
                 <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Registration</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Registration opens at least 24 hours before each clash and closes 30 minutes before start. You must have an account with a valid Riot ID linked. Registering indicates your commitment to play - only sign up if you intend to show up.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>Registration opens at least 24 hours before each clash and closes 30 minutes before start. You must have an account with a valid Riot ID linked. Registering indicates your commitment to play - only sign up if you intend to show up.</div>
               </div>
               <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
               <div>
                 <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Check-in Window</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:14}}>Check-in opens <span style={{color:"#F2EDE4"}}>60 minutes before start</span> and closes <span style={{color:"#F2EDE4"}}>15 minutes before start</span>. You must actively click "Check In" - being registered is not enough.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8,marginBottom:14}}>Check-in opens <span style={{color:"#F2EDE4"}}>60 minutes before start</span> and closes <span style={{color:"#F2EDE4"}}>15 minutes before start</span>. You must actively click "Check In" - being registered is not enough.</div>
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8}}>
-                  {[["T-60min","Check-in opens","#4ECDC4"],["T-30min","Registration closes","#9CA3AF"],["T-15min","Check-in closes · roster locked","#E8A838"],["T-10min","Lobbies generated & seeded","#9B72CF"],["T-5min","Lobby assignments posted","#C4B5FD"],["T-0","Games begin","#52C47C"]].map(([time,event,color])=>(
+                  {[["T-60min","Check-in opens","#4ECDC4"],["T-30min","Registration closes","#A8B4C4"],["T-15min","Check-in closes · roster locked","#E8A838"],["T-10min","Lobbies generated & seeded","#9B72CF"],["T-5min","Lobby assignments posted","#C4B5FD"],["T-0","Games begin","#52C47C"]].map(([time,event,color])=>(
                     <div key={time} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
                       <div className="mono" style={{fontSize:12,fontWeight:700,color:color,marginBottom:3}}>{time}</div>
-                      <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>{event}</div>
+                      <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.5}}>{event}</div>
                     </div>
                   ))}
                 </div>
@@ -5718,16 +5718,16 @@ function RulesScreen({setScreen}){
               <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
               <div>
                 <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Auto-Drop & Waitlist</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Players who registered but did not check in by the deadline are <span style={{color:"#F87171"}}>automatically removed</span>. Their spots are offered to waitlisted players in order. Waitlisted players must also check in to confirm availability.</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>Players who registered but did not check in by the deadline are <span style={{color:"#F87171"}}>automatically removed</span>. Their spots are offered to waitlisted players in order. Waitlisted players must also check in to confirm availability.</div>
               </div>
               <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
               <div>
                 <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Grace Period</div>
-                <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>Once lobbies are assigned, there is a <span style={{color:"#F2EDE4"}}>5-minute grace period</span> before the game begins. If you haven't joined and haven't contacted an admin by then, the lobby starts without you (DNP for that game).</div>
+                <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>Once lobbies are assigned, there is a <span style={{color:"#F2EDE4"}}>5-minute grace period</span> before the game begins. If you haven't joined and haven't contacted an admin by then, the lobby starts without you (DNP for that game).</div>
               </div>
             </div>
           </Panel>
-          <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 20px",fontSize:13,color:"#9CA3AF",lineHeight:1.7}}>
+          <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 20px",fontSize:13,color:"#A8B4C4",lineHeight:1.7}}>
             <strong style={{color:"#E8A838"}}>Important:</strong> Dropping from a tournament without a legitimate reason (emergency, illness) may result in a ban from the next clash cycle. If you need to withdraw, tell an admin before the event starts.
           </div>
         </div>
@@ -5737,12 +5737,12 @@ function RulesScreen({setScreen}){
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>Uneven Numbers & Byes</h2>
-            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:16}}>Lobbies hold up to 8 players. When total player count is not a multiple of 8, these rules apply:</div>
+            <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8,marginBottom:16}}>Lobbies hold up to 8 players. When total player count is not a multiple of 8, these rules apply:</div>
             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
               {[["Lobby of 7","Fully valid - game runs normally. 8th place simply doesn't exist that game. Scoring is identical for the 7 players present."],["Lobby of 6","Allowed but not preferred. Admin will attempt to merge lobbies or promote from waitlist before running a 6-player lobby."],["BYE (advancement stages)","When a Stage 2 lobby can't be filled to 8, top-seeded players receive a BYE - they advance automatically. BYE = 0 points added (neutral, not rewarded, not penalized)."]].map(([title,desc])=>(
                 <div key={title} style={{background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
                   <div style={{fontWeight:700,fontSize:13,color:"#4ECDC4",marginBottom:4}}>{title}</div>
-                  <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.6}}>{desc}</div>
                 </div>
               ))}
             </div>
@@ -5750,12 +5750,12 @@ function RulesScreen({setScreen}){
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Cinzel',serif"}}>No-Shows & Disconnections</h2>
             <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {[["Doesn't join lobby","Game starts after 5-min grace. Player receives DNP (0 pts) for that game.","#F87171"],["Disconnects mid-game","Riot-assigned final placement counts - no exceptions. Remakes only considered for server-wide outages or first-carousel DC, at admin discretion.","#EAB308"],["Drops out between rounds","Removed from roster. No mid-tournament replacement in competitive format.","#9CA3AF"],["Two DNPs","Admin prompted to review for disqualification from remainder of the clash.","#F87171"]].map(([title,desc,color])=>(
+              {[["Doesn't join lobby","Game starts after 5-min grace. Player receives DNP (0 pts) for that game.","#F87171"],["Disconnects mid-game","Riot-assigned final placement counts - no exceptions. Remakes only considered for server-wide outages or first-carousel DC, at admin discretion.","#EAB308"],["Drops out between rounds","Removed from roster. No mid-tournament replacement in competitive format.","#A8B4C4"],["Two DNPs","Admin prompted to review for disqualification from remainder of the clash.","#F87171"]].map(([title,desc,color])=>(
                 <div key={title} style={{display:"flex",gap:12,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:color,flexShrink:0,marginTop:5}}/>
                   <div>
                     <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:3}}>{title}</div>
-                    <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                    <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.6}}>{desc}</div>
                   </div>
                 </div>
               ))}
@@ -5763,11 +5763,11 @@ function RulesScreen({setScreen}){
           </Panel>
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:12,fontFamily:"'Cinzel',serif"}}>Pauses</h2>
-            <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.8,marginBottom:14}}>Type <span className="mono" style={{color:"#4ECDC4",background:"rgba(78,205,196,.08)",padding:"2px 6px",borderRadius:4}}>/pause</span> in game chat to pause and contact an admin. Abuse of the pause feature results in disciplinary action.</div>
+            <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.8,marginBottom:14}}>Type <span className="mono" style={{color:"#4ECDC4",background:"rgba(78,205,196,.08)",padding:"2px 6px",borderRadius:4}}>/pause</span> in game chat to pause and contact an admin. Abuse of the pause feature results in disciplinary action.</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
               {[["Max per game (player)","10 min"],["Max total per tournament","25 min"],["Max per game (all players)","30 min"]].map(([l,v])=>(
                 <div key={l} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
-                  <div style={{fontSize:11,color:"#6B7280",marginBottom:4,lineHeight:1.5}}>{l}</div>
+                  <div style={{fontSize:11,color:"#8E9BAE",marginBottom:4,lineHeight:1.5}}>{l}</div>
                   <div className="mono" style={{fontSize:15,fontWeight:700,color:"#C4B5FD"}}>{v}</div>
                 </div>
               ))}
@@ -5780,14 +5780,14 @@ function RulesScreen({setScreen}){
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:6,fontFamily:"'Cinzel',serif"}}>Code of Conduct</h2>
-            <div style={{fontSize:13,color:"#6B7280",marginBottom:20,lineHeight:1.7}}>All participants are bound by these rules. Violations result in warnings, point deductions, suspension, or permanent ban depending on severity.</div>
+            <div style={{fontSize:13,color:"#8E9BAE",marginBottom:20,lineHeight:1.7}}>All participants are bound by these rules. Violations result in warnings, point deductions, suspension, or permanent ban depending on severity.</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               {[["🎯","Play to win","Always play to the best of your ability. Intentionally underperforming or tanking games is a bannable offense."],["🚫","No collusion","Any agreement to soft-play allies, split prizes, or manipulate results is prohibited. This includes ghosting and external signaling."],["📵","No coaching during games","Receiving tips or build orders from anyone outside the lobby during an active game is strictly prohibited."],["🐛","No bugs or exploits","Do not knowingly use in-game bugs for advantage. Pause and report to an admin immediately if you encounter one."],["🔐","No account sharing","Playing under another person's account (ringing) is a permanent ban offense. Compete only on your registered account."],["🤝","Respect everyone","Harassment, hate speech, discrimination, and abusive behavior are not tolerated - in-game, Discord, or on the platform."],["📸","Result submission","All players enter their placement directly on the Bracket page. Discrepancies should be raised to an admin immediately."]].map(([icon,title,desc])=>(
                 <div key={title} style={{display:"flex",gap:14,background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
                   <div style={{fontSize:20,flexShrink:0,width:28,textAlign:"center"}}>{icon}</div>
                   <div>
                     <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:3}}>{title}</div>
-                    <div style={{fontSize:12,color:"#6B7280",lineHeight:1.6}}>{desc}</div>
+                    <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.6}}>{desc}</div>
                   </div>
                 </div>
               ))}
@@ -5799,7 +5799,7 @@ function RulesScreen({setScreen}){
               {[["Official Warning","Minor first offenses. Noted on your record."],["Point Deduction","Applied at end of day/stage - never mid-game."],["Round/Match Forfeiture","Result nullified or replaced with 0 points."],["Tournament Suspension","Banned from one or more upcoming clashes."],["Permanent Ban","Ringing, extreme misconduct, or repeated major violations."]].map(([action,desc])=>(
                 <div key={action} style={{display:"flex",gap:10,alignItems:"flex-start",fontSize:13,paddingBottom:8,borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                   <span style={{color:"#F87171",fontWeight:700,minWidth:168,flexShrink:0}}>{action}</span>
-                  <span style={{color:"#9CA3AF",lineHeight:1.5}}>{desc}</span>
+                  <span style={{color:"#A8B4C4",lineHeight:1.5}}>{desc}</span>
                 </div>
               ))}
             </div>
@@ -5856,7 +5856,7 @@ function FAQScreen({setScreen}){
       <div style={{marginBottom:32}}>
         <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Help</div>
         <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Frequently Asked Questions</h1>
-        <p style={{fontSize:14,color:"#9CA3AF",maxWidth:560,lineHeight:1.7}}>Everything you need to know about competing in TFT Clash. Can't find your answer? Ask in Discord.</p>
+        <p style={{fontSize:14,color:"#A8B4C4",maxWidth:560,lineHeight:1.7}}>Everything you need to know about competing in TFT Clash. Can't find your answer? Ask in Discord.</p>
       </div>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:32}}>
         <Btn v="primary" s="sm" onClick={()=>setScreen("rules")}>View Full Rules →</Btn>
@@ -5877,7 +5877,7 @@ function FAQScreen({setScreen}){
                       <span style={{fontSize:18,color:"#9B72CF",flexShrink:0,transition:"transform .2s",display:"inline-block",transform:isOpen?"rotate(45deg)":"none"}}>+</span>
                     </button>
                     {isOpen&&(
-                      <div style={{padding:"0 20px 18px",fontSize:13,color:"#9CA3AF",lineHeight:1.8,borderTop:"1px solid rgba(242,237,228,.05)"}}>{item.a}</div>
+                      <div style={{padding:"0 20px 18px",fontSize:13,color:"#A8B4C4",lineHeight:1.8,borderTop:"1px solid rgba(242,237,228,.05)"}}>{item.a}</div>
                     )}
                   </div>
                 );
@@ -5889,7 +5889,7 @@ function FAQScreen({setScreen}){
       <div style={{marginTop:40,background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"24px",textAlign:"center"}}>
         <div style={{fontSize:24,marginBottom:10}}>💬</div>
         <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:8}}>Still have questions?</h3>
-        <p style={{fontSize:13,color:"#9CA3AF",maxWidth:380,margin:"0 auto 16px",lineHeight:1.6}}>Ask in the TFT Clash Discord server or reach out to an admin before your first clash.</p>
+        <p style={{fontSize:13,color:"#A8B4C4",maxWidth:380,margin:"0 auto 16px",lineHeight:1.6}}>Ask in the TFT Clash Discord server or reach out to an admin before your first clash.</p>
         <Btn v="ghost" onClick={()=>setScreen("rules")}>Read the Full Rules →</Btn>
       </div>
     </div>
@@ -6059,7 +6059,7 @@ function AegisShowcaseScreen({setScreen}){
     if(g>=7)return"#E8A838";
     if(g>=5)return"#9B72CF";
     if(g>=3)return"#4ECDC4";
-    if(g>=1)return"#6B7280";
+    if(g>=1)return"#8E9BAE";
     return"#F87171";
   };
 
@@ -6095,8 +6095,8 @@ function AegisShowcaseScreen({setScreen}){
             <h1 style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:700,color:"#F2EDE4",marginBottom:6,lineHeight:1.2}}>
               Aegis Esports TFT Showdown <span style={{color:"#E8A838"}}>#151</span>
             </h1>
-            <div style={{fontSize:15,color:"#9CA3AF",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
-            <div style={{fontSize:13,color:"#6B7280"}}>North America · 62+ participants · 6 games · $200 prize pool</div>
+            <div style={{fontSize:15,color:"#A8B4C4",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
+            <div style={{fontSize:13,color:"#8E9BAE"}}>North America · 62+ participants · 6 games · $200 prize pool</div>
           </div>
           <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
             <img src="/Aegis_Esports.png" alt="Aegis Esports" style={{height:48,width:"auto",objectFit:"contain"}}/>
@@ -6113,7 +6113,7 @@ function AegisShowcaseScreen({setScreen}){
           {[["62+","Participants"],["16","G1 Lobbies"],["6","Games"],["$200","Prize Pool"]].map(function(arr){return(
             <div key={arr[1]}>
               <div style={{fontSize:26,fontWeight:700,color:"#F2EDE4",fontFamily:"'Cinzel',serif",lineHeight:1}}>{arr[0]}</div>
-              <div className="cond" style={{fontSize:12,color:"#6B7280",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{arr[1]}</div>
+              <div className="cond" style={{fontSize:12,color:"#8E9BAE",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{arr[1]}</div>
             </div>
           );})}
         </div>
@@ -6121,7 +6121,7 @@ function AegisShowcaseScreen({setScreen}){
 
       <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
         {[["format","Format"],["standings","Standings"],["lobbies","Lobbies"],["host","Host Tools"],["platform","Platform"]].map(function(arr){return(
-          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"'Inter',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#8E9BAE",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
         );})}
       </div>
 
@@ -6132,14 +6132,14 @@ function AegisShowcaseScreen({setScreen}){
             <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16,paddingLeft:16,borderLeft:"3px solid rgba(155,114,207,.5)"}}>
               <div>
                 <div className="cond" style={{background:"rgba(155,114,207,.2)",border:"1px solid rgba(155,114,207,.4)",borderRadius:5,padding:"3px 10px",fontSize:13,color:"#C4B5FD",fontWeight:700,display:"inline-block",marginBottom:4}}>Games 1 – 2 · Qualifier Format</div>
-                <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.8}}>Players are split into groups of 8 (evenly distributed based on check-ins). Each group plays one game. <span style={{color:"#F2EDE4",fontWeight:600}}>Top 4 from each lobby advance</span> to the next round. Scores are NOT counted toward points but are saved as tiebreakers.</div>
+                <div style={{fontSize:14,color:"#A8B4C4",lineHeight:1.8}}>Players are split into groups of 8 (evenly distributed based on check-ins). Each group plays one game. <span style={{color:"#F2EDE4",fontWeight:600}}>Top 4 from each lobby advance</span> to the next round. Scores are NOT counted toward points but are saved as tiebreakers.</div>
               </div>
               <div>
                 <div className="cond" style={{background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",borderRadius:5,padding:"3px 10px",fontSize:13,color:"#E8A838",fontWeight:700,display:"inline-block",marginBottom:4}}>Games 3 – 6 · Point Stage Format</div>
-                <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.8}}>Qualified players split into lobbies of 8 based on qualifier performance. EMEA point system in effect. <span style={{color:"#F2EDE4",fontWeight:600}}>8 players eliminated after every game</span>, lobbies reshuffled after each game.</div>
+                <div style={{fontSize:14,color:"#A8B4C4",lineHeight:1.8}}>Qualified players split into lobbies of 8 based on qualifier performance. EMEA point system in effect. <span style={{color:"#F2EDE4",fontWeight:600}}>8 players eliminated after every game</span>, lobbies reshuffled after each game.</div>
               </div>
             </div>
-            <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"12px 16px",fontSize:14,color:"#9CA3AF",lineHeight:1.8}}>
+            <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"12px 16px",fontSize:14,color:"#A8B4C4",lineHeight:1.8}}>
               <span style={{color:"#F87171",fontWeight:700}}>Tiebreaker (point stage):</span> Equal cumulative totals broken by <span style={{color:"#F2EDE4",fontWeight:600}}>most recent game placement</span> until the tie is broken.
             </div>
           </div>
@@ -6176,7 +6176,7 @@ function AegisShowcaseScreen({setScreen}){
                       {s.bullets.map(function(b,bi){return(
                         <div key={bi} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
                           <div style={{width:5,height:5,borderRadius:"50%",background:s.color,flexShrink:0,marginTop:7}}/>
-                          <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.6}}>{b}</div>
+                          <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.6}}>{b}</div>
                         </div>
                       );})}
                     </div>
@@ -6189,15 +6189,15 @@ function AegisShowcaseScreen({setScreen}){
           <Panel style={{padding:"22px 24px"}}>
             <h3 style={{fontFamily:"'Cinzel',serif",fontSize:16,color:"#F2EDE4",marginBottom:14}}>Points Table - Games 3 to 6</h3>
             <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
-              {[[1,8,"#FFD700","1st"],[2,7,"#C0C0C0","2nd"],[3,6,"#CD7F32","3rd"],[4,5,"#52C47C","4th"],[5,4,"#9B72CF","5th"],[6,3,"#4ECDC4","6th"],[7,2,"#6B7280","7th"],[8,1,"#4A5568","8th"]].map(function(row){return(
+              {[[1,8,"#FFD700","1st"],[2,7,"#C0C0C0","2nd"],[3,6,"#CD7F32","3rd"],[4,5,"#52C47C","4th"],[5,4,"#9B72CF","5th"],[6,3,"#4ECDC4","6th"],[7,2,"#8E9BAE","7th"],[8,1,"#4A5568","8th"]].map(function(row){return(
                 <div key={row[0]} style={{display:"flex",flexDirection:"column",alignItems:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.05)",borderRadius:8,padding:"12px 14px",minWidth:58}}>
                   <div className="cond" style={{fontSize:22,fontWeight:700,color:row[2]}}>{row[1]}</div>
                   <div style={{fontSize:11,color:"#4A5568",marginTop:1}}>pts</div>
-                  <div style={{fontSize:12,color:"#6B7280",marginTop:3}}>{row[3]}</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",marginTop:3}}>{row[3]}</div>
                 </div>
               );})}
             </div>
-            <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"12px 16px",fontSize:13,color:"#9CA3AF",lineHeight:1.8}}>
+            <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"12px 16px",fontSize:13,color:"#A8B4C4",lineHeight:1.8}}>
               <span style={{color:"#E8A838",fontWeight:600}}>Tiebreaker chain:</span> Equal cumulative totals broken by most recent game placement - G6 first, then G5, G4, G3, then G2 and G1 (the qualifier rounds).
             </div>
           </Panel>
@@ -6210,7 +6210,7 @@ function AegisShowcaseScreen({setScreen}){
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
               <div>
                 <h2 style={{fontFamily:"'Cinzel',serif",fontSize:18,color:"#E8A838",margin:0}}>All Participants</h2>
-                <div style={{fontSize:13,color:"#6B7280",marginTop:3}}>{STANDINGS.length} players · {STANDINGS.filter(function(p){return p.place<=32;}).length} reached point stage</div>
+                <div style={{fontSize:13,color:"#8E9BAE",marginTop:3}}>{STANDINGS.length} players · {STANDINGS.filter(function(p){return p.place<=32;}).length} reached point stage</div>
               </div>
               <div style={{display:"flex",gap:6,alignItems:"center"}}>
                 {[["G1","#9B72CF"],["G2","#9B72CF"],["G3","#4ECDC4"],["G4","#4ECDC4"],["G5","#4ECDC4"],["G6","#E8A838"],["PTS","#F2EDE4"]].map(function(arr){return(
@@ -6222,7 +6222,7 @@ function AegisShowcaseScreen({setScreen}){
               {[["G1–G2","Qualifier","#9B72CF"],["G3–G5","Point Stage","#4ECDC4"],["G6","Finals","#E8A838"],["-","Elim in G2","#F87171"]].map(function(arr){return(
                 <div key={arr[0]} style={{display:"flex",alignItems:"center",gap:5}}>
                   <div style={{width:10,height:10,borderRadius:2,background:arr[2]+"30",border:"1px solid "+arr[2]+"50"}}/>
-                  <div style={{fontSize:12,color:"#6B7280"}}><span style={{color:arr[2],fontWeight:600}}>{arr[0]}</span> {arr[1]}</div>
+                  <div style={{fontSize:12,color:"#8E9BAE"}}><span style={{color:arr[2],fontWeight:600}}>{arr[0]}</span> {arr[1]}</div>
                 </div>
               );})}
             </div>
@@ -6234,7 +6234,7 @@ function AegisShowcaseScreen({setScreen}){
                 return(
                   <div key={p.ign} style={{display:"flex",alignItems:"center",gap:8,background:rowBg,borderRadius:7,padding:"8px 10px",border:"1px solid "+rowBorder}}>
                     <div style={{width:24,fontWeight:700,fontSize:12,color:isElim?"#4A5568":placeCol(p.place),textAlign:"right",flexShrink:0,fontFamily:"'Inter',sans-serif"}}>{p.place}</div>
-                    <div style={{flex:1,fontSize:14,color:p.place<=8&&!isElim?"#F2EDE4":isElim?"#6B7280":"#9CA3AF",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.ign}</div>
+                    <div style={{flex:1,fontSize:14,color:p.place<=8&&!isElim?"#F2EDE4":isElim?"#8E9BAE":"#A8B4C4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.ign}</div>
                     {isElim&&<div className="cond" style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.18)",borderRadius:4,padding:"1px 6px",fontSize:11,color:"#F87171",flexShrink:0}}>OUT G2</div>}
                     {p.prize>0&&<div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.2)",borderRadius:4,padding:"1px 6px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Inter',sans-serif",flexShrink:0}}>${p.prize}</div>}
                     <div style={{display:"flex",gap:2,flexShrink:0}}>
@@ -6287,10 +6287,10 @@ function AegisShowcaseScreen({setScreen}){
           <div style={{background:"rgba(0,0,0,.35)",border:"1px solid "+roundMeta.color+"30",borderRadius:10,padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
             <div>
               <div className="cond" style={{fontSize:12,color:roundMeta.color,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>{roundMeta.tag}</div>
-              <div style={{fontSize:13,color:"#9CA3AF",lineHeight:1.7,maxWidth:600}}>{roundMeta.desc}</div>
+              <div style={{fontSize:13,color:"#A8B4C4",lineHeight:1.7,maxWidth:600}}>{roundMeta.desc}</div>
             </div>
             <div style={{display:"flex",gap:8,alignItems:"center"}}>
-              <div className="cond" style={{fontSize:12,color:"#6B7280",padding:"4px 10px",background:"rgba(255,255,255,.03)",borderRadius:6,border:"1px solid rgba(255,255,255,.06)"}}>{roundMeta.count}</div>
+              <div className="cond" style={{fontSize:12,color:"#8E9BAE",padding:"4px 10px",background:"rgba(255,255,255,.03)",borderRadius:6,border:"1px solid rgba(255,255,255,.06)"}}>{roundMeta.count}</div>
               <button onClick={function(){setEditMode(function(p){return !p;});setScores({});}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(editMode?"rgba(78,205,196,.4)":"rgba(155,114,207,.3)"),background:editMode?"rgba(78,205,196,.1)":"rgba(155,114,207,.08)",color:editMode?"#4ECDC4":"#C4B5FD",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
                 {editMode?"Save Results":"Enter Results"}
               </button>
@@ -6298,7 +6298,7 @@ function AegisShowcaseScreen({setScreen}){
           </div>
 
           {editMode&&(
-            <div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:10,padding:"14px 18px",fontSize:13,color:"#9CA3AF",lineHeight:1.7}}>
+            <div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:10,padding:"14px 18px",fontSize:13,color:"#A8B4C4",lineHeight:1.7}}>
               <span style={{color:"#4ECDC4",fontWeight:700}}>Score entry mode active.</span> Click a placement number next to each player name to record their finish. Placements auto-de-conflict - assigning a spot removes it from any other player. Click "Save Results" when done.
             </div>
           )}
@@ -6328,14 +6328,14 @@ function AegisShowcaseScreen({setScreen}){
                       return(
                         <div key={pl.ign} style={{display:"flex",alignItems:"center",gap:8,background:winner?"rgba(255,215,0,.07)":top4?"rgba(82,196,124,.05)":"rgba(255,255,255,.02)",borderRadius:6,padding:"7px 8px",border:"1px solid "+(winner?"rgba(255,215,0,.18)":top4?"rgba(82,196,124,.1)":"rgba(242,237,228,.03)")}}>
                           {!editMode&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(0,0,0,.45)",border:"1px solid "+placeCol(displayIdx+1),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:placeCol(displayIdx+1),flexShrink:0}}>{displayIdx+1}</div>}
-                          <div style={{flex:1,fontSize:13,color:top4||winner?"#F2EDE4":"#9CA3AF",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pl.ign}</div>
+                          <div style={{flex:1,fontSize:13,color:top4||winner?"#F2EDE4":"#A8B4C4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pl.ign}</div>
                           {editMode&&(
                             <div style={{display:"flex",gap:2,flexShrink:0,flexWrap:"wrap",justifyContent:"flex-end",maxWidth:180}}>
                               {Array.from({length:maxPlaces},function(_,pi){return pi+1;}).map(function(place){
                                 var taken=usedPlaces[place]&&assignedPlace!==place;
                                 var selected=assignedPlace===place;
                                 return(
-                                  <button key={place} onClick={function(){toggleScore(lobby.name,pl.ign,place);}} disabled={taken} style={{width:26,height:26,borderRadius:5,border:"1px solid "+(selected?"#4ECDC4":taken?"rgba(255,255,255,.04)":"rgba(255,255,255,.1)"),background:selected?"rgba(78,205,196,.2)":taken?"rgba(255,255,255,.02)":"rgba(255,255,255,.03)",color:selected?"#4ECDC4":taken?"#2D3748":"#6B7280",fontSize:11,fontWeight:700,cursor:taken?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif"}}>{place}</button>
+                                  <button key={place} onClick={function(){toggleScore(lobby.name,pl.ign,place);}} disabled={taken} style={{width:26,height:26,borderRadius:5,border:"1px solid "+(selected?"#4ECDC4":taken?"rgba(255,255,255,.04)":"rgba(255,255,255,.1)"),background:selected?"rgba(78,205,196,.2)":taken?"rgba(255,255,255,.02)":"rgba(255,255,255,.03)",color:selected?"#4ECDC4":taken?"#2D3748":"#8E9BAE",fontSize:11,fontWeight:700,cursor:taken?"not-allowed":"pointer",fontFamily:"'Inter',sans-serif"}}>{place}</button>
                                 );
                               })}
                             </div>
@@ -6343,7 +6343,7 @@ function AegisShowcaseScreen({setScreen}){
                           {!editMode&&(
                             <div style={{display:"flex",alignItems:"center",gap:4}}>
                               {top4&&<div className="cond" style={{fontSize:10,color:"#52C47C",fontWeight:700,background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.2)",borderRadius:3,padding:"1px 5px"}}>ADV</div>}
-                              <div className="cond" style={{fontSize:14,fontWeight:700,color:isQual?"#9CA3AF":ptCol(pl.pts),minWidth:22,textAlign:"right"}}>{pl.pts===0?"DNF":pl.pts}</div>
+                              <div className="cond" style={{fontSize:14,fontWeight:700,color:isQual?"#A8B4C4":ptCol(pl.pts),minWidth:22,textAlign:"right"}}>{pl.pts===0?"DNF":pl.pts}</div>
                               {!isQual&&<div style={{fontSize:11,color:"#4A5568"}}>pts</div>}
                             </div>
                           )}
@@ -6362,7 +6362,7 @@ function AegisShowcaseScreen({setScreen}){
           </div>
 
           {lobbyRound==="G1"&&!editMode&&(
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.14)",borderRadius:8,padding:"12px 16px",fontSize:13,color:"#6B7280",lineHeight:1.7}}>
+            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.14)",borderRadius:8,padding:"12px 16px",fontSize:13,color:"#8E9BAE",lineHeight:1.7}}>
               <span style={{color:"#C4B5FD",fontWeight:600}}>Game 1 shows qualifying advancers only.</span> Each lobby had additional participants who were eliminated in round 1 and did not advance to Game 2. Top 4 per lobby (shown here) moved on.
             </div>
           )}
@@ -6373,7 +6373,7 @@ function AegisShowcaseScreen({setScreen}){
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.02)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
             {[["setup","Tournament Setup"],["signup","Sign-Up Page"],["run","Run Tournament"],["announce","Announcements"]].map(function(arr){return(
-              <button key={arr[0]} onClick={function(){setHostSetupTab(arr[0]);}} style={{flex:1,padding:"9px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",letterSpacing:".05em",transition:"all .15s",background:hostSetupTab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:hostSetupTab===arr[0]?"#C4B5FD":"#6B7280",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+              <button key={arr[0]} onClick={function(){setHostSetupTab(arr[0]);}} style={{flex:1,padding:"9px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:"'Inter',sans-serif",letterSpacing:".05em",transition:"all .15s",background:hostSetupTab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:hostSetupTab===arr[0]?"#C4B5FD":"#8E9BAE",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
             );})}
           </div>
 
@@ -6387,24 +6387,24 @@ function AegisShowcaseScreen({setScreen}){
               </div>
               <div style={{display:"grid",gap:14}}>
                 <div>
-                  <div style={{fontSize:12,color:"#6B7280",marginBottom:5,fontWeight:600}}>Tournament Name</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",marginBottom:5,fontWeight:600}}>Tournament Name</div>
                   <input value={setupName} onChange={function(e){setSetupName(e.target.value);}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",color:"#F2EDE4",fontSize:14,outline:"none",boxSizing:"border-box"}}/>
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
                   <div>
-                    <div style={{fontSize:12,color:"#6B7280",marginBottom:5,fontWeight:600}}>Date</div>
+                    <div style={{fontSize:12,color:"#8E9BAE",marginBottom:5,fontWeight:600}}>Date</div>
                     <input type="date" value={setupDate} onChange={function(e){setSetupDate(e.target.value);}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",color:"#F2EDE4",fontSize:14,outline:"none",boxSizing:"border-box",colorScheme:"dark"}}/>
                   </div>
                   <div>
-                    <div style={{fontSize:12,color:"#6B7280",marginBottom:5,fontWeight:600}}>Max Players</div>
+                    <div style={{fontSize:12,color:"#8E9BAE",marginBottom:5,fontWeight:600}}>Max Players</div>
                     <input value={setupMaxPlayers} onChange={function(e){setSetupMaxPlayers(e.target.value);}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",color:"#F2EDE4",fontSize:14,outline:"none",boxSizing:"border-box"}}/>
                   </div>
                 </div>
                 <div>
-                  <div style={{fontSize:12,color:"#6B7280",marginBottom:8,fontWeight:600}}>Format</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",marginBottom:8,fontWeight:600}}>Format</div>
                   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
                     {[["qualifier+points","Qualifier + Point Stage"],["swiss","Swiss"],["single-elim","Single Elimination"],["double-elim","Double Elimination"]].map(function(arr){return(
-                      <button key={arr[0]} onClick={function(){setSetupFormat(arr[0]);}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(setupFormat===arr[0]?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),background:setupFormat===arr[0]?"rgba(155,114,207,.15)":"rgba(255,255,255,.02)",color:setupFormat===arr[0]?"#C4B5FD":"#6B7280",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{arr[1]}</button>
+                      <button key={arr[0]} onClick={function(){setSetupFormat(arr[0]);}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(setupFormat===arr[0]?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),background:setupFormat===arr[0]?"rgba(155,114,207,.15)":"rgba(255,255,255,.02)",color:setupFormat===arr[0]?"#C4B5FD":"#8E9BAE",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{arr[1]}</button>
                     );})}
                   </div>
                 </div>
@@ -6422,14 +6422,14 @@ function AegisShowcaseScreen({setScreen}){
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:10}}>
                   <div>
                     <h3 style={{fontFamily:"'Cinzel',serif",fontSize:17,color:"#F2EDE4",margin:0,marginBottom:4}}>{setupName}</h3>
-                    <div style={{fontSize:12,color:"#6B7280"}}>Sign-up page {signupOpen?<span style={{color:"#52C47C",fontWeight:700}}>OPEN</span>:<span style={{color:"#F87171",fontWeight:700}}>CLOSED</span>} &nbsp;·&nbsp; {registeredPlayers.length}/{setupMaxPlayers||64} players</div>
+                    <div style={{fontSize:12,color:"#8E9BAE"}}>Sign-up page {signupOpen?<span style={{color:"#52C47C",fontWeight:700}}>OPEN</span>:<span style={{color:"#F87171",fontWeight:700}}>CLOSED</span>} &nbsp;·&nbsp; {registeredPlayers.length}/{setupMaxPlayers||64} players</div>
                   </div>
                   <div style={{display:"flex",gap:8}}>
                     <button onClick={function(){setSignupOpen(function(v){return !v;});}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid "+(signupOpen?"rgba(248,113,113,.4)":"rgba(82,196,124,.4)"),background:signupOpen?"rgba(248,113,113,.08)":"rgba(82,196,124,.08)",color:signupOpen?"#F87171":"#52C47C",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase"}}>{signupOpen?"Close Sign-Up":"Reopen Sign-Up"}</button>
                   </div>
                 </div>
                 <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.18)",borderRadius:8,padding:"12px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{flex:1,fontSize:13,color:"#9CA3AF",fontFamily:"monospace"}}>tftclash.gg/join/{setupName.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")}</div>
+                  <div style={{flex:1,fontSize:13,color:"#A8B4C4",fontFamily:"monospace"}}>tftclash.gg/join/{setupName.toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9-]/g,"")}</div>
                   <button onClick={function(){}} style={{padding:"5px 12px",borderRadius:6,border:"1px solid rgba(155,114,207,.3)",background:"rgba(155,114,207,.1)",color:"#C4B5FD",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Copy Link</button>
                 </div>
                 {signupOpen&&(
@@ -6449,7 +6449,7 @@ function AegisShowcaseScreen({setScreen}){
                       <div className="cond" style={{fontSize:12,color:"#4A5568",fontWeight:700,minWidth:24}}>{idx+1}</div>
                       <div style={{flex:1,fontSize:13,color:"#F2EDE4"}}>{ign}</div>
                       <div style={{fontSize:11,color:"#52C47C",fontWeight:700}}>Registered</div>
-                      <button onClick={function(){setRegisteredPlayers(function(prev){return prev.filter(function(p){return p!==ign;});});}} style={{background:"none",border:"none",color:"#4A4438",fontSize:14,cursor:"pointer",padding:"0 4px",lineHeight:1}}>x</button>
+                      <button onClick={function(){setRegisteredPlayers(function(prev){return prev.filter(function(p){return p!==ign;});});}} style={{background:"none",border:"none",color:"#6B7A8E",fontSize:14,cursor:"pointer",padding:"0 4px",lineHeight:1}}>x</button>
                     </div>
                   );})}
                   {registeredPlayers.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#4A5568",fontSize:13}}>No players registered yet. Share the link above.</div>}
@@ -6474,7 +6474,7 @@ function AegisShowcaseScreen({setScreen}){
                     <div style={{fontSize:18}}>{ctrl.icon}</div>
                     <div style={{fontFamily:"'Inter',sans-serif",fontSize:14,fontWeight:700,color:"#F2EDE4",letterSpacing:".04em"}}>{ctrl.label}</div>
                   </div>
-                  <div style={{fontSize:12,color:"#6B7280",lineHeight:1.5}}>{ctrl.desc}</div>
+                  <div style={{fontSize:12,color:"#8E9BAE",lineHeight:1.5}}>{ctrl.desc}</div>
                   <button style={{padding:"7px 12px",borderRadius:7,border:"1px solid "+ctrl.color+"40",background:ctrl.color+"12",color:ctrl.color,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Activate</button>
                 </div>
               );})}
@@ -6495,7 +6495,7 @@ function AegisShowcaseScreen({setScreen}){
               <div style={{display:"flex",gap:8,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
                 <div style={{fontSize:12,color:"#4A5568"}}>{draftMsg.length} characters</div>
                 <div style={{display:"flex",gap:8}}>
-                  <button onClick={function(){setDraftMsg("");}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,.08)",background:"transparent",color:"#6B7280",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Clear</button>
+                  <button onClick={function(){setDraftMsg("");}} style={{padding:"7px 16px",borderRadius:7,border:"1px solid rgba(255,255,255,.08)",background:"transparent",color:"#8E9BAE",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Clear</button>
                   <button onClick={function(){if(draftMsg.trim()){setSentMsg(draftMsg);setDraftMsg("");}}} style={{padding:"7px 20px",borderRadius:7,border:"none",background:"#9B72CF",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Post Announcement</button>
                 </div>
               </div>
@@ -6507,13 +6507,13 @@ function AegisShowcaseScreen({setScreen}){
               )}
             </div>
             <div style={{marginTop:18}}>
-              <div className="cond" style={{fontSize:12,color:"#6B7280",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginBottom:10}}>Quick Templates</div>
+              <div className="cond" style={{fontSize:12,color:"#8E9BAE",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginBottom:10}}>Quick Templates</div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                 {SAMPLE_ANNOUNCEMENTS.map(function(sa){return(
                   <div key={sa.label} style={{display:"flex",alignItems:"flex-start",gap:10,background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.05)",borderRadius:8,padding:"10px 12px"}}>
                     <div style={{flex:1}}>
                       <div className="cond" style={{fontSize:12,color:"#E8A838",fontWeight:700,marginBottom:3}}>{sa.label}</div>
-                      <div style={{fontSize:13,color:"#6B7280",lineHeight:1.6}}>{sa.text}</div>
+                      <div style={{fontSize:13,color:"#8E9BAE",lineHeight:1.6}}>{sa.text}</div>
                     </div>
                     <button onClick={function(){setDraftMsg(sa.text);}} style={{padding:"5px 12px",borderRadius:6,border:"1px solid rgba(155,114,207,.3)",background:"rgba(155,114,207,.08)",color:"#C4B5FD",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",textTransform:"uppercase",flexShrink:0}}>Use</button>
                   </div>
@@ -6542,13 +6542,13 @@ function AegisShowcaseScreen({setScreen}){
               <Panel key={f.title} style={{padding:"18px"}}>
                 <div style={{fontSize:24,marginBottom:10}}>{f.icon}</div>
                 <div style={{fontFamily:"'Cinzel',serif",fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6}}>{f.title}</div>
-                <div style={{fontSize:13,color:"#6B7280",lineHeight:1.7}}>{f.desc}</div>
+                <div style={{fontSize:13,color:"#8E9BAE",lineHeight:1.7}}>{f.desc}</div>
               </Panel>
             );})}
           </div>
           <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"26px"}}>
             <h3 style={{fontFamily:"'Cinzel',serif",fontSize:20,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
-            <div style={{fontSize:14,color:"#9CA3AF",lineHeight:1.8,marginBottom:18}}>This entire page was generated from your Showdown #151 spreadsheet - your exact format, every lobby, every placement, all 62+ players. No Excel. No manual updates. This is what your community sees live, every week.</div>
+            <div style={{fontSize:14,color:"#A8B4C4",lineHeight:1.8,marginBottom:18}}>This entire page was generated from your Showdown #151 spreadsheet - your exact format, every lobby, every placement, all 62+ players. No Excel. No manual updates. This is what your community sees live, every week.</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
               <button onClick={function(){setScreen("host-apply");}} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
               <button onClick={function(){setScreen("pricing");}} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
@@ -6676,7 +6676,7 @@ export default function TFTClash(){
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
             <div style={{fontSize:38,marginBottom:14}}>🔒</div>
             <h2 style={{color:"#F2EDE4",marginBottom:8}}>Admin Required</h2>
-            <div style={{fontSize:13,color:"#4A4438"}}>Hint: <span style={{color:"#E8A838"}}>admin</span></div>
+            <div style={{fontSize:13,color:"#6B7A8E"}}>Hint: <span style={{color:"#E8A838"}}>admin</span></div>
           </div>
         )}
       </div>
