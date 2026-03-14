@@ -1596,7 +1596,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         {/* Left: Hero */}
         <div style={{position:"relative",padding:"28px 24px",borderRadius:20,background:"radial-gradient(ellipse at 30% 20%,rgba(155,114,207,.12) 0%,rgba(8,8,15,0) 60%)",border:"1px solid rgba(155,114,207,.1)"}}>
           <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:20}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:"#9B72CF",animation:"pulse 2s infinite"}}/>
+            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
             <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 · Season Active · Weekly Clash</span>
           </div>
           <h1 className="au1 display" style={{color:"#F2EDE4",lineHeight:.88,letterSpacing:"-.02em",marginBottom:20}}>
@@ -1617,7 +1617,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
               <span className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>Clash #14 Starts In</span>
             </div>
-            <div style={{display:"flex",gap:10,justifyContent:"flex-start",flexWrap:"wrap"}}>
+            <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
               {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
                 <div key={l} className="countdown-tile">
                   <div className="digit">{String(v).padStart(2,"0")}</div>
