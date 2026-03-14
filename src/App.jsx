@@ -4651,7 +4651,7 @@ function ChallengesScreen({currentUser,players,toast}){
 }
 
 // ─── AUTH SCREENS ─────────────────────────────────────────────────────────────
-function SignUpScreen({onSignUp,onGoLogin,toast}){
+function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
   const [step,setStep]=useState(1); // 1=credentials, 2=profile
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
@@ -4693,6 +4693,15 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
   return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
       <div style={{width:"100%",maxWidth:480}}>
+        {/* Back button */}
+        <div style={{marginBottom:16}}>
+          <button onClick={step===2?()=>setStep(1):onBack}
+            style={{background:"none",border:"none",cursor:"pointer",color:"#9AAABF",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:6,padding:"4px 0",transition:"color .15s"}}
+            onMouseEnter={e=>e.currentTarget.style.color="#F2EDE4"}
+            onMouseLeave={e=>e.currentTarget.style.color="#9AAABF"}>
+            ← {step===2?"Back":"Back to home"}
+          </button>
+        </div>
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:72,height:72,objectFit:"contain",marginBottom:12}}/>
@@ -4790,7 +4799,7 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
   );
 }
 
-function LoginScreen({onLogin,onGoSignUp,toast}){
+function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
   const [email,setEmail]=useState("");
   const [pw,setPw]=useState("");
   const [loading,setLoading]=useState(false);
@@ -4814,6 +4823,15 @@ function LoginScreen({onLogin,onGoSignUp,toast}){
   return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
       <div style={{width:"100%",maxWidth:420}}>
+        {/* Back button */}
+        <div style={{marginBottom:16}}>
+          <button onClick={onBack}
+            style={{background:"none",border:"none",cursor:"pointer",color:"#9AAABF",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:6,padding:"4px 0",transition:"color .15s"}}
+            onMouseEnter={e=>e.currentTarget.style.color="#F2EDE4"}
+            onMouseLeave={e=>e.currentTarget.style.color="#9AAABF"}>
+            ← Back to home
+          </button>
+        </div>
         <div style={{textAlign:"center",marginBottom:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:72,height:72,objectFit:"contain",marginBottom:12}}/>
           <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838"}}>TFT Clash</div>
@@ -6709,7 +6727,7 @@ export default function TFTClash(){
       <style>{GCSS+styleHideMobile}</style>
       <Hexbg/>
       <div style={{position:"relative",zIndex:1}}>
-        <LoginScreen onLogin={handleLogin} onGoSignUp={()=>setAuthScreen("signup")} toast={toast}/>
+        <LoginScreen onLogin={handleLogin} onGoSignUp={()=>setAuthScreen("signup")} onBack={()=>setAuthScreen(null)} toast={toast}/>
         <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
           {toasts.map(t=><div key={t.id} style={{pointerEvents:"auto"}}><Toast msg={t.msg} type={t.type} onClose={()=>removeToast(t.id)}/></div>)}
         </div>
@@ -6721,7 +6739,7 @@ export default function TFTClash(){
       <style>{GCSS+styleHideMobile}</style>
       <Hexbg/>
       <div style={{position:"relative",zIndex:1}}>
-        <SignUpScreen onSignUp={handleSignUp} onGoLogin={()=>setAuthScreen("login")} toast={toast}/>
+        <SignUpScreen onSignUp={handleSignUp} onGoLogin={()=>setAuthScreen("login")} onBack={()=>setAuthScreen(null)} toast={toast}/>
         <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
           {toasts.map(t=><div key={t.id} style={{pointerEvents:"auto"}}><Toast msg={t.msg} type={t.type} onClose={()=>removeToast(t.id)}/></div>)}
         </div>
