@@ -2627,7 +2627,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
   const CLASH_NAME="Clash #14";
   const CLASH_DATE="Mar 8 2026";
   const MEDALS=["🥇","🥈","🥉"];
-  const PODIUM_COLS=["#C0C0C0","#E8A838","#CD7F32"];
+  const PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
 
   if(!champ)return<div className="page wrap" style={{textAlign:"center",color:"#6B7280",paddingTop:60}}>Complete a clash first!</div>;
 
@@ -2731,7 +2731,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
           {top3.map((p,idx)=>{
             const actualRank=idx===0?1:idx===1?0:2;
             const col=PODIUM_COLS[actualRank];
-            const isGold=actualRank===1;
+            const isGold=actualRank===0;
             const height=isGold?1:actualRank===0?0.88:0.76;
             return(
               <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
