@@ -1490,8 +1490,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       </div>
 
-      {/* Check-in card (only when check-in is open and user is a registered player) */}
-      {tPhase==="checkin"&&currentUser&&linkedPlayer&&(
+      {/* Check-in card — visible during registration and check-in phases */}
+      {tPhase!=="inprogress"&&tPhase!=="complete"&&currentUser&&linkedPlayer&&(
         <div style={{background:myCheckedIn?"rgba(82,196,124,.08)":"rgba(232,168,56,.08)",border:"1px solid "+(myCheckedIn?"rgba(82,196,124,.4)":"rgba(232,168,56,.4)"),borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
           <div style={{fontSize:22}}>{myCheckedIn?"✅":"⏰"}</div>
           <div style={{flex:1,minWidth:0}}>
