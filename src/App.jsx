@@ -425,6 +425,12 @@ h1,h2,h3,h4{font-family:'Cinzel',Georgia,serif;font-weight:700;}
   backdrop-filter:blur(20px);
   display:none;
 }
+.top-nav-row2{
+  display:flex;overflow-x:auto;scrollbar-width:none;
+  border-top:1px solid rgba(242,237,228,.05);
+  background:rgba(0,0,0,.2);
+}
+.top-nav-row2::-webkit-scrollbar{display:none;}
 @media(min-width:768px){
   .top-nav{display:block;}
   .bottom-nav{display:none;}
@@ -1169,7 +1175,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   const [pwModal,setPwModal]=useState(false);
   const [pw,setPw]=useState("");
   const [drawer,setDrawer]=useState(false);
-  const [desktopMore,setDesktopMore]=useState(false);
   const checkedIn=players.filter(p=>p.checkedIn).length;
   const dispCount=(disputes||[]).length;
 
@@ -1188,17 +1193,14 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"more",icon:"☰",label:"More"},
   ];
 
-  // Desktop nav — primary (always visible) + secondary (More dropdown)
-  const DESKTOP_PRIMARY=[
+  // Desktop nav — all items in scrollable second row
+  const ALL_NAV=[
     {id:"home",label:"Home"},
     {id:"roster",label:"Roster"},
     {id:"bracket",label:"Bracket"},
     {id:"leaderboard",label:"Leaderboard"},
     {id:"results",label:"Results"},
     {id:"hof",label:"Hall of Fame"},
-    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
-  ];
-  const DESKTOP_MORE=[
     {id:"archive",label:"Archive"},
     {id:"aegis-showcase",label:"AEGIS #151"},
     {id:"milestones",label:"Milestones"},
@@ -1206,8 +1208,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"rules",label:"Rules"},
     {id:"faq",label:"FAQ"},
     {id:"pricing",label:"Pricing"},
+    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
   ];
-  const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
 
   const DRAWER_ITEMS=[
     {id:"hof",icon:"🏛",label:"Hall of Fame"},
@@ -1272,55 +1274,18 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
         </>
       )}
 
-      {/* Desktop top nav */}
+      {/* Desktop top nav — two-row layout */}
       <nav className="top-nav">
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:62,display:"flex",alignItems:"center",gap:0}}>
-          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:24,flexShrink:0,cursor:"pointer"}}>
-            <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:34,height:34,objectFit:"contain"}}/>
+        {/* Row 1: branding + auth/admin */}
+        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 20px",height:50,display:"flex",alignItems:"center",gap:0}}>
+          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:"auto",flexShrink:0,cursor:"pointer"}}>
+            <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:30,height:30,objectFit:"contain"}}/>
             <div>
-              <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
+              <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:13,fontWeight:700,lineHeight:1}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:0,flex:1}}>
-            {DESKTOP_PRIMARY.map(l=>(
-              <button key={l.id} onClick={()=>setScreen(l.id)}
-                data-active={screen===l.id?"true":undefined}
-                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
-                  color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
-                  borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
-                  transition:"all .2s",marginBottom:-1}}>
-                {l.label}
-              </button>
-            ))}
-            {/* More dropdown */}
-            <div style={{position:"relative"}}>
-              <button onClick={()=>setDesktopMore(o=>!o)}
-                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
-                  color:desktopMoreActive?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
-                  borderBottom:desktopMoreActive?"2px solid #E8A838":"2px solid transparent",
-                  transition:"all .2s",marginBottom:-1}}>
-                More ▾
-              </button>
-              {desktopMore&&(
-                <>
-                  <div style={{position:"fixed",inset:0,zIndex:98}} onClick={()=>setDesktopMore(false)}/>
-                  <div style={{position:"absolute",left:0,top:"calc(100% + 6px)",minWidth:180,background:"linear-gradient(160deg,#0F1828,#0B1220)",
-                    border:"1px solid rgba(232,168,56,.2)",borderRadius:12,boxShadow:"0 16px 48px rgba(0,0,0,.7)",zIndex:99,overflow:"hidden"}}>
-                    {DESKTOP_MORE.map(l=>(
-                      <button key={l.id} onClick={()=>{setScreen(l.id);setDesktopMore(false);}}
-                        style={{display:"block",width:"100%",textAlign:"left",background:screen===l.id?"rgba(232,168,56,.08)":"none",
-                          border:"none",padding:"11px 16px",fontSize:13,fontWeight:600,
-                          color:screen===l.id?"#E8A838":"#C8BFB0",cursor:"pointer",transition:"all .15s",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
-                        {l.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginLeft:12,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
             {dispCount>0&&(
               <button onClick={()=>setScreen("admin")} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.4)",borderRadius:20,cursor:"pointer",animation:"pulse-red 2s infinite"}}>
                 <Dot color="#EF4444" size={6}/>
@@ -1331,15 +1296,12 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               <span style={{color:"#6EE7B7",fontWeight:700}}>{checkedIn}</span>/{players.length}
             </div>
             <NotificationBell notifications={notifications||[]} onMarkAllRead={onMarkAllRead||function(){}}/>
-            {/* Auth */}
             {currentUser?(
-              <div style={{display:"flex",alignItems:"center",gap:8}}>
-                <button onClick={()=>setScreen("account")} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:20,padding:"6px 14px",cursor:"pointer",transition:"all .15s"}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.6)"}
-                  onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}>
-                  <span style={{fontSize:12,fontWeight:600,color:"#E8A838"}}>{currentUser.username}</span>
-                </button>
-              </div>
+              <button onClick={()=>setScreen("account")} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:20,padding:"5px 12px",cursor:"pointer",transition:"all .15s"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.6)"}
+                onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}>
+                <span style={{fontSize:12,fontWeight:600,color:"#E8A838"}}>{currentUser.username}</span>
+              </button>
             ):(
               <div style={{display:"flex",gap:6}}>
                 <Btn v="dark" s="sm" onClick={()=>onAuthClick("login")}>Sign In</Btn>
@@ -1350,6 +1312,20 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               ?<Btn v="ghost" s="sm" onClick={()=>setPwModal(true)}>Admin</Btn>
               :<Btn v="crimson" s="sm" onClick={()=>{setIsAdmin(false);toast("Admin off","success");}}>● Admin</Btn>
             }
+          </div>
+        </div>
+        {/* Row 2: all nav items — scrollable */}
+        <div className="top-nav-row2">
+          <div style={{maxWidth:1400,margin:"0 auto",padding:"0 8px",display:"flex",alignItems:"center",gap:0}}>
+            {ALL_NAV.map(l=>(
+              <button key={l.id} onClick={()=>setScreen(l.id)}
+                style={{background:"none",border:"none",padding:"6px 10px",fontSize:12,fontWeight:600,
+                  color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
+                  borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
+                  transition:"all .2s",marginBottom:-1,flexShrink:0}}>
+                {l.label}
+              </button>
+            ))}
           </div>
         </div>
       </nav>
@@ -1725,6 +1701,40 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       </div>
 
+
+      {/* Featured Events */}
+      <div style={{marginTop:24,marginBottom:4}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
+          <div>
+            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Partner Events</div>
+            <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",lineHeight:1}}>Featured Tournaments</h3>
+          </div>
+          <Btn v="dark" s="sm" onClick={()=>setScreen("aegis-showcase")}>View All →</Btn>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+          <div style={{background:"linear-gradient(145deg,#0D1520,#111827)",border:"1px solid rgba(155,114,207,.35)",borderRadius:16,padding:"20px",cursor:"pointer",transition:"border-color .2s"}}
+            onClick={()=>setScreen("aegis-showcase")}
+            onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.7)"}
+            onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.35)"}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+              <div style={{width:40,height:40,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>&#127942;</div>
+              <div>
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>Aegis Esports Showdown</div>
+                <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>Presented by ZenMarket</div>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:12}}>
+              <span style={{background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,color:"#6EE7B7",display:"flex",alignItems:"center",gap:4}}>
+                <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",display:"inline-block"}}/>LIVE
+              </span>
+              <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,color:"#E8A838"}}>32 Players</span>
+              <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>Swiss</span>
+            </div>
+            <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:14}}>Official partner clash for Aegis Esports — open to all ranked players. Prizes, broadcast, and full bracket.</div>
+            <Btn v="purple" s="sm" full onClick={e=>{e.stopPropagation();setScreen("aegis-showcase");}}>View Event →</Btn>
+          </div>
+        </div>
+      </div>
       {/* Bottom row */}
       <div style={{marginTop:20}}>
         <SponsorBanner onNavigate={setScreen}/>
@@ -3336,11 +3346,15 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     {id:3,name:"Mortdog_Fan",org:"",email:"fan@gmail.com",reason:"I want to host for my friend group.",freq:"biweekly",status:"approved",submittedAt:"Feb 20 2026"},
   ]);
 
+  const [flashForm,setFlashForm]=useState({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
+  const [flashEvents,setFlashEvents]=useState([]);
+
   const TABS=[
     {id:"dashboard",icon:"📊",label:"Dashboard"},
     {id:"players",icon:"👥",label:"Players"},
     {id:"scores",icon:"✏️",label:"Scores"},
     {id:"round",icon:"⚡",label:"Round"},
+    {id:"flash",icon:"🔥",label:"Flash"},
     {id:"schedule",icon:"📅",label:"Schedule"},
     {id:"season",icon:"🏆",label:"Season"},
     {id:"broadcast",icon:"📢",label:"Broadcast"},
@@ -3520,6 +3534,70 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               </button>
             ))}
           </Panel>
+        </div>
+      )}
+
+      {tab==="flash"&&(
+        <div className="grid-2" style={{alignItems:"start"}}>
+          <Panel accent style={{padding:"20px"}}>
+            <div style={{marginTop:6}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+                <div style={{width:36,height:36,background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🔥</div>
+                <div>
+                  <h3 style={{fontSize:15,color:"#F2EDE4",lineHeight:1}}>Flash Tournament</h3>
+                  <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Small · Fast · No registration phase</div>
+                </div>
+              </div>
+              <div style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:9,padding:"10px 12px",marginBottom:14,fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>
+                Flash clashes start immediately — no sign-up period, no check-in. Add players from the roster and kick off in seconds.
+              </div>
+              <div style={{display:"grid",gap:12,marginBottom:14}}>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><Inp value={flashForm.name} onChange={v=>setFlashForm(f=>({...f,name:v}))} placeholder="Flash Clash"/></div>
+                <div className="grid-2">
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Player Cap</label><Sel value={flashForm.cap} onChange={v=>setFlashForm(f=>({...f,cap:v}))}>{[4,8,16].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Rounds</label><Sel value={flashForm.rounds} onChange={v=>setFlashForm(f=>({...f,rounds:v}))}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                </div>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={flashForm.format} onChange={v=>setFlashForm(f=>({...f,format:v}))}>{["Single Lobby","Two Lobbies","Finals Only"].map(fm=><option key={fm}>{fm}</option>)}</Sel></div>
+              </div>
+              <Btn v="crimson" full onClick={()=>{
+                if(!flashForm.name.trim())return;
+                var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"live",startedAt:new Date().toLocaleTimeString()};
+                setFlashEvents(es=>[ev,...es]);
+                setScheduledEvents(ses=>[...ses,{id:Date.now()+1,name:flashForm.name.trim(),type:"FLASH",date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),cap:parseInt(flashForm.cap),format:flashForm.format,status:"live"}]);
+                addAudit("ACTION","Flash started: "+flashForm.name);
+                toast(flashForm.name+" is LIVE! "+flashForm.cap+"p · "+flashForm.rounds+"R","success");
+                setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
+              }}>Start Flash Now ⚡</Btn>
+            </div>
+          </Panel>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Active Flash Events</div>
+            {flashEvents.length===0&&(
+              <Panel style={{padding:"28px",textAlign:"center"}}>
+                <div style={{fontSize:28,marginBottom:8}}>🔥</div>
+                <div style={{color:"#9AAABF",fontSize:13}}>No flash events yet</div>
+                <div style={{color:"#7A8BA0",fontSize:11,marginTop:4}}>Start one on the left</div>
+              </Panel>
+            )}
+            {flashEvents.map(ev=>(
+              <Panel key={ev.id} style={{padding:"14px",border:"1px solid rgba(248,113,113,.25)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+                  <div>
+                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
+                      <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{ev.name}</span>
+                      <Tag color="#F87171" size="sm">FLASH</Tag>
+                      {ev.status==="live"&&<Tag color="#6EE7B7" size="sm">● LIVE</Tag>}
+                    </div>
+                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.cap}p · {ev.rounds}R · {ev.format}</div>
+                    <div className="cond" style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Started {ev.startedAt}</div>
+                  </div>
+                  <Btn s="sm" v="dark" onClick={()=>{setFlashEvents(es=>es.map(e=>e.id===ev.id?{...e,status:"complete"}:e));addAudit("RESULT","Flash complete: "+ev.name);toast(ev.name+" complete","success");}}>
+                    {ev.status==="live"?"End":"Done"}
+                  </Btn>
+                </div>
+              </Panel>
+            ))}
+          </div>
         </div>
       )}
 
@@ -5799,7 +5877,7 @@ function RulesScreen({setScreen}){
       <div style={{marginBottom:32}}>
         <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Official</div>
         <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Tournament Rules</h1>
-        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:600,lineHeight:1.7}}>TFT Clash follows rules based on the official Riot EMEA Esports rulebook, adapted for our community format. All participants are expected to read and understand these rules before competing.</p>
+        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:600,lineHeight:1.7}}>TFT Clash follows rules based on our community rulebook, adapted for competitive play. All participants are expected to read and understand these rules before competing.</p>
       </div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:24}}>
         {TABS.map(t=>(
@@ -5858,7 +5936,7 @@ function RulesScreen({setScreen}){
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           <Panel style={{padding:"24px"}}>
             <h2 style={{fontSize:18,color:"#E8A838",marginBottom:4,fontFamily:"'Cinzel',serif"}}>Tournament Point System</h2>
-            <div style={{fontSize:13,color:"#BECBD9",marginBottom:20}}>Per-game placement points - used in all TFT Clash events. Based on the official 2026 EMEA Esports rulebook.</div>
+            <div style={{fontSize:13,color:"#BECBD9",marginBottom:20}}>Per-game placement points — Clash Scoring used in all TFT Clash events.</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:8,marginBottom:24}}>
               {[[1,"8","#E8A838"],[2,"7","#C0C0C0"],[3,"6","#CD7F32"],[4,"5","#4ECDC4"],[5,"4","#C8D4E0"],[6,"3","#C8D4E0"],[7,"2","#C8D4E0"],[8,"1","#C8D4E0"]].map(([place,pts,color])=>(
                 <div key={place} style={{background:"#0A0F1A",borderRadius:8,padding:"14px 8px",textAlign:"center",border:"1px solid rgba(242,237,228,.06)"}}>
@@ -6025,7 +6103,7 @@ function FAQScreen({setScreen}){
     {cat:"Format & Scoring",items:[
       {q:"How many games do I play per clash?",a:"In our standard 24-player format, each player plays 3–5 games in the same lobby. Final standings are determined by cumulative placement points across all games."},
       {q:"How are lobbies decided?",a:"Lobbies are seeded by ladder rank using snake-draft - each lobby gets a balanced spread of skill levels. Unranked or equal-LP players are placed randomly."},
-      {q:"What's the points system?",a:"Official Riot EMEA placement points per game: 1st=8, 2nd=7, 3rd=6, 4th=5, 5th=4, 6th=3, 7th=2, 8th=1."},
+      {q:"What's the points system?",a:"Clash Scoring per game: 1st=8, 2nd=7, 3rd=6, 4th=5, 5th=4, 6th=3, 7th=2, 8th=1."},
       {q:"What if there aren't enough players for full 8-player lobbies?",a:"Lobbies of 7 are completely valid - scoring is identical for the 7 present. For advancement stages, top seeds may receive a BYE (0 points, neutral)."},
       {q:"Do clash points carry over between events?",a:"In-game tournament points (1st=8pts etc.) are used only within a single clash. Season points - shown on the leaderboard - are separate and accumulate across all clashes in the season."},
     ]},
@@ -6228,14 +6306,14 @@ function AegisShowcaseScreen({setScreen}){
   var ROUND_META={
     G1:{label:"Game 1",tag:"Top 4 Qualifier - Round 1",color:"#9B72CF",desc:"All 62+ participants compete across 16 lobbies. Top 4 per lobby advance to Game 2. Scores are NOT counted toward cumulative points but used as tiebreaker if needed.",count:"62+ players · 16 lobbies"},
     G2:{label:"Game 2",tag:"Top 4 Qualifier - Round 2",color:"#9B72CF",desc:"Survivors from Game 1 compete again. Top 4 per lobby advance to the Point Stage. G1 and G2 placements form the tiebreaker chain - most recent first.",count:"62 players · 8 lobbies"},
-    G3:{label:"Game 3",tag:"Point Stage - Game 1",color:"#4ECDC4",desc:"32 players. EMEA scoring begins: 1st=8pts, 2nd=7pts … 8th=1pt. Cumulative totals tracked. Bottom 8 eliminated after results.",count:"32 players · 4 lobbies"},
+    G3:{label:"Game 3",tag:"Point Stage - Game 1",color:"#4ECDC4",desc:"32 players. Clash Scoring begins: 1st=8pts, 2nd=7pts … 8th=1pt. Cumulative totals tracked. Bottom 8 eliminated after results.",count:"32 players · 4 lobbies"},
     G4:{label:"Game 4",tag:"Point Stage - Game 2",color:"#4ECDC4",desc:"24 players. Points accumulate. Lobbies reshuffle based on current standings. Bottom 8 eliminated after results.",count:"24 players · 3 lobbies"},
     G5:{label:"Game 5",tag:"Point Stage - Game 3",color:"#4ECDC4",desc:"16 players. Top 8 by cumulative total after this game advance to the Finals.",count:"16 players · 2 lobbies"},
     G6:{label:"Game 6",tag:"Finals",color:"#E8A838",desc:"The top 8 players compete in one final lobby. Highest cumulative total wins. Tiebreaker: most recent game placement.",count:"8 players · 1 lobby"},
   };
 
   var SAMPLE_ANNOUNCEMENTS=[
-    {label:"Format Reminder",text:"@Weeklies reminder: Games 1-2 are qualifier rounds - top 4 per lobby advance. Games 3-6 use the EMEA point system (1st=8pts). Points accumulate from Game 3 onwards only."},
+    {label:"Format Reminder",text:"@Weeklies reminder: Games 1-2 are qualifier rounds - top 4 per lobby advance. Games 3-6 use Clash Scoring (1st=8pts). Points accumulate from Game 3 onwards only."},
     {label:"Lobby Assignments Live",text:"Game 3 lobby assignments are now live! Check the Lobbies tab for your group. Point stage starts NOW - good luck everyone!"},
     {label:"Scores Updated",text:"Game 4 results are in! Standings have been updated. 8 players eliminated. Check the Standings tab to see where you are heading into Game 5."},
     {label:"Finals Announced",text:"Your Game 6 finalists: D0PA, LC Abyss, vnck, Ken Kitade, arzootft, Hydro, ryt hardpuzzle, Talelelelelelel. Finals lobby assignments are live - check the Lobbies tab!"},
@@ -6333,7 +6411,7 @@ function AegisShowcaseScreen({setScreen}){
               </div>
               <div>
                 <div className="cond" style={{background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",borderRadius:5,padding:"3px 10px",fontSize:13,color:"#E8A838",fontWeight:700,display:"inline-block",marginBottom:4}}>Games 3 – 6 · Point Stage Format</div>
-                <div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.8}}>Qualified players split into lobbies of 8 based on qualifier performance. EMEA point system in effect. <span style={{color:"#F2EDE4",fontWeight:600}}>8 players eliminated after every game</span>, lobbies reshuffled after each game.</div>
+                <div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.8}}>Qualified players split into lobbies of 8 based on qualifier performance. Clash Scoring in effect. <span style={{color:"#F2EDE4",fontWeight:600}}>8 players eliminated after every game</span>, lobbies reshuffled after each game.</div>
               </div>
             </div>
             <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"12px 16px",fontSize:14,color:"#C8D4E0",lineHeight:1.8}}>
@@ -6350,7 +6428,7 @@ function AegisShowcaseScreen({setScreen}){
                 {label:"Game 2",sub:"Qualifier Round 2",color:"#9B72CF",icon:"2",count:"62 players · 8 lobbies",
                   bullets:["Survivors from G1 compete again in reshuffled lobbies","Top 4 per lobby advance to the Point Stage","G2 placement is the first tiebreaker (most recent)","G1 is the second tiebreaker"]},
                 {label:"Game 3",sub:"Point Stage - 32 Players",color:"#4ECDC4",icon:"3",count:"32 players · 4 lobbies",
-                  bullets:["EMEA scoring begins: 1st=8 · 2nd=7 · 3rd=6 · 4th=5 · 5th=4 · 6th=3 · 7th=2 · 8th=1","Lobbies seeded by qualifier performance","8 lowest scorers eliminated after results"]},
+                  bullets:["Clash Scoring begins: 1st=8 · 2nd=7 · 3rd=6 · 4th=5 · 5th=4 · 6th=3 · 7th=2 · 8th=1","Lobbies seeded by qualifier performance","8 lowest scorers eliminated after results"]},
                 {label:"Game 4",sub:"Point Stage - 24 Players",color:"#4ECDC4",icon:"4",count:"24 players · 3 lobbies",
                   bullets:["Points accumulate from G3+G4","Lobbies reshuffled based on current standings","8 lowest scorers eliminated after results"]},
                 {label:"Game 5",sub:"Point Stage - 16 Players",color:"#4ECDC4",icon:"5",count:"16 players · 2 lobbies",
