@@ -360,7 +360,7 @@ const PREMIUM_TIERS=[
 
 
 const GCSS=`
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body,#root{background:#07070E;}
 html{color:#D4CEC9;font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;}
@@ -371,7 +371,7 @@ input,select,textarea{font-family:'Inter',sans-serif;outline:none;color:#F2EDE4;
 button{font-family:'Inter',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input::placeholder{color:#6B7280!important;opacity:1!important;}
 select option{background:#1C2030;color:#F2EDE4;}
-h1,h2,h3,h4{font-family:'Bebas Neue',sans-serif;letter-spacing:.04em;}
+h1,h2,h3,h4{font-family:'Cinzel',serif;letter-spacing:.04em;}
 .cinzel{font-family:'Cinzel',Georgia,serif;font-weight:700;}
 .mono{font-family:'JetBrains Mono',monospace!important;}
 .cond{font-family:'Inter',sans-serif!important;}
@@ -549,12 +549,12 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 /* ── Phase 5: Arena redesign ──────────────────────────────────────────── */
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
 .glass{background:rgba(255,255,255,.04)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09)!important;}
-.display{font-family:'Bebas Neue',sans-serif;font-size:clamp(40px,6vw,72px);letter-spacing:-.01em;}
-.section-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.06em;color:#F2EDE4;line-height:1;}
+.display{font-family:'Cinzel',serif;font-size:clamp(40px,6vw,72px);letter-spacing:-.01em;}
+.section-title{font-family:'Cinzel',serif;font-size:32px;letter-spacing:.06em;color:#F2EDE4;line-height:1;}
 .section-sub{font-size:14px;color:#8B9CC7;margin-top:4px;}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;}
-.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,64px);letter-spacing:.04em;line-height:1;color:#F2EDE4;}
-.hero-subtitle{font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,3vw,28px);letter-spacing:.08em;color:#E8A838;}
+.hero-title{font-family:'Cinzel',serif;font-size:clamp(36px,5vw,64px);letter-spacing:.04em;line-height:1;color:#F2EDE4;}
+.hero-subtitle{font-family:'Cinzel',serif;font-size:clamp(18px,3vw,28px);letter-spacing:.08em;color:#E8A838;}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px;}
 .stat-tile{background:linear-gradient(145deg,#131C2A,#0D1421);border:1px solid rgba(242,237,228,.08);border-radius:12px;padding:18px 14px;text-align:center;}
 .stat-tile-val{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;line-height:1;}
@@ -856,8 +856,8 @@ function ChampionHeroCard({champion,onClick}){
       <div style={{position:"absolute",top:-60,right:-60,width:220,height:220,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.15) 0%,transparent 70%)",pointerEvents:"none"}}/>
       <div style={{position:"absolute",bottom:-40,left:-40,width:160,height:160,borderRadius:"50%",background:"radial-gradient(circle,rgba(155,114,207,.1) 0%,transparent 70%)",pointerEvents:"none"}}/>
       <div style={{position:"relative",zIndex:1}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:11,letterSpacing:".25em",color:"#E8A838",marginBottom:6,textTransform:"uppercase"}}>⚔ Season Champion · {c.season}</div>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(42px,6vw,72px)",letterSpacing:".04em",lineHeight:1,color:"#F2EDE4",marginBottom:4}}>{c.name}</div>
+        <div style={{fontFamily:"'Cinzel',serif",fontSize:11,letterSpacing:".25em",color:"#E8A838",marginBottom:6,textTransform:"uppercase"}}>⚔ Season Champion · {c.season}</div>
+        <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(42px,6vw,72px)",letterSpacing:".04em",lineHeight:1,color:"#F2EDE4",marginBottom:4}}>{c.name}</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
           <span style={{background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.35)",borderRadius:5,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#E8A838",fontFamily:"'Inter',sans-serif"}}>{c.rank}</span>
           <span style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.3)",borderRadius:5,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Inter',sans-serif"}}>{c.region}</span>
@@ -1612,7 +1612,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(8,8,15,.6))",border:"1px solid rgba(155,114,207,.25)",borderRadius:16,padding:"20px 24px"}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
-              <span style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:16,letterSpacing:".14em",color:"#9B72CF",textTransform:"uppercase"}}>Clash #14 Starts In</span>
+              <span style={{fontFamily:"'Cinzel',serif",fontSize:16,letterSpacing:".14em",color:"#9B72CF",textTransform:"uppercase"}}>Clash #14 Starts In</span>
             </div>
             <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
               {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
@@ -2209,7 +2209,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
           <div style={{width:72,height:72,borderRadius:"50%",
             background:`linear-gradient(135deg,${rc(player.rank)}33,${rc(player.rank)}11)`,
             border:`3px solid ${player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"}`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Bebas Neue',sans-serif",flexShrink:0,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Cinzel',serif",flexShrink:0,
             boxShadow:player.name===SEASON_CHAMPION.name?"0 0 24px rgba(232,168,56,.4)":"none"}}>
             {player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
             {player.name.charAt(0)}
@@ -2780,7 +2780,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
         <div style={{flex:1,minWidth:0}}>
           <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Season 16</div>
-          <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(28px,3.5vw,42px)",letterSpacing:".04em",color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME} — Final Results</h1>
+          <h1 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(28px,3.5vw,42px)",letterSpacing:".04em",color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME} — Final Results</h1>
           <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>{CLASH_DATE} · {sorted.length} players · {Math.ceil(sorted.length/8)} lobbies</div>
         </div>
         <div style={{display:"flex",gap:8,flexShrink:0}}>
@@ -2792,12 +2792,12 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
       {/* Champion banner */}
       <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(155,114,207,.06))",border:"1px solid rgba(232,168,56,.35)",borderRadius:18,padding:"28px 32px",marginBottom:24,display:"flex",alignItems:"center",gap:24,flexWrap:"wrap",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#E8A838,#FFD700,#E8A838)"}}/>
-        <div style={{width:72,height:72,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.3),rgba(232,168,56,.08))",border:"2px solid rgba(232,168,56,.6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:900,color:"#E8A838",fontFamily:"'Bebas Neue',sans-serif",flexShrink:0}}>
+        <div style={{width:72,height:72,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.3),rgba(232,168,56,.08))",border:"2px solid rgba(232,168,56,.6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:900,color:"#E8A838",fontFamily:"'Cinzel',serif",flexShrink:0}}>
           {champ.name.charAt(0)}
         </div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>👑 Clash Champion</div>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(32px,4vw,52px)",letterSpacing:".04em",color:"#F2EDE4",lineHeight:1,marginBottom:6}}>{champ.name}</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(32px,4vw,52px)",letterSpacing:".04em",color:"#F2EDE4",lineHeight:1,marginBottom:6}}>{champ.name}</div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <Tag color="#E8A838" size="sm">{champ.rank}</Tag>
             <Tag color="#4ECDC4" size="sm">{champ.region}</Tag>
@@ -2958,7 +2958,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
       <div style={{textAlign:"center",position:"relative",overflow:"hidden",paddingBottom:28,marginBottom:28}}>
         <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,rgba(232,168,56,.06),transparent 70%)",pointerEvents:"none"}}/>
         <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".3em",textTransform:"uppercase",marginBottom:10}}>TFT Clash · Season 16</div>
-        <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(48px,7vw,88px)",color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:".04em"}}>
+        <h1 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(48px,7vw,88px)",color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:".04em"}}>
           Hall of<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)"}}>Fame</span>
         </h1>
         <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65}}>These records are permanent. Every name here earned their place.</p>
@@ -2975,11 +2975,11 @@ function HofScreen({players,setScreen,setProfilePlayer}){
             {/* Identity */}
             <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
               <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 2.5s infinite"}}>&#128081;</div>
-              <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Bebas Neue',sans-serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
+              <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Cinzel',serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
                 {king.name.charAt(0)}
               </div>
               <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 16 Leader</div>
-              <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(20px,2.5vw,28px)",letterSpacing:".04em",color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
+              <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(20px,2.5vw,28px)",letterSpacing:".04em",color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
               <div style={{display:"flex",gap:4,justifyContent:"center",flexWrap:"wrap",marginBottom:10}}>
                 <Tag color={rc(king.rank)}>{king.rank}</Tag>
                 <Tag color="#4ECDC4">{king.region}</Tag>
@@ -3043,7 +3043,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
       <div style={{marginBottom:32}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
           <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
-          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(20px,2vw,28px)",color:"#F2EDE4",letterSpacing:".08em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Season Champions</h2>
+          <h2 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(20px,2vw,28px)",color:"#F2EDE4",letterSpacing:".08em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Season Champions</h2>
           <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12}}>
@@ -3065,7 +3065,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                   {isActive&&<div style={{background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:10,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".06em"}}>LIVE</div>}
                 </div>
                 <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?"&#128081;":"&#127942;"}</div>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(18px,2vw,24px)",letterSpacing:".04em",color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(18px,2vw,24px)",letterSpacing:".04em",color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
                 <div className="mono" style={{fontSize:"clamp(16px,2.5vw,22px)",fontWeight:700,color:isActive?"#E8A838":"#C8BFB0",marginBottom:3}}>{s.pts}<span style={{fontSize:11,color:"#9AAABF",fontWeight:400}}> pts</span></div>
                 <div style={{fontSize:11,color:"#9AAABF"}}>{s.wins} wins</div>
               </div>
@@ -3078,7 +3078,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
       <div style={{marginBottom:32}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
           <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
-          <h2 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(20px,2vw,28px)",color:"#F2EDE4",letterSpacing:".08em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Trophy Cabinet</h2>
+          <h2 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(20px,2vw,28px)",color:"#F2EDE4",letterSpacing:".08em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Trophy Cabinet</h2>
           <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
         </div>
         <div className="grid-2">
@@ -4786,7 +4786,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:72,height:72,objectFit:"contain",marginBottom:12}}/>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:".06em",color:"#E8A838"}}>TFT Clash</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:36,letterSpacing:".06em",color:"#E8A838"}}>TFT Clash</div>
           <div style={{fontSize:13,color:"#BECBD9",marginTop:4}}>Create your account</div>
         </div>
 
@@ -4915,7 +4915,7 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
         </div>
         <div style={{textAlign:"center",marginBottom:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:72,height:72,objectFit:"contain",marginBottom:12}}/>
-          <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:36,letterSpacing:".06em",color:"#E8A838"}}>TFT Clash</div>
+          <div style={{fontFamily:"'Cinzel',serif",fontSize:36,letterSpacing:".06em",color:"#E8A838"}}>TFT Clash</div>
           <div style={{fontSize:13,color:"#BECBD9",marginTop:4}}>Sign in to your account</div>
         </div>
 
@@ -5325,7 +5325,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
           <div>
             <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6}}>TFT Clash · Season 16 Recap</div>
-            <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:"clamp(30px,5vw,52px)",letterSpacing:".04em",color:"#F2EDE4",lineHeight:1}}>{player.name}</div>
+            <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(30px,5vw,52px)",letterSpacing:".04em",color:"#F2EDE4",lineHeight:1}}>{player.name}</div>
             <div style={{marginTop:8}}><ClashRankBadge xp={estimateXp(player)} size="sm"/></div>
           </div>
           <div style={{textAlign:"right"}}>
@@ -6283,7 +6283,7 @@ function AegisShowcaseScreen({setScreen}){
               <div className="cond" style={{background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.35)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#E8A838",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Client Demo</div>
               <div className="cond" style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.3)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#4ECDC4",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Live Data</div>
             </div>
-            <h1 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:34,letterSpacing:".04em",color:"#F2EDE4",marginBottom:6,lineHeight:1.2}}>
+            <h1 style={{fontFamily:"'Cinzel',serif",fontSize:34,letterSpacing:".04em",color:"#F2EDE4",marginBottom:6,lineHeight:1.2}}>
               Aegis Esports TFT Showdown <span style={{color:"#E8A838"}}>#151</span>
             </h1>
             <div style={{fontSize:15,color:"#C8D4E0",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
@@ -6295,7 +6295,7 @@ function AegisShowcaseScreen({setScreen}){
               <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:28,height:28,objectFit:"contain",opacity:.85}}/>
               <div>
                 <div className="cond" style={{fontSize:11,color:"#8896A8",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
-                <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:24,letterSpacing:".06em",color:"#9B72CF"}}>TFT Clash</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:24,letterSpacing:".06em",color:"#9B72CF"}}>TFT Clash</div>
               </div>
             </div>
           </div>
@@ -6303,7 +6303,7 @@ function AegisShowcaseScreen({setScreen}){
         <div style={{display:"flex",gap:32,marginTop:20,flexWrap:"wrap"}}>
           {[["62+","Participants"],["16","G1 Lobbies"],["6","Games"],["$200","Prize Pool"]].map(function(arr){return(
             <div key={arr[1]}>
-              <div style={{fontSize:30,color:"#F2EDE4",fontFamily:"'Bebas Neue',sans-serif",letterSpacing:".04em",lineHeight:1}}>{arr[0]}</div>
+              <div style={{fontSize:30,color:"#F2EDE4",fontFamily:"'Cinzel',serif",letterSpacing:".04em",lineHeight:1}}>{arr[0]}</div>
               <div className="cond" style={{fontSize:12,color:"#BECBD9",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{arr[1]}</div>
             </div>
           );})}
@@ -6738,7 +6738,7 @@ function AegisShowcaseScreen({setScreen}){
             );})}
           </div>
           <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"26px"}}>
-            <h3 style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:26,letterSpacing:".04em",color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:26,letterSpacing:".04em",color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
             <div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.8,marginBottom:18}}>This entire page was generated from your Showdown #151 spreadsheet - your exact format, every lobby, every placement, all 62+ players. No Excel. No manual updates. This is what your community sees live, every week.</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
               <button onClick={function(){setScreen("host-apply");}} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
