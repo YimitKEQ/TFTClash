@@ -1276,17 +1276,17 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       {/* Desktop top nav — two-row layout */}
       <nav className="top-nav">
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:60,display:"flex",alignItems:"center",gap:0}}>
-          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:20,flexShrink:0,cursor:"pointer"}}>
+          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:8,marginRight:12,flexShrink:0,cursor:"pointer"}}>
             <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:32,height:32,objectFit:"contain"}}/>
             <div>
               <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:0,flex:1,overflow:"hidden"}}>
+          <div style={{display:"flex",alignItems:"center",gap:0,flex:1,minWidth:0}}>
             {DESKTOP_PRIMARY.map(l=>(
               <button key={l.id} onClick={()=>setScreen(l.id)}
-                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
+                style={{background:"none",border:"none",padding:"8px 7px",fontSize:12.5,fontWeight:600,
                   color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
                   borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
                   transition:"all .2s",marginBottom:-1}}>
@@ -1295,7 +1295,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
             ))}
             <div style={{position:"relative",flexShrink:0}}>
               <button onClick={()=>setDesktopMore(o=>!o)}
-                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
+                style={{background:"none",border:"none",padding:"8px 7px",fontSize:12.5,fontWeight:600,
                   color:desktopMoreActive?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
                   borderBottom:desktopMoreActive?"2px solid #E8A838":"2px solid transparent",
                   transition:"all .2s",marginBottom:-1}}>
@@ -1319,7 +1319,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               )}
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginLeft:8,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,flexShrink:0}}>
             {dispCount>0&&(
               <button onClick={()=>setScreen("admin")} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.4)",borderRadius:20,cursor:"pointer",animation:"pulse-red 2s infinite"}}>
                 <Dot color="#EF4444" size={6}/>
