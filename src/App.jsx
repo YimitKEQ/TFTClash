@@ -1168,6 +1168,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   const [pwModal,setPwModal]=useState(false);
   const [pw,setPw]=useState("");
   const [drawer,setDrawer]=useState(false);
+  const [desktopMore,setDesktopMore]=useState(false);
   const checkedIn=players.filter(p=>p.checkedIn).length;
   const dispCount=(disputes||[]).length;
 
@@ -1186,22 +1187,25 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"more",icon:"☰",label:"More"},
   ];
 
-  // Desktop nav
-  const DESKTOP_NAV=[
+  // Desktop nav — primary (always visible) + secondary (More dropdown)
+  const DESKTOP_PRIMARY=[
     {id:"home",label:"Home"},
     {id:"roster",label:"Roster"},
     {id:"bracket",label:"Bracket"},
     {id:"leaderboard",label:"Leaderboard"},
     {id:"results",label:"Results"},
     {id:"hof",label:"Hall of Fame"},
+    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
+  ];
+  const DESKTOP_MORE=[
     {id:"archive",label:"Archive"},
     {id:"milestones",label:"Milestones"},
     {id:"challenges",label:"Challenges"},
     {id:"rules",label:"Rules"},
     {id:"faq",label:"FAQ"},
     {id:"pricing",label:"Pricing"},
-    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
   ];
+  const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
 
   const DRAWER_ITEMS=[
     {id:"hof",icon:"🏛",label:"Hall of Fame"},
@@ -1275,17 +1279,43 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:0,flex:1,overflowX:"auto",scrollbarWidth:"none"}}>
-            {DESKTOP_NAV.map(l=>(
+          <div style={{display:"flex",alignItems:"center",gap:0,flex:1}}>
+            {DESKTOP_PRIMARY.map(l=>(
               <button key={l.id} onClick={()=>setScreen(l.id)}
                 data-active={screen===l.id?"true":undefined}
-                style={{background:"none",border:"none",padding:"8px 10px",fontSize:13,fontWeight:600,
+                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
                   color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
                   borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
                   transition:"all .2s",marginBottom:-1}}>
                 {l.label}
               </button>
             ))}
+            {/* More dropdown */}
+            <div style={{position:"relative"}}>
+              <button onClick={()=>setDesktopMore(o=>!o)}
+                style={{background:"none",border:"none",padding:"8px 9px",fontSize:13,fontWeight:600,
+                  color:desktopMoreActive?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
+                  borderBottom:desktopMoreActive?"2px solid #E8A838":"2px solid transparent",
+                  transition:"all .2s",marginBottom:-1}}>
+                More ▾
+              </button>
+              {desktopMore&&(
+                <>
+                  <div style={{position:"fixed",inset:0,zIndex:98}} onClick={()=>setDesktopMore(false)}/>
+                  <div style={{position:"absolute",left:0,top:"calc(100% + 6px)",minWidth:180,background:"linear-gradient(160deg,#0F1828,#0B1220)",
+                    border:"1px solid rgba(232,168,56,.2)",borderRadius:12,boxShadow:"0 16px 48px rgba(0,0,0,.7)",zIndex:99,overflow:"hidden"}}>
+                    {DESKTOP_MORE.map(l=>(
+                      <button key={l.id} onClick={()=>{setScreen(l.id);setDesktopMore(false);}}
+                        style={{display:"block",width:"100%",textAlign:"left",background:screen===l.id?"rgba(232,168,56,.08)":"none",
+                          border:"none",padding:"11px 16px",fontSize:13,fontWeight:600,
+                          color:screen===l.id?"#E8A838":"#C8BFB0",cursor:"pointer",transition:"all .15s",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
+                        {l.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:10,marginLeft:12,flexShrink:0}}>
             {dispCount>0&&(
@@ -6642,7 +6672,12 @@ export default function TFTClash(){
       <style>{GCSS+styleHideMobile+`
         .hide-mobile-text{display:inline;}
         @media(max-width:600px){.hide-mobile-text{display:none;}}
-        @media(max-width:767px){.hide-mobile{display:none!important;}}
+        @media(max-width:767px){
+          .hide-mobile{display:none!important;}
+          body,#root{overflow-x:hidden;max-width:100vw;}
+          .wrap{overflow-x:hidden;padding:0 12px;}
+          .page{padding:16px 12px 96px;}
+        }
       `}</style>
       <Hexbg/>
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
