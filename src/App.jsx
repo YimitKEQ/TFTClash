@@ -2935,206 +2935,275 @@ function AutoLogin({setAuthScreen}){
 
 // ─── HALL OF FAME ─────────────────────────────────────────────────────────────
 function HofScreen({players,setScreen,setProfilePlayer}){
-  const [selectedRecord,setSelectedRecord]=useState(null);
+  const [expandRecord,setExpandRecord]=useState(null);
   const allP=players.length>0?players:SEED;
-  const king=[...allP].sort((a,b)=>b.pts-a.pts)[0];
+  const sorted=[...allP].sort((a,b)=>b.pts-a.pts);
+  const king=sorted[0];
+  const kingStats=king?computeStats(king):null;
+  const challengers=sorted.slice(1,4);
+  const kingGap=challengers[0]?king.pts-challengers[0].pts:0;
 
   function openProfile(name){
     const p=allP.find(pl=>pl.name===name);
     if(p){setProfilePlayer(p);setScreen("profile");}
   }
 
-  const kingStats=king?computeStats(king):null;
-  const challengers=king?[...allP].sort((a,b)=>b.pts-a.pts).slice(1,4):[];
-  const kingGap=challengers[0]?king.pts-challengers[0].pts:0;
+  const SEASON_CHAMPS=[
+    {season:"S14",champion:"xQc_TFT",pts:1240,rank:"Challenger",wins:18,status:"past"},
+    {season:"S15",champion:"Dishsoap",pts:924,rank:"Challenger",wins:14,status:"past"},
+    {season:"S16",champion:king?king.name:"TBD",pts:king?king.pts:0,rank:king?king.rank:"",wins:king?king.wins:0,status:"active"},
+  ];
 
   return(
     <div className="page wrap">
-      <div style={{marginBottom:22}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-          <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-          <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Hall of Fame</h2>
-        </div>
-        <p style={{color:"#BECBD9",fontSize:13}}>Fight for your place in history. These records are forever.</p>
+
+      {/* Page header */}
+      <div style={{textAlign:"center",position:"relative",overflow:"hidden",paddingBottom:28,marginBottom:28}}>
+        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,rgba(232,168,56,.06),transparent 70%)",pointerEvents:"none"}}/>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".3em",textTransform:"uppercase",marginBottom:10}}>TFT Clash · Season 16</div>
+        <h1 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(36px,7vw,72px)",fontWeight:900,color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:"-.02em"}}>
+          Hall of<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)"}}>Fame</span>
+        </h1>
+        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65}}>These records are permanent. Every name here earned their place.</p>
+        <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.35),transparent)",marginTop:24}}/>
       </div>
 
-      {/* Cinematic full-width throne banner */}
+      {/* Reigning champion hero */}
       {king&&kingStats&&(
-          <div style={{position:"relative",overflow:"hidden",borderRadius:16,marginBottom:24,border:"1px solid rgba(232,168,56,.45)",boxShadow:"0 0 60px rgba(232,168,56,.1),0 0 120px rgba(232,168,56,.05)",animation:"pulse-gold 4s infinite"}}>
-            {/* Background layers */}
-            <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,rgba(10,12,24,1) 0%,rgba(25,18,8,1) 50%,rgba(8,8,15,1) 100%)"}}/>
-            <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
-            <div style={{position:"absolute",inset:0,background:`radial-gradient(ellipse 80% 60% at 30% 50%,rgba(232,168,56,.09),transparent)`}}/>
-            {/* Particle sparks */}
-            {[...Array(12)].map((_,i)=>(
-              <div key={i} style={{position:"absolute",width:2,height:2,borderRadius:"50%",background:"#E8A838",
-                top:(20+Math.sin(i*1.2)*40)+"%",left:(5+i*8)+"%",
-                opacity:.3+Math.sin(i*.7)*.3,
-                animation:`blink ${1.5+i*.3}s ${i*.15}s infinite`}}/>
-            ))}
-            <div style={{position:"relative",padding:"clamp(20px,3vw,36px) clamp(20px,3vw,40px)",display:"grid",gridTemplateColumns:"auto 1fr auto",gap:"clamp(16px,3vw,32px)",alignItems:"center"}}>
-              {/* LEFT: Crown + Player */}
-              <div style={{textAlign:"center",minWidth:0}}>
-                <div style={{fontSize:"clamp(28px,5vw,48px)",lineHeight:1,marginBottom:8,animation:"crown-glow 2.5s infinite"}}>👑</div>
-                <div style={{width:"clamp(56px,8vw,80px)",height:"clamp(56px,8vw,80px)",borderRadius:"50%",
-                  background:`linear-gradient(135deg,${rc(king.rank)}44,${rc(king.rank)}11)`,
-                  border:`3px solid ${rc(king.rank)}`,
-                  display:"flex",alignItems:"center",justifyContent:"center",
-                  fontSize:"clamp(20px,4vw,32px)",fontWeight:700,color:rc(king.rank),
-                  fontFamily:"'Cinzel',serif",
-                  margin:"0 auto 10px",flexShrink:0,boxShadow:`0 0 24px ${rc(king.rank)}44`}}>
-                  {king.name.charAt(0)}
-                </div>
-                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".18em",textTransform:"uppercase",marginBottom:4}}>Current Leader</div>
-                <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(18px,3vw,28px)",fontWeight:900,color:"#E8A838",textShadow:"0 0 32px rgba(232,168,56,.5)",lineHeight:1.1}}>{king.name}</div>
-                <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:6,flexWrap:"wrap"}}>
-                  <Tag color={rc(king.rank)} size="sm">{king.rank}</Tag>
-                  <Tag color="#4ECDC4" size="sm">{king.region}</Tag>
-                </div>
-                <Btn v="ghost" s="sm" style={{marginTop:10}} onClick={()=>openProfile(king.name)}>Profile →</Btn>
-              </div>
+        <div style={{position:"relative",overflow:"hidden",borderRadius:20,marginBottom:32,border:"1px solid rgba(232,168,56,.4)",background:"linear-gradient(135deg,#0E1018,#16100A,#08080F)",boxShadow:"0 0 80px rgba(232,168,56,.07)"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 60% 120% at 15% 50%,rgba(232,168,56,.07),transparent)",pointerEvents:"none"}}/>
+          <div style={{position:"relative",padding:"clamp(20px,4vw,36px) clamp(20px,4vw,40px)",display:"flex",alignItems:"flex-start",gap:"clamp(16px,3vw,40px)",flexWrap:"wrap"}}>
 
-              {/* CENTER: Dramatic stats */}
-              <div>
-                <div style={{textAlign:"center",marginBottom:16}}>
-                  <div className="mono" style={{fontSize:"clamp(32px,6vw,64px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 40px rgba(232,168,56,.4)"}}>{king.pts}</div>
-                  <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase"}}>Season Points</div>
-                </div>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(80px,1fr))",gap:8,marginBottom:16}}>
-                  {[["AVP",kingStats.avgPlacement,avgCol(kingStats.avgPlacement),"lower=better"],["Win Rate",kingStats.top1Rate+"%","#6EE7B7",""],["Top 4",kingStats.top4Rate+"%","#C4B5FD",""],["PPG",kingStats.ppg,"#EAB308",""],["Streak",king.bestStreak+"🔥","#F87171","best"],["Clutch",kingStats.clutchRate+"%","#9B72CF",""]].map(([l,v,c,hint])=>(
-                    <div key={l} style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.12)",borderRadius:8,padding:"10px 6px",textAlign:"center"}}>
-                      <div className="mono" style={{fontSize:"clamp(13px,2vw,18px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-                      <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
-                      {hint&&<div style={{fontSize:8,color:"#9AAABF",marginTop:1}}>{hint}</div>}
-                    </div>
-                  ))}
-                </div>
-                {/* Gap to challengers */}
-                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,padding:"10px 14px",marginBottom:10}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:11,color:"#C8D4E0"}}>Lead over 2nd place</span>
-                    <span className="mono" style={{fontSize:14,fontWeight:700,color:kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"}}>+{kingGap} pts</span>
-                  </div>
-                  <Bar val={king.pts} max={king.pts+kingGap} color={kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"} h={4}/>
-                </div>
+            {/* Identity */}
+            <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
+              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 2.5s infinite"}}>&#128081;</div>
+              <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Cinzel',serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
+                {king.name.charAt(0)}
               </div>
-
-              {/* RIGHT: Challengers closing in */}
-              <div style={{minWidth:"clamp(130px,20vw,180px)"}}>
-                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#BECBD9",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10,textAlign:"center"}}>⚔ Challengers</div>
-                {challengers.map((p,i)=>{
-                  const diff=king.pts-p.pts;
-                  return(
-                    <div key={p.id} onClick={()=>openProfile(p.name)} style={{padding:"9px 10px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,marginBottom:7,cursor:"pointer",transition:"all .15s"}}
-                      onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.3)";}}
-                      onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(242,237,228,.07)";}}>
-                      <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:4}}>
-                        <div className="mono" style={{fontSize:10,fontWeight:700,color:i===0?"#C0C0C0":i===1?"#CD7F32":"#BECBD9",minWidth:12}}>{i+2}</div>
-                        <span style={{fontWeight:600,fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
-                        <span className="mono" style={{fontSize:11,fontWeight:700,color:"#E8A838"}}>{p.pts}</span>
-                      </div>
-                      <div style={{display:"flex",alignItems:"center",gap:5}}>
-                        <span style={{fontSize:9,color:"#F87171"}}>-{diff}pts</span>
-                        <Bar val={p.pts} max={king.pts} color="#4ECDC4" h={2}/>
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 16 Leader</div>
+              <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(15px,2.5vw,22px)",fontWeight:900,color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
+              <div style={{display:"flex",gap:4,justifyContent:"center",flexWrap:"wrap",marginBottom:10}}>
+                <Tag color={rc(king.rank)}>{king.rank}</Tag>
+                <Tag color="#4ECDC4">{king.region}</Tag>
               </div>
+              <Btn v="ghost" s="sm" onClick={()=>openProfile(king.name)}>Profile &rarr;</Btn>
             </div>
-          </div>
-      )}
 
-      {/* Records grid */}
-      <div className="grid-2" style={{marginBottom:20}}>
-        {HOF_RECORDS.map(r=>(
-          <Panel key={r.id} hover accent style={{padding:"20px",cursor:"pointer"}} onClick={()=>setSelectedRecord(selectedRecord?.id===r.id?null:r)}>
-            <div style={{marginTop:6,display:"flex",alignItems:"flex-start",gap:14}}>
-              <div style={{width:48,height:48,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{r.icon}</div>
-              <div style={{flex:1}}>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>{r.title}</div>
-                <div className="mono" style={{fontSize:24,fontWeight:700,color:"#E8A838",lineHeight:1,marginBottom:10}}>{r.value}</div>
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,cursor:"pointer"}} onClick={e=>{e.stopPropagation();openProfile(r.holder);}}>
-                  <div>
-                    <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{r.holder}</div>
-                    <Tag color={rc(r.rank)} size="sm">{r.rank}</Tag>
-                  </div>
-                  <span style={{marginLeft:"auto",fontSize:11,color:"#E8A838"}}>↗</span>
-                </div>
-                <div>{(r.runner||[]).map((ru,i)=><div key={i} style={{fontSize:12,color:"#BECBD9",marginTop:2}}><span style={{color:i===0?"#C0C0C0":"#CD7F32",marginRight:5}}>{i===0?"2nd":"3rd"}</span>{ru}</div>)}</div>
+            {/* Stats */}
+            <div style={{flex:1,minWidth:200}}>
+              <div style={{marginBottom:14}}>
+                <div className="mono" style={{fontSize:"clamp(44px,8vw,80px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 48px rgba(232,168,56,.3)"}}>{king.pts}</div>
+                <div className="cond" style={{fontSize:11,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginTop:2}}>Season Points</div>
               </div>
-            </div>
-            {selectedRecord?.id===r.id&&r.history.length>0&&(
-              <div style={{marginTop:14,paddingTop:14,borderTop:"1px solid rgba(232,168,56,.15)"}}>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Record History</div>
-                {(r.history||[]).map((h,i)=>(
-                  <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",background:"#0F1520",borderRadius:7,marginBottom:5}}>
-                    <span className="mono" style={{fontSize:11,color:"#BECBD9"}}>{h.season}</span>
-                    <span style={{fontWeight:600,fontSize:13,color:"#C8BFB0",flex:1}}>{h.holder}</span>
-                    <span className="mono" style={{fontSize:12,color:"#E8A838"}}>{h.value}</span>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+                {[["Avg",kingStats.avgPlacement,avgCol(kingStats.avgPlacement)],["Win Rate",kingStats.top1Rate+"%","#6EE7B7"],["Top 4",kingStats.top4Rate+"%","#C4B5FD"],["PPG",kingStats.ppg,"#EAB308"],["Streak",king.bestStreak+" W","#F97316"],["Clutch",kingStats.clutchRate+"%","#9B72CF"]].map(([l,v,c])=>(
+                  <div key={l} style={{background:"rgba(0,0,0,.3)",border:"1px solid rgba(232,168,56,.1)",borderRadius:9,padding:"10px 8px",textAlign:"center"}}>
+                    <div className="mono" style={{fontSize:"clamp(13px,2vw,17px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
+                    <div style={{fontSize:9,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
                   </div>
                 ))}
               </div>
-            )}
-          </Panel>
-        ))}
-      </div>
-
-      <div className="grid-2">
-        {/* Rivalries */}
-        <Panel style={{padding:"18px"}}>
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>⚔ Top Rivalries</h3>
-          {[["Dishsoap","k3soju",14,12],["Robinsongz","Setsuko",11,10],["Wrainbash","Frodan",9,9],["Mortdog","BunnyMuffins",7,8]].map(([a,b,wa,wb],i)=>(
-            <div key={i} style={{padding:"11px",background:"#0F1520",borderRadius:9,marginBottom:8}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:7}}>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{a}</span>
+              <div style={{background:"rgba(0,0,0,.3)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,padding:"10px 14px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                  <span style={{fontSize:11,color:"#C8D4E0"}}>Lead over {challengers[0]?challengers[0].name:"2nd place"}</span>
+                  <span className="mono" style={{fontSize:14,fontWeight:700,color:kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"}}>+{kingGap} pts</span>
                 </div>
-                <span className="mono" style={{fontSize:12,color:"#BECBD9"}}>{wa}W - {wb}W</span>
-                <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{b}</span>
-                </div>
-              </div>
-              <div style={{display:"flex",gap:1,height:4,borderRadius:99,overflow:"hidden"}}>
-                <div style={{width:(wa/(wa+wb)*100)+"%",background:"#E8A838"}}/>
-                <div style={{flex:1,background:"#4ECDC4"}}/>
+                <Bar val={king.pts} max={king.pts+Math.max(kingGap,1)} color={kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"} h={4}/>
               </div>
             </div>
-          ))}
-        </Panel>
 
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <Panel style={{padding:"18px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>📅 Season Timeline</h3>
-            {[{s:"S14",ch:"xQc_TFT",pts:1240},{s:"S15",ch:"Dishsoap",pts:924},{s:"S16",ch:"-",active:true}].map((s,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 0",borderBottom:i<2?"1px solid rgba(242,237,228,.06)":"none"}}>
-                <div style={{width:32,height:32,background:s.active?"rgba(232,168,56,.1)":"rgba(255,255,255,.04)",border:"1px solid "+(s.active?"rgba(232,168,56,.4)":"rgba(242,237,228,.1)"),borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:s.active?"#E8A838":"#BECBD9",flexShrink:0}}>{s.s}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:600,fontSize:13,color:s.active?"#E8A838":"#F2EDE4"}}>{s.active?"In Progress":s.ch}</div>
-                  {!s.active&&<div className="mono" style={{fontSize:11,color:"#BECBD9"}}>{s.pts} pts</div>}
+            {/* Challengers */}
+            <div style={{flexShrink:0,minWidth:150}}>
+              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Challengers</div>
+              {challengers.map((p,i)=>{
+                const diff=king.pts-p.pts;
+                const medals=["Silver","Bronze","4th"];
+                const medalCols=["#C0C0C0","#CD7F32","#9AAABF"];
+                return(
+                  <div key={p.id} onClick={()=>openProfile(p.name)}
+                    style={{padding:"10px 12px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:10,marginBottom:8,cursor:"pointer",transition:"border-color .15s"}}
+                    onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
+                    onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.07)"}>
+                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
+                      <span className="mono" style={{fontSize:11,fontWeight:700,color:medalCols[i],flexShrink:0}}>{i+2}</span>
+                      <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
+                      <span className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontSize:10,color:"#F87171",flexShrink:0,minWidth:32}}>-{diff}</span>
+                      <Bar val={p.pts} max={king.pts} color="#4ECDC4" h={3}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Season Champions Wall */}
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+          <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
+          <h2 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Season Champions</h2>
+          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12}}>
+          {SEASON_CHAMPS.map((s)=>{
+            const isActive=s.status==="active";
+            return(
+              <div key={s.season} onClick={()=>{if(!isActive)openProfile(s.champion);}}
+                style={{position:"relative",overflow:"hidden",borderRadius:14,
+                  background:isActive?"linear-gradient(135deg,#16100A,#0E0C06)":"linear-gradient(135deg,#0D1019,#080B12)",
+                  border:"1px solid "+(isActive?"rgba(232,168,56,.5)":"rgba(242,237,228,.09)"),
+                  padding:"20px 16px",cursor:isActive?"default":"pointer",transition:"transform .2s",
+                  boxShadow:isActive?"0 0 40px rgba(232,168,56,.09)":"none"}}
+                onMouseEnter={e=>{if(!isActive)e.currentTarget.style.transform="translateY(-3px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";}}>
+                {isActive&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,transparent)"}}/>}
+                {!isActive&&<div style={{position:"absolute",top:10,right:10,fontSize:9,color:"#9AAABF",background:"rgba(255,255,255,.04)",borderRadius:4,padding:"2px 6px",fontWeight:600,letterSpacing:".05em"}}>RETIRED</div>}
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
+                  <div style={{background:isActive?"rgba(232,168,56,.15)":"rgba(255,255,255,.05)",border:"1px solid "+(isActive?"rgba(232,168,56,.35)":"rgba(242,237,228,.1)"),borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:700,color:isActive?"#E8A838":"#BECBD9",fontFamily:"'JetBrains Mono',monospace"}}>{s.season}</div>
+                  {isActive&&<div style={{background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:10,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".06em"}}>LIVE</div>}
                 </div>
-                {s.active?<Dot size={6}/>:<span style={{fontSize:13}}>🏆</span>}
+                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?"&#128081;":"&#127942;"}</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(14px,2vw,18px)",fontWeight:700,color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
+                <div className="mono" style={{fontSize:"clamp(16px,2.5vw,22px)",fontWeight:700,color:isActive?"#E8A838":"#C8BFB0",marginBottom:3}}>{s.pts}<span style={{fontSize:11,color:"#9AAABF",fontWeight:400}}> pts</span></div>
+                <div style={{fontSize:11,color:"#9AAABF"}}>{s.wins} wins</div>
               </div>
-            ))}
-          </Panel>
-          <Panel style={{padding:"18px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>🎖 Retired Legends</h3>
-            {RETIRED_LEGENDS.map((l,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 0",borderBottom:i<RETIRED_LEGENDS.length-1?"1px solid rgba(242,237,228,.06)":"none"}}>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{l.name}</div>
-                  <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{l.reason}</div>
-                </div>
-                <div className="mono" style={{fontSize:14,fontWeight:700,color:"#9B72CF"}}>{l.pts}pts</div>
-              </div>
-            ))}
-          </Panel>
+            );
+          })}
         </div>
       </div>
+
+      {/* Trophy Cabinet */}
+      <div style={{marginBottom:32}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+          <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
+          <h2 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Trophy Cabinet</h2>
+          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
+        </div>
+        <div className="grid-2">
+          {HOF_RECORDS.map(r=>{
+            const isOpen=expandRecord===r.id;
+            return(
+              <div key={r.id} onClick={()=>setExpandRecord(isOpen?null:r.id)}
+                style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid "+(isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s,box-shadow .2s",boxShadow:isOpen?"0 0 32px rgba(232,168,56,.07)":"none"}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(232,168,56,.2)"}
+                onMouseLeave={e=>e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"}>
+                <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.08),rgba(232,168,56,.02))",padding:"16px 18px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid rgba(232,168,56,.1)"}}>
+                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{r.icon}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>{r.title}</div>
+                    <div className="mono" style={{fontSize:"clamp(18px,3vw,28px)",fontWeight:700,color:"#E8A838",lineHeight:1}}>{r.value}</div>
+                  </div>
+                  <div style={{fontSize:11,color:"#9AAABF",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"none"}}>&#9660;</div>
+                </div>
+                <div style={{padding:"12px 18px"}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:8}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <div style={{width:30,height:30,borderRadius:"50%",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{r.holder.charAt(0)}</div>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{r.holder}</div>
+                        <Tag color={rc(r.rank)} size="sm">{r.rank}</Tag>
+                      </div>
+                    </div>
+                    <button onClick={e=>{e.stopPropagation();openProfile(r.holder);}}
+                      style={{background:"none",border:"1px solid rgba(242,237,228,.1)",borderRadius:6,padding:"4px 10px",fontSize:11,color:"#C8BFB0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,flexShrink:0}}
+                      onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
+                      onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.1)"}>Profile</button>
+                  </div>
+                  {(r.runner||[]).map((ru,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#BECBD9",marginTop:4}}>
+                      <span style={{color:i===0?"#C0C0C0":"#CD7F32",fontWeight:700,minWidth:28}}>{i===0?"2nd":"3rd"}</span>
+                      <span>{ru}</span>
+                    </div>
+                  ))}
+                </div>
+                {isOpen&&r.history.length>0&&(
+                  <div style={{padding:"0 18px 14px",borderTop:"1px solid rgba(232,168,56,.12)"}}>
+                    <div style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8,marginTop:12}}>Previous Holders</div>
+                    {r.history.map((h,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"rgba(0,0,0,.3)",borderRadius:7,marginBottom:4}}>
+                        <span className="mono" style={{fontSize:10,color:"#9B72CF",minWidth:28}}>{h.season}</span>
+                        <span style={{fontWeight:600,fontSize:13,color:"#C8BFB0",flex:1}}>{h.holder}</span>
+                        <span className="mono" style={{fontSize:12,color:"#E8A838"}}>{h.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Rivalries + Legends */}
+      <div className="grid-2">
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            {[["Dishsoap","k3soju",14,12],["Robinsongz","Setsuko",11,10],["Wrainbash","Frodan",9,9],["Mortdog","BunnyMuffins",7,8]].map(([a,b,wa,wb],i)=>{
+              const total=wa+wb;
+              return(
+                <div key={i} style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"14px 16px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                    <div style={{flex:1,textAlign:"right"}}>
+                      <div style={{fontWeight:700,fontSize:14,color:wa>=wb?"#F2EDE4":"#BECBD9"}}>{a}</div>
+                      <div className="mono" style={{fontSize:13,color:"#E8A838",fontWeight:700}}>{wa}W</div>
+                    </div>
+                    <div style={{padding:"5px 10px",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",borderRadius:6,fontSize:11,fontWeight:700,color:"#9B72CF",flexShrink:0}}>VS</div>
+                    <div style={{flex:1,textAlign:"left"}}>
+                      <div style={{fontWeight:700,fontSize:14,color:wb>wa?"#F2EDE4":"#BECBD9"}}>{b}</div>
+                      <div className="mono" style={{fontSize:13,color:"#4ECDC4",fontWeight:700}}>{wb}W</div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",height:5,borderRadius:99,overflow:"hidden"}}>
+                    <div style={{width:(wa/total*100)+"%",background:"#E8A838",transition:"width .3s"}}/>
+                    <div style={{flex:1,background:"#4ECDC4"}}/>
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",marginTop:5,fontSize:10,color:"#9AAABF"}}>
+                    <span>{Math.round(wa/total*100)}%</span>
+                    <span>{total} games</span>
+                    <span>{Math.round(wb/total*100)}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Retired Legends</h3>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {RETIRED_LEGENDS.map((l,i)=>(
+              <div key={i} style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.28)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#9B72CF",fontFamily:"'Cinzel',serif",flexShrink:0}}>{l.name.charAt(0)}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{l.name}</div>
+                  <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{l.reason}</div>
+                  <div style={{fontSize:10,color:"#9AAABF",marginTop:2}}>{l.seasons.join(" · ")}</div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <div className="mono" style={{fontSize:17,fontWeight:700,color:"#9B72CF"}}>{l.pts}</div>
+                  <div style={{fontSize:9,color:"#9AAABF",letterSpacing:".06em"}}>PTS</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
-
 // ─── ARCHIVE ──────────────────────────────────────────────────────────────────
 function ArchiveScreen({players,currentUser,setScreen}){
   const [open,setOpen]=useState(null);
