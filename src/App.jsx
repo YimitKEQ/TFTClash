@@ -1027,7 +1027,7 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
                     const isMe=got===place,taken=!isMe&&used.has(place),isTop=place<=4;
                     return(
                       <button key={place} className="place-btn" onClick={taken?undefined:()=>onPlace(p.id,place)}
-                        style={{background:isMe?(place===1?"#E8A838":isTop?"#4ECDC4":"#374151"):"#1A1F2E",
+                        style={{background:isMe?(place===1?"#E8A838":isTop?"#4ECDC4":"#8896A8"):"#1A1F2E",
                           color:isMe?"#08080F":(taken?"#7A8BA0":isTop?"#C8D4E0":"#BECBD9"),
                           opacity:taken?.18:1,cursor:taken?"not-allowed":"pointer"}}>
                         {place}
@@ -1279,7 +1279,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
             {DESKTOP_NAV.map(l=>(
               <button key={l.id} onClick={()=>setScreen(l.id)}
                 data-active={screen===l.id?"true":undefined}
-                style={{background:"none",border:"none",padding:"8px 14px",fontSize:14,fontWeight:600,
+                style={{background:"none",border:"none",padding:"8px 10px",fontSize:13,fontWeight:600,
                   color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",
                   borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
                   transition:"all .2s",marginBottom:-1}}>
@@ -1365,7 +1365,7 @@ function StandingsTable({rows,compact,onRowClick,myName}){
         const top3=i<3;
         const top8=i<8&&i>=3;
         const isMe=myName&&p.name===myName;
-        const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":top8?"#BECBD9":"#3A3628";
+        const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":top8?"#BECBD9":"#8E9BB0";
         const rowBg=isMe?"rgba(155,114,207,.1)":i===0?"rgba(232,168,56,.09)":i===1?"rgba(192,192,192,.06)":i===2?"rgba(205,127,50,.06)":top8?"rgba(255,255,255,.02)":"transparent";
         const rowBorder=isMe?"rgba(155,114,207,.45)":i===0?"rgba(232,168,56,.22)":i===1?"rgba(192,192,192,.15)":i===2?"rgba(205,127,50,.15)":top8?"rgba(242,237,228,.05)":"transparent";
         const nameCol=top3?"#F2EDE4":top8?"#C8BFB0":"#BECBD9";
@@ -1387,18 +1387,18 @@ function StandingsTable({rows,compact,onRowClick,myName}){
                 </div>
                 {!compact&&<div style={{display:"flex",alignItems:"center",gap:4,marginTop:2}}>
                   <ClashRankBadge xp={estimateXp(p)} size="sm"/>
-                  <span className="mono" style={{fontSize:9,color:"#3A3628",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.riotId}</span>
+                  <span className="mono" style={{fontSize:11,color:"#B8C8D8",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.riotId}</span>
                 </div>}
               </div>
             </div>
             <div className="mono pts-glow" style={{fontSize:top3?20:15,fontWeight:800,color:ptsCol,lineHeight:1}}>{p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
             <div className="mono" style={{fontSize:11,color:top8?"#BECBD9":"#9AAABF"}}>{p.games||0}</div>
-            {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#4A7060":"#374151"}}>{p.wins||0}</div>}
+            {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#6EE7B7":"#8896A8"}}>{p.wins||0}</div>}
           </div>
         );
       })}
-      {rows.length===0&&<div style={{textAlign:"center",padding:40,color:"#3A3628",fontSize:14}}>No data yet</div>}
+      {rows.length===0&&<div style={{textAlign:"center",padding:40,color:"#8E9BB0",fontSize:14}}>No data yet</div>}
       </div>
     </Panel>
   );
@@ -6278,7 +6278,7 @@ function AegisShowcaseScreen({setScreen}){
               return(
                 <button key={r} onClick={function(){setLobbyRound(r);setEditMode(false);}} style={{flex:1,padding:"9px 4px",borderRadius:7,border:"none",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".05em",transition:"all .15s",background:active?"rgba(255,255,255,.08)":"transparent",color:active?colors[r]:"#8896A8",outline:"none",textTransform:"uppercase",fontWeight:700,fontSize:12}}>
                   <div>{r}</div>
-                  <div style={{fontSize:10,fontWeight:400,marginTop:1,color:active?colors[r]+"AA":"#374151"}}>{labels[r]}</div>
+                  <div style={{fontSize:10,fontWeight:400,marginTop:1,color:active?colors[r]+"AA":"#8896A8"}}>{labels[r]}</div>
                 </button>
               );
             })}
