@@ -1223,9 +1223,12 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
         <>
           <div className="drawer-overlay" onClick={()=>setDrawer(false)}/>
           <div className="drawer">
-            <div style={{padding:"0 20px 20px",borderBottom:"1px solid rgba(242,237,228,.08)",marginBottom:16}}>
-              <div style={{fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,color:"#E8A838"}}>TFT Clash</div>
-              <div style={{fontSize:12,color:"#6B7280"}}>Season 16</div>
+            <div style={{padding:"0 20px 20px",borderBottom:"1px solid rgba(242,237,228,.08)",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
+              <img src="/icon-purple.png" alt="TFT Clash" style={{width:36,height:36,objectFit:"contain"}}/>
+              <div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:16,fontWeight:700,color:"#E8A838"}}>TFT Clash</div>
+                <div style={{fontSize:12,color:"#6B7280"}}>Season 16</div>
+              </div>
             </div>
             {DRAWER_ITEMS.map(l=>(
               <button key={l.id} onClick={()=>{
@@ -1251,10 +1254,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       <nav className="top-nav">
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:62,display:"flex",alignItems:"center",gap:0}}>
           <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:10,marginRight:24,flexShrink:0,cursor:"pointer"}}>
-            <svg className="hex-logo" width="24" height="24" viewBox="0 0 60 70" fill="none">
-              <path d="M30 2L58 18L58 52L30 68L2 52L2 18Z" fill="none" stroke="#E8A838" strokeWidth="2.5"/>
-              <path d="M30 15L46 24L46 42L30 51L14 42L14 24Z" fill="rgba(232,168,56,.15)" stroke="#E8A838" strokeWidth="1.5"/>
-            </svg>
+            <img src="/icon-purple.png" alt="TFT Clash" style={{width:34,height:34,objectFit:"contain"}}/>
             <div>
               <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#6B7280",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
@@ -4504,7 +4504,7 @@ function SignUpScreen({onSignUp,onGoLogin,toast}){
       <div style={{width:"100%",maxWidth:480}}>
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:36,marginBottom:8,animation:"crown-glow 3s infinite"}}>⚔</div>
+          <img src="/icon-purple.png" alt="TFT Clash" style={{width:72,height:72,objectFit:"contain",marginBottom:12}}/>
           <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838",letterSpacing:"-.01em"}}>TFT Clash</div>
           <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>Create your account</div>
         </div>
@@ -4624,7 +4624,7 @@ function LoginScreen({onLogin,onGoSignUp,toast}){
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
       <div style={{width:"100%",maxWidth:420}}>
         <div style={{textAlign:"center",marginBottom:32}}>
-          <div style={{fontSize:36,marginBottom:8,animation:"crown-glow 3s infinite"}}>⚔</div>
+          <img src="/icon-purple.png" alt="TFT Clash" style={{width:72,height:72,objectFit:"contain",marginBottom:12}}/>
           <div style={{fontFamily:"'Cinzel',serif",fontSize:28,fontWeight:900,color:"#E8A838"}}>TFT Clash</div>
           <div style={{fontSize:13,color:"#6B7280",marginTop:4}}>Sign in to your account</div>
         </div>
@@ -6001,9 +6001,12 @@ function AegisShowcaseScreen({setScreen}){
           </div>
           <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
             <img src="/Aegis_Esports.png" alt="Aegis Esports" style={{height:48,width:"auto",objectFit:"contain"}}/>
-            <div>
-              <div className="cond" style={{fontSize:11,color:"#4A5568",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
-              <div style={{fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,color:"#9B72CF"}}>TFT Clash</div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <img src="/icon-purple.png" alt="TFT Clash" style={{width:28,height:28,objectFit:"contain",opacity:.85}}/>
+              <div>
+                <div className="cond" style={{fontSize:11,color:"#4A5568",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
+                <div style={{fontFamily:"'Cinzel',serif",fontSize:20,fontWeight:700,color:"#9B72CF"}}>TFT Clash</div>
+              </div>
             </div>
           </div>
         </div>
