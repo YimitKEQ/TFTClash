@@ -242,7 +242,7 @@ const ACHIEVEMENTS=[
   {id:"regular",        tier:"bronze",    icon:"📅",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:p=>p.games>=5},
   {id:"veteran",        tier:"silver",    icon:"🪖",  name:"Veteran",            desc:"20 total games across the season",                     check:p=>p.games>=20},
   {id:"season_finisher",tier:"gold",      icon:"🎖️",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:p=>p.games>=28},
-  {id:"champion",       tier:"legendary", icon:"⚜️",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>p.name===SEASON_CHAMPION.name},
+  {id:"champion",       tier:"legendary", icon:"⚜️",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>SEASON_CHAMPION&&p.name===SEASON_CHAMPION.name},
   // ── RARE / EASTER EGG ────────────────────────────────────
   {id:"dishsoap",       tier:"legendary", icon:"🧼",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:p=>p.name==="Dishsoap"||p.riotId?.toLowerCase().includes("dishsoap")},
   {id:"perfect_lobby",  tier:"legendary", icon:"🌀",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:p=>(p.clashHistory||[]).some(g=>g.placement===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(v=>v<=3):true))},
@@ -339,101 +339,17 @@ function mkHistory(entries){
   });
 }
 
-const HOMIES_IDS=[1,2,3,4,5,6,7,8,9];
-const SEED=[
-  // ── HOMIES ──────────────────────────────────────────────────────────────────
-  {id:1, name:"Levitate",    riotId:"Levitate#EUW",    lp:3480,rank:"Challenger",  region:"EUW",pts:1024,wins:16,top4:26,games:32,avg:"2.10",bestStreak:7,currentStreak:4,tiltStreak:0,bestHaul:48,checkedIn:true,role:"player",banned:false,notes:"Season MVP",sparkline:[880,920,970,1024],
-   clashHistory:mkHistory([{pl:1,r1:1,r2:1,r3:1,clutch:true},{pl:1,r1:2,r2:1,r3:1,clutch:true},{pl:2,r1:2,r2:2,r3:1},{pl:1,r1:1,r2:1,r3:1,clutch:true}])},
-  {id:2, name:"Zounderkite", riotId:"Zounderkite#EUW", lp:3180,rank:"Challenger",  region:"EUW",pts:887,wins:13,top4:21,games:28,avg:"2.45",bestStreak:5,currentStreak:2,tiltStreak:0,bestHaul:41,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[800,830,860,887],
-   clashHistory:mkHistory([{pl:2,r1:3,r2:2,r3:2},{pl:1,r1:2,r2:1,r3:1,clutch:true},{pl:3,r1:4,r2:3,r3:2},{pl:2,r1:2,r2:2,r3:2}])},
-  {id:3, name:"Uri",         riotId:"Uri#EUW",          lp:3020,rank:"Challenger",  region:"EUW",pts:812,wins:11,top4:19,games:26,avg:"2.71",bestStreak:4,currentStreak:1,tiltStreak:0,bestHaul:37,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[740,765,790,812],
-   clashHistory:mkHistory([{pl:3,r1:4,r2:3,r3:3},{pl:2,r1:3,r2:2,r3:2},{pl:1,r1:1,r2:1,r3:1,clutch:true},{pl:3,r1:4,r2:3,r3:3}])},
-  {id:4, name:"BingBing",    riotId:"BingBing#EUW",     lp:2940,rank:"Grandmaster",region:"EUW",pts:756,wins:10,top4:18,games:24,avg:"2.92",bestStreak:3,currentStreak:0,tiltStreak:1,bestHaul:34,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[690,715,738,756],
-   clashHistory:mkHistory([{pl:4,r1:5,r2:4,r3:4},{pl:3,r1:4,r2:3,r3:3},{pl:2,r1:3,r2:2,r3:2},{pl:4,r1:5,r2:4,r3:4}])},
-  {id:5, name:"Wiwi",        riotId:"Wiwi#EUW",          lp:2870,rank:"Grandmaster",region:"EUW",pts:698,wins:9, top4:17,games:23,avg:"3.04",bestStreak:3,currentStreak:1,tiltStreak:0,bestHaul:31,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[630,652,675,698],
-   clashHistory:mkHistory([{pl:3,r1:4,r2:3,r3:3},{pl:4,r1:5,r2:4,r3:4},{pl:2,r1:3,r2:2,r3:2},{pl:3,r1:3,r2:3,r3:3}])},
-  {id:6, name:"Ole",         riotId:"Ole#EUW",            lp:2790,rank:"Grandmaster",region:"EUW",pts:641,wins:8, top4:15,games:22,avg:"3.18",bestStreak:2,currentStreak:0,tiltStreak:2,bestHaul:29,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[580,600,620,641],
-   clashHistory:mkHistory([{pl:5,r1:6,r2:5,r3:5},{pl:3,r1:4,r2:3,r3:3},{pl:4,r1:5,r2:4,r3:4},{pl:3,r1:4,r2:3,r3:3}])},
-  {id:7, name:"Sybor",       riotId:"Sybor#EUW",          lp:2710,rank:"Master",     region:"EUW",pts:598,wins:7, top4:14,games:21,avg:"3.33",bestStreak:2,currentStreak:0,tiltStreak:1,bestHaul:27,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[540,558,578,598],
-   clashHistory:mkHistory([{pl:4,r1:5,r2:4,r3:4},{pl:5,r1:6,r2:5,r3:5},{pl:3,r1:4,r2:3,r3:3},{pl:5,r1:6,r2:5,r3:5}])},
-  {id:8, name:"Ivdim",       riotId:"Ivdim#EUW",          lp:2650,rank:"Master",     region:"EUW",pts:557,wins:6, top4:13,games:20,avg:"3.45",bestStreak:2,currentStreak:1,tiltStreak:0,bestHaul:25,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[500,520,540,557],
-   clashHistory:mkHistory([{pl:5,r1:6,r2:5,r3:5},{pl:4,r1:5,r2:4,r3:4},{pl:6,r1:7,r2:6,r3:6},{pl:4,r1:5,r2:4,r3:4}])},
-  {id:9, name:"Vlad",        riotId:"Vlad#EUW",            lp:2580,rank:"Master",     region:"EUW",pts:514,wins:6, top4:12,games:19,avg:"3.58",bestStreak:2,currentStreak:0,tiltStreak:1,bestHaul:23,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[460,480,498,514],
-   clashHistory:mkHistory([{pl:6,r1:7,r2:6,r3:6},{pl:5,r1:6,r2:5,r3:5},{pl:4,r1:5,r2:4,r3:4},{pl:6,r1:7,r2:6,r3:6}])},
-  // ── RANDOMS ─────────────────────────────────────────────────────────────────
-  {id:10,name:"Dishsoap",    riotId:"Dishsoap#NA1",    lp:3240,rank:"Challenger",  region:"NA", pts:924,wins:14,top4:22,games:28,avg:"2.41",bestStreak:6,currentStreak:3,tiltStreak:0,bestHaul:42,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[820,851,890,924],
-   clashHistory:mkHistory([{pl:1,r1:2,r2:1,r3:1,clutch:true},{pl:2,r1:3,r2:2,r3:2},{pl:1,r1:1,r2:1,r3:1,clutch:true},{pl:1,r1:2,r2:1,r3:1,clutch:true}])},
-  {id:11,name:"k3soju",      riotId:"k3soju#NA1",      lp:3100,rank:"Challenger",  region:"NA", pts:841,wins:12,top4:19,games:25,avg:"2.68",bestStreak:4,currentStreak:1,tiltStreak:0,bestHaul:38,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[780,802,830,841],
-   clashHistory:mkHistory([{pl:2,r1:1,r2:2,r3:2},{pl:1,r1:2,r2:1,r3:1,clutch:true},{pl:3,r1:3,r2:3,r3:3},{pl:2,r1:2,r2:2,r3:2}])},
-  {id:12,name:"Setsuko",     riotId:"Setsuko#KR1",     lp:2970,rank:"Grandmaster",region:"KR", pts:762,wins:10,top4:17,games:22,avg:"2.89",bestStreak:3,currentStreak:0,tiltStreak:2,bestHaul:35,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[710,730,750,762],
-   clashHistory:mkHistory([{pl:3,r1:4,r2:3,r3:3},{pl:3,r1:5,r2:3,r3:3,clutch:true},{pl:2,r1:2,r2:2,r3:2},{pl:4,r1:6,r2:4,r3:4,clutch:true}])},
-  {id:13,name:"Mortdog",     riotId:"Mortdog#NA1",     lp:2730,rank:"Master",     region:"NA", pts:583,wins:7, top4:14,games:20,avg:"3.15",bestStreak:2,currentStreak:0,tiltStreak:3,bestHaul:28,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[530,550,568,583],
-   clashHistory:mkHistory([{pl:4,r1:5,r2:4,r3:4},{pl:5,r1:6,r2:5,r3:5},{pl:3,r1:4,r2:3,r3:3},{pl:6,r1:7,r2:6,r3:6}])},
-  {id:14,name:"Robinsongz",  riotId:"Robinsongz#NA1",  lp:3050,rank:"Challenger",  region:"NA", pts:798,wins:11,top4:18,games:24,avg:"2.72",bestStreak:5,currentStreak:2,tiltStreak:0,bestHaul:36,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[740,762,780,798],
-   clashHistory:mkHistory([{pl:2,r1:3,r2:2,r3:2},{pl:4,r1:5,r2:4,r3:4,clutch:true},{pl:1,r1:1,r2:1,r3:1,clutch:true},{pl:3,r1:4,r2:3,r3:3}])},
-  {id:15,name:"Wrainbash",   riotId:"Wrainbash#EUW",   lp:2960,rank:"Grandmaster",region:"EUW",pts:691,wins:9, top4:16,games:21,avg:"3.01",bestStreak:3,currentStreak:1,tiltStreak:0,bestHaul:32,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[640,658,672,691],
-   clashHistory:mkHistory([{pl:3,r1:4,r2:3,r3:3},{pl:2,r1:3,r2:2,r3:2},{pl:4,r1:5,r2:4,r3:4},{pl:2,r1:2,r2:2,r3:2}])},
-  {id:16,name:"BunnyMuffins",riotId:"BunnyMuffins#EUW",lp:2810,rank:"Grandmaster",region:"EUW",pts:634,wins:8, top4:15,games:19,avg:"3.22",bestStreak:2,currentStreak:0,tiltStreak:1,bestHaul:30,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[590,608,621,634],
-   clashHistory:mkHistory([{pl:5,r1:6,r2:5,r3:5},{pl:3,r1:4,r2:3,r3:3},{pl:4,r1:5,r2:4,r3:4},{pl:3,r1:3,r2:3,r3:3}])},
-  {id:17,name:"Frodan",      riotId:"Frodan#NA1",      lp:2840,rank:"Grandmaster",region:"NA", pts:671,wins:9, top4:15,games:20,avg:"3.09",bestStreak:3,currentStreak:2,tiltStreak:0,bestHaul:31,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[620,638,655,671],
-   clashHistory:mkHistory([{pl:4,r1:5,r2:4,r3:4},{pl:3,r1:4,r2:3,r3:3},{pl:2,r1:3,r2:2,r3:2},{pl:4,r1:4,r2:4,r3:4}])},
-  {id:18,name:"NightShark",  riotId:"NightShark#EUW",  lp:2490,rank:"Master",     region:"EUW",pts:478,wins:5, top4:11,games:18,avg:"3.72",bestStreak:1,currentStreak:0,tiltStreak:2,bestHaul:21,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[420,440,460,478],
-   clashHistory:mkHistory([{pl:6,r1:7,r2:6,r3:6},{pl:5,r1:6,r2:5,r3:5},{pl:7,r1:8,r2:7,r3:7},{pl:5,r1:6,r2:5,r3:5}])},
-  {id:19,name:"CrystalFox",  riotId:"CrystalFox#KR1",  lp:2420,rank:"Master",     region:"KR", pts:441,wins:5, top4:10,games:17,avg:"3.88",bestStreak:1,currentStreak:0,tiltStreak:1,bestHaul:19,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[390,408,425,441],
-   clashHistory:mkHistory([{pl:7,r1:8,r2:7,r3:7},{pl:6,r1:7,r2:6,r3:6},{pl:5,r1:6,r2:5,r3:5},{pl:6,r1:7,r2:6,r3:6}])},
-  {id:20,name:"VoidWalker",  riotId:"VoidWalker#NA1",  lp:2350,rank:"Master",     region:"NA", pts:408,wins:4, top4:10,games:16,avg:"4.00",bestStreak:1,currentStreak:1,tiltStreak:0,bestHaul:18,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[360,378,394,408],
-   clashHistory:mkHistory([{pl:5,r1:6,r2:5,r3:5},{pl:7,r1:8,r2:7,r3:7},{pl:6,r1:7,r2:6,r3:6},{pl:5,r1:6,r2:5,r3:5}])},
-  {id:21,name:"StarForge",   riotId:"StarForge#EUW",   lp:2280,rank:"Diamond",    region:"EUW",pts:371,wins:4, top4:9, games:15,avg:"4.13",bestStreak:1,currentStreak:0,tiltStreak:2,bestHaul:16,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[330,348,362,371],
-   clashHistory:mkHistory([{pl:6,r1:7,r2:6,r3:6},{pl:6,r1:7,r2:6,r3:6},{pl:7,r1:8,r2:7,r3:7},{pl:5,r1:6,r2:5,r3:5}])},
-  {id:22,name:"IronMask",    riotId:"IronMask#KR1",    lp:2190,rank:"Diamond",    region:"KR", pts:334,wins:3, top4:8, games:14,avg:"4.29",bestStreak:1,currentStreak:0,tiltStreak:1,bestHaul:14,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[295,310,322,334],
-   clashHistory:mkHistory([{pl:7,r1:8,r2:7,r3:7},{pl:5,r1:6,r2:5,r3:5},{pl:6,r1:7,r2:6,r3:6},{pl:7,r1:8,r2:7,r3:7}])},
-  {id:23,name:"DawnBreaker", riotId:"DawnBreaker#EUW", lp:2110,rank:"Diamond",    region:"EUW",pts:297,wins:3, top4:7, games:13,avg:"4.46",bestStreak:1,currentStreak:1,tiltStreak:0,bestHaul:12,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[260,274,286,297],
-   clashHistory:mkHistory([{pl:6,r1:7,r2:6,r3:6},{pl:7,r1:8,r2:7,r3:7},{pl:5,r1:6,r2:5,r3:5},{pl:7,r1:8,r2:7,r3:7}])},
-  {id:24,name:"GhostRider",  riotId:"GhostRider#NA1",  lp:2040,rank:"Diamond",    region:"NA", pts:260,wins:2, top4:6, games:12,avg:"4.58",bestStreak:1,currentStreak:0,tiltStreak:3,bestHaul:10,checkedIn:true,role:"player",banned:false,notes:"",sparkline:[225,240,252,260],
-   clashHistory:mkHistory([{pl:7,r1:8,r2:7,r3:7},{pl:6,r1:7,r2:6,r3:6},{pl:8,r1:8,r2:8,r3:8},{pl:6,r1:7,r2:6,r3:6}])},
-];
-const PAST_CLASHES=[
-  {id:13,name:"Clash #13",date:"Mar 1 2026",season:"S16",champion:"Levitate",  top3:["Dishsoap","k3soju","Robinsongz"],players:8,lobbies:1,
-   report:{byRound:{Dishsoap:{r1:2,r2:1,r3:1,finals:1},k3soju:{r1:1,r2:2,r3:2,finals:2},Robinsongz:{r1:3,r2:2,r3:2,finals:3}},
-           mostImproved:"Setsuko",biggestUpset:"Setsuko beat Dishsoap in R2"}},
-  {id:12,name:"Clash #12",date:"Feb 22 2026",season:"S16",champion:"Zounderkite",    top3:["k3soju","Setsuko","Wrainbash"],players:8,lobbies:1,report:null},
-  {id:11,name:"Clash #11",date:"Feb 15 2026",season:"S16",champion:"Uri",top3:["Robinsongz","Dishsoap","Frodan"],players:8,lobbies:1,report:null},
-  {id:10,name:"Clash #10",date:"Feb 8 2026", season:"S16",champion:"BingBing",top3:["BunnyMuffins","Mortdog","Frodan"],players:8,lobbies:1,report:null},
-];
+const HOMIES_IDS=[];
+const SEED=[];
+const PAST_CLASHES=[];
 
-const HOF_RECORDS=[
-  {id:1,icon:"👑",title:"Most Season Points",  value:"1024 pts", holder:"Levitate",   rank:"Challenger",  history:[{holder:"Dishsoap",value:"924 pts",season:"S15"}],runner:["Zounderkite (887)","Dishsoap (924)"]},
-  {id:2,icon:"🥇",title:"Most 1st Finishes",   value:"16 wins",  holder:"Levitate",   rank:"Challenger",  history:[{holder:"Dishsoap",value:"14 wins",season:"S15"}],runner:["Dishsoap (14)","k3soju (12)"]},
-  {id:3,icon:"📈",title:"Best Avg Placement",  value:"2.10 avg", holder:"Levitate",   rank:"Challenger",  history:[{holder:"Dishsoap",value:"2.41",season:"S15"}],runner:["Dishsoap (2.41)","Zounderkite (2.45)"]},
-  {id:4,icon:"🔥",title:"Longest Win Streak",  value:"7 clashes",holder:"Levitate",   rank:"Challenger",  history:[{holder:"k3soju",value:"5",season:"S15"}],runner:["Robinsongz (5)","k3soju (4)"]},
-  {id:5,icon:"⚡",title:"Most Clutch Plays",   value:"9 clutches",holder:"Levitate",  rank:"Challenger",  history:[{holder:"Dishsoap",value:"7",season:"S15"}],runner:["Uri (6)","Dishsoap (5)"]},
-  {id:6,icon:"🎯",title:"Highest Single Haul", value:"48 pts",   holder:"Levitate",   rank:"Challenger",  history:[{holder:"Dishsoap",value:"42",season:"S15"}],runner:["Dishsoap (42)","Robinsongz (36)"]},
-  {id:7,icon:"🏅",title:"Most Top-4 Finishes", value:"26 top4s", holder:"Levitate",   rank:"Challenger",  history:[{holder:"Dishsoap",value:"22",season:"S15"}],runner:["Dishsoap (22)","k3soju (19)"]},
-  {id:8,icon:"🌍",title:"Most Lobbies Won",    value:"4 lobbies",holder:"Levitate",   rank:"Challenger",  history:[{holder:"Dishsoap",value:"3",season:"S15"}],runner:["Dishsoap (3)","Uri (2)"]},
-];
-const RETIRED_LEGENDS=[
-  {name:"xQc_TFT",  rank:"Challenger", pts:1240,seasons:["S12","S13","S14"],reason:"Retired from competitive"},
-  {name:"Doublelift",rank:"Grandmaster",pts:890, seasons:["S13","S14"],        reason:"Moved to coaching"},
-  {name:"Hafu",      rank:"Grandmaster",pts:1100,seasons:["S11","S12","S13"],  reason:"Content focus"},
-];
+const HOF_RECORDS=[];
+const RETIRED_LEGENDS=[];
 
 
 // ─── AUTH / ACCOUNT SYSTEM ───────────────────────────────────────────────────
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
-const SEASON_CHAMPION={
-  name:"Levitate",
-  season:"S16",
-  pts:1024,
-  rank:"Challenger",
-  region:"EUW",
-  title:"S16 Season MVP",
-  avgPlacement:"2.41",
-  wins:14,
-  games:28,
-  clutches:3,
-  streak:6,
-  since:"Mar 1 2026",
-};
+const SEASON_CHAMPION=null;
 
 // ─── MILESTONE REWARDS ────────────────────────────────────────────────────────
 // ─── SPONSOR / AD DATA ────────────────────────────────────────────────────────
@@ -941,6 +857,7 @@ function SponsorBanner({sponsor,onNavigate}){
 // ─── CHAMPION HERO CARD (homepage) ────────────────────────────────────────────
 function ChampionHeroCard({champion,onClick}){
   const c=champion||SEASON_CHAMPION;
+  if(!c)return null;
   return(
     <div onClick={onClick} style={{position:"relative",overflow:"hidden",borderRadius:16,
       background:"linear-gradient(135deg,rgba(232,168,56,.16),rgba(155,114,207,.08),rgba(7,7,14,.98))",
@@ -1711,7 +1628,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       )}
 
       {/* Champion hero card - shown all season */}
-      <ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>
+      {SEASON_CHAMPION&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
 
       <div style={{height:28}}/>
 
@@ -2443,7 +2360,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
       </div>
 
       {/* Champion banner - shown if this player is the season champion */}
-      {player.name===SEASON_CHAMPION.name&&(
+      {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&(
         <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))",border:"1px solid rgba(232,168,56,.5)",borderRadius:10,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",gap:12,animation:"pulse-gold 3s infinite"}}>
           <span style={{fontSize:22,animation:"crown-glow 2s infinite"}}>👑</span>
           <div style={{flex:1}}>
@@ -2461,16 +2378,16 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         <div style={{display:"flex",alignItems:"center",gap:18,flexWrap:"wrap",position:"relative"}}>
           <div style={{width:72,height:72,borderRadius:"50%",
             background:`linear-gradient(135deg,${rc(player.rank)}33,${rc(player.rank)}11)`,
-            border:`3px solid ${player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"}`,
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Cinzel',serif",flexShrink:0,
-            boxShadow:player.name===SEASON_CHAMPION.name?"0 0 24px rgba(232,168,56,.4)":"none"}}>
-            {player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
+            border:`3px solid ${SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"}`,
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Cinzel',serif",flexShrink:0,
+            boxShadow:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"0 0 24px rgba(232,168,56,.4)":"none"}}>
+            {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
             {player.name.charAt(0)}
           </div>
           <div style={{flex:1}}>
             <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6}}>
               <h1 style={{fontSize:"clamp(20px,4vw,34px)",color:"#F2EDE4",lineHeight:1}}>{player.name}</h1>
-              {player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">👑 {SEASON_CHAMPION.title}</Tag>}
+              {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">👑 {SEASON_CHAMPION.title}</Tag>}
               {isHotStreak(player)&&<span style={{fontSize:18}}>🔥</span>}
               {isOnTilt(player)&&<span style={{fontSize:18}}>💀</span>}
             </div>
