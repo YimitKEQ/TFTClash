@@ -6579,6 +6579,7 @@ function FAQScreen({setScreen}){
       {q:"How are lobbies decided?",a:"Lobbies are seeded by ladder rank using snake-draft - each lobby gets a balanced spread of skill levels. Unranked or equal-LP players are placed randomly."},
       {q:"What's the points system?",a:"Clash Scoring per game: 1st=8, 2nd=7, 3rd=6, 4th=5, 5th=4, 6th=3, 7th=2, 8th=1."},
       {q:"What if there aren't enough players for full 8-player lobbies?",a:"Lobbies of 7 are completely valid - scoring is identical for the 7 present. For advancement stages, top seeds may receive a BYE (0 points, neutral)."},
+      {q:"How do I submit my result after a game?",a:"You don't need to screenshot or message anyone. After each game, go to the Bracket page and enter your placement directly — the site records it instantly. If you're unsure, your admin can enter it for you."},
       {q:"Do clash points carry over between events?",a:"In-game tournament points (1st=8pts etc.) are used only within a single clash. Season points - shown on the leaderboard - are separate and accumulate across all clashes in the season."},
     ]},
     {cat:"Disconnections & Edge Cases",items:[
