@@ -1131,13 +1131,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
 
 // ─── NAVBAR (desktop top + mobile bottom) ────────────────────────────────────
-const NOTIF_SEED=[
-  {id:1,icon:"⚔",title:"Clash #14 is LIVE",body:"Round 1 underway. 24 players across 3 lobbies. Check your lobby.",time:"2 min ago",read:false},
-  {id:2,icon:"✅",title:"Check-in Opened",body:"Confirm your spot for Clash #14 before 8PM EST.",time:"1h ago",read:false},
-  {id:3,icon:"🏆",title:"Results: Clash #13",body:"Levitate takes the crown. Full standings available.",time:"7 days ago",read:true},
-  {id:4,icon:"📈",title:"You climbed to #1",body:"Your leaderboard position improved after Clash #13.",time:"7 days ago",read:true},
-  {id:5,icon:"📢",title:"Season 16 Active",body:"Clash points are live. Every clash counts toward Grand Finals.",time:"2 weeks ago",read:true},
-];
+const NOTIF_SEED=[];
 function NotificationBell({notifications,onMarkAllRead}){
   const [open,setOpen]=useState(false);
   const unread=notifications.filter(n=>!n.read).length;
@@ -1545,7 +1539,10 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const [name,setName]=useState("");
   const [riot,setRiot]=useState("");
   const [region,setRegion]=useState("EUW");
-  const targetMs=useRef(Date.now()+2*86400000+5*3600000);
+  const clashName=tournamentState?.clashName||"Next Clash";
+  const clashDate=tournamentState?.clashDate||"";
+  const clashTime=tournamentState?.clashTime||"";
+  const targetMs=useRef(tournamentState?.clashTimestamp?new Date(tournamentState.clashTimestamp).getTime():Date.now()+7*86400000);
   const [now,setNow]=useState(Date.now());
   useEffect(()=>{const t=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(t);},[]);
   const diff=Math.max(0,targetMs.current-now);
@@ -1592,7 +1589,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,
       role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
     setPlayers(p=>[...p,np]);
-    toast(currentUser.username+" registered for Clash #14! ✓","success");
+    toast(currentUser.username+" registered for "+clashName+"! ✓","success");
   }
 
   function phaseStatusText(){
@@ -1748,7 +1745,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(8,8,15,.6))",border:"1px solid rgba(155,114,207,.25)",borderRadius:16,padding:"20px 24px"}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
-              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>Clash #14 Starts In</span>
+              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>{clashName} Starts In</span>
             </div>
             <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
               {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
@@ -1764,7 +1761,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         {/* Right: Register + Roster */}
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           <Panel accent style={{padding:"20px"}}>
-            <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join Clash #14</h3>
+            <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join {clashName}</h3>
             <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>Saturday 8PM EST · Season 16 · Set 16</div>
 
             {/* Not logged in */}
@@ -1820,7 +1817,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                     <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{currentUser.riotId} · {currentUser.region||"EUW"}</div>
                   </div>
                 </div>
-                <Btn v="primary" full onClick={registerFromAccount}>Register for Clash #14 →</Btn>
+                <Btn v="primary" full onClick={registerFromAccount}>Register for {clashName} →</Btn>
               </div>
             )}
           </Panel>
@@ -1848,7 +1845,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{background:"rgba(78,205,196,.04)",border:"1px solid rgba(78,205,196,.2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
             <div>
               <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{players.length} players registered</div>
-              <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>{checkedN} checked in for Clash #14</div>
+              <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>{checkedN} checked in for {clashName}</div>
             </div>
             <Btn v="teal" s="sm" onClick={()=>setScreen("roster")}>View Roster →</Btn>
           </div>
@@ -1970,7 +1967,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
         <div style={{marginBottom:20}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
             <div style={{width:8,height:8,borderRadius:"50%",background:"#6EE7B7"}}/>
-            <span style={{fontSize:12,fontWeight:700,color:"#6EE7B7",letterSpacing:".08em",textTransform:"uppercase"}}>Checked In - Clash #14</span>
+            <span style={{fontSize:12,fontWeight:700,color:"#6EE7B7",letterSpacing:".08em",textTransform:"uppercase"}}>Checked In</span>
             <span style={{fontSize:12,color:"#9AAABF"}}>({checkedIn.length})</span>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:8}}>
@@ -2576,45 +2573,51 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
               <p style={{fontSize:12,color:"#BECBD9"}}>Track your record against every player you've shared a lobby with.</p>
             </div>
           </div>
-          <Panel style={{overflow:"hidden"}}>
-            <div style={{padding:"10px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontSize:12,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".08em"}}>All opponents</span>
-              <span style={{fontSize:11,color:"#BECBD9"}}>{allPlayers.filter(p=>p.id!==player.id).length} players</span>
+          {(player.clashHistory||[]).length===0?(
+            <div style={{textAlign:"center",padding:"40px 20px",background:"#111827",borderRadius:12,border:"1px solid rgba(242,237,228,.07)",color:"#9AAABF"}}>
+              <div style={{fontSize:32,marginBottom:10}}>⚔️</div>
+              <div style={{fontSize:14,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>No H2H data yet</div>
+              <div style={{fontSize:13}}>Compete in a clash to build your rivalry record.</div>
             </div>
-            {allPlayers.filter(p=>p.id!==player.id).map((op,i)=>{
-              // Deterministic H2H based on ids
-              const seed=(player.id*7+op.id*3)%11;
-              const mW=Math.min(5,seed);
-              const tW=Math.min(5,(player.id+op.id)%7);
-              const total=mW+tW||1;
-              const ahead=mW>tW;
-              const tied=mW===tW;
-              return(
-                <div key={op.id} style={{padding:"13px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:i%2===0?"rgba(255,255,255,.01)":"transparent"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{op.name}</div>
-                      <div style={{fontSize:11,color:"#BECBD9"}}>{op.rank} · {op.region}</div>
+          ):(
+            <Panel style={{overflow:"hidden"}}>
+              <div style={{padding:"10px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontSize:12,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".08em"}}>Shared lobbies</span>
+              </div>
+              {allPlayers.filter(op=>op.id!==player.id&&(op.clashHistory||[]).some(h=>(player.clashHistory||[]).some(ph=>ph.clashId&&ph.clashId===h.clashId))).map((op,i)=>{
+                const sharedClashes=(player.clashHistory||[]).filter(h=>(op.clashHistory||[]).some(oh=>oh.clashId&&oh.clashId===h.clashId));
+                const mW=sharedClashes.filter(h=>{const oh=(op.clashHistory||[]).find(x=>x.clashId===h.clashId);return oh&&h.placement<oh.placement;}).length;
+                const tW=sharedClashes.length-mW;
+                const total=sharedClashes.length||1;
+                const ahead=mW>tW;
+                const tied=mW===tW;
+                return(
+                  <div key={op.id} style={{padding:"13px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:i%2===0?"rgba(255,255,255,.01)":"transparent"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{op.name}</div>
+                        <div style={{fontSize:11,color:"#BECBD9"}}>{op.rank} · {op.region} · {sharedClashes.length} shared {sharedClashes.length===1?"clash":"clashes"}</div>
+                      </div>
+                      <div style={{textAlign:"right",flexShrink:0}}>
+                        <div className="mono" style={{fontSize:14}}>
+                          <span style={{color:"#6EE7B7",fontWeight:700}}>{mW}W</span>
+                          <span style={{color:"#9AAABF",margin:"0 4px"}}>-</span>
+                          <span style={{color:"#F87171",fontWeight:700}}>{tW}L</span>
+                        </div>
+                        <div style={{fontSize:10,color:ahead?"#6EE7B7":tied?"#E8A838":"#F87171",fontWeight:600,marginTop:2}}>
+                          {ahead?"You're ahead":tied?"All tied":"They're ahead"}
+                        </div>
+                      </div>
                     </div>
-                    <div style={{textAlign:"right",flexShrink:0}}>
-                      <div className="mono" style={{fontSize:14}}>
-                        <span style={{color:"#6EE7B7",fontWeight:700}}>{mW}W</span>
-                        <span style={{color:"#9AAABF",margin:"0 4px"}}>-</span>
-                        <span style={{color:"#F87171",fontWeight:700}}>{tW}L</span>
-                      </div>
-                      <div style={{fontSize:10,color:ahead?"#6EE7B7":tied?"#E8A838":"#F87171",fontWeight:600,marginTop:2}}>
-                        {ahead?"You're ahead":tied?"All tied":"They're ahead"}
-                      </div>
+                    <div style={{display:"flex",gap:1,height:5,borderRadius:99,overflow:"hidden",background:"rgba(255,255,255,.05)"}}>
+                      <div style={{width:(mW/total*100)+"%",background:"#6EE7B7",borderRadius:"99px 0 0 99px",transition:"width .6s"}}/>
+                      <div style={{flex:1,background:"rgba(248,113,113,.3)",borderRadius:"0 99px 99px 0"}}/>
                     </div>
                   </div>
-                  <div style={{display:"flex",gap:1,height:5,borderRadius:99,overflow:"hidden",background:"rgba(255,255,255,.05)"}}>
-                    <div style={{width:(mW/total*100)+"%",background:"#6EE7B7",borderRadius:"99px 0 0 99px",transition:"width .6s"}}/>
-                    <div style={{flex:1,background:"rgba(248,113,113,.3)",borderRadius:"0 99px 99px 0"}}/>
-                  </div>
-                </div>
-              );
-            })}
-          </Panel>
+                );
+              })}
+            </Panel>
+          )}
         </div>
       )}
 
@@ -2902,13 +2905,13 @@ function ClashReport({clashData,players}){
 }
 
 // ─── RESULTS SCREEN ───────────────────────────────────────────────────────────
-function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
+function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState}){
   const sorted=[...players].sort((a,b)=>b.pts-a.pts);
   const champ=sorted[0];
   const [tab,setTab]=useState("results");
   const awards=computeClashAwards(players.length>0?players:sorted);
-  const CLASH_NAME="Clash #14";
-  const CLASH_DATE="Mar 8 2026";
+  const CLASH_NAME=tournamentState?.clashName||"Recent Clash";
+  const CLASH_DATE=tournamentState?.clashDate||"";
   const MEDALS=["🥇","🥈","🥉"];
   const PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
 
@@ -3143,11 +3146,8 @@ function HofScreen({players,setScreen,setProfilePlayer}){
     if(p){setProfilePlayer(p);setScreen("profile");}
   }
 
-  const SEASON_CHAMPS=[
-    {season:"S14",champion:"xQc_TFT",pts:1240,rank:"Challenger",wins:18,status:"past"},
-    {season:"S15",champion:"Dishsoap",pts:924,rank:"Challenger",wins:14,status:"past"},
-    {season:"S16",champion:king?king.name:"TBD",pts:king?king.pts:0,rank:king?king.rank:"",wins:king?king.wins:0,status:"active"},
-  ];
+  // Season champs built from PAST_CLASHES + current leader
+  const SEASON_CHAMPS=king?[{season:"S16",champion:king.name,pts:king.pts,rank:king.rank,wins:king.wins,status:"active"}]:[];
 
   return(
     <div className="page wrap">
@@ -3249,6 +3249,13 @@ function HofScreen({players,setScreen,setProfilePlayer}){
           <h2 style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Season Champions</h2>
           <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
         </div>
+        {SEASON_CHAMPS.length===0&&(
+          <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(155,114,207,.04))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
+            <div style={{fontSize:36,marginBottom:10}}>👑</div>
+            <div style={{fontFamily:"'Cinzel',serif",fontSize:17,fontWeight:700,color:"#E8A838",marginBottom:6}}>A champion yet to be crowned</div>
+            <div style={{fontSize:13,color:"#9AAABF",maxWidth:340,margin:"0 auto",lineHeight:1.6}}>The throne is empty. Compete in the first clash and write your name into history.</div>
+          </div>
+        )}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12}}>
           {SEASON_CHAMPS.map((s)=>{
             const isActive=s.status==="active";
@@ -3340,42 +3347,17 @@ function HofScreen({players,setScreen,setProfilePlayer}){
       </div>
 
       {/* Rivalries */}
-      <div>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-          <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
-          <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
+      {allP.length>=4&&(
+        <div>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
+            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
+          </div>
+          <div style={{background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"20px",textAlign:"center",color:"#9AAABF",fontSize:13}}>
+            Rivalries will emerge once players have competed in multiple clashes together. Check back after a few events.
+          </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>
-          {[["Dishsoap","k3soju",14,12],["Robinsongz","Setsuko",11,10],["Wrainbash","Frodan",9,9],["Mortdog","BunnyMuffins",7,8]].map(function(arr,i){
-            var a=arr[0],b=arr[1],wa=arr[2],wb=arr[3];
-            var total=wa+wb;
-            return(
-              <div key={i} style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"14px 16px"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <div style={{flex:1,textAlign:"right"}}>
-                    <div style={{fontWeight:700,fontSize:14,color:wa>=wb?"#F2EDE4":"#BECBD9"}}>{a}</div>
-                    <div className="mono" style={{fontSize:13,color:"#E8A838",fontWeight:700}}>{wa}W</div>
-                  </div>
-                  <div style={{padding:"5px 10px",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",borderRadius:6,fontSize:11,fontWeight:700,color:"#9B72CF",flexShrink:0}}>VS</div>
-                  <div style={{flex:1,textAlign:"left"}}>
-                    <div style={{fontWeight:700,fontSize:14,color:wb>wa?"#F2EDE4":"#BECBD9"}}>{b}</div>
-                    <div className="mono" style={{fontSize:13,color:"#4ECDC4",fontWeight:700}}>{wb}W</div>
-                  </div>
-                </div>
-                <div style={{display:"flex",height:5,borderRadius:99,overflow:"hidden"}}>
-                  <div style={{width:(wa/total*100)+"%",background:"#E8A838",transition:"width .3s"}}/>
-                  <div style={{flex:1,background:"#4ECDC4"}}/>
-                </div>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:5,fontSize:10,color:"#9AAABF"}}>
-                  <span>{Math.round(wa/total*100)}%</span>
-                  <span>{total} games</span>
-                  <span>{Math.round(wb/total*100)}%</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      )}
 
     </div>
   );
@@ -3383,14 +3365,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 // ─── ARCHIVE ──────────────────────────────────────────────────────────────────
 function ArchiveScreen({players,currentUser,setScreen}){
   const [open,setOpen]=useState(null);
-  const all=[...PAST_CLASHES,
-    {id:9,name:"Clash #9",date:"Feb 1 2026",season:"S16",champion:"Wrainbash",top3:["Wrainbash","Setsuko","Levitate"],players:24,lobbies:3,report:null},
-    {id:8,name:"Clash #8",date:"Jan 25 2026",season:"S16",champion:"BunnyMuffins",top3:["BunnyMuffins","Mortdog","Frodan"],players:24,lobbies:3,report:null},
-    {id:7,name:"Season 15 Grand Finals",date:"Jan 15 2026",season:"S15",champion:"k3soju",top3:["k3soju","Dishsoap","Robinsongz"],players:24,lobbies:3,report:null},
-  ];
-
-  // Simulated positions for currentUser across events
-  const myPositions={13:6,12:4,11:8,10:3,9:12,8:18,7:2};
+  const all=[...PAST_CLASHES];
 
   return(
     <div className="page wrap">
@@ -3398,12 +3373,20 @@ function ArchiveScreen({players,currentUser,setScreen}){
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
         <div style={{flex:1}}>
           <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Archive</h2>
-          <p style={{color:"#BECBD9",fontSize:13}}>{all.length} events · 2 seasons</p>
+          <p style={{color:"#BECBD9",fontSize:13}}>{all.length} event{all.length!==1?"s":""} recorded</p>
         </div>
       </div>
+      {all.length===0&&(
+        <div style={{textAlign:"center",padding:"60px 20px",color:"#9AAABF"}}>
+          <div style={{fontSize:40,marginBottom:12}}>📭</div>
+          <div style={{fontSize:16,fontWeight:700,color:"#C8D4E0",marginBottom:6}}>No clashes archived yet</div>
+          <div style={{fontSize:13}}>Completed clashes will appear here after the admin finalizes them.</div>
+        </div>
+      )}
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {all.map(c=>{
-          const myPos=currentUser?myPositions[c.id]:null;
+          const myFinish=currentUser?(c.top3||[]).indexOf(currentUser.username):null;
+          const myPos=myFinish>=0?myFinish+1:null;
           return(
             <Panel key={c.id} style={{overflow:"hidden"}}>
               <div style={{padding:"13px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:"#0A0F1A"}} onClick={()=>setOpen(open===c.id?null:c.id)}>
@@ -3464,18 +3447,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const [editP,setEditP]=useState(null);
   const [noteTarget,setNoteTarget]=useState(null);
   const [noteText,setNoteText]=useState("");
-  const [auditLog,setAuditLog]=useState([
-    {ts:Date.now()-3600000,type:"INFO",msg:"Admin session started"},
-    {ts:Date.now()-7200000,type:"ACTION",msg:"Check In All - 8 players"},
-    {ts:Date.now()-86400000,type:"RESULT",msg:"Clash #13 complete - Champion: Dishsoap"},
-  ]);
+  const [auditLog,setAuditLog]=useState([]);
   const [broadMsg,setBroadMsg]=useState("");
   const [broadType,setBroadType]=useState("NOTICE");
-  const [announcements,setAnnouncements]=useState([{id:1,type:"NOTICE",msg:"Clash #14 this Saturday 8PM EST!",ts:Date.now()}]);
-  const [scheduledEvents,setScheduledEvents]=useState([
-    {id:1,name:"Clash #14",type:"SCHEDULED",date:"2026-03-08",time:"20:00",cap:8,format:"Swiss",status:"upcoming"},
-    {id:2,name:"Flash Clash",type:"FLASH",date:"2026-03-06",time:"18:00",cap:8,format:"Single",status:"upcoming"},
-  ]);
+  const [announcements,setAnnouncements]=useState([]);
+  const [scheduledEvents,setScheduledEvents]=useState([]);
   const [newEvent,setNewEvent]=useState({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});
   const [seedAlgo,setSeedAlgo]=useState("rank-based");
   const [paused,setPaused]=useState(false);
@@ -3503,12 +3479,21 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const AUDIT_COLS={INFO:"#4ECDC4",ACTION:"#52C47C",WARN:"#E8A838",RESULT:"#9B72CF",BROADCAST:"#E8A838",DANGER:"#F87171"};
   const EVENT_COLS={SCHEDULED:"#E8A838",FLASH:"#F87171",INVITATIONAL:"#9B72CF",WEEKLY:"#4ECDC4"};
 
-  const [hostApps,setHostApps]=useState([
-    {id:1,name:"ProGuides_TFT",org:"ProGuides",email:"host@proguides.com",reason:"We run weekly TFT content and want to host official clashes for our community of 50k+ subscribers.",freq:"weekly",status:"pending",submittedAt:"Mar 5 2026"},
-    {id:2,name:"TFT_Academy",org:"TFT Academy",email:"admin@tftacademy.gg",reason:"Coaching platform, we'd like to run monthly invitational clashes for our students.",freq:"monthly",status:"pending",submittedAt:"Mar 3 2026"},
-    {id:3,name:"Mortdog_Fan",org:"",email:"fan@gmail.com",reason:"I want to host for my friend group.",freq:"biweekly",status:"approved",submittedAt:"Feb 20 2026"},
-  ]);
+  const [hostApps,setHostApps]=useState([]);
 
+  const [addPlayerForm,setAddPlayerForm]=useState({name:"",riotId:"",region:"EUW",rank:"Gold"});
+  const [showAddPlayer,setShowAddPlayer]=useState(false);
+  function addPlayer(){
+    const n=addPlayerForm.name.trim(),r=addPlayerForm.riotId.trim();
+    if(!n||!r){toast("Name and Riot ID required","error");return;}
+    if(players.find(p=>p.name.toLowerCase()===n.toLowerCase())){toast("Name already taken","error");return;}
+    const np={id:Date.now()%100000,name:n,riotId:r,rank:addPlayerForm.rank||"Gold",lp:1000,region:addPlayerForm.region||"EUW",pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
+    setPlayers(ps=>[...ps,np]);
+    addAudit("ACTION","Player added: "+n);
+    toast(n+" added!","success");
+    setAddPlayerForm({name:"",riotId:"",region:"EUW",rank:"Gold"});
+    setShowAddPlayer(false);
+  }
   const [flashForm,setFlashForm]=useState({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
   const [qcPlacements,setQcPlacements]=useState({});
   const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30"});
@@ -3613,6 +3598,22 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             </Panel>
           ):(
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {/* Add Player */}
+              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
+                <Btn v="primary" s="sm" onClick={()=>setShowAddPlayer(v=>!v)}>{showAddPlayer?"Cancel":"+ Add Player"}</Btn>
+              </div>
+              {showAddPlayer&&(
+                <Panel style={{padding:"16px",marginBottom:4}}>
+                  <h4 style={{color:"#F2EDE4",fontSize:13,marginBottom:12,fontWeight:700}}>Add Player</h4>
+                  <div className="grid-2" style={{marginBottom:12}}>
+                    <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Display Name</label><Inp value={addPlayerForm.name} onChange={v=>setAddPlayerForm(f=>({...f,name:v}))} placeholder="Username"/></div>
+                    <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Riot ID</label><Inp value={addPlayerForm.riotId} onChange={v=>setAddPlayerForm(f=>({...f,riotId:v}))} placeholder="Name#TAG"/></div>
+                    <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Region</label><Sel value={addPlayerForm.region} onChange={v=>setAddPlayerForm(f=>({...f,region:v}))}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel></div>
+                    <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Rank</label><Sel value={addPlayerForm.rank} onChange={v=>setAddPlayerForm(f=>({...f,rank:v}))}>{RANKS.map(r=><option key={r} value={r}>{r}</option>)}</Sel></div>
+                  </div>
+                  <Btn v="success" onClick={addPlayer}>Add Player</Btn>
+                </Panel>
+              )}
               {players.map(p=>(
                 <Panel key={p.id} style={{padding:"14px",background:p.banned?"rgba(127,29,29,.15)":"#111827"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
@@ -3669,6 +3670,15 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       {tab==="round"&&(
         <div className="grid-2">
+          <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
+            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Clash Details</h3>
+            <div className="grid-2" style={{marginBottom:0}}>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Clash Name</label><Inp value={tournamentState?.clashName||""} onChange={v=>setTournamentState(ts=>({...ts,clashName:v}))} placeholder="e.g. Clash #1"/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date</label><Inp value={tournamentState?.clashDate||""} onChange={v=>setTournamentState(ts=>({...ts,clashDate:v}))} placeholder="e.g. Apr 5 2026"/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Time</label><Inp value={tournamentState?.clashTime||""} onChange={v=>setTournamentState(ts=>({...ts,clashTime:v}))} placeholder="e.g. 8PM EST"/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Countdown Target (ISO)</label><Inp value={tournamentState?.clashTimestamp||""} onChange={v=>setTournamentState(ts=>({...ts,clashTimestamp:v}))} placeholder="e.g. 2026-04-05T20:00:00"/></div>
+            </div>
+          </Panel>
           <Panel style={{padding:"20px"}}>
             <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Tournament Phase</h3>
             <div style={{marginBottom:12,padding:"10px 12px",background:"#0F1520",borderRadius:8,border:"1px solid rgba(242,237,228,.07)"}}>
@@ -7235,7 +7245,7 @@ export default function TFTClash(){
   const [notifications,setNotifications]=useState(()=>{try{const s=localStorage.getItem("tft-notifications");return s?JSON.parse(s):NOTIF_SEED;}catch{return NOTIF_SEED;}});
   const [toasts,setToasts]=useState([]);
   const [disputes]=useState([]);
-  const [announcement,setAnnouncement]=useState("⚡ Clash #14 is LIVE NOW - Round 1 underway! 24 players across 3 lobbies. Good luck!");
+  const [announcement,setAnnouncement]=useState("");
   const [profilePlayer,setProfilePlayer]=useState(null);
   const [tournamentState,setTournamentState]=useState(()=>{try{const s=localStorage.getItem("tft-tournament");return s?JSON.parse(s):{phase:"registration",round:1,lobbies:[],lockedLobbies:[]};}catch{return {phase:"registration",round:1,lobbies:[],lockedLobbies:[]};}});
   const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
@@ -7365,7 +7375,7 @@ export default function TFTClash(){
         {screen==="bracket"    &&<BracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
         {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
         {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
-        {screen==="results"    &&<ResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
+        {screen==="results"    &&<ResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
         {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo}/>}
         {screen==="milestones" &&<MilestonesScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
