@@ -5,13 +5,9 @@ const noop = async () => ({});
 const mockAuth = {
   getSession: async () => ({ data: { session: null } }),
   onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-  signOut: noop,
-  signInWithOAuth: noop,
-  signInWithPassword: noop,
-  signUp: noop,
-  linkIdentity: noop,
-  updateUser: noop,
+  signOut: noop, signInWithOAuth: noop, signInWithPassword: noop,
+  signUp: noop, linkIdentity: noop, updateUser: noop,
 };
 export const supabase = (url && key)
-  ? createClient(url, key)
+  ? createClient(url, key, { auth: { flowType: 'implicit' } })
   : { auth: mockAuth };
