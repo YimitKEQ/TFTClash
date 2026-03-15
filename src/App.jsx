@@ -6,6 +6,13 @@ const RCOLS = {Iron:"#8C7B6B",Bronze:"#CD7F32",Silver:"#A8B2CC",Gold:"#E8A838",P
 const REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
 // Fixed scoring - not configurable
 const PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
+const DEFAULT_SEASON_CONFIG = {
+  dropWeeks: 0,
+  finalBoost: 1.0,
+  finaleClashes: 2,
+  attendanceBonus: false,
+  comebackBonus: false,
+};
 const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#BECBD9"}];
 
 function rc(r){return RCOLS[r]||"#A8B2CC";}
@@ -111,6 +118,102 @@ function computeStats(player){
     perClashAvp,
     roundAvgs,comebackRate,clutchRate,ppg,
   };
+}
+
+function effectivePts(player, seasonConfig) {
+  if (!player.clashHistory || !player.clashHistory.length) return player.pts || 0;
+  var cfg = seasonConfig || DEFAULT_SEASON_CONFIG;
+  var clashMap = {};
+  player.clashHistory.forEach(function(h) {
+    var cid = h.clashId || "c0";
+    clashMap[cid] = (clashMap[cid] || 0) + (h.pts || 0);
+  });
+  var clashIds = Object.keys(clashMap);
+  var totals = clashIds.map(function(cid) { return clashMap[cid]; });
+  totals.sort(function(a, b) { return a - b; });
+  var drop = cfg.dropWeeks || 0;
+  if (drop > 0) totals = totals.slice(drop);
+  var boost = cfg.finalBoost || 1.0;
+  var finaleCount = cfg.finaleClashes || 2;
+  if (boost > 1.0 && totals.length > 0) {
+    var boostStart = Math.max(0, totals.length - finaleCount);
+    for (var i = boostStart; i < totals.length; i++) {
+      totals[i] = Math.round(totals[i] * boost);
+    }
+  }
+  return totals.reduce(function(acc, v) { return acc + v; }, 0);
+}
+
+function tiebreaker(a, b) {
+  var aPts = a.pts || 0, bPts = b.pts || 0;
+  if (bPts !== aPts) return bPts - aPts;
+  var aScore = (a.wins || 0) * 2 + (a.top4 || 0);
+  var bScore = (b.wins || 0) * 2 + (b.top4 || 0);
+  if (bScore !== aScore) return bScore - aScore;
+  var placements = [1, 2, 3, 4, 5, 6, 7, 8];
+  for (var i = 0; i < placements.length; i++) {
+    var p = placements[i];
+    var aC = (a.clashHistory || []).filter(function(h) { return h.place === p; }).length;
+    var bC = (b.clashHistory || []).filter(function(h) { return h.place === p; }).length;
+    if (bC !== aC) return bC - aC;
+  }
+  var aLast = a.clashHistory && a.clashHistory.length ? a.clashHistory[a.clashHistory.length - 1].place || 9 : 9;
+  var bLast = b.clashHistory && b.clashHistory.length ? b.clashHistory[b.clashHistory.length - 1].place || 9 : 9;
+  return aLast - bLast;
+}
+
+function isComebackEligible(player, allClashIds) {
+  if (!allClashIds || !allClashIds.length) return false;
+  var attended = {};
+  (player.clashHistory || []).forEach(function(h) { if (h.clashId) attended[h.clashId] = true; });
+  var lastIdx = -1;
+  for (var i = allClashIds.length - 1; i >= 0; i--) {
+    if (attended[allClashIds[i]]) { lastIdx = i; break; }
+  }
+  if (lastIdx === -1) return false;
+  var missed = 0;
+  for (var j = lastIdx + 1; j < allClashIds.length; j++) {
+    if (!attended[allClashIds[j]]) missed++;
+    else missed = 0;
+  }
+  return missed >= 2;
+}
+
+function getAttendanceStreak(player, allClashIds) {
+  if (!allClashIds || !allClashIds.length) return 0;
+  var attended = {};
+  (player.clashHistory || []).forEach(function(h) { if (h.clashId) attended[h.clashId] = true; });
+  var streak = 0;
+  for (var i = allClashIds.length - 1; i >= 0; i--) {
+    if (attended[allClashIds[i]]) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function computeSeasonBonuses(player, currentClashId, allClashIds, seasonConfig) {
+  var cfg = seasonConfig || DEFAULT_SEASON_CONFIG;
+  var bonusPts = 0;
+  var comebackTriggered = false;
+  var attendanceMilestone = null;
+  var idsWithCurrent = allClashIds.indexOf(currentClashId) >= 0 ? allClashIds : allClashIds.concat([currentClashId]);
+  if (cfg.comebackBonus && isComebackEligible(player, allClashIds)) {
+    bonusPts += 2;
+    comebackTriggered = true;
+  }
+  if (cfg.attendanceBonus) {
+    var attended = {};
+    (player.clashHistory || []).forEach(function(h) { if (h.clashId) attended[h.clashId] = true; });
+    var streak = 0;
+    for (var i = idsWithCurrent.length - 1; i >= 0; i--) {
+      var cid = idsWithCurrent[i];
+      if (cid === currentClashId || attended[cid]) streak++;
+      else break;
+    }
+    if (streak === 5) { bonusPts += 5; attendanceMilestone = 5; }
+    else if (streak === 3) { bonusPts += 3; attendanceMilestone = 3; }
+  }
+  return { bonusPts: bonusPts, comebackTriggered: comebackTriggered, attendanceMilestone: attendanceMilestone };
 }
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
@@ -1369,11 +1472,19 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 }
 
 // ─── STANDINGS TABLE ──────────────────────────────────────────────────────────
-function StandingsTable({rows,compact,onRowClick,myName}){
+function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
   const [sortKey,setSortKey]=useState("pts");
   const [asc,setAsc]=useState(false);
   function toggle(k){if(sortKey===k)setAsc(a=>!a);else{setSortKey(k);setAsc(false);}}
-  const sorted=[...rows].sort((a,b)=>{const va=parseFloat(a[sortKey])||0,vb=parseFloat(b[sortKey])||0;return asc?va-vb:vb-va;});
+  const useEffective=seasonConfig&&(seasonConfig.dropWeeks>0||seasonConfig.finalBoost>1.0);
+  const sorted=[...rows].sort((a,b)=>{
+    if(sortKey==="pts"&&useEffective){
+      var ea=effectivePts(a,seasonConfig),eb=effectivePts(b,seasonConfig);
+      if(ea!==eb)return asc?ea-eb:eb-ea;
+      return tiebreaker(a,b);
+    }
+    const va=parseFloat(a[sortKey])||0,vb=parseFloat(b[sortKey])||0;return asc?va-vb:vb-va;
+  });
   const maxPts=Math.max(...rows.map(r=>r.pts||0),1);
   const H=({k,label})=>(
     <span onClick={()=>toggle(k)} className="cond" style={{fontSize:10,fontWeight:700,color:sortKey===k?"#E8A838":"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",cursor:"pointer",userSelect:"none",whiteSpace:"nowrap"}}>
@@ -1420,7 +1531,7 @@ function StandingsTable({rows,compact,onRowClick,myName}){
                 </div>}
               </div>
             </div>
-            <div className="mono pts-glow" style={{fontSize:top3?20:15,fontWeight:800,color:ptsCol,lineHeight:1}}>{p.pts}</div>
+            <div className="mono pts-glow" style={{fontSize:top3?20:15,fontWeight:800,color:ptsCol,lineHeight:1}}>{useEffective?effectivePts(p,seasonConfig):p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
             <div className="mono" style={{fontSize:11,color:top8?"#BECBD9":"#9AAABF"}}>{p.games||0}</div>
             {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#6EE7B7":"#8896A8"}}>{p.wins||0}</div>}
@@ -1509,7 +1620,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 }
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
-function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState}){
+function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash}){
   const [name,setName]=useState("");
   const [riot,setRiot]=useState("");
   const [region,setRegion]=useState("EUW");
@@ -1525,7 +1636,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     if(players.find(p=>p.riotId.toLowerCase()===riot.toLowerCase())){toast("Riot ID taken","error");return;}
     const lp=Math.floor(Math.random()*2000)+900;
     const ri=Math.min(Math.floor(lp/300),RANKS.length-1);
-    const np={id:Date.now()%100000,name:name.trim(),riotId:riot.trim(),rank:RANKS[ri],lp,region,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[]};
+    const np={id:Date.now()%100000,name:name.trim(),riotId:riot.trim(),rank:RANKS[ri],lp,region,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
     setPlayers(p=>[...p,np]);setName("");setRiot("");
     toast(name.trim()+" joined!","success");
   }
@@ -1558,7 +1669,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     const np={id:Date.now()%100000,name:currentUser.username,riotId:currentUser.riotId,rank:RANKS[ri],lp,
       region:currentUser.region||"EUW",pts:0,wins:0,top4:0,games:0,avg:"0",
       bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,
-      role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[]};
+      role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
     setPlayers(p=>[...p,np]);
     toast(currentUser.username+" registered for Clash #14! ✓","success");
   }
@@ -1633,6 +1744,34 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <div style={{display:"flex",gap:8,flexShrink:0}}>
             <Btn v="purple" s="sm" onClick={()=>onAuthClick("signup")}>Sign Up Free</Btn>
             <Btn v="dark" s="sm" onClick={()=>onAuthClick("login")}>Sign In</Btn>
+          </div>
+        </div>
+      )}
+      {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
+        <div style={{marginBottom:16}}>
+          <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Quick Clashes</div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {quickClashes.filter(function(q){return q.status==="open"||q.status==="full"||q.status==="live";}).map(function(qc){
+              var linked=currentUser?players.find(function(p){return p.name===currentUser.username;}):null;
+              var alreadyJoined=linked&&qc.players&&qc.players.includes(linked.id);
+              return(
+                <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                  <div style={{fontSize:18}}>{qc.status==="live"?"⚡":"🎮"}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{qc.name}</div>
+                    <div style={{fontSize:11,color:"#BECBD9"}}>{qc.players?qc.players.length:0}/{qc.cap} players · {qc.rounds}R · {qc.format}</div>
+                  </div>
+                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                    {qc.status==="live"&&<span style={{fontSize:11,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 8px"}}>LIVE</span>}
+                    {qc.status==="open"&&!alreadyJoined&&onJoinQuickClash&&linked&&(
+                      <Btn v="purple" s="sm" onClick={function(){onJoinQuickClash(qc.id,linked.id);toast("Joined "+qc.name+"!","success");}}>Join</Btn>
+                    )}
+                    {alreadyJoined&&<span style={{fontSize:11,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:6,padding:"4px 8px"}}>Joined</span>}
+                    {qc.status==="full"&&!alreadyJoined&&<span style={{fontSize:11,color:"#E8A838"}}>Full</span>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -1992,18 +2131,33 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 
 // ─── BRACKET SCREEN ───────────────────────────────────────────────────────────
-function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState}){
+function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig}){
   const checkedIn=players.filter(p=>p.checkedIn);
   const lobbySize=8;
   const round=tournamentState?tournamentState.round:1;
   const lockedLobbies=tournamentState?tournamentState.lockedLobbies:[];
+  const currentClashId=tournamentState&&tournamentState.clashId?tournamentState.clashId:("c"+Date.now());
   const [mySearch,setMySearch]=useState(currentUser?currentUser.username:"");
   const [highlightLobby,setHighlightLobby]=useState(null);
   // Per-lobby placement entry UI state: lobbyIdx -> {open:bool, placements:{playerId->place}}
   const [placementEntry,setPlacementEntry]=useState({});
 
   function getLobbies(){
-    const pool=round===1?[...checkedIn]:[...checkedIn].sort((a,b)=>b.pts-a.pts);
+    var algo=(tournamentState&&tournamentState.seedAlgo)||"rank-based";
+    var pool;
+    if(round===1){
+      if(algo==="random"){
+        pool=[...checkedIn].sort(()=>Math.random()-0.5);
+      } else if(algo==="snake"){
+        var sorted=[...checkedIn].sort((a,b)=>b.lp-a.lp);
+        pool=[];
+        sorted.forEach(function(p,i){if(Math.floor(i/lobbySize)%2===0)pool.push(p);else pool.unshift(p);});
+      } else {
+        pool=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
+      }
+    } else {
+      pool=[...checkedIn].sort((a,b)=>b.pts-a.pts);
+    }
     const lobbies=[];
     for(let i=0;i<pool.length;i+=lobbySize)lobbies.push(pool.slice(i,i+lobbySize));
     return lobbies;
@@ -2043,21 +2197,26 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     if(!placementEntry[li])return;
     const placements={};
     lobby.forEach(p=>{placements[p.id]=parseInt(placementEntry[li].placements[p.id]||"0");});
+    var allClashIds=PAST_CLASHES.map(function(c){return "c"+c.id;});
     setPlayers(prev=>prev.map(p=>{
       const place=placements[p.id];
       if(place===undefined)return p;
       const earned=PTS[place]||0;
+      var bonuses=computeSeasonBonuses(p,currentClashId,allClashIds,seasonConfig);
+      var totalEarned=earned+(bonuses.bonusPts||0);
       const newGames=(p.games||0)+1;
       const newWins=(p.wins||0)+(place===1?1:0);
       const newTop4=(p.top4||0)+(place<=4?1:0);
-      const newPts=(p.pts||0)+earned;
+      const newPts=(p.pts||0)+totalEarned;
       const newAvg=(((parseFloat(p.avg)||0)*(p.games||0)+place)/newGames).toFixed(2);
-      const newHistory=[...(p.clashHistory||[]),{round,place,pts:earned,clashId:Date.now()}];
+      const newHistory=[...(p.clashHistory||[]),{round,place,pts:earned,clashId:currentClashId,bonusPts:bonuses.bonusPts||0,comebackTriggered:bonuses.comebackTriggered,attendanceMilestone:bonuses.attendanceMilestone}];
       const newSparkline=[...(p.sparkline||[p.pts]),newPts];
       const newStreak=place<=4?(p.currentStreak||0)+1:0;
       const bestStreak=Math.max(p.bestStreak||0,newStreak);
+      const newAttendanceStreak=getAttendanceStreak(p,allClashIds.concat([currentClashId]));
       return {...p,pts:newPts,wins:newWins,top4:newTop4,games:newGames,avg:newAvg,
-        clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak,bestStreak};
+        clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak,bestStreak,
+        lastClashId:currentClashId,attendanceStreak:newAttendanceStreak};
     }));
     setTournamentState(ts=>({...ts,lockedLobbies:[...(ts.lockedLobbies||[]),li]}));
     setPlacementEntry(pe=>({...pe,[li]:{...pe[li],open:false}}));
@@ -2257,7 +2416,7 @@ const DAILY_CHALLENGES=[
   {id:"d3",icon:"🛡",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
 ];
 
-function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
+function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig}){
   const [tab,setTab]=useState("overview");
   const achievements=getAchievements(player);
   const s=computeStats(player);
@@ -2443,23 +2602,47 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser}){
 
       {tab==="history"&&(
         <Panel style={{overflow:"hidden"}}>
-          <div style={{padding:"12px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}><h3 style={{fontSize:15,color:"#F2EDE4"}}>Clash History</h3></div>
+          <div style={{padding:"12px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+            <h3 style={{fontSize:15,color:"#F2EDE4"}}>Clash History</h3>
+            {seasonConfig&&seasonConfig.dropWeeks>0&&<span style={{fontSize:11,color:"#9B72CF"}}>Drop Weeks: {seasonConfig.dropWeeks} worst excluded</span>}
+          </div>
           {(player.clashHistory||[]).length===0
             ?<div style={{textAlign:"center",padding:40,color:"#9AAABF"}}>No history yet</div>
-            :(player.clashHistory||[]).map((g,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:g.placement===1?"rgba(232,168,56,.03)":"transparent"}}>
-                <div className="mono" style={{fontSize:22,fontWeight:700,color:g.placement===1?"#E8A838":g.placement<=4?"#4ECDC4":"#BECBD9",minWidth:24,textAlign:"center"}}>{g.placement}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4"}}>{g.name}</div>
-                  <div style={{fontSize:12,color:"#BECBD9"}}>{g.date}</div>
-                  {g.claimedClutch&&<Tag color="#9B72CF" size="sm">🎯 Clutch</Tag>}
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>+{g.pts}pts</div>
-                  <div className="cond" style={{fontSize:9,color:"#BECBD9",textTransform:"uppercase"}}>{g.placement===1?"🏆 Champion":g.placement<=4?"Top 4":"Bot 4"}</div>
-                </div>
-              </div>
-            ))
+            :(function(){
+              var hist=[...(player.clashHistory||[])];
+              var dropped=new Set();
+              if(seasonConfig&&seasonConfig.dropWeeks>0){
+                var clashMap={};
+                hist.forEach(function(g){var cid=g.clashId||"c0";clashMap[cid]=(clashMap[cid]||0)+(g.pts||0);});
+                var sorted2=Object.entries(clashMap).sort(function(a,b){return a[1]-b[1];});
+                sorted2.slice(0,seasonConfig.dropWeeks).forEach(function(e){dropped.add(e[0]);});
+              }
+              return hist.map(function(g,i){
+                var isDropped=dropped.has(g.clashId||"c0");
+                var hasComeback=g.comebackTriggered;
+                var hasMilestone=g.attendanceMilestone;
+                return(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"13px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:g.placement===1?"rgba(232,168,56,.03)":"transparent",opacity:isDropped?.45:1}}>
+                    <div className="mono" style={{fontSize:22,fontWeight:700,color:g.placement===1?"#E8A838":g.placement<=4?"#4ECDC4":"#BECBD9",minWidth:24,textAlign:"center",textDecoration:isDropped?"line-through":"none"}}>{g.placement}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4"}}>{g.name||"Clash"}</div>
+                      <div style={{fontSize:12,color:"#BECBD9"}}>{g.date||""}</div>
+                      <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:2}}>
+                        {g.claimedClutch&&<Tag color="#9B72CF" size="sm">🎯 Clutch</Tag>}
+                        {isDropped&&<Tag color="#BECBD9" size="sm">Dropped</Tag>}
+                        {hasComeback&&<Tag color="#4ECDC4" size="sm">Comeback +2</Tag>}
+                        {hasMilestone&&<Tag color="#E8A838" size="sm">{hasMilestone}-Streak Bonus</Tag>}
+                      </div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <div className="mono" style={{fontSize:16,fontWeight:700,color:isDropped?"#BECBD9":"#E8A838",textDecoration:isDropped?"line-through":"none"}}>+{g.pts}pts</div>
+                      {(g.bonusPts||0)>0&&!isDropped&&<div className="mono" style={{fontSize:11,color:"#52C47C"}}>+{g.bonusPts} bonus</div>}
+                      <div className="cond" style={{fontSize:9,color:"#BECBD9",textTransform:"uppercase"}}>{g.placement===1?"🏆 Champion":g.placement<=4?"Top 4":"Bot 4"}</div>
+                    </div>
+                  </div>
+                );
+              });
+            })()
           }
         </Panel>
       )}
@@ -2968,7 +3151,11 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer}){
                       {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>💜</span>}
                       {isHotStreak(p)&&<span style={{fontSize:10}}>🔥</span>}
                     </div>
-                    <div style={{fontSize:11,color:"#BECBD9"}}>{p.rank} · {p.region}</div>
+                    <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                      <span style={{fontSize:11,color:"#BECBD9"}}>{p.rank} · {p.region}</span>
+                      {(p.attendanceStreak||0)>=3&&<Tag color="#E8A838" size="sm">{p.attendanceStreak}-streak</Tag>}
+                      {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback</Tag>}
+                    </div>
                   </div>
                 </div>
                 <div className="mono" style={{fontSize:15,fontWeight:700,color:isTop3?col:"#C8BFB0"}}>{p.pts}</div>
@@ -3370,7 +3557,7 @@ function ArchiveScreen({players,currentUser,setScreen}){
 
 
 
-function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState}){
+function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors}){
   const [tab,setTab]=useState("dashboard");
   const [editP,setEditP]=useState(null);
   const [noteTarget,setNoteTarget]=useState(null);
@@ -3421,6 +3608,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   ]);
 
   const [flashForm,setFlashForm]=useState({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
+  const [qcPlacements,setQcPlacements]=useState({});
+  const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30"});
   const [flashEvents,setFlashEvents]=useState([]);
 
   const TABS=[
@@ -3428,7 +3617,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     {id:"players",icon:"👥",label:"Players"},
     {id:"scores",icon:"✏️",label:"Scores"},
     {id:"round",icon:"⚡",label:"Round"},
-    {id:"flash",icon:"🔥",label:"Flash"},
+    {id:"quickclash",icon:"⚡",label:"Quick Clash"},
     {id:"schedule",icon:"📅",label:"Schedule"},
     {id:"season",icon:"🏆",label:"Season"},
     {id:"broadcast",icon:"📢",label:"Broadcast"},
@@ -3532,6 +3721,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                         {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"⛔ DQ":"BANNED"}</Tag>}
                         {!p.banned&&(p.dnpCount||0)>0&&<Tag color="#F97316" size="sm">DNP {p.dnpCount}/2</Tag>}
                         {p.checkedIn&&<Tag color="#52C47C" size="sm">✓ In</Tag>}
+                        {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback Ready</Tag>}
+                        {(p.attendanceStreak||0)>=3&&<Tag color="#E8A838" size="sm">{p.attendanceStreak}-streak</Tag>}
                       </div>
                       <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>{p.riotId} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span></div>
                       {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:3}}>📌 {p.notes}</div>}
@@ -3586,7 +3777,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
               <Btn v="primary" full disabled={tournamentState&&tournamentState.phase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin"}));addAudit("ACTION","Check-in opened");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
-              <Btn v="success" full disabled={tournamentState&&tournamentState.phase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[]}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="success" full disabled={tournamentState&&tournamentState.phase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
               <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset Tournament</Btn>
             </div>
           </Panel>
@@ -3596,8 +3787,16 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               <Btn v={paused?"success":"danger"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>
                 {paused?"▶ Resume Round":"⏸ Pause Round"}
               </Btn>
-              <Btn v="dark" full onClick={()=>{addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance →</Btn>
-              <Btn v="purple" full onClick={()=>{addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
+              <Btn v="dark" full onClick={()=>{
+                setTournamentState(function(ts){
+                  if(!ts||ts.phase!=="inprogress") return ts;
+                  var next=ts.round+1;
+                  if(next>3) return Object.assign({},ts,{phase:"complete"});
+                  return Object.assign({},ts,{round:next,lockedLobbies:[]});
+                });
+                addAudit("ACTION","Force advance");toast("Force advancing","success");
+              }}>Force Advance →</Btn>
+              <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
@@ -3608,74 +3807,108 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               </button>
             ))}
           </Panel>
+          <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
+            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Round Settings</h3>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+              <div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Max Players</label>
+                <Inp type="number" value={roundConfig.maxPlayers} onChange={v=>setRoundConfig(c=>Object.assign({},c,{maxPlayers:v}))} placeholder="24"/>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Round Count</label>
+                <Sel value={roundConfig.roundCount} onChange={v=>setRoundConfig(c=>Object.assign({},c,{roundCount:v}))}>
+                  <option value="2">2 Rounds</option>
+                  <option value="3">3 Rounds</option>
+                </Sel>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Check-in Window</label>
+                <Sel value={roundConfig.checkinWindowMins} onChange={v=>setRoundConfig(c=>Object.assign({},c,{checkinWindowMins:v}))}>
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60">60 min</option>
+                </Sel>
+              </div>
+            </div>
+          </Panel>
         </div>
       )}
 
-      {tab==="flash"&&(
+      {tab==="quickclash"&&(
         <div className="grid-2" style={{alignItems:"start"}}>
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
-                <div style={{width:36,height:36,background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>🔥</div>
+                <div style={{width:36,height:36,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>⚡</div>
                 <div>
-                  <h3 style={{fontSize:15,color:"#F2EDE4",lineHeight:1}}>Flash Tournament</h3>
-                  <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Small · Fast · No registration phase</div>
+                  <h3 style={{fontSize:15,color:"#F2EDE4",lineHeight:1}}>Quick Clash</h3>
+                  <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Instant · Open · No registration phase</div>
                 </div>
               </div>
-              <div style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:9,padding:"10px 12px",marginBottom:14,fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>
-                Flash clashes start immediately — no sign-up period, no check-in. Add players from the roster and kick off in seconds.
+              <div style={{background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:9,padding:"10px 12px",marginBottom:14,fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>
+                Quick Clashes open immediately for any player to join. Set a cap and kick off once full — visible to all players on the home screen.
               </div>
               <div style={{display:"grid",gap:12,marginBottom:14}}>
-                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><Inp value={flashForm.name} onChange={v=>setFlashForm(f=>({...f,name:v}))} placeholder="Flash Clash"/></div>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><Inp value={flashForm.name} onChange={v=>setFlashForm(f=>Object.assign({},f,{name:v}))} placeholder="Quick Clash"/></div>
                 <div className="grid-2">
-                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Player Cap</label><Sel value={flashForm.cap} onChange={v=>setFlashForm(f=>({...f,cap:v}))}>{[4,8,16].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
-                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Rounds</label><Sel value={flashForm.rounds} onChange={v=>setFlashForm(f=>({...f,rounds:v}))}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Player Cap</label><Sel value={flashForm.cap} onChange={v=>setFlashForm(f=>Object.assign({},f,{cap:v}))}>{[4,8,16].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Rounds</label><Sel value={flashForm.rounds} onChange={v=>setFlashForm(f=>Object.assign({},f,{rounds:v}))}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
                 </div>
-                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={flashForm.format} onChange={v=>setFlashForm(f=>({...f,format:v}))}>{["Single Lobby","Two Lobbies","Finals Only"].map(fm=><option key={fm}>{fm}</option>)}</Sel></div>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={flashForm.format} onChange={v=>setFlashForm(f=>Object.assign({},f,{format:v}))}>{["Single Lobby","Two Lobbies","Finals Only"].map(fm=><option key={fm}>{fm}</option>)}</Sel></div>
               </div>
-              <Btn v="crimson" full onClick={()=>{
+              <Btn v="primary" full onClick={()=>{
                 if(!flashForm.name.trim())return;
-                var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"live",startedAt:new Date().toLocaleTimeString()};
-                setFlashEvents(es=>[ev,...es]);
-                setScheduledEvents(ses=>[...ses,{id:Date.now()+1,name:flashForm.name.trim(),type:"FLASH",date:new Date().toISOString().slice(0,10),time:new Date().toTimeString().slice(0,5),cap:parseInt(flashForm.cap),format:flashForm.format,status:"live"}]);
-                addAudit("ACTION","Flash started: "+flashForm.name);
-                toast(flashForm.name+" is LIVE! "+flashForm.cap+"p · "+flashForm.rounds+"R","success");
+                var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};
+                setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});
+                addAudit("ACTION","Quick Clash created: "+flashForm.name);
+                toast(flashForm.name+" is open for signups — "+flashForm.cap+" spots","success");
                 setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
-              }}>Start Flash Now ⚡</Btn>
+              }}>Open Quick Clash ⚡</Btn>
             </div>
           </Panel>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Active Flash Events</div>
-            {flashEvents.length===0&&(
+            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Active Quick Clashes</div>
+            {(!quickClashes||quickClashes.length===0)&&(
               <Panel style={{padding:"28px",textAlign:"center"}}>
-                <div style={{fontSize:28,marginBottom:8}}>🔥</div>
-                <div style={{color:"#9AAABF",fontSize:13}}>No flash events yet</div>
-                <div style={{color:"#7A8BA0",fontSize:11,marginTop:4}}>Start one on the left</div>
+                <div style={{fontSize:28,marginBottom:8}}>⚡</div>
+                <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes yet</div>
+                <div style={{color:"#7A8BA0",fontSize:11,marginTop:4}}>Create one on the left</div>
               </Panel>
             )}
-            {flashEvents.map(ev=>(
-              <Panel key={ev.id} style={{padding:"14px",border:"1px solid rgba(248,113,113,.25)"}}>
+            {(quickClashes||[]).map(function(ev){return(
+              <Panel key={ev.id} style={{padding:"14px",border:"1px solid rgba(155,114,207,.25)"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
                   <div>
                     <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
                       <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{ev.name}</span>
-                      <Tag color="#F87171" size="sm">FLASH</Tag>
-                      {ev.status==="live"&&<Tag color="#6EE7B7" size="sm">● LIVE</Tag>}
+                      <Tag color="#9B72CF" size="sm">QUICK</Tag>
+                      {ev.status==="open"&&<Tag color="#6EE7B7" size="sm">● OPEN</Tag>}
+                      {ev.status==="full"&&<Tag color="#E8A838" size="sm">FULL</Tag>}
+                      {ev.status==="live"&&<Tag color="#F87171" size="sm">● LIVE</Tag>}
+                      {ev.status==="complete"&&<Tag color="#BECBD9" size="sm">DONE</Tag>}
                     </div>
-                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.cap}p · {ev.rounds}R · {ev.format}</div>
-                    <div className="cond" style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Started {ev.startedAt}</div>
+                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.players?ev.players.length:0}/{ev.cap}p · {ev.rounds}R · {ev.format}</div>
+                    <div className="cond" style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Created {ev.createdAt}</div>
                   </div>
-                  <Btn s="sm" v="dark" onClick={()=>{setFlashEvents(es=>es.map(e=>e.id===ev.id?{...e,status:"complete"}:e));addAudit("RESULT","Flash complete: "+ev.name);toast(ev.name+" complete","success");}}>
-                    {ev.status==="live"?"End":"Done"}
-                  </Btn>
+                  <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                    {(ev.status==="open"||ev.status==="full")&&(
+                      <Btn s="sm" v="success" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.map(function(q){return q.id===ev.id?Object.assign({},q,{status:"live",startedAt:new Date().toLocaleTimeString()}):q;});});addAudit("ACTION","Quick Clash started: "+ev.name);toast(ev.name+" is LIVE!","success");}}>Start</Btn>
+                    )}
+                    {ev.status==="live"&&(
+                      <Btn s="sm" v="dark" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.map(function(q){return q.id===ev.id?Object.assign({},q,{status:"complete"}):q;});});addAudit("RESULT","Quick Clash complete: "+ev.name);toast(ev.name+" complete","success");}}>End</Btn>
+                    )}
+                    {ev.status==="complete"&&(
+                      <Btn s="sm" v="danger" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.filter(function(q){return q.id!==ev.id;});});addAudit("ACTION","Quick Clash removed: "+ev.name);}}>Remove</Btn>
+                    )}
+                  </div>
                 </div>
               </Panel>
-            ))}
+            );})}
           </div>
         </div>
       )}
-
-      {tab==="schedule"&&(
+            {tab==="schedule"&&(
         <div className="grid-2" style={{alignItems:"start"}}>
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
@@ -3731,6 +3964,44 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
                 </div>
               ))}
+            </div>
+          </Panel>
+          <Panel style={{padding:"20px"}}>
+            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Season Health Rules</h3>
+            <div style={{display:"grid",gap:14}}>
+              <div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Drop Weeks (worst weeks ignored)</label>
+                <Sel value={String(seasonConfig?seasonConfig.dropWeeks||0:0)} onChange={v=>setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{dropWeeks:parseInt(v)});})}>
+                  <option value="0">Off (0)</option>
+                  <option value="1">Drop 1</option>
+                  <option value="2">Drop 2</option>
+                </Sel>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <input type="checkbox" id="cb-comeback" checked={seasonConfig?!!seasonConfig.comebackBonus:false} onChange={function(e){setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{comebackBonus:e.target.checked});});}} style={{width:16,height:16,accentColor:"#9B72CF"}}/>
+                <label htmlFor="cb-comeback" style={{fontSize:13,color:"#C8D4E0",cursor:"pointer"}}>Comeback Bonus (+2 pts after missing 2+ clashes)</label>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <input type="checkbox" id="cb-attendance" checked={seasonConfig?!!seasonConfig.attendanceBonus:false} onChange={function(e){setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{attendanceBonus:e.target.checked});});}} style={{width:16,height:16,accentColor:"#E8A838"}}/>
+                <label htmlFor="cb-attendance" style={{fontSize:13,color:"#C8D4E0",cursor:"pointer"}}>Attendance Streak Bonus (+3 at 3, +5 at 5 consecutive)</label>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Finale Boost</label>
+                <Sel value={String(seasonConfig?seasonConfig.finalBoost||1.0:1.0)} onChange={v=>setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{finalBoost:parseFloat(v)});})}>
+                  <option value="1">Off (1x)</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                </Sel>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Finale Clashes (last N events boosted)</label>
+                <Sel value={String(seasonConfig?seasonConfig.finaleClashes||2:2)} onChange={v=>setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{finaleClashes:parseInt(v)});})}>
+                  <option value="1">Last 1</option>
+                  <option value="2">Last 2</option>
+                  <option value="3">Last 3</option>
+                </Sel>
+              </div>
+              <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season health rules updated");toast("Season rules saved","success");}}>Save Rules</Btn>
             </div>
           </Panel>
           <Panel danger style={{padding:"20px"}}>
@@ -3830,13 +4101,13 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         <div>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
             <h3 style={{fontSize:16,color:"#F2EDE4"}}>Org Sponsorship Slots</h3>
-            <Btn v="primary" s="sm" onClick={()=>toast("Add sponsorship (mock)","success")}>+ Add Slot</Btn>
+            <Btn v="primary" s="sm" onClick={()=>{document.getElementById("sp-org-name")&&document.getElementById("sp-org-name").focus();}}>+ Add Slot</Btn>
           </div>
           <div style={{marginBottom:20,padding:"14px 16px",background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>
             Org sponsorships let a brand pay to have their tag shown next to a specific player's name on the leaderboard and their profile - like a jersey sponsor. You assign them manually here.
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {Object.entries(ORG_SPONSORSHIPS).map(([pid,s])=>{
+            {Object.entries(orgSponsors&&Object.keys(orgSponsors).length?orgSponsors:ORG_SPONSORSHIPS).map(([pid,s])=>{
               const p=players.find(pl=>pl.id===parseInt(pid));
               return(
                 <Panel key={pid} style={{padding:"16px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
@@ -3847,7 +4118,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   </div>
                   <div style={{display:"flex",gap:8}}>
                     <OrgSponsorTag playerId={parseInt(pid)}/>
-                    <Btn v="danger" s="sm" onClick={()=>toast("Remove sponsorship (mock - edit ORG_SPONSORSHIPS data)","success")}>Remove</Btn>
+                    <Btn v="danger" s="sm" onClick={()=>{setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);delete n[pid];return n;});addAudit("ACTION","Sponsor removed: "+s.org);toast(s.org+" removed","success");}}>Remove</Btn>
                   </div>
                 </Panel>
               );
@@ -3858,22 +4129,30 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Org Name</div>
-                <Inp value="" onChange={()=>{}} placeholder="e.g. ProGuides"/>
+                <Inp id="sp-org-name" value="" onChange={()=>{}} placeholder="e.g. ProGuides"/>
               </div>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Logo Text</div>
-                <Inp value="" onChange={()=>{}} placeholder="e.g. PG"/>
+                <Inp id="sp-org-logo" value="" onChange={()=>{}} placeholder="e.g. PG"/>
               </div>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Accent Colour</div>
-                <Inp value="" onChange={()=>{}} placeholder="#4ECDC4"/>
+                <Inp id="sp-org-color" value="" onChange={()=>{}} placeholder="#4ECDC4"/>
               </div>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Assign to Player</div>
-                <Sel value="" onChange={()=>{}}>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel>
+                <Sel id="sp-org-player" value="" onChange={()=>{}}>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel>
               </div>
             </div>
-            <Btn v="primary" onClick={()=>toast("Sponsorship added (mock - persists in ORG_SPONSORSHIPS)","success")}>Add Sponsorship</Btn>
+            <Btn v="primary" onClick={()=>{
+              var orgName=document.getElementById("sp-org-name")&&document.getElementById("sp-org-name").value;
+              var orgLogo=document.getElementById("sp-org-logo")&&document.getElementById("sp-org-logo").value;
+              var orgColor=document.getElementById("sp-org-color")&&document.getElementById("sp-org-color").value;
+              var orgPlayer=document.getElementById("sp-org-player")&&document.getElementById("sp-org-player").value;
+              if(!orgName||!orgPlayer){toast("Org name and player required","error");return;}
+              setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);n[orgPlayer]={org:orgName,logo:orgLogo||orgName.slice(0,2).toUpperCase(),color:orgColor||"#9B72CF"};return n;});
+              toast(orgName+" sponsorship added","success");
+            }}>Add Sponsorship</Btn>
           </Panel>
         </div>
       )}
@@ -6952,6 +7231,9 @@ export default function TFTClash(){
   const [announcement,setAnnouncement]=useState("⚡ Clash #14 is LIVE NOW - Round 1 underway! 24 players across 3 lobbies. Good luck!");
   const [profilePlayer,setProfilePlayer]=useState(null);
   const [tournamentState,setTournamentState]=useState(()=>{try{const s=localStorage.getItem("tft-tournament");return s?JSON.parse(s):{phase:"registration",round:1,lobbies:[],lockedLobbies:[]};}catch{return {phase:"registration",round:1,lobbies:[],lockedLobbies:[]};}});
+  const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
+  const [quickClashes,setQuickClashes]=useState(()=>{try{var s=localStorage.getItem("tft-events");return s?JSON.parse(s):[];}catch(e){return [];}});
+  const [orgSponsors,setOrgSponsors]=useState(()=>{try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):{};}catch(e){return {};}});
   // Auth state
   const [currentUser,setCurrentUser]=useState(()=>{try{const s=localStorage.getItem("tft-user");return s?JSON.parse(s):null;}catch{return null;}}); // null = guest
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
@@ -6964,6 +7246,9 @@ export default function TFTClash(){
   useEffect(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},[notifications]);
   useEffect(()=>{try{localStorage.setItem("tft-tournament",JSON.stringify(tournamentState));}catch{}},[tournamentState]);
   useEffect(()=>{try{if(currentUser)localStorage.setItem("tft-user",JSON.stringify(currentUser));else localStorage.removeItem("tft-user");}catch{}},[currentUser]);
+  useEffect(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},[seasonConfig]);
+  useEffect(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},[quickClashes]);
+  useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
   function navTo(s){
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
     window.history.pushState({screen:s},'','#'+s);
@@ -6991,6 +7276,13 @@ export default function TFTClash(){
     setScreen("home");
   }
   function updateUser(updated){setCurrentUser(updated);}
+  function joinQuickClash(qcId,playerId){
+    setQuickClashes(function(qs){return qs.map(function(q){
+      if(q.id!==qcId||q.players.includes(playerId)) return q;
+      var np=q.players.concat([playerId]);
+      return Object.assign({},q,{players:np,status:np.length>=q.cap?"full":q.status});
+    });});
+  }
 
   // Show auth screens fullscreen
   if(authScreen==="login") return(
@@ -7035,11 +7327,11 @@ export default function TFTClash(){
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
           currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead}/>
 
-        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState}/>}
+        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash}/>}
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
-        {screen==="bracket"    &&<BracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState}/>}
+        {screen==="bracket"    &&<BracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
         {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
-        {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser}/>}
+        {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
         {screen==="results"    &&<ResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
         {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo}/>}
@@ -7057,7 +7349,7 @@ export default function TFTClash(){
         {screen==="host-dashboard"&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
         {screen==="scrims"     &&isAdmin&&<ScrimsScreen players={players} toast={toast} setScreen={navTo}/>}
-        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState}/>}
+        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors}/>}
         {screen==="admin"      &&!isAdmin&&(
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
             <div style={{fontSize:38,marginBottom:14}}>🔒</div>
