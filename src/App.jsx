@@ -7336,18 +7336,20 @@ export default function TFTClash(){
     setScreen(s);
   }
   useEffect(()=>{
-    // If URL contains OAuth error params, clear them and stay on home
     const params=new URLSearchParams(window.location.search);
+    // Show error toast for OAuth failures but don't strip ?code= (Supabase needs it)
     if(params.get("error")){
       const desc=params.get("error_description")||"Sign-in failed. Please try again.";
       toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
-      window.history.replaceState({},'',window.location.pathname);
     }
+    // Only use hash for routing if it looks like a valid screen name
     const h=window.location.hash.slice(1);
     const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","aegis-showcase","host-apply","host-dashboard","scrims","admin","roster"];
-    const screen=safeScreens.includes(h)?h:"home";
-    if(screen!=="home"){setScreen(screen);}
-    window.history.replaceState({screen},'','#'+screen);
+    const dest=safeScreens.includes(h)?h:"home";
+    if(dest!=="home"){setScreen(dest);}
+    // Preserve query string so Supabase can finish PKCE exchange, only set fragment
+    const qs=window.location.search;
+    window.history.replaceState({screen:dest},'',qs+'#'+dest);
     function onPop(e){setScreen(e.state&&e.state.screen?e.state.screen:"home");}
     window.addEventListener("popstate",onPop);
     return ()=>window.removeEventListener("popstate",onPop);
