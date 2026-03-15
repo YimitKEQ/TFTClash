@@ -3241,6 +3241,11 @@ function HofScreen({players,setScreen,setProfilePlayer}){
         </h1>
         <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65}}>These records are permanent. Every name here earned their place.</p>
         <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.35),transparent)",marginTop:24}}/>
+        <div
+          title="GOLDENGOD was here"
+          style={{position:"absolute",bottom:8,right:14,fontSize:15,opacity:.07,cursor:"default",userSelect:"none",transition:"opacity .35s,filter .35s",filter:"drop-shadow(0 0 0px #E8A838)"}}
+          onMouseEnter={function(e){e.currentTarget.style.opacity=".95";e.currentTarget.style.filter="drop-shadow(0 0 10px #E8A838)";}}
+          onMouseLeave={function(e){e.currentTarget.style.opacity=".07";e.currentTarget.style.filter="drop-shadow(0 0 0px #E8A838)";}}>🐪</div>
       </div>
 
       {/* Reigning champion hero */}
@@ -3252,7 +3257,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
             {/* Identity */}
             <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
-              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 2.5s infinite"}}>&#128081;</div>
+              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 2.5s infinite"}}>👑</div>
               <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Cinzel',serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
                 {king.name.charAt(0)}
               </div>
@@ -3342,7 +3347,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
                   <div style={{background:isActive?"rgba(232,168,56,.15)":"rgba(255,255,255,.05)",border:"1px solid "+(isActive?"rgba(232,168,56,.35)":"rgba(242,237,228,.1)"),borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:700,color:isActive?"#E8A838":"#BECBD9",fontFamily:"'JetBrains Mono',monospace"}}>{s.season}</div>
                   {isActive&&<div style={{background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:10,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".06em"}}>LIVE</div>}
                 </div>
-                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?"&#128081;":"&#127942;"}</div>
+                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?"👑":"🏆"}</div>
                 <div style={{fontFamily:"'Cinzel',serif",fontSize:"clamp(14px,2vw,18px)",fontWeight:700,color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
                 <div className="mono" style={{fontSize:"clamp(16px,2.5vw,22px)",fontWeight:700,color:isActive?"#E8A838":"#C8BFB0",marginBottom:3}}>{s.pts}<span style={{fontSize:11,color:"#9AAABF",fontWeight:400}}> pts</span></div>
                 <div style={{fontSize:11,color:"#9AAABF"}}>{s.wins} wins</div>
@@ -3414,65 +3419,41 @@ function HofScreen({players,setScreen,setProfilePlayer}){
         </div>
       </div>
 
-      {/* Rivalries + Legends */}
-      <div className="grid-2">
-        <div>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
-            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            {[["Dishsoap","k3soju",14,12],["Robinsongz","Setsuko",11,10],["Wrainbash","Frodan",9,9],["Mortdog","BunnyMuffins",7,8]].map(([a,b,wa,wb],i)=>{
-              const total=wa+wb;
-              return(
-                <div key={i} style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"14px 16px"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                    <div style={{flex:1,textAlign:"right"}}>
-                      <div style={{fontWeight:700,fontSize:14,color:wa>=wb?"#F2EDE4":"#BECBD9"}}>{a}</div>
-                      <div className="mono" style={{fontSize:13,color:"#E8A838",fontWeight:700}}>{wa}W</div>
-                    </div>
-                    <div style={{padding:"5px 10px",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",borderRadius:6,fontSize:11,fontWeight:700,color:"#9B72CF",flexShrink:0}}>VS</div>
-                    <div style={{flex:1,textAlign:"left"}}>
-                      <div style={{fontWeight:700,fontSize:14,color:wb>wa?"#F2EDE4":"#BECBD9"}}>{b}</div>
-                      <div className="mono" style={{fontSize:13,color:"#4ECDC4",fontWeight:700}}>{wb}W</div>
-                    </div>
-                  </div>
-                  <div style={{display:"flex",height:5,borderRadius:99,overflow:"hidden"}}>
-                    <div style={{width:(wa/total*100)+"%",background:"#E8A838",transition:"width .3s"}}/>
-                    <div style={{flex:1,background:"#4ECDC4"}}/>
-                  </div>
-                  <div style={{display:"flex",justifyContent:"space-between",marginTop:5,fontSize:10,color:"#9AAABF"}}>
-                    <span>{Math.round(wa/total*100)}%</span>
-                    <span>{total} games</span>
-                    <span>{Math.round(wb/total*100)}%</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Rivalries */}
+      <div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+          <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
+          <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
         </div>
-
-        <div>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
-            <h3 style={{fontFamily:"'Cinzel',serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Retired Legends</h3>
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {RETIRED_LEGENDS.map((l,i)=>(
-              <div key={i} style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
-                <div style={{width:44,height:44,borderRadius:"50%",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.28)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#9B72CF",fontFamily:"'Cinzel',serif",flexShrink:0}}>{l.name.charAt(0)}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{l.name}</div>
-                  <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{l.reason}</div>
-                  <div style={{fontSize:10,color:"#9AAABF",marginTop:2}}>{l.seasons.join(" · ")}</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:10}}>
+          {[["Dishsoap","k3soju",14,12],["Robinsongz","Setsuko",11,10],["Wrainbash","Frodan",9,9],["Mortdog","BunnyMuffins",7,8]].map(function(arr,i){
+            var a=arr[0],b=arr[1],wa=arr[2],wb=arr[3];
+            var total=wa+wb;
+            return(
+              <div key={i} style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"14px 16px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                  <div style={{flex:1,textAlign:"right"}}>
+                    <div style={{fontWeight:700,fontSize:14,color:wa>=wb?"#F2EDE4":"#BECBD9"}}>{a}</div>
+                    <div className="mono" style={{fontSize:13,color:"#E8A838",fontWeight:700}}>{wa}W</div>
+                  </div>
+                  <div style={{padding:"5px 10px",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",borderRadius:6,fontSize:11,fontWeight:700,color:"#9B72CF",flexShrink:0}}>VS</div>
+                  <div style={{flex:1,textAlign:"left"}}>
+                    <div style={{fontWeight:700,fontSize:14,color:wb>wa?"#F2EDE4":"#BECBD9"}}>{b}</div>
+                    <div className="mono" style={{fontSize:13,color:"#4ECDC4",fontWeight:700}}>{wb}W</div>
+                  </div>
                 </div>
-                <div style={{textAlign:"right",flexShrink:0}}>
-                  <div className="mono" style={{fontSize:17,fontWeight:700,color:"#9B72CF"}}>{l.pts}</div>
-                  <div style={{fontSize:9,color:"#9AAABF",letterSpacing:".06em"}}>PTS</div>
+                <div style={{display:"flex",height:5,borderRadius:99,overflow:"hidden"}}>
+                  <div style={{width:(wa/total*100)+"%",background:"#E8A838",transition:"width .3s"}}/>
+                  <div style={{flex:1,background:"#4ECDC4"}}/>
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:5,fontSize:10,color:"#9AAABF"}}>
+                  <span>{Math.round(wa/total*100)}%</span>
+                  <span>{total} games</span>
+                  <span>{Math.round(wb/total*100)}%</span>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
 
@@ -7359,9 +7340,6 @@ export default function TFTClash(){
           </div>
         )}
       </div>
-
-      {/* 🐪 */}
-      <div title="you found the camel" style={{position:"fixed",bottom:6,left:"50%",transform:"translateX(-50%)",fontSize:10,opacity:.18,userSelect:"none",pointerEvents:"none",animation:"camelGlow 3s ease-in-out infinite",zIndex:1}}>🐪</div>
 
       {/* Toasts */}
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
