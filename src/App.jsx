@@ -650,6 +650,7 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── Phase 5: Arena redesign ──────────────────────────────────────────── */
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
+@keyframes camelGlow{0%,100%{opacity:.18;filter:drop-shadow(0 0 0px #E8A838)}50%{opacity:.55;filter:drop-shadow(0 0 6px #E8A838)}}
 .glass{background:rgba(255,255,255,.04)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09)!important;}
 .display{font-family:'Cinzel',serif;font-size:clamp(40px,6vw,72px);font-weight:900;letter-spacing:-.02em;}
 .section-title{font-family:'Cinzel',serif;font-size:clamp(18px,2.5vw,28px);font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
@@ -7358,6 +7359,9 @@ export default function TFTClash(){
           </div>
         )}
       </div>
+
+      {/* 🐪 */}
+      <div title="you found the camel" style={{position:"fixed",bottom:6,left:"50%",transform:"translateX(-50%)",fontSize:10,opacity:.18,userSelect:"none",pointerEvents:"none",animation:"camelGlow 3s ease-in-out infinite",zIndex:1}}>🐪</div>
 
       {/* Toasts */}
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
