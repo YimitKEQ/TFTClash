@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { supabase } from './lib/supabase.js';
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
@@ -1276,8 +1277,10 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   const checkedIn=players.filter(p=>p.checkedIn).length;
   const dispCount=(disputes||[]).length;
 
-  function tryLogin(){
-    if(pw==="admin"){setIsAdmin(true);setPwModal(false);setPw("");toast("Admin mode activated","success");}
+  async function tryLogin(){
+    const res=await fetch('/api/check-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
+    const data=await res.json();
+    if(data?.isAdmin){setIsAdmin(true);setPwModal(false);setPw("");toast("Admin mode activated","success");}
     else toast("Wrong password","error");
   }
 
@@ -4525,7 +4528,7 @@ function ScrimsScreen({players,toast,setScreen}){
                               const avg=validPl.length>0?(validPl.reduce((s,v)=>s+v,0)/validPl.length).toFixed(2):"-";
                               const pts=validPl.reduce((s,v)=>s+(PTS[v]||0),0);
                               return(
-                                <tr key={p.id} style={{background:ri%2===0?"rgba(255,255,255,.01)":"transparent",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+                                <tr key={p.id} style={{background:i%2===0?"rgba(255,255,255,.01)":"transparent",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                                   <td style={{padding:"10px 14px"}}>
                                     <div style={{display:"flex",alignItems:"center",gap:8}}>
                                       <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>{p.name}</span>
@@ -5175,21 +5178,18 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
     setStep(2);
   }
 
-  function submit(){
+  async function submit(){
     if(!riotId.trim()){toast("Riot ID required","error");return;}
     setLoading(true);
-    setTimeout(()=>{
-      const newUser={
-        id:"u"+Date.now(),email:email.trim(),username:username.trim(),
-        riotId:riotId.trim(),region,mainRegion:region,secondRiotId:secondRiotId.trim(),secondRegion,bio:bio.trim(),
-        twitch:twitch.trim(),twitter:twitter.trim(),youtube:youtube.trim(),
-        slug:username.trim().toLowerCase().replace(/\s+/g,"-"),
-        verified:false,role:"player",createdAt:"Mar 2026",linkedPlayerId:null,
-      };
-      onSignUp(newUser);
-      toast("Welcome to TFT Clash, "+newUser.username+"! 🎉","success");
-      setLoading(false);
-    },900);
+    const {data,error}=await supabase.auth.signUp({
+      email:email.trim(),password:pw,
+      options:{data:{username:username.trim(),riot_id:riotId.trim(),region,bio:bio.trim(),twitch:twitch.trim(),twitter:twitter.trim(),youtube:youtube.trim()}}
+    });
+    if(!error)await supabase.from('players').insert({username:username.trim(),riot_id:riotId.trim(),region});
+    setLoading(false);
+    if(error){toast(error.message,"error");return;}
+    onSignUp({...data.user,username:username.trim()});
+    toast("Welcome to TFT Clash, "+username.trim()+"! 🎉","success");
   }
 
   return(
@@ -5236,6 +5236,18 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
         <Panel style={{padding:"28px 24px"}}>
           {step===1&&(
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              <button onClick={async()=>{await supabase.auth.signInWithOAuth({provider:'discord',options:{redirectTo:window.location.origin}});}}
+                style={{width:"100%",padding:"10px 14px",background:"#5865F2",border:"none",borderRadius:8,cursor:"pointer",
+                  display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontSize:13,fontWeight:700,color:"#fff",transition:"opacity .15s"}}
+                onMouseEnter={e=>e.currentTarget.style.opacity=".85"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                <svg width="16" height="12" viewBox="0 0 71 55" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/></svg>
+                Sign up with Discord
+              </button>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{flex:1,height:1,background:"rgba(242,237,228,.1)"}}/>
+                <span style={{fontSize:11,color:"#9AAABF",whiteSpace:"nowrap"}}>or with email</span>
+                <div style={{flex:1,height:1,background:"rgba(242,237,228,.1)"}}/>
+              </div>
               <div>
                 <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Email</div>
                 <Inp value={email} onChange={setEmail} placeholder="you@email.com" type="email"/>
@@ -5306,20 +5318,14 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
   const [pw,setPw]=useState("");
   const [loading,setLoading]=useState(false);
 
-  function submit(){
+  async function submit(){
     if(!email.trim()||!pw.trim()){toast("Email and password required","error");return;}
     setLoading(true);
-    setTimeout(()=>{
-      // Mock auth - match against demo accounts
-      const found=MOCK_ACCOUNTS.find(a=>a.email.toLowerCase()===email.toLowerCase().trim());
-      if(found&&pw.length>=6){
-        onLogin(found);
-        toast("Welcome back, "+found.username+"! 👋","success");
-      } else {
-        toast("Invalid email or password","error");
-      }
-      setLoading(false);
-    },700);
+    const {data,error}=await supabase.auth.signInWithPassword({email:email.trim(),password:pw});
+    setLoading(false);
+    if(error){toast(error.message,"error");return;}
+    onLogin({...data.user,username:data.user.user_metadata?.username||data.user.email});
+    toast("Welcome back, "+(data.user.user_metadata?.username||"player")+"! 👋","success");
   }
 
   return(
@@ -5354,13 +5360,18 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
               <span style={{fontSize:12,color:"#E8A838",cursor:"pointer"}}>Forgot password?</span>
             </div>
             <Btn v="primary" full onClick={submit} disabled={loading}>{loading?"Signing in...":"Sign In"}</Btn>
-          </div>
-
-          {/* Demo hint */}
-          <div style={{marginTop:20,padding:"12px 14px",background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.12)",borderRadius:9}}>
-            <div style={{fontSize:11,fontWeight:700,color:"#E8A838",marginBottom:4}}>Demo accounts</div>
-            <div style={{fontSize:11,color:"#BECBD9"}}>dishsoap@gmail.com / any 6+ char password</div>
-            <div style={{fontSize:11,color:"#BECBD9"}}>k3soju@gmail.com / any 6+ char password</div>
+            <div style={{display:"flex",alignItems:"center",gap:10,margin:"4px 0"}}>
+              <div style={{flex:1,height:1,background:"rgba(242,237,228,.1)"}}/>
+              <span style={{fontSize:11,color:"#9AAABF",whiteSpace:"nowrap"}}>or</span>
+              <div style={{flex:1,height:1,background:"rgba(242,237,228,.1)"}}/>
+            </div>
+            <button onClick={async()=>{await supabase.auth.signInWithOAuth({provider:'discord',options:{redirectTo:window.location.origin}});}}
+              style={{width:"100%",padding:"10px 14px",background:"#5865F2",border:"none",borderRadius:8,cursor:"pointer",
+                display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontSize:13,fontWeight:700,color:"#fff",transition:"opacity .15s"}}
+              onMouseEnter={e=>e.currentTarget.style.opacity=".85"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+              <svg width="16" height="12" viewBox="0 0 71 55" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/></svg>
+              Continue with Discord
+            </button>
           </div>
         </Panel>
 
@@ -5503,12 +5514,35 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                   <span style={{color:"#4ECDC4",fontSize:13,fontWeight:600}}>{user.mainRegion||user.region||"EUW"}</span>
                 </div>
                 {(user.secondRiotId)&&(
-                  <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
                     <span style={{color:"#BECBD9",fontSize:13}}>Secondary Account</span>
                     <span style={{color:"#C4B5FD",fontSize:13}}>{user.secondRiotId} <span style={{color:"#9AAABF"}}>({user.secondRegion||"NA"})</span></span>
                   </div>
                 )}
               </div>
+              {/* Discord connection */}
+              {(()=>{
+                const discordId=user.identities?.find(i=>i.provider==='discord')?.identity_data?.sub;
+                const discordName=user.identities?.find(i=>i.provider==='discord')?.identity_data?.global_name||user.identities?.find(i=>i.provider==='discord')?.identity_data?.full_name;
+                return(
+                  <div style={{marginTop:20,padding:"14px 16px",background:"rgba(88,101,242,.06)",border:"1px solid rgba(88,101,242,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <svg width="20" height="15" viewBox="0 0 71 55" fill="#5865F2" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/></svg>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:700,color:discordId?"#6EE7B7":"#C8D4E0"}}>Discord {discordId?"Connected":"Not Connected"}</div>
+                        {discordId?<div style={{fontSize:11,color:"#9AAABF"}}>{discordName||"ID: "+discordId}</div>:<div style={{fontSize:11,color:"#9AAABF"}}>Link to auto-sync with our Discord bot</div>}
+                      </div>
+                    </div>
+                    {!discordId&&(
+                      <button onClick={async()=>{await supabase.auth.linkIdentity({provider:'discord',options:{redirectTo:window.location.origin+"#account"}});}}
+                        style={{padding:"7px 14px",background:"#5865F2",border:"none",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0,transition:"opacity .15s"}}
+                        onMouseEnter={e=>e.currentTarget.style.opacity=".85"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                        Connect Discord
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </>
           ):(
             <>
@@ -7217,17 +7251,23 @@ export default function TFTClash(){
   const [quickClashes,setQuickClashes]=useState(()=>{try{var s=localStorage.getItem("tft-events");return s?JSON.parse(s):[];}catch(e){return [];}});
   const [orgSponsors,setOrgSponsors]=useState(()=>{try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):{};}catch(e){return {};}});
   // Auth state
-  const [currentUser,setCurrentUser]=useState(()=>{try{const s=localStorage.getItem("tft-user");return s?JSON.parse(s):null;}catch{return null;}}); // null = guest
+  const [currentUser,setCurrentUser]=useState(null); // null = guest; hydrated by Supabase auth
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
 
   function markAllRead(){setNotifications(ns=>ns.map(n=>({...n,read:true})));}
   function toast(msg,type){const id=Date.now()+Math.random();setToasts(ts=>[...ts,{id,msg,type}]);}
   function removeToast(id){setToasts(ts=>ts.filter(t=>t.id!==id));}
+  // Supabase auth listener — hydrates currentUser on load and keeps it in sync
+  useEffect(()=>{
+    function mapUser(u){return u?{...u,username:u.user_metadata?.username||u.email}:null;}
+    supabase.auth.getSession().then(({data:{session}})=>setCurrentUser(mapUser(session?.user??null)));
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>setCurrentUser(mapUser(session?.user??null)));
+    return ()=>subscription.unsubscribe();
+  },[]);
   // localStorage sync
   useEffect(()=>{try{localStorage.setItem("tft-players",JSON.stringify(players));}catch{}},[players]);
   useEffect(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},[notifications]);
   useEffect(()=>{try{localStorage.setItem("tft-tournament",JSON.stringify(tournamentState));}catch{}},[tournamentState]);
-  useEffect(()=>{try{if(currentUser)localStorage.setItem("tft-user",JSON.stringify(currentUser));else localStorage.removeItem("tft-user");}catch{}},[currentUser]);
   useEffect(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},[seasonConfig]);
   useEffect(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},[quickClashes]);
   useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
@@ -7252,9 +7292,9 @@ export default function TFTClash(){
     setCurrentUser(user);
     setAuthScreen(null);
   }
-  function handleLogout(){
+  async function handleLogout(){
+    await supabase.auth.signOut();
     setCurrentUser(null);
-    localStorage.removeItem("tft-user");
     setScreen("home");
   }
   function updateUser(updated){setCurrentUser(updated);}
@@ -7336,7 +7376,7 @@ export default function TFTClash(){
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
             <div style={{fontSize:38,marginBottom:14}}>🔒</div>
             <h2 style={{color:"#F2EDE4",marginBottom:8}}>Admin Required</h2>
-            <div style={{fontSize:13,color:"#9AAABF"}}>Hint: <span style={{color:"#E8A838"}}>admin</span></div>
+            <div style={{fontSize:13,color:"#9AAABF"}}>Contact an admin to get access.</div>
           </div>
         )}
       </div>
