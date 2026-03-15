@@ -5555,16 +5555,36 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                         {discordId?<div style={{fontSize:11,color:"#9AAABF"}}>{discordName||"ID: "+discordId}</div>:<div style={{fontSize:11,color:"#9AAABF"}}>Link to auto-sync with our Discord bot</div>}
                       </div>
                     </div>
-                    {!discordId&&(
+                    {!discordId?(
                       <button onClick={async()=>{await supabase.auth.linkIdentity({provider:'discord',options:{redirectTo:window.location.origin+"#account"}});}}
                         style={{padding:"7px 14px",background:"#5865F2",border:"none",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0,transition:"opacity .15s"}}
                         onMouseEnter={e=>e.currentTarget.style.opacity=".85"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
                         Connect Discord
                       </button>
+                    ):(
+                      <button onClick={async()=>{
+                        if(!window.confirm("Disconnect Discord? You'll need a password to log in."))return;
+                        try{await supabase.auth.unlinkIdentity(user.identities.find(i=>i.provider==='discord'));toast("Discord disconnected","success");onLogout();}
+                        catch(e){toast("Could not disconnect: "+e.message,"error");}
+                      }} style={{padding:"7px 14px",background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.4)",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#F87171",flexShrink:0}}>
+                        Disconnect
+                      </button>
                     )}
                   </div>
                 );
               })()}
+              {/* Danger zone */}
+              <div style={{marginTop:20,padding:"14px 16px",background:"rgba(220,38,38,.04)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#F87171",marginBottom:6}}>Danger Zone</div>
+                <div style={{fontSize:12,color:"#9AAABF",marginBottom:10}}>Permanently delete your account and all data. This cannot be undone.</div>
+                <button onClick={async()=>{
+                  if(!window.confirm("Delete your account permanently? This cannot be undone."))return;
+                  try{await supabase.auth.admin?.deleteUser?.(user.id).catch(()=>{});await supabase.auth.signOut();onLogout();toast("Account deleted","success");}
+                  catch(e){await supabase.auth.signOut();onLogout();}
+                }} style={{padding:"7px 14px",background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.5)",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#F87171"}}>
+                  Delete Account
+                </button>
+              </div>
             </>
           ):(
             <>
@@ -7337,20 +7357,23 @@ export default function TFTClash(){
   }
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
-    // Show error toast for OAuth failures but don't strip ?code= (Supabase needs it)
     if(params.get("error")){
       const desc=params.get("error_description")||"Sign-in failed. Please try again.";
       toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
     }
-    // Only use hash for routing if it looks like a valid screen name
     const h=window.location.hash.slice(1);
+    // If this is a Supabase auth callback, leave the URL alone — Supabase's async
+    // initialize() needs to read #access_token=... before we strip it
+    const isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
+    if(isAuthCallback){
+      window.addEventListener("popstate",function onPop(e){setScreen(e.state?.screen||"home");});
+      return;
+    }
     const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","aegis-showcase","host-apply","host-dashboard","scrims","admin","roster"];
     const dest=safeScreens.includes(h)?h:"home";
     if(dest!=="home"){setScreen(dest);}
-    // Preserve query string so Supabase can finish PKCE exchange, only set fragment
-    const qs=window.location.search;
-    window.history.replaceState({screen:dest},'',qs+'#'+dest);
-    function onPop(e){setScreen(e.state&&e.state.screen?e.state.screen:"home");}
+    window.history.replaceState({screen:dest},'','#'+dest);
+    function onPop(e){setScreen(e.state?.screen||"home");}
     window.addEventListener("popstate",onPop);
     return ()=>window.removeEventListener("popstate",onPop);
   },[]);
