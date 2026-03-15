@@ -5395,16 +5395,51 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
   const [twitch,setTwitch]=useState(user.twitch||"");
   const [twitter,setTwitter]=useState(user.twitter||"");
   const [youtube,setYoutube]=useState(user.youtube||"");
-  const [mainRegion,setMainRegion]=useState(user.mainRegion||user.region||"EUW");
-  const [secondRiotId,setSecondRiotId]=useState(user.secondRiotId||"");
-  const [secondRegion,setSecondRegion]=useState(user.secondRegion||"NA");
+  const [usernameEdit,setUsernameEdit]=useState(user.username||"");
+  const [riotId,setRiotId]=useState(user.user_metadata?.riotId||"");
+  const [riotRegion,setRiotRegion]=useState(user.user_metadata?.riotRegion||"EUW");
+  const [secondRiotId,setSecondRiotId]=useState(user.user_metadata?.secondRiotId||user.secondRiotId||"");
+  const [secondRegion,setSecondRegion]=useState(user.user_metadata?.secondRegion||user.secondRegion||"EUW");
+
+  const usernameChanged=!!(user.user_metadata?.username_changed);
+  const riotIdSet=!!(user.user_metadata?.riotId);
+  const EU_NA=["EUW","EUNE","NA"];
 
   const linkedPlayer=players.find(p=>p.id===user.linkedPlayerId||p.name===user.username);
   const s=linkedPlayer?computeStats(linkedPlayer):null;
   const myAchievements=linkedPlayer?ACHIEVEMENTS.filter(a=>{try{return a.check(linkedPlayer);}catch{return false;}}):[];
   const tierCols={bronze:"#CD7F32",silver:"#C0C0C0",gold:"#E8A838",legendary:"#9B72CF"};
 
-  function save(){onUpdate({...user,bio,twitch,twitter,youtube,mainRegion,secondRiotId,secondRegion,region:mainRegion});setEdit(false);toast("Profile updated ✓","success");}
+  async function save(){
+    const meta={
+      ...(user.user_metadata||{}),
+      bio,twitch,twitter,youtube,
+      secondRiotId,secondRegion,
+    };
+    // Username: only set username_changed on first deliberate change
+    if(!usernameChanged&&usernameEdit.trim()&&usernameEdit.trim()!==user.username){
+      meta.username=usernameEdit.trim();
+      meta.username_changed=true;
+    }
+    // Riot ID: only set once
+    if(!riotIdSet&&riotId.trim()){
+      meta.riotId=riotId.trim();
+      meta.riotRegion=riotRegion;
+      meta.riotIdSet=true;
+    }
+    try{
+      await supabase.auth.updateUser({data:meta});
+    }catch(e){console.warn("Supabase update failed",e);}
+    onUpdate({...user,...meta,username:meta.username||user.username,user_metadata:meta,region:riotRegion,mainRegion:riotRegion,secondRiotId,secondRegion});
+    setEdit(false);
+    toast("Profile updated ✓","success");
+  }
+
+  async function requestChange(field){
+    const pending=(user.user_metadata?.pending_changes||[]).concat([{field,requestedAt:new Date().toISOString()}]);
+    try{await supabase.auth.updateUser({data:{...(user.user_metadata||{}),pending_changes:pending}});}catch{}
+    toast("Change request submitted — an admin will review it","success");
+  }
 
   const rankColor=linkedPlayer?rc(linkedPlayer.rank):"#9B72CF";
   const myMilestones=linkedPlayer?MILESTONES.filter(m=>{try{return m.check(linkedPlayer);}catch{return false;}}):[];
@@ -5493,32 +5528,19 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                 <Btn v="dark" s="sm" onClick={()=>setEdit(true)}>✏️ Edit</Btn>
               </div>
               <div style={{display:"grid",gap:12}}>
-                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#BECBD9",fontSize:13}}>Username</span>
-                  <span style={{color:"#F2EDE4",fontSize:13,fontWeight:600}}>{user.username}</span>
-                </div>
-                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#BECBD9",fontSize:13}}>Bio</span>
-                  <span style={{color:"#C8D4E0",fontSize:13,maxWidth:280,textAlign:"right"}}>{user.bio||"-"}</span>
-                </div>
-                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#BECBD9",fontSize:13}}>Twitch</span>
-                  <span style={{color:user.twitch?"#9147FF":"#9AAABF",fontSize:13}}>{user.twitch?"twitch.tv/"+user.twitch:"-"}</span>
-                </div>
-                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#BECBD9",fontSize:13}}>Twitter</span>
-                  <span style={{color:user.twitter?"#1DA1F2":"#9AAABF",fontSize:13}}>{user.twitter?"@"+user.twitter:"-"}</span>
-                </div>
-                <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                  <span style={{color:"#BECBD9",fontSize:13}}>Main Region</span>
-                  <span style={{color:"#4ECDC4",fontSize:13,fontWeight:600}}>{user.mainRegion||user.region||"EUW"}</span>
-                </div>
-                {(user.secondRiotId)&&(
-                  <div style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-                    <span style={{color:"#BECBD9",fontSize:13}}>Secondary Account</span>
-                    <span style={{color:"#C4B5FD",fontSize:13}}>{user.secondRiotId} <span style={{color:"#9AAABF"}}>({user.secondRegion||"NA"})</span></span>
+                {[
+                  ["Username",user.username,usernameChanged?"#9B72CF":"#F2EDE4"],
+                  ["Riot ID",user.user_metadata?.riotId?(user.user_metadata.riotId+" · "+user.user_metadata.riotRegion):null,"#E8A838"],
+                  ["Secondary Riot ID",user.user_metadata?.secondRiotId?(user.user_metadata.secondRiotId+" · "+user.user_metadata.secondRegion):null,"#C4B5FD"],
+                  ["Bio",user.user_metadata?.bio||user.bio||null,"#C8D4E0"],
+                  ["Twitch",user.user_metadata?.twitch||user.twitch?("twitch.tv/"+(user.user_metadata?.twitch||user.twitch)):null,"#9147FF"],
+                  ["Twitter",user.user_metadata?.twitter||user.twitter?("@"+(user.user_metadata?.twitter||user.twitter)):null,"#1DA1F2"],
+                ].map(([label,val,col])=>(
+                  <div key={label} style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
+                    <span style={{color:"#BECBD9",fontSize:13}}>{label}</span>
+                    <span style={{color:val?col:"#9AAABF",fontSize:13,fontWeight:val?600:400,maxWidth:280,textAlign:"right"}}>{val||"—"}</span>
                   </div>
-                )}
+                ))}
               </div>
               {/* Discord connection */}
               {(()=>{
@@ -5553,7 +5575,54 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                   <Btn v="primary" s="sm" onClick={save}>Save Changes</Btn>
                 </div>
               </div>
-              <div style={{display:"grid",gap:12}}>
+              <div style={{display:"grid",gap:16}}>
+                {/* Username — change once */}
+                <div>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
+                    <div style={{fontSize:12,color:"#BECBD9"}}>Username {usernameChanged&&<span style={{color:"#9B72CF",fontSize:11}}>(locked — changed once)</span>}</div>
+                  </div>
+                  {usernameChanged?(
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <div style={{flex:1,background:"#0F1520",border:"1px solid rgba(242,237,228,.08)",borderRadius:8,padding:"9px 12px",color:"#9AAABF",fontSize:13}}>{user.username}</div>
+                      <Btn v="dark" s="sm" onClick={()=>requestChange("username")}>Request Change</Btn>
+                    </div>
+                  ):(
+                    <>
+                      <Inp value={usernameEdit} onChange={setUsernameEdit} placeholder="Your display name"/>
+                      <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>You can only change this once. After that, contact admin.</div>
+                    </>
+                  )}
+                </div>
+                {/* Main Riot ID — locked after set */}
+                <div>
+                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Main Riot ID {riotIdSet&&<span style={{color:"#E8A838",fontSize:11}}>(locked)</span>}</div>
+                  {riotIdSet?(
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                      <div style={{flex:1,background:"#0F1520",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"9px 12px",color:"#E8A838",fontSize:13,fontWeight:600}}>{user.user_metadata?.riotId} · {user.user_metadata?.riotRegion}</div>
+                      <Btn v="dark" s="sm" onClick={()=>requestChange("riotId")}>Request Change</Btn>
+                    </div>
+                  ):(
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:8}}>
+                      <Inp value={riotId} onChange={setRiotId} placeholder="GameName#TAG"/>
+                      <Sel value={riotRegion} onChange={setRiotRegion}>
+                        {EU_NA.map(r=><option key={r} value={r}>{r}</option>)}
+                      </Sel>
+                    </div>
+                  )}
+                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>EU and NA accounts only. Cannot be changed without admin approval.</div>
+                </div>
+                {/* Secondary Riot ID */}
+                <div>
+                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Secondary Riot ID <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:8}}>
+                    <Inp value={secondRiotId} onChange={setSecondRiotId} placeholder="SecondName#TAG"/>
+                    <Sel value={secondRegion} onChange={setSecondRegion}>
+                      {EU_NA.map(r=><option key={r} value={r}>{r}</option>)}
+                    </Sel>
+                  </div>
+                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>For players on both EU and NA. EU and NA only.</div>
+                </div>
+                {/* Bio */}
                 <div>
                   <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Bio</div>
                   <textarea value={bio} onChange={e=>setBio(e.target.value)} maxLength={160}
@@ -5562,6 +5631,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                       padding:"10px 12px",color:"#F2EDE4",fontSize:13,resize:"none",height:72,fontFamily:"inherit",boxSizing:"border-box"}}/>
                   <div style={{fontSize:11,color:"#9AAABF",marginTop:2,textAlign:"right"}}>{bio.length}/160</div>
                 </div>
+                {/* Socials */}
                 <div>
                   <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Twitch username</div>
                   <Inp value={twitch} onChange={setTwitch} placeholder="your_twitch_name"/>
@@ -5569,23 +5639,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                 <div>
                   <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Twitter / X handle</div>
                   <Inp value={twitter} onChange={setTwitter} placeholder="@yourhandle"/>
-                </div>
-                <div>
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Main Region</div>
-                  <Sel value={mainRegion} onChange={setMainRegion}>
-                    {["EUW","EUNE","NA","KR","BR","LAN"].map(r=><option key={r} value={r}>{r}</option>)}
-                  </Sel>
-                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>This is the server your primary Riot account competes on. We mostly host EUW and NA clashes.</div>
-                </div>
-                <div>
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Secondary Account <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:8}}>
-                    <Inp value={secondRiotId} onChange={setSecondRiotId} placeholder="SecondIGN#TAG"/>
-                    <Sel value={secondRegion} onChange={setSecondRegion}>
-                      {["NA","EUW","EUNE","KR","BR","LAN"].map(r=><option key={r} value={r}>{r}</option>)}
-                    </Sel>
-                  </div>
-                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>Add a second account if you play on both EU and NA. Allows you to register with either Riot ID.</div>
                 </div>
               </div>
             </>
@@ -7259,7 +7312,13 @@ export default function TFTClash(){
   function removeToast(id){setToasts(ts=>ts.filter(t=>t.id!==id));}
   // Supabase auth listener — hydrates currentUser on load and keeps it in sync
   useEffect(()=>{
-    function mapUser(u){return u?{...u,username:u.user_metadata?.username||u.email}:null;}
+    function mapUser(u){
+      if(!u)return null;
+      const discordName=u.identities?.find(i=>i.provider==='discord')?.identity_data?.global_name
+        ||u.user_metadata?.full_name;
+      const username=u.user_metadata?.username||discordName||u.email?.split('@')[0]||"Player";
+      return{...u,username};
+    }
     supabase.auth.getSession().then(({data:{session}})=>setCurrentUser(mapUser(session?.user??null)));
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>setCurrentUser(mapUser(session?.user??null)));
     return ()=>subscription.unsubscribe();
@@ -7277,9 +7336,18 @@ export default function TFTClash(){
     setScreen(s);
   }
   useEffect(()=>{
+    // If URL contains OAuth error params, clear them and stay on home
+    const params=new URLSearchParams(window.location.search);
+    if(params.get("error")){
+      const desc=params.get("error_description")||"Sign-in failed. Please try again.";
+      toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
+      window.history.replaceState({},'',window.location.pathname);
+    }
     const h=window.location.hash.slice(1);
-    if(h&&h!=="home"){setScreen(h);}
-    window.history.replaceState({screen:h||"home"},'','#'+(h||"home"));
+    const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","aegis-showcase","host-apply","host-dashboard","scrims","admin","roster"];
+    const screen=safeScreens.includes(h)?h:"home";
+    if(screen!=="home"){setScreen(screen);}
+    window.history.replaceState({screen},'','#'+screen);
     function onPop(e){setScreen(e.state&&e.state.screen?e.state.screen:"home");}
     window.addEventListener("popstate",onPop);
     return ()=>window.removeEventListener("popstate",onPop);
