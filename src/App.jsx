@@ -5172,6 +5172,78 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
 
 
+  function downloadStatsCard(){
+
+    var canvas=document.createElement("canvas");
+
+    canvas.width=600;canvas.height=340;
+
+    var ctx=canvas.getContext("2d");
+
+    var bg=ctx.createLinearGradient(0,0,600,340);
+
+    bg.addColorStop(0,"#0A0F1A");bg.addColorStop(1,"#0D1225");
+
+    ctx.fillStyle=bg;ctx.fillRect(0,0,600,340);
+
+    var accent=ctx.createLinearGradient(0,0,600,0);
+
+    accent.addColorStop(0,"transparent");accent.addColorStop(0.4,"#9B72CF");accent.addColorStop(0.6,"#E8A838");accent.addColorStop(1,"transparent");
+
+    ctx.fillStyle=accent;ctx.fillRect(0,0,600,3);
+
+    ctx.fillStyle="rgba(155,114,207,0.06)";ctx.fillRect(0,3,600,337);
+
+    ctx.font="bold 10px monospace";ctx.fillStyle="#9B72CF";ctx.letterSpacing="4px";
+
+    ctx.fillText("TFT CLASH · PLAYER CARD",24,30);ctx.letterSpacing="0px";
+
+    ctx.font="bold 36px serif";ctx.fillStyle="#F2EDE4";
+
+    ctx.fillText(player.name,24,76);
+
+    ctx.font="bold 12px monospace";ctx.fillStyle=rc(player.rank);
+
+    ctx.fillText(player.rank.toUpperCase()+" · "+player.region,24,100);
+
+    var stats=[["PTS",player.pts,"#E8A838"],["WINS",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,"#C4B5FD"],["TOP4",s.top4,"#4ECDC4"],["GAMES",s.games,"#F2EDE4"],["STREAK",player.bestStreak||0,"#F97316"]];
+
+    var cols=3;
+
+    stats.forEach(function(item,i){
+
+      var x=24+(i%cols)*186,y=140+Math.floor(i/cols)*90;
+
+      ctx.fillStyle="rgba(255,255,255,0.04)";
+
+      ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,170,70,8);else ctx.rect(x,y,170,70);ctx.fill();
+
+      ctx.font="bold 26px monospace";ctx.fillStyle=item[2];ctx.fillText(String(item[1]),x+14,y+42);
+
+      ctx.font="bold 9px monospace";ctx.fillStyle="#9AAABF";ctx.letterSpacing="2px";
+
+      ctx.fillText(item[0],x+14,y+60);ctx.letterSpacing="0px";
+
+    });
+
+    ctx.fillStyle="rgba(232,168,56,0.08)";ctx.fillRect(0,308,600,32);
+
+    ctx.font="bold 9px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="2px";
+
+    ctx.fillText("TFTCLASH.GG",24,328);ctx.letterSpacing="0px";
+
+    ctx.font="9px monospace";ctx.fillStyle="#BECBD9";
+
+    ctx.fillText("#TFTClash  #Season16",480,328);
+
+    var a=document.createElement("a");a.download=player.name+"-stats.png";a.href=canvas.toDataURL("image/png");a.click();
+
+    toast&&toast("Stats card saved!","success");
+
+  }
+
+
+
   return(
 
     <div className="page wrap">
@@ -5183,6 +5255,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         {setScreen&&<Btn v="ghost" s="sm" onClick={()=>setScreen("recap")}>🗓 Season Recap</Btn>}
 
         {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>⚡ Challenges</Btn>}
+
+        <Btn v="teal" s="sm" onClick={downloadStatsCard}>📤 Share Card</Btn>
 
 
 
@@ -6820,6 +6894,46 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
 
 
+  // Computed HOF records from live player data
+
+  var wp=allP.filter(function(p){return (p.games||0)>0;});
+
+  var hofRecs=[];
+
+  if(wp.length>0){
+
+    var byPts=[...wp].sort(function(a,b){return b.pts-a.pts;});
+
+    var byWins=[...wp].sort(function(a,b){return (b.wins||0)-(a.wins||0);});
+
+    var byAvg=[...wp].filter(function(p){return p.avg;}).sort(function(a,b){return parseFloat(a.avg)-parseFloat(b.avg);});
+
+    var byStreak=[...wp].sort(function(a,b){return (b.bestStreak||0)-(a.bestStreak||0);});
+
+    var byGames=[...wp].sort(function(a,b){return (b.games||0)-(a.games||0);});
+
+    var byTop4=[...wp].sort(function(a,b){return ((b.top4||0)/b.games)-((a.top4||0)/a.games);});
+
+    hofRecs=[
+
+      byPts[0]?{id:"pts",icon:"🏆",title:"Season Points Leader",value:byPts[0].pts+" pts",holder:byPts[0].name,rank:byPts[0].rank,runner:[byPts[1]&&byPts[1].name,byPts[2]&&byPts[2].name].filter(Boolean),history:[]}:null,
+
+      byWins[0]&&(byWins[0].wins||0)>0?{id:"wins",icon:"⚡",title:"Win Machine",value:(byWins[0].wins||0)+" wins",holder:byWins[0].name,rank:byWins[0].rank,runner:[byWins[1]&&byWins[1].name,byWins[2]&&byWins[2].name].filter(Boolean),history:[]}:null,
+
+      byAvg[0]?{id:"avg",icon:"🎯",title:"Consistency King",value:"AVP "+byAvg[0].avg,holder:byAvg[0].name,rank:byAvg[0].rank,runner:[byAvg[1]&&byAvg[1].name,byAvg[2]&&byAvg[2].name].filter(Boolean),history:[]}:null,
+
+      byStreak[0]&&(byStreak[0].bestStreak||0)>1?{id:"streak",icon:"🔥",title:"Hot Streak",value:(byStreak[0].bestStreak||0)+" consecutive top4s",holder:byStreak[0].name,rank:byStreak[0].rank,runner:[byStreak[1]&&byStreak[1].name,byStreak[2]&&byStreak[2].name].filter(Boolean),history:[]}:null,
+
+      byGames[0]?{id:"games",icon:"🎮",title:"Iron Presence",value:(byGames[0].games||0)+" games",holder:byGames[0].name,rank:byGames[0].rank,runner:[byGames[1]&&byGames[1].name,byGames[2]&&byGames[2].name].filter(Boolean),history:[]}:null,
+
+      byTop4[0]&&(byTop4[0].games||0)>0?{id:"top4r",icon:"🌟",title:"Top4 Machine",value:Math.round((byTop4[0].top4||0)/byTop4[0].games*100)+"%",holder:byTop4[0].name,rank:byTop4[0].rank,runner:[byTop4[1]&&byTop4[1].name,byTop4[2]&&byTop4[2].name].filter(Boolean),history:[]}:null,
+
+    ].filter(Boolean);
+
+  }
+
+
+
   return(
 
     <div className="page wrap">
@@ -7104,7 +7218,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
         </div>
 
-        {HOF_RECORDS.length===0&&(
+        {hofRecs.length===0&&(
           <div style={{textAlign:"center",padding:"64px 24px",color:"#6B7280"}}>
             <div style={{fontSize:48,marginBottom:16}}>🏆</div>
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#9AAABF",marginBottom:8}}>Hall of Fame loading...</div>
@@ -7114,7 +7228,7 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
         <div className="grid-2">
 
-          {HOF_RECORDS.map(r=>{
+          {hofRecs.map(r=>{
 
             const isOpen=expandRecord===r.id;
 
@@ -10930,17 +11044,31 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
 
   const [riotIdErr,setRiotIdErr]=useState("");
 
+  const [emailErr,setEmailErr]=useState("");
+
+  const [usernameErr,setUsernameErr]=useState("");
+
+  const [pwErr,setPwErr]=useState("");
+
+  const [pw2Err,setPw2Err]=useState("");
+
 
 
   function nextStep(){
 
-    if(!email.trim()||!pw.trim()){toast("Email and password required","error");return;}
+    var ok=true;
 
-    if(pw!==pw2){toast("Passwords don't match","error");return;}
+    setEmailErr("");setUsernameErr("");setPwErr("");setPw2Err("");
 
-    if(pw.length<6){toast("Password must be 6+ characters","error");return;}
+    if(!email.trim()){setEmailErr("Email required");ok=false;}
 
-    if(!username.trim()){toast("Username required","error");return;}
+    if(!username.trim()){setUsernameErr("Username required");ok=false;}
+
+    if(!pw.trim()||pw.length<6){setPwErr(!pw.trim()?"Password required":"Must be 6+ characters");ok=false;}
+
+    if(pw!==pw2){setPw2Err("Passwords don't match");ok=false;}
+
+    if(!ok)return;
 
     setStep(2);
 
@@ -11094,33 +11222,41 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
 
               <div>
 
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Email</div>
+                <div style={{fontSize:12,fontWeight:600,color:emailErr?"#F87171":"#C8D4E0",marginBottom:6}}>Email</div>
 
-                <Inp value={email} onChange={setEmail} placeholder="you@email.com" type="email"/>
+                <Inp value={email} onChange={v=>{setEmail(v);if(emailErr)setEmailErr("");}} placeholder="you@email.com" type="email" style={emailErr?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
 
-              </div>
-
-              <div>
-
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Username</div>
-
-                <Inp value={username} onChange={setUsername} placeholder="Your display name"/>
+                {emailErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{emailErr}</div>}
 
               </div>
 
               <div>
 
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Password</div>
+                <div style={{fontSize:12,fontWeight:600,color:usernameErr?"#F87171":"#C8D4E0",marginBottom:6}}>Username</div>
 
-                <Inp value={pw} onChange={setPw} placeholder="6+ characters" type="password"/>
+                <Inp value={username} onChange={v=>{setUsername(v);if(usernameErr)setUsernameErr("");}} placeholder="Your display name" style={usernameErr?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
+
+                {usernameErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{usernameErr}</div>}
 
               </div>
 
               <div>
 
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Confirm Password</div>
+                <div style={{fontSize:12,fontWeight:600,color:pwErr?"#F87171":"#C8D4E0",marginBottom:6}}>Password</div>
 
-                <Inp value={pw2} onChange={setPw2} placeholder="Repeat password" type="password" onKeyDown={e=>e.key==="Enter"&&nextStep()}/>
+                <Inp value={pw} onChange={v=>{setPw(v);if(pwErr)setPwErr("");}} placeholder="6+ characters" type="password" style={pwErr?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
+
+                {pwErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{pwErr}</div>}
+
+              </div>
+
+              <div>
+
+                <div style={{fontSize:12,fontWeight:600,color:pw2Err?"#F87171":"#C8D4E0",marginBottom:6}}>Confirm Password</div>
+
+                <Inp value={pw2} onChange={v=>{setPw2(v);if(pw2Err)setPw2Err("");}} placeholder="Repeat password" type="password" onKeyDown={e=>e.key==="Enter"&&nextStep()} style={pw2Err?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
+
+                {pw2Err&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{pw2Err}</div>}
 
               </div>
 
@@ -11232,11 +11368,23 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
   const [loading,setLoading]=useState(false);
 
+  const [loginEmailErr,setLoginEmailErr]=useState("");
+
+  const [loginPwErr,setLoginPwErr]=useState("");
+
 
 
   async function submit(){
 
-    if(!email.trim()||!pw.trim()){toast("Email and password required","error");return;}
+    var ok=true;
+
+    setLoginEmailErr("");setLoginPwErr("");
+
+    if(!email.trim()){setLoginEmailErr("Email required");ok=false;}
+
+    if(!pw.trim()){setLoginPwErr("Password required");ok=false;}
+
+    if(!ok)return;
 
     setLoading(true);
 
@@ -11296,17 +11444,21 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
             <div>
 
-              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Email</div>
+              <div style={{fontSize:12,fontWeight:600,color:loginEmailErr?"#F87171":"#C8D4E0",marginBottom:6}}>Email</div>
 
-              <Inp value={email} onChange={setEmail} placeholder="you@email.com" type="email"/>
+              <Inp value={email} onChange={v=>{setEmail(v);if(loginEmailErr)setLoginEmailErr("");}} placeholder="you@email.com" type="email" style={loginEmailErr?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
+
+              {loginEmailErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{loginEmailErr}</div>}
 
             </div>
 
             <div>
 
-              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Password</div>
+              <div style={{fontSize:12,fontWeight:600,color:loginPwErr?"#F87171":"#C8D4E0",marginBottom:6}}>Password</div>
 
-              <Inp value={pw} onChange={setPw} placeholder="Your password" type="password" onKeyDown={e=>e.key==="Enter"&&submit()}/>
+              <Inp value={pw} onChange={v=>{setPw(v);if(loginPwErr)setLoginPwErr("");}} placeholder="Your password" type="password" onKeyDown={e=>e.key==="Enter"&&submit()} style={loginPwErr?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
+
+              {loginPwErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{loginPwErr}</div>}
 
             </div>
 
