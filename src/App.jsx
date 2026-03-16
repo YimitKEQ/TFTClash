@@ -3484,6 +3484,13 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const [paused,setPaused]=useState(false);
   const [scoreEdit,setScoreEdit]=useState({});
   const [seasonName,setSeasonName]=useState("Season 16");
+  const [addPlayerForm,setAddPlayerForm]=useState({name:"",riotId:"",region:"EUW",rank:"Gold"});
+  const [showAddPlayer,setShowAddPlayer]=useState(false);
+  const [flashForm,setFlashForm]=useState({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
+  const [qcPlacements,setQcPlacements]=useState({});
+  const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30"});
+  const [flashEvents,setFlashEvents]=useState([]);
+  const [spForm,setSpForm]=useState({name:"",logo:"",color:"",playerId:""});
 
   function addAudit(type,msg){setAuditLog(l=>[{ts:Date.now(),type,msg},...l.slice(0,199)]);}
   function ban(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,banned:true,checkedIn:false}:p));addAudit("WARN","Banned: "+name);toast(name+" banned","success");}
@@ -3493,8 +3500,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
       if(p.id!==id)return p;
       var newCount=(p.dnpCount||0)+1;
       var isDQ=newCount>=2;
-      addAudit("WARN","DNP #"+newCount+": "+name+(isDQ?" → AUTO-DQ":""));
-      if(isDQ)toast(name+" has 2 DNPs — DISQUALIFIED","error");
+      addAudit("WARN","DNP #"+newCount+": "+name+(isDQ?" \u2192 AUTO-DQ":""));
+      if(isDQ)toast(name+" has 2 DNPs \u2014 DISQUALIFIED","error");
       else toast(name+" marked DNP ("+newCount+"/2 before DQ)","success");
       return{...p,dnpCount:newCount,banned:isDQ?true:p.banned,checkedIn:isDQ?false:p.checkedIn};
     }));
@@ -3502,12 +3509,6 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   function clearDNP(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,dnpCount:0}:p));addAudit("ACTION","DNP cleared: "+name);toast("DNP cleared for "+name,"success");}
   function remove(id,name){setPlayers(ps=>ps.filter(p=>p.id!==id));addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
   function saveNote(){setPlayers(ps=>ps.map(p=>p.id===noteTarget.id?{...p,notes:noteText}:p));addAudit("ACTION","Note updated: "+noteTarget.name);setNoteTarget(null);}
-
-  const AUDIT_COLS={INFO:"#4ECDC4",ACTION:"#52C47C",WARN:"#E8A838",RESULT:"#9B72CF",BROADCAST:"#E8A838",DANGER:"#F87171"};
-  const EVENT_COLS={SCHEDULED:"#E8A838",FLASH:"#F87171",INVITATIONAL:"#9B72CF",WEEKLY:"#4ECDC4"};
-
-  const [addPlayerForm,setAddPlayerForm]=useState({name:"",riotId:"",region:"EUW",rank:"Gold"});
-  const [showAddPlayer,setShowAddPlayer]=useState(false);
   function addPlayer(){
     const n=addPlayerForm.name.trim(),r=addPlayerForm.riotId.trim();
     if(!n||!r){toast("Name and Riot ID required","error");return;}
@@ -3519,77 +3520,131 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     setAddPlayerForm({name:"",riotId:"",region:"EUW",rank:"Gold"});
     setShowAddPlayer(false);
   }
-  const [flashForm,setFlashForm]=useState({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
-  const [qcPlacements,setQcPlacements]=useState({});
-  const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30"});
-  const [flashEvents,setFlashEvents]=useState([]);
-  const [spForm,setSpForm]=useState({name:"",logo:"",color:"",playerId:""});
+
+  const AUDIT_COLS={INFO:"#4ECDC4",ACTION:"#52C47C",WARN:"#E8A838",RESULT:"#9B72CF",BROADCAST:"#E8A838",DANGER:"#F87171"};
+  const EVENT_COLS={SCHEDULED:"#E8A838",FLASH:"#F87171",INVITATIONAL:"#9B72CF",WEEKLY:"#4ECDC4"};
+  const currentPhase=tournamentState?tournamentState.phase:"registration";
+  const phaseColor={registration:"#9B72CF",checkin:"#E8A838",inprogress:"#52C47C",complete:"#4ECDC4"};
+  const phaseLabel={registration:"Registration Open",checkin:"Check-in Open",inprogress:"Round "+(tournamentState?tournamentState.round:1)+" in Progress",complete:"Complete"};
+  const pendingHosts=hostApps.filter(a=>a.status==="pending").length;
 
   const TABS=[
-    {id:"dashboard",icon:"📊",label:"Dashboard"},
-    {id:"players",icon:"👥",label:"Players"},
-    {id:"scores",icon:"✏️",label:"Scores"},
-    {id:"round",icon:"⚡",label:"Round"},
-    {id:"quickclash",icon:"⚡",label:"Quick Clash"},
-    {id:"schedule",icon:"📅",label:"Schedule"},
-    {id:"season",icon:"🏆",label:"Season"},
-    {id:"broadcast",icon:"📢",label:"Broadcast"},
-    {id:"hosts",icon:"🎮",label:"Hosts"+(hostApps.filter(a=>a.status==="pending").length>0?" ●":"")},
-    {id:"sponsorships",icon:"🏢",label:"Sponsorships"},
-    {id:"audit",icon:"📋",label:"Audit"},
-    {id:"settings",icon:"⚙️",label:"Settings"},
+    {id:"dashboard",icon:"\uD83D\uDCCA",label:"Dashboard"},
+    {id:"round",icon:"\u26A1",label:"Round"},
+    {id:"quickclash",icon:"\uD83C\uDFB2",label:"Quick Clash"},
+    {id:"schedule",icon:"\uD83D\uDCC5",label:"Schedule"},
+    {id:"players",icon:"\uD83D\uDC65",label:"Players"},
+    {id:"scores",icon:"\u270F\uFE0F",label:"Scores"},
+    {id:"broadcast",icon:"\uD83D\uDCE2",label:"Broadcast"},
+    {id:"hosts",icon:"\uD83C\uDFAE",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
+    {id:"season",icon:"\uD83C\uDFC6",label:"Season"},
+    {id:"sponsorships",icon:"\uD83C\uDFE2",label:"Sponsors"},
+    {id:"audit",icon:"\uD83D\uDCCB",label:"Audit"},
+    {id:"settings",icon:"\u2699\uFE0F",label:"Settings"},
   ];
+
+  const TAB_INFO={
+    dashboard:"At-a-glance clash status. Use quick actions to check in all players, pause the round, or jump to broadcast.",
+    round:"Full tournament lifecycle: open check-in \u2192 start \u2192 advance rounds \u2192 complete. Configure seeding and round settings here.",
+    quickclash:"Spin up an instant open clash (4\u201316 players, no registration). Appears live on the home screen. Players join immediately.",
+    schedule:"Add upcoming clashes to the public calendar. Players see scheduled events on the home screen.",
+    players:"Full roster. Edit info, assign roles, mark DNP (no-show), ban/unban, and add internal notes (admin-only).",
+    scores:"Override a player\u2019s season point total. All changes are flagged as DANGER in Audit. Use sparingly.",
+    broadcast:"Send a sitewide announcement banner visible to all logged-in players. Clear it here when done.",
+    hosts:"Review host applications submitted via the Pricing page. Approved hosts get lobby management access.",
+    season:"Season name, health rules (drop weeks, comeback/attendance bonuses, finale multiplier), and Danger Zone.",
+    sponsorships:"Assign org sponsors to players. Their tag shows next to the player name on the leaderboard and profile.",
+    audit:"Full chronological log of every admin action. Use for dispute resolution or accountability reviews.",
+    settings:"Role permission reference and admin quickstart guide.",
+  };
 
   return(
     <div className="page wrap">
+
+      {/* NOTE MODAL */}
       {noteTarget&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:16}}>
-          <Panel style={{width:"100%",maxWidth:380,padding:"22px"}}>
-            <div style={{marginTop:6}}>
-              <h3 style={{color:"#F2EDE4",fontSize:16,marginBottom:14}}>Note - {noteTarget.name}</h3>
-              <Inp value={noteText} onChange={setNoteText} placeholder="e.g. known griefer, dispute history..." style={{marginBottom:14}}/>
-              <div style={{display:"flex",gap:10}}>
-                <Btn v="primary" full onClick={saveNote}>Save</Btn>
-                <Btn v="dark" onClick={()=>setNoteTarget(null)}>Cancel</Btn>
-              </div>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:300,padding:16}}>
+          <Panel style={{width:"100%",maxWidth:400,padding:"24px"}}>
+            <h3 style={{color:"#F2EDE4",fontSize:16,fontWeight:700,marginBottom:4}}>Internal Note</h3>
+            <div style={{fontSize:12,color:"#9AAABF",marginBottom:12}}>Only admins can see this. Use for dispute history, warnings, etc.</div>
+            <div style={{fontSize:13,fontWeight:700,color:"#9B72CF",marginBottom:10}}>{noteTarget.name}</div>
+            <Inp value={noteText} onChange={setNoteText} placeholder="e.g. known griefer, dispute 2026-03-10..." style={{marginBottom:14}}/>
+            <div style={{display:"flex",gap:10}}>
+              <Btn v="primary" full onClick={saveNote}>Save Note</Btn>
+              <Btn v="dark" onClick={()=>setNoteTarget(null)}>Cancel</Btn>
             </div>
           </Panel>
         </div>
       )}
 
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
-        <div style={{width:38,height:38,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>⬡</div>
-        <div><h2 style={{color:"#F2EDE4",fontSize:18}}>Admin Panel</h2><div style={{fontSize:11,color:"#BECBD9"}}>{seasonName}</div></div>
+      {/* PAGE HEADER */}
+      <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
+        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>\u2B21</div>
+        <div style={{flex:1,minWidth:0}}>
+          <h2 style={{color:"#F2EDE4",fontSize:20,fontWeight:800,lineHeight:1,margin:0}}>Admin Panel</h2>
+          <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>TFT Clash \u00B7 {seasonName}</div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0,flexWrap:"wrap"}}>
+          <div style={{padding:"5px 13px",background:phaseColor[currentPhase]+"1A",border:"1px solid "+phaseColor[currentPhase]+"44",borderRadius:20,fontSize:12,fontWeight:700,color:phaseColor[currentPhase]}}>
+            {phaseLabel[currentPhase]}
+          </div>
+          {pendingHosts>0&&(
+            <div style={{padding:"5px 13px",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:20,fontSize:12,fontWeight:700,color:"#F87171",cursor:"pointer"}} onClick={()=>setTab("hosts")}>
+              {pendingHosts} host app{pendingHosts>1?"s":""}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Tab pills - scrollable on mobile */}
-      <div style={{display:"flex",gap:4,flexWrap:"nowrap",overflowX:"auto",paddingBottom:4,marginBottom:18,scrollbarWidth:"none"}}>
+      {/* TAB NAVIGATION */}
+      <div style={{display:"flex",gap:4,flexWrap:"nowrap",overflowX:"auto",paddingBottom:4,marginBottom:4,scrollbarWidth:"none"}}>
         {TABS.map(t=>(
-          <Btn key={t.id} v={tab===t.id?"primary":"dark"} s="sm" onClick={()=>setTab(t.id)} style={{flexShrink:0,gap:4}}>
-            <span>{t.icon}</span><span className="hide-mobile-text">{t.label}</span>
-          </Btn>
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 13px",background:tab===t.id?"rgba(155,114,207,.18)":"rgba(255,255,255,.03)",border:"1px solid "+(tab===t.id?"rgba(155,114,207,.5)":"rgba(242,237,228,.07)"),borderRadius:8,color:tab===t.id?"#C4B5FD":"#9AAABF",cursor:"pointer",fontSize:12,fontWeight:tab===t.id?700:400,whiteSpace:"nowrap",flexShrink:0,transition:"all .12s",fontFamily:"inherit"}}>
+            <span>{t.icon}</span><span>{t.label}</span>
+          </button>
         ))}
       </div>
 
+      {/* TAB INFO BANNER */}
+      <div style={{padding:"9px 14px",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:8,marginBottom:18,fontSize:12,color:"#9AAABF",lineHeight:1.5}}>
+        <span style={{color:"#C4B5FD",fontWeight:700,marginRight:6}}>\u2139</span>{TAB_INFO[tab]||""}
+      </div>
+
+      {/* ── DASHBOARD ── */}
       {tab==="dashboard"&&(
         <div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:12,marginBottom:18}}>
-            {[["Players",players.length,"#E8A838"],["In",players.filter(p=>p.checkedIn).length,"#6EE7B7"],["Banned",players.filter(p=>p.banned).length,"#F87171"],["Events",scheduledEvents.length,"#C4B5FD"]].map(([l,v,c])=>(
-              <Panel key={l} style={{padding:"16px",textAlign:"center"}}>
-                <div className="mono" style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{l}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
+            {[
+              {label:"Players",value:players.length,color:"#E8A838",icon:"\uD83D\uDC65"},
+              {label:"Checked In",value:players.filter(p=>p.checkedIn).length,color:"#52C47C",icon:"\u2713"},
+              {label:"Banned",value:players.filter(p=>p.banned).length,color:"#F87171",icon:"\u26D4"},
+              {label:"Scheduled",value:scheduledEvents.length,color:"#C4B5FD",icon:"\uD83D\uDCC5"},
+            ].map(c=>(
+              <Panel key={c.label} style={{padding:"18px 12px",textAlign:"center"}}>
+                <div style={{fontSize:20,marginBottom:6}}>{c.icon}</div>
+                <div className="mono" style={{fontSize:26,fontWeight:800,color:c.color,lineHeight:1}}>{c.value}</div>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",marginTop:5,letterSpacing:".06em",textTransform:"uppercase"}}>{c.label}</div>
               </Panel>
             ))}
           </div>
-          <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
-            <Btn v="success" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:true})));addAudit("ACTION","Check In All");toast("All in","success");}}>✓ Check All</Btn>
-            <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("ACTION","Check Out All");toast("All out","success");}}>✗ Check Out</Btn>
-            <Btn v={paused?"success":"danger"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"▶ Resume":"⏸ Pause"}</Btn>
-          </div>
+          <Panel style={{padding:"16px",marginBottom:16}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>Quick Actions</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <Btn v="success" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:true})));addAudit("ACTION","Check In All");toast("All players checked in","success");}}>Check In All</Btn>
+              <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>Clear Check-In</Btn>
+              <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"\u25B6 Resume":"\u23F8 Pause"}</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>\uD83D\uDCE2 Broadcast</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>\u26A1 Round Controls</Btn>
+            </div>
+          </Panel>
           <Panel style={{overflow:"hidden"}}>
-            <div style={{padding:"11px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",fontSize:13,fontWeight:700,color:"#F2EDE4"}}>Recent Activity</div>
-            {auditLog.slice(0,8).map((l,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:9,padding:"8px 14px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+            <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Recent Activity</div>
+              <Btn v="dark" s="sm" onClick={()=>setTab("audit")}>Full Log \u2192</Btn>
+            </div>
+            {auditLog.length===0&&<div style={{padding:"28px",textAlign:"center",color:"#9AAABF",fontSize:13}}>No activity yet.</div>}
+            {auditLog.slice(0,10).map((l,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                 <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
                 <span style={{fontSize:13,color:"#C8BFB0",flex:1}}>{l.msg}</span>
                 <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleTimeString()}</span>
@@ -3599,39 +3654,47 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         </div>
       )}
 
+      {/* ── PLAYERS ── */}
       {tab==="players"&&(
         <div>
           {editP?(
-            <Panel accent style={{padding:"20px",marginBottom:16}}>
+            <Panel accent style={{padding:"22px",marginBottom:16}}>
               <div style={{marginTop:6}}>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:16}}>
-                  <h3 style={{color:"#F2EDE4",fontSize:15}}>Edit: {editP.name}</h3>
-                  <Btn v="dark" s="sm" onClick={()=>setEditP(null)}>← Back</Btn>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                  <div>
+                    <h3 style={{color:"#F2EDE4",fontSize:16,fontWeight:700,margin:0}}>Edit Player</h3>
+                    <div style={{fontSize:12,color:"#9B72CF",marginTop:3}}>{editP.name}</div>
+                  </div>
+                  <Btn v="dark" s="sm" onClick={()=>setEditP(null)}>\u2190 Back</Btn>
                 </div>
                 <div className="grid-2" style={{marginBottom:14}}>
                   {[["Display Name","name"],["Riot ID","riotId"],["Region","region"]].map(([l,k])=>(
-                    <div key={k}><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{l}</label>
-                    <Inp value={editP[k]||""} onChange={v=>setEditP(e=>({...e,[k]:v}))} placeholder={l}/></div>
+                    <div key={k}>
+                      <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{l}</label>
+                      <Inp value={editP[k]||""} onChange={v=>setEditP(e=>({...e,[k]:v}))} placeholder={l}/>
+                    </div>
                   ))}
-                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Role</label>
-                  <Sel value={editP.role||"player"} onChange={v=>setEditP(e=>({...e,role:v}))}>{["player","host","mod","admin"].map(r=><option key={r} value={r}>{r}</option>)}</Sel></div>
+                  <div>
+                    <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Role</label>
+                    <Sel value={editP.role||"player"} onChange={v=>setEditP(e=>({...e,role:v}))}>{["player","host","mod","admin"].map(r=><option key={r} value={r}>{r}</option>)}</Sel>
+                  </div>
                 </div>
                 <div style={{display:"flex",gap:10}}>
-                  <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>p.id===editP.id?editP:p));addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success");}}>Save</Btn>
+                  <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>p.id===editP.id?editP:p));addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success");}}>Save Changes</Btn>
                   <Btn v="dark" onClick={()=>setEditP(null)}>Cancel</Btn>
                 </div>
               </div>
             </Panel>
           ):(
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {/* Add Player */}
-              <div style={{display:"flex",justifyContent:"flex-end",marginBottom:4}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                <div style={{fontSize:13,color:"#C8D4E0"}}>{players.length} players \u00B7 {players.filter(p=>p.checkedIn).length} in \u00B7 {players.filter(p=>p.banned).length} banned</div>
                 <Btn v="primary" s="sm" onClick={()=>setShowAddPlayer(v=>!v)}>{showAddPlayer?"Cancel":"+ Add Player"}</Btn>
               </div>
               {showAddPlayer&&(
-                <Panel style={{padding:"16px",marginBottom:4}}>
-                  <h4 style={{color:"#F2EDE4",fontSize:13,marginBottom:12,fontWeight:700}}>Add Player</h4>
-                  <div className="grid-2" style={{marginBottom:12}}>
+                <Panel style={{padding:"18px",marginBottom:4,border:"1px solid rgba(155,114,207,.25)"}}>
+                  <h4 style={{color:"#C4B5FD",fontSize:14,marginBottom:14,fontWeight:700,margin:"0 0 14px"}}>Add New Player</h4>
+                  <div className="grid-2" style={{marginBottom:14}}>
                     <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Display Name</label><Inp value={addPlayerForm.name} onChange={v=>setAddPlayerForm(f=>({...f,name:v}))} placeholder="Username"/></div>
                     <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Riot ID</label><Inp value={addPlayerForm.riotId} onChange={v=>setAddPlayerForm(f=>({...f,riotId:v}))} placeholder="Name#TAG"/></div>
                     <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Region</label><Sel value={addPlayerForm.region} onChange={v=>setAddPlayerForm(f=>({...f,region:v}))}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel></div>
@@ -3640,47 +3703,51 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   <Btn v="success" onClick={addPlayer}>Add Player</Btn>
                 </Panel>
               )}
+              {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet \u2014 add one above.</div></Panel>}
               {players.map(p=>(
-                <Panel key={p.id} style={{padding:"14px",background:p.banned?"rgba(127,29,29,.15)":"#111827"}}>
+                <Panel key={p.id} style={{padding:"14px 16px",background:p.banned?"rgba(127,29,29,.12)":"#111827",border:p.banned?"1px solid rgba(248,113,113,.2)":"1px solid rgba(242,237,228,.05)"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:700,fontSize:14,color:p.banned?"#F87171":"#F2EDE4",display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}>
+                      <div style={{fontWeight:700,fontSize:14,color:p.banned?"#F87171":"#F2EDE4",display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:3}}>
                         {p.name}
                         {p.role!=="player"&&<Tag color="#9B72CF" size="sm">{p.role}</Tag>}
-                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"⛔ DQ":"BANNED"}</Tag>}
+                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"\u26D4 DQ":"BANNED"}</Tag>}
                         {!p.banned&&(p.dnpCount||0)>0&&<Tag color="#F97316" size="sm">DNP {p.dnpCount}/2</Tag>}
-                        {p.checkedIn&&<Tag color="#52C47C" size="sm">✓ In</Tag>}
-                        {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback Ready</Tag>}
+                        {p.checkedIn&&<Tag color="#52C47C" size="sm">\u2713 In</Tag>}
+                        {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback</Tag>}
                         {(p.attendanceStreak||0)>=3&&<Tag color="#E8A838" size="sm">{p.attendanceStreak}-streak</Tag>}
                       </div>
-                      <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>{p.riotId} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span></div>
-                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:3}}>📌 {p.notes}</div>}
+                      <div style={{fontSize:12,color:"#BECBD9"}}>{p.riotId} \u00B7 {p.rank} \u00B7 <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span> \u00B7 {p.games||0}G</div>
+                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>\uD83D\uDCCC {p.notes}</div>}
                     </div>
-                    <div style={{display:"flex",gap:6,flexWrap:"wrap",flexShrink:0}}>
+                    <div style={{display:"flex",gap:5,flexWrap:"wrap",flexShrink:0}}>
                       <Btn s="sm" v="dark" onClick={()=>setEditP(p)}>Edit</Btn>
-                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}}>📌</Btn>
-                      {!p.banned&&<Btn s="sm" v="warning" onClick={()=>markDNP(p.id,p.name)} title="Mark no-show — 2 DNPs = DQ">DNP</Btn>}
-                      {(p.dnpCount||0)>0&&!p.banned&&<Btn s="sm" v="dark" onClick={()=>clearDNP(p.id,p.name)}>↩</Btn>}
+                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">\uD83D\uDCCC</Btn>
+                      {!p.banned&&<Btn s="sm" v="warning" onClick={()=>markDNP(p.id,p.name)} title="Mark no-show (2 DNPs = DQ)">DNP</Btn>}
+                      {(p.dnpCount||0)>0&&!p.banned&&<Btn s="sm" v="dark" onClick={()=>clearDNP(p.id,p.name)} title="Clear DNP count">\u21A9 DNP</Btn>}
                       {p.banned?<Btn s="sm" v="success" onClick={()=>unban(p.id,p.name)}>Unban</Btn>:<Btn s="sm" v="danger" onClick={()=>ban(p.id,p.name)}>Ban</Btn>}
-                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)}>✕</Btn>
+                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">\u2715</Btn>
                     </div>
                   </div>
                 </Panel>
               ))}
-              {players.length===0&&<div style={{textAlign:"center",padding:40,color:"#9AAABF",fontSize:14}}>No players</div>}
             </div>
           )}
         </div>
       )}
 
+      {/* ── SCORES ── */}
       {tab==="scores"&&(
         <div>
-          <p style={{fontSize:13,color:"#C8D4E0",marginBottom:14}}>Override season points. All changes are logged.</p>
           <Panel style={{overflow:"hidden",marginBottom:14}}>
+            <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Season Points Override</div>
+              <div style={{fontSize:11,color:"#BECBD9"}}>Leave blank to keep current</div>
+            </div>
             {players.map(p=>(
-              <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+              <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
                 <span style={{fontWeight:600,fontSize:14,color:"#F2EDE4",flex:1}}>{p.name}</span>
-                <span className="mono" style={{fontSize:13,color:"#BECBD9",minWidth:50}}>Now: <span style={{color:"#E8A838"}}>{p.pts}</span></span>
+                <span className="mono" style={{fontSize:13,color:"#BECBD9",minWidth:64}}>Now: <span style={{color:"#E8A838",fontWeight:700}}>{p.pts}</span></span>
                 <div style={{width:110,flexShrink:0}}>
                   <Inp value={scoreEdit[p.id]!==undefined?scoreEdit[p.id]:""} onChange={v=>setScoreEdit(e=>({...e,[p.id]:v}))} placeholder={String(p.pts)} type="number"/>
                 </div>
@@ -3688,157 +3755,118 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             ))}
           </Panel>
           <div style={{display:"flex",gap:10}}>
-            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" → "+nv);return{...p,pts:parseInt(nv)||p.pts};}));setScoreEdit({});toast("Applied","success");}}>Apply Changes</Btn>
+            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" \u2192 "+nv);return{...p,pts:parseInt(nv)||p.pts};}));setScoreEdit({});toast("Score changes applied","success");}}>Apply Changes</Btn>
             <Btn v="dark" onClick={()=>setScoreEdit({})}>Clear</Btn>
           </div>
         </div>
       )}
 
+      {/* ── ROUND ── */}
       {tab==="round"&&(
         <div className="grid-2">
           <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Clash Details</h3>
-            <div className="grid-2" style={{marginBottom:0}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Clash Details</div>
+            <div className="grid-2">
               <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Clash Name</label><Inp value={tournamentState?.clashName||""} onChange={v=>setTournamentState(ts=>({...ts,clashName:v}))} placeholder="e.g. Clash #1"/></div>
               <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date</label><Inp value={tournamentState?.clashDate||""} onChange={v=>setTournamentState(ts=>({...ts,clashDate:v}))} placeholder="e.g. Apr 5 2026"/></div>
               <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Time</label><Inp value={tournamentState?.clashTime||""} onChange={v=>setTournamentState(ts=>({...ts,clashTime:v}))} placeholder="e.g. 8PM EST"/></div>
-              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Countdown Target (ISO)</label><Inp value={tournamentState?.clashTimestamp||""} onChange={v=>setTournamentState(ts=>({...ts,clashTimestamp:v}))} placeholder="e.g. 2026-04-05T20:00:00"/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:5,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Countdown (ISO)</label><Inp value={tournamentState?.clashTimestamp||""} onChange={v=>setTournamentState(ts=>({...ts,clashTimestamp:v}))} placeholder="2026-04-05T20:00:00"/></div>
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Tournament Phase</h3>
-            <div style={{marginBottom:12,padding:"10px 12px",background:"#0F1520",borderRadius:8,border:"1px solid rgba(242,237,228,.07)"}}>
-              <div style={{fontSize:11,color:"#BECBD9",marginBottom:3,textTransform:"uppercase",letterSpacing:".06em",fontWeight:700}}>Current Phase</div>
-              <div style={{fontWeight:700,fontSize:14,color:{registration:"#9B72CF",checkin:"#E8A838",inprogress:"#52C47C",complete:"#4ECDC4"}[tournamentState?tournamentState.phase:"registration"]||"#9B72CF"}}>
-                {{registration:"Registration Open",checkin:"Check-in Open",inprogress:"In Progress — Round "+(tournamentState?tournamentState.round:1),complete:"Complete"}[tournamentState?tournamentState.phase:"registration"]||"Registration"}
-              </div>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Tournament Phase</div>
+            <div style={{display:"flex",gap:5,marginBottom:16,flexWrap:"wrap"}}>
+              {["registration","checkin","inprogress","complete"].map(ph=>(
+                <div key={ph} style={{padding:"5px 10px",borderRadius:6,fontSize:11,fontWeight:700,background:currentPhase===ph?phaseColor[ph]+"22":"rgba(255,255,255,.03)",border:"1px solid "+(currentPhase===ph?phaseColor[ph]+"55":"rgba(242,237,228,.07)"),color:currentPhase===ph?phaseColor[ph]:"#7A8BA0"}}>
+                  {ph==="registration"?"1 Register":ph==="checkin"?"2 Check-in":ph==="inprogress"?"3 Live":"4 Done"}
+                </div>
+              ))}
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              <Btn v="primary" full disabled={tournamentState&&tournamentState.phase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin"}));addAudit("ACTION","Check-in opened");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
-              <Btn v="success" full disabled={tournamentState&&tournamentState.phase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
-              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset Tournament</Btn>
+              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin"}));addAudit("ACTION","Check-in opened");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
+              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Round Controls</h3>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Round Controls</div>
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
-              <Btn v={paused?"success":"danger"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>
-                {paused?"▶ Resume Round":"⏸ Pause Round"}
-              </Btn>
-              <Btn v="dark" full onClick={()=>{
-                setTournamentState(function(ts){
-                  if(!ts||ts.phase!=="inprogress") return ts;
-                  var next=ts.round+1;
-                  if(next>3) return Object.assign({},ts,{phase:"complete"});
-                  return Object.assign({},ts,{round:next,lockedLobbies:[]});
-                });
-                addAudit("ACTION","Force advance");toast("Force advancing","success");
-              }}>Force Advance →</Btn>
+              <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?"\u25B6 Resume Round":"\u23F8 Pause Round"}</Btn>
+              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var next=ts.round+1;if(next>3)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[]});});addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance Round \u2192</Btn>
               <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Seeding Algorithm</h3>
-            {[["random","🎲 Random"],["rank-based","📊 Rank-Based"],["anti-stack","🚫 Anti-Stack"],["snake","🐍 Snake Draft"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setSeedAlgo(v)} style={{display:"flex",alignItems:"center",gap:10,width:"100%",background:seedAlgo===v?"rgba(232,168,56,.1)":"rgba(255,255,255,.02)",border:"1px solid "+(seedAlgo===v?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:8,padding:"11px 14px",color:seedAlgo===v?"#E8A838":"#C8BFB0",cursor:"pointer",fontSize:13,fontWeight:seedAlgo===v?700:400,marginBottom:6}}>
-                {l}
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Seeding Mode</div>
+            {[["random","\uD83C\uDFB2 Random","Fully shuffled, no weighting"],["rank-based","\uD83D\uDCCA Rank-Based","Top players spread across lobbies"],["anti-stack","\uD83D\uDEAB Anti-Stack","Prevents friend groups from stacking"],["snake","\uD83D\uDC0D Snake Draft","Alternating order seeding"]].map(([v,l,d])=>(
+              <button key={v} onClick={()=>setSeedAlgo(v)} style={{display:"flex",alignItems:"flex-start",gap:10,width:"100%",background:seedAlgo===v?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(seedAlgo===v?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:8,padding:"11px 14px",cursor:"pointer",marginBottom:6,textAlign:"left",fontFamily:"inherit"}}>
+                <span style={{fontSize:13,fontWeight:seedAlgo===v?700:500,color:seedAlgo===v?"#E8A838":"#C8BFB0",minWidth:120}}>{l}</span>
+                <span style={{fontSize:11,color:"#7A8BA0",marginTop:1}}>{d}</span>
               </button>
             ))}
           </Panel>
           <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Round Settings</h3>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Max Players</label>
-                <Inp type="number" value={roundConfig.maxPlayers} onChange={v=>setRoundConfig(c=>Object.assign({},c,{maxPlayers:v}))} placeholder="24"/>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Round Count</label>
-                <Sel value={roundConfig.roundCount} onChange={v=>setRoundConfig(c=>Object.assign({},c,{roundCount:v}))}>
-                  <option value="2">2 Rounds</option>
-                  <option value="3">3 Rounds</option>
-                </Sel>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Check-in Window</label>
-                <Sel value={roundConfig.checkinWindowMins} onChange={v=>setRoundConfig(c=>Object.assign({},c,{checkinWindowMins:v}))}>
-                  <option value="15">15 min</option>
-                  <option value="30">30 min</option>
-                  <option value="45">45 min</option>
-                  <option value="60">60 min</option>
-                </Sel>
-              </div>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Round Settings</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Max Players</label><Inp type="number" value={roundConfig.maxPlayers} onChange={v=>setRoundConfig(c=>Object.assign({},c,{maxPlayers:v}))} placeholder="24"/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Round Count</label><Sel value={roundConfig.roundCount} onChange={v=>setRoundConfig(c=>Object.assign({},c,{roundCount:v}))}><option value="2">2 Rounds</option><option value="3">3 Rounds</option></Sel></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Check-in Window</label><Sel value={roundConfig.checkinWindowMins} onChange={v=>setRoundConfig(c=>Object.assign({},c,{checkinWindowMins:v}))}><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option></Sel></div>
             </div>
           </Panel>
         </div>
       )}
 
+      {/* ── QUICK CLASH ── */}
       {tab==="quickclash"&&(
         <div className="grid-2" style={{alignItems:"start"}}>
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
-                <div style={{width:36,height:36,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:17}}>⚡</div>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>\uD83C\uDFB2</div>
                 <div>
-                  <h3 style={{fontSize:15,color:"#F2EDE4",lineHeight:1}}>Quick Clash</h3>
-                  <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Instant · Open · No registration phase</div>
+                  <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>New Quick Clash</div>
+                  <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>Opens immediately, no registration phase</div>
                 </div>
               </div>
-              <div style={{background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:9,padding:"10px 12px",marginBottom:14,fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>
-                Quick Clashes open immediately for any player to join. Set a cap and kick off once full — visible to all players on the home screen.
-              </div>
               <div style={{display:"grid",gap:12,marginBottom:14}}>
-                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><Inp value={flashForm.name} onChange={v=>setFlashForm(f=>Object.assign({},f,{name:v}))} placeholder="Quick Clash"/></div>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><Inp value={flashForm.name} onChange={v=>setFlashForm(f=>Object.assign({},f,{name:v}))} placeholder="Flash Clash"/></div>
                 <div className="grid-2">
-                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Player Cap</label><Sel value={flashForm.cap} onChange={v=>setFlashForm(f=>Object.assign({},f,{cap:v}))}>{[4,8,16].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
-                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Rounds</label><Sel value={flashForm.rounds} onChange={v=>setFlashForm(f=>Object.assign({},f,{rounds:v}))}>{[1,2,3].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Player Cap</label><Sel value={flashForm.cap} onChange={v=>setFlashForm(f=>Object.assign({},f,{cap:v}))}>{[4,8,16].map(n=><option key={n} value={n}>{n} players</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Rounds</label><Sel value={flashForm.rounds} onChange={v=>setFlashForm(f=>Object.assign({},f,{rounds:v}))}>{[1,2,3].map(n=><option key={n} value={n}>{n} round{n>1?"s":""}</option>)}</Sel></div>
                 </div>
                 <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={flashForm.format} onChange={v=>setFlashForm(f=>Object.assign({},f,{format:v}))}>{["Single Lobby","Two Lobbies","Finals Only"].map(fm=><option key={fm}>{fm}</option>)}</Sel></div>
               </div>
-              <Btn v="primary" full onClick={()=>{
-                if(!flashForm.name.trim())return;
-                var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};
-                setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});
-                addAudit("ACTION","Quick Clash created: "+flashForm.name);
-                toast(flashForm.name+" is open for signups — "+flashForm.cap+" spots","success");
-                setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
-              }}>Open Quick Clash ⚡</Btn>
+              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open \u2014 "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash \u26A1</Btn>
             </div>
           </Panel>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
-            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:4}}>Active Quick Clashes</div>
+            <div style={{fontSize:11,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:2}}>Active Quick Clashes</div>
             {(!quickClashes||quickClashes.length===0)&&(
-              <Panel style={{padding:"28px",textAlign:"center"}}>
-                <div style={{fontSize:28,marginBottom:8}}>⚡</div>
-                <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes yet</div>
+              <Panel style={{padding:"36px",textAlign:"center"}}>
+                <div style={{fontSize:32,marginBottom:10}}>\u26A1</div>
+                <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes active</div>
                 <div style={{color:"#7A8BA0",fontSize:11,marginTop:4}}>Create one on the left</div>
               </Panel>
             )}
             {(quickClashes||[]).map(function(ev){return(
-              <Panel key={ev.id} style={{padding:"14px",border:"1px solid rgba(155,114,207,.25)"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
-                  <div>
-                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
+              <Panel key={ev.id} style={{padding:"16px",border:"1px solid rgba(155,114,207,.2)"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5,flexWrap:"wrap"}}>
                       <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{ev.name}</span>
                       <Tag color="#9B72CF" size="sm">QUICK</Tag>
-                      {ev.status==="open"&&<Tag color="#6EE7B7" size="sm">● OPEN</Tag>}
+                      {ev.status==="open"&&<Tag color="#6EE7B7" size="sm">\u25CF OPEN</Tag>}
                       {ev.status==="full"&&<Tag color="#E8A838" size="sm">FULL</Tag>}
-                      {ev.status==="live"&&<Tag color="#F87171" size="sm">● LIVE</Tag>}
+                      {ev.status==="live"&&<Tag color="#F87171" size="sm">\u25CF LIVE</Tag>}
                       {ev.status==="complete"&&<Tag color="#BECBD9" size="sm">DONE</Tag>}
                     </div>
-                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.players?ev.players.length:0}/{ev.cap}p · {ev.rounds}R · {ev.format}</div>
-                    <div className="cond" style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Created {ev.createdAt}</div>
+                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.players?ev.players.length:0}/{ev.cap}p \u00B7 {ev.rounds}R \u00B7 {ev.format}</div>
+                    <div style={{fontSize:11,color:"#9AAABF",marginTop:2}}>Created {ev.createdAt}</div>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                    {(ev.status==="open"||ev.status==="full")&&(
-                      <Btn s="sm" v="success" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.map(function(q){return q.id===ev.id?Object.assign({},q,{status:"live",startedAt:new Date().toLocaleTimeString()}):q;});});addAudit("ACTION","Quick Clash started: "+ev.name);toast(ev.name+" is LIVE!","success");}}>Start</Btn>
-                    )}
-                    {ev.status==="live"&&(
-                      <Btn s="sm" v="dark" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.map(function(q){return q.id===ev.id?Object.assign({},q,{status:"complete"}):q;});});addAudit("RESULT","Quick Clash complete: "+ev.name);toast(ev.name+" complete","success");}}>End</Btn>
-                    )}
-                    {ev.status==="complete"&&(
-                      <Btn s="sm" v="danger" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.filter(function(q){return q.id!==ev.id;});});addAudit("ACTION","Quick Clash removed: "+ev.name);}}>Remove</Btn>
-                    )}
+                    {(ev.status==="open"||ev.status==="full")&&<Btn s="sm" v="success" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.map(function(q){return q.id===ev.id?Object.assign({},q,{status:"live",startedAt:new Date().toLocaleTimeString()}):q;});});addAudit("ACTION","Quick Clash started: "+ev.name);toast(ev.name+" is LIVE!","success");}}>Start</Btn>}
+                    {ev.status==="live"&&<Btn s="sm" v="dark" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.map(function(q){return q.id===ev.id?Object.assign({},q,{status:"complete"}):q;});});addAudit("RESULT","Quick Clash complete: "+ev.name);toast(ev.name+" complete","success");}}>End</Btn>}
+                    {ev.status==="complete"&&<Btn s="sm" v="danger" onClick={()=>{setQuickClashes&&setQuickClashes(function(qs){return qs.filter(function(q){return q.id!==ev.id;});});addAudit("ACTION","Quick Clash removed: "+ev.name);}}>Remove</Btn>}
                   </div>
                 </div>
               </Panel>
@@ -3846,13 +3874,15 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
           </div>
         </div>
       )}
-            {tab==="schedule"&&(
+
+      {/* ── SCHEDULE ── */}
+      {tab==="schedule"&&(
         <div className="grid-2" style={{alignItems:"start"}}>
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
-              <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Schedule Event</h3>
+              <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:16}}>Schedule New Event</div>
               <div style={{display:"grid",gap:12,marginBottom:14}}>
-                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Name</label><Inp value={newEvent.name} onChange={v=>setNewEvent(e=>({...e,name:v}))} placeholder="Clash #15"/></div>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><Inp value={newEvent.name} onChange={v=>setNewEvent(e=>({...e,name:v}))} placeholder="Clash #15"/></div>
                 <div className="grid-2">
                   <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={newEvent.type} onChange={v=>setNewEvent(e=>({...e,type:v}))}>{["SCHEDULED","FLASH","INVITATIONAL","WEEKLY"].map(t=><option key={t}>{t}</option>)}</Sel></div>
                   <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={newEvent.format} onChange={v=>setNewEvent(e=>({...e,format:v}))}>{["Swiss","Single Lobby","Round Robin","Finals Only"].map(f=><option key={f}>{f}</option>)}</Sel></div>
@@ -3861,171 +3891,170 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date</label><Inp type="date" value={newEvent.date} onChange={v=>setNewEvent(e=>({...e,date:v}))}/></div>
                   <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Time</label><Inp type="time" value={newEvent.time} onChange={v=>setNewEvent(e=>({...e,time:v}))}/></div>
                 </div>
-                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Cap</label><Sel value={newEvent.cap} onChange={v=>setNewEvent(e=>({...e,cap:v}))}>{[8,16,24,32,48,64].map(n=><option key={n} value={n}>{n}</option>)}</Sel></div>
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Player Cap</label><Sel value={newEvent.cap} onChange={v=>setNewEvent(e=>({...e,cap:v}))}>{[8,16,24,32,48,64].map(n=><option key={n} value={n}>{n} players</option>)}</Sel></div>
               </div>
-              <Btn v="primary" full onClick={()=>{if(!newEvent.name||!newEvent.date)return;setScheduledEvents(es=>[...es,{...newEvent,id:Date.now(),status:"upcoming",cap:parseInt(newEvent.cap)||8}]);addAudit("ACTION","Scheduled: "+newEvent.name);setNewEvent({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});toast("Scheduled","success");}}>Schedule</Btn>
+              <Btn v="primary" full onClick={()=>{if(!newEvent.name||!newEvent.date){toast("Name and date required","error");return;}setScheduledEvents(es=>[...es,{...newEvent,id:Date.now(),status:"upcoming",cap:parseInt(newEvent.cap)||8}]);addAudit("ACTION","Scheduled: "+newEvent.name);setNewEvent({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});toast("Event scheduled","success");}}>Schedule Event</Btn>
             </div>
           </Panel>
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:2}}>{scheduledEvents.length} Upcoming</div>
+            {scheduledEvents.length===0&&<Panel style={{padding:"36px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No events scheduled yet</div></Panel>}
             {scheduledEvents.map(ev=>(
-              <Panel key={ev.id} style={{padding:"14px"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+              <Panel key={ev.id} style={{padding:"16px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
                   <div>
-                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
+                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5,flexWrap:"wrap"}}>
                       <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{ev.name}</span>
                       <Tag color={EVENT_COLS[ev.type]||"#E8A838"} size="sm">{ev.type}</Tag>
                     </div>
-                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.date} · {ev.time}</div>
-                    <div className="cond" style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{ev.format} · {ev.cap}p</div>
+                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.date}{ev.time?" \u00B7 "+ev.time:""}</div>
+                    <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{ev.format} \u00B7 {ev.cap} players</div>
                   </div>
-                  <Btn s="sm" v="danger" onClick={()=>{setScheduledEvents(es=>es.filter(e=>e.id!==ev.id));addAudit("ACTION","Cancelled: "+ev.name);}}>✕</Btn>
+                  <Btn s="sm" v="danger" onClick={()=>{setScheduledEvents(es=>es.filter(e=>e.id!==ev.id));addAudit("ACTION","Cancelled: "+ev.name);}}>Cancel</Btn>
                 </div>
               </Panel>
             ))}
-            {scheduledEvents.length===0&&<div style={{textAlign:"center",padding:32,color:"#9AAABF",fontSize:14}}>No events scheduled</div>}
           </div>
         </div>
       )}
 
+      {/* ── SEASON ── */}
       {tab==="season"&&(
         <div className="grid-2">
           <Panel style={{padding:"20px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Season Config</h3>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Season Config</div>
             <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Season Name</label>
-            <Inp value={seasonName} onChange={setSeasonName} placeholder="Season name" style={{marginBottom:14}}/>
-            <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Renamed: "+seasonName);toast("Saved","success");}}>Save</Btn>
+            <Inp value={seasonName} onChange={setSeasonName} placeholder="e.g. Season 16" style={{marginBottom:14}}/>
+            <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season renamed: "+seasonName);toast("Season name saved","success");}}>Save Name</Btn>
             <Divider label="Stats"/>
             <div className="grid-2" style={{marginTop:8}}>
               {[["Players",players.length],["Total Pts",players.reduce((s,p)=>s+p.pts,0)],["Games",players.reduce((s,p)=>s+(p.games||0),0)],["Clashes",PAST_CLASHES.length+1]].map(([l,v])=>(
-                <div key={l} style={{background:"#0F1520",borderRadius:9,padding:"11px",textAlign:"center"}}>
+                <div key={l} style={{background:"#0F1520",borderRadius:9,padding:"12px",textAlign:"center"}}>
                   <div className="mono" style={{fontSize:20,fontWeight:700,color:"#E8A838"}}>{v}</div>
-                  <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:3}}>{l}</div>
+                  <div style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:3,letterSpacing:".04em"}}>{l}</div>
                 </div>
               ))}
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Season Health Rules</h3>
-            <div style={{display:"grid",gap:14}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Health Rules</div>
+            <div style={{display:"grid",gap:16}}>
               <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Drop Weeks (worst weeks ignored)</label>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:4,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Drop Weeks</label>
+                <div style={{fontSize:11,color:"#9AAABF",marginBottom:6}}>Player's worst N weeks excluded from season score.</div>
                 <Sel value={String(seasonConfig?seasonConfig.dropWeeks||0:0)} onChange={v=>setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{dropWeeks:parseInt(v)});})}>
                   <option value="0">Off (0)</option>
-                  <option value="1">Drop 1</option>
-                  <option value="2">Drop 2</option>
+                  <option value="1">Drop 1 week</option>
+                  <option value="2">Drop 2 weeks</option>
                 </Sel>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <input type="checkbox" id="cb-comeback" checked={seasonConfig?!!seasonConfig.comebackBonus:false} onChange={function(e){setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{comebackBonus:e.target.checked});});}} style={{width:16,height:16,accentColor:"#9B72CF"}}/>
-                <label htmlFor="cb-comeback" style={{fontSize:13,color:"#C8D4E0",cursor:"pointer"}}>Comeback Bonus (+2 pts after missing 2+ clashes)</label>
+              <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                <input type="checkbox" id="cb-comeback" checked={seasonConfig?!!seasonConfig.comebackBonus:false} onChange={function(e){setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{comebackBonus:e.target.checked});});}} style={{width:16,height:16,accentColor:"#9B72CF",marginTop:2,flexShrink:0}}/>
+                <label htmlFor="cb-comeback" style={{fontSize:12,color:"#C8D4E0",cursor:"pointer",lineHeight:1.5}}>
+                  <div style={{fontWeight:700,marginBottom:1}}>Comeback Bonus</div>
+                  <div style={{color:"#9AAABF",fontSize:11}}>+2 pts for players returning after 2+ missed clashes</div>
+                </label>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <input type="checkbox" id="cb-attendance" checked={seasonConfig?!!seasonConfig.attendanceBonus:false} onChange={function(e){setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{attendanceBonus:e.target.checked});});}} style={{width:16,height:16,accentColor:"#E8A838"}}/>
-                <label htmlFor="cb-attendance" style={{fontSize:13,color:"#C8D4E0",cursor:"pointer"}}>Attendance Streak Bonus (+3 at 3, +5 at 5 consecutive)</label>
+              <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+                <input type="checkbox" id="cb-attendance" checked={seasonConfig?!!seasonConfig.attendanceBonus:false} onChange={function(e){setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{attendanceBonus:e.target.checked});});}} style={{width:16,height:16,accentColor:"#E8A838",marginTop:2,flexShrink:0}}/>
+                <label htmlFor="cb-attendance" style={{fontSize:12,color:"#C8D4E0",cursor:"pointer",lineHeight:1.5}}>
+                  <div style={{fontWeight:700,marginBottom:1}}>Attendance Streak Bonus</div>
+                  <div style={{color:"#9AAABF",fontSize:11}}>+3 at 3 consecutive, +5 at 5 consecutive clashes</div>
+                </label>
               </div>
               <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Finale Boost</label>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Finale Multiplier</label>
                 <Sel value={String(seasonConfig?seasonConfig.finalBoost||1.0:1.0)} onChange={v=>setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{finalBoost:parseFloat(v)});})}>
-                  <option value="1">Off (1x)</option>
-                  <option value="1.25">1.25x</option>
-                  <option value="1.5">1.5x</option>
+                  <option value="1">Off (1x)</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option>
                 </Sel>
               </div>
               <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Finale Clashes (last N events boosted)</label>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Finale Clashes (last N boosted)</label>
                 <Sel value={String(seasonConfig?seasonConfig.finaleClashes||2:2)} onChange={v=>setSeasonConfig&&setSeasonConfig(function(c){return Object.assign({},c,{finaleClashes:parseInt(v)});})}>
-                  <option value="1">Last 1</option>
-                  <option value="2">Last 2</option>
-                  <option value="3">Last 3</option>
+                  <option value="1">Last 1</option><option value="2">Last 2</option><option value="3">Last 3</option>
                 </Sel>
               </div>
-              <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season health rules updated");toast("Season rules saved","success");}}>Save Rules</Btn>
+              <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season health rules updated");toast("Health rules saved","success");}}>Save Rules</Btn>
             </div>
           </Panel>
-          <Panel danger style={{padding:"20px"}}>
+          <Panel danger style={{padding:"20px",border:"1px solid rgba(248,113,113,.25)",gridColumn:"1/-1"}}>
             <div style={{marginTop:6}}>
-              <h3 style={{fontSize:15,color:"#F87171",marginBottom:8}}>⚠ Danger Zone</h3>
-              <p style={{fontSize:13,color:"#C8D4E0",marginBottom:16}}>These actions are irreversible and logged.</p>
-              <div style={{display:"flex",flexDirection:"column",gap:10}}>
-                <Btn v="danger" full onClick={()=>{if(window.confirm("Reset ALL stats?")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0})));addAudit("DANGER","Stats reset");toast("Reset","success");}}}>Reset Season Stats</Btn>
-                <Btn v="danger" full onClick={()=>{if(window.confirm("Clear ALL players?")){setPlayers([]);addAudit("DANGER","Players cleared");}}}>Clear All Players</Btn>
-                <Btn v="danger" full onClick={()=>{if(window.confirm("Reset season data? This will clear all points and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset","success");}}}>Reset Season Data</Btn>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                <span style={{fontSize:18}}>\u26A0</span>
+                <div style={{fontWeight:700,fontSize:14,color:"#F87171"}}>Danger Zone</div>
+              </div>
+              <div style={{fontSize:12,color:"#C8D4E0",marginBottom:16,lineHeight:1.5}}>These actions are permanent and cannot be undone. All are logged to Audit.</div>
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Reset ALL player stats? Points, wins, and games will be zeroed.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0})));addAudit("DANGER","Stats reset");toast("All stats reset","success");}}}>Reset Season Stats</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster?")){setPlayers([]);addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset \u2014 all points, history, and events cleared"}]);toast("Season data reset","success");}}}>Full Season Reset</Btn>
               </div>
             </div>
           </Panel>
         </div>
       )}
 
+      {/* ── BROADCAST ── */}
       {tab==="broadcast"&&(
         <div className="grid-2">
           <Panel accent style={{padding:"20px"}}>
             <div style={{marginTop:6}}>
-              <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Send Broadcast</h3>
-              <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={broadType} onChange={setBroadType}>{["NOTICE","ALERT","UPDATE","RESULT","INFO"].map(t=><option key={t}>{t}</option>)}</Sel></div>
-              <div style={{marginBottom:16}}><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label><Inp value={broadMsg} onChange={setBroadMsg} placeholder="Your announcement..."/></div>
-              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:broadMsg.trim(),updated_at:new Date().toISOString()}).then(()=>{});addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Sent","success");}}>Send</Btn>
+              <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:16}}>Send Broadcast</div>
+              <div style={{marginBottom:12}}>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label>
+                <Sel value={broadType} onChange={setBroadType}>{["NOTICE","ALERT","UPDATE","RESULT","INFO"].map(t=><option key={t}>{t}</option>)}</Sel>
+              </div>
+              <div style={{marginBottom:16}}>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label>
+                <Inp value={broadMsg} onChange={setBroadMsg} placeholder="e.g. Clash starts in 10 min \u2014 check in now!"/>
+              </div>
+              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:broadMsg.trim(),updated_at:new Date().toISOString()}).then(()=>{});addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Broadcast sent","success");}}>Send Broadcast</Btn>
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Active Announcements</h3>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Active Announcements</div>
+            {announcements.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#9AAABF",fontSize:13}}>No active announcements</div>}
             {announcements.map(a=>(
-              <div key={a.id} style={{padding:"11px",background:"#0F1520",border:"1px solid rgba(242,237,228,.07)",borderRadius:9,marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
-                <div><Tag color="#E8A838" size="sm">{a.type}</Tag><div style={{fontSize:13,color:"#C8BFB0",marginTop:6}}>{a.msg}</div></div>
-                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:'',updated_at:new Date().toISOString()}).then(()=>{});}} style={{background:"none",border:"none",color:"#BECBD9",cursor:"pointer",fontSize:20,lineHeight:1,flexShrink:0,minWidth:28,minHeight:28}}>×</button>
+              <div key={a.id} style={{padding:"12px",background:"#0F1520",border:"1px solid rgba(242,237,228,.07)",borderRadius:9,marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <Tag color="#E8A838" size="sm">{a.type}</Tag>
+                  <div style={{fontSize:13,color:"#C8BFB0",marginTop:7,lineHeight:1.4}}>{a.msg}</div>
+                </div>
+                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:'',updated_at:new Date().toISOString()}).then(()=>{});}} style={{background:"none",border:"none",color:"#9AAABF",cursor:"pointer",fontSize:22,lineHeight:1,flexShrink:0,padding:"0 4px"}}>\u00D7</button>
               </div>
             ))}
           </Panel>
         </div>
       )}
 
-      {tab==="audit"&&(
-        <Panel style={{overflow:"hidden"}}>
-          <div style={{padding:"12px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <h3 style={{fontSize:15,color:"#F2EDE4"}}>Audit Log</h3>
-            <span className="mono" style={{fontSize:11,color:"#BECBD9"}}>{auditLog.length} entries</span>
-          </div>
-          <div style={{maxHeight:500,overflowY:"auto"}}>
-            {auditLog.map((l,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
-                <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
-                <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{l.msg}</span>
-                <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
-
+      {/* ── HOSTS ── */}
       {tab==="hosts"&&(
         <div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-            <h3 style={{fontSize:16,color:"#F2EDE4"}}>Host Applications</h3>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{fontSize:12,color:"#BECBD9"}}>{hostApps.filter(a=>a.status==="pending").length} pending review</div>
-              <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.18)",border:"1px solid rgba(155,114,207,.4)",borderRadius:7,padding:"6px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",letterSpacing:".06em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6}}>
-                <span>🏆</span> Aegis Client Demo
-              </button>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18,flexWrap:"wrap",gap:8}}>
+            <div>
+              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:2}}>Host Applications</div>
+              <div style={{fontSize:12,color:"#BECBD9"}}>{hostApps.filter(a=>a.status==="pending").length} pending \u00B7 {hostApps.filter(a=>a.status==="approved").length} approved</div>
             </div>
+            <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>\uD83C\uDFC6 Aegis Client Demo</button>
           </div>
+          {hostApps.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No host applications yet.</div></Panel>}
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             {hostApps.map(app=>(
-              <Panel key={app.id} style={{padding:"18px",border:"1px solid "+(app.status==="pending"?"rgba(232,168,56,.25)":app.status==="approved"?"rgba(82,196,124,.2)":"rgba(248,113,113,.2)")}}>
-                <div style={{display:"flex",alignItems:"flex-start",gap:12,flexWrap:"wrap"}}>
+              <Panel key={app.id} style={{padding:"18px",border:"1px solid "+(app.status==="pending"?"rgba(232,168,56,.2)":app.status==="approved"?"rgba(82,196,124,.18)":"rgba(248,113,113,.15)")}}>
+                <div style={{display:"flex",alignItems:"flex-start",gap:14,flexWrap:"wrap"}}>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6,flexWrap:"wrap"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
                       <span style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{app.name}</span>
                       {app.org&&<Tag color="#9B72CF" size="sm">{app.org}</Tag>}
-                      <Tag color={app.status==="pending"?"#E8A838":app.status==="approved"?"#6EE7B7":"#F87171"} size="sm">
-                        {app.status==="pending"?"⏳ Pending":app.status==="approved"?"✓ Approved":"✗ Rejected"}
-                      </Tag>
+                      <Tag color={app.status==="pending"?"#E8A838":app.status==="approved"?"#6EE7B7":"#F87171"} size="sm">{app.status==="pending"?"\u23F3 Pending":app.status==="approved"?"\u2713 Approved":"\u2717 Rejected"}</Tag>
                     </div>
-                    <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{app.email} · {app.freq} · Applied {app.submittedAt}</div>
-                    <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6,padding:"10px 12px",background:"rgba(255,255,255,.02)",borderRadius:7,border:"1px solid rgba(242,237,228,.06)"}}>"{app.reason}"</div>
+                    <div style={{fontSize:12,color:"#BECBD9",marginBottom:10}}>{app.email} \u00B7 {app.freq} \u00B7 Applied {app.submittedAt}</div>
+                    <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.65,padding:"10px 14px",background:"rgba(255,255,255,.02)",borderRadius:8,border:"1px solid rgba(242,237,228,.06)"}}>{app.reason}</div>
                   </div>
                   {app.status==="pending"&&(
                     <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
-                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved"}:a));addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host ✓","success");}}>✓ Approve</Btn>
-                      <Btn v="danger" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"rejected"}:a));addAudit("WARN","Host rejected: "+app.name);toast(app.name+" rejected","success");}}>✗ Reject</Btn>
+                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved"}:a));addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
+                      <Btn v="danger" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"rejected"}:a));addAudit("WARN","Host rejected: "+app.name);toast(app.name+" rejected","success");}}>Reject</Btn>
                     </div>
                   )}
                 </div>
@@ -4035,26 +4064,20 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         </div>
       )}
 
+      {/* ── SPONSORSHIPS ── */}
       {tab==="sponsorships"&&(
         <div>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,flexWrap:"wrap",gap:8}}>
-            <h3 style={{fontSize:16,color:"#F2EDE4"}}>Org Sponsorship Slots</h3>
-            <Btn v="primary" s="sm" onClick={()=>{document.getElementById("sp-org-name")&&document.getElementById("sp-org-name").focus();}}>+ Add Slot</Btn>
-          </div>
-          <div style={{marginBottom:20,padding:"14px 16px",background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>
-            Org sponsorships let a brand pay to have their tag shown next to a specific player's name on the leaderboard and their profile - like a jersey sponsor. You assign them manually here.
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
             {Object.entries(orgSponsors&&Object.keys(orgSponsors).length?orgSponsors:ORG_SPONSORSHIPS).map(([pid,s])=>{
               const p=players.find(pl=>pl.id===parseInt(pid));
               return(
                 <Panel key={pid} style={{padding:"16px",display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-                  <div style={{width:40,height:40,background:s.color+"18",border:"1px solid "+s.color+"44",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,color:s.color,flexShrink:0}}>{s.logo}</div>
+                  <div style={{width:44,height:44,background:s.color+"18",border:"1px solid "+s.color+"44",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:15,color:s.color,flexShrink:0}}>{s.logo}</div>
                   <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{s.org}</div>
-                    <div style={{fontSize:12,color:"#BECBD9"}}>Sponsoring: <span style={{color:s.color}}>{p?.name||"Player #"+pid}</span></div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:3}}>{s.org}</div>
+                    <div style={{fontSize:12,color:"#BECBD9"}}>Sponsoring <span style={{color:s.color,fontWeight:700}}>{p?.name||"Player #"+pid}</span></div>
                   </div>
-                  <div style={{display:"flex",gap:8}}>
+                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
                     <OrgSponsorTag playerId={parseInt(pid)}/>
                     <Btn v="danger" s="sm" onClick={()=>{setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);delete n[pid];return n;});addAudit("ACTION","Sponsor removed: "+s.org);toast(s.org+" removed","success");}}>Remove</Btn>
                   </div>
@@ -4062,47 +4085,76 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               );
             })}
           </div>
-          <Panel style={{padding:"18px",marginTop:16,border:"1px solid rgba(155,114,207,.2)"}}>
-            <h4 style={{fontSize:14,color:"#C4B5FD",marginBottom:12}}>Add New Sponsorship</h4>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-              <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Org Name</div>
-                <Inp value={spForm.name} onChange={v=>setSpForm(f=>Object.assign({},f,{name:v}))} placeholder="e.g. ProGuides"/>
-              </div>
-              <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Logo Text</div>
-                <Inp value={spForm.logo} onChange={v=>setSpForm(f=>Object.assign({},f,{logo:v}))} placeholder="e.g. PG"/>
-              </div>
-              <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Accent Colour</div>
-                <Inp value={spForm.color} onChange={v=>setSpForm(f=>Object.assign({},f,{color:v}))} placeholder="#4ECDC4"/>
-              </div>
-              <div>
-                <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Assign to Player</div>
-                <Sel value={spForm.playerId} onChange={v=>setSpForm(f=>Object.assign({},f,{playerId:v}))}><option value="">— Select —</option>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel>
-              </div>
+          <Panel style={{padding:"20px",border:"1px solid rgba(155,114,207,.2)"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:14}}>Add New Sponsorship</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+              <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Org Name</div><Inp value={spForm.name} onChange={v=>setSpForm(f=>Object.assign({},f,{name:v}))} placeholder="e.g. ProGuides"/></div>
+              <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Logo Text</div><Inp value={spForm.logo} onChange={v=>setSpForm(f=>Object.assign({},f,{logo:v}))} placeholder="e.g. PG"/></div>
+              <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Accent Colour</div><Inp value={spForm.color} onChange={v=>setSpForm(f=>Object.assign({},f,{color:v}))} placeholder="#4ECDC4"/></div>
+              <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Assign to Player</div><Sel value={spForm.playerId} onChange={v=>setSpForm(f=>Object.assign({},f,{playerId:v}))}><option value="">— Select Player —</option>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel></div>
             </div>
-            <Btn v="primary" onClick={()=>{
-              if(!spForm.name.trim()||!spForm.playerId){toast("Org name and player required","error");return;}
-              setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);n[spForm.playerId]={org:spForm.name.trim(),logo:spForm.logo.trim()||spForm.name.trim().slice(0,2).toUpperCase(),color:spForm.color.trim()||"#9B72CF"};return n;});
-              addAudit("ACTION","Sponsor added: "+spForm.name.trim());
-              toast(spForm.name.trim()+" sponsorship added","success");
-              setSpForm({name:"",logo:"",color:"",playerId:""});
-            }}>Add Sponsorship</Btn>
+            <Btn v="primary" onClick={()=>{if(!spForm.name.trim()||!spForm.playerId){toast("Org name and player required","error");return;}setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);n[spForm.playerId]={org:spForm.name.trim(),logo:spForm.logo.trim()||spForm.name.trim().slice(0,2).toUpperCase(),color:spForm.color.trim()||"#9B72CF"};return n;});addAudit("ACTION","Sponsor added: "+spForm.name.trim());toast(spForm.name.trim()+" sponsorship added","success");setSpForm({name:"",logo:"",color:"",playerId:""});}}>Add Sponsorship</Btn>
           </Panel>
         </div>
       )}
 
-      {tab==="settings"&&(
-        <Panel style={{padding:"20px",maxWidth:480}}>
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Role Hierarchy</h3>
-          {[["Admin","Full access, all tabs","#E8A838"],["Mod","Disputes, check-in, scores","#9B72CF"],["Host","Lobby management","#4ECDC4"],["Player","Self-placement only","#BECBD9"]].map(([r,d,c])=>(
-            <div key={r} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 0",borderBottom:"1px solid rgba(242,237,228,.06)"}}>
-              <Tag color={c}>{r}</Tag>
-              <span style={{fontSize:13,color:"#C8D4E0"}}>{d}</span>
-            </div>
-          ))}
+      {/* ── AUDIT ── */}
+      {tab==="audit"&&(
+        <Panel style={{overflow:"hidden"}}>
+          <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Audit Log</div>
+            <span className="mono" style={{fontSize:11,color:"#BECBD9"}}>{auditLog.length} entries</span>
+          </div>
+          {auditLog.length===0&&<div style={{padding:"36px",textAlign:"center",color:"#9AAABF",fontSize:13}}>No audit entries yet.</div>}
+          <div style={{maxHeight:540,overflowY:"auto"}}>
+            {auditLog.map((l,i)=>(
+              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+                <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
+                <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{l.msg}</span>
+                <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
         </Panel>
+      )}
+
+      {/* ── SETTINGS ── */}
+      {tab==="settings"&&(
+        <div className="grid-2">
+          <Panel style={{padding:"20px"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:16}}>Role Permissions</div>
+            {[
+              {r:"Admin",d:"Full access to all tabs and actions",c:"#E8A838",perms:"All tabs"},
+              {r:"Mod",d:"Disputes, check-in, score corrections",c:"#9B72CF",perms:"Dashboard, Players, Scores, Broadcast"},
+              {r:"Host",d:"Runs lobbies during a clash",c:"#4ECDC4",perms:"Scrims Lab, bracket view"},
+              {r:"Player",d:"Self-service account only",c:"#BECBD9",perms:"Profile, Standings, Results"},
+            ].map(function(item){return(
+              <div key={item.r} style={{padding:"14px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.06)",borderRadius:9,marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
+                  <Tag color={item.c}>{item.r}</Tag>
+                  <span style={{fontSize:13,color:"#F2EDE4",fontWeight:600}}>{item.d}</span>
+                </div>
+                <div style={{fontSize:11,color:"#7A8BA0"}}>{item.perms}</div>
+              </div>
+            );})}
+          </Panel>
+          <Panel style={{padding:"20px"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:16}}>Admin Quickstart</div>
+            {[
+              ["Before a clash","Set Clash Name + Date in Round \u2192 Clash Details. Open Check-in when ready. Seeding mode defaults to Rank-Based."],
+              ["Starting the clash","Round \u2192 Open Check-in \u2192 Start Tournament. The bracket screen updates live for all players."],
+              ["During a clash","Use Force Advance between rounds. Pause if there\u2019s a technical issue. Reseed if lobbies need reshuffling."],
+              ["After a clash","Post a Broadcast with results. Check Audit for any disputes. Season stats update automatically."],
+              ["Player issues","Players tab: DNP = no-show (2 auto-DQ). Ban blocks re-registration. Add Notes for dispute history."],
+              ["Score disputes","Scores tab: override individual point totals. Changes are tagged DANGER in the Audit log."],
+            ].map(function(item){return(
+              <div key={item[0]} style={{padding:"12px 0",borderBottom:"1px solid rgba(242,237,228,.06)"}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#C4B5FD",marginBottom:3}}>{item[0]}</div>
+                <div style={{fontSize:12,color:"#9AAABF",lineHeight:1.55}}>{item[1]}</div>
+              </div>
+            );})}
+          </Panel>
+        </div>
       )}
     </div>
   );
