@@ -7262,9 +7262,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       var isDQ=newCount>=2;
 
-      addAudit("WARN","DNP #"+newCount+": "+name+(isDQ?" \u2192 AUTO-DQ":""));
+      addAudit("WARN","DNP #"+newCount+": "+name+(isDQ?" → AUTO-DQ":""));
 
-      if(isDQ)toast(name+" has 2 DNPs \u2014 DISQUALIFIED","error");
+      if(isDQ)toast(name+" has 2 DNPs — DISQUALIFIED","error");
 
       else toast(name+" marked DNP ("+newCount+"/2 before DQ)","success");
 
@@ -7320,29 +7320,29 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const TABS=[
 
-    {id:"dashboard",icon:"\uD83D\uDCCA",label:"Dashboard"},
+    {id:"dashboard",icon:"📊",label:"Dashboard"},
 
-    {id:"round",icon:"\u26A1",label:"Round"},
+    {id:"round",icon:"⚡",label:"Round"},
 
-    {id:"quickclash",icon:"\uD83C\uDFB2",label:"Quick Clash"},
+    {id:"quickclash",icon:"🎲",label:"Quick Clash"},
 
-    {id:"schedule",icon:"\uD83D\uDCC5",label:"Schedule"},
+    {id:"schedule",icon:"📅",label:"Schedule"},
 
-    {id:"players",icon:"\uD83D\uDC65",label:"Players"},
+    {id:"players",icon:"👥",label:"Players"},
 
-    {id:"scores",icon:"\u270F\uFE0F",label:"Scores"},
+    {id:"scores",icon:"✏️",label:"Scores"},
 
-    {id:"broadcast",icon:"\uD83D\uDCE2",label:"Broadcast"},
+    {id:"broadcast",icon:"📢",label:"Broadcast"},
 
-    {id:"hosts",icon:"\uD83C\uDFAE",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
+    {id:"hosts",icon:"🎮",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
 
-    {id:"season",icon:"\uD83C\uDFC6",label:"Season"},
+    {id:"season",icon:"🏆",label:"Season"},
 
-    {id:"sponsorships",icon:"\uD83C\uDFE2",label:"Sponsors"},
+    {id:"sponsorships",icon:"🏢",label:"Sponsors"},
 
-    {id:"audit",icon:"\uD83D\uDCCB",label:"Audit"},
+    {id:"audit",icon:"📋",label:"Audit"},
 
-    {id:"settings",icon:"\u2699\uFE0F",label:"Settings"},
+    {id:"settings",icon:"⚙️",label:"Settings"},
 
   ];
 
@@ -7352,15 +7352,15 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
     dashboard:"At-a-glance clash status. Use quick actions to check in all players, pause the round, or jump to broadcast.",
 
-    round:"Full tournament lifecycle: open check-in \u2192 start \u2192 advance rounds \u2192 complete. Configure seeding and round settings here.",
+    round:"Full tournament lifecycle: open check-in → start → advance rounds → complete. Configure seeding and round settings here.",
 
-    quickclash:"Spin up an instant open clash (4\u201316 players, no registration). Appears live on the home screen. Players join immediately.",
+    quickclash:"Spin up an instant open clash (4–16 players, no registration). Appears live on the home screen. Players join immediately.",
 
     schedule:"Add upcoming clashes to the public calendar. Players see scheduled events on the home screen.",
 
     players:"Full roster. Edit info, assign roles, mark DNP (no-show), ban/unban, and add internal notes (admin-only).",
 
-    scores:"Override a player\u2019s season point total. All changes are flagged as DANGER in Audit. Use sparingly.",
+    scores:"Override a player’s season point total. All changes are flagged as DANGER in Audit. Use sparingly.",
 
     broadcast:"Send a sitewide announcement banner visible to all logged-in players. Clear it here when done.",
 
@@ -7420,13 +7420,13 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
 
-        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>\u2B21</div>
+        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>⬡</div>
 
         <div style={{flex:1,minWidth:0}}>
 
           <h2 style={{color:"#F2EDE4",fontSize:20,fontWeight:800,lineHeight:1,margin:0}}>Admin Panel</h2>
 
-          <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>TFT Clash \u00B7 {seasonName}</div>
+          <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>TFT Clash · {seasonName}</div>
 
         </div>
 
@@ -7476,7 +7476,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{padding:"9px 14px",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:8,marginBottom:18,fontSize:12,color:"#9AAABF",lineHeight:1.5}}>
 
-        <span style={{color:"#C4B5FD",fontWeight:700,marginRight:6}}>\u2139</span>{TAB_INFO[tab]||""}
+        <span style={{color:"#C4B5FD",fontWeight:700,marginRight:6}}>ℹ</span>{TAB_INFO[tab]||""}
 
       </div>
 
@@ -7492,13 +7492,13 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             {[
 
-              {label:"Players",value:players.length,color:"#E8A838",icon:"\uD83D\uDC65"},
+              {label:"Players",value:players.length,color:"#E8A838",icon:"👥"},
 
-              {label:"Checked In",value:players.filter(p=>p.checkedIn).length,color:"#52C47C",icon:"\u2713"},
+              {label:"Checked In",value:players.filter(p=>p.checkedIn).length,color:"#52C47C",icon:"✓"},
 
-              {label:"Banned",value:players.filter(p=>p.banned).length,color:"#F87171",icon:"\u26D4"},
+              {label:"Banned",value:players.filter(p=>p.banned).length,color:"#F87171",icon:"⛔"},
 
-              {label:"Scheduled",value:scheduledEvents.length,color:"#C4B5FD",icon:"\uD83D\uDCC5"},
+              {label:"Scheduled",value:scheduledEvents.length,color:"#C4B5FD",icon:"📅"},
 
             ].map(c=>(
 
@@ -7526,11 +7526,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));setTournamentState(function(ts){return{...ts,checkedInIds:[]};});addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>Clear Check-In</Btn>
 
-              <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"\u25B6 Resume":"\u23F8 Pause"}</Btn>
+              <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"▶ Resume":"⏸ Pause"}</Btn>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>\uD83D\uDCE2 Broadcast</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>📢 Broadcast</Btn>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>\u26A1 Round Controls</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>⚡ Round Controls</Btn>
 
             </div>
 
@@ -7542,7 +7542,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Recent Activity</div>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("audit")}>Full Log \u2192</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("audit")}>Full Log →</Btn>
 
             </div>
 
@@ -7592,7 +7592,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                   </div>
 
-                  <Btn v="dark" s="sm" onClick={()=>setEditP(null)}>\u2190 Back</Btn>
+                  <Btn v="dark" s="sm" onClick={()=>setEditP(null)}>← Back</Btn>
 
                 </div>
 
@@ -7638,7 +7638,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
 
-                <div style={{fontSize:13,color:"#C8D4E0"}}>{players.length} players \u00B7 {players.filter(p=>p.checkedIn).length} in \u00B7 {players.filter(p=>p.banned).length} banned</div>
+                <div style={{fontSize:13,color:"#C8D4E0"}}>{players.length} players · {players.filter(p=>p.checkedIn).length} in · {players.filter(p=>p.banned).length} banned</div>
 
                 <Btn v="primary" s="sm" onClick={()=>setShowAddPlayer(v=>!v)}>{showAddPlayer?"Cancel":"+ Add Player"}</Btn>
 
@@ -7668,7 +7668,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               )}
 
-              {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet \u2014 add one above.</div></Panel>}
+              {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet — add one above.</div></Panel>}
 
               {players.map(p=>(
 
@@ -7684,11 +7684,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                         {p.role!=="player"&&<Tag color="#9B72CF" size="sm">{p.role}</Tag>}
 
-                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"\u26D4 DQ":"BANNED"}</Tag>}
+                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"⛔ DQ":"BANNED"}</Tag>}
 
                         {!p.banned&&(p.dnpCount||0)>0&&<Tag color="#F97316" size="sm">DNP {p.dnpCount}/2</Tag>}
 
-                        {p.checkedIn&&<Tag color="#52C47C" size="sm">\u2713 In</Tag>}
+                        {p.checkedIn&&<Tag color="#52C47C" size="sm">✓ In</Tag>}
 
                         {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback</Tag>}
 
@@ -7696,9 +7696,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       </div>
 
-                      <div style={{fontSize:12,color:"#BECBD9"}}>{p.riotId} \u00B7 {p.rank} \u00B7 <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span> \u00B7 {p.games||0}G</div>
+                      <div style={{fontSize:12,color:"#BECBD9"}}>{p.riotId} · {p.rank} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span> · {p.games||0}G</div>
 
-                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>\uD83D\uDCCC {p.notes}</div>}
+                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>📌 {p.notes}</div>}
 
                     </div>
 
@@ -7706,15 +7706,15 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       <Btn s="sm" v="dark" onClick={()=>setEditP(p)}>Edit</Btn>
 
-                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">\uD83D\uDCCC</Btn>
+                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">📌</Btn>
 
                       {!p.banned&&<Btn s="sm" v="warning" onClick={()=>markDNP(p.id,p.name)} title="Mark no-show (2 DNPs = DQ)">DNP</Btn>}
 
-                      {(p.dnpCount||0)>0&&!p.banned&&<Btn s="sm" v="dark" onClick={()=>clearDNP(p.id,p.name)} title="Clear DNP count">\u21A9 DNP</Btn>}
+                      {(p.dnpCount||0)>0&&!p.banned&&<Btn s="sm" v="dark" onClick={()=>clearDNP(p.id,p.name)} title="Clear DNP count">↩ DNP</Btn>}
 
                       {p.banned?<Btn s="sm" v="success" onClick={()=>unban(p.id,p.name)}>Unban</Btn>:<Btn s="sm" v="danger" onClick={()=>ban(p.id,p.name)}>Ban</Btn>}
 
-                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">\u2715</Btn>
+                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">✕</Btn>
 
                     </div>
 
@@ -7772,7 +7772,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <div style={{display:"flex",gap:10}}>
 
-            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" \u2192 "+nv);return{...p,pts:parseInt(nv)||p.pts};}));setScoreEdit({});toast("Score changes applied","success");}}>Apply Changes</Btn>
+            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" → "+nv);return{...p,pts:parseInt(nv)||p.pts};}));setScoreEdit({});toast("Score changes applied","success");}}>Apply Changes</Btn>
 
             <Btn v="dark" onClick={()=>setScoreEdit({})}>Clear</Btn>
 
@@ -7844,9 +7844,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
 
-              <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?"\u25B6 Resume Round":"\u23F8 Pause Round"}</Btn>
+              <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?"▶ Resume Round":"⏸ Pause Round"}</Btn>
 
-              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var next=ts.round+1;if(next>3)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[]});});addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance Round \u2192</Btn>
+              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var next=ts.round+1;if(next>3)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[]});});addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance Round →</Btn>
 
               <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
 
@@ -7858,7 +7858,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Seeding Mode</div>
 
-            {[["random","\uD83C\uDFB2 Random","Fully shuffled, no weighting"],["rank-based","\uD83D\uDCCA Rank-Based","Top players spread across lobbies"],["anti-stack","\uD83D\uDEAB Anti-Stack","Prevents friend groups from stacking"],["snake","\uD83D\uDC0D Snake Draft","Alternating order seeding"]].map(([v,l,d])=>(
+            {[["random","🎲 Random","Fully shuffled, no weighting"],["rank-based","📊 Rank-Based","Top players spread across lobbies"],["anti-stack","🚫 Anti-Stack","Prevents friend groups from stacking"],["snake","🐍 Snake Draft","Alternating order seeding"]].map(([v,l,d])=>(
 
               <button key={v} onClick={()=>setSeedAlgo(v)} style={{display:"flex",alignItems:"flex-start",gap:10,width:"100%",background:seedAlgo===v?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(seedAlgo===v?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:8,padding:"11px 14px",cursor:"pointer",marginBottom:6,textAlign:"left",fontFamily:"inherit"}}>
 
@@ -7906,7 +7906,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
 
-                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>\uD83C\uDFB2</div>
+                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎲</div>
 
                 <div>
 
@@ -7934,7 +7934,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               </div>
 
-              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open \u2014 "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash \u26A1</Btn>
+              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open — "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash ⚡</Btn>
 
             </div>
 
@@ -7948,7 +7948,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Panel style={{padding:"36px",textAlign:"center"}}>
 
-                <div style={{fontSize:32,marginBottom:10}}>\u26A1</div>
+                <div style={{fontSize:32,marginBottom:10}}>⚡</div>
 
                 <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes active</div>
 
@@ -7972,17 +7972,17 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       <Tag color="#9B72CF" size="sm">QUICK</Tag>
 
-                      {ev.status==="open"&&<Tag color="#6EE7B7" size="sm">\u25CF OPEN</Tag>}
+                      {ev.status==="open"&&<Tag color="#6EE7B7" size="sm">● OPEN</Tag>}
 
                       {ev.status==="full"&&<Tag color="#E8A838" size="sm">FULL</Tag>}
 
-                      {ev.status==="live"&&<Tag color="#F87171" size="sm">\u25CF LIVE</Tag>}
+                      {ev.status==="live"&&<Tag color="#F87171" size="sm">● LIVE</Tag>}
 
                       {ev.status==="complete"&&<Tag color="#BECBD9" size="sm">DONE</Tag>}
 
                     </div>
 
-                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.players?ev.players.length:0}/{ev.cap}p \u00B7 {ev.rounds}R \u00B7 {ev.format}</div>
+                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.players?ev.players.length:0}/{ev.cap}p · {ev.rounds}R · {ev.format}</div>
 
                     <div style={{fontSize:11,color:"#9AAABF",marginTop:2}}>Created {ev.createdAt}</div>
 
@@ -8076,9 +8076,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                     </div>
 
-                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.date}{ev.time?" \u00B7 "+ev.time:""}</div>
+                    <div style={{fontSize:12,color:"#C8D4E0"}}>{ev.date}{ev.time?" · "+ev.time:""}</div>
 
-                    <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{ev.format} \u00B7 {ev.cap} players</div>
+                    <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{ev.format} · {ev.cap} players</div>
 
                   </div>
 
@@ -8222,7 +8222,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
 
-                <span style={{fontSize:18}}>\u26A0</span>
+                <span style={{fontSize:18}}>⚠</span>
 
                 <div style={{fontWeight:700,fontSize:14,color:"#F87171"}}>Danger Zone</div>
 
@@ -8236,7 +8236,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster?")){setPlayers([]);addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset \u2014 all points, history, and events cleared"}]);toast("Season data reset","success");}}}>Full Season Reset</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset","success");}}}>Full Season Reset</Btn>
 
               </div>
 
@@ -8274,7 +8274,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label>
 
-                <Inp value={broadMsg} onChange={setBroadMsg} placeholder="e.g. Clash starts in 10 min \u2014 check in now!"/>
+                <Inp value={broadMsg} onChange={setBroadMsg} placeholder="e.g. Clash starts in 10 min — check in now!"/>
 
               </div>
 
@@ -8302,7 +8302,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 </div>
 
-                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:'',updated_at:new Date().toISOString()}).then(()=>{});}} style={{background:"none",border:"none",color:"#9AAABF",cursor:"pointer",fontSize:22,lineHeight:1,flexShrink:0,padding:"0 4px"}}>\u00D7</button>
+                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:'',updated_at:new Date().toISOString()}).then(()=>{});}} style={{background:"none",border:"none",color:"#9AAABF",cursor:"pointer",fontSize:22,lineHeight:1,flexShrink:0,padding:"0 4px"}}>×</button>
 
               </div>
 
@@ -8328,11 +8328,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:2}}>Host Applications</div>
 
-              <div style={{fontSize:12,color:"#BECBD9"}}>{hostApps.filter(a=>a.status==="pending").length} pending \u00B7 {hostApps.filter(a=>a.status==="approved").length} approved</div>
+              <div style={{fontSize:12,color:"#BECBD9"}}>{hostApps.filter(a=>a.status==="pending").length} pending · {hostApps.filter(a=>a.status==="approved").length} approved</div>
 
             </div>
 
-            <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>\uD83C\uDFC6 Aegis Client Demo</button>
+            <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>🏆 Aegis Client Demo</button>
 
           </div>
 
@@ -8354,11 +8354,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       {app.org&&<Tag color="#9B72CF" size="sm">{app.org}</Tag>}
 
-                      <Tag color={app.status==="pending"?"#E8A838":app.status==="approved"?"#6EE7B7":"#F87171"} size="sm">{app.status==="pending"?"\u23F3 Pending":app.status==="approved"?"\u2713 Approved":"\u2717 Rejected"}</Tag>
+                      <Tag color={app.status==="pending"?"#E8A838":app.status==="approved"?"#6EE7B7":"#F87171"} size="sm">{app.status==="pending"?"⏳ Pending":app.status==="approved"?"✓ Approved":"✗ Rejected"}</Tag>
 
                     </div>
 
-                    <div style={{fontSize:12,color:"#BECBD9",marginBottom:10}}>{app.email} \u00B7 {app.freq} \u00B7 Applied {app.submittedAt}</div>
+                    <div style={{fontSize:12,color:"#BECBD9",marginBottom:10}}>{app.email} · {app.freq} · Applied {app.submittedAt}</div>
 
                     <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.65,padding:"10px 14px",background:"rgba(255,255,255,.02)",borderRadius:8,border:"1px solid rgba(242,237,228,.06)"}}>{app.reason}</div>
 
@@ -8544,11 +8544,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             {[
 
-              ["Before a clash","Set Clash Name + Date in Round \u2192 Clash Details. Open Check-in when ready. Seeding mode defaults to Rank-Based."],
+              ["Before a clash","Set Clash Name + Date in Round → Clash Details. Open Check-in when ready. Seeding mode defaults to Rank-Based."],
 
-              ["Starting the clash","Round \u2192 Open Check-in \u2192 Start Tournament. The bracket screen updates live for all players."],
+              ["Starting the clash","Round → Open Check-in → Start Tournament. The bracket screen updates live for all players."],
 
-              ["During a clash","Use Force Advance between rounds. Pause if there\u2019s a technical issue. Reseed if lobbies need reshuffling."],
+              ["During a clash","Use Force Advance between rounds. Pause if there’s a technical issue. Reseed if lobbies need reshuffling."],
 
               ["After a clash","Post a Broadcast with results. Check Audit for any disputes. Season stats update automatically."],
 
