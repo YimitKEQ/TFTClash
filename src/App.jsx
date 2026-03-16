@@ -1,5 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Component } from "react";
 import { supabase } from './lib/supabase.js';
+
+// ─── ERROR BOUNDARY ────────────────────────────────────────────────────────────
+class ErrorBoundary extends Component {
+  constructor(props){super(props);this.state={hasError:false};}
+  static getDerivedStateFromError(){return{hasError:true};}
+  componentDidCatch(error,info){console.error("TFT Clash error:",error,info);}
+  render(){
+    if(this.state.hasError){
+      return(
+        <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:99999,padding:24}}>
+          <div style={{fontSize:48}}>⚠️</div>
+          <div style={{fontFamily:"'Russo One',sans-serif",fontSize:22,color:"#F2EDE4",textAlign:"center"}}>Something went wrong</div>
+          <div style={{fontSize:14,color:"#9AAABF",maxWidth:340,textAlign:"center",lineHeight:1.6}}>The app hit an unexpected error. Your data is safe — refresh to get back in.</div>
+          <button onClick={()=>this.setState({hasError:false})} style={{marginTop:8,padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:14}}>Try Again</button>
+          <button onClick={()=>window.location.reload()} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:13}}>Reload Page</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 const RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
@@ -7424,7 +7445,7 @@ function AegisShowcaseScreen({setScreen}){
 }
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
-export default function TFTClash(){
+function TFTClash(){
   const [screen,setScreen]=useState("home");
   const [players,setPlayers]=useState(()=>{try{const s=localStorage.getItem("tft-players");return s?JSON.parse(s):SEED;}catch{return SEED;}});
   const [isAdmin,setIsAdmin]=useState(false);
@@ -7697,4 +7718,4 @@ export default function TFTClash(){
     </>
   );
 }
-
+export default function App(){return(<ErrorBoundary><TFTClash/></ErrorBoundary>);}
