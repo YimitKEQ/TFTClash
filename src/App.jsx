@@ -349,7 +349,7 @@ const RETIRED_LEGENDS=[];
 
 // ─── AUTH / ACCOUNT SYSTEM ───────────────────────────────────────────────────
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
-const SEASON_CHAMPION=null;
+const SEASON_CHAMPION={name:"Levitate",title:"The Unkillable",season:"Season 16",since:"Mar 2026",pts:1024,wins:16,rank:"Challenger"};
 
 // ─── MILESTONE REWARDS ────────────────────────────────────────────────────────
 // ─── SPONSOR / AD DATA ────────────────────────────────────────────────────────
