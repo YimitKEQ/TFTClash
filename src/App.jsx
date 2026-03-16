@@ -380,20 +380,20 @@ const PREMIUM_TIERS=[
 
 
 const GCSS=`
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body,#root{background:#07070E;}
-html{color:#D4CEC9;font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;}
+html{color:#D4CEC9;font-family:'Chakra Petch',system-ui,sans-serif;font-size:15px;line-height:1.65;-webkit-text-size-adjust:100%;}
 body{overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);min-height:100vh;}
 ::-webkit-scrollbar{width:4px;background:#0A0F1A;}
 ::-webkit-scrollbar-thumb{background:rgba(232,168,56,.3);border-radius:3px;}
-input,select,textarea{font-family:'Inter',sans-serif;outline:none;color:#F2EDE4;-webkit-appearance:none;appearance:none;}
-button{font-family:'Inter',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+input,select,textarea{font-family:'Chakra Petch',sans-serif;outline:none;color:#F2EDE4;-webkit-appearance:none;appearance:none;}
+button{font-family:'Chakra Petch',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent;}
 input::placeholder{color:#6B7280!important;opacity:1!important;}
 select option{background:#1C2030;color:#F2EDE4;}
-h1,h2,h3,h4{font-family:'Cinzel',Georgia,serif;font-weight:700;}
+h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-spacing:.02em;}
 .mono{font-family:'JetBrains Mono',monospace!important;}
-.cond{font-family:'Inter',sans-serif!important;}
+.cond{font-family:'Chakra Petch',sans-serif!important;}
 
 /* ── animations ─────────────────────────────────────────────── */
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
@@ -569,8 +569,8 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
 @keyframes camelGlow{0%,100%{opacity:.18;filter:drop-shadow(0 0 0px #E8A838)}50%{opacity:.55;filter:drop-shadow(0 0 6px #E8A838)}}
 .glass{background:rgba(255,255,255,.04)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09)!important;}
-.display{font-family:'Cinzel',serif;font-size:clamp(40px,6vw,72px);font-weight:900;letter-spacing:-.02em;}
-.section-title{font-family:'Cinzel',serif;font-size:clamp(18px,2.5vw,28px);font-weight:700;letter-spacing:.06em;text-transform:uppercase;}
+.display{font-family:'Russo One',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:900;letter-spacing:.03em;text-transform:uppercase;}
+.section-title{font-family:'Russo One',sans-serif;font-size:clamp(18px,2.5vw,28px);font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
 .accent-bar::before{content:"";display:block;height:3px;background:linear-gradient(90deg,#9B72CF,#4ECDC4);border-radius:2px;margin-bottom:16px;}
 .panel-glass{background:rgba(255,255,255,.035)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.09)!important;border-radius:16px!important;}
 .panel-gradient{background:linear-gradient(135deg,rgba(155,114,207,.1),rgba(78,205,196,.04))!important;border:1px solid rgba(155,114,207,.18)!important;}
@@ -580,23 +580,111 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .hero-panel{background:radial-gradient(ellipse at 50% 0%,rgba(155,114,207,.18) 0%,rgba(8,8,15,.0) 70%);border:1px solid rgba(155,114,207,.2);border-radius:20px;padding:40px 32px;position:relative;overflow:hidden;}
 .hero-panel::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(155,114,207,.06),rgba(78,205,196,.02));pointer-events:none;}
 .top-nav{border-top:2px solid #9B72CF!important;box-shadow:0 2px 0 rgba(155,114,207,.08),0 1px 0 rgba(232,168,56,.1),0 8px 40px rgba(0,0,0,.7)!important;}
+
+/* ═══════════════════════════════════════════════════════════
+   ESPORTS OVERHAUL — Retro-Futurism Premium Layer
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Rank number dramatic treatment ─────────────────────── */
+.rank-1 .rank-num{color:#FFD700!important;text-shadow:0 0 20px rgba(255,215,0,.9),0 0 40px rgba(255,215,0,.4)!important;font-size:20px!important;}
+.rank-2 .rank-num{color:#C0C0C0!important;text-shadow:0 0 14px rgba(192,192,192,.7)!important;}
+.rank-3 .rank-num{color:#CD7F32!important;text-shadow:0 0 14px rgba(205,127,50,.7)!important;}
+
+/* ── New keyframes ───────────────────────────────────────── */
+@keyframes glitch{0%,100%{transform:translate(0);clip-path:none}20%{transform:translate(-2px,1px);clip-path:inset(20% 0 60% 0)}40%{transform:translate(2px,-1px);clip-path:inset(60% 0 20% 0)}60%{transform:translate(0)}}
+@keyframes shimmer-scan{0%{left:-100%}100%{left:200%}}
+@keyframes holo-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes trophy-pulse{0%,100%{filter:drop-shadow(0 0 6px rgba(232,168,56,.5))}50%{filter:drop-shadow(0 0 18px rgba(232,168,56,1)) drop-shadow(0 0 36px rgba(232,168,56,.4))}}
+@keyframes scan-move{0%{top:-3%}100%{top:103%}}
+@keyframes border-race{0%{background-position:0% 0%}100%{background-position:200% 0%}}
+@keyframes neon-border-pulse{0%,100%{box-shadow:0 0 0 0 rgba(155,114,207,0)}50%{box-shadow:0 0 0 2px rgba(155,114,207,.35),0 0 20px rgba(155,114,207,.15)}}
+
+/* ── Shimmer card effect ─────────────────────────────────── */
+.shimmer-card{position:relative;overflow:hidden;}
+.shimmer-card::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);animation:shimmer-scan 4s ease infinite;pointer-events:none;}
+
+/* ── Elite panel variant ─────────────────────────────────── */
+.panel-elite{background:linear-gradient(145deg,rgba(18,28,48,.9) 0%,rgba(10,15,28,.95) 100%)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 8px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.3)!important;}
+
+/* ── Gradient border on hero/featured elements ───────────── */
+.border-neon-grad{position:relative;}
+.border-neon-grad::before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(135deg,rgba(232,168,56,.5),rgba(155,114,207,.4),rgba(78,205,196,.3));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:0;}
+
+/* ── Holographic champion row ────────────────────────────── */
+.row-champion{background:linear-gradient(270deg,rgba(232,168,56,.07),rgba(155,114,207,.06),rgba(78,205,196,.05))!important;background-size:300% 300%!important;animation:holo-shift 6s ease infinite!important;}
+
+/* ── Trophy glow ─────────────────────────────────────────── */
+.trophy-glow{animation:trophy-pulse 2.5s ease infinite;}
+
+/* ── Moving retro scan line ──────────────────────────────── */
+.retro-scan-line{position:fixed;left:0;right:0;height:120px;background:linear-gradient(180deg,transparent,rgba(155,114,207,.025),transparent);pointer-events:none;z-index:2;animation:scan-move 10s linear infinite;}
+
+/* ── Neon underline heading style ────────────────────────── */
+.neon-underline{position:relative;padding-bottom:12px;}
+.neon-underline::after{content:"";position:absolute;bottom:0;left:0;width:44px;height:2px;background:linear-gradient(90deg,#9B72CF,#4ECDC4);border-radius:2px;box-shadow:0 0 10px rgba(155,114,207,.7),0 0 20px rgba(155,114,207,.3);}
+
+/* ── Number/pts counter style ────────────────────────────── */
+.pts-counter{font-family:'JetBrains Mono',monospace!important;color:#E8A838!important;text-shadow:0 0 14px rgba(232,168,56,.6)!important;font-weight:800!important;}
+
+/* ── Player name hover ───────────────────────────────────── */
+.player-name-hover{transition:color .2s,text-shadow .2s;cursor:pointer;}
+.player-name-hover:hover{color:#F2EDE4!important;text-shadow:0 0 12px rgba(155,114,207,.5)!important;}
+
+/* ── Tube-light top nav active ───────────────────────────── */
+.top-nav button[data-active="true"]::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:2px;background:#9B72CF;border-radius:0 0 4px 4px;box-shadow:0 0 12px rgba(155,114,207,.9),0 0 24px rgba(155,114,207,.5),0 4px 16px rgba(155,114,207,.3);}
+
+/* ── Bottom nav active glyph ─────────────────────────────── */
+.bottom-nav button.active::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:2px;background:linear-gradient(90deg,#9B72CF,#E8A838);border-radius:0 0 3px 3px;box-shadow:0 0 10px rgba(155,114,207,.7);}
+.bottom-nav button{position:relative;}
+
+/* ── Section separator ───────────────────────────────────── */
+.sep-gradient{height:1px;background:linear-gradient(90deg,transparent,rgba(155,114,207,.4),rgba(78,205,196,.2),transparent);margin:20px 0;}
+
+/* ── Stat value glow ─────────────────────────────────────── */
+.stat-val-glow{color:#E8A838;text-shadow:0 0 16px rgba(232,168,56,.5);font-weight:800;font-family:'JetBrains Mono',monospace;}
+
+/* ── Countdown tile pulse border ─────────────────────────── */
+.countdown-tile{animation:neon-border-pulse 3s ease infinite!important;}
+
+/* ── Enhanced glass ──────────────────────────────────────── */
+.glass{background:rgba(255,255,255,.035)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 4px 24px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)!important;}
+
+/* ── Hex pattern enhanced ────────────────────────────────── */
+.hex-pattern{opacity:.06!important;}
+
+/* ── Tag pill neon glow ───────────────────────────────────── */
+.tag-neon{box-shadow:0 0 10px currentColor;opacity:.9;}
+
+/* ── Input glow ring ─────────────────────────────────────── */
+input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:0 0 0 1px rgba(155,114,207,.6),0 0 20px rgba(155,114,207,.15)!important;border-color:rgba(155,114,207,.7)!important;}
+
+/* ── Winner placement badge ──────────────────────────────── */
+.place-1{background:linear-gradient(135deg,#E8A838,#D4922A)!important;color:#07070E!important;box-shadow:0 0 14px rgba(232,168,56,.5)!important;}
+.place-top4{border-color:rgba(78,205,196,.4)!important;color:#4ECDC4!important;}
+
+/* ── CTA button premium ──────────────────────────────────── */
+.btn-cta{position:relative;overflow:hidden;}
+.btn-cta::after{content:"";position:absolute;top:-50%;left:-60%;width:30%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:skewX(-20deg);animation:shimmer-scan 3s ease infinite;}
 `;
+
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
 function Hexbg(){
   return(
     <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
       <div className="scanlines" style={{position:"absolute",inset:0,zIndex:1,pointerEvents:"none"}}/>
-      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:.04}} xmlns="http://www.w3.org/2000/svg">
+      <svg style={{position:"absolute",inset:0,width:"100%",height:"100%",opacity:.055}} xmlns="http://www.w3.org/2000/svg">
         <defs><pattern id="hxp" x="0" y="0" width="60" height="104" patternUnits="userSpaceOnUse">
-          <path d="M30 2L58 18L58 50L30 66L2 50L2 18Z" fill="none" stroke="#E8A838" strokeWidth="1"/>
-          <path d="M30 38L58 54L58 86L30 102L2 86L2 54Z" fill="none" stroke="#E8A838" strokeWidth="1"/>
+          <path d="M30 2L58 18L58 50L30 66L2 50L2 18Z" fill="none" stroke="#9B72CF" strokeWidth=".8"/>
+          <path d="M30 38L58 54L58 86L30 102L2 86L2 54Z" fill="none" stroke="#E8A838" strokeWidth=".8"/>
         </pattern></defs>
         <rect width="100%" height="100%" fill="url(#hxp)"/>
       </svg>
-      <div style={{position:"absolute",top:"-20%",right:"0",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.08),transparent 65%)"}}/>
-      <div style={{position:"absolute",bottom:"0",left:"-15%",width:600,height:600,borderRadius:"50%",background:"radial-gradient(circle,rgba(78,205,196,.06),transparent 65%)"}}/>
-      <div style={{position:"absolute",top:"40%",left:"35%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(155,114,207,.04),transparent 65%)"}}/>
+      <div style={{position:"absolute",top:"-15%",right:"-5%",width:900,height:900,borderRadius:"50%",background:"radial-gradient(circle,rgba(155,114,207,.11),transparent 60%)"}}/>
+      <div style={{position:"absolute",bottom:"-10%",left:"-10%",width:800,height:800,borderRadius:"50%",background:"radial-gradient(circle,rgba(78,205,196,.09),transparent 60%)"}}/>
+      <div style={{position:"absolute",top:"35%",left:"30%",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.06),transparent 60%)"}}/>
+      <div style={{position:"absolute",top:"20%",left:"60%",width:400,height:400,borderRadius:"50%",background:"radial-gradient(circle,rgba(155,114,207,.05),transparent 65%)"}}/>
+      <div className="retro-scan-line"/>
     </div>
   );
 }
@@ -610,10 +698,10 @@ function Panel({children,style,glow,accent,danger,color,hover,onClick}){
     <div onClick={onClick}
       onMouseEnter={hover?()=>setHov(true):undefined}
       onMouseLeave={hover?()=>setHov(false):undefined}
-      style={Object.assign({background:"rgba(13,19,33,.75)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",border:"1px solid "+bdr,borderRadius:16,position:"relative",overflow:"hidden",
-        boxShadow:hover&&hov?"0 12px 56px rgba(232,168,56,.18),0 4px 16px rgba(0,0,0,.5)":shd,
-        transition:"box-shadow .2s,transform .2s",
-        transform:hover&&hov?"translateY(-2px)":"none",
+      style={Object.assign({background:"linear-gradient(145deg,rgba(14,22,40,.88) 0%,rgba(8,12,24,.92) 100%)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",border:"1px solid "+bdr,borderRadius:16,position:"relative",overflow:"hidden",
+        boxShadow:hover&&hov?"0 16px 64px rgba(155,114,207,.14),0 6px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07)":shd+",inset 0 1px 0 rgba(255,255,255,.04)",
+        transition:"box-shadow .25s,transform .2s,border-color .2s",
+        transform:hover&&hov?"translateY(-3px)":"none",
         cursor:onClick?"pointer":"default"},style||{})}>
       {topLine&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:topLine,zIndex:1}}/>}
       {children}
@@ -627,12 +715,12 @@ function Btn({children,onClick,v,s,disabled,full,style}){
   const pad=size==="sm"?"6px 13px":size==="lg"?"14px 32px":size==="xl"?"18px 44px":"11px 20px";
   const fs=size==="sm"?12:size==="lg"?14:size==="xl"?16:13;
   const VS={
-    primary:{background:"linear-gradient(135deg,#F0B544,#D4922A)",color:"#07070E",border:"none",boxShadow:"0 4px 24px rgba(232,168,56,.3)"},
+    primary:{background:"linear-gradient(135deg,#FFD060 0%,#E8A838 50%,#C4782A 100%)",color:"#07070E",border:"none",boxShadow:"0 4px 28px rgba(232,168,56,.45),0 0 40px rgba(232,168,56,.12)",fontWeight:700,letterSpacing:".04em"},
     ghost:{background:"transparent",color:"#E8A838",border:"1px solid rgba(232,168,56,.35)"},
     danger:{background:"rgba(220,38,38,.1)",color:"#F87171",border:"1px solid rgba(220,38,38,.35)"},
     success:{background:"rgba(82,196,124,.1)",color:"#6EE7B7",border:"1px solid rgba(82,196,124,.35)"},
     dark:{background:"#1C2030",color:"#C8BFB0",border:"1px solid rgba(242,237,228,.1)"},
-    purple:{background:"rgba(155,114,207,.1)",color:"#C4B5FD",border:"1px solid rgba(155,114,207,.35)"},
+    purple:{background:"linear-gradient(135deg,rgba(155,114,207,.18),rgba(155,114,207,.08))",color:"#C4B5FD",border:"1px solid rgba(155,114,207,.45)",boxShadow:"0 0 20px rgba(155,114,207,.1)"},
     teal:{background:"rgba(78,205,196,.1)",color:"#5EEAD4",border:"1px solid rgba(78,205,196,.35)"},
     crimson:{background:"rgba(127,29,29,.95)",color:"#FCA5A5",border:"1px solid rgba(220,38,38,.6)"},
     warning:{background:"rgba(249,115,22,.1)",color:"#FB923C",border:"1px solid rgba(249,115,22,.35)"},
@@ -640,7 +728,7 @@ function Btn({children,onClick,v,s,disabled,full,style}){
   return(
     <button onClick={disabled?undefined:onClick}
       style={Object.assign({display:"inline-flex",alignItems:"center",justifyContent:"center",gap:7,
-        borderRadius:8,padding:pad,fontSize:fs,fontWeight:600,transition:"all .15s",
+        borderRadius:10,padding:pad,fontSize:fs,fontWeight:600,transition:"all .18s",
         opacity:disabled?.35:1,cursor:disabled?"not-allowed":"pointer",
         width:full?"100%":undefined,letterSpacing:".02em",minHeight:size==="sm"?32:42},
         VS[variant]||VS.primary,style||{})}>
@@ -655,10 +743,11 @@ function Inp({value,onChange,placeholder,type,onKeyDown,style}){
     <input type={type||"text"} value={value} onChange={e=>onChange(e.target.value)}
       placeholder={placeholder} onKeyDown={onKeyDown}
       onFocus={()=>setF(true)} onBlur={()=>setF(false)}
-      style={Object.assign({width:"100%",background:"#141E30",
-        border:f?"1px solid rgba(232,168,56,.6)":"1px solid rgba(242,237,228,.11)",
-        borderRadius:8,padding:"12px 14px",color:"#F2EDE4",fontSize:15,
-        transition:"border .15s,background .15s",lineHeight:1.4,minHeight:46},style||{})}/>
+      style={Object.assign({width:"100%",background:f?"#0F1A2E":"#0D1525",
+        border:f?"1px solid rgba(155,114,207,.65)":"1px solid rgba(242,237,228,.1)",
+        borderRadius:10,padding:"12px 14px",color:"#F2EDE4",fontSize:15,
+        transition:"border .18s,background .18s,box-shadow .18s",lineHeight:1.4,minHeight:46,
+        boxShadow:f?"0 0 0 1px rgba(155,114,207,.3),0 0 20px rgba(155,114,207,.1)":"none"},style||{})}/>
   );
 }
 
@@ -1297,17 +1386,18 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
           <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:8,marginRight:12,flexShrink:0,cursor:"pointer"}}>
             <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:32,height:32,objectFit:"contain"}}/>
             <div>
-              <div className="gold-shimmer" style={{fontFamily:"'Cinzel',serif",fontSize:14,fontWeight:700,lineHeight:1}}>TFT Clash</div>
+              <div className="gold-shimmer" style={{fontFamily:"'Russo One',sans-serif",fontSize:14,fontWeight:700,lineHeight:1,letterSpacing:".06em"}}>TFT Clash</div>
               <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:0,flex:1,minWidth:0}}>
             {DESKTOP_PRIMARY.map(l=>(
               <button key={l.id} onClick={()=>setScreen(l.id)}
-                style={{background:"none",border:"none",padding:"8px 7px",fontSize:12.5,fontWeight:600,
-                  color:screen===l.id?"#E8A838":"#C8D4E0",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
-                  borderBottom:screen===l.id?"2px solid #E8A838":"2px solid transparent",
-                  transition:"all .2s",marginBottom:-1}}>
+                data-active={screen===l.id?"true":"false"}
+                style={{background:"none",border:"none",padding:"8px 10px",fontSize:12.5,fontWeight:600,
+                  color:screen===l.id?"#E8A838":"#9AAABF",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
+                  borderBottom:"2px solid transparent",
+                  transition:"color .2s",marginBottom:-1,letterSpacing:".02em",fontFamily:"'Chakra Petch',sans-serif"}}>
                 {l.label}
               </button>
             ))}
@@ -1421,18 +1511,21 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
         const top8=i<8&&i>=3;
         const isMe=myName&&p.name===myName;
         const rankCol=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":top8?"#BECBD9":"#8E9BB0";
-        const rowBg=isMe?"rgba(155,114,207,.1)":i===0?"rgba(232,168,56,.09)":i===1?"rgba(192,192,192,.06)":i===2?"rgba(205,127,50,.06)":top8?"rgba(255,255,255,.02)":"transparent";
-        const rowBorder=isMe?"rgba(155,114,207,.45)":i===0?"rgba(232,168,56,.22)":i===1?"rgba(192,192,192,.15)":i===2?"rgba(205,127,50,.15)":top8?"rgba(242,237,228,.05)":"transparent";
+        const rowBg=isMe?"rgba(155,114,207,.12)":i===0?"rgba(232,168,56,.11)":i===1?"rgba(192,192,192,.07)":i===2?"rgba(205,127,50,.07)":top8?"rgba(255,255,255,.025)":"transparent";
+        const rowBorder=isMe?"rgba(155,114,207,.5)":i===0?"rgba(232,168,56,.35)":i===1?"rgba(192,192,192,.2)":i===2?"rgba(205,127,50,.2)":top8?"rgba(242,237,228,.06)":"transparent";
         const nameCol=top3?"#F2EDE4":top8?"#C8BFB0":"#BECBD9";
         const ptsCol=top3?"#E8A838":top8?"#B8A878":"#BECBD9";
         return(
           <div key={p.id} id={isMe?"lb-me-row":undefined} onClick={onRowClick?()=>onRowClick(p):undefined}
-            className={"standings-row"+(i===0?" standings-row-1":i===1?" standings-row-2":i===2?" standings-row-3":"")}
+            className={"standings-row"+(i===0?" standings-row-1 shimmer-card row-champion":i===1?" standings-row-2":i===2?" standings-row-3":"")+(isMe?" standings-row-me":"")}
             style={{display:"grid",gridTemplateColumns:cols,
-              padding:top3?"13px 14px":"9px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",
-              background:rowBg,border:"1px solid "+rowBorder,borderRadius:top3?6:0,marginBottom:top3?2:0,
-              alignItems:"center",cursor:onRowClick?"pointer":"default",opacity:i>=8?.6:1}}>
-            <div className="mono rank-num" style={{fontSize:top3?17:13,fontWeight:900,color:rankCol,minWidth:22,textAlign:"center"}}>{i+1}</div>
+              padding:top3?"14px 14px":"10px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",
+              background:rowBg,border:"1px solid "+rowBorder,borderRadius:top3?8:0,marginBottom:top3?3:0,
+              alignItems:"center",cursor:onRowClick?"pointer":"default",opacity:i>=8?.55:1,
+              boxShadow:i===0?"0 4px 20px rgba(232,168,56,.1),inset 0 1px 0 rgba(232,168,56,.08)":isMe?"0 2px 12px rgba(155,114,207,.08)":"none"}}>
+            <div className="mono rank-num" style={{fontSize:top3?18:13,fontWeight:900,color:rankCol,minWidth:24,textAlign:"center",textShadow:i===0?"0 0 18px rgba(232,168,56,.8)":i===1?"0 0 12px rgba(192,192,192,.6)":i===2?"0 0 12px rgba(205,127,50,.6)":"none"}}>
+              {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
+            </div>
             <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
               <div style={{minWidth:0}}>
                 <div style={{fontWeight:top3?700:500,fontSize:top3?15:13,color:nameCol,display:"flex",alignItems:"center",gap:5,overflow:"hidden"}}>
@@ -1446,7 +1539,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
                 </div>}
               </div>
             </div>
-            <div className="mono pts-glow" style={{fontSize:top3?20:15,fontWeight:800,color:ptsCol,lineHeight:1}}>{useEffective?effectivePts(p,seasonConfig):p.pts}</div>
+            <div className="mono pts-glow" style={{fontSize:top3?22:15,fontWeight:800,color:ptsCol,lineHeight:1,textShadow:top3?"0 0 14px currentColor":"none"}}>{useEffective?effectivePts(p,seasonConfig):p.pts}</div>
             <AvgBadge avg={avg>0?avg:null}/>
             <div className="mono" style={{fontSize:11,color:top8?"#BECBD9":"#9AAABF"}}>{p.games||0}</div>
             {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#6EE7B7":"#8896A8"}}>{p.wins||0}</div>}
@@ -1609,9 +1702,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   }
 
   const StatBox=({label,val,c})=>(
-    <div style={{background:"linear-gradient(145deg,#131C2A,#0D1421)",border:"1px solid rgba(242,237,228,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
-      <div className="mono" style={{fontSize:26,fontWeight:800,color:c||"#E8A838",lineHeight:1}}>{val}</div>
-      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#C8D4E0",marginTop:5,letterSpacing:".05em",textTransform:"uppercase"}}>{label}</div>
+    <div className="stat-box shimmer-card" style={{background:"linear-gradient(145deg,rgba(18,28,48,.9),rgba(10,15,28,.95))",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:"16px 10px",textAlign:"center",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)"}}>
+      <div className="mono" style={{fontSize:28,fontWeight:800,color:c||"#E8A838",lineHeight:1,textShadow:"0 0 16px currentColor"}}>{val}</div>
+      <div className="cond" style={{fontSize:9,fontWeight:700,color:"#8EA0B8",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>{label}</div>
     </div>
   );
 
@@ -1739,13 +1832,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       )}
       <div className="grid-home">
         {/* Left: Hero */}
-        <div style={{position:"relative",padding:"28px 24px",borderRadius:20,background:"radial-gradient(ellipse at 30% 20%,rgba(155,114,207,.12) 0%,rgba(8,8,15,0) 60%)",border:"1px solid rgba(155,114,207,.1)"}}>
+        <div className="hero-panel border-neon-grad" style={{position:"relative",padding:"32px 28px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.15) 0%,rgba(78,205,196,.03) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)"}}>
           <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:20}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
             <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 · Season Active · Weekly Clash</span>
           </div>
-          <h1 className="au1 display" style={{color:"#F2EDE4",lineHeight:.88,letterSpacing:"-.02em",marginBottom:20}}>
-            The<br/><span style={{color:"#E8A838",fontStyle:"italic",textShadow:"0 0 60px rgba(232,168,56,.4),0 0 120px rgba(232,168,56,.15)"}}>Convergence</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>Awaits</span>
+          <h1 className="au1 display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20}}>
+            The<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2),0 0 200px rgba(232,168,56,.1)"}}>CONVERGENCE</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>AWAITS</span>
           </h1>
           <p className="au2" style={{fontSize:15,color:"#C8D4E0",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
             The competitive TFT platform. Weekly Saturday tournaments, seasonal point standings, and a permanent record of every champion crowned.
@@ -1757,9 +1850,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             <StatBox label="Games" val={players.reduce((s,p)=>s+(p.games||0),0)} c="#4ECDC4"/>
           </div>
           {/* Countdown */}
-          <div style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(8,8,15,.6))",border:"1px solid rgba(155,114,207,.25)",borderRadius:16,padding:"20px 24px"}}>
+          <div style={{background:"linear-gradient(145deg,rgba(155,114,207,.1),rgba(8,8,15,.7))",border:"1px solid rgba(155,114,207,.3)",borderRadius:16,padding:"20px 24px",boxShadow:"0 0 30px rgba(155,114,207,.06),inset 0 1px 0 rgba(255,255,255,.05)"}}>
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
+              <div className="live-indicator" style={{width:7,height:7,borderRadius:"50%",background:"#52C47C"}}/>
               <span className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>{clashName} Starts In</span>
             </div>
             <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
@@ -1847,7 +1940,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               {n:"04",t:"Win the Crown",d:"One player is crowned Season Champion. The record lives here forever."},
             ].map(({n,t,d})=>(
               <div key={n} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
-                <div style={{width:28,height:28,borderRadius:8,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#9B72CF",flexShrink:0}}>{n}</div>
+                <div className="step-num" style={{width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#C4B5FD",flexShrink:0,fontFamily:"'Russo One',sans-serif",letterSpacing:".04em"}}>{n}</div>
                 <div>
                   <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{t}</div>
                   <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{d}</div>
