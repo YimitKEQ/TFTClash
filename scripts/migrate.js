@@ -90,6 +90,23 @@ create table if not exists achievements (
   unique(player_id, achievement_code)
 );
 
+create table if not exists subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null unique,
+  plan text not null,
+  status text not null default 'active',
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists site_settings (
+  key text primary key,
+  value text,
+  updated_at timestamptz default now()
+);
+
 create index if not exists players_discord_user_id_idx on players (discord_user_id)
   where discord_user_id is not null;
 
@@ -100,6 +117,8 @@ alter table lobbies enable row level security;
 alter table lobby_players enable row level security;
 alter table tournament_results enable row level security;
 alter table achievements enable row level security;
+alter table subscriptions enable row level security;
+alter table site_settings enable row level security;
 
 do $$ begin
   if not exists (select 1 from pg_policies where tablename='players' and policyname='read all') then

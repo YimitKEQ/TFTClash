@@ -566,29 +566,6 @@ const MILESTONES=[
 
 
 
-const MOCK_ACCOUNTS=[
-
-  {id:"u1",email:"dishsoap@gmail.com",username:"Dishsoap",riotId:"Dishsoap#NA1",region:"NA",
-
-   bio:"Challenger TFT player. 3x Clash champion. I don't lose lobbies, I redistribute wins.",
-
-   twitch:"twitch.tv/dishsoap",twitter:"@DishsoapTFT",youtube:"",
-
-   slug:"dishsoap",verified:true,role:"player",createdAt:"Jan 2025",
-
-   linkedPlayerId:1},
-
-  {id:"u2",email:"k3soju@gmail.com",username:"k3soju",riotId:"k3soju#NA1",region:"NA",
-
-   bio:"Just vibing in lobbies. Content creator & Clash veteran.",
-
-   twitch:"twitch.tv/k3soju",twitter:"@k3soju",youtube:"youtube.com/k3soju",
-
-   slug:"k3soju",verified:true,role:"player",createdAt:"Feb 2025",
-
-   linkedPlayerId:2},
-
-];
 
 
 
@@ -688,37 +665,22 @@ function computeClashAwards(players){
 
 
 
-// ─── RICH SEED DATA ───────────────────────────────────────────────────────────
-
-
-
-function mkHistory(entries){
-
-  const clashes=[
-
-    {id:"c10",name:"Clash #10",date:"Feb 8 2026"},
-
-    {id:"c11",name:"Clash #11",date:"Feb 15 2026"},
-
-    {id:"c12",name:"Clash #12",date:"Feb 22 2026"},
-
-    {id:"c13",name:"Clash #13",date:"Mar 1 2026"},
-
-  ];
-
-  return clashes.map((c,i)=>{
-
-    const e=entries[i]||{pl:Math.ceil(Math.random()*8),r1:Math.ceil(Math.random()*8),r2:Math.ceil(Math.random()*8),r3:Math.ceil(Math.random()*8)};
-
-    return{...c,placement:e.pl,pts:PTS[e.pl]||1,clashPts:PTS[e.pl]||1,
-
-      roundPlacements:{r1:e.r1,r2:e.r2,r3:e.r3,finals:e.pl},
-
-      claimedClutch:e.clutch||false};
-
+function computeLiveStandings(lobbies, players) {
+  const pts = {};
+  (lobbies || []).forEach(function(lobby) {
+    (lobby.placements || []).forEach(function(entry) {
+      var p = players.find(function(pl) { return pl.name === entry.name; });
+      if (!p) return;
+      var id = String(p.id);
+      pts[id] = (pts[id] || 0) + (PTS[entry.place] || 0);
+    });
   });
-
+  return pts;
 }
+
+
+
+// ─── SEED DATA ────────────────────────────────────────────────────────────────
 
 
 
@@ -3330,7 +3292,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
-function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash}){
+function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister}){
 
   const [name,setName]=useState("");
 
@@ -3567,6 +3529,82 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       </div>
 
 
+
+      {/* Registration card — visible during registration phase */}
+
+      {tPhase==="registration"&&(
+
+        currentUser&&linkedPlayer?(
+
+          tournamentState.registeredIds&&tournamentState.registeredIds.includes(String(linkedPlayer.id))?(
+
+            <div style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+
+              <div style={{fontSize:22}}>✅</div>
+
+              <div style={{flex:1,minWidth:0}}>
+
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registered for next clash!</div>
+
+                <div style={{fontSize:12,color:"#C8D4E0"}}>Your spot is reserved, {linkedPlayer.name}. Check-in opens soon.</div>
+
+              </div>
+
+              <div style={{display:"flex",gap:8,flexShrink:0}}>
+
+                <div style={{fontSize:12,fontWeight:700,color:"#4ECDC4",background:"rgba(78,205,196,.12)",border:"1px solid rgba(78,205,196,.3)",borderRadius:8,padding:"6px 14px"}}>✓ Registered</div>
+
+                <Btn v="dark" s="sm" onClick={()=>onRegister&&onRegister(linkedPlayer.id)}>Unregister</Btn>
+
+              </div>
+
+            </div>
+
+          ):(
+
+            <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+
+              <div style={{fontSize:22}}>📋</div>
+
+              <div style={{flex:1,minWidth:0}}>
+
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
+
+                <div style={{fontSize:12,color:"#C8D4E0"}}>Sign up for the next clash — free to compete!</div>
+
+              </div>
+
+              <Btn v="success" onClick={()=>onRegister&&onRegister(linkedPlayer.id)}>Register for Clash</Btn>
+
+            </div>
+
+          )
+
+        ):(
+
+          !currentUser&&(
+
+            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+
+              <div style={{fontSize:22}}>🎮</div>
+
+              <div style={{flex:1,minWidth:0}}>
+
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
+
+                <div style={{fontSize:12,color:"#C8D4E0"}}>Log in to register for the next clash</div>
+
+              </div>
+
+              <Btn v="purple" s="sm" onClick={()=>onAuthClick("login")}>Log in to register</Btn>
+
+            </div>
+
+          )
+
+        )
+
+      )}
 
       {/* Check-in card — visible during registration and check-in phases */}
 
@@ -4414,6 +4452,70 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 
 
+function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
+
+  var clashId=tournamentState&&tournamentState.clashId?tournamentState.clashId:"";
+
+  var liveRows=checkedIn.map(function(p){
+
+    var earned=0;
+
+    (p.clashHistory||[]).forEach(function(h){if(h.clashId===clashId){earned+=(PTS[h.place]||0);}});
+
+    return {name:p.name,id:p.id,earned:earned};
+
+  }).sort(function(a,b){return b.earned-a.earned;});
+
+  var lockedCount=tournamentState&&tournamentState.lockedLobbies?tournamentState.lockedLobbies.length:0;
+
+  return(
+
+    <Panel style={{padding:"20px",marginTop:24}}>
+
+      <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
+
+        <span style={{fontSize:16}}>📊</span> Live Standings — Round {round}
+
+        <span style={{fontSize:11,color:"#BECBD9",fontWeight:400,marginLeft:4}}>({lockedCount} of {lobbies.length} {lobbies.length===1?"lobby":"lobbies"} locked)</span>
+
+      </div>
+
+      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+
+        {liveRows.map(function(row,ri){
+
+          var isLeader=ri===0&&row.earned>0;
+
+          return(
+
+            <div key={row.id} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",
+
+              background:isLeader?"rgba(232,168,56,.07)":ri%2===0?"rgba(255,255,255,.01)":"transparent",
+
+              borderRadius:6,border:isLeader?"1px solid rgba(232,168,56,.18)":"1px solid transparent"}}>
+
+              <span className="mono" style={{fontSize:12,fontWeight:700,color:ri===0?"#E8A838":ri===1?"#C0C0C0":ri===2?"#CD7F32":"#9AAABF",minWidth:22,textAlign:"center"}}>{ri+1}</span>
+
+              <span style={{flex:1,fontSize:13,fontWeight:isLeader?700:500,color:isLeader?"#E8A838":"#F2EDE4"}}>{row.name}</span>
+
+              <span className="mono" style={{fontSize:13,fontWeight:700,color:row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:"—"} pts</span>
+
+            </div>
+
+          );
+
+        })}
+
+      </div>
+
+    </Panel>
+
+  );
+
+}
+
+
+
 // ─── BRACKET SCREEN ───────────────────────────────────────────────────────────
 
 function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig}){
@@ -4919,6 +5021,12 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
             })}
 
           </div>
+
+
+
+          {/* Live standings during inprogress */}
+
+          {tournamentState&&tournamentState.phase==="inprogress"&&lockedLobbies.length>0&&LiveStandingsPanel({checkedIn,tournamentState,lobbies,round})}
 
 
 
@@ -6902,6 +7010,14 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
         </div>
 
+        {HOF_RECORDS.length===0&&(
+          <div style={{textAlign:"center",padding:"64px 24px",color:"#6B7280"}}>
+            <div style={{fontSize:48,marginBottom:16}}>🏆</div>
+            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#9AAABF",marginBottom:8}}>Hall of Fame loading...</div>
+            <div style={{fontSize:14,lineHeight:1.6}}>Season champions will be enshrined here.</div>
+          </div>
+        )}
+
         <div className="grid-2">
 
           {HOF_RECORDS.map(r=>{
@@ -7828,7 +7944,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
 
-              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin"}));addAudit("ACTION","Check-in opened");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
+              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened — "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
               <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
@@ -7854,21 +7970,67 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           </Panel>
 
-          <Panel style={{padding:"20px"}}>
+          <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
 
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Seeding Mode</div>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:6}}>Seeding Mode</div>
 
-            {[["random","🎲 Random","Fully shuffled, no weighting"],["rank-based","📊 Rank-Based","Top players spread across lobbies"],["anti-stack","🚫 Anti-Stack","Prevents friend groups from stacking"],["snake","🐍 Snake Draft","Alternating order seeding"]].map(([v,l,d])=>(
+            <div style={{fontSize:12,color:"#9AAABF",marginBottom:16}}>Choose how players are distributed across lobbies. Applies when tournament starts or lobbies are reseeded.</div>
 
-              <button key={v} onClick={()=>setSeedAlgo(v)} style={{display:"flex",alignItems:"flex-start",gap:10,width:"100%",background:seedAlgo===v?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(seedAlgo===v?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:8,padding:"11px 14px",cursor:"pointer",marginBottom:6,textAlign:"left",fontFamily:"inherit"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}}>
 
-                <span style={{fontSize:13,fontWeight:seedAlgo===v?700:500,color:seedAlgo===v?"#E8A838":"#C8BFB0",minWidth:120}}>{l}</span>
+              {[["random","🎲 Random","Fully shuffled, no weighting — great for casual events"],["rank-based","🏆 By Rank","Top players spread evenly across lobbies for fair games"],["snake","🐍 Snake Draft","Alternating pick order — balances skill across lobbies"]].map(function(item){
 
-                <span style={{fontSize:11,color:"#7A8BA0",marginTop:1}}>{d}</span>
+                var v=item[0];var l=item[1];var d=item[2];
 
-              </button>
+                var active=seedAlgo===v;
 
-            ))}
+                return(
+
+                  <button key={v} onClick={function(){setSeedAlgo(v);}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:"16px 14px",cursor:"pointer",textAlign:"center",fontFamily:"inherit",
+
+                    background:active?"rgba(155,114,207,.12)":"rgba(255,255,255,.02)",
+
+                    border:"2px solid "+(active?"#9B72CF":"rgba(242,237,228,.08)"),
+
+                    borderRadius:10,
+
+                    boxShadow:active?"0 0 16px rgba(155,114,207,.2)":"none",
+
+                    transition:"all .15s"}}>
+
+                    <span style={{fontSize:22}}>{l.split(" ")[0]}</span>
+
+                    <span style={{fontSize:13,fontWeight:700,color:active?"#C4B5FD":"#C8BFB0"}}>{l.split(" ").slice(1).join(" ")}</span>
+
+                    <span style={{fontSize:11,color:active?"#A78BFA":"#7A8BA0",lineHeight:1.4}}>{d}</span>
+
+                    {active&&<span style={{fontSize:10,fontWeight:700,color:"#9B72CF",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",borderRadius:4,padding:"2px 8px",marginTop:2}}>SELECTED</span>}
+
+                  </button>
+
+                );
+
+              })}
+
+            </div>
+
+            <button onClick={function(){setSeedAlgo("anti-stack");}} style={{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"10px 14px",cursor:"pointer",fontFamily:"inherit",textAlign:"left",
+
+              background:seedAlgo==="anti-stack"?"rgba(248,113,113,.08)":"rgba(255,255,255,.02)",
+
+              border:"1px solid "+(seedAlgo==="anti-stack"?"rgba(248,113,113,.4)":"rgba(242,237,228,.08)"),
+
+              borderRadius:8}}>
+
+              <span style={{fontSize:16}}>🚫</span>
+
+              <span style={{fontSize:13,fontWeight:seedAlgo==="anti-stack"?700:500,color:seedAlgo==="anti-stack"?"#F87171":"#C8BFB0",flex:1}}>Anti-Stack</span>
+
+              <span style={{fontSize:11,color:"#7A8BA0"}}>Prevents friend groups from stacking same lobby</span>
+
+              {seedAlgo==="anti-stack"&&<span style={{fontSize:10,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.25)",borderRadius:4,padding:"2px 8px"}}>SELECTED</span>}
+
+            </button>
 
           </Panel>
 
@@ -8236,7 +8398,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster?")){setPlayers([]);addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset","success");}}}>Full Season Reset</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset","success");}}}>⚠️ Full Season Reset</Btn>
 
               </div>
 
@@ -14900,6 +15062,8 @@ function TFTClash(){
 
   const [players,setPlayers]=useState(()=>{try{const s=localStorage.getItem("tft-players");return s?JSON.parse(s):SEED;}catch{return SEED;}});
 
+  const [isLoadingData,setIsLoadingData]=useState(true);
+
   const [isAdmin,setIsAdmin]=useState(false);
 
   const [notifications,setNotifications]=useState(()=>{try{const s=localStorage.getItem("tft-notifications");return s?JSON.parse(s):NOTIF_SEED;}catch{return NOTIF_SEED;}});
@@ -14912,7 +15076,7 @@ function TFTClash(){
 
   const [profilePlayer,setProfilePlayer]=useState(null);
 
-  const [tournamentState,setTournamentState]=useState(()=>{try{const s=localStorage.getItem("tft-tournament");return s?JSON.parse(s):{phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]};}catch{return {phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]};}});
+  const [tournamentState,setTournamentState]=useState(()=>{try{const s=localStorage.getItem("tft-tournament");return s?JSON.parse(s):{phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]};}catch{return {phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]};}});
 
   const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
 
@@ -15032,7 +15196,7 @@ function TFTClash(){
 
   useEffect(function(){
 
-    if(!supabase.from)return;
+    if(!supabase.from){setIsLoadingData(false);return;}
 
     // fetch all shared keys on mount
 
@@ -15080,6 +15244,8 @@ function TFTClash(){
         announcementInitRef.current=true;
 
         if(!hadPlayers)bootstrapPlayersFromTable();
+
+        setIsLoadingData(false);
 
       });
 
@@ -15285,6 +15451,16 @@ function TFTClash(){
 
   function updateUser(updated){setCurrentUser(updated);}
 
+  function handleRegister(playerId){
+    var sid=String(playerId);
+    var isRegistered=(tournamentState.registeredIds||[]).includes(sid);
+    setTournamentState(function(ts){
+      var ids=ts.registeredIds||[];
+      return {...ts,registeredIds:isRegistered?ids.filter(function(id){return id!==sid;}):[...ids,sid]};
+    });
+    toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
+  }
+
   function joinQuickClash(qcId,playerId){
 
     setQuickClashes(function(qs){return qs.map(function(q){
@@ -15385,6 +15561,13 @@ function TFTClash(){
 
       <Hexbg/>
 
+      {isLoadingData&&players.length===0&&(
+        <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:9999}}>
+          <div style={{width:48,height:48,border:"3px solid rgba(155,114,207,.2)",borderTopColor:"#9B72CF",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+          <div style={{fontFamily:"'Chakra Petch',sans-serif",fontSize:14,color:"#6B7280",letterSpacing:"0.1em"}}>Loading roster...</div>
+        </div>
+      )}
+
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
 
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
@@ -15393,7 +15576,7 @@ function TFTClash(){
 
 
 
-        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash}/>}
+        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister}/>}
 
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 

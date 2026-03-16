@@ -62,31 +62,31 @@ Before editing, always check current line count and brace balance.
 
 ---
 
-## File Structure (App.jsx — 5764 lines as of 2026-03-12)
+## File Structure (App.jsx — ~15,450 lines as of 2026-03-16)
 
-| Lines | Section |
-|-------|---------|
-| 1–170 | Constants, helpers, stats engine, PTS constant |
-| 116–131 | Achievements |
-| 172–233 | SEED data (24 players) |
-| 234–403 | Auth, champion system, **GCSS** (template literal — don't touch) |
-| 404–963 | Atoms + components (Hexbg, Panel, Btn, Av, etc.) |
-| 965–1134 | Navbar |
-| 1135–1194 | StandingsTable |
-| 1195–1394 | HomeScreen |
-| 1396–1725 | BracketScreen ← task #1 (PIN removal) |
-| 1731–1993 | PlayerProfileScreen |
-| 1994–2165 | LeaderboardScreen ← task #8 |
-| 2167–2534 | ClashReport, ResultsScreen ← task #3, AutoLogin |
-| 2541–2743 | HofScreen ← task #4 |
-| 2745–2798 | ArchiveScreen ← task #5 |
-| 2800–3222 | AdminPanel |
-| 3224–3699 | ScrimsScreen ← task #2 |
-| 3700–3864 | PricingScreen |
-| 3865–4072 | MilestonesScreen ← task #6, ChallengesScreen |
-| 4074–4279 | SignUpScreen, LoginScreen |
-| 4280–4459 | AccountScreen ← task #7 |
-| 4460–4603 | SeasonRecapScreen |
+Line numbers are approximate — file grows with each session. Use grep/search to find sections.
+
+| Section | Key Identifiers |
+|---------|----------------|
+| Constants, helpers, stats engine | `const PTS`, `const RANKS`, `computeStats()` |
+| GCSS template literal (DON'T TOUCH structure) | `const GCSS` |
+| Atoms + components | `function Panel`, `function Btn`, `function Inp` |
+| Navbar | `function Navbar` |
+| StandingsTable | `function StandingsTable` |
+| HomeScreen | `function HomeScreen` |
+| BracketScreen | `function BracketScreen` |
+| PlayerProfileScreen | `function PlayerProfileScreen` |
+| LeaderboardScreen | `function LeaderboardScreen` |
+| ClashReport, ResultsScreen | `function ClashReport`, `function ResultsScreen` |
+| HofScreen | `function HofScreen` |
+| ArchiveScreen | `function ArchiveScreen` |
+| AdminPanel | `function AdminPanel` |
+| ScrimsScreen | `function ScrimsScreen` |
+| PricingScreen | `function PricingScreen` |
+| MilestonesScreen, ChallengesScreen | `function MilestonesScreen`, `function ChallengesScreen` |
+| SignUpScreen, LoginScreen | `function SignUpScreen`, `function LoginScreen` |
+| AccountScreen | `function AccountScreen` |
+| SeasonRecapScreen | `function SeasonRecapScreen` |
 | 4605–4679 | AICommentaryPanel |
 | 4680–5074 | HostApplyScreen, HostDashboardScreen |
 | 5075–5340 | RulesScreen ← added 2026-03-12 |
