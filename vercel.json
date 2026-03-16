@@ -3,19 +3,35 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=(self)" },
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co; img-src 'self' data: blob: https:; frame-ancestors 'none'; object-src 'none';" }
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://api.stripe.com; img-src 'self' data: blob: https:; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; object-src 'none';"
+        }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/create-checkout.js": { "memory": 256, "maxDuration": 10 },
+    "api/stripe-webhook.js":  { "memory": 256, "maxDuration": 10 },
+    "api/check-admin.js":     { "memory": 128, "maxDuration": 5  }
+  }
 }
