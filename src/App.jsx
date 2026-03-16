@@ -1640,7 +1640,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       )}
 
       {/* Champion hero card - shown all season */}
-      {SEASON_CHAMPION&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
+      {SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
 
       <div style={{height:28}}/>
 
@@ -7365,6 +7365,7 @@ export default function TFTClash(){
 
   // ── Supabase shared state — single channel for all keys ──────────────────
   const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false});
+  const announcementInitRef=useRef(false);
   useEffect(function(){
     if(!supabase.from)return;
     // fetch all shared keys on mount
@@ -7388,6 +7389,7 @@ export default function TFTClash(){
             }
           }catch(e){}
         });
+        announcementInitRef.current=true;
       });
     // realtime — push changes to all browsers instantly
     var ch=supabase.channel('shared_state')
@@ -7427,6 +7429,7 @@ export default function TFTClash(){
     if(supabase.from)supabase.from('site_settings').upsert({key:'quick_clashes',value:JSON.stringify(quickClashes),updated_at:new Date().toISOString()}).then(function(){});
   },[quickClashes]);
   useEffect(function(){
+    if(!announcementInitRef.current)return;
     if(rtRef.current.announcement){rtRef.current.announcement=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:announcement,updated_at:new Date().toISOString()}).then(function(){});
   },[announcement]);
