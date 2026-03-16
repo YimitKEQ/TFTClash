@@ -1,0 +1,19 @@
+{
+  "name": "tft-clash-bot",
+  "version": "1.0.0",
+  "description": "TFT Clash Discord Bot — auto-posts results, standings, clash info",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "setup": "node setup.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.99.1",
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "lowdb": "^7.0.1",
+    "node-cron": "^3.0.3"
+  }
+}
