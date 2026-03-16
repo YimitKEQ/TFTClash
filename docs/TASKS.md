@@ -1,13 +1,13 @@
 # TFT Clash — Task Backlog
 
-> Last updated: 2026-03-12
+> Last updated: 2026-03-16
 > Status key: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
 ## Priority 1 — Core Functionality
 
-### [ ] #1 — Bracket: Remove PIN gate
+### [x] #1 — Bracket: Remove PIN gate
 **File:** `App.jsx` ~L1396–1725 (`BracketScreen`)
 
 Remove:
@@ -25,7 +25,7 @@ Keep:
 
 ---
 
-### [ ] #2 — Scrims: Proper stats sheet
+### [x] #2 — Scrims: Proper stats sheet
 **File:** `App.jsx` ~L3224–3699 (`ScrimsScreen`)
 
 Stats tab only:
@@ -39,7 +39,7 @@ Stats tab only:
 
 ## Priority 2 — Polish & Premium Feels
 
-### [ ] #3 — Results: Premium Grand Finalist card
+### [x] #3 — Results: Premium Grand Finalist card
 **File:** `App.jsx` ~L2167–2534 (`ResultsScreen`)
 
 - Large crown/trophy visual
@@ -50,7 +50,7 @@ Stats tab only:
 
 ---
 
-### [ ] #4 — Hall of Fame: Trophy room feel
+### [x] #4 — Hall of Fame: Trophy room feel
 **File:** `App.jsx` ~L2541–2743 (`HofScreen`)
 
 - Keep "King" banner at top — it's good
@@ -59,7 +59,7 @@ Stats tab only:
 
 ---
 
-### [ ] #5 — Archive: "My Position" row
+### [x] #5 — Archive: "My Position" row
 **File:** `App.jsx` ~L2745–2798 (`ArchiveScreen`)
 
 For logged-in users, show at the bottom of each clash card:
@@ -72,7 +72,7 @@ Subtle small text. No design overhaul needed.
 
 ## Priority 3 — Features
 
-### [ ] #6 — Achievements: Real tiers
+### [x] #6 — Achievements: Real tiers
 **File:** `App.jsx` ~L3865–4072 (`MilestonesScreen`)
 
 - TFT-flavored names: "Augment God — Won 3 clashes in a row", "Top 4 Machine — 10 consecutive top4s"
@@ -82,7 +82,7 @@ Subtle small text. No design overhaul needed.
 
 ---
 
-### [ ] #7 — Account Screen: Full player card rebuild
+### [x] #7 — Account Screen: Full player card rebuild
 **File:** `App.jsx` ~L4280–4459 (`AccountScreen`)
 
 Replace bland settings page with:
@@ -93,7 +93,7 @@ Replace bland settings page with:
 
 ---
 
-### [ ] #8 — Leaderboard: Search + jump to self
+### [x] #8 — Leaderboard: Search + jump to self
 **File:** `App.jsx` ~L1994–2165 (`LeaderboardScreen`)
 
 - Search/filter bar at top
@@ -103,7 +103,7 @@ Replace bland settings page with:
 
 ## Priority 4 — Production Readiness
 
-### [ ] #9 — Points system: Verify PTS constant
+### [x] #9 — Points system: Verify PTS constant
 **File:** `App.jsx` ~L1–50 (`PTS` constant)
 
 Confirm or fix `PTS` constant = `{1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1}`
@@ -112,13 +112,13 @@ Also verify tiebreaker logic in stats engine matches official order (see `CLAUDE
 
 ---
 
-### [ ] #10 — Production deploy
+### [x] #10 — Production deploy
 See `docs/PRODUCTION.md` for full checklist.
 Key blockers: real auth (Supabase/Firebase), DB for results, Stripe for subscriptions.
 
 ---
 
-### [ ] #11 — FAQ: Update content to reflect actual score submission flow
+### [x] #11 — FAQ: Update content to reflect actual score submission flow
 **File:** `App.jsx` ~L5568 (`FAQScreen`)
 
 The current FAQ says players screenshot and submit to admin via Discord. Update to reflect that:
@@ -147,3 +147,67 @@ The current FAQ says players screenshot and submit to admin via Discord. Update 
 - [x] Fantasy TFT removed from nav + root render
 - [x] "Become a Host" button removed from player profiles
 - [x] Back buttons verified on PlayerProfileScreen
+
+---
+
+## Phase 3 — Tournament Runner
+
+### [ ] #12 — Registration System
+Add register/unregister button to HomeScreen when phase === "registration". Store registeredIds in tournamentState. Admin can promote registered → checked-in.
+**Status:** Partially implemented (registeredIds added to state, UI in HomeScreen)
+
+### [ ] #13 — Multi-Game Round Flow
+Round progression in BracketScreen: round indicator, "End Round" button, "Complete Tournament" button.
+**Status:** In progress
+
+### [ ] #14 — Live Standings During Clash
+Show cumulative points table in BracketScreen when phase === "inprogress".
+**Status:** In progress
+
+### [ ] #15 — Lobby Builder Seeding UI
+Better seeding option picker in AdminPanel with visual toggle buttons.
+**Status:** In progress
+
+---
+
+## Phase 4 — UI Polish
+
+### [ ] #16 — Loading State
+Spinner overlay when Supabase is loading and players array is empty.
+**Status:** Implemented
+
+### [ ] #17 — Empty States
+Proper empty state messaging for ArchiveScreen and HofScreen.
+**Status:** Implemented
+
+### [ ] #18 — Mobile Responsiveness Audit
+Test at 375px/390px/414px. Fix tables, navbar, bracket screen.
+**Status:** TODO
+
+### [ ] #19 — Form Validation UX
+Inline validation on signup/login forms, Riot ID format check.
+**Status:** TODO
+
+---
+
+## Phase 6 — Features
+
+### [ ] #20 — Player Comparison Tool
+Select 2-3 players → side-by-side stats.
+**Status:** TODO
+
+### [ ] #21 — Streak Records Display
+Hot/cold streaks visible on leaderboard and profile.
+**Status:** TODO
+
+### [ ] #22 — Export / Share Card
+"Share my stats" PNG card generator.
+**Status:** TODO
+
+---
+
+## Phase 7 — Monetization
+
+### [ ] #23 — Stripe Integration
+Stripe Checkout for Pro/Host tiers, webhook handler, subscription gate.
+**Status:** TODO
