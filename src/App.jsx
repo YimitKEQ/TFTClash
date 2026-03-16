@@ -7293,7 +7293,9 @@ export default function TFTClash(){
       const discordName=u.identities?.find(i=>i.provider==='discord')?.identity_data?.global_name
         ||u.user_metadata?.full_name;
       const username=u.user_metadata?.username||discordName||u.email?.split('@')[0]||"Player";
-      return{...u,username};
+      const riotId=u.user_metadata?.riotId||"";
+      const region=u.user_metadata?.riotRegion||u.user_metadata?.region||"EUW";
+      return{...u,username,riotId,region};
     }
     supabase.auth.getSession().then(({data:{session}})=>setCurrentUser(mapUser(session?.user??null)));
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>setCurrentUser(mapUser(session?.user??null)));
