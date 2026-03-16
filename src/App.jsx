@@ -4739,6 +4739,23 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   const allLocked=lobbies.length>0&&lobbies.every((_,i)=>lockedLobbies.includes(i));
 
+  function saveResultsToSupabase(allPlayers,clashId){
+    if(!supabase.from)return;
+    var clashName=(tournamentState&&tournamentState.clashName)?tournamentState.clashName:("Clash "+new Date().toLocaleDateString());
+    supabase.from('tournaments').insert({name:clashName,date:new Date().toISOString().split('T')[0],phase:'complete'}).select('id').single().then(function(res){
+      if(!res.data)return;
+      var tId=res.data.id;
+      var rows=[];
+      allPlayers.forEach(function(p){
+        var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
+        entries.forEach(function(h){
+          rows.push({tournament_id:tId,player_id:String(p.id),final_placement:h.place,total_points:(h.pts||0)+(h.bonusPts||0),wins:h.place===1?1:0,top4_count:h.place<=4?1:0});
+        });
+      });
+      if(rows.length>0){supabase.from('tournament_results').insert(rows).then(function(){});}
+    });
+  }
+
 
 
   // auto-highlight if logged in
@@ -4771,7 +4788,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[]}))}>← Round</Btn>
 
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{if(round>=3){setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[]}));toast("Clash complete! View results →","success");}else{setTournamentState(ts=>({...ts,round:ts.round+1,lockedLobbies:[]}));toast("Advanced to Round "+(round+1),"success");}}}>
+            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{if(round>=3){saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[]}));toast("Clash complete! View results →","success");}else{setTournamentState(ts=>({...ts,round:ts.round+1,lockedLobbies:[]}));toast("Advanced to Round "+(round+1),"success");}}}>
 
               {round>=3?"Finalize Clash ✓":"Next Round →"}
 
@@ -7437,6 +7454,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const [spForm,setSpForm]=useState({name:"",logo:"",color:"",playerId:""});
 
+  const [auditFilter,setAuditFilter]=useState("All");
+
 
 
   function addAudit(type,msg){setAuditLog(l=>[{ts:Date.now(),type,msg},...l.slice(0,199)]);}
@@ -8113,6 +8132,30 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
 
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:8}}>Quick Clash Setup</div>
+
+            <div style={{fontSize:12,color:"#9AAABF",marginBottom:12}}>One-click presets — fills Max Players and Round Count below.</div>
+
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:0}}>
+
+              {[["3 Games \xb7 24 Players","24","3"],["3 Games \xb7 16 Players","16","3"],["5 Games \xb7 24 Players","24","5"]].map(function(preset){return(
+
+                <button key={preset[0]} onClick={function(){setRoundConfig(function(c){return Object.assign({},c,{maxPlayers:preset[1],roundCount:preset[2]});});toast("Preset loaded: "+preset[0],"success");}} style={{padding:"7px 14px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",color:"#C4B5FD",transition:"all .15s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(155,114,207,.2)";}} onMouseLeave={function(e){e.currentTarget.style.background="rgba(155,114,207,.1)";}}>
+
+                  {preset[0]}
+
+                </button>
+
+              );
+
+              })}
+
+            </div>
+
+          </Panel>
+
+          <Panel style={{padding:"20px",gridColumn:"1/-1"}}>
+
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Round Settings</div>
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
@@ -8703,11 +8746,23 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
         <Panel style={{overflow:"hidden"}}>
 
-          <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
 
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Audit Log</div>
 
-            <span className="mono" style={{fontSize:11,color:"#BECBD9"}}>{auditLog.length} entries</span>
+            <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
+
+              {["All","ACTION","DANGER","BROADCAST","WARN","INFO","RESULT"].map(function(ft){return(
+
+                <button key={ft} onClick={function(){setAuditFilter(ft);}} style={{padding:"3px 10px",borderRadius:5,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:auditFilter===ft?"rgba(155,114,207,.2)":"rgba(255,255,255,.04)",border:"1px solid "+(auditFilter===ft?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),color:auditFilter===ft?"#C4B5FD":"#9AAABF",transition:"all .12s"}}>{ft}</button>
+
+              );
+
+              })}
+
+              <span className="mono" style={{fontSize:11,color:"#BECBD9",marginLeft:4}}>{(auditFilter==="All"?auditLog:auditLog.filter(function(l){return l.type===auditFilter;})).length} entries</span>
+
+            </div>
 
           </div>
 
@@ -8715,19 +8770,25 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <div style={{maxHeight:540,overflowY:"auto"}}>
 
-            {auditLog.map((l,i)=>(
+            {(auditFilter==="All"?auditLog:auditLog.filter(function(l){return l.type===auditFilter;})).map(function(l,i){
 
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+              var bc=l.type==="DANGER"?"#F87171":l.type==="BROADCAST"?"#9B72CF":l.type==="WARN"?"#E8A838":l.type==="INFO"?"#4ECDC4":"rgba(242,237,228,.08)";
 
-                <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
+              return(
 
-                <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{l.msg}</span>
+                <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",borderLeft:"3px solid "+bc}}>
 
-                <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
+                  <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
 
-              </div>
+                  <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{l.msg}</span>
 
-            ))}
+                  <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
+
+                </div>
+
+              );
+
+            })}
 
           </div>
 
@@ -9781,11 +9842,28 @@ function ScrimsScreen({players,toast,setScreen}){
 
 // ─── PRICING SCREEN ───────────────────────────────────────────────────────────
 
-function PricingScreen({currentPlan,toast}){
+function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
   const [billing,setBilling]=useState("monthly");
 
   const [hovered,setHovered]=useState(null);
+
+  async function handleSubscribe(plan){
+    if(!currentUser){toast("Sign in to subscribe","info");return;}
+    toast("Redirecting to checkout...","info");
+    try{
+      var r=await fetch('/api/create-checkout',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({plan,userId:currentUser.id,email:currentUser.email,
+          successUrl:window.location.origin+'/#account?checkout=success',
+          cancelUrl:window.location.origin+'/#pricing'})
+      });
+      var d=await r.json();
+      if(d.url)window.location.href=d.url;
+      else toast(d.error||'Checkout failed','error');
+    }catch(e){toast('Checkout unavailable','error');}
+  }
 
 
 
@@ -9941,7 +10019,7 @@ function PricingScreen({currentPlan,toast}){
 
               </div>
 
-              <button onClick={()=>toast(tier.id==="free"?"You're already on Free!":tier.id==="org"?"Opening contact form...":"Starting free trial... (mock)","success")}
+              <button onClick={()=>tier.id==="free"?toast("You're already on Free!","success"):tier.id==="org"?setScreen("host-apply"):handleSubscribe(tier.id==="pro"?"pro":"host")}
 
                 style={{width:"100%",padding:"12px 20px",background:isPopular?"linear-gradient(90deg,#E8A838,#C8882A)":tier.id==="org"?"rgba(155,114,207,.15)":"rgba(255,255,255,.05)",
 
@@ -11402,6 +11480,14 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
 
 
+  const [subscription,setSubscription]=useState(null);
+
+  useEffect(function(){
+    if(!user?.id)return;
+    supabase.from('subscriptions').select('plan,status').eq('user_id',user.id).single()
+      .then(function(res){if(res.data?.status==='active')setSubscription(res.data);});
+  },[user]);
+
   const rankColor=linkedPlayer?rc(linkedPlayer.rank):"#9B72CF";
 
   const myMilestones=linkedPlayer?MILESTONES.filter(m=>{try{return m.check(linkedPlayer);}catch{return false;}}):[];
@@ -11487,6 +11573,18 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{linkedPlayer.riotId} · {linkedPlayer.region}</div>
 
             )}
+
+            <div style={{marginBottom:10}}>
+              {subscription?(
+                <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",borderRadius:20,background:subscription.plan==="host"?"rgba(232,168,56,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(subscription.plan==="host"?"rgba(232,168,56,.4)":"rgba(155,114,207,.4)"),fontSize:12,fontWeight:700,color:subscription.plan==="host"?"#E8A838":"#C4B5FD"}}>
+                  {subscription.plan==="host"?"🏠 Host Plan":"⚡ Pro Plan"} · Active
+                </div>
+              ):(
+                <button onClick={()=>setScreen("pricing")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"transparent",border:"1px solid rgba(155,114,207,.35)",fontSize:12,color:"#9B72CF",cursor:"pointer",fontFamily:"inherit"}}>
+                  Upgrade to Pro →
+                </button>
+              )}
+            </div>
 
             {user.bio?(
 
@@ -15698,7 +15796,7 @@ function TFTClash(){
 
         {screen==="faq"        &&<FAQScreen setScreen={navTo}/>}
 
-        {screen==="pricing"    &&<PricingScreen currentPlan="free" toast={toast}/>}
+        {screen==="pricing"    &&<PricingScreen currentPlan="free" toast={toast} currentUser={currentUser} setScreen={navTo}/>}
 
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
 

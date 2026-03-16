@@ -134,10 +134,9 @@ export function standingsEmbed(players) {
 }
 
 // ─── PLAYER PROFILE ───────────────────────────────────────────────────────────
-export function profileEmbed(player) {
-  const standings = getStandings();
+export function profileEmbed(player, standings = []) {
   const standing  = standings.findIndex(p => p.name === player.name) + 1;
-  const maxPts    = standings[0]?.pts ?? 1;
+  const maxPts    = standings[0]?.pts ?? player.pts ?? 1;
   const color     = RANK_COLORS[player.rank] ?? PURPLE;
   const rIcon     = rankIcon(player.rank);
   const winRate   = Math.round((player.wins / SEASON.currentClash) * 100);
