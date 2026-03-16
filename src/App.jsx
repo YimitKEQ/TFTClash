@@ -665,6 +665,21 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 /* ── CTA button premium ──────────────────────────────────── */
 .btn-cta{position:relative;overflow:hidden;}
 .btn-cta::after{content:"";position:absolute;top:-50%;left:-60%;width:30%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:skewX(-20deg);animation:shimmer-scan 3s ease infinite;}
+
+/* ── Inner mini-box (stat/info nested boxes) ─────────────── */
+.inner-box{background:linear-gradient(160deg,rgba(10,16,34,.92),rgba(6,10,20,.96));border:1px solid rgba(242,237,228,.08);border-radius:9px;transition:border-color .2s;}
+.inner-box:hover{border-color:rgba(232,168,56,.14);}
+
+/* ── Task/challenge card ──────────────────────────────────── */
+.task-card{background:linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(242,237,228,.09);border-radius:12px;padding:16px;transition:border-color .25s,box-shadow .25s;}
+.task-card:hover{border-color:rgba(232,168,56,.22);box-shadow:0 6px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);}
+
+/* ── Announcement item row ───────────────────────────────── */
+.ann-item{background:linear-gradient(160deg,rgba(12,18,36,.9),rgba(7,11,22,.95));border:1px solid rgba(242,237,228,.08);border-radius:9px;padding:12px;}
+
+/* ── Weekly challenge card ───────────────────────────────── */
+.weekly-card{background:linear-gradient(135deg,rgba(155,114,207,.06),rgba(78,205,196,.02));border:1px solid rgba(155,114,207,.18);border-radius:12px;padding:16px;transition:border-color .2s;}
+.weekly-card:hover{border-color:rgba(155,114,207,.35);}
 `;
 
 
@@ -2461,7 +2476,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
   const s=computeStats(player);
 
   const StatCard=({label,val,sub,c,big})=>(
-    <div style={{background:"#0F1520",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
+    <div className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
       <div className="mono" style={{fontSize:big?26:18,fontWeight:700,color:c||"#E8A838",lineHeight:1}}>{val}</div>
       <div className="cond" style={{fontSize:10,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
       {sub&&<div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{sub}</div>}
@@ -2617,7 +2632,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
           <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Average Placement By Round</h3>
           <div className="grid-4" style={{marginBottom:18}}>
             {[["R1",s.roundAvgs.r1,"#4ECDC4"],["R2",s.roundAvgs.r2,"#9B72CF"],["R3",s.roundAvgs.r3,"#EAB308"],["Finals",s.roundAvgs.finals,"#E8A838"]].map(([l,v,c])=>(
-              <div key={l} style={{background:"#0F1520",borderRadius:10,padding:"14px",textAlign:"center"}}>
+              <div key={l} className="inner-box" style={{padding:"14px",textAlign:"center"}}>
                 <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".08em",marginBottom:8}}>{l}</div>
                 {v?<><div className="mono" style={{fontSize:22,fontWeight:700,color:avgCol(v),lineHeight:1}}>{v}</div>
                   <div style={{fontSize:10,color:avgCol(v),marginTop:4}}>{parseFloat(v)<3?"Great":parseFloat(v)<5?"OK":"Rough"}</div></>
@@ -2695,7 +2710,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
             </div>
           </div>
           {(player.clashHistory||[]).length===0?(
-            <div style={{textAlign:"center",padding:"40px 20px",background:"#111827",borderRadius:12,border:"1px solid rgba(242,237,228,.07)",color:"#9AAABF"}}>
+            <div style={{textAlign:"center",padding:"40px 20px",background:"linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95))",borderRadius:12,border:"1px solid rgba(242,237,228,.09)",color:"#9AAABF"}}>
               <div style={{fontSize:32,marginBottom:10}}>⚔️</div>
               <div style={{fontSize:14,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>No H2H data yet</div>
               <div style={{fontSize:13}}>Compete in a clash to build your rivalry record.</div>
@@ -2863,7 +2878,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
                 </div>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
                   {[["Avg",s2.avgPlacement,avgCol(s2.avgPlacement)],["Wins",s2.wins,"#6EE7B7"],["T4%",s2.top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
-                    <div key={l} style={{background:"#0F1520",borderRadius:7,padding:"7px",textAlign:"center"}}>
+                    <div key={l} className="inner-box" style={{padding:"7px",textAlign:"center"}}>
                       <div className="mono" style={{fontSize:14,fontWeight:700,color:c}}>{v}</div>
                       <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
                     </div>
@@ -3798,7 +3813,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               )}
               {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet \u2014 add one above.</div></Panel>}
               {players.map(p=>(
-                <Panel key={p.id} style={{padding:"14px 16px",background:p.banned?"rgba(127,29,29,.12)":"#111827",border:p.banned?"1px solid rgba(248,113,113,.2)":"1px solid rgba(242,237,228,.05)"}}>
+                <Panel key={p.id} style={{padding:"14px 16px",background:p.banned?"rgba(127,29,29,.12)":undefined,border:p.banned?"1px solid rgba(248,113,113,.2)":"1px solid rgba(242,237,228,.09)"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                     <div style={{flex:1,minWidth:0}}>
                       <div style={{fontWeight:700,fontSize:14,color:p.banned?"#F87171":"#F2EDE4",display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:3}}>
@@ -4022,7 +4037,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <Divider label="Stats"/>
             <div className="grid-2" style={{marginTop:8}}>
               {[["Players",players.length],["Total Pts",players.reduce((s,p)=>s+p.pts,0)],["Games",players.reduce((s,p)=>s+(p.games||0),0)],["Clashes",PAST_CLASHES.length+1]].map(([l,v])=>(
-                <div key={l} style={{background:"#0F1520",borderRadius:9,padding:"12px",textAlign:"center"}}>
+                <div key={l} className="inner-box" style={{padding:"12px",textAlign:"center"}}>
                   <div className="mono" style={{fontSize:20,fontWeight:700,color:"#E8A838"}}>{v}</div>
                   <div style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:3,letterSpacing:".04em"}}>{l}</div>
                 </div>
@@ -4108,7 +4123,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Active Announcements</div>
             {announcements.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#9AAABF",fontSize:13}}>No active announcements</div>}
             {announcements.map(a=>(
-              <div key={a.id} style={{padding:"12px",background:"#0F1520",border:"1px solid rgba(242,237,228,.07)",borderRadius:9,marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
+              <div key={a.id} className="ann-item" style={{marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
                 <div style={{flex:1,minWidth:0}}>
                   <Tag color="#E8A838" size="sm">{a.type}</Tag>
                   <div style={{fontSize:13,color:"#C8BFB0",marginTop:7,lineHeight:1.4}}>{a.msg}</div>
@@ -4522,7 +4537,7 @@ function ScrimsScreen({players,toast,setScreen}){
                   {label:"Players Tracked",val:scrimStats.length,c:"#4ECDC4"},
                   {label:"Avg Game Time",val:allGames.length>0?fmt(Math.round(allGames.reduce((s,g)=>s+g.duration,0)/allGames.length)):"-",c:"#6EE7B7"},
                 ].map(({label,val,c})=>(
-                  <div key={label} style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
+                  <div key={label} className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
                     <div className="mono" style={{fontSize:22,fontWeight:700,color:c,lineHeight:1}}>{val}</div>
                     <div className="cond" style={{fontSize:9,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
                   </div>
@@ -5163,7 +5178,7 @@ function ChallengesScreen({currentUser,players,toast}){
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
             {DAILY_CHALLENGES.map(c=>(
-              <div key={c.id} style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:"16px"}}>
+              <div key={c.id} className="task-card">
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{c.icon}</div>
                   <div style={{flex:1,minWidth:0}}>
@@ -5192,7 +5207,7 @@ function ChallengesScreen({currentUser,players,toast}){
             {WEEKLY_CHALLENGES.map(c=>{
               const done=c.progress>=c.goal;
               return(
-                <div key={c.id} style={{background:done?"rgba(82,196,124,.05)":"#111827",border:"1px solid "+(done?"rgba(82,196,124,.3)":"rgba(155,114,207,.15)"),borderRadius:12,padding:"16px"}}>
+                <div key={c.id} className={done?"weekly-card":"weekly-card"} style={{background:done?"rgba(82,196,124,.05)":undefined,border:done?"1px solid rgba(82,196,124,.3)":undefined}}>
                   <div style={{display:"flex",alignItems:"center",gap:12}}>
                     <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{done?"✅":c.icon}</div>
                     <div style={{flex:1,minWidth:0}}>
@@ -5777,7 +5792,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                   {l:"PPG",v:s.ppg,c:"#EAB308"},
                   {l:"Clutch Rate",v:s.clutchRate+"%",c:"#9B72CF"},
                 ].map(({l,v,c})=>(
-                  <div key={l} style={{background:"#111827",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"14px 12px",textAlign:"center"}}>
+                  <div key={l} className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
                     <div className="mono" style={{fontSize:20,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
                     <div style={{fontSize:10,color:"#BECBD9",marginTop:5,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
                   </div>
@@ -6413,7 +6428,7 @@ function FantasyTeaserScreen({toast,setScreen,currentUser}){
         <h3 style={{fontSize:17,color:"#C4B5FD",marginBottom:16}}>Scoring System Preview</h3>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10}}>
           {[["1st place","10 pts","#E8A838"],["2nd place","7 pts","#C0C0C0"],["3rd place","5 pts","#CD7F32"],["4th place","3 pts","#4ECDC4"],["5th-8th","0 pts","#BECBD9"],["Exact call","+3 bonus","#9B72CF"],["Clutch win","+2 bonus","#F97316"],["Win streak","+1/game","#EAB308"]].map(([l,v,c])=>(
-            <div key={l} style={{background:"#111827",borderRadius:9,padding:"12px",textAlign:"center",border:"1px solid rgba(242,237,228,.06)"}}>
+            <div key={l} className="inner-box" style={{padding:"12px",textAlign:"center"}}>
               <div className="mono" style={{fontSize:16,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
               <div style={{fontSize:11,color:"#BECBD9",marginTop:4}}>{l}</div>
             </div>
@@ -6719,7 +6734,7 @@ function FAQScreen({setScreen}){
                 const idx=qi++;
                 const isOpen=open.has(idx);
                 return(
-                  <div key={idx} style={{background:"#111827",borderRadius:10,border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.06)"),overflow:"hidden",transition:"border-color .15s"}}>
+                  <div key={idx} style={{background:"linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95))",borderRadius:10,border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.09)"),overflow:"hidden",transition:"border-color .15s"}}>
                     <button onClick={()=>setOpen(prev=>{const s=new Set(prev);isOpen?s.delete(idx):s.add(idx);return s;})} style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",padding:"16px 20px",background:"none",border:"none",cursor:"pointer",textAlign:"left",gap:16}}>
                       <span style={{fontSize:14,fontWeight:600,color:isOpen?"#F2EDE4":"#C8BFB0",lineHeight:1.5,flex:1}}>{item.q}</span>
                       <span style={{fontSize:18,color:"#9B72CF",flexShrink:0,transition:"transform .2s",display:"inline-block",transform:isOpen?"rotate(45deg)":"none"}}>+</span>
