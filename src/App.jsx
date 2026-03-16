@@ -3965,7 +3965,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Send Broadcast</h3>
               <div style={{marginBottom:12}}><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={broadType} onChange={setBroadType}>{["NOTICE","ALERT","UPDATE","RESULT","INFO"].map(t=><option key={t}>{t}</option>)}</Sel></div>
               <div style={{marginBottom:16}}><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label><Inp value={broadMsg} onChange={setBroadMsg} placeholder="Your announcement..."/></div>
-              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Sent","success");}}>Send</Btn>
+              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:broadMsg.trim(),updated_at:new Date().toISOString()}).then(()=>{});addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Sent","success");}}>Send</Btn>
             </div>
           </Panel>
           <Panel style={{padding:"20px"}}>
@@ -3973,7 +3973,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             {announcements.map(a=>(
               <div key={a.id} style={{padding:"11px",background:"#0F1520",border:"1px solid rgba(242,237,228,.07)",borderRadius:9,marginBottom:8,display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8}}>
                 <div><Tag color="#E8A838" size="sm">{a.type}</Tag><div style={{fontSize:13,color:"#C8BFB0",marginTop:6}}>{a.msg}</div></div>
-                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");}} style={{background:"none",border:"none",color:"#BECBD9",cursor:"pointer",fontSize:20,lineHeight:1,flexShrink:0,minWidth:28,minHeight:28}}>×</button>
+                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:'',updated_at:new Date().toISOString()}).then(()=>{});}} style={{background:"none",border:"none",color:"#BECBD9",cursor:"pointer",fontSize:20,lineHeight:1,flexShrink:0,minWidth:28,minHeight:28}}>×</button>
               </div>
             ))}
           </Panel>
@@ -7307,6 +7307,17 @@ export default function TFTClash(){
   useEffect(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},[quickClashes]);
   useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
   useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
+  // Supabase: fetch announcement on mount + realtime updates so all users see it
+  useEffect(function(){
+    if(!supabase.from)return;
+    supabase.from('site_settings').select('value').eq('key','announcement').maybeSingle()
+      .then(function(res){if(res.data&&res.data.value)setAnnouncement(res.data.value);});
+    var ch=supabase.channel('announcement_changes')
+      .on('postgres_changes',{event:'*',schema:'public',table:'site_settings',filter:'key=eq.announcement'},
+        function(payload){setAnnouncement((payload.new&&payload.new.value)||'');})
+      .subscribe();
+    return function(){supabase.removeChannel(ch);};
+  },[]);
   function navTo(s){
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
     window.history.pushState({screen:s},'','#'+s);
