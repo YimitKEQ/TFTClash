@@ -1366,6 +1366,37 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 
 .weekly-card:hover{border-color:rgba(155,114,207,.35);}
 
+
+
+/* ── Mobile responsiveness fixes ────────────────────────────── */
+
+@media(max-width:767px){
+
+  /* Mobile table fixes */
+  .clash-table{font-size:12px;}
+  .clash-table td,.clash-table th{padding:6px 8px;}
+
+  /* Mobile bracket fixes */
+  .lobby-card{margin-bottom:12px;}
+
+  /* Mobile nav spacing */
+  .mobile-bottom-nav{padding-bottom:env(safe-area-inset-bottom,8px);}
+
+  /* Mobile profile tabs - horizontal scroll */
+  .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
+
+  /* Mobile touch targets */
+  button{min-height:40px;}
+
+}
+
+@media(max-width:480px){
+
+  /* Mobile panel padding reduction */
+  .panel-sm-pad{padding:14px!important;}
+
+}
+
 `;
 
 
@@ -3096,7 +3127,9 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
                   <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
 
-                  {isHotStreak(p)&&<span style={{flexShrink:0}}>🔥</span>}
+                  {isHotStreak(p)&&<span title={"Win streak: "+(p.currentStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🔥</span>}
+
+                  {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🥶</span>}
 
                   <OrgSponsorTag playerId={p.id}/>
 
@@ -3159,6 +3192,8 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
     var ign=customIgn.trim();
 
     if(!ign){toast("Enter your Riot ID to register","error");return;}
+
+    if(!isValidRiotId(ign)){toast("Format: Name#TAG (e.g. Levitate#EUW)","error");return;}
 
     setRegistered(true);setShowForm(false);
 
@@ -5270,7 +5305,19 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
           <Panel style={{padding:"18px"}}>
 
-            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Career Stats</h3>
+            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:10}}>Career Stats</h3>
+
+            {((player.currentStreak||0)>=3||(player.tiltStreak||0)>=3)&&(
+
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
+
+                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>🔥 Hot Streak — {player.currentStreak} wins in a row</div>}
+
+                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>🥶 Cold Streak — {player.tiltStreak} losses</div>}
+
+              </div>
+
+            )}
 
             {/* AVP dual display - prominent */}
 
@@ -5329,6 +5376,18 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
               </div>
 
             ))}
+
+            {(player.bestStreak||0)>=5&&(
+
+              <div style={{marginTop:12,display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,background:"rgba(234,179,8,.08)",border:"1px solid rgba(234,179,8,.3)"}}>
+
+                <span style={{fontSize:16}}>👑</span>
+
+                <span style={{fontSize:13,color:"#EAB308",fontWeight:700}}>Best Streak: {player.bestStreak}</span>
+
+              </div>
+
+            )}
 
           </Panel>
 
@@ -5718,6 +5777,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
   const [regionFilter,setRegionFilter]=useState("All");
 
+  const [compareIds,setCompareIds]=useState([]);
+
   const MEDALS=["🥇","🥈","🥉"];
 
   const MCOLS=["#E8A838","#C0C0C0","#CD7F32"];
@@ -5744,7 +5805,15 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
   function open(p){setProfilePlayer(p);setScreen("profile");}
 
+  function toggleCompare(id){
+    setCompareIds(prev=>{
+      if(prev.includes(id))return prev.filter(x=>x!==id);
+      if(prev.length>=3)return prev;
+      return [...prev,id];
+    });
+  }
 
+  const comparePlayers=sorted.filter(p=>compareIds.includes(p.id));
 
   return(
 
@@ -5924,6 +5993,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                 <Sparkline data={p.sparkline||[p.pts]} color={rc(p.rank)} w={180} h={22}/>
 
+                <div style={{marginTop:10,display:"flex",justifyContent:"flex-end"}} onClick={e=>e.stopPropagation()}><span onClick={()=>toggleCompare(p.id)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,border:"1px solid "+(compareIds.includes(p.id)?"#4ECDC4":"rgba(78,205,196,.4)"),background:compareIds.includes(p.id)?"rgba(78,205,196,.18)":"transparent",color:compareIds.includes(p.id)?"#4ECDC4":"#9AAABF",cursor:"pointer",userSelect:"none"}}>{compareIds.includes(p.id)?"Comparing":"Compare"}</span></div>
+
               </Panel>
 
             );
@@ -5944,7 +6015,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
           <div style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px",padding:"9px 14px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
 
-            {["#","Player","PPG","Avg","T1%","T4%","B4%"].map(h=>(
+            {["#","Player","PPG","Avg","T1%","T4%","B4%",""].map(h=>(
 
               <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
 
@@ -5956,9 +6027,11 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
             const s2=computeStats(p);
 
+            const inCmp=compareIds.includes(p.id);
+
             return(
 
-              <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
+              <div key={p.id} style={{display:"grid",gridTemplateColumns:"28px 1fr 55px 70px 55px 55px 60px 52px",padding:"11px 14px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",cursor:"pointer"}} onClick={()=>open(p)}>
 
                 <span className="mono" style={{fontSize:12,color:i<3?"#E8A838":"#9AAABF"}}>{i+1}</span>
 
@@ -5977,6 +6050,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
                 <span className="mono" style={{fontSize:12,color:"#4ECDC4"}}>{s2.top4Rate}%</span>
 
                 <span className="mono" style={{fontSize:12,color:"#F87171"}}>{s2.bot4Rate}%</span>
+
+                <span onClick={e=>{e.stopPropagation();toggleCompare(p.id);}} style={{fontSize:11,padding:"2px 7px",borderRadius:6,border:"1px solid "+(inCmp?"#4ECDC4":"rgba(78,205,196,.4)"),background:inCmp?"rgba(78,205,196,.18)":"transparent",color:inCmp?"#4ECDC4":"#9AAABF",cursor:"pointer",userSelect:"none",textAlign:"center"}}>{inCmp?"✓":"+"}</span>
 
               </div>
 
@@ -6047,6 +6122,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
         </Panel>
 
       )}
+
+      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"#111827",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:20}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div>{[["Season Points",comparePlayers.map(p=>p.pts),false],["Avg Placement",comparePlayers.map(p=>parseFloat(computeStats(p).avgPlacement)||99),true],["Wins",comparePlayers.map(p=>computeStats(p).wins),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top4Rate)||0),false],["Win Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top1Rate)||0),false],["Games",comparePlayers.map(p=>computeStats(p).games),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"8px 0",borderBottom:"1px solid rgba(242,237,228,.05)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0"}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center"}}>{label==="Avg Placement"?v===99?"-":v:label==="Top 4 Rate"||label==="Win Rate"?v+"%":v}</span>))}</div>);})}</div>}
 
     </div>
 
@@ -10738,6 +10815,11 @@ function ChallengesScreen({currentUser,players,toast}){
 
 // ─── AUTH SCREENS ─────────────────────────────────────────────────────────────
 
+function isValidRiotId(id) {
+  // Format: Name#TAG where Name is 3-16 chars, TAG is 3-5 alphanumeric chars
+  return /^.{3,16}#[A-Za-z0-9]{3,5}$/.test((id||'').trim());
+}
+
 function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
 
   const [step,setStep]=useState(1); // 1=credentials, 2=profile
@@ -10768,6 +10850,8 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
 
   const [loading,setLoading]=useState(false);
 
+  const [riotIdErr,setRiotIdErr]=useState("");
+
 
 
   function nextStep(){
@@ -10789,6 +10873,10 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
   async function submit(){
 
     if(!riotId.trim()){toast("Riot ID required","error");return;}
+
+    if(!isValidRiotId(riotId)){setRiotIdErr("Format: Name#TAG (e.g. Levitate#EUW)");return;}
+
+    setRiotIdErr("");
 
     setLoading(true);
 
@@ -10974,7 +11062,9 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
 
                 <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Riot ID <span style={{color:"#F87171"}}>*</span></div>
 
-                <Inp value={riotId} onChange={setRiotId} placeholder="Name#TAG"/>
+                <Inp value={riotId} onChange={v=>{setRiotId(v);if(riotIdErr)setRiotIdErr("");}} placeholder="Name#TAG"/>
+
+                {riotIdErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{riotIdErr}</div>}
 
               </div>
 
@@ -15388,6 +15478,14 @@ function TFTClash(){
       const desc=params.get("error_description")||"Sign-in failed. Please try again.";
 
       toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
+
+    }
+
+    if(params.get("checkout")==="success"){
+
+      toast("Subscription activated! Welcome to Pro. ✨","success");
+
+      window.history.replaceState({},'',window.location.pathname+'#account');
 
     }
 
