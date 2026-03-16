@@ -7483,6 +7483,30 @@ function TFTClash(){
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>setCurrentUser(mapUser(session?.user??null)));
     return ()=>subscription.unsubscribe();
   },[]);
+  // ── Load players from Supabase players table (source of truth) ──────────────
+  useEffect(function(){
+    if(!supabase.from)return;
+    supabase.from('players').select('*').order('season_pts',{ascending:false})
+      .then(function(res){
+        if(res.error){console.error('Failed to load players:',res.error);return;}
+        if(res.data&&res.data.length){
+          setPlayers(res.data.map(function(r){
+            return{
+              ...r,
+              name:r.username,
+              pts:r.season_pts||0,
+              avg:r.avg_placement!=null?Number(r.avg_placement):null,
+              riotId:r.riot_id||'',
+              wins:r.wins||0,
+              games:r.games||0,
+              top4:r.top4||0,
+              rank:r.rank||'Iron',
+              region:r.region||'EUW',
+            };
+          }));
+        }
+      });
+  },[]);
   // localStorage sync (fast cache)
   useEffect(()=>{try{localStorage.setItem("tft-players",JSON.stringify(players));}catch{}},[players]);
   useEffect(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},[notifications]);
@@ -7493,13 +7517,13 @@ function TFTClash(){
   useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
 
   // ── Supabase shared state — single channel for all keys ──────────────────
-  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false});
+  const rtRef=useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false});
   const announcementInitRef=useRef(false);
   useEffect(function(){
     if(!supabase.from)return;
     // fetch all shared keys on mount
     supabase.from('site_settings').select('key,value')
-      .in('key',['players','tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps'])
+      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps'])
       .then(function(res){
         if(!res.data)return;
         res.data.forEach(function(row){
@@ -7507,7 +7531,6 @@ function TFTClash(){
             if(row.key==='announcement'){rtRef.current.announcement=true;setAnnouncement(row.value||'');}
             else{
               var val=JSON.parse(row.value);
-              if(row.key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
               if(row.key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
@@ -7530,7 +7553,6 @@ function TFTClash(){
           if(key==='announcement'){rtRef.current.announcement=true;setAnnouncement(raw||'');return;}
           var val=JSON.parse(raw||'null');
           if(!val)return;
-          if(key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);}
           if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
           if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
           if(key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
@@ -7545,10 +7567,6 @@ function TFTClash(){
   },[]);
 
   // save shared state to Supabase on every change (skip if change came from Supabase)
-  useEffect(function(){
-    if(rtRef.current.players){rtRef.current.players=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()}).then(function(){});
-  },[players]);
   useEffect(function(){
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()}).then(function(){});
