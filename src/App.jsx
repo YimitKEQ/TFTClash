@@ -3015,10 +3015,11 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
       </div>
 
       {/* Champion banner */}
-      <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(155,114,207,.06))",border:"1px solid rgba(232,168,56,.35)",borderRadius:18,padding:"28px 32px",marginBottom:24,display:"flex",alignItems:"center",gap:24,flexWrap:"wrap",position:"relative",overflow:"hidden"}}>
-        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#E8A838,#FFD700,#E8A838)"}}/>
-        <div style={{width:72,height:72,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.3),rgba(232,168,56,.08))",border:"2px solid rgba(232,168,56,.6)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:900,color:"#E8A838",fontFamily:"'Cinzel',serif",flexShrink:0}}>
-          {champ.name.charAt(0)}
+      <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.22),rgba(155,114,207,.08),rgba(8,8,15,1))",border:"1px solid rgba(232,168,56,.55)",borderRadius:18,padding:"28px 32px",marginBottom:24,display:"flex",alignItems:"center",gap:24,flexWrap:"wrap",position:"relative",overflow:"hidden",boxShadow:"0 0 60px rgba(232,168,56,.18),inset 0 0 80px rgba(232,168,56,.04)"}}>
+        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.3),transparent)"}}/>
+        <div style={{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.06))",border:"2px solid rgba(232,168,56,.7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,flexShrink:0,boxShadow:"0 0 24px rgba(232,168,56,.35)"}}>
+          👑
         </div>
         <div style={{flex:1,minWidth:0}}>
           <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>👑 Clash Champion</div>
@@ -3324,9 +3325,9 @@ function HofScreen({players,setScreen,setProfilePlayer}){
             const isOpen=expandRecord===r.id;
             return(
               <div key={r.id} onClick={()=>setExpandRecord(isOpen?null:r.id)}
-                style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid "+(isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s,box-shadow .2s",boxShadow:isOpen?"0 0 32px rgba(232,168,56,.07)":"none"}}
-                onMouseEnter={e=>e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(232,168,56,.2)"}
-                onMouseLeave={e=>e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"}>
+                style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid "+(isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s,box-shadow .2s,transform .2s",boxShadow:isOpen?"0 0 40px rgba(232,168,56,.12)":"none",transform:"translateY(0)"}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.4)";e.currentTarget.style.boxShadow="0 0 32px rgba(232,168,56,.14),0 4px 24px rgba(0,0,0,.4)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)";e.currentTarget.style.boxShadow=isOpen?"0 0 40px rgba(232,168,56,.12)":"none";e.currentTarget.style.transform="translateY(0)";}}>
                 <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.08),rgba(232,168,56,.02))",padding:"16px 18px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid rgba(232,168,56,.1)"}}>
                   <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{r.icon}</div>
                   <div style={{flex:1,minWidth:0}}>
