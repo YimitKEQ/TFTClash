@@ -1632,6 +1632,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   return(
     <div className="page wrap">
+      {announcement&&(
+        <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:16,flexShrink:0}}>📢</span>
+          <span style={{color:"#E8A838",fontWeight:600,fontSize:14}}>{announcement}</span>
+        </div>
+      )}
+
       {/* Champion hero card - shown all season */}
       {SEASON_CHAMPION&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
 
@@ -7394,14 +7401,6 @@ export default function TFTClash(){
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
           currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead}/>
-
-        {announcement&&(
-          <div style={{position:"sticky",top:60,zIndex:990,background:"rgba(8,10,22,0.96)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(232,168,56,.28)",padding:"9px 20px",display:"flex",alignItems:"center",gap:10}}>
-            <span style={{fontSize:13,flexShrink:0}}>📢</span>
-            <span style={{color:"#E8A838",fontWeight:600,fontSize:13,flex:1,lineHeight:1.4}}>{announcement}</span>
-            {isAdmin&&<button onClick={()=>setAnnouncement("")} style={{background:"none",border:"none",color:"#8896A8",cursor:"pointer",fontSize:18,lineHeight:1,padding:"2px 8px",flexShrink:0,marginLeft:4}} title="Clear broadcast">×</button>}
-          </div>
-        )}
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash}/>}
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
