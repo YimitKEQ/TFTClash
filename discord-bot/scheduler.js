@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import { standingsEmbed, reminderEmbed, clashInfoEmbed } from './utils/embeds.js';
+import { getStandings } from './utils/data.js';
 
 export function startScheduler(client) {
   const guild = () => client.guilds.cache.get(process.env.GUILD_ID);
@@ -9,7 +10,8 @@ export function startScheduler(client) {
   cron.schedule('0 9 * * 1', async () => {
     const c = ch('standings');
     if (c) {
-      await c.send({ content: '📊 **Weekly Standings Update**', embeds: [standingsEmbed()] });
+      const players = await getStandings();
+      await c.send({ content: '📊 **Weekly Standings Update**', embeds: [standingsEmbed(players)] });
       console.log('[sched] standings posted');
     }
   }, { timezone: process.env.TIMEZONE || 'Europe/London' });

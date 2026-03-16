@@ -7256,11 +7256,11 @@ function HofScreen({players,setScreen,setProfilePlayer}){
 
 // ─── ARCHIVE ──────────────────────────────────────────────────────────────────
 
-function ArchiveScreen({players,currentUser,setScreen}){
+function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
   const [open,setOpen]=useState(null);
 
-  const all=[...PAST_CLASHES];
+  const all=[...(pastClashes||PAST_CLASHES)];
 
 
 
@@ -15278,6 +15278,8 @@ function TFTClash(){
 
   const [hostApps,setHostApps]=useState(()=>{try{var s=localStorage.getItem('tft-host-apps');return s?JSON.parse(s):[];}catch(e){return [];}});
 
+  const [pastClashes,setPastClashes]=useState([]);
+
   // Auth state
 
   const [currentUser,setCurrentUser]=useState(null); // null = guest; hydrated by Supabase auth
@@ -15557,6 +15559,30 @@ function TFTClash(){
     if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()}).then(function(){});
   },[players]);
 
+  // Load past clashes from tournament_results + tournaments tables
+  useEffect(function(){
+    if(!supabase.from||!players.length)return;
+    supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false})
+      .then(function(res){
+        if(!res.data||!res.data.length)return;
+        var tIds=res.data.map(function(t){return t.id;});
+        supabase.from('tournament_results').select('tournament_id,player_id,final_placement,total_points')
+          .in('tournament_id',tIds).order('final_placement',{ascending:true})
+          .then(function(rRes){
+            if(!rRes.data)return;
+            var clashes=res.data.map(function(t){
+              var results=rRes.data.filter(function(r){return r.tournament_id===t.id;});
+              var top8=results.slice(0,8).map(function(r){
+                var p=players.find(function(pl){return String(pl.id)===String(r.player_id);});
+                return p?p.name:('Player '+r.player_id);
+              });
+              return{id:t.id,name:t.name,date:t.date,season:'S16',players:results.length,lobbies:Math.ceil(results.length/8),champion:top8[0]||'Unknown',top3:top8};
+            });
+            setPastClashes(clashes);
+          });
+      });
+  },[players]);
+
   function navTo(s){
 
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
@@ -15786,7 +15812,7 @@ function TFTClash(){
 
         {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer}/>}
 
-        {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo}/>}
+        {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
 
         {screen==="milestones" &&<MilestonesScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 
