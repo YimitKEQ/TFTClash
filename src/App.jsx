@@ -7301,7 +7301,7 @@ export default function TFTClash(){
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>setCurrentUser(mapUser(session?.user??null)));
     return ()=>subscription.unsubscribe();
   },[]);
-  // localStorage sync
+  // localStorage sync (fast cache)
   useEffect(()=>{try{localStorage.setItem("tft-players",JSON.stringify(players));}catch{}},[players]);
   useEffect(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},[notifications]);
   useEffect(()=>{try{localStorage.setItem("tft-tournament",JSON.stringify(tournamentState));}catch{}},[tournamentState]);
@@ -7309,17 +7309,64 @@ export default function TFTClash(){
   useEffect(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},[quickClashes]);
   useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
   useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
-  // Supabase: fetch announcement on mount + realtime updates so all users see it
+
+  // ── Supabase shared state — single channel for all keys ──────────────────
+  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false});
   useEffect(function(){
     if(!supabase.from)return;
-    supabase.from('site_settings').select('value').eq('key','announcement').maybeSingle()
-      .then(function(res){if(res.data&&res.data.value)setAnnouncement(res.data.value);});
-    var ch=supabase.channel('announcement_changes')
-      .on('postgres_changes',{event:'*',schema:'public',table:'site_settings',filter:'key=eq.announcement'},
-        function(payload){setAnnouncement((payload.new&&payload.new.value)||'');})
+    // fetch all shared keys on mount
+    supabase.from('site_settings').select('key,value')
+      .in('key',['players','tournament_state','quick_clashes','announcement'])
+      .then(function(res){
+        if(!res.data)return;
+        res.data.forEach(function(row){
+          try{
+            if(row.key==='announcement'){rtRef.current.announcement=true;setAnnouncement(row.value||'');}
+            else{
+              var val=JSON.parse(row.value);
+              if(row.key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);}
+              if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
+              if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
+            }
+          }catch(e){}
+        });
+      });
+    // realtime — push changes to all browsers instantly
+    var ch=supabase.channel('shared_state')
+      .on('postgres_changes',{event:'*',schema:'public',table:'site_settings'},function(payload){
+        try{
+          var key=payload.new&&payload.new.key;
+          var raw=payload.new&&payload.new.value;
+          if(!key)return;
+          if(key==='announcement'){rtRef.current.announcement=true;setAnnouncement(raw||'');return;}
+          var val=JSON.parse(raw||'null');
+          if(!val)return;
+          if(key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);}
+          if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
+          if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
+        }catch(e){}
+      })
       .subscribe();
     return function(){supabase.removeChannel(ch);};
   },[]);
+
+  // save shared state to Supabase on every change (skip if change came from Supabase)
+  useEffect(function(){
+    if(rtRef.current.players){rtRef.current.players=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()}).then(function(){});
+  },[players]);
+  useEffect(function(){
+    if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()}).then(function(){});
+  },[tournamentState]);
+  useEffect(function(){
+    if(rtRef.current.quick_clashes){rtRef.current.quick_clashes=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'quick_clashes',value:JSON.stringify(quickClashes),updated_at:new Date().toISOString()}).then(function(){});
+  },[quickClashes]);
+  useEffect(function(){
+    if(rtRef.current.announcement){rtRef.current.announcement=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:announcement,updated_at:new Date().toISOString()}).then(function(){});
+  },[announcement]);
   function navTo(s){
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
     window.history.pushState({screen:s},'','#'+s);
