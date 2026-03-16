@@ -14920,11 +14920,11 @@ function TFTClash(){
 
   const [orgSponsors,setOrgSponsors]=useState(()=>{try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):{};}catch(e){return {};}});
 
-  const [scheduledEvents,setScheduledEvents]=useState([]);
+  const [scheduledEvents,setScheduledEvents]=useState(()=>{try{var s=localStorage.getItem('tft-scheduled-events');return s?JSON.parse(s):[];}catch(e){return [];}});
 
-  const [auditLog,setAuditLog]=useState([]);
+  const [auditLog,setAuditLog]=useState(()=>{try{var s=localStorage.getItem('tft-audit-log');return s?JSON.parse(s):[];}catch(e){return [];}});
 
-  const [hostApps,setHostApps]=useState([]);
+  const [hostApps,setHostApps]=useState(()=>{try{var s=localStorage.getItem('tft-host-apps');return s?JSON.parse(s):[];}catch(e){return [];}});
 
   // Auth state
 
@@ -14970,66 +14970,6 @@ function TFTClash(){
 
   },[]);
 
-  // ── Load players from Supabase players table (source of truth) ──────────────
-
-  useEffect(function(){
-
-    if(!supabase.from)return;
-
-    supabase.from('players').select('*').order('season_pts',{ascending:false})
-
-      .then(function(res){
-
-        if(res.error){console.error('Failed to load players:',res.error);return;}
-
-        if(res.data&&res.data.length){
-
-          setPlayers(function(prev){
-
-            var prevById={};
-
-            (prev||[]).forEach(function(p){prevById[String(p.id)]=p;});
-
-            return res.data.map(function(r){
-
-              var prevP=prevById[String(r.id)]||{};
-
-              return{
-
-                ...r,
-
-                name:r.username,
-
-                pts:r.season_pts||0,
-
-                avg:r.avg_placement!=null?Number(r.avg_placement):null,
-
-                riotId:r.riot_id||'',
-
-                wins:r.wins||0,
-
-                games:r.games||0,
-
-                top4:r.top4||0,
-
-                rank:r.rank||'Iron',
-
-                region:r.region||'EUW',
-
-                checkedIn:prevP.checkedIn||false,
-
-              };
-
-            });
-
-          });
-
-        }
-
-      });
-
-  },[]);
-
   // ── Stamp checkedIn from tournamentState.checkedInIds onto players ────────────
 
   useEffect(function(){
@@ -15055,12 +14995,38 @@ function TFTClash(){
   useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
 
   useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
+  useEffect(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},[scheduledEvents]);
+  useEffect(function(){try{localStorage.setItem("tft-audit-log",JSON.stringify(auditLog));}catch(e){}},[auditLog]);
+  useEffect(function(){try{localStorage.setItem("tft-host-apps",JSON.stringify(hostApps));}catch(e){}},[hostApps]);
 
 
+
+  // ── Bootstrap players from players table (fallback when site_settings has none) ──
+  function bootstrapPlayersFromTable(){
+    if(!supabase.from)return;
+    supabase.from('players').select('*').order('season_pts',{ascending:false})
+      .then(function(res){
+        if(res.error||!res.data||!res.data.length)return;
+        var mapped=res.data.map(function(r){
+          return{
+            ...r,name:r.username,pts:r.season_pts||0,
+            avg:r.avg_placement!=null?Number(r.avg_placement):null,
+            riotId:r.riot_id||'',wins:r.wins||0,games:r.games||0,
+            top4:r.top4||0,rank:r.rank||'Iron',region:r.region||'EUW',
+            banned:false,dnpCount:0,notes:'',checkedIn:false,
+            clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
+            tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
+          };
+        });
+        setPlayers(mapped);
+        // Write bootstrap data to site_settings so future loads use it
+        supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(mapped),updated_at:new Date().toISOString()}).then(function(){});
+      });
+  }
 
   // ── Supabase shared state — single channel for all keys ──────────────────
 
-  const rtRef=useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false});
+  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false});
 
   const announcementInitRef=useRef(false);
 
@@ -15072,11 +15038,13 @@ function TFTClash(){
 
     supabase.from('site_settings').select('key,value')
 
-      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps'])
+      .in('key',['players','tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps'])
 
       .then(function(res){
 
-        if(!res.data)return;
+        if(!res.data){bootstrapPlayersFromTable();return;}
+
+        var hadPlayers=false;
 
         res.data.forEach(function(row){
 
@@ -15088,6 +15056,7 @@ function TFTClash(){
 
               var val=JSON.parse(row.value);
 
+              if(row.key==='players'&&Array.isArray(val)&&val.length>0){rtRef.current.players=true;setPlayers(val);hadPlayers=true;}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
 
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
@@ -15109,6 +15078,8 @@ function TFTClash(){
         });
 
         announcementInitRef.current=true;
+
+        if(!hadPlayers)bootstrapPlayersFromTable();
 
       });
 
@@ -15132,6 +15103,7 @@ function TFTClash(){
 
           if(!val)return;
 
+          if(key==='players'&&Array.isArray(val)&&val.length>0){rtRef.current.players=true;setPlayers(val);}
           if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
 
           if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
@@ -15225,6 +15197,11 @@ function TFTClash(){
     if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(){});
 
   },[hostApps]);
+
+  useEffect(function(){
+    if(rtRef.current.players){rtRef.current.players=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()}).then(function(){});
+  },[players]);
 
   function navTo(s){
 
