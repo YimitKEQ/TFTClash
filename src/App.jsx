@@ -1615,15 +1615,23 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     </div>
   );
 
+  // Community pulse ticker
+  const sortedPts=[...players].sort((a,b)=>b.pts-a.pts);
+  const sortedWins=[...players].sort((a,b)=>b.wins-a.wins);
+  const sortedStreak=[...players].sort((a,b)=>(b.currentStreak||0)-(a.currentStreak||0));
+  const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
+  const tickerItems=players.length>0?[
+    "📅 Next clash: Saturday 8PM EST",
+    sortedPts[0]&&("🏆 "+sortedPts[0].name+" leads Season 16 with "+sortedPts[0].pts+" pts"),
+    totalGames>0&&("🎮 "+totalGames+" games played this season"),
+    sortedWins[0]&&sortedWins[0].wins>0&&("🥇 "+sortedWins[0].name+" · "+sortedWins[0].wins+" tournament wins"),
+    sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&("🔥 "+sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"),
+    "⚡ "+players.filter(p=>p.checkedIn).length+" / "+players.length+" players checked in",
+    "📊 Season 16 active — "+players.length+" registered",
+  ].filter(Boolean):[];
+
   return(
     <div className="page wrap">
-      {announcement&&(
-        <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:16,flexShrink:0}}>📢</span>
-          <span style={{color:"#E8A838",fontWeight:600,fontSize:14}}>{announcement}</span>
-        </div>
-      )}
-
       {/* Champion hero card - shown all season */}
       {SEASON_CHAMPION&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
 
@@ -1653,7 +1661,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       {/* Guest sign-in nudge */}
       {!currentUser&&(
-        <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginBottom:4,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+        <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
           <div style={{fontSize:22}}>👤</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
@@ -1694,7 +1702,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
       {currentUser&&(
-        <div style={{background:"rgba(82,196,124,.05)",border:"1px solid rgba(82,196,124,.2)",borderRadius:12,padding:"12px 18px",marginBottom:4,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+        <div style={{background:"rgba(82,196,124,.05)",border:"1px solid rgba(82,196,124,.2)",borderRadius:12,padding:"12px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
           <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#08080F",flexShrink:0}}>
             {currentUser.username.charAt(0).toUpperCase()}
           </div>
@@ -1853,8 +1861,21 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       </div>
 
 
+      {/* Community Pulse Ticker */}
+      {tickerItems.length>0&&(
+        <div style={{overflow:"hidden",marginTop:20,borderRadius:10,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)"}}>
+          <div className="ticker-scroll">
+            {[...tickerItems,...tickerItems].map((item,i)=>(
+              <span key={i} style={{display:"inline-flex",alignItems:"center",padding:"8px 22px",fontSize:12,color:"#C8D4E0",fontWeight:600,whiteSpace:"nowrap",borderRight:"1px solid rgba(155,114,207,.1)"}}>
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Featured Events */}
-      <div style={{marginTop:24,marginBottom:4}}>
+      <div style={{marginTop:20,marginBottom:4}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
           <div>
             <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Partner Events</div>
@@ -7245,7 +7266,7 @@ export default function TFTClash(){
   const [notifications,setNotifications]=useState(()=>{try{const s=localStorage.getItem("tft-notifications");return s?JSON.parse(s):NOTIF_SEED;}catch{return NOTIF_SEED;}});
   const [toasts,setToasts]=useState([]);
   const [disputes]=useState([]);
-  const [announcement,setAnnouncement]=useState("");
+  const [announcement,setAnnouncement]=useState(()=>{try{return localStorage.getItem("tft-announcement")||"";}catch{return "";}});
   const [profilePlayer,setProfilePlayer]=useState(null);
   const [tournamentState,setTournamentState]=useState(()=>{try{const s=localStorage.getItem("tft-tournament");return s?JSON.parse(s):{phase:"registration",round:1,lobbies:[],lockedLobbies:[]};}catch{return {phase:"registration",round:1,lobbies:[],lockedLobbies:[]};}});
   const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
@@ -7278,6 +7299,7 @@ export default function TFTClash(){
   useEffect(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},[seasonConfig]);
   useEffect(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},[quickClashes]);
   useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
+  useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
   function navTo(s){
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
     window.history.pushState({screen:s},'','#'+s);
@@ -7364,11 +7386,22 @@ export default function TFTClash(){
           .wrap{overflow-x:hidden;padding:0 12px;}
           .page{padding:16px 12px 96px;}
         }
+        @keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+        .ticker-scroll{display:flex;width:max-content;animation:ticker-scroll 32s linear infinite;will-change:transform;}
+        .ticker-scroll:hover{animation-play-state:paused;}
       `}</style>
       <Hexbg/>
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
           currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead}/>
+
+        {announcement&&(
+          <div style={{position:"sticky",top:60,zIndex:990,background:"rgba(8,10,22,0.96)",backdropFilter:"blur(14px)",WebkitBackdropFilter:"blur(14px)",borderBottom:"1px solid rgba(232,168,56,.28)",padding:"9px 20px",display:"flex",alignItems:"center",gap:10}}>
+            <span style={{fontSize:13,flexShrink:0}}>📢</span>
+            <span style={{color:"#E8A838",fontWeight:600,fontSize:13,flex:1,lineHeight:1.4}}>{announcement}</span>
+            {isAdmin&&<button onClick={()=>setAnnouncement("")} style={{background:"none",border:"none",color:"#8896A8",cursor:"pointer",fontSize:18,lineHeight:1,padding:"2px 8px",flexShrink:0,marginLeft:4}} title="Clear broadcast">×</button>}
+          </div>
+        )}
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash}/>}
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
