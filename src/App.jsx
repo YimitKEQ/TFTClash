@@ -3471,16 +3471,14 @@ function ArchiveScreen({players,currentUser,setScreen}){
 
 
 
-function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors}){
+function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps}){
   const [tab,setTab]=useState("dashboard");
   const [editP,setEditP]=useState(null);
   const [noteTarget,setNoteTarget]=useState(null);
   const [noteText,setNoteText]=useState("");
-  const [auditLog,setAuditLog]=useState([]);
   const [broadMsg,setBroadMsg]=useState("");
   const [broadType,setBroadType]=useState("NOTICE");
   const [announcements,setAnnouncements]=useState([]);
-  const [scheduledEvents,setScheduledEvents]=useState([]);
   const [newEvent,setNewEvent]=useState({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});
   const [seedAlgo,setSeedAlgo]=useState("rank-based");
   const [paused,setPaused]=useState(false);
@@ -3508,8 +3506,6 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const AUDIT_COLS={INFO:"#4ECDC4",ACTION:"#52C47C",WARN:"#E8A838",RESULT:"#9B72CF",BROADCAST:"#E8A838",DANGER:"#F87171"};
   const EVENT_COLS={SCHEDULED:"#E8A838",FLASH:"#F87171",INVITATIONAL:"#9B72CF",WEEKLY:"#4ECDC4"};
 
-  const [hostApps,setHostApps]=useState([]);
-
   const [addPlayerForm,setAddPlayerForm]=useState({name:"",riotId:"",region:"EUW",rank:"Gold"});
   const [showAddPlayer,setShowAddPlayer]=useState(false);
   function addPlayer(){
@@ -3527,6 +3523,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const [qcPlacements,setQcPlacements]=useState({});
   const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30"});
   const [flashEvents,setFlashEvents]=useState([]);
+  const [spForm,setSpForm]=useState({name:"",logo:"",color:"",playerId:""});
 
   const TABS=[
     {id:"dashboard",icon:"📊",label:"Dashboard"},
@@ -3952,7 +3949,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               <div style={{display:"flex",flexDirection:"column",gap:10}}>
                 <Btn v="danger" full onClick={()=>{if(window.confirm("Reset ALL stats?")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0})));addAudit("DANGER","Stats reset");toast("Reset","success");}}}>Reset Season Stats</Btn>
                 <Btn v="danger" full onClick={()=>{if(window.confirm("Clear ALL players?")){setPlayers([]);addAudit("DANGER","Players cleared");}}}>Clear All Players</Btn>
-                <Btn v="danger" full onClick={()=>{if(window.confirm("Reset season data? This will clear all points and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});localStorage.removeItem("tft-players");localStorage.removeItem("tft-tournament");addAudit("DANGER","Season data reset");toast("Season data reset","success");}}}>Reset Season Data</Btn>
+                <Btn v="danger" full onClick={()=>{if(window.confirm("Reset season data? This will clear all points and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset","success");}}}>Reset Season Data</Btn>
               </div>
             </div>
           </Panel>
@@ -4070,29 +4067,27 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Org Name</div>
-                <Inp id="sp-org-name" value="" onChange={()=>{}} placeholder="e.g. ProGuides"/>
+                <Inp value={spForm.name} onChange={v=>setSpForm(f=>Object.assign({},f,{name:v}))} placeholder="e.g. ProGuides"/>
               </div>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Logo Text</div>
-                <Inp id="sp-org-logo" value="" onChange={()=>{}} placeholder="e.g. PG"/>
+                <Inp value={spForm.logo} onChange={v=>setSpForm(f=>Object.assign({},f,{logo:v}))} placeholder="e.g. PG"/>
               </div>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Accent Colour</div>
-                <Inp id="sp-org-color" value="" onChange={()=>{}} placeholder="#4ECDC4"/>
+                <Inp value={spForm.color} onChange={v=>setSpForm(f=>Object.assign({},f,{color:v}))} placeholder="#4ECDC4"/>
               </div>
               <div>
                 <div style={{fontSize:11,fontWeight:600,color:"#C8D4E0",marginBottom:5}}>Assign to Player</div>
-                <Sel id="sp-org-player" value="" onChange={()=>{}}>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel>
+                <Sel value={spForm.playerId} onChange={v=>setSpForm(f=>Object.assign({},f,{playerId:v}))}><option value="">— Select —</option>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel>
               </div>
             </div>
             <Btn v="primary" onClick={()=>{
-              var orgName=document.getElementById("sp-org-name")&&document.getElementById("sp-org-name").value;
-              var orgLogo=document.getElementById("sp-org-logo")&&document.getElementById("sp-org-logo").value;
-              var orgColor=document.getElementById("sp-org-color")&&document.getElementById("sp-org-color").value;
-              var orgPlayer=document.getElementById("sp-org-player")&&document.getElementById("sp-org-player").value;
-              if(!orgName||!orgPlayer){toast("Org name and player required","error");return;}
-              setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);n[orgPlayer]={org:orgName,logo:orgLogo||orgName.slice(0,2).toUpperCase(),color:orgColor||"#9B72CF"};return n;});
-              toast(orgName+" sponsorship added","success");
+              if(!spForm.name.trim()||!spForm.playerId){toast("Org name and player required","error");return;}
+              setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);n[spForm.playerId]={org:spForm.name.trim(),logo:spForm.logo.trim()||spForm.name.trim().slice(0,2).toUpperCase(),color:spForm.color.trim()||"#9B72CF"};return n;});
+              addAudit("ACTION","Sponsor added: "+spForm.name.trim());
+              toast(spForm.name.trim()+" sponsorship added","success");
+              setSpForm({name:"",logo:"",color:"",playerId:""});
             }}>Add Sponsorship</Btn>
           </Panel>
         </div>
@@ -5959,7 +5954,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 }
 
 // ─── HOST APPLICATION SCREEN ──────────────────────────────────────────────────
-function HostApplyScreen({currentUser,toast,setScreen}){
+function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
   const [name,setName]=useState(currentUser?.username||"");
   const [org,setOrg]=useState("");
   const [reason,setReason]=useState("");
@@ -5968,6 +5963,8 @@ function HostApplyScreen({currentUser,toast,setScreen}){
 
   function submit(){
     if(!name.trim()||!reason.trim()){toast("Name and reason required","error");return;}
+    var app={id:Date.now(),name:name.trim(),org:org.trim(),reason:reason.trim(),freq,email:currentUser?.email||"",status:"pending",submittedAt:new Date().toLocaleDateString()};
+    setHostApps&&setHostApps(function(apps){return [app,...apps];});
     setSubmitted(true);
     toast("Application submitted! We'll review it within 48h","success");
   }
@@ -7280,6 +7277,9 @@ export default function TFTClash(){
   const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
   const [quickClashes,setQuickClashes]=useState(()=>{try{var s=localStorage.getItem("tft-events");return s?JSON.parse(s):[];}catch(e){return [];}});
   const [orgSponsors,setOrgSponsors]=useState(()=>{try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):{};}catch(e){return {};}});
+  const [scheduledEvents,setScheduledEvents]=useState([]);
+  const [auditLog,setAuditLog]=useState([]);
+  const [hostApps,setHostApps]=useState([]);
   // Auth state
   const [currentUser,setCurrentUser]=useState(null); // null = guest; hydrated by Supabase auth
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
@@ -7312,12 +7312,12 @@ export default function TFTClash(){
   useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
 
   // ── Supabase shared state — single channel for all keys ──────────────────
-  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false});
+  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false});
   useEffect(function(){
     if(!supabase.from)return;
     // fetch all shared keys on mount
     supabase.from('site_settings').select('key,value')
-      .in('key',['players','tournament_state','quick_clashes','announcement'])
+      .in('key',['players','tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps'])
       .then(function(res){
         if(!res.data)return;
         res.data.forEach(function(row){
@@ -7328,6 +7328,11 @@ export default function TFTClash(){
               if(row.key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
+              if(row.key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
+              if(row.key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(val);}
+              if(row.key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
+              if(row.key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
+              if(row.key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
             }
           }catch(e){}
         });
@@ -7345,6 +7350,11 @@ export default function TFTClash(){
           if(key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);}
           if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
           if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
+          if(key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
+          if(key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(val);}
+          if(key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
+          if(key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
+          if(key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
         }catch(e){}
       })
       .subscribe();
@@ -7368,6 +7378,26 @@ export default function TFTClash(){
     if(rtRef.current.announcement){rtRef.current.announcement=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:announcement,updated_at:new Date().toISOString()}).then(function(){});
   },[announcement]);
+  useEffect(function(){
+    if(rtRef.current.season_config){rtRef.current.season_config=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'season_config',value:JSON.stringify(seasonConfig),updated_at:new Date().toISOString()}).then(function(){});
+  },[seasonConfig]);
+  useEffect(function(){
+    if(rtRef.current.org_sponsors){rtRef.current.org_sponsors=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(orgSponsors),updated_at:new Date().toISOString()}).then(function(){});
+  },[orgSponsors]);
+  useEffect(function(){
+    if(rtRef.current.scheduled_events){rtRef.current.scheduled_events=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(){});
+  },[scheduledEvents]);
+  useEffect(function(){
+    if(rtRef.current.audit_log){rtRef.current.audit_log=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(){});
+  },[auditLog]);
+  useEffect(function(){
+    if(rtRef.current.host_apps){rtRef.current.host_apps=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(){});
+  },[hostApps]);
   function navTo(s){
     if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
     window.history.pushState({screen:s},'','#'+s);
@@ -7481,11 +7511,11 @@ export default function TFTClash(){
         {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer}/>}
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
         {screen==="aegis-showcase"&&<AegisShowcaseScreen setScreen={navTo}/>}
-        {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo}/>}
+        {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
         {screen==="host-dashboard"&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo}/>}
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
         {screen==="scrims"     &&isAdmin&&<ScrimsScreen players={players} toast={toast} setScreen={navTo}/>}
-        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors}/>}
+        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps}/>}
         {screen==="admin"      &&!isAdmin&&(
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
             <div style={{fontSize:38,marginBottom:14}}>🔒</div>
