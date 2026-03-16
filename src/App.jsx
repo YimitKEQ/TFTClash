@@ -15783,10 +15783,10 @@ function TFTClash(){
 
       <Hexbg/>
 
-      {isLoadingData&&players.length===0&&(
+      {isLoadingData&&(
         <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:9999}}>
           <div style={{width:48,height:48,border:"3px solid rgba(155,114,207,.2)",borderTopColor:"#9B72CF",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-          <div style={{fontFamily:"'Chakra Petch',sans-serif",fontSize:14,color:"#6B7280",letterSpacing:"0.1em"}}>Loading roster...</div>
+          <div style={{fontFamily:"'Chakra Petch',sans-serif",fontSize:14,color:"#6B7280",letterSpacing:"0.1em"}}>Loading...</div>
         </div>
       )}
 
