@@ -704,7 +704,7 @@ const RETIRED_LEGENDS=[];
 
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
-const SEASON_CHAMPION={name:"Levitate",title:"The Unkillable",season:"Season 16",since:"Mar 2026",pts:1024,wins:16,rank:"Challenger"};
+let SEASON_CHAMPION={name:"Levitate",title:"The Unkillable",season:"Season 16",since:"Mar 2026",pts:1024,wins:16,rank:"Challenger"};
 
 
 
@@ -1395,6 +1395,17 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   /* Mobile panel padding reduction */
   .panel-sm-pad{padding:14px!important;}
 
+}
+/* -- Lab (Scrims) mobile grid fixes -- */
+@media(max-width:767px){
+  .lab-play-grid{grid-template-columns:1fr!important;}
+  .lab-dash-grid{grid-template-columns:1fr!important;}
+  .lab-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex!important;}
+  .lab-tabs button{flex-shrink:0;}
+}
+
+@media(max-width:480px){
+  .standings-table-wrap{min-width:0!important;}
 }
 
 `;
@@ -2607,7 +2618,7 @@ function NotificationBell({notifications,onMarkAllRead}){
 
 }
 
-function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,currentUser,onAuthClick,notifications,onMarkAllRead}){
+function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,currentUser,onAuthClick,notifications,onMarkAllRead,scrimAccess}){
 
   const [pwModal,setPwModal]=useState(false);
 
@@ -2618,6 +2629,9 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   const checkedIn=players.filter(p=>p.checkedIn).length;
 
   const dispCount=(disputes||[]).length;
+
+  const canScrims=isAdmin||(currentUser&&(scrimAccess||[]).includes(currentUser.username));
+
 
 
 
@@ -2675,7 +2689,9 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"hof",label:"Hall of Fame"},
 
-    ...(isAdmin?[{id:"scrims",label:"Scrims"},{id:"admin",label:"⬡ Admin"}]:[]),
+    ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
+
+    ...(isAdmin?[{id:"admin",label:"⬡ Admin"}]:[]),
 
   ];
 
@@ -2721,7 +2737,9 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"account",icon:"👤",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up"},
 
-    ...(isAdmin?[{id:"scrims",icon:"🎮",label:"Scrims"},{id:"admin",icon:"⬡",label:"Admin Panel"}]:[]),
+    ...(canScrims?[{id:"scrims",icon:"🎮",label:"Scrims"}]:[]),
+
+    ...(isAdmin?[{id:"admin",icon:"⬡",label:"Admin Panel"}]:[]),
 
   ];
 
@@ -3065,7 +3083,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
     <Panel style={{overflowX:"auto"}}>
 
-      <div style={{minWidth:compact?260:380}}>
+      <div className="standings-table-wrap" style={{minWidth:compact?260:380}}>
 
       <div style={{display:"grid",gridTemplateColumns:cols,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",background:"#0A0F1A"}}>
 
@@ -3327,7 +3345,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
-function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister}){
+function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides}){
 
   const [name,setName]=useState("");
 
@@ -3499,23 +3517,15 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
 
-  const tickerItems=players.length>0?[
-
-    "📅 Next clash: Saturday 8PM EST",
-
+  var autoTickerItems=players.length>0?[
     sortedPts[0]&&("🏆 "+sortedPts[0].name+" leads Season 16 with "+sortedPts[0].pts+" pts"),
-
     totalGames>0&&("🎮 "+totalGames+" games played this season"),
-
     sortedWins[0]&&sortedWins[0].wins>0&&("🥇 "+sortedWins[0].name+" · "+sortedWins[0].wins+" tournament wins"),
-
     sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&("🔥 "+sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"),
-
     "⚡ "+players.filter(p=>p.checkedIn).length+" / "+players.length+" players checked in",
-
     "📊 Season 16 active — "+players.length+" registered",
-
   ].filter(Boolean):[];
+  const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
 
 
 
@@ -7528,7 +7538,100 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
 
 
-function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps}){
+function ScrimAccessPanel({scrimAccess,setScrimAccess,toast,addAudit}){
+  var [newUser,setNewUser]=React.useState("");
+  function addUser(){
+    var u=newUser.trim();
+    if(!u){toast("Enter a username","error");return;}
+    if((scrimAccess||[]).includes(u)){toast("Already in list","error");return;}
+    setScrimAccess(function(a){return [...(a||[]),u];});
+    addAudit("ACTION","Scrims access granted to "+u);
+    setNewUser("");
+    toast(u+" added to Scrims access","success");
+  }
+  function removeUser(u){
+    setScrimAccess(function(a){return (a||[]).filter(function(x){return x!==u;});});
+    addAudit("ACTION","Scrims access removed from "+u);
+    toast(u+" removed from Scrims access","success");
+  }
+  return(
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,alignItems:"start"}}>
+      <Panel accent style={{padding:"20px"}}>
+        <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:6}}>Scrims Access</h3>
+        <div style={{fontSize:12,color:"#9AAABF",marginBottom:16}}>Players in this list can access The Lab (Scrims). Admin always has access. Use exact usernames.</div>
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <Inp value={newUser} onChange={setNewUser} placeholder="Username" onKeyDown={function(e){if(e.key==="Enter")addUser();}} style={{flex:1}}/>
+          <Btn v="purple" onClick={addUser}>Add</Btn>
+        </div>
+        {(!scrimAccess||scrimAccess.length===0)?(
+          <div style={{fontSize:13,color:"#9AAABF",textAlign:"center",padding:"16px 0"}}>No users added yet.</div>
+        ):(
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {(scrimAccess||[]).map(function(u){
+              return(
+                <div key={u} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.2)",borderRadius:8}}>
+                  <span style={{fontSize:13,fontWeight:600,color:"#C4B5FD"}}>{u}</span>
+                  <button onClick={function(){removeUser(u);}} style={{background:"none",border:"none",color:"#F87171",cursor:"pointer",fontSize:16,lineHeight:1,padding:"0 4px"}}>×</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Panel>
+      <Panel style={{padding:"20px"}}>
+        <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:10}}>About Scrims Access</h3>
+        <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.6}}>
+          <p style={{marginBottom:10}}>The Lab is the private scrims section where your friend group logs practice games, tracks stats, and sees head-to-head records.</p>
+          <p style={{marginBottom:10}}>Only users on this allowlist (plus admin) can see and access the Scrims tab in the nav.</p>
+          <p>Usernames must match exactly — they are case-sensitive and must match the account username on this platform.</p>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function TickerAdminPanel({tickerOverrides,setTickerOverrides,toast,addAudit}){
+  var [newItem,setNewItem]=React.useState("");
+  var items=tickerOverrides||[];
+  function add(){
+    var t=newItem.trim();
+    if(!t){toast("Enter ticker text","error");return;}
+    if(items.includes(t)){toast("Already exists","error");return;}
+    setTickerOverrides(items.concat([t]));
+    addAudit("BROADCAST","Admin added ticker item: "+t);
+    setNewItem("");
+    toast("Ticker item added");
+  }
+  function remove(item){
+    setTickerOverrides(items.filter(function(x){return x!==item;}));
+    addAudit("ACTION","Admin removed ticker item: "+item);
+    toast("Removed");
+  }
+  return(
+    <Panel style={{padding:20}}>
+      <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:4}}>Ticker Management</div>
+      <div style={{fontSize:12,color:"#9AAABF",marginBottom:16}}>Custom items appear first in the community pulse ticker on the home screen. Auto-stats are appended after.</div>
+      <div style={{display:"flex",gap:8,marginBottom:16}}>
+        <Inp value={newItem} onChange={setNewItem} placeholder="e.g. Next clash: Saturday 8PM EST" style={{flex:1}}/>
+        <Btn v="purple" s="sm" onClick={add}>Add</Btn>
+      </div>
+      {items.length===0?(
+        <div style={{textAlign:"center",padding:24,color:"#9AAABF",fontSize:13}}>No custom ticker items. Auto-stats will still show.</div>
+      ):(
+        <div>
+          {items.map(function(item,i){return(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,marginBottom:6}}>
+              <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{item}</span>
+              <Btn v="danger" s="xs" onClick={function(){remove(item);}}>Remove</Btn>
+            </div>
+          );})})
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides}){
 
   const [tab,setTab]=useState("dashboard");
 
@@ -7667,6 +7770,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     {id:"sponsorships",icon:"🏢",label:"Sponsors"},
 
     {id:"audit",icon:"📋",label:"Audit"},
+
+    {id:"friends",icon:"🎮",label:"Scrims Access"},
+    {id:"ticker",icon:"📡",label:"Ticker"},
 
     {id:"settings",icon:"⚙️",label:"Settings"},
 
@@ -8910,6 +9016,18 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       )}
 
+      {tab==="friends"&&(
+
+        <ScrimAccessPanel scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} toast={toast} addAudit={addAudit}/>
+
+      )}
+
+      {tab==="ticker"&&(
+
+        <TickerAdminPanel tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} toast={toast} addAudit={addAudit}/>
+
+      )}
+
 
 
       {/* ── SETTINGS ── */}
@@ -9000,101 +9118,192 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
 // ─── SCRIMS SCREEN ────────────────────────────────────────────────────────────
 
-function ScrimsScreen({players,toast,setScreen}){
+function ScrimSparkline({placements,w,h}){
+  if(!placements||placements.length<2)return null;
+  var last=placements.slice(-12);
+  var pts=last.map(function(v,i){
+    var x=(i/(last.length-1))*(w||60);
+    var y=((v-1)/7)*(h||18)+1;
+    return x+","+y;
+  }).join(" ");
+  var topPt=last.map(function(v,i){return {x:(i/(last.length-1))*(w||60),y:((v-1)/7)*(h||18)+1,v:v};}).reduce(function(a,b){return a.y<b.y?a:b;});
+  return(
+    <svg width={w||60} height={(h||20)+2} style={{display:"block",overflow:"visible"}}>
+      <polyline points={pts} fill="none" stroke="#9B72CF" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.7"/>
+      <circle cx={topPt.x} cy={topPt.y} r="2" fill="#E8A838"/>
+    </svg>
+  );
+}
 
-  const [tab,setTab]=useState("log");
+function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scrimAccess,setScrimAccess}){
 
-  const [sessions,setSessions]=useState([]);
+  var [tab,setTab]=useState("dashboard");
 
-  const [activeId,setActiveId]=useState(null);
+  var [activeId,setActiveId]=useState(null);
 
-  const [newName,setNewName]=useState("");
+  var [newName,setNewName]=useState("");
 
-  const [newNotes,setNewNotes]=useState("");
+  var [newNotes,setNewNotes]=useState("");
 
-  const [newTarget,setNewTarget]=useState("5");
+  var [newTarget,setNewTarget]=useState("5");
 
-  const [scrimRoster,setScrimRoster]=useState([]);
+  var [scrimRoster,setScrimRoster]=useState([]);
 
-  const [customName,setCustomName]=useState("");
+  var [customName,setCustomName]=useState("");
 
-  const [scrimResults,setScrimResults]=useState({});
+  var [scrimResults,setScrimResults]=useState({});
 
-  const [gameNote,setGameNote]=useState("");
+  var [gameNote,setGameNote]=useState("");
 
-  const [gameTag,setGameTag]=useState("standard");
+  var [gameTag,setGameTag]=useState("standard");
 
-  const [timer,setTimer]=useState(0);
+  var [timer,setTimer]=useState(0);
 
-  const [timerActive,setTimerActive]=useState(false);
+  var [timerActive,setTimerActive]=useState(false);
 
-  const [expandedGame,setExpandedGame]=useState(null);
+  var [confirmDelete,setConfirmDelete]=useState(null);
 
-  const [confirmDelete,setConfirmDelete]=useState(null);
-
-  const timerRef=useRef(null);
+  var timerRef=useRef(null);
 
 
 
-  useEffect(()=>{
+  useEffect(function(){
 
-    if(timerActive){timerRef.current=setInterval(()=>setTimer(t=>t+1),1000);}
+    if(timerActive){timerRef.current=setInterval(function(){setTimer(function(t){return t+1;});},1000);}
 
     else clearInterval(timerRef.current);
 
-    return()=>clearInterval(timerRef.current);
+    return function(){clearInterval(timerRef.current);};
 
   },[timerActive]);
 
 
 
-  const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+  var fmt=function(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");};
 
-  const session=sessions.find(s=>s.id===activeId);
+  var safeSessions=sessions||[];
 
-  const allGames=sessions.flatMap(s=>s.games);
+  var session=safeSessions.find(function(s){return s.id===activeId;});
+
+  var allGames=safeSessions.flatMap(function(s){return s.games;});
+
+  var allPlayers=[...players,...scrimRoster.filter(function(r){return !players.find(function(p){return p.id===r.id;});})];
 
 
 
-  // ── Per-player stats across ALL sessions ──────────────────────────────────
+  // ── Per-player stats ──────────────────────────────────────────────────────────
 
-  const allPlayers=[...players,...scrimRoster.filter(r=>!players.find(p=>p.id===r.id))];
+  var scrimStats=allPlayers.map(function(p){
 
-  const scrimStats=allPlayers.map(p=>{
-
-    const pGames=allGames.filter(g=>g.results[p.id]!=null);
+    var pGames=allGames.filter(function(g){return g.results[p.id]!=null;});
 
     if(pGames.length===0)return null;
 
-    const placements=pGames.map(g=>g.results[p.id]);
+    var placements=pGames.map(function(g){return g.results[p.id];});
 
-    const wins=placements.filter(x=>x===1).length;
+    var wins=placements.filter(function(x){return x===1;}).length;
 
-    const top4=placements.filter(x=>x<=4).length;
+    var top4=placements.filter(function(x){return x<=4;}).length;
 
-    const avgPlacement=(placements.reduce((s,v)=>s+v,0)/placements.length).toFixed(2);
+    var avgPlacement=(placements.reduce(function(s,v){return s+v;},0)/placements.length).toFixed(2);
 
-    const pts=placements.reduce((s,v)=>s+(PTS[v]||0),0);
+    var pts=placements.reduce(function(s,v){return s+(PTS[v]||0);},0);
 
-    const best=Math.min(...placements);
+    var best=Math.min.apply(null,placements);
 
-    const worst=Math.max(...placements);
+    var worst=Math.max.apply(null,placements);
 
-    // Streak: count current finishing streak
+    var recent=[...pGames].sort(function(a,b){return b.ts-a.ts;}).map(function(g){return g.results[p.id];});
 
-    const recent=[...pGames].sort((a,b)=>b.ts-a.ts).map(g=>g.results[p.id]);
+    var streak=0;
 
-    let streak=0;
+    for(var si=0;si<recent.length;si++){if(recent[si]<=4)streak++;else break;}
 
-    for(let i=0;i<recent.length;i++){if(recent[i]<=4)streak++;else break;}
+    var mean=placements.reduce(function(s,v){return s+v;},0)/placements.length;
 
-    return{...p,pts,wins,top4,games:pGames.length,avg:avgPlacement,best,worst,streak,placements,
+    var variance=placements.reduce(function(s,v){return s+Math.pow(v-mean,2);},0)/placements.length;
 
+    var eighths=placements.filter(function(x){return x===8;}).length;
+
+    return Object.assign({},p,{pts:pts,wins:wins,top4:top4,games:pGames.length,avg:avgPlacement,best:best,worst:worst,streak:streak,placements:placements,variance:variance,eighths:eighths,
       top4Rate:((top4/pGames.length)*100).toFixed(0),
+      winRate:((wins/pGames.length)*100).toFixed(0)});
 
-      winRate:((wins/pGames.length)*100).toFixed(0)};
+  }).filter(Boolean).sort(function(a,b){return parseFloat(a.avg)-parseFloat(b.avg);});
 
-  }).filter(Boolean).sort((a,b)=>parseFloat(a.avg)-parseFloat(b.avg));
+
+
+  // ── H2H matrix ──────────────────────────────────────────────────────────────────
+
+  var h2hData={};
+
+  if(scrimStats.length>=2){
+
+    allGames.forEach(function(g){
+
+      var ids=Object.keys(g.results);
+
+      for(var ii=0;ii<ids.length;ii++){
+
+        for(var jj=ii+1;jj<ids.length;jj++){
+
+          var a=ids[ii],b=ids[jj];
+
+          var pa=g.results[a],pb=g.results[b];
+
+          if(!h2hData[a])h2hData[a]={};
+
+          if(!h2hData[b])h2hData[b]={};
+
+          if(!h2hData[a][b])h2hData[a][b]={wins:0,total:0};
+
+          if(!h2hData[b][a])h2hData[b][a]={wins:0,total:0};
+
+          h2hData[a][b].total++;
+
+          h2hData[b][a].total++;
+
+          if(pa<pb)h2hData[a][b].wins++;
+
+          else if(pb<pa)h2hData[b][a].wins++;
+
+        }
+
+      }
+
+    });
+
+  }
+
+
+
+  // ── Awards ───────────────────────────────────────────────────────────────────────
+
+  var awards=[];
+
+  if(scrimStats.length>0){
+
+    var ironButt=scrimStats.slice().sort(function(a,b){return b.eighths-a.eighths;})[0];
+
+    if(ironButt&&ironButt.eighths>0)awards.push({icon:"🪑",title:"Iron Butt",desc:"Most 8th places",player:ironButt.name,val:ironButt.eighths+"x 8th"});
+
+    var consistent=scrimStats.filter(function(p){return p.games>=3;}).slice().sort(function(a,b){return a.variance-b.variance;})[0];
+
+    if(consistent)awards.push({icon:"🎯",title:"Consistent King",desc:"Lowest placement variance",player:consistent.name,val:"σ²="+consistent.variance.toFixed(1)});
+
+    var streakKing=scrimStats.slice().sort(function(a,b){return b.streak-a.streak;})[0];
+
+    if(streakKing&&streakKing.streak>=2)awards.push({icon:"🔥",title:"Streak Lord",desc:"Current top-4 streak",player:streakKing.name,val:streakKing.streak+" games"});
+
+    var winKing=scrimStats.slice().sort(function(a,b){return b.wins-a.wins;})[0];
+
+    if(winKing&&winKing.wins>0)awards.push({icon:"👑",title:"Clutch Player",desc:"Most first place finishes",player:winKing.name,val:winKing.wins+"x 1st"});
+
+    var glassCannon=scrimStats.filter(function(p){return p.games>=3&&p.wins>0&&p.eighths>0;}).slice().sort(function(a,b){return b.variance-a.variance;})[0];
+
+    if(glassCannon)awards.push({icon:"💥",title:"Glass Cannon",desc:"Highest highs and lowest lows",player:glassCannon.name,val:"±"+glassCannon.variance.toFixed(1)});
+
+  }
 
 
 
@@ -9102,17 +9311,19 @@ function ScrimsScreen({players,toast,setScreen}){
 
     if(!newName.trim()){toast("Name required","error");return;}
 
-    const s={id:Date.now(),name:newName.trim(),notes:newNotes.trim(),
+    var s={id:Date.now(),name:newName.trim(),notes:newNotes.trim(),
 
       targetGames:parseInt(newTarget)||5,games:[],createdAt:new Date().toLocaleDateString(),active:true};
 
-    setSessions(ss=>[...ss,s]);setActiveId(s.id);
+    setSessions(function(ss){return [...(ss||[]),s];});
+
+    setActiveId(s.id);
 
     setNewName("");setNewNotes("");setNewTarget("5");
 
-    toast("Session created - go to Log tab to record games","success");
+    toast("Session created - go to Play tab to record games","success");
 
-    setTab("log");
+    setTab("play");
 
   }
 
@@ -9122,13 +9333,15 @@ function ScrimsScreen({players,toast,setScreen}){
 
     if(!customName.trim())return;
 
-    const fromRoster=players.find(p=>p.name.toLowerCase()===customName.toLowerCase());
+    var fromRoster=players.find(function(p){return p.name.toLowerCase()===customName.toLowerCase();});
 
-    if(scrimRoster.find(p=>p.name.toLowerCase()===customName.toLowerCase())){toast("Already added","error");return;}
+    if(scrimRoster.find(function(p){return p.name.toLowerCase()===customName.toLowerCase();})){toast("Already added","error");return;}
 
-    const np=fromRoster||{id:"c"+Date.now(),name:customName.trim(),rank:"Gold",pts:0,games:0,wins:0,top4:0,avg:"0"};
+    var np=fromRoster||{id:"c"+Date.now(),name:customName.trim(),rank:"Gold",pts:0,games:0,wins:0,top4:0,avg:"0"};
 
-    setScrimRoster(r=>[...r,np]);setCustomName("");
+    setScrimRoster(function(r){return [...r,np];});
+
+    setCustomName("");
 
   }
 
@@ -9140,9 +9353,9 @@ function ScrimsScreen({players,toast,setScreen}){
 
     if(Object.keys(scrimResults).length<scrimRoster.length){toast("All placements required","error");return;}
 
-    const game={id:Date.now(),results:{...scrimResults},note:gameNote,tag:gameTag,duration:timer,ts:Date.now()};
+    var game={id:Date.now(),results:Object.assign({},scrimResults),note:gameNote,tag:gameTag,duration:timer,ts:Date.now()};
 
-    setSessions(ss=>ss.map(s=>s.id===activeId?{...s,games:[...s.games,game]}:s));
+    setSessions(function(ss){return (ss||[]).map(function(s){return s.id===activeId?Object.assign({},s,{games:[...s.games,game]}):s;});});
 
     setScrimResults({});setGameNote("");setTimer(0);setTimerActive(false);
 
@@ -9154,7 +9367,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
   function stopSession(id){
 
-    setSessions(ss=>ss.map(s=>s.id===id?{...s,active:false}:s));
+    setSessions(function(ss){return (ss||[]).map(function(s){return s.id===id?Object.assign({},s,{active:false}):s;});});
 
     toast("Session ended - results saved","success");
 
@@ -9162,7 +9375,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
   function deleteGame(sessionId,gameId){
 
-    setSessions(ss=>ss.map(s=>s.id===sessionId?{...s,games:s.games.filter(g=>g.id!==gameId)}:s));
+    setSessions(function(ss){return (ss||[]).map(function(s){return s.id===sessionId?Object.assign({},s,{games:s.games.filter(function(g){return g.id!==gameId;})}):s;});});
 
     setConfirmDelete(null);
 
@@ -9172,7 +9385,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
   function deleteSession(sessionId){
 
-    setSessions(ss=>ss.filter(s=>s.id!==sessionId));
+    setSessions(function(ss){return (ss||[]).filter(function(s){return s.id!==sessionId;});});
 
     if(activeId===sessionId)setActiveId(null);
 
@@ -9184,27 +9397,9 @@ function ScrimsScreen({players,toast,setScreen}){
 
 
 
-  const PlacementPip=({place})=>{
-
-    const c=place===1?"#E8A838":place===2?"#C0C0C0":place===3?"#CD7F32":place<=4?"#4ECDC4":"#F87171";
-
-    return(
-
-      <div style={{width:28,height:28,borderRadius:6,background:c+"22",border:"1px solid "+c+"55",
-
-        display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-
-        <span className="mono" style={{fontSize:11,fontWeight:700,color:c}}>{place}</span>
-
-      </div>
-
-    );
-
-  };
+  var TABS=[["dashboard","🏆 Dashboard"],["play","📋 Play"],["stats","📊 Stats"],["history","🕐 History"],["sessions","⚙ Sessions"]];
 
 
-
-  // ── TABS ──────────────────────────────────────────────────────────────────
 
   return(
 
@@ -9212,35 +9407,33 @@ function ScrimsScreen({players,toast,setScreen}){
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
 
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
+        <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>&#8592; Back</Btn>
 
       </div>
-
-      {/* Header */}
 
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:10}}>
 
         <div>
 
-          <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Scrims Lab</h2>
+          <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>The Lab</h2>
 
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
 
-            <Tag color="#9B72CF">Admin Only</Tag>
+            <Tag color="#9B72CF">Friends Only</Tag>
 
-            <span style={{fontSize:12,color:"#BECBD9"}}>{allGames.length} games logged · {sessions.length} sessions</span>
+            <span style={{fontSize:12,color:"#BECBD9"}}>{allGames.length} games &middot; {safeSessions.length} sessions</span>
 
           </div>
 
         </div>
 
-        <div style={{display:"flex",gap:6}}>
+        <div className="lab-tabs" style={{display:"flex",gap:6,flexWrap:"wrap"}}>
 
-          {[["log","📋 Log"],["stats","📊 Stats"],["history","🕐 History"],["sessions","⚙ Sessions"]].map(([t,l])=>(
+          {TABS.map(function(pair){
 
-            <Btn key={t} v={tab===t?"purple":"dark"} s="sm" onClick={()=>setTab(t)}>{l}</Btn>
+            return <Btn key={pair[0]} v={tab===pair[0]?"purple":"dark"} s="sm" onClick={function(){setTab(pair[0]);}}>{pair[1]}</Btn>;
 
-          ))}
+          })}
 
         </div>
 
@@ -9248,15 +9441,255 @@ function ScrimsScreen({players,toast,setScreen}){
 
 
 
-      {/* ── LOG TAB: record a game ── */}
+      {/* ── DASHBOARD TAB ── */}
 
-      {tab==="log"&&(
+      {tab==="dashboard"&&(
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:16,alignItems:"start"}}>
+        <div>
+
+          {allGames.length===0?(
+
+            <div style={{textAlign:"center",padding:60,color:"#9AAABF"}}>
+
+              <div style={{fontSize:36,marginBottom:12}}>&#127918;</div>
+
+              <div style={{fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>The Lab is empty</div>
+
+              <div style={{fontSize:13,marginBottom:20}}>Create a session and start logging games to see your crew's stats.</div>
+
+              <Btn v="purple" onClick={function(){setTab("sessions");}}>Create First Session &#8594;</Btn>
+
+            </div>
+
+          ):(
+
+            <div>
+
+              <div className="grid-4" style={{marginBottom:20}}>
+
+                {[
+
+                  {label:"Games Logged",val:allGames.length,c:"#C4B5FD"},
+
+                  {label:"Sessions",val:safeSessions.length,c:"#E8A838"},
+
+                  {label:"Players",val:scrimStats.length,c:"#4ECDC4"},
+
+                  {label:"Top Player",val:scrimStats.length>0?scrimStats[0].name:"-",c:"#6EE7B7"},
+
+                ].map(function(item){
+
+                  return(
+
+                    <div key={item.label} className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
+
+                      <div className="mono" style={{fontSize:item.label==="Top Player"?14:22,fontWeight:700,color:item.c,lineHeight:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.val}</div>
+
+                      <div className="cond" style={{fontSize:9,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{item.label}</div>
+
+                    </div>
+
+                  );
+
+                })}
+
+              </div>
+
+              <div className="lab-dash-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20,alignItems:"start"}}>
+
+                <div>
+
+                  <div style={{fontSize:12,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Standings</div>
+
+                  <div style={{background:"#0A0F1A",borderRadius:12,overflow:"hidden",border:"1px solid rgba(242,237,228,.07)"}}>
+
+                    {scrimStats.map(function(p,i){
+
+                      var avgC=parseFloat(p.avg)<3?"#4ade80":parseFloat(p.avg)<=5?"#facc15":"#f87171";
+
+                      return(
+
+                        <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderBottom:i<scrimStats.length-1?"1px solid rgba(242,237,228,.04)":"none"}}>
+
+                          <div className="mono" style={{fontSize:12,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF",width:18,textAlign:"center",flexShrink:0}}>{i+1}</div>
+
+                          <div style={{flex:1,minWidth:0}}>
+
+                            <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+
+                            <div style={{fontSize:10,color:"#9AAABF"}}>{p.games}g &middot; avg {p.avg}{p.streak>=3?" 🔥"+p.streak:""}</div>
+
+                          </div>
+
+                          <ScrimSparkline placements={p.placements} w={60} h={20}/>
+
+                          <div className="mono" style={{fontSize:14,fontWeight:700,color:avgC,width:32,textAlign:"right",flexShrink:0}}>{p.avg}</div>
+
+                        </div>
+
+                      );
+
+                    })}
+
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <div style={{fontSize:12,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Awards</div>
+
+                  {awards.length===0?(
+
+                    <Panel style={{padding:"20px",textAlign:"center",color:"#9AAABF",fontSize:13}}>Log 3+ games per player to unlock awards.</Panel>
+
+                  ):(
+
+                    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+
+                      {awards.map(function(a){
+
+                        return(
+
+                          <Panel key={a.title} style={{padding:"12px 14px"}}>
+
+                            <div style={{display:"flex",alignItems:"center",gap:10}}>
+
+                              <div style={{fontSize:22,flexShrink:0}}>{a.icon}</div>
+
+                              <div style={{flex:1,minWidth:0}}>
+
+                                <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{a.title}</div>
+
+                                <div style={{fontSize:11,color:"#9AAABF"}}>{a.desc}</div>
+
+                              </div>
+
+                              <div style={{textAlign:"right",flexShrink:0}}>
+
+                                <div style={{fontSize:13,fontWeight:700,color:"#C4B5FD"}}>{a.player}</div>
+
+                                <div className="mono" style={{fontSize:10,color:"#BECBD9"}}>{a.val}</div>
+
+                              </div>
+
+                            </div>
+
+                          </Panel>
+
+                        );
+
+                      })}
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              </div>
+
+              {scrimStats.length>=3&&(
+
+                <div style={{marginBottom:20}}>
+
+                  <div style={{fontSize:12,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Head to Head</div>
+
+                  <Panel style={{padding:"4px"}}>
+
+                    <div style={{overflowX:"auto"}}>
+
+                      <table style={{borderCollapse:"collapse",width:"100%",minWidth:300}}>
+
+                        <thead>
+
+                          <tr>
+
+                            <th style={{padding:"8px 12px",fontSize:10,color:"#9AAABF",textAlign:"left",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>&darr; vs &rarr;</th>
+
+                            {scrimStats.map(function(p){
+
+                              return <th key={p.id} style={{padding:"8px 10px",fontSize:11,color:"#C8BFB0",fontWeight:700,borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap",textAlign:"center"}}>{p.name}</th>;
+
+                            })}
+
+                          </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                          {scrimStats.map(function(rowP){
+
+                            return(
+
+                              <tr key={rowP.id}>
+
+                                <td style={{padding:"8px 12px",fontSize:11,fontWeight:700,color:"#C8BFB0",borderBottom:"1px solid rgba(242,237,228,.04)",whiteSpace:"nowrap"}}>{rowP.name}</td>
+
+                                {scrimStats.map(function(colP){
+
+                                  if(String(rowP.id)===String(colP.id))return <td key={colP.id} style={{background:"rgba(255,255,255,.03)",padding:"8px 10px",textAlign:"center",borderBottom:"1px solid rgba(242,237,228,.04)",color:"#7A8BA0",fontSize:12}}>&#8212;</td>;
+
+                                  var rowKey=String(rowP.id),colKey=String(colP.id);
+
+                                  var rec=h2hData[rowKey]&&h2hData[rowKey][colKey];
+
+                                  if(!rec||rec.total===0)return <td key={colP.id} style={{padding:"8px 10px",textAlign:"center",color:"#9AAABF",fontSize:11,borderBottom:"1px solid rgba(242,237,228,.04)"}}>-</td>;
+
+                                  var wr=rec.wins/rec.total;
+
+                                  var bg=wr>=0.6?"rgba(155,114,207,.18)":wr<=0.4?"rgba(248,113,113,.1)":"rgba(255,255,255,.03)";
+
+                                  var col=wr>=0.6?"#C4B5FD":wr<=0.4?"#F87171":"#9AAABF";
+
+                                  return(
+
+                                    <td key={colP.id} style={{padding:"8px 10px",textAlign:"center",background:bg,borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+
+                                      <span className="mono" style={{fontSize:12,fontWeight:700,color:col}}>{rec.wins}-{rec.total-rec.wins}</span>
+
+                                    </td>
+
+                                  );
+
+                                })}
+
+                              </tr>
+
+                            );
+
+                          })}
+
+                        </tbody>
+
+                      </table>
+
+                    </div>
+
+                  </Panel>
+
+                </div>
+
+              )}
+
+            </div>
+
+          )}
+
+        </div>
+
+      )}
+
+
+
+      {/* ── PLAY TAB ── */}
+
+      {tab==="play"&&(
+
+        <div className="lab-play-grid" style={{display:"grid",gridTemplateColumns:"1fr 320px",gap:16,alignItems:"start"}}>
 
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-            {/* Session selector */}
 
             <Panel style={{padding:"14px 16px",background:"#0A0F1A",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
 
@@ -9264,11 +9697,11 @@ function ScrimsScreen({players,toast,setScreen}){
 
                 <div style={{fontSize:11,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>Active Session</div>
 
-                <Sel value={activeId||""} onChange={v=>setActiveId(parseInt(v)||null)} style={{width:"100%"}}>
+                <Sel value={activeId||""} onChange={function(v){setActiveId(parseInt(v)||null);}} style={{width:"100%"}}>
 
                   <option value="">- Select session -</option>
 
-                  {sessions.map(s=><option key={s.id} value={s.id}>{s.name} ({s.games.length}/{s.targetGames}){s.active?"":" · Ended"}</option>)}
+                  {safeSessions.map(function(s){return <option key={s.id} value={s.id}>{s.name} ({s.games.length}/{s.targetGames}){s.active?"":" · Ended"}</option>;})}
 
                 </Sel>
 
@@ -9276,13 +9709,9 @@ function ScrimsScreen({players,toast,setScreen}){
 
               {session&&<Tag color={session.active?"#52C47C":"#BECBD9"} size="sm">{session.active?"Active":"Ended"}</Tag>}
 
-              {session&&session.active&&<Btn v="danger" s="sm" onClick={()=>stopSession(session.id)}>End Session</Btn>}
+              {session&&session.active&&<Btn v="danger" s="sm" onClick={function(){stopSession(session.id);}}>End Session</Btn>}
 
             </Panel>
-
-
-
-            {/* Roster */}
 
             <Panel style={{padding:"16px"}}>
 
@@ -9290,7 +9719,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
               <div style={{display:"flex",gap:8,marginBottom:10}}>
 
-                <Inp value={customName} onChange={setCustomName} placeholder="Add player by name" onKeyDown={e=>e.key==="Enter"&&addPlayer()} style={{flex:1}}/>
+                <Inp value={customName} onChange={setCustomName} placeholder="Add player by name" onKeyDown={function(e){if(e.key==="Enter")addPlayer();}} style={{flex:1}}/>
 
                 <Btn v="purple" onClick={addPlayer}>Add</Btn>
 
@@ -9298,17 +9727,21 @@ function ScrimsScreen({players,toast,setScreen}){
 
               <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>
 
-                {players.map(p=>(
+                {players.map(function(p){
 
-                  <Btn key={p.id} v={scrimRoster.find(r=>r.id===p.id)?"purple":"dark"} s="sm"
+                  return(
 
-                    onClick={()=>{if(!scrimRoster.find(r=>r.id===p.id))setScrimRoster(r=>[...r,p]);}}>
+                    <Btn key={p.id} v={scrimRoster.find(function(r){return r.id===p.id;})?"purple":"dark"} s="sm"
 
-                    {p.name}
+                      onClick={function(){if(!scrimRoster.find(function(r){return r.id===p.id;}))setScrimRoster(function(r){return [...r,p];});}}>
 
-                  </Btn>
+                      {p.name}
 
-                ))}
+                    </Btn>
+
+                  );
+
+                })}
 
               </div>
 
@@ -9316,31 +9749,31 @@ function ScrimsScreen({players,toast,setScreen}){
 
                 <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
 
-                  {scrimRoster.map(p=>(
+                  {scrimRoster.map(function(p){
 
-                    <div key={p.id} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",
+                    return(
 
-                      background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7}}>
+                      <div key={p.id} style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",
 
-                      <span style={{fontSize:12,fontWeight:600,color:"#C4B5FD"}}>{p.name}</span>
+                        background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7}}>
 
-                      <button onClick={()=>setScrimRoster(r=>r.filter(x=>x.id!==p.id))}
+                        <span style={{fontSize:12,fontWeight:600,color:"#C4B5FD"}}>{p.name}</span>
 
-                        style={{background:"none",border:"none",color:"#BECBD9",cursor:"pointer",fontSize:15,lineHeight:1,padding:0}}>×</button>
+                        <button onClick={function(){setScrimRoster(function(r){return r.filter(function(x){return x.id!==p.id;});});}}
 
-                    </div>
+                          style={{background:"none",border:"none",color:"#BECBD9",cursor:"pointer",fontSize:15,lineHeight:1,padding:0}}>&#215;</button>
 
-                  ))}
+                      </div>
+
+                    );
+
+                  })}
 
                 </div>
 
               )}
 
             </Panel>
-
-
-
-            {/* Placement entry */}
 
             {scrimRoster.length>=2&&(
 
@@ -9358,9 +9791,9 @@ function ScrimsScreen({players,toast,setScreen}){
 
                     <div className="mono" style={{fontSize:18,fontWeight:700,color:timerActive?"#E8A838":"#9AAABF",minWidth:54}}>{fmt(timer)}</div>
 
-                    <Btn v="dark" s="sm" onClick={()=>setTimerActive(t=>!t)}>{timerActive?"⏸":"▶"}</Btn>
+                    <Btn v="dark" s="sm" onClick={function(){setTimerActive(function(t){return !t;});}}>{timerActive?"&#9646;":"&#9654;"}</Btn>
 
-                    <Btn v="dark" s="sm" onClick={()=>{setTimer(0);setTimerActive(false);}}>↺</Btn>
+                    <Btn v="dark" s="sm" onClick={function(){setTimer(0);setTimerActive(false);}}>&#8635;</Btn>
 
                   </div>
 
@@ -9374,7 +9807,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
                     <Sel value={gameTag} onChange={setGameTag}>
 
-                      {["standard","draft comp","test run","ranked sim","meta test"].map(t=><option key={t} value={t}>{t}</option>)}
+                      {["standard","draft comp","test run","ranked sim","meta test"].map(function(t){return <option key={t} value={t}>{t}</option>;})}
 
                     </Sel>
 
@@ -9390,7 +9823,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
                 </div>
 
-                <PlacementBoard roster={scrimRoster} results={scrimResults} onPlace={(pid,place)=>setScrimResults(r=>({...r,[pid]:place}))} locked={false}/>
+                <PlacementBoard roster={scrimRoster} results={scrimResults} onPlace={function(pid,place){setScrimResults(function(r){return Object.assign({},r,{[pid]:place});});}} locked={false}/>
 
                 <div style={{marginTop:14}}>
 
@@ -9408,10 +9841,6 @@ function ScrimsScreen({players,toast,setScreen}){
 
           </div>
 
-
-
-          {/* Recent games sidebar */}
-
           <div>
 
             <div style={{fontSize:12,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".1em",marginBottom:10}}>Recent Games</div>
@@ -9420,7 +9849,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
               <Panel style={{padding:"24px",textAlign:"center"}}>
 
-                <div style={{fontSize:24,marginBottom:8}}>🎮</div>
+                <div style={{fontSize:24,marginBottom:8}}>&#127918;</div>
 
                 <div style={{fontSize:13,color:"#9AAABF"}}>No games logged yet. Record a game to see it here.</div>
 
@@ -9428,17 +9857,15 @@ function ScrimsScreen({players,toast,setScreen}){
 
             )}
 
-            {[...allGames].reverse().slice(0,8).map((g,gi)=>{
+            {[...allGames].reverse().slice(0,8).map(function(g,gi){
 
-              const sessionName=sessions.find(s=>s.games.find(sg=>sg.id===g.id))?.name||"";
+              var sessionName=(safeSessions.find(function(s){return s.games.find(function(sg){return sg.id===g.id;});})||{}).name||"";
 
-              const sorted=Object.entries(g.results).sort((a,b)=>a[1]-b[1]);
+              var sorted=Object.entries(g.results).sort(function(a,b){return a[1]-b[1];});
 
               return(
 
                 <Panel key={g.id} style={{padding:"10px 12px",marginBottom:6}}>
-
-                  {/* Game header */}
 
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7}}>
 
@@ -9458,17 +9885,17 @@ function ScrimsScreen({players,toast,setScreen}){
 
                   {g.note&&<div style={{fontSize:10,color:"#BECBD9",marginBottom:6,fontStyle:"italic"}}>"{g.note}"</div>}
 
-                  {/* Name + placement rows */}
-
                   <div style={{display:"flex",flexDirection:"column",gap:3}}>
 
-                    {sorted.map(([pid,place])=>{
+                    {sorted.map(function(entry){
 
-                      const p=allPlayers.find(pl=>String(pl.id)===String(pid));
+                      var pid=entry[0],place=entry[1];
+
+                      var p=allPlayers.find(function(pl){return String(pl.id)===String(pid);});
 
                       if(!p)return null;
 
-                      const c=place===1?"#E8A838":place===2?"#C0C0C0":place===3?"#CD7F32":place<=4?"#4ECDC4":"#F87171";
+                      var c=place===1?"#E8A838":place===2?"#C0C0C0":place===3?"#CD7F32":place<=4?"#4ECDC4":"#F87171";
 
                       return(
 
@@ -9504,7 +9931,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
 
 
-      {/* ── STATS TAB: per-player deep stats ── */}
+      {/* ── STATS TAB ── */}
 
       {tab==="stats"&&(
 
@@ -9516,9 +9943,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
           ):(
 
-            <>
-
-              {/* Summary stat strip */}
+            <div>
 
               <div className="grid-4" style={{marginBottom:20}}>
 
@@ -9526,33 +9951,31 @@ function ScrimsScreen({players,toast,setScreen}){
 
                   {label:"Games Logged",val:allGames.length,c:"#C4B5FD"},
 
-                  {label:"Sessions",val:sessions.length,c:"#E8A838"},
+                  {label:"Sessions",val:safeSessions.length,c:"#E8A838"},
 
                   {label:"Players Tracked",val:scrimStats.length,c:"#4ECDC4"},
 
-                  {label:"Avg Game Time",val:allGames.length>0?fmt(Math.round(allGames.reduce((s,g)=>s+g.duration,0)/allGames.length)):"-",c:"#6EE7B7"},
+                  {label:"Avg Game Time",val:allGames.length>0?fmt(Math.round(allGames.reduce(function(s,g){return s+g.duration;},0)/allGames.length)):"-",c:"#6EE7B7"},
 
-                ].map(({label,val,c})=>(
+                ].map(function(item){
 
-                  <div key={label} className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
+                  return(
 
-                    <div className="mono" style={{fontSize:22,fontWeight:700,color:c,lineHeight:1}}>{val}</div>
+                    <div key={item.label} className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
 
-                    <div className="cond" style={{fontSize:9,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
+                      <div className="mono" style={{fontSize:22,fontWeight:700,color:item.c,lineHeight:1}}>{item.val}</div>
 
-                  </div>
+                      <div className="cond" style={{fontSize:9,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{item.label}</div>
 
-                ))}
+                    </div>
+
+                  );
+
+                })}
 
               </div>
 
-
-
-              {/* Per-player stat rows */}
-
               <div style={{background:"#0A0F1A",borderRadius:12,overflow:"hidden",border:"1px solid rgba(242,237,228,.07)"}}>
-
-                {/* Header row */}
 
                 <div style={{display:"grid",gridTemplateColumns:"28px 1fr 52px 48px 48px 48px 48px 48px",gap:"0 8px",alignItems:"center",padding:"8px 14px",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
 
@@ -9560,27 +9983,25 @@ function ScrimsScreen({players,toast,setScreen}){
 
                   <div style={{fontSize:10,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Player</div>
 
-                  {["AVG","WIN%","TOP4","BEST","WRST","PTS"].map(h=>(
+                  {["AVG","WIN%","TOP4","BEST","WRST","PTS"].map(function(h){
 
-                    <div key={h} style={{fontSize:9,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>{h}</div>
+                    return <div key={h} style={{fontSize:9,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>{h}</div>;
 
-                  ))}
+                  })}
 
                 </div>
 
-                {scrimStats.map((p,i)=>{
+                {scrimStats.map(function(p,i){
 
-                  const avgC=parseFloat(p.avg)<3?"#4ade80":parseFloat(p.avg)<=5?"#facc15":"#f87171";
+                  var avgC=parseFloat(p.avg)<3?"#4ade80":parseFloat(p.avg)<=5?"#facc15":"#f87171";
 
-                  const isFirst=i===0;
+                  var isFirst=i===0;
 
                   return(
 
                     <div key={p.id} style={{borderBottom:i<scrimStats.length-1?"1px solid rgba(242,237,228,.04)":"none",
 
                       background:isFirst?"rgba(232,168,56,.04)":"transparent"}}>
-
-                      {/* Main stat row */}
 
                       <div style={{display:"grid",gridTemplateColumns:"28px 1fr 52px 48px 48px 48px 48px 48px",gap:"0 8px",alignItems:"center",padding:"9px 14px"}}>
 
@@ -9612,13 +10033,11 @@ function ScrimsScreen({players,toast,setScreen}){
 
                       </div>
 
-                      {/* Placements inline strip */}
-
                       <div style={{display:"flex",gap:3,alignItems:"center",padding:"0 14px 8px",flexWrap:"wrap"}}>
 
-                        {p.placements.map((pl,pi)=>{
+                        {p.placements.map(function(pl,pi){
 
-                          const c=pl===1?"#E8A838":pl===2?"#C0C0C0":pl===3?"#CD7F32":pl<=4?"#4ECDC4":"#F87171";
+                          var c=pl===1?"#E8A838":pl===2?"#C0C0C0":pl===3?"#CD7F32":pl<=4?"#4ECDC4":"#F87171";
 
                           return <div key={pi} style={{width:18,height:18,borderRadius:4,background:c+"22",border:"1px solid "+c+"55",display:"inline-flex",alignItems:"center",justifyContent:"center"}}>
 
@@ -9638,7 +10057,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
               </div>
 
-            </>
+            </div>
 
           )}
 
@@ -9648,7 +10067,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
 
 
-      {/* ── HISTORY TAB: full game log with placements ── */}
+      {/* ── HISTORY TAB ── */}
 
       {tab==="history"&&(
 
@@ -9660,9 +10079,9 @@ function ScrimsScreen({players,toast,setScreen}){
 
           ):(
 
-            <>
+            <div>
 
-              {sessions.map(sess=>{
+              {safeSessions.map(function(sess){
 
                 if(sess.games.length===0)return null;
 
@@ -9676,15 +10095,11 @@ function ScrimsScreen({players,toast,setScreen}){
 
                       <Tag color={sess.active?"#52C47C":"#BECBD9"} size="sm">{sess.active?"Active":"Ended"}</Tag>
 
-                      <span style={{fontSize:12,color:"#BECBD9"}}>{sess.games.length} games · {sess.createdAt}</span>
+                      <span style={{fontSize:12,color:"#BECBD9"}}>{sess.games.length} games &middot; {sess.createdAt}</span>
 
                       {sess.notes&&<span style={{fontSize:12,color:"#9AAABF"}}>- {sess.notes}</span>}
 
                     </div>
-
-
-
-                    {/* Placement matrix table */}
 
                     <Panel style={{overflow:"hidden",marginBottom:12}}>
 
@@ -9698,17 +10113,21 @@ function ScrimsScreen({players,toast,setScreen}){
 
                               <th style={{padding:"9px 14px",textAlign:"left",fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>Player</th>
 
-                              {sess.games.map((g,gi)=>(
+                              {sess.games.map(function(g,gi){
 
-                                <th key={g.id} style={{padding:"9px 10px",textAlign:"center",fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>
+                                return(
 
-                                  G{gi+1}
+                                  <th key={g.id} style={{padding:"9px 10px",textAlign:"center",fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)",whiteSpace:"nowrap"}}>
 
-                                  {g.tag!=="standard"&&<div style={{fontSize:8,color:"#4ECDC4",fontWeight:400,textTransform:"none",letterSpacing:0}}>{g.tag}</div>}
+                                    G{gi+1}
 
-                                </th>
+                                    {g.tag!=="standard"&&<div style={{fontSize:8,color:"#4ECDC4",fontWeight:400,textTransform:"none",letterSpacing:0}}>{g.tag}</div>}
 
-                              ))}
+                                  </th>
+
+                                );
+
+                              })}
 
                               <th style={{padding:"9px 10px",textAlign:"center",fontSize:10,fontWeight:700,color:"#E8A838",letterSpacing:".1em",textTransform:"uppercase",borderBottom:"1px solid rgba(242,237,228,.07)"}}>Avg</th>
 
@@ -9720,25 +10139,23 @@ function ScrimsScreen({players,toast,setScreen}){
 
                           <tbody>
 
-                            {sess.games.flatMap(g=>Object.keys(g.results)).filter((p,i,a)=>a.indexOf(p)===i).map(pid=>{
+                            {sess.games.flatMap(function(g){return Object.keys(g.results);}).filter(function(pid,idx,arr){return arr.indexOf(pid)===idx;}).map(function(pid,pidIdx){
 
-                              // Build per-player rows for this session
-
-                              const p=allPlayers.find(pl=>String(pl.id)===String(pid));
+                              var p=allPlayers.find(function(pl){return String(pl.id)===String(pid);});
 
                               if(!p)return null;
 
-                              const placements=sess.games.map(g=>g.results[pid]);
+                              var placements=sess.games.map(function(g){return g.results[pid];});
 
-                              const validPl=placements.filter(v=>v!=null);
+                              var validPl=placements.filter(function(v){return v!=null;});
 
-                              const avg=validPl.length>0?(validPl.reduce((s,v)=>s+v,0)/validPl.length).toFixed(2):"-";
+                              var avg=validPl.length>0?(validPl.reduce(function(s,v){return s+v;},0)/validPl.length).toFixed(2):"-";
 
-                              const pts=validPl.reduce((s,v)=>s+(PTS[v]||0),0);
+                              var pts=validPl.reduce(function(s,v){return s+(PTS[v]||0);},0);
 
                               return(
 
-                                <tr key={p.id} style={{background:i%2===0?"rgba(255,255,255,.01)":"transparent",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+                                <tr key={p.id} style={{background:pidIdx%2===0?"rgba(255,255,255,.01)":"transparent",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
 
                                   <td style={{padding:"10px 14px"}}>
 
@@ -9750,9 +10167,9 @@ function ScrimsScreen({players,toast,setScreen}){
 
                                   </td>
 
-                                  {placements.map((place,pi)=>{
+                                  {placements.map(function(place,pi){
 
-                                    const c=place==null?"#7A8BA0":place===1?"#E8A838":place===2?"#C0C0C0":place===3?"#CD7F32":place<=4?"#4ECDC4":"#F87171";
+                                    var c=place==null?"#7A8BA0":place===1?"#E8A838":place===2?"#C0C0C0":place===3?"#CD7F32":place<=4?"#4ECDC4":"#F87171";
 
                                     return(
 
@@ -9798,23 +10215,25 @@ function ScrimsScreen({players,toast,setScreen}){
 
                           </tbody>
 
-                          {/* Notes row */}
-
                           <tfoot>
 
                             <tr style={{background:"#0A0F1A",borderTop:"1px solid rgba(242,237,228,.06)"}}>
 
                               <td style={{padding:"7px 14px",fontSize:10,color:"#9AAABF",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Notes</td>
 
-                              {sess.games.map(g=>(
+                              {sess.games.map(function(g){
 
-                                <td key={g.id} style={{padding:"7px 6px",textAlign:"center",fontSize:10,color:"#4ECDC4",maxWidth:60}}>
+                                return(
 
-                                  {g.note||"-"}
+                                  <td key={g.id} style={{padding:"7px 6px",textAlign:"center",fontSize:10,color:"#4ECDC4",maxWidth:60}}>
 
-                                </td>
+                                    {g.note||"-"}
 
-                              ))}
+                                  </td>
+
+                                );
+
+                              })}
 
                               <td/><td/>
 
@@ -9834,7 +10253,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
               })}
 
-            </>
+            </div>
 
           )}
 
@@ -9844,7 +10263,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
 
 
-      {/* ── SESSIONS TAB: manage sessions ── */}
+      {/* ── SESSIONS TAB ── */}
 
       {tab==="sessions"&&(
 
@@ -9878,7 +10297,7 @@ function ScrimsScreen({players,toast,setScreen}){
 
                 <Sel value={newTarget} onChange={setNewTarget}>
 
-                  {[1,2,3,4,5,6,7,8,10,12].map(n=><option key={n} value={n}>{n} games</option>)}
+                  {[1,2,3,4,5,6,7,8,10,12].map(function(n){return <option key={n} value={n}>{n} games</option>;})}
 
                 </Sel>
 
@@ -9886,59 +10305,61 @@ function ScrimsScreen({players,toast,setScreen}){
 
             </div>
 
-            <Btn v="purple" full onClick={createSession}>Create Session →</Btn>
+            <Btn v="purple" full onClick={createSession}>Create Session &#8594;</Btn>
 
           </Panel>
 
-
-
           <div style={{display:"flex",flexDirection:"column",gap:10}}>
 
-            {sessions.map(s=>(
+            {safeSessions.map(function(s){
 
-              <Panel key={s.id} style={{padding:"16px",border:"1px solid "+(s.active?"rgba(155,114,207,.35)":"rgba(242,237,228,.07)")}}>
+              return(
 
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                <Panel key={s.id} style={{padding:"16px",border:"1px solid "+(s.active?"rgba(155,114,207,.35)":"rgba(242,237,228,.07)")}}>
 
-                  <div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
 
-                    <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
+                    <div>
 
-                      {s.name}{s.active&&<Dot size={5} color="#9B72CF"/>}
+                      <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
+
+                        {s.name}{s.active&&<Dot size={5} color="#9B72CF"/>}
+
+                      </div>
+
+                      {s.notes&&<div style={{fontSize:12,color:"#BECBD9",marginBottom:6}}>{s.notes}</div>}
+
+                      <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+
+                        <Tag color="#9B72CF" size="sm">{s.games.length}/{s.targetGames} games</Tag>
+
+                        <span className="cond" style={{fontSize:10,color:"#9AAABF"}}>{s.createdAt}</span>
+
+                        {!s.active&&<Tag color="#BECBD9" size="sm">Ended</Tag>}
+
+                        {s.games.length>=s.targetGames&&s.active&&<Tag color="#E8A838" size="sm">Target reached!</Tag>}
+
+                      </div>
 
                     </div>
 
-                    {s.notes&&<div style={{fontSize:12,color:"#BECBD9",marginBottom:6}}>{s.notes}</div>}
+                    <div style={{display:"flex",gap:6}}>
 
-                    <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+                      <Btn v="purple" s="sm" onClick={function(){setActiveId(s.id);setTab("play");}}>Open</Btn>
 
-                      <Tag color="#9B72CF" size="sm">{s.games.length}/{s.targetGames} games</Tag>
-
-                      <span className="cond" style={{fontSize:10,color:"#9AAABF"}}>{s.createdAt}</span>
-
-                      {!s.active&&<Tag color="#BECBD9" size="sm">Ended</Tag>}
-
-                      {s.games.length>=s.targetGames&&s.active&&<Tag color="#E8A838" size="sm">Target reached!</Tag>}
+                      {s.active&&<Btn v="danger" s="sm" onClick={function(){stopSession(s.id);}}>End</Btn>}
 
                     </div>
 
                   </div>
 
-                  <div style={{display:"flex",gap:6}}>
+                  <Bar val={s.games.length} max={s.targetGames} color="#9B72CF" h={3}/>
 
-                    <Btn v="purple" s="sm" onClick={()=>{setActiveId(s.id);setTab("log");}}>Open</Btn>
+                </Panel>
 
-                    {s.active&&<Btn v="danger" s="sm" onClick={()=>stopSession(s.id)}>End</Btn>}
+              );
 
-                  </div>
-
-                </div>
-
-                <Bar val={s.games.length} max={s.targetGames} color="#9B72CF" h={3}/>
-
-              </Panel>
-
-            ))}
+            })}
 
           </div>
 
@@ -15406,6 +15827,12 @@ function TFTClash(){
 
   const [isAdmin,setIsAdmin]=useState(false);
 
+  const [scrimAccess,setScrimAccess]=useState([]);
+  const [tickerOverrides,setTickerOverrides]=useState([]);
+
+  const [scrimSessions,setScrimSessions]=useState([]);
+
+
   const [notifications,setNotifications]=useState(()=>{try{const s=localStorage.getItem("tft-notifications");return s?JSON.parse(s):NOTIF_SEED;}catch{return NOTIF_SEED;}});
 
   const [toasts,setToasts]=useState([]);
@@ -15544,7 +15971,7 @@ function TFTClash(){
 
     supabase.from('site_settings').select('key,value')
 
-      .in('key',['players','tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps'])
+      .in('key',['players','tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps','scrim_access','scrim_data','ticker_overrides'])
 
       .then(function(res){
 
@@ -15576,6 +16003,13 @@ function TFTClash(){
               if(row.key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
 
               if(row.key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
+
+              if(row.key==='scrim_access'&&Array.isArray(val)){rtRef.current.scrim_access=true;setScrimAccess(val);}
+
+              if(row.key==='ticker_overrides'&&Array.isArray(val)){rtRef.current.ticker_overrides=true;setTickerOverrides(val);}
+
+              if(row.key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
+
 
             }
 
@@ -15625,6 +16059,13 @@ function TFTClash(){
           if(key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
 
           if(key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
+
+          if(key==='scrim_access'&&Array.isArray(val)){rtRef.current.scrim_access=true;setScrimAccess(val);}
+
+          if(key==='ticker_overrides'&&Array.isArray(val)){rtRef.current.ticker_overrides=true;setTickerOverrides(val);}
+
+          if(key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
+
 
         }catch(e){}
 
@@ -15711,6 +16152,22 @@ function TFTClash(){
     if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()}).then(function(){});
   },[players]);
 
+  useEffect(function(){
+    if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(){});
+  },[scrimAccess]);
+
+  useEffect(function(){
+    if(rtRef.current.scrim_data){rtRef.current.scrim_data=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(){});
+  },[scrimSessions]);
+
+  useEffect(function(){
+    if(rtRef.current.ticker_overrides){rtRef.current.ticker_overrides=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(){});
+  },[tickerOverrides]);
+
+
   // Load past clashes from tournament_results + tournaments tables
   useEffect(function(){
     if(!supabase.from||!players.length)return;
@@ -15737,7 +16194,12 @@ function TFTClash(){
 
   function navTo(s){
 
-    if((s==="scrims"||s==="admin")&&!isAdmin){toast("Admin access required","error");return;}
+    var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
+
+    if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
+
+    if(s==="scrims"&&!canScrims){toast("Access restricted","error");return;}
+
 
     window.history.pushState({screen:s},'','#'+s);
 
@@ -15851,6 +16313,15 @@ function TFTClash(){
 
 
 
+  // -- Compute SEASON_CHAMPION from live standings --
+  if(players&&players.length>0){
+    var scSorted=players.slice().sort(function(a,b){return(b.pts||0)-(a.pts||0);});
+    var scTop=scSorted[0];
+    if(scTop&&scTop.pts>0){
+      SEASON_CHAMPION={name:scTop.name,title:SEASON_CHAMPION.title,season:SEASON_CHAMPION.season,since:SEASON_CHAMPION.since,pts:scTop.pts,wins:scTop.wins||0,rank:scTop.rank||"Challenger"};
+    }
+  }
+
   // Show auth screens fullscreen
 
   if(authScreen==="login") return(
@@ -15946,11 +16417,11 @@ function TFTClash(){
 
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
 
-          currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead}/>
+          currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead} scrimAccess={scrimAccess}/>
 
 
 
-        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister}/>}
+        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides}/>}
 
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 
@@ -15992,9 +16463,9 @@ function TFTClash(){
 
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
 
-        {screen==="scrims"     &&isAdmin&&<ScrimsScreen players={players} toast={toast} setScreen={navTo}/>}
+        {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides}/>}
 
-        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps}/>}
+        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess}/>}
 
         {screen==="admin"      &&!isAdmin&&(
 
