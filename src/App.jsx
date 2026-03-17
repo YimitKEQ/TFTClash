@@ -15744,7 +15744,7 @@ function TFTClash(){
 
               var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
 
-              if(row.key==='players'&&Array.isArray(val)&&val.length>0){rtRef.current.players=true;setPlayers(val);hadPlayers=true;}
+              if(row.key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);hadPlayers=true;}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
 
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
