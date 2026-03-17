@@ -5272,9 +5272,21 @@ const DAILY_CHALLENGES=[
 
 
 
-function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig}){
+function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig,allUsers}){
 
   const [tab,setTab]=useState("overview");
+
+  // Resolve user metadata for this player (bio, socials, banner, pfp)
+  var userMeta=player.userMeta||null;
+  if(!userMeta&&allUsers){var mu=allUsers.find(function(u){return u.username===player.name||u.id===player.auth_user_id;});if(mu)userMeta=mu.user_metadata||null;}
+  var pBio=userMeta&&userMeta.bio||player.bio||"";
+  var pTwitch=userMeta&&userMeta.twitch||player.twitch||"";
+  var pTwitter=userMeta&&userMeta.twitter||player.twitter||"";
+  var pYoutube=userMeta&&userMeta.youtube||player.youtube||"";
+  var pPic=userMeta&&userMeta.profilePic||player.profilePic||"";
+  var pBanner=userMeta&&userMeta.bannerUrl||player.bannerUrl||"";
+  var pAccent=userMeta&&userMeta.profileAccent||player.profileAccent||"";
+  var isOwnProfile=currentUser&&(currentUser.username===player.name||currentUser.id===player.auth_user_id);
 
   const achievements=getAchievements(player);
 
@@ -5419,7 +5431,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
       <div style={{borderRadius:14,marginBottom:18,overflow:"hidden",border:"1px solid "+rc(player.rank)+"30",position:"relative"}}>
 
         {/* Banner */}
-        <div style={{height:player.bannerUrl?120:70,background:player.bannerUrl?"url("+player.bannerUrl+") center/cover no-repeat":"linear-gradient(135deg,"+rc(player.rank)+"28,#08080F 60%)",position:"relative"}}>
+        <div style={{height:pBanner?120:70,background:pBanner?"url("+pBanner+") center/cover no-repeat":"linear-gradient(135deg,"+(pAccent||rc(player.rank))+"28,#08080F 60%)",position:"relative"}}>
           <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 30%,#08080F)"}}/>
         </div>
 
@@ -5429,15 +5441,15 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
           <div style={{width:72,height:72,borderRadius:"50%",
 
-            background:player.profilePic?"url("+player.profilePic+") center/cover no-repeat":"linear-gradient(135deg,"+rc(player.rank)+"33,"+rc(player.rank)+"11)",
+            background:pPic?"url("+pPic+") center/cover no-repeat":"linear-gradient(135deg,"+rc(player.rank)+"33,"+rc(player.rank)+"11)",
 
             border:"4px solid #08080F",boxShadow:"0 0 0 2px "+(SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"),
 
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:player.profilePic?0:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:pPic?0:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
 
             {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
 
-            {!player.profilePic&&player.name.charAt(0)}
+            {!pPic&&player.name.charAt(0)}
 
           </div>
 
@@ -5484,6 +5496,27 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
           </div>
 
         </div>
+
+        {/* Bio + Socials */}
+        {(pBio||pTwitch||pTwitter||pYoutube)&&(
+          <div style={{marginTop:14}}>
+            {pBio&&<div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6,marginBottom:8}}>{pBio}</div>}
+            {(pTwitch||pTwitter||pYoutube)&&(
+              <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+                {pTwitch&&<a href={"https://twitch.tv/"+pTwitch} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:"#9B72CF",textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>twitch.tv/{pTwitch}</a>}
+                {pTwitter&&<a href={"https://x.com/"+pTwitter} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:"#4ECDC4",textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>@{pTwitter}</a>}
+                {pYoutube&&<a href={"https://youtube.com/@"+pYoutube} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:"#F87171",textDecoration:"none",display:"flex",alignItems:"center",gap:4}}>youtube.com/@{pYoutube}</a>}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Edit Profile link for own profile */}
+        {isOwnProfile&&setScreen&&(
+          <div style={{marginTop:10}}>
+            <Btn v="ghost" s="sm" onClick={function(){setScreen("account");}}>Edit Profile</Btn>
+          </div>
+        )}
 
         {/* Big stats */}
 
@@ -10595,40 +10628,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
-  const [billing,setBilling]=useState("monthly");
-
-  const [hovered,setHovered]=useState(null);
-
-  const [loading,setLoading]=useState(false);
-
-  function handleSubscribe(plan){
-    if(!currentUser){toast("Sign in first to subscribe","warn");return;}
-    var fullPlan=billing==="annual"?plan+"_annual":plan;
-    setLoading(true);
-    startCheckout(fullPlan,currentUser).catch(function(err){
-      toast(err.message||"Checkout failed","error");
-    }).finally(function(){setLoading(false);});
-  }
-
-
-
-  const FAQS=[
-
-    {q:"How often do clashes run?",a:"Weekly, every season. Each TFT set is a season - new meta, fresh standings, clean leaderboard. The schedule is pinned on the home screen and announced in Discord."},
-
-    {q:"Is entry really always free?",a:"Yes, always. You never pay to compete in a TFT Clash event. Pro is optional and gives you deeper stats tools and a guaranteed slot - it's for players who want more, not a paywall."},
-
-    {q:"What does auto check-in mean?",a:"Pro members are automatically checked in for every weekly clash. No more scrambling to hit the button before the deadline. You're always in, always ready. Regular players check in manually first-come, first-served."},
-
-    {q:"How do results get recorded?",a:"Players enter their own placements via a 4-digit PIN tied to their lobby. No manual entry by admins. Results lock when all lobbies are submitted and then go through our reveal sequence."},
-
-    {q:"What happens at the end of a season?",a:"Season standings freeze, the champion gets crowned in the Hall of Fame, and all XP ranks carry over. A new season starts fresh with the next TFT set."},
-
-    {q:"Can I run my own clash on the platform?",a:"Not by default, but Host tier exists for exactly that. It's not the main product - we run the official weekly clashes - but approved hosts can run their own circuits under the TFT Clash umbrella."},
-
-  ];
-
-
+  /* Pricing is under construction — Stripe integration being reworked */
 
   return(
 
@@ -10640,293 +10640,51 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
       </div>
 
-      {/* Hero */}
+      <div style={{textAlign:"center",padding:"80px 20px",maxWidth:560,margin:"0 auto"}}>
 
-      <div style={{textAlign:"center",marginBottom:40,padding:"20px 0"}}>
+        <div style={{width:80,height:80,margin:"0 auto 24px",background:"rgba(232,168,56,.08)",border:"2px solid rgba(232,168,56,.25)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
+          🔧
+        </div>
 
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:12}}>Season 16 · Set 16</div>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Under Construction</div>
 
-        <h1 style={{fontSize:"clamp(28px,5vw,48px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:12}}>
+        <h1 style={{fontSize:"clamp(24px,4vw,40px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.15,marginBottom:16}}>
 
-          Competing is free.<br/><span style={{color:"#E8A838"}}>Going further costs less than a coffee.</span>
+          Pricing is being rebuilt
 
         </h1>
 
-        <p style={{fontSize:16,color:"#C8D4E0",maxWidth:520,margin:"0 auto 24px"}}>
+        <p style={{fontSize:15,color:"#C8D4E0",lineHeight:1.7,marginBottom:12}}>
 
-          TFT Clash runs weekly tournaments every season. Entry is always free. Pro gives serious players deeper tools and a reserved spot.
+          We're reworking our payment system to give you a better experience. The tiers you know and love — Player, Pro, and Host — are staying, but the checkout flow is getting an upgrade.
 
         </p>
 
-        {/* Billing toggle */}
+        <p style={{fontSize:14,color:"#BECBD9",lineHeight:1.7,marginBottom:32}}>
 
-        <div style={{display:"inline-flex",background:"#111827",border:"1px solid rgba(242,237,228,.1)",borderRadius:99,padding:4,gap:4}}>
+          Competing in TFT Clash will always be free. Pro and Host subscriptions will be back soon.
 
-          {["monthly","annual"].map(b=>(
+        </p>
 
-            <button key={b} onClick={()=>setBilling(b)}
+        <div style={{display:"inline-flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
 
-              style={{background:billing===b?"rgba(232,168,56,.15)":"none",
+          <Btn v="primary" onClick={()=>setScreen("home")}>Back to Home</Btn>
 
-                border:"1px solid "+(billing===b?"rgba(232,168,56,.4)":"transparent"),
-
-                borderRadius:99,padding:"7px 20px",fontSize:13,fontWeight:700,
-
-                color:billing===b?"#E8A838":"#BECBD9",cursor:"pointer",transition:"all .2s",textTransform:"capitalize"}}>
-
-              {b}{b==="annual"&&<span style={{marginLeft:6,fontSize:10,background:"rgba(82,196,124,.15)",color:"#6EE7B7",padding:"1px 6px",borderRadius:99,border:"1px solid rgba(82,196,124,.3)"}}>-20%</span>}
-
-            </button>
-
-          ))}
+          <Btn v="ghost" onClick={()=>setScreen("faq")}>Read the FAQ</Btn>
 
         </div>
 
-      </div>
+        <div style={{marginTop:48,padding:"20px 24px",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12}}>
 
+          <div style={{fontSize:13,color:"#9B72CF",fontWeight:700,marginBottom:6}}>Quick reminder</div>
 
-
-      {/* Tier cards */}
-
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16,marginBottom:48,alignItems:"start"}}>
-
-        {PREMIUM_TIERS.map(tier=>{
-
-          const isPopular=tier.popular;
-
-          const monthlyPrice=parseFloat(tier.price.replace("€",""))||0;
-
-          const displayPrice=billing==="annual"&&monthlyPrice>0?"€"+(monthlyPrice*.8).toFixed(2):tier.price;
-
-          return(
-
-            <div key={tier.id} onMouseEnter={()=>setHovered(tier.id)} onMouseLeave={()=>setHovered(null)}
-
-              style={{position:"relative",background:isPopular?"linear-gradient(135deg,rgba(232,168,56,.07),rgba(8,8,15,.98))":"#111827",
-
-                border:"1px solid "+(isPopular?"rgba(232,168,56,.45)":hovered===tier.id?"rgba(242,237,228,.2)":"rgba(242,237,228,.08)"),
-
-                borderRadius:16,padding:"28px 24px",
-
-                boxShadow:isPopular?"0 0 40px rgba(232,168,56,.08)":"none",
-
-                transition:"border-color .2s",marginTop:isPopular?-8:0}}>
-
-              {isPopular&&(
-
-                <div style={{position:"absolute",top:-12,left:"50%",transform:"translateX(-50%)",
-
-                  background:"linear-gradient(90deg,#E8A838,#FFD700)",borderRadius:99,
-
-                  padding:"4px 16px",fontSize:11,fontWeight:800,color:"#08080F",
-
-                  letterSpacing:".06em",whiteSpace:"nowrap"}}>
-
-                  ⭐ MOST POPULAR
-
-                </div>
-
-              )}
-
-              <div style={{marginBottom:20}}>
-
-                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-
-                  <div style={{width:36,height:36,background:tier.color+"18",border:"1px solid "+tier.color+"44",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>
-
-                    {tier.id==="free"?"🆓":tier.id==="pro"?"⚡":"🏛"}
-
-                  </div>
-
-                  <div>
-
-                    <div style={{fontWeight:800,fontSize:18,color:tier.color}}>{tier.name}</div>
-
-                  </div>
-
-                </div>
-
-                <div style={{marginBottom:6}}>
-
-                  <span className="mono" style={{fontSize:36,fontWeight:700,color:"#F2EDE4"}}>{displayPrice}</span>
-
-                  <span style={{fontSize:13,color:"#BECBD9",marginLeft:4}}>{tier.period}</span>
-
-                </div>
-
-                {billing==="annual"&&monthlyPrice>0&&(
-
-                  <div style={{fontSize:11,color:"#6EE7B7"}}>Billed €{(monthlyPrice*.8*12).toFixed(0)}/year - save €{(monthlyPrice*.2*12).toFixed(0)}</div>
-
-                )}
-
-                <div style={{fontSize:13,color:"#C8D4E0",marginTop:6,lineHeight:1.5}}>{tier.desc}</div>
-
-              </div>
-
-              <button disabled={loading&&tier.id!=="free"} onClick={()=>tier.id==="free"?toast("You're already on Free!","success"):tier.id==="org"?setScreen("host-apply"):handleSubscribe(tier.id==="pro"?"pro":"host")}
-
-                style={{width:"100%",padding:"12px 20px",background:isPopular?"linear-gradient(90deg,#E8A838,#C8882A)":tier.id==="org"?"rgba(155,114,207,.15)":"rgba(255,255,255,.05)",
-
-                  border:"1px solid "+(isPopular?"transparent":tier.id==="org"?"rgba(155,114,207,.4)":"rgba(242,237,228,.15)"),
-
-                  borderRadius:10,fontSize:15,fontWeight:700,color:isPopular?"#08080F":tier.color,
-
-                  cursor:loading?"wait":"pointer",opacity:loading&&tier.id!=="free"?0.6:1,marginBottom:24,transition:"all .2s"}}>
-
-                {loading&&tier.id!=="free"?"Redirecting...":tier.cta}
-
-              </button>
-
-              <div style={{borderTop:"1px solid rgba(242,237,228,.06)",paddingTop:20}}>
-
-                {tier.features.map((f,fi)=>(
-
-                  <div key={fi} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-
-                    <span style={{color:tier.color,fontSize:13,flexShrink:0}}>✓</span>
-
-                    <span style={{fontSize:13,color:"#C8BFB0",lineHeight:1.5}}>{f}</span>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-            </div>
-
-          );
-
-        })}
-
-      </div>
-
-
-
-      {/* Feature comparison table */}
-
-      <Panel style={{overflow:"auto",marginBottom:40}}>
-
-        <div style={{padding:"16px 20px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-
-          <h3 style={{fontSize:16,color:"#F2EDE4"}}>Feature Comparison</h3>
-
-        </div>
-
-        {[
-
-          ["Weekly clash entry","✓","✓","✓"],
-
-          ["Full season stats & leaderboard","✓","✓","✓"],
-
-          ["Player profile & career history","✓","✓","✓"],
-
-          ["Achievements, milestones & XP ranks","✓","✓","✓"],
-
-          ["Hall of Fame & rival tracking","✓","✓","✓"],
-
-          ["Guaranteed check-in slot","-","✓","✓"],
-
-          ["Season Recap shareable card","-","✓","✓"],
-
-          ["Full cross-season stat history","-","✓","✓"],
-
-          ["Pro badge on profile","-","✓","✓"],
-
-          ["Ad-free experience","-","✓","✓"],
-
-          ["Create & manage own clash events","-","-","✓"],
-
-          ["Custom event branding","-","-","✓"],
-
-          ["Private / invite-only clashes","-","-","✓"],
-
-          ["Admin dashboard & CSV export","-","-","✓"],
-
-        ].map(([feat,...vals],i)=>(
-
-          <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 100px 100px 100px",padding:"11px 20px",borderBottom:"1px solid rgba(242,237,228,.04)",background:i%2===0?"rgba(255,255,255,.01)":"transparent",alignItems:"center"}}>
-
-            <span style={{fontSize:13,color:"#C8BFB0"}}>{feat}</span>
-
-            {vals.map((v,vi)=>(
-
-              <div key={vi} style={{textAlign:"center"}}>
-
-                <span style={{fontSize:13,fontWeight:600,color:v==="✓"?["#BECBD9","#E8A838","#9B72CF"][vi]:v==="-"?"#7A8BA0":"#F2EDE4"}}>{v}</span>
-
-              </div>
-
-            ))}
-
+          <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>
+            Free tier: Compete in every weekly clash, full leaderboard, profile, achievements, H2H rivalries.
+            <br/>Pro: Guaranteed check-in, deeper stats, season recap cards, pro badge.
+            <br/>Host: Run your own branded clash events on the platform.
           </div>
 
-        ))}
-
-        <div style={{display:"grid",gridTemplateColumns:"1fr 100px 100px 100px",padding:"8px 20px",background:"#0A0F1A",borderTop:"1px solid rgba(242,237,228,.07)"}}>
-
-          <span/>
-
-          {PREMIUM_TIERS.map(t=>(
-
-            <div key={t.id} style={{textAlign:"center"}}>
-
-              <span className="cond" style={{fontSize:10,fontWeight:700,color:t.color,letterSpacing:".08em"}}>{t.name.toUpperCase()}</span>
-
-            </div>
-
-          ))}
-
         </div>
-
-      </Panel>
-
-
-
-      {/* Sponsor CTA */}
-
-      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(8,8,15,.98))",border:"1px solid rgba(155,114,207,.3)",borderRadius:14,padding:"28px 24px",textAlign:"center",marginBottom:40}}>
-
-        <div style={{fontSize:28,marginBottom:10}}>📢</div>
-
-        <h3 style={{fontSize:20,color:"#F2EDE4",marginBottom:8}}>Want to sponsor a tournament?</h3>
-
-        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:480,margin:"0 auto 20px",lineHeight:1.6}}>
-
-          Reach thousands of active TFT players directly. Sponsor a clash, get your logo on the results card, and be featured in every share.
-
-        </p>
-
-        <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-
-          <Btn v="purple" s="lg" onClick={()=>toast("Opening sponsor inquiry (mock)...","success")}>Become a Sponsor</Btn>
-
-          <Btn v="ghost" onClick={()=>toast("Sponsor pack coming soon","success")}>Download Media Kit</Btn>
-
-        </div>
-
-      </div>
-
-
-
-      {/* FAQ */}
-
-      <div style={{maxWidth:680,margin:"0 auto"}}>
-
-        <h3 style={{fontSize:18,color:"#F2EDE4",marginBottom:20,textAlign:"center"}}>FAQ</h3>
-
-        {FAQS.map((faq,i)=>(
-
-          <Panel key={i} style={{padding:"16px 20px",marginBottom:8}}>
-
-            <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:6}}>{faq.q}</div>
-
-            <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>{faq.a}</div>
-
-          </Panel>
-
-        ))}
 
       </div>
 
