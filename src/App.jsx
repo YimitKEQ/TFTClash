@@ -1396,6 +1396,17 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .panel-sm-pad{padding:14px!important;}
 
 }
+
+@media(max-width:375px){
+
+  /* Small phone (iPhone SE etc) tweaks */
+  .page.wrap{padding-left:10px!important;padding-right:10px!important;}
+  .panel-sm-pad{padding:10px!important;}
+  h2{font-size:18px!important;}
+  .cond{letter-spacing:.02em!important;}
+  .lab-tabs button{padding:6px 8px!important;font-size:11px!important;}
+
+}
 /* -- Lab (Scrims) mobile grid fixes -- */
 @media(max-width:767px){
   .lab-play-grid{grid-template-columns:1fr!important;}
@@ -7631,7 +7642,7 @@ function TickerAdminPanel({tickerOverrides,setTickerOverrides,toast,addAudit}){
   );
 }
 
-function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides}){
+function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications}){
 
   const [tab,setTab]=useState("dashboard");
 
@@ -8870,7 +8881,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                     <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
 
-                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved"}:a));addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
+                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved",approvedAt:new Date().toLocaleDateString()}:a));setNotifications(ns=>[{id:Date.now(),icon:"🎮",title:"Host Application Approved",body:app.name+" has been approved as a Host. They can now access the Host Dashboard.",time:new Date().toLocaleTimeString(),read:false},...ns]);addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
 
                       <Btn v="danger" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"rejected"}:a));addAudit("WARN","Host rejected: "+app.name);toast(app.name+" rejected","success");}}>Reject</Btn>
 
@@ -13341,7 +13352,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
 // ─── HOST DASHBOARD ───────────────────────────────────────────────────────────
 
-function HostDashboardScreen({currentUser,players,toast,setScreen}){
+function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps}){
 
   const [tab,setTab]=useState("tournaments");
 
@@ -13359,13 +13370,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
 
   const [tRules,setTRules]=useState("");
 
-  const [tournaments,setTournaments]=useState([
-
-    {id:1,name:"Weekly Clash #15",date:"Mar 13 2026",size:16,invite:false,entryFee:"",status:"upcoming",registered:12,approved:true},
-
-    {id:2,name:"Pro Invitational",date:"Mar 20 2026",size:8,invite:true,entryFee:"$5",status:"draft",registered:0,approved:false},
-
-  ]);
+  const [tournaments,setTournaments]=useState([]);
 
 
 
@@ -13599,7 +13604,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen}){
 
         <Panel style={{padding:"18px"}}>
 
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Registered Players - Weekly Clash #15</h3>
+          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Registered Players</h3>
 
           {players.slice(0,12).map((p,i)=>(
 
@@ -16459,11 +16464,11 @@ function TFTClash(){
 
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
 
-        {screen==="host-dashboard"&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo}/>}
+        {screen==="host-dashboard"&&(()=>{var isApprovedHost=isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);}));return isApprovedHost?<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps}/>:<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>🔒</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={()=>navTo("home")}>Back to Home</Btn></div>;})()}
 
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
 
-        {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides}/>}
+        {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications}/>}
 
         {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess}/>}
 
