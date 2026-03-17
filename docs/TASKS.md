@@ -152,13 +152,13 @@ The current FAQ says players screenshot and submit to admin via Discord. Update 
 
 ## Phase 3 — Tournament Runner
 
-### [ ] #12 — Registration System
+### [~] #12 — Registration System
 Add register/unregister button to HomeScreen when phase === "registration". Store registeredIds in tournamentState. Admin can promote registered → checked-in.
-**Status:** Partially implemented (registeredIds added to state, UI in HomeScreen)
+**Status:** Registration persists in tournamentState.registeredIds, carried over on check-in open. registerFromAccount() now also adds to registeredIds. DB table `registrations` created (migration). Next: wire front-end to read/write registrations table directly.
 
-### [ ] #13 — Multi-Game Round Flow
+### [~] #13 — Multi-Game Round Flow
 Round progression in BracketScreen: round indicator, "End Round" button, "Complete Tournament" button.
-**Status:** In progress
+**Status:** In progress. Per-game results now write to `game_results` table.
 
 ### [ ] #14 — Live Standings During Clash
 Show cumulative points table in BracketScreen when phase === "inprogress".
@@ -166,27 +166,55 @@ Show cumulative points table in BracketScreen when phase === "inprogress".
 
 ### [ ] #15 — Lobby Builder Seeding UI
 Better seeding option picker in AdminPanel with visual toggle buttons.
-**Status:** In progress
+**Status:** In progress. DB table `lobbies` created (migration) for lobby persistence.
+
+---
+
+## Phase — Database Foundation (NEW — 2026-03-17)
+
+### [x] #24 — DATA_VERSION cache buster
+Clear stale localStorage on version mismatch. Kills old hardcoded friend data.
+**Status:** Done
+
+### [x] #25 — Remove hardcoded SEASON_CHAMPION
+Was hardcoded as Levitate with fake stats. Now computed dynamically from live standings. Shows null (no champion) when no one has real points.
+**Status:** Done
+
+### [x] #26 — SQL Migrations
+Created formal migrations for: `players` (001), `registrations` (002), `lobbies` (003), `game_results` (004), `tournaments` fields (005), `site_settings` JSONB upgrade (006).
+**Status:** Done — migrations written, need to apply to Supabase
+
+### [x] #27 — Error handling on all Supabase operations
+Replaced 15+ silent `.then(function(){})` with error logging. Added try/catch to critical operations.
+**Status:** Done
+
+### [x] #28 — JSONB compatibility
+Updated site_settings readers (mount + realtime) to handle both TEXT and JSONB column types.
+**Status:** Done
+
+### [x] #29 — Reset buttons fixed
+"Reset Season Stats" and "Full Season Reset" now clear clashHistory, sparkline, attendanceStreak, and all accumulated stats. Syncs to Supabase.
+**Status:** Done
 
 ---
 
 ## Phase 4 — UI Polish
 
-### [ ] #16 — Loading State
+### [x] #16 — Loading State
 Spinner overlay when Supabase is loading and players array is empty.
-**Status:** Implemented
+**Status:** Already implemented
 
-### [ ] #17 — Empty States
-Proper empty state messaging for ArchiveScreen and HofScreen.
-**Status:** Implemented
+### [x] #17 — Empty States
+Proper empty state messaging for ArchiveScreen, HofScreen, and LeaderboardScreen.
+**Status:** Done — added empty state to leaderboard season tab
 
 ### [ ] #18 — Mobile Responsiveness Audit
 Test at 375px/390px/414px. Fix tables, navbar, bracket screen.
 **Status:** TODO
 
-### [ ] #19 — Form Validation UX
+### [x] #19 — Form Validation UX
 Inline validation on signup/login forms, Riot ID format check.
-**Status:** TODO
+**Status:** Already implemented (isValidRiotId, riotIdErr inline display)
 
 ---
 

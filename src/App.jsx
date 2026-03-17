@@ -2,6 +2,10 @@ import { useState, useEffect, useRef, Component } from "react";
 
 import { supabase } from './lib/supabase.js';
 
+// ─── DATA VERSION — bump to bust stale localStorage ─────────────────────────
+var DATA_VERSION=2;
+(function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));console.log("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
+
 
 
 // ─── ERROR BOUNDARY ────────────────────────────────────────────────────────────
@@ -701,7 +705,7 @@ const PAST_CLASHES=[];
 
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
-let SEASON_CHAMPION={name:"Levitate",title:"The Unkillable",season:"Season 16",since:"Mar 2026",pts:1024,wins:16,rank:"Challenger"};
+let SEASON_CHAMPION=null; // computed from live standings — no hardcoded champion
 
 
 
@@ -3485,6 +3489,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
     setPlayers(p=>[...p,np]);
 
+    // Also register in tournamentState.registeredIds
+    setTournamentState(function(ts){var ids=ts.registeredIds||[];var sid=String(np.id);return ids.includes(sid)?ts:{...ts,registeredIds:[...ids,sid]};});
+
     toast(currentUser.username+" registered for "+clashName+"! ✓","success");
 
   }
@@ -4776,6 +4783,20 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     setTournamentState(ts=>({...ts,lockedLobbies:[...(ts.lockedLobbies||[]),li]}));
 
     setPlacementEntry(pe=>({...pe,[li]:{...pe[li],open:false}}));
+
+    // Persist per-game results to game_results table
+    if(supabase.from){
+      var gameRows=[];
+      lobby.forEach(function(p){
+        var place=parseInt(placementEntry[li].placements[p.id]||"0");
+        if(place>0)gameRows.push({tournament_id:0,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false});
+      });
+      if(gameRows.length>0){
+        supabase.from('game_results').insert(gameRows).then(function(res){
+          if(res.error)console.error("[TFT] Failed to save game results:",res.error);
+        });
+      }
+    }
 
     toast("Lobby "+(li+1)+" results applied! ✓","success");
 
@@ -6070,7 +6091,9 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 
 
-      {tab==="season"&&<StandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
+      {tab==="season"&&sorted.length>0&&<StandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
+
+      {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>🏆</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
 
 
 
@@ -8313,7 +8336,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
-              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
+              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
             </div>
 
@@ -8783,11 +8806,11 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Reset ALL player stats? Points, wins, and games will be zeroed.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0})));addAudit("DANGER","Stats reset");toast("All stats reset","success");}}}>Reset Season Stats</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Reset ALL player stats? Points, wins, and games will be zeroed. This syncs to the database.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null})));addAudit("DANGER","Stats reset");toast("All stats reset and synced","success");}}}>Reset Season Stats</Btn>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster?")){setPlayers([]);addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster? This syncs to the database.")){setPlayers([]);addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[]})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset","success");}}}>⚠️ Full Season Reset</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state. Syncs to database.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset and synced","success");}}}>Full Season Reset</Btn>
 
               </div>
 
@@ -8829,7 +8852,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               </div>
 
-              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:broadMsg.trim(),updated_at:new Date().toISOString()}).then(()=>{});addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Broadcast sent","success");}}>Send Broadcast</Btn>
+              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(broadMsg.trim()),updated_at:new Date().toISOString()}).then(function(res){if(res.error)console.error("[TFT] Broadcast save failed:",res.error);});addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Broadcast sent","success");}}>Send Broadcast</Btn>
 
             </div>
 
@@ -8853,7 +8876,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 </div>
 
-                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:'',updated_at:new Date().toISOString()}).then(()=>{});}} style={{background:"none",border:"none",color:"#9AAABF",cursor:"pointer",fontSize:22,lineHeight:1,flexShrink:0,padding:"0 4px"}}>×</button>
+                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(''),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});}} style={{background:"none",border:"none",color:"#9AAABF",cursor:"pointer",fontSize:22,lineHeight:1,flexShrink:0,padding:"0 4px"}}>×</button>
 
               </div>
 
@@ -13596,7 +13619,8 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     var newT={id:Date.now(),name:tName,date:tDate,size:parseInt(tSize),invite:tInvite,entryFee:tEntryFee,rules:tRules,status:tEntryFee?"pending_approval":"upcoming",registered:0,approved:!tEntryFee};
     setTournaments(function(ts){return ts.concat([newT]);});
     if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.concat([{id:"host-"+newT.id,name:tName,host:brandName,sponsor:null,status:"upcoming",date:tDate,time:"TBD",format:"Swiss",size:parseInt(tSize),registered:0,registeredIds:[],prizePool:null,region:"",description:tRules||"Host tournament by "+brandName,tags:tInvite?["Invite Only"]:["Open"],logo:brandLogo,screen:"tournament-host-"+newT.id,hostTournamentId:newT.id}]);});}
-    if(supabase.from)supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",size:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules:tRules||null}).then(function(){});
+    if(supabase.from)supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",size:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules:tRules||null})
+      .then(function(res){if(res.error)console.error("[TFT] Failed to create tournament:",res.error);});
     setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
     toast(tEntryFee?"Tournament created — pending admin approval for entry fee":"Tournament created!","success");
   }
@@ -15609,23 +15633,26 @@ function TFTClash(){
   // ── Bootstrap players from players table (fallback when site_settings has none) ──
   function bootstrapPlayersFromTable(){
     if(!supabase.from)return;
-    supabase.from('players').select('*').order('season_pts',{ascending:false})
+    supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
-        if(res.error||!res.data||!res.data.length)return;
+        if(res.error){console.error("[TFT] Failed to bootstrap players:",res.error);return;}
+        if(!res.data||!res.data.length)return;
         var mapped=res.data.map(function(r){
           return{
-            ...r,name:r.username,pts:r.season_pts||0,
-            avg:r.avg_placement!=null?Number(r.avg_placement):null,
-            riotId:r.riot_id||'',wins:r.wins||0,games:r.games||0,
-            top4:r.top4||0,rank:r.rank||'Iron',region:r.region||'EUW',
+            id:r.id,name:r.username,username:r.username,
+            riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
+            bio:r.bio||'',discord_user_id:r.discord_user_id||null,
+            pts:0,wins:0,top4:0,games:0,avg:"0",
             banned:false,dnpCount:0,notes:'',checkedIn:false,
             clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
             tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
+            role:"player",sponsor:null
           };
         });
         setPlayers(mapped);
         // Write bootstrap data to site_settings so future loads use it
-        supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(mapped),updated_at:new Date().toISOString()}).then(function(){});
+        supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(mapped),updated_at:new Date().toISOString()})
+          .then(function(res){if(res.error)console.error("[TFT] Failed to cache players:",res.error);});
       });
   }
 
@@ -15655,11 +15682,11 @@ function TFTClash(){
 
           try{
 
-            if(row.key==='announcement'){rtRef.current.announcement=true;setAnnouncement(row.value||'');}
+            if(row.key==='announcement'){rtRef.current.announcement=true;setAnnouncement(typeof row.value==='string'?row.value:JSON.stringify(row.value)||'');}
 
             else{
 
-              var val=JSON.parse(row.value);
+              var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
 
               if(row.key==='players'&&Array.isArray(val)&&val.length>0){rtRef.current.players=true;setPlayers(val);hadPlayers=true;}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
@@ -15721,9 +15748,9 @@ function TFTClash(){
 
           if(!key)return;
 
-          if(key==='announcement'){rtRef.current.announcement=true;setAnnouncement(raw||'');return;}
+          if(key==='announcement'){rtRef.current.announcement=true;setAnnouncement(typeof raw==='string'?raw:JSON.stringify(raw)||'');return;}
 
-          var val=JSON.parse(raw||'null');
+          var val=typeof raw==='string'?JSON.parse(raw||'null'):raw;
 
           if(!val)return;
 
@@ -15777,7 +15804,8 @@ function TFTClash(){
 
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
+      .then(function(res){if(res.error)console.error("[TFT] Failed to sync tournament_state:",res.error);});
 
   },[tournamentState]);
 
@@ -15785,7 +15813,7 @@ function TFTClash(){
 
     if(rtRef.current.quick_clashes){rtRef.current.quick_clashes=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'quick_clashes',value:JSON.stringify(quickClashes),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'quick_clashes',value:JSON.stringify(quickClashes),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
 
   },[quickClashes]);
 
@@ -15795,7 +15823,7 @@ function TFTClash(){
 
     if(rtRef.current.announcement){rtRef.current.announcement=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:announcement,updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(announcement),updated_at:new Date().toISOString()}).then(function(res){if(res.error)console.error("[TFT] Failed to sync announcement:",res.error);});
 
   },[announcement]);
 
@@ -15803,7 +15831,7 @@ function TFTClash(){
 
     if(rtRef.current.season_config){rtRef.current.season_config=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'season_config',value:JSON.stringify(seasonConfig),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'season_config',value:JSON.stringify(seasonConfig),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
 
   },[seasonConfig]);
 
@@ -15811,7 +15839,7 @@ function TFTClash(){
 
     if(rtRef.current.org_sponsors){rtRef.current.org_sponsors=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(orgSponsors),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(orgSponsors),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
 
   },[orgSponsors]);
 
@@ -15819,7 +15847,7 @@ function TFTClash(){
 
     if(rtRef.current.scheduled_events){rtRef.current.scheduled_events=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
 
   },[scheduledEvents]);
 
@@ -15827,7 +15855,7 @@ function TFTClash(){
 
     if(rtRef.current.audit_log){rtRef.current.audit_log=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
 
   },[auditLog]);
 
@@ -15835,52 +15863,53 @@ function TFTClash(){
 
     if(rtRef.current.host_apps){rtRef.current.host_apps=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
 
   },[hostApps]);
 
   useEffect(function(){
     if(rtRef.current.players){rtRef.current.players=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()})
+      .then(function(res){if(res.error)console.error("[TFT] Failed to sync players:",res.error);});
   },[players]);
 
   useEffect(function(){
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[scrimAccess]);
 
   useEffect(function(){
     if(rtRef.current.scrim_data){rtRef.current.scrim_data=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[scrimSessions]);
 
   useEffect(function(){
     if(rtRef.current.ticker_overrides){rtRef.current.ticker_overrides=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[tickerOverrides]);
 
   useEffect(function(){
     if(rtRef.current.host_tournaments){rtRef.current.host_tournaments=false;return;}
     localStorage.setItem('tft-host-tournaments',JSON.stringify(hostTournaments));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_tournaments',value:JSON.stringify(hostTournaments),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'host_tournaments',value:JSON.stringify(hostTournaments),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[hostTournaments]);
 
   useEffect(function(){
     if(rtRef.current.host_branding){rtRef.current.host_branding=false;return;}
     localStorage.setItem('tft-host-branding',JSON.stringify(hostBranding));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_branding',value:JSON.stringify(hostBranding),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'host_branding',value:JSON.stringify(hostBranding),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[hostBranding]);
 
   useEffect(function(){
     if(rtRef.current.host_announcements){rtRef.current.host_announcements=false;return;}
     localStorage.setItem('tft-host-announcements',JSON.stringify(hostAnnouncements));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_announcements',value:JSON.stringify(hostAnnouncements),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'host_announcements',value:JSON.stringify(hostAnnouncements),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[hostAnnouncements]);
 
   useEffect(function(){
     if(rtRef.current.featured_events){rtRef.current.featured_events=false;return;}
     localStorage.setItem('tft-featured-events',JSON.stringify(featuredEvents));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[featuredEvents]);
 
   useEffect(function(){
@@ -15890,7 +15919,7 @@ function TFTClash(){
   useEffect(function(){
     if(rtRef.current.challenge_completions){rtRef.current.challenge_completions=false;return;}
     localStorage.setItem('tft-challenge-completions',JSON.stringify(challengeCompletions));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(){});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[challengeCompletions]);
 
 
@@ -16046,8 +16075,12 @@ function TFTClash(){
     var scSorted=players.slice().sort(function(a,b){return(b.pts||0)-(a.pts||0);});
     var scTop=scSorted[0];
     if(scTop&&scTop.pts>0){
-      SEASON_CHAMPION={name:scTop.name,title:SEASON_CHAMPION.title,season:SEASON_CHAMPION.season,since:SEASON_CHAMPION.since,pts:scTop.pts,wins:scTop.wins||0,rank:scTop.rank||"Challenger"};
+      SEASON_CHAMPION={name:scTop.name,title:"Season Leader",season:seasonConfig.name||"Season 1",since:"",pts:scTop.pts,wins:scTop.wins||0,rank:scTop.rank||"Challenger"};
+    }else{
+      SEASON_CHAMPION=null;
     }
+  }else{
+    SEASON_CHAMPION=null;
   }
 
   // Show auth screens fullscreen
