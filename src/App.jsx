@@ -7635,7 +7635,7 @@ function TickerAdminPanel({tickerOverrides,setTickerOverrides,toast,addAudit}){
               <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{item}</span>
               <Btn v="danger" s="xs" onClick={function(){remove(item);}}>Remove</Btn>
             </div>
-          );})})
+          );})}
         </div>
       )}
     </Panel>
