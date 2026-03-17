@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS game_results (
   id bigint generated always as identity primary key,
   tournament_id uuid references tournaments(id) on delete cascade,
   round_number int not null,
-  player_id bigint not null references players(id) on delete cascade,
+  player_id uuid not null references players(id) on delete cascade,
   placement int not null check (placement between 0 and 8),
   points int not null default 0,
   is_dnp boolean default false,

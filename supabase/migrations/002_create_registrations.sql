@@ -2,8 +2,8 @@
 -- Statuses: registered, checked_in, waitlisted, dropped, no_show
 CREATE TABLE IF NOT EXISTS registrations (
   id bigint generated always as identity primary key,
-  tournament_id bigint not null references tournaments(id) on delete cascade,
-  player_id bigint not null references players(id) on delete cascade,
+  tournament_id uuid not null references tournaments(id) on delete cascade,
+  player_id uuid not null references players(id) on delete cascade,
   status text not null default 'registered',
   registered_at timestamptz default now(),
   checked_in_at timestamptz,

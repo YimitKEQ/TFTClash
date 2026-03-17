@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS lobbies (
   id bigint generated always as identity primary key,
-  tournament_id bigint not null references tournaments(id) on delete cascade,
+  tournament_id uuid not null references tournaments(id) on delete cascade,
   lobby_number int not null,
   created_at timestamptz default now()
 );
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS lobbies (
 -- Add columns that may be missing
 ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS round_number int not null default 1;
 ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS lobby_code text;
-ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS host_player_id bigint references players(id);
-ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS player_ids bigint[] not null default '{}';
+ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS host_player_id uuid references players(id);
+ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS player_ids uuid[] not null default '{}';
 ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS status text not null default 'pending';
 
 -- Index
