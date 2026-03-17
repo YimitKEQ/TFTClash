@@ -7550,7 +7550,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
 
 function ScrimAccessPanel({scrimAccess,setScrimAccess,toast,addAudit}){
-  var [newUser,setNewUser]=React.useState("");
+  var [newUser,setNewUser]=useState("");
   function addUser(){
     var u=newUser.trim();
     if(!u){toast("Enter a username","error");return;}
@@ -7602,7 +7602,7 @@ function ScrimAccessPanel({scrimAccess,setScrimAccess,toast,addAudit}){
 }
 
 function TickerAdminPanel({tickerOverrides,setTickerOverrides,toast,addAudit}){
-  var [newItem,setNewItem]=React.useState("");
+  var [newItem,setNewItem]=useState("");
   var items=tickerOverrides||[];
   function add(){
     var t=newItem.trim();
