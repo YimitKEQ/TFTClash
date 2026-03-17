@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, Component } from "react";
+import { useState, useEffect, useRef, useMemo, Component } from "react";
 
 import { supabase } from './lib/supabase.js';
+import { startCheckout } from './lib/stripe.js';
 
 // ─── DATA VERSION — bump to bust stale localStorage ─────────────────────────
 var DATA_VERSION=2;
@@ -1396,6 +1397,15 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   /* Mobile panel padding reduction */
   .panel-sm-pad{padding:14px!important;}
 
+  /* Reduce grid gaps on small screens */
+  .grid-home{gap:16px!important;}
+
+  /* Challenges grid — stack on small screens */
+  .challenges-grid{grid-template-columns:1fr 50px 50px 50px 50px 50px!important;}
+
+  /* Standings table allow shrink */
+  .standings-table-wrap{min-width:0!important;}
+
 }
 
 @media(max-width:375px){
@@ -1406,6 +1416,7 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   h2{font-size:18px!important;}
   .cond{letter-spacing:.02em!important;}
   .lab-tabs button{padding:6px 8px!important;font-size:11px!important;}
+  .challenges-grid{grid-template-columns:1fr 44px 44px 44px 44px 44px!important;}
 
 }
 /* -- Lab (Scrims) mobile grid fixes -- */
@@ -1414,10 +1425,6 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .lab-dash-grid{grid-template-columns:1fr!important;}
   .lab-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex!important;}
   .lab-tabs button{flex-shrink:0;}
-}
-
-@media(max-width:480px){
-  .standings-table-wrap{min-width:0!important;}
 }
 
 `;
@@ -4628,7 +4635,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
 
 
-  function getLobbies(){
+  function computeLobbies(){
 
     var algo=(tournamentState&&tournamentState.seedAlgo)||"rank-based";
 
@@ -4648,6 +4655,26 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
         sorted.forEach(function(p,i){if(Math.floor(i/lobbySize)%2===0)pool.push(p);else pool.unshift(p);});
 
+      } else if(algo==="anti-stack"){
+
+        var ranked=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
+
+        var lobbyCount=Math.ceil(ranked.length/lobbySize);
+
+        var buckets=Array.from({length:lobbyCount},function(){return[];});
+
+        ranked.forEach(function(p,i){
+
+          var row=Math.floor(i/lobbyCount);
+
+          var col=row%2===0?i%lobbyCount:(lobbyCount-1-(i%lobbyCount));
+
+          buckets[col].push(p);
+
+        });
+
+        pool=[].concat.apply([],buckets);
+
       } else {
 
         pool=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
@@ -4660,17 +4687,34 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
     }
 
-    const lobbies=[];
+    var result=[];
 
-    for(let i=0;i<pool.length;i+=lobbySize)lobbies.push(pool.slice(i,i+lobbySize));
+    for(var i=0;i<pool.length;i+=lobbySize)result.push(pool.slice(i,i+lobbySize));
 
-    return lobbies;
+    return result;
 
   }
 
-  const lobbies=getLobbies();
+  // Use persisted lobby IDs if available, otherwise compute fresh
+  var lobbies=useMemo(function(){
+    var saved=tournamentState&&tournamentState.savedLobbies;
+    if(saved&&saved.length>0&&saved[0]&&saved[0].length>0){
+      return saved.map(function(lobbyIds){
+        return lobbyIds.map(function(id){return checkedIn.find(function(p){return p.id===id;})||null;}).filter(Boolean);
+      }).filter(function(l){return l.length>0;});
+    }
+    return computeLobbies();
+  },[tournamentState&&tournamentState.savedLobbies,checkedIn,round]);
 
-
+  // Auto-persist lobby assignments so page refresh keeps them
+  useEffect(function(){
+    if(lobbies.length===0)return;
+    var saved=tournamentState&&tournamentState.savedLobbies;
+    var lobbyIds=lobbies.map(function(l){return l.map(function(p){return p.id;});});
+    // Only save if different from what's stored
+    if(saved&&JSON.stringify(saved)===JSON.stringify(lobbyIds))return;
+    setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:lobbyIds});});
+  },[lobbies]);
 
   function findMyLobby(){
 
@@ -4789,7 +4833,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       var gameRows=[];
       lobby.forEach(function(p){
         var place=parseInt(placementEntry[li].placements[p.id]||"0");
-        if(place>0)gameRows.push({tournament_id:0,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false});
+        if(place>0)gameRows.push({tournament_id:currentClashId,round_number:round,player_id:String(p.id),placement:place,points:PTS[place]||0,is_dnp:false});
       });
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
@@ -4858,9 +4902,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
           <div style={{display:"flex",gap:8}}>
 
-            <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[]}))}>← Round</Btn>
+            <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[],savedLobbies:[]}))}>← Round</Btn>
 
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{if(round>=3){saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[]}));toast("Clash complete! View results →","success");}else{setTournamentState(ts=>({...ts,round:ts.round+1,lockedLobbies:[]}));toast("Advanced to Round "+(round+1),"success");}}}>
+            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{if(round>=3){saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[],savedLobbies:[]}));toast("Clash complete! View results →","success");}else{setTournamentState(ts=>({...ts,round:ts.round+1,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Round "+(round+1),"success");}}}>
 
               {round>=3?"Finalize Clash ✓":"Next Round →"}
 
@@ -4878,13 +4922,19 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
         <div style={{textAlign:"center",padding:"60px 20px"}}>
 
-          <div style={{fontSize:48,marginBottom:16}}>🎮</div>
+          <div style={{fontSize:48,marginBottom:16}}>{tournamentState&&tournamentState.phase==="complete"?"🏆":tournamentState&&tournamentState.phase==="inprogress"?"⚡":"🎮"}</div>
 
-          <h3 style={{color:"#F2EDE4",marginBottom:8}}>No players checked in</h3>
+          <h3 style={{color:"#F2EDE4",marginBottom:8}}>{tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}</h3>
 
-          <p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Players need to check in before the bracket can be generated.</p>
+          <p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>{tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&tournamentState.phase==="inprogress"?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}</p>
 
-          <Btn v="primary" onClick={()=>setScreen("home")}>← Back to Home</Btn>
+          <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+
+            <Btn v="primary" onClick={()=>setScreen("home")}>← Back to Home</Btn>
+
+            {tournamentState&&tournamentState.phase==="complete"&&<Btn v="dark" onClick={()=>setScreen("results")}>View Results</Btn>}
+
+          </div>
 
         </div>
 
@@ -5663,7 +5713,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
           {(player.clashHistory||[]).slice(0,6).map((g,i)=>(
 
-            <div key={i} style={{display:"grid",gridTemplateColumns:"1fr 60px 60px 60px 60px 60px",gap:6,padding:"9px 0",borderBottom:"1px solid rgba(242,237,228,.05)",alignItems:"center"}}>
+            <div key={i} className="challenges-grid" style={{display:"grid",gridTemplateColumns:"1fr 60px 60px 60px 60px 60px",gap:6,padding:"9px 0",borderBottom:"1px solid rgba(242,237,228,.05)",alignItems:"center"}}>
 
               <div><div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{g.name}</div><div style={{fontSize:11,color:"#BECBD9"}}>{g.date}</div></div>
 
@@ -8334,9 +8384,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened — "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
-              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
-              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
+              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
             </div>
 
@@ -8350,9 +8400,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?"▶ Resume Round":"⏸ Pause Round"}</Btn>
 
-              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var next=ts.round+1;if(next>3)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[]});});addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance Round →</Btn>
+              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var next=ts.round+1;if(next>3)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[],savedLobbies:[]});});addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance Round →</Btn>
 
-              <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
+              <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],savedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
 
             </div>
 
@@ -8810,7 +8860,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster? This syncs to the database.")){setPlayers([]);addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears all points, history, events, and tournament state. Syncs to database.")){setPlayers(ps=>ps.map(p=>({...p,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null})));setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setScheduledEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Season data reset — all points, history, and events cleared"}]);toast("Season data reset and synced","success");}}}>Full Season Reset</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears ALL players, stats, history, events, featured events, and tournament state. This is a complete wipe. Syncs to database.")){setPlayers([]);setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setScheduledEvents([]);setFeaturedEvents([]);setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Full season reset — all players, stats, events, and featured events cleared"}]);toast("Full season reset complete","success");}}}>Full Season Reset</Btn>
 
               </div>
 
@@ -10526,8 +10576,15 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
   const [hovered,setHovered]=useState(null);
 
+  const [loading,setLoading]=useState(false);
+
   function handleSubscribe(plan){
-    toast("Stripe integration coming soon","info");
+    if(!currentUser){toast("Sign in first to subscribe","warn");return;}
+    var fullPlan=billing==="annual"?plan+"_annual":plan;
+    setLoading(true);
+    startCheckout(fullPlan,currentUser).catch(function(err){
+      toast(err.message||"Checkout failed","error");
+    }).finally(function(){setLoading(false);});
   }
 
 
@@ -10684,7 +10741,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
               </div>
 
-              <button onClick={()=>tier.id==="free"?toast("You're already on Free!","success"):tier.id==="org"?setScreen("host-apply"):handleSubscribe(tier.id==="pro"?"pro":"host")}
+              <button disabled={loading&&tier.id!=="free"} onClick={()=>tier.id==="free"?toast("You're already on Free!","success"):tier.id==="org"?setScreen("host-apply"):handleSubscribe(tier.id==="pro"?"pro":"host")}
 
                 style={{width:"100%",padding:"12px 20px",background:isPopular?"linear-gradient(90deg,#E8A838,#C8882A)":tier.id==="org"?"rgba(155,114,207,.15)":"rgba(255,255,255,.05)",
 
@@ -10692,9 +10749,9 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
                   borderRadius:10,fontSize:15,fontWeight:700,color:isPopular?"#08080F":tier.color,
 
-                  cursor:"pointer",marginBottom:24,transition:"all .2s"}}>
+                  cursor:loading?"wait":"pointer",opacity:loading&&tier.id!=="free"?0.6:1,marginBottom:24,transition:"all .2s"}}>
 
-                {tier.cta}
+                {loading&&tier.id!=="free"?"Redirecting...":tier.cta}
 
               </button>
 
@@ -13592,8 +13649,6 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
 // ─── HOST DASHBOARD ───────────────────────────────────────────────────────────
 
-var HOST_SEED_TOURNAMENTS=[];
-
 function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostTournaments,setHostTournaments,hostBranding,setHostBranding,hostAnnouncements,setHostAnnouncements,featuredEvents,setFeaturedEvents}){
   var [tab,setTab]=useState("overview");
   var [showCreate,setShowCreate]=useState(false);
@@ -14103,14 +14158,7 @@ function TournamentDetailScreen(props){
 
 // ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
 
-var FEATURED_EVENTS=[
-  {id:"clash-kings-3",name:"Clash Kings Invitational #3",host:"ClashKings",sponsor:"RiotBar",status:"live",date:"Mar 17 2026",time:"NOW",format:"Double Elim",size:16,registered:16,registeredIds:[],prizePool:"$100",region:"EUW",description:"Invite-only invitational for top EUW players. Live brackets and real-time commentary.",tags:["Invite Only","EUW","Broadcast"],logo:"👑",screen:"tournament-clash-kings-3"},
-  {id:"aegis-152",name:"Aegis Esports TFT Showdown #152",host:"Aegis Esports",sponsor:"ZenMarket",status:"upcoming",date:"Mar 22 2026",time:"8:00 PM EST",format:"Swiss (6 rounds)",size:64,registered:47,registeredIds:[],prizePool:"$200",region:"NA/LATAM",description:"The premier weekly TFT series. Open to all ranked players. Top 8 earn prizes and broadcast coverage.",tags:["Broadcast","Prizes","Open"],logo:"🏆",screen:"tournament-aegis-152"},
-  {id:"tft-academy-8",name:"TFT Academy Weekly #8",host:"TFT Academy",sponsor:null,status:"upcoming",date:"Mar 21 2026",time:"6:00 PM CET",format:"Single Lobby",size:8,registered:6,registeredIds:[],prizePool:null,region:"EMEA",description:"Community learning series for Diamond+ players. Coaches analyze every game post-tournament.",tags:["Educational","EMEA","Diamond+"],logo:"🎓",screen:"tournament-tft-academy-8"},
-  {id:"aegis-151",name:"Aegis Esports TFT Showdown #151",host:"Aegis Esports",sponsor:"ZenMarket",status:"completed",date:"Mar 15 2026",format:"Swiss",size:64,registered:64,registeredIds:[],prizePool:"$200",region:"NA/LATAM",champion:"D0PA#111",top4:["D0PA#111","LC Abyss#CAPO","vnck#NA1","Ken Kitade"],logo:"🏆",screen:"tournament-aegis-151"},
-  {id:"tft-community-feb",name:"TFT Community Open — February",host:"TFT Community",sponsor:null,status:"completed",date:"Feb 28 2026",format:"Swiss",size:32,registered:32,registeredIds:[],prizePool:null,champion:"Levitate",top4:["Levitate","Zounderkite","Uri","BingBing"],logo:"⚡",screen:"tournament-tft-community-feb"},
-  {id:"clash-kings-2",name:"Clash Kings Invitational #2",host:"ClashKings",sponsor:"RiotBar",status:"completed",date:"Feb 14 2026",format:"Double Elim",size:16,registered:16,registeredIds:[],prizePool:"$100",region:"EUW",champion:"StarForge",top4:["StarForge","IronMask","DawnBreaker","GhostRider"],logo:"👑",screen:"tournament-clash-kings-2"},
-];
+var FEATURED_EVENTS=[];
 
 function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,setFeaturedEvents}){
   var [filter,setFilter]=useState("all");
@@ -14148,6 +14196,14 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
           );
         })}
       </div>
+
+      {allEvents.length===0&&(
+        <div style={{textAlign:"center",padding:"60px 20px"}}>
+          <div style={{fontSize:48,marginBottom:16}}>🏟️</div>
+          <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Featured Events Yet</h3>
+          <p style={{color:"#BECBD9",fontSize:14,maxWidth:400,margin:"0 auto"}}>Featured tournaments and community events will appear here once they are created by event organizers.</p>
+        </div>
+      )}
 
       {live.length>0&&(function(){
         var hero=live[0];

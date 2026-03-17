@@ -4,8 +4,15 @@
 
 import Stripe from 'stripe';
 
-const PRO_PRICE_ID  = process.env.STRIPE_PRO_PRICE_ID;
-const HOST_PRICE_ID = process.env.STRIPE_HOST_PRICE_ID;
+const PRICE_MAP = {
+  pro:          process.env.STRIPE_PRO_PRICE_ID,
+  pro_annual:   process.env.STRIPE_PRO_ANNUAL_PRICE_ID,
+  host:         process.env.STRIPE_HOST_PRICE_ID,
+  host_annual:  process.env.STRIPE_HOST_ANNUAL_PRICE_ID,
+};
+
+// Map variant back to base plan name for metadata
+const BASE_PLAN = { pro: 'pro', pro_annual: 'pro', host: 'host', host_annual: 'host' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -16,10 +23,11 @@ export default async function handler(req, res) {
   const { plan, userId, email, successUrl, cancelUrl } = req.body ?? {};
 
   if (!plan || !email) return res.status(400).json({ error: 'plan and email are required' });
-  if (!['pro', 'host'].includes(plan)) return res.status(400).json({ error: 'Invalid plan' });
+  if (!PRICE_MAP[plan]) return res.status(400).json({ error: 'Invalid plan: ' + plan });
 
-  const priceId = plan === 'pro' ? PRO_PRICE_ID : HOST_PRICE_ID;
-  if (!priceId) return res.status(500).json({ error: `STRIPE_${plan.toUpperCase()}_PRICE_ID not set` });
+  const priceId = PRICE_MAP[plan];
+  const basePlan = BASE_PLAN[plan];
+  if (!priceId) return res.status(500).json({ error: `Price ID not configured for plan: ${plan}` });
 
   try {
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-12-18.acacia' });
@@ -28,11 +36,11 @@ export default async function handler(req, res) {
       mode: 'subscription',
       customer_email: email,
       line_items: [{ price: priceId, quantity: 1 }],
-      metadata: { userId: userId ?? '', plan },
+      metadata: { userId: userId ?? '', plan: basePlan },
       success_url: successUrl ?? `${req.headers.origin}/#account?checkout=success`,
       cancel_url:  cancelUrl  ?? `${req.headers.origin}/#pricing`,
       subscription_data: {
-        metadata: { userId: userId ?? '', plan },
+        metadata: { userId: userId ?? '', plan: basePlan },
       },
     });
 
