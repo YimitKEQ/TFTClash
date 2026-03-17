@@ -11958,7 +11958,7 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
 
 
-function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfilePlayer}){
+function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfilePlayer,isAdmin,hostApps}){
 
   const [tab,setTab]=useState("profile");
 
@@ -12158,7 +12158,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
             )}
 
-            <div style={{marginBottom:10}}>
+            <div style={{marginBottom:10,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
               {subscription?(
                 <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",borderRadius:20,background:subscription.plan==="host"?"rgba(232,168,56,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(subscription.plan==="host"?"rgba(232,168,56,.4)":"rgba(155,114,207,.4)"),fontSize:12,fontWeight:700,color:subscription.plan==="host"?"#E8A838":"#C4B5FD"}}>
                   {subscription.plan==="host"?"🏠 Host Plan":"⚡ Pro Plan"} · Active
@@ -12166,6 +12166,11 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
               ):(
                 <button onClick={()=>setScreen("pricing")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"transparent",border:"1px solid rgba(155,114,207,.35)",fontSize:12,color:"#9B72CF",cursor:"pointer",fontFamily:"inherit"}}>
                   Upgrade to Pro →
+                </button>
+              )}
+              {(isAdmin||(hostApps||[]).some(function(a){return a.status==="approved"&&(a.name===user.username||a.email===user.email);}))&&(
+                <button onClick={()=>setScreen("host-dashboard")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>
+                  🎮 Host Dashboard →
                 </button>
               )}
             </div>
@@ -16456,7 +16461,7 @@ function TFTClash(){
 
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||SEED[0]} players={players} toast={toast} setScreen={navTo}/>}
 
-        {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer}/>}
+        {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/>}
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
