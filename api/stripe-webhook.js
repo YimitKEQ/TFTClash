@@ -12,10 +12,21 @@ import { createClient } from '@supabase/supabase-js';
 
 export const config = { api: { bodyParser: false } };
 
+const MAX_BODY_BYTES = 64 * 1024; // 64 KB
+
 async function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
-    req.on('data', c => chunks.push(c));
+    let totalBytes = 0;
+    req.on('data', c => {
+      totalBytes += c.length;
+      if (totalBytes > MAX_BODY_BYTES) {
+        req.destroy();
+        reject(new Error('Request body too large'));
+        return;
+      }
+      chunks.push(c);
+    });
     req.on('end', () => resolve(Buffer.concat(chunks)));
     req.on('error', reject);
   });
@@ -29,14 +40,22 @@ export default async function handler(req, res) {
   if (!stripeKey || !webhookSec) return res.status(500).json({ error: 'Stripe not configured' });
 
   const stripe = new Stripe(stripeKey, { apiVersion: '2024-12-18.acacia' });
-  const rawBody = await getRawBody(req);
+
+  let rawBody;
+  try {
+    rawBody = await getRawBody(req);
+  } catch (err) {
+    console.error('Webhook body error:', err.message);
+    return res.status(413).json({ error: 'Request body too large' });
+  }
+
   const sig = req.headers['stripe-signature'];
 
   let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, webhookSec);
   } catch (err) {
-    console.error('Webhook signature failed:', err.message);
+    console.error('Webhook signature verification failed:', err.message);
     return res.status(400).json({ error: `Webhook Error: ${err.message}` });
   }
 
@@ -86,7 +105,7 @@ export default async function handler(req, res) {
 
     res.json({ received: true });
   } catch (err) {
-    console.error('Webhook handler error:', err.message);
+    console.error(`Webhook handler error [${event.type}]:`, err.message);
     res.status(500).json({ error: err.message });
   }
 }

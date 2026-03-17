@@ -256,6 +256,70 @@ downloadStatsCard() on PlayerProfileScreen generates 600x340 PNG with player nam
 
 ## Phase 7 — Monetization
 
-### [ ] #23 — Stripe Integration
+### [~] #23 — Stripe Integration
 Stripe Checkout for Pro/Host tiers, webhook handler, subscription gate.
+**Status:** Endpoints ready (create-checkout.js, stripe-webhook.js), needs STRIPE_SECRET_KEY + price IDs in Vercel env
+
+---
+
+## Phase 8 — Production Readiness (NEW — 2026-03-17)
+
+### [x] #34 — Fix FK type mismatches
+Migration 007: Fixed uuid-to-bigint FK mismatch on registrations, lobbies, game_results child tables.
+**Status:** Done — migration written
+
+### [x] #35 — New database tables
+Migrations 008-016: seasons, audit_log, player_achievements, season_snapshots, notifications, game_results indexes, user_roles, host_profiles, tournaments host link.
+**Status:** Done — 10 new migrations written
+
+### [x] #36 — API hardening
+Rate limiting (sliding window per IP), timing-safe admin password comparison, input validation (email, UUID, same-origin URL checks), Content-Type enforcement, CORS headers.
+**Status:** Done — check-admin.js, create-checkout.js hardened
+
+### [x] #37 — Health check endpoint
+GET /api/health returns status, timestamp, version.
+**Status:** Done
+
+### [x] #38 — XSS sanitization
+sanitize() utility added, applied to player name/riotId on add, announcement broadcast text. No dangerouslySetInnerHTML found (React already escapes JSX).
+**Status:** Done
+
+### [x] #39 — Audit logging to DB
+addAudit() now writes to both site_settings (realtime sync) and audit_log table (persistent, queryable). Includes actor_id, actor_name from currentUser.
+**Status:** Done
+
+### [x] #40 — Wire players table
+Admin addPlayer now inserts to players DB table + site_settings. bootstrapPlayersFromTable aggregates stats from game_results table.
+**Status:** Done
+
+### [x] #41 — Wire tournaments table
+"Start Tournament" admin action now creates a row in tournaments table, stores dbTournamentId in tournamentState.
+**Status:** Done
+
+### [x] #42 — Error Boundary
+Already existed (lines 14-50). Wraps root TFTClash component. Shows recovery UI with "Try Again" and "Reload Page" buttons.
+**Status:** Already implemented
+
+---
+
+## Phase 9 — Host System Overhaul (NEXT)
+
+### [ ] #43 — Host profiles DB-driven
+Wire host_profiles table to HostApplyScreen/HostDashboardScreen. Replace site_settings host_branding blob.
+**Status:** TODO — migration 015 ready
+
+### [ ] #44 — Generic TournamentBracketScreen
+Replace AegisShowcaseScreen with data-driven component fed by tournament_rounds + tournament_results.
+**Status:** TODO
+
+### [ ] #45 — Upgrade TournamentDetailScreen
+Tabs: Overview / Bracket / Standings / Results / Rules. Hero banner, host branding, registration, schedule.
+**Status:** TODO
+
+### [ ] #46 — Host self-service dashboard
+Upload logo/banner (Supabase Storage), edit rules, manage tournament lifecycle, branding preview.
+**Status:** TODO
+
+### [ ] #47 — Cleanup: Remove AegisShowcaseScreen + hardcoded Aegis nav
+Replace with generic data-driven tournament pages.
 **Status:** TODO

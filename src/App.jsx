@@ -81,6 +81,10 @@ const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C
 
 
 
+// ─── INPUT SANITIZATION ──────────────────────────────────────────────────────
+var SANITIZE_MAP={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#x27;"};
+function sanitize(str){if(typeof str!=='string')return '';return str.replace(/[&<>"']/g,function(c){return SANITIZE_MAP[c]||c;}).replace(/<[^>]*>/g,'');}
+
 function rc(r){return RCOLS[r]||"#A8B2CC";}
 
 function tier(pts){return TIERS.find(t=>pts>=t.min)||TIERS[TIERS.length-1];}
@@ -7793,7 +7797,20 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
 
 
-  function addAudit(type,msg){setAuditLog(l=>[{ts:Date.now(),type,msg},...l.slice(0,199)]);}
+  function addAudit(type,msg){
+    var entry={ts:Date.now(),type:type,msg:msg};
+    setAuditLog(function(l){return [entry].concat(l.slice(0,199));});
+    // Also write to audit_log table if Supabase available
+    if(supabase.from&&currentUser){
+      supabase.from('audit_log').insert({
+        action:type,
+        actor_id:currentUser.id||null,
+        actor_name:currentUser.username||currentUser.email||'Admin',
+        target_type:'admin_action',
+        details:{message:msg,timestamp:entry.ts}
+      }).then(function(res){if(res.error)console.error("[TFT] Audit log write failed:",res.error);});
+    }
+  }
 
   function ban(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,banned:true,checkedIn:false}:p));setTournamentState(function(ts){return{...ts,checkedInIds:(ts.checkedInIds||[]).filter(function(cid){return String(cid)!==String(id);})};});addAudit("WARN","Banned: "+name);toast(name+" banned","success");}
 
@@ -7829,7 +7846,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   function addPlayer(){
 
-    const n=addPlayerForm.name.trim(),r=addPlayerForm.riotId.trim();
+    const n=sanitize(addPlayerForm.name.trim()),r=sanitize(addPlayerForm.riotId.trim());
 
     if(!n||!r){toast("Name and Riot ID required","error");return;}
 
@@ -7838,6 +7855,12 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     const np={id:Date.now()%100000,name:n,riotId:r,rank:addPlayerForm.rank||"Gold",lp:1000,region:addPlayerForm.region||"EUW",pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
 
     setPlayers(ps=>[...ps,np]);
+
+    // Write to players table too
+    if(supabase.from){
+      supabase.from('players').insert({username:n,riot_id:r,rank:addPlayerForm.rank||"Gold",region:addPlayerForm.region||"EUW",auth_user_id:null})
+        .then(function(res){if(res.error)console.error("[TFT] Failed to insert player to DB:",res.error);else if(res.data&&res.data[0]){setPlayers(function(ps){return ps.map(function(p){return p.name===n?Object.assign({},p,{id:res.data[0].id}):p;});});}});
+    }
 
     addAudit("ACTION","Player added: "+n);
 
@@ -8384,7 +8407,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened — "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
-              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));if(supabase.from){supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:'single_stage',size:24,seeding_method:'snake'}).select().then(function(res){if(!res.error&&res.data&&res.data[0]){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data[0].id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
               <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
@@ -8902,7 +8925,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               </div>
 
-              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;const a={id:Date.now(),type:broadType,msg:broadMsg.trim(),ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(broadMsg.trim());if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(broadMsg.trim()),updated_at:new Date().toISOString()}).then(function(res){if(res.error)console.error("[TFT] Broadcast save failed:",res.error);});addAudit("BROADCAST","["+broadType+"] "+broadMsg);setBroadMsg("");toast("Broadcast sent","success");}}>Send Broadcast</Btn>
+              <Btn v="primary" full onClick={()=>{if(!broadMsg.trim())return;var cleanMsg=sanitize(broadMsg.trim());const a={id:Date.now(),type:broadType,msg:cleanMsg,ts:Date.now()};setAnnouncements(as=>[a,...as]);setAnnouncement(cleanMsg);if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(cleanMsg),updated_at:new Date().toISOString()}).then(function(res){if(res.error)console.error("[TFT] Broadcast save failed:",res.error);});addAudit("BROADCAST","["+broadType+"] "+cleanMsg);setBroadMsg("");toast("Broadcast sent","success");}}>Send Broadcast</Btn>
 
             </div>
 
@@ -15705,10 +15728,30 @@ function TFTClash(){
             role:"player",sponsor:null
           };
         });
-        setPlayers(mapped);
-        // Write bootstrap data to site_settings so future loads use it
-        supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(mapped),updated_at:new Date().toISOString()})
-          .then(function(res){if(res.error)console.error("[TFT] Failed to cache players:",res.error);});
+        // Aggregate stats from game_results table if available
+        supabase.from('game_results').select('player_id,placement,points')
+          .then(function(gr){
+            if(!gr.error&&gr.data&&gr.data.length>0){
+              var statsMap={};
+              gr.data.forEach(function(g){
+                var pid=g.player_id;
+                if(!statsMap[pid])statsMap[pid]={pts:0,wins:0,top4:0,games:0,totalPlace:0};
+                statsMap[pid].games+=1;
+                statsMap[pid].pts+=g.points||0;
+                statsMap[pid].totalPlace+=g.placement||0;
+                if(g.placement===1)statsMap[pid].wins+=1;
+                if(g.placement<=4)statsMap[pid].top4+=1;
+              });
+              mapped=mapped.map(function(p){
+                var s=statsMap[p.id];
+                if(!s)return p;
+                return Object.assign({},p,{pts:s.pts,wins:s.wins,top4:s.top4,games:s.games,avg:s.games>0?(s.totalPlace/s.games).toFixed(1):"0"});
+              });
+            }
+            setPlayers(mapped);
+            supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(mapped),updated_at:new Date().toISOString()})
+              .then(function(res){if(res.error)console.error("[TFT] Failed to cache players:",res.error);});
+          });
       });
   }
 

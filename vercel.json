@@ -11,7 +11,9 @@
       "source": "/api/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Access-Control-Allow-Methods", "value": "POST, GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, stripe-signature" }
       ]
     },
     {
@@ -32,6 +34,7 @@
   "functions": {
     "api/create-checkout.js": { "memory": 256, "maxDuration": 10 },
     "api/stripe-webhook.js":  { "memory": 256, "maxDuration": 10 },
-    "api/check-admin.js":     { "memory": 128, "maxDuration": 5  }
+    "api/check-admin.js":     { "memory": 128, "maxDuration": 5  },
+    "api/health.js":          { "memory": 128, "maxDuration": 5  }
   }
 }
