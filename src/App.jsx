@@ -737,7 +737,7 @@ const PREMIUM_TIERS=[
 
     desc:"For players who take the season seriously.",
 
-    features:["Everything in Player","Season Recap card (shareable PNG)","Extended stat history - all seasons","Priority check-in & reserved slot","Pro badge on profile & leaderboard","Exclusive Discord channels (tactics, meta, pro-only)","Early access to new features","Ad-free experience"],
+    features:["Everything in Player","Auto check-in (never miss a clash)","Custom profile: avatar, banner & bio styling","Pro badge on profile & leaderboard","Season Recap card (shareable PNG)","Extended stat history - all seasons","Exclusive Discord channels (tactics, meta, pro-only)","Early access to new features"],
 
     cta:"Go Pro", ctaV:"primary",
 
@@ -5339,29 +5339,30 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
 
 
-      {/* Hero */}
+      {/* Hero - Twitter-style with banner + pfp */}
 
-      <div style={{background:`linear-gradient(135deg,${rc(player.rank)}18,#08080F 60%)`,border:"1px solid "+rc(player.rank)+"30",borderRadius:14,padding:"28px 24px",marginBottom:18,position:"relative",overflow:"hidden"}}>
+      <div style={{borderRadius:14,marginBottom:18,overflow:"hidden",border:"1px solid "+rc(player.rank)+"30",position:"relative"}}>
 
-        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:`linear-gradient(90deg,${rc(player.rank)},transparent)`}}/>
+        {/* Banner */}
+        <div style={{height:player.bannerUrl?120:70,background:player.bannerUrl?"url("+player.bannerUrl+") center/cover no-repeat":"linear-gradient(135deg,"+rc(player.rank)+"28,#08080F 60%)",position:"relative"}}>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 30%,#08080F)"}}/>
+        </div>
 
-        <div style={{position:"absolute",top:"50%",right:"-5%",transform:"translateY(-50%)",width:250,height:250,borderRadius:"50%",background:`radial-gradient(circle,${rc(player.rank)}10,transparent 70%)`,pointerEvents:"none"}}/>
+        <div style={{padding:"0 24px 24px",marginTop:-36}}>
 
-        <div style={{display:"flex",alignItems:"center",gap:18,flexWrap:"wrap",position:"relative"}}>
+        <div style={{display:"flex",alignItems:"flex-end",gap:18,flexWrap:"wrap",position:"relative"}}>
 
           <div style={{width:72,height:72,borderRadius:"50%",
 
-            background:`linear-gradient(135deg,${rc(player.rank)}33,${rc(player.rank)}11)`,
+            background:player.profilePic?"url("+player.profilePic+") center/cover no-repeat":"linear-gradient(135deg,"+rc(player.rank)+"33,"+rc(player.rank)+"11)",
 
-            border:`3px solid ${SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"}`,
+            border:"4px solid #08080F",boxShadow:"0 0 0 2px "+(SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"),
 
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0,
-
-            boxShadow:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"0 0 24px rgba(232,168,56,.4)":"none"}}>
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:player.profilePic?0:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
 
             {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
 
-            {player.name.charAt(0)}
+            {!player.profilePic&&player.name.charAt(0)}
 
           </div>
 
@@ -5420,6 +5421,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
           <StatCard label="Avg Place" val={s.avgPlacement} c={avgCol(s.avgPlacement)} big/>
 
           <StatCard label="Top4 %" val={s.top4Rate+"%"} c="#C4B5FD" big/>
+
+        </div>
 
         </div>
 
@@ -10512,7 +10515,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
     {q:"Is entry really always free?",a:"Yes, always. You never pay to compete in a TFT Clash event. Pro is optional and gives you deeper stats tools and a guaranteed slot - it's for players who want more, not a paywall."},
 
-    {q:"What does Pro's reserved slot mean?",a:"Weekly clashes can fill up. Pro members get a guaranteed check-in spot so you're never bumped if a clash is oversubscribed. Regular players check in first-come, first-served."},
+    {q:"What does auto check-in mean?",a:"Pro members are automatically checked in for every weekly clash. No more scrambling to hit the button before the deadline. You're always in, always ready. Regular players check in manually first-come, first-served."},
 
     {q:"How do results get recorded?",a:"Players enter their own placements via a 4-digit PIN tied to their lobby. No manual entry by admins. Results lock when all lobbies are submitted and then go through our reveal sequence."},
 
@@ -12119,6 +12122,10 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
   const [usernameEdit,setUsernameEdit]=useState(user.username||"");
 
+  const [profilePic,setProfilePic]=useState(user.user_metadata?.profilePic||user.profilePic||"");
+  const [bannerUrl,setBannerUrl]=useState(user.user_metadata?.bannerUrl||user.bannerUrl||"");
+  const [profileAccent,setProfileAccent]=useState(user.user_metadata?.profileAccent||user.profileAccent||"");
+
   const [riotId,setRiotId]=useState(user.user_metadata?.riotId||"");
 
   const [riotRegion,setRiotRegion]=useState(user.user_metadata?.riotRegion||"EUW");
@@ -12157,6 +12164,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
       secondRiotId,secondRegion,
 
+      profilePic,bannerUrl,profileAccent,
+
     };
 
     // Username: only set username_changed on first deliberate change
@@ -12187,7 +12196,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
     }catch(e){console.warn("Supabase update failed",e);toast("Failed to save profile — please try again","error");return;}
 
-    onUpdate({...user,...meta,username:meta.username||user.username,user_metadata:meta,region:riotRegion,mainRegion:riotRegion,secondRiotId,secondRegion});
+    onUpdate({...user,...meta,username:meta.username||user.username,user_metadata:meta,region:riotRegion,mainRegion:riotRegion,secondRiotId,secondRegion,profilePic,bannerUrl,profileAccent});
 
     setEdit(false);
 
@@ -12217,6 +12226,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
       .then(function(res){if(res.data?.status==='active')setSubscription(res.data);});
   },[user]);
 
+  const isPro=!!(subscription&&(subscription.plan==="pro"||subscription.plan==="host"));
   const rankColor=linkedPlayer?rc(linkedPlayer.rank):"#9B72CF";
 
   const myMilestones=linkedPlayer?MILESTONES.filter(m=>{try{return m.check(linkedPlayer);}catch{return false;}}):[];
@@ -12239,37 +12249,40 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
 
 
-      {/* Hero card */}
+      {/* Hero card - Twitter-style profile */}
 
-      <div style={{position:"relative",background:"linear-gradient(135deg,rgba("+
+      <div style={{position:"relative",borderRadius:16,marginBottom:20,overflow:"hidden",border:"1px solid rgba(242,237,228,.12)"}}>
 
-        (linkedPlayer?rc(linkedPlayer.rank).replace("#","").match(/../g).map(h=>parseInt(h,16)).join(","):"155,114,207")
+        {/* Banner */}
+        <div style={{height:bannerUrl?140:90,background:bannerUrl?"url("+bannerUrl+") center/cover no-repeat":"linear-gradient(135deg,"+(profileAccent||rankColor)+"33,#08080F 80%)",position:"relative"}}>
+          <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 40%,#08080F)"}}/>
+        </div>
 
-        +",.12) 0%,rgba(8,8,15,1) 100%)",
+        <div style={{padding:"0 24px 24px",marginTop:-44}}>
 
-        border:"1px solid rgba(242,237,228,.12)",borderRadius:16,padding:"28px 24px",marginBottom:20,overflow:"hidden"}}>
-
-        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,"+rankColor+",transparent)"}}/>
-
-        <div style={{display:"flex",gap:20,alignItems:"flex-start",flexWrap:"wrap"}}>
+        <div style={{display:"flex",gap:20,alignItems:"flex-end",flexWrap:"wrap"}}>
 
           {/* Avatar */}
 
           <div style={{position:"relative",flexShrink:0}}>
 
-            <div style={{width:80,height:80,borderRadius:"50%",
+            <div style={{width:88,height:88,borderRadius:"50%",
 
-              background:"linear-gradient(135deg,"+rankColor+"44,"+rankColor+"11)",
+              background:profilePic?"url("+profilePic+") center/cover no-repeat":"linear-gradient(135deg,"+rankColor+"44,"+rankColor+"11)",
 
-              border:"3px solid "+rankColor+"66",
+              border:"4px solid #08080F",boxShadow:"0 0 0 2px "+(profileAccent||rankColor)+"66",
 
               display:"flex",alignItems:"center",justifyContent:"center",
 
-              fontSize:32,fontWeight:800,color:rankColor}}>
+              fontSize:profilePic?0:34,fontWeight:800,color:rankColor}}>
 
-              {user.username.charAt(0).toUpperCase()}
+              {!profilePic&&user.username.charAt(0).toUpperCase()}
 
             </div>
+
+            {isPro&&(
+              <div style={{position:"absolute",top:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",border:"2px solid #08080F",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#fff",fontWeight:900}}>{"\u2605"}</div>
+            )}
 
             {myMilestones.length>0&&(
 
@@ -12290,6 +12303,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
             <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6}}>
 
               <h2 style={{fontSize:24,fontWeight:900,color:"#F2EDE4",margin:0}}>{user.username}</h2>
+
+              {isPro&&<span style={{background:"linear-gradient(90deg,#E8A838,#C8882A)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:800,color:"#08080F",letterSpacing:".04em"}}>{"PRO"}</span>}
 
               {linkedPlayer&&<ClashRankBadge rank={linkedPlayer.rank}/>}
 
@@ -12364,6 +12379,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
         </div>
 
+        </div>
+
       </div>
 
 
@@ -12421,6 +12438,10 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
                   ["Twitch",user.user_metadata?.twitch||user.twitch?("twitch.tv/"+(user.user_metadata?.twitch||user.twitch)):null,"#9147FF"],
 
                   ["Twitter",user.user_metadata?.twitter||user.twitter?("@"+(user.user_metadata?.twitter||user.twitter)):null,"#1DA1F2"],
+
+                  ["Profile Picture",profilePic?"Custom avatar set":"Not set (default initial)",profilePic?"#6EE7B7":"#9AAABF"],
+
+                  ["Banner",bannerUrl?"Custom banner set":"Not set (rank gradient)",bannerUrl?"#6EE7B7":"#9AAABF"],
 
                 ].map(([label,val,col])=>(
 
@@ -12652,6 +12673,52 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
                   <div style={{fontSize:11,color:"#9AAABF",marginTop:2,textAlign:"right"}}>{bio.length}/160</div>
 
+                </div>
+
+                {/* Appearance - Pro only */}
+
+                <div style={{borderTop:"1px solid rgba(242,237,228,.08)",paddingTop:16}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                    <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4"}}>{"Appearance"}</div>
+                    {isPro?<span style={{background:"linear-gradient(90deg,#E8A838,#C8882A)",borderRadius:20,padding:"2px 8px",fontSize:9,fontWeight:800,color:"#08080F"}}>{"PRO"}</span>:<span style={{fontSize:11,color:"#9AAABF"}}>{"(Pro feature)"}</span>}
+                  </div>
+
+                  {isPro?(
+                    <div style={{display:"grid",gap:14}}>
+                      <div>
+                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>{"Profile Picture URL"}</div>
+                        <Inp value={profilePic} onChange={setProfilePic} placeholder="https://i.imgur.com/your-pic.png"/>
+                        <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{"Paste a direct image link (imgur, Discord CDN, etc). Square images work best."}</div>
+                        {profilePic&&<div style={{marginTop:8,display:"flex",alignItems:"center",gap:10}}><div style={{width:48,height:48,borderRadius:"50%",background:"url("+profilePic+") center/cover",border:"2px solid "+rankColor+"44"}}/>{"Preview"&&<span style={{fontSize:11,color:"#6EE7B7"}}>{"Preview"}</span>}</div>}
+                      </div>
+                      <div>
+                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>{"Banner Image URL"}</div>
+                        <Inp value={bannerUrl} onChange={setBannerUrl} placeholder="https://i.imgur.com/your-banner.png"/>
+                        <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{"Recommended: 1500x500 or similar wide aspect ratio."}</div>
+                        {bannerUrl&&<div style={{marginTop:8,height:60,borderRadius:8,background:"url("+bannerUrl+") center/cover",border:"1px solid rgba(242,237,228,.1)"}}/>}
+                      </div>
+                      <div>
+                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{"Profile Accent Color"}</div>
+                        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                          {["","#9B72CF","#E8A838","#4ECDC4","#F87171","#6EE7B7","#60A5FA","#FB923C","#EC4899","#8B5CF6"].map(function(clr){
+                            var isActive=profileAccent===clr;
+                            return(
+                              <div key={clr||"default"} onClick={function(){setProfileAccent(clr);}}
+                                style={{width:28,height:28,borderRadius:"50%",background:clr||"linear-gradient(135deg,"+rankColor+"44,"+rankColor+"11)",cursor:"pointer",border:isActive?"3px solid #fff":"3px solid transparent",transition:"border .15s",position:"relative"}}>
+                                {!clr&&<span style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#BECBD9"}}>{"Auto"}</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  ):(
+                    <div style={{background:"rgba(232,168,56,.04)",border:"1px dashed rgba(232,168,56,.25)",borderRadius:10,padding:"16px",textAlign:"center"}}>
+                      <div style={{fontSize:13,color:"#E8A838",fontWeight:600,marginBottom:6}}>{"Unlock Profile Customization"}</div>
+                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:12}}>{"Set a custom avatar, banner image, and accent color. Make your profile stand out."}</div>
+                      <button onClick={function(){setScreen("pricing");setEdit(false);}} style={{background:"linear-gradient(90deg,#E8A838,#C8882A)",border:"none",borderRadius:8,padding:"8px 18px",fontSize:12,fontWeight:700,color:"#08080F",cursor:"pointer",fontFamily:"inherit"}}>{"Go Pro - \u20ac4.99/mo"}</button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Socials */}
