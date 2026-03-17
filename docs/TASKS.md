@@ -218,6 +218,26 @@ Inline validation on signup/login forms, Riot ID format check.
 
 ---
 
+## Phase 5 — Post-Reset Cleanup
+
+### [ ] #30 — Roster still shows old names after reset
+Players still visible in roster after Full Season Reset. Stats zeroed but names persist. Need option to clear roster entirely or make roster DB-driven only (not from site_settings cache).
+**Status:** TODO
+
+### [ ] #31 — Achievement/reward badges still showing after reset
+Players still have milestone/achievement tags (Bronze Contender, etc.) even with 0 pts. Achievement checks need to re-evaluate after reset, or badges need to be cleared when stats are zeroed.
+**Status:** TODO
+
+### [ ] #32 — Bracket empty after reset
+Expected — no active tournament. But should show a friendly empty state instead of blank screen.
+**Status:** TODO
+
+### [ ] #33 — Clean up hardcoded FEATURED_EVENTS
+FEATURED_EVENTS array has fake tournament data (Clash Kings, Aegis, TFT Academy). Should be empty or DB-driven.
+**Status:** TODO
+
+---
+
 ## Phase 6 — Features
 
 ### [ ] #20 — Player Comparison Tool
