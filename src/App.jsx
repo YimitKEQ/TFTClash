@@ -2698,6 +2698,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"results",label:"Results"},
 
+    {id:"featured",label:"Featured"},
+
     {id:"hof",label:"Hall of Fame"},
 
     ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
@@ -2707,6 +2709,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   ];
 
   const DESKTOP_MORE=[
+
+    {id:"featured",label:"Featured Events"},
 
     {id:"archive",label:"Archive"},
 
@@ -2733,6 +2737,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"hof",icon:"🏛",label:"Hall of Fame"},
 
     {id:"archive",icon:"📁",label:"Archive"},
+
+    {id:"featured",icon:"⭐",label:"Featured Events"},
 
     {id:"aegis-showcase",icon:"🏆",label:"AEGIS #151 — Client Demo"},
 
@@ -3020,7 +3026,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
           const isMore=l.id==="more";
 
-          const active=isMore?["hof","archive","aegis-showcase","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq"].includes(screen):screen===l.id;
+          const active=isMore?["hof","archive","aegis-showcase","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq","featured"].includes(screen):screen===l.id;
 
           return(
 
@@ -13357,1147 +13363,537 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
 // ─── HOST DASHBOARD ───────────────────────────────────────────────────────────
 
+var HOST_SEED_TOURNAMENTS=[
+  {id:1,name:"Weekly TFT Clash #12",date:"Mar 17 2026",size:32,registered:28,status:"live",invite:false,entryFee:"",rules:"EMEA rulebook. 4 lobbies, top 2 advance. Swiss tiebreakers.",approved:true},
+  {id:2,name:"Weekly TFT Clash #13",date:"Mar 24 2026",size:32,registered:14,status:"upcoming",invite:false,entryFee:"",rules:"",approved:true},
+  {id:3,name:"Invite Showdown — March",date:"Mar 20 2026",size:8,registered:8,status:"upcoming",invite:true,entryFee:"",rules:"Invite only. 1 lobby, 3 games, cumulative points.",approved:true},
+];
+
 function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps}){
-
-  const [tab,setTab]=useState("tournaments");
-
-  const [showCreate,setShowCreate]=useState(false);
-
-  const [tName,setTName]=useState("");
-
-  const [tDate,setTDate]=useState("");
-
-  const [tSize,setTSize]=useState("16");
-
-  const [tInvite,setTInvite]=useState(false);
-
-  const [tEntryFee,setTEntryFee]=useState("");
-
-  const [tRules,setTRules]=useState("");
-
-  const [tournaments,setTournaments]=useState([]);
-
-
+  var [tab,setTab]=useState("overview");
+  var [showCreate,setShowCreate]=useState(false);
+  var [tName,setTName]=useState("");
+  var [tDate,setTDate]=useState("");
+  var [tSize,setTSize]=useState("16");
+  var [tInvite,setTInvite]=useState(false);
+  var [tEntryFee,setTEntryFee]=useState("");
+  var [tRules,setTRules]=useState("");
+  var [tournaments,setTournaments]=useState(HOST_SEED_TOURNAMENTS);
+  var [brandName,setBrandName]=useState((currentUser&&currentUser.username)||"My Org");
+  var [brandLogo,setBrandLogo]=useState("🎮");
+  var [brandColor,setBrandColor]=useState("#9B72CF");
+  var [brandBio,setBrandBio]=useState("");
+  var [brandSaved,setBrandSaved]=useState(false);
+  var [announceMsg,setAnnounceMsg]=useState("");
+  var [announceTo,setAnnounceTo]=useState("all");
+  var [announcements,setAnnouncements]=useState([
+    {id:1,to:"all",msg:"Welcome to Weekly TFT Clash! Check-in opens 30 min before start.",sentAt:"Mar 17 2026 7:30 PM"},
+  ]);
+  var [selectedT,setSelectedT]=useState(null);
 
   function createTournament(){
-
     if(!tName.trim()||!tDate.trim()){toast("Name and date required","error");return;}
-
-    const newT={
-
-      id:Date.now(),name:tName,date:tDate,size:parseInt(tSize),
-
-      invite:tInvite,entryFee:tEntryFee,rules:tRules,
-
-      status:tEntryFee?"pending_approval":"upcoming",
-
-      registered:0,approved:!tEntryFee,
-
-    };
-
-    setTournaments(ts=>[...ts,newT]);
-
-    setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");
-
-    toast(tEntryFee?"Tournament created - pending admin approval for entry fee":"Tournament created!","success");
-
+    var newT={id:Date.now(),name:tName,date:tDate,size:parseInt(tSize),invite:tInvite,entryFee:tEntryFee,rules:tRules,status:tEntryFee?"pending_approval":"upcoming",registered:0,approved:!tEntryFee};
+    setTournaments(function(ts){return ts.concat([newT]);});
+    setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
+    toast(tEntryFee?"Tournament created — pending admin approval for entry fee":"Tournament created!","success");
   }
 
+  function saveBranding(){
+    setBrandSaved(true);
+    toast("Branding saved!","success");
+    setTimeout(function(){setBrandSaved(false);},3000);
+  }
 
+  function sendAnnouncement(){
+    if(!announceMsg.trim()){toast("Write a message first","error");return;}
+    var a={id:Date.now(),to:announceTo,msg:announceMsg.trim(),sentAt:new Date().toLocaleString()};
+    setAnnouncements(function(arr){return [a].concat(arr);});
+    setAnnounceMsg("");
+    toast("Announcement sent to "+(announceTo==="all"?"all players":announceTo+" players"),"success");
+  }
+
+  var liveTournaments=tournaments.filter(function(t){return t.status==="live";});
+  var upcomingTournaments=tournaments.filter(function(t){return t.status==="upcoming";});
+  var completedTournaments=tournaments.filter(function(t){return t.status==="completed";});
+  var totalHosted=tournaments.length;
+  var totalPlayers=tournaments.reduce(function(s,t){return s+t.registered;},0);
+
+  var TABS=[["overview","Overview"],["tournaments","Tournaments"],["registrations","Players"],["announce","Announce"],["branding","Branding"]];
 
   return(
-
     <div className="page wrap">
 
+      {/* Header */}
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,flexWrap:"wrap"}}>
-
         <div style={{flex:1}}>
-
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-
-            <h2 style={{color:"#F2EDE4",fontSize:20}}>Host Dashboard</h2>
-
-            <Tag color="#9B72CF">🎮 Host</Tag>
-
+            <span style={{fontSize:24}}>{brandLogo}</span>
+            <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>{brandName}</h2>
+            <Tag color="#9B72CF">{"🎮"} Host</Tag>
+            {liveTournaments.length>0&&(
+              <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#6EE7B7"}}>
+                <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+              </span>
+            )}
           </div>
-
-          <p style={{fontSize:13,color:"#BECBD9"}}>Manage your tournaments and registrations.</p>
-
+          <p style={{fontSize:13,color:"#BECBD9",margin:0}}>Host Dashboard — manage tournaments, players, and branding.</p>
         </div>
-
-        <Btn v="primary" onClick={()=>setShowCreate(s=>!s)}>{showCreate?"Cancel":"+ New Tournament"}</Btn>
-
+        <div style={{display:"flex",gap:8}}>
+          <Btn v="dark" s="sm" onClick={function(){setScreen("featured");}}>{"← "} Featured</Btn>
+          <Btn v="primary" onClick={function(){setShowCreate(function(s){return !s;})}}>{showCreate?"Cancel":"+ New Tournament"}</Btn>
+        </div>
       </div>
-
-
 
       {/* Create form */}
-
       {showCreate&&(
-
         <Panel style={{padding:"20px",marginBottom:20,border:"1px solid rgba(232,168,56,.25)"}}>
-
           <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Create Tournament</h3>
-
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-
             <div>
-
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Tournament Name</div>
-
               <Inp value={tName} onChange={setTName} placeholder="e.g. Weekly Clash #15"/>
-
             </div>
-
             <div>
-
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Date</div>
-
-              <Inp value={tDate} onChange={setTDate} placeholder="Mar 13 2026"/>
-
+              <Inp value={tDate} onChange={setTDate} placeholder="Mar 24 2026"/>
             </div>
-
             <div>
-
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Max Players</div>
-
-              <Sel value={tSize} onChange={setTSize}>{[8,16,24,32,48,64].map(n=><option key={n} value={n}>{n} players</option>)}</Sel>
-
+              <Sel value={tSize} onChange={setTSize}>{[8,16,24,32,48,64].map(function(n){return <option key={n} value={n}>{n} players</option>;})}</Sel>
             </div>
-
             <div>
-
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Entry Fee <span style={{color:"#9AAABF",fontWeight:400}}>(requires admin approval)</span></div>
-
               <Inp value={tEntryFee} onChange={setTEntryFee} placeholder="Leave blank = free"/>
-
             </div>
-
           </div>
-
           <div style={{marginBottom:12}}>
-
             <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Custom Rules <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
-
-            <textarea value={tRules} onChange={e=>setTRules(e.target.value)} placeholder="Any special rules, format notes, or tiebreaker info..."
-
+            <textarea value={tRules} onChange={function(e){setTRules(e.target.value);}} placeholder="Any special rules, format notes, or tiebreaker info..."
               style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:72,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
-
           </div>
-
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-
-            <div onClick={()=>setTInvite(v=>!v)} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
-
+            <div onClick={function(){setTInvite(function(v){return !v;});}} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
               <div style={{width:36,height:20,borderRadius:99,background:tInvite?"rgba(155,114,207,.3)":"rgba(255,255,255,.08)",border:"1px solid "+(tInvite?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),position:"relative",transition:"all .2s"}}>
-
                 <div style={{width:14,height:14,borderRadius:"50%",background:tInvite?"#C4B5FD":"#9AAABF",position:"absolute",top:2,left:tInvite?18:2,transition:"left .2s"}}/>
-
               </div>
-
               <span style={{fontSize:13,color:"#C8D4E0"}}>Invite-only registration</span>
-
             </div>
-
           </div>
-
           {tEntryFee&&(
-
             <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#E8A838"}}>
-
-              ⚠ Entry fee tournaments require admin approval before going live.
-
+              {"⚠"} Entry fee tournaments require admin approval before going live.
             </div>
-
           )}
-
           <Btn v="primary" onClick={createTournament}>Create Tournament</Btn>
-
         </Panel>
-
       )}
-
-
 
       {/* Tabs */}
-
-      <div style={{display:"flex",gap:6,marginBottom:18}}>
-
-        {["tournaments","registrations","stats"].map(t=>(
-
-          <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={()=>setTab(t)} style={{textTransform:"capitalize"}}>{t}</Btn>
-
-        ))}
-
+      <div style={{display:"flex",gap:6,marginBottom:18,flexWrap:"wrap"}}>
+        {TABS.map(function(arr){
+          var t=arr[0],label=arr[1];
+          return <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={function(){setTab(t);}}>{label}</Btn>;
+        })}
       </div>
 
-
-
-      {tab==="tournaments"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-
-          {tournaments.map(t=>(
-
-            <Panel key={t.id} style={{padding:"18px"}}>
-
-              <div style={{display:"flex",alignItems:"flex-start",gap:14,flexWrap:"wrap"}}>
-
-                <div style={{flex:1,minWidth:0}}>
-
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
-
-                    <span style={{fontWeight:700,fontSize:16,color:"#F2EDE4"}}>{t.name}</span>
-
-                    <Tag color={t.status==="upcoming"?"#6EE7B7":t.status==="pending_approval"?"#E8A838":"#BECBD9"} size="sm">
-
-                      {t.status==="upcoming"?"✓ Live":t.status==="pending_approval"?"⏳ Pending Approval":"Draft"}
-
-                    </Tag>
-
-                    {t.invite&&<Tag color="#9B72CF" size="sm">🔒 Invite Only</Tag>}
-
-                    {t.entryFee&&<Tag color="#EAB308" size="sm">💰 {t.entryFee}</Tag>}
-
-                  </div>
-
-                  <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>📅 {t.date} · 👥 {t.registered}/{t.size} registered</div>
-
-                  <div style={{marginTop:8}}>
-
-                    <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
-
-                    <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{t.size-t.registered} spots remaining</div>
-
-                  </div>
-
-                </div>
-
-                <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-                  <Btn v="ghost" s="sm" onClick={()=>toast("Tournament settings (mock)","success")}>Edit</Btn>
-
-                  <Btn v="primary" s="sm" onClick={()=>setScreen("bracket")}>Manage →</Btn>
-
-                </div>
-
-              </div>
-
-            </Panel>
-
-          ))}
-
-          {tournaments.length===0&&(
-
-            <div style={{textAlign:"center",padding:"48px",color:"#BECBD9"}}>
-
-              <div style={{fontSize:32,marginBottom:12}}>🎮</div>
-
-              <div style={{fontSize:14}}>No tournaments yet. Create your first one above.</div>
-
-            </div>
-
-          )}
-
-        </div>
-
-      )}
-
-
-
-      {tab==="registrations"&&(
-
-        <Panel style={{padding:"18px"}}>
-
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Registered Players</h3>
-
-          {players.slice(0,12).map((p,i)=>(
-
-            <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<11?"1px solid rgba(242,237,228,.05)":"none"}}>
-
-              <div style={{flex:1}}>
-
-                <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</div>
-
-                <div style={{fontSize:11,color:"#BECBD9"}}>{p.rank} · {p.region}</div>
-
-              </div>
-
-              <Tag color="#6EE7B7" size="sm">✓ Registered</Tag>
-
-            </div>
-
-          ))}
-
-        </Panel>
-
-      )}
-
-
-
-      {tab==="stats"&&(
-
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:12}}>
-
-          {[["Tournaments Run","2","#E8A838"],["Total Players Hosted","24","#6EE7B7"],["Avg Registration","12","#C8D4E0"],["Completion Rate","100%","#4ECDC4"]].map(([l,v,c])=>(
-
-            <Panel key={l} style={{padding:"18px",textAlign:"center"}}>
-
-              <div className="mono" style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-              <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{l}</div>
-
-            </Panel>
-
-          ))}
-
-        </div>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
-
-
-// ─── ORG SPONSORSHIP DATA ─────────────────────────────────────────────────────
-
-// Orgs pay admin to be associated with a player - shown as jersey-style tag
-
-const ORG_SPONSORSHIPS={
-
-  1:{org:"ProGuides",color:"#4ECDC4",logo:"PG"},   // player id 1 = Dishsoap
-
-  2:{org:"TFT Academy",color:"#9B72CF",logo:"TA"},  // player id 2 = k3soju
-
-};
-
-
-
-function OrgSponsorTag({playerId}){
-
-  const s=ORG_SPONSORSHIPS[playerId];
-
-  if(!s)return null;
-
-  return(
-
-    <div style={{display:"inline-flex",alignItems:"center",gap:4,
-
-      background:s.color+"18",border:"1px solid "+s.color+"44",
-
-      borderRadius:4,padding:"1px 7px",fontSize:10,fontWeight:700,color:s.color,
-
-      letterSpacing:".04em"}}>
-
-      {s.logo}
-
-    </div>
-
-  );
-
-}
-
-
-
-// ─── FANTASY TFT TEASER ───────────────────────────────────────────────────────
-
-function FantasyTeaserScreen({toast,setScreen,currentUser}){
-
-  const [email,setEmail]=useState(currentUser?.email||"");
-
-  const [joined,setJoined]=useState(false);
-
-
-
-  function joinWaitlist(){
-
-    if(!email.trim()){toast("Enter your email to join","error");return;}
-
-    setJoined(true);
-
-    toast("You're on the waitlist! 🎯","success");
-
-  }
-
-
-
-  const HOW=[
-
-    {icon:"📋",title:"Draft your squad",desc:"Before each clash, pick 5 players you think will place highest. Roster locks when the event starts."},
-
-    {icon:"📊",title:"Earn points",desc:"Points based on your picks' placements. 1st = 10pts, 2nd = 7pts, 3rd = 5pts, 4th = 3pts. Bonus for calling the winner exactly."},
-
-    {icon:"🏆",title:"Win the Fantasy League",desc:"Top fantasy scorer each season wins prizes and a permanent badge on their profile."},
-
-    {icon:"💰",title:"Entry fees optional",desc:"Free leagues always available. Premium leagues with prize pools will be admin-run events."},
-
-  ];
-
-
-
-  return(
-
-    <div className="page wrap">
-
-      {/* Hero */}
-
-      <div style={{textAlign:"center",padding:"clamp(30px,6vw,60px) 20px",marginBottom:40,position:"relative",overflow:"hidden"}}>
-
-        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,rgba(155,114,207,.1),transparent 70%)",pointerEvents:"none"}}/>
-
-        <div style={{fontSize:"clamp(40px,8vw,72px)",marginBottom:16,animation:"crown-glow 3s infinite"}}>🎯</div>
-
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".22em",textTransform:"uppercase",marginBottom:12}}>Coming Season 17</div>
-
-        <h1 style={{fontSize:"clamp(28px,5vw,52px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:16}}>
-
-          Fantasy TFT<br/><span style={{color:"#9B72CF"}}>is coming.</span>
-
-        </h1>
-
-        <p style={{fontSize:"clamp(14px,2vw,17px)",color:"#C8D4E0",maxWidth:520,margin:"0 auto 32px",lineHeight:1.7}}>
-
-          Draft your dream lineup before each clash. Score points based on how your picks actually place. The ultimate way to have skin in every lobby - without playing a single game.
-
-        </p>
-
-        {!joined?(
-
-          <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",maxWidth:440,margin:"0 auto"}}>
-
-            <div style={{flex:1,minWidth:200}}>
-
-              <Inp value={email} onChange={setEmail} placeholder="your@email.com" type="email"/>
-
-            </div>
-
-            <Btn v="purple" s="lg" onClick={joinWaitlist}>Join Waitlist →</Btn>
-
+      {/* Overview tab */}
+      {tab==="overview"&&(
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:20}}>
+            {[["Tournaments",""+totalHosted,"#E8A838"],["Players Hosted",""+totalPlayers,"#6EE7B7"],["Live Now",""+liveTournaments.length,"#52C47C"],["Upcoming",""+upcomingTournaments.length,"#4ECDC4"]].map(function(arr){
+              var l=arr[0],v=arr[1],c=arr[2];
+              return(
+                <Panel key={l} style={{padding:"18px",textAlign:"center"}}>
+                  <div className="mono" style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
+                  <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{l}</div>
+                </Panel>
+              );
+            })}
           </div>
-
-        ):(
-
-          <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"16px 24px",display:"inline-block"}}>
-
-            <div style={{fontSize:20,marginBottom:6}}>✅</div>
-
-            <div style={{fontWeight:700,fontSize:16,color:"#6EE7B7",marginBottom:4}}>You're on the waitlist!</div>
-
-            <div style={{fontSize:13,color:"#C8D4E0"}}>We'll email {email} when Fantasy TFT launches in Season 17.</div>
-
-          </div>
-
-        )}
-
-      </div>
-
-
-
-      {/* How it works */}
-
-      <div style={{marginBottom:40}}>
-
-        <h2 style={{fontSize:20,color:"#F2EDE4",textAlign:"center",marginBottom:24}}>How it works</h2>
-
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
-
-          {HOW.map((h,i)=>(
-
-            <Panel key={i} style={{padding:"20px"}}>
-
-              <div style={{fontSize:28,marginBottom:12}}>{h.icon}</div>
-
-              <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:6}}>{h.title}</div>
-
-              <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>{h.desc}</div>
-
-            </Panel>
-
-          ))}
-
-        </div>
-
-      </div>
-
-
-
-      {/* Scoring preview */}
-
-      <Panel style={{padding:"24px",marginBottom:40,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.2)"}}>
-
-        <h3 style={{fontSize:17,color:"#C4B5FD",marginBottom:16}}>Scoring System Preview</h3>
-
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(130px,1fr))",gap:10}}>
-
-          {[["1st place","10 pts","#E8A838"],["2nd place","7 pts","#C0C0C0"],["3rd place","5 pts","#CD7F32"],["4th place","3 pts","#4ECDC4"],["5th-8th","0 pts","#BECBD9"],["Exact call","+3 bonus","#9B72CF"],["Clutch win","+2 bonus","#F97316"],["Win streak","+1/game","#EAB308"]].map(([l,v,c])=>(
-
-            <div key={l} className="inner-box" style={{padding:"12px",textAlign:"center"}}>
-
-              <div className="mono" style={{fontSize:16,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-              <div style={{fontSize:11,color:"#BECBD9",marginTop:4}}>{l}</div>
-
-            </div>
-
-          ))}
-
-        </div>
-
-      </Panel>
-
-
-
-      {/* Platform CTA */}
-
-      <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.06),rgba(155,114,207,.06))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"24px",textAlign:"center"}}>
-
-        <div style={{fontSize:24,marginBottom:10}}>⚔️</div>
-
-        <h3 style={{fontSize:18,color:"#F2EDE4",marginBottom:8}}>Already competing in TFT Clash?</h3>
-
-        <p style={{fontSize:13,color:"#C8D4E0",maxWidth:480,margin:"0 auto 16px",lineHeight:1.6}}>
-
-          Fantasy TFT is built on top of our weekly clash results. The better you know the players, the better your draft. Jump into the current season while you wait.
-
-        </p>
-
-        <Btn v="ghost" onClick={()=>setScreen("leaderboard")}>View Season Standings →</Btn>
-
-      </div>
-
-    </div>
-
-  );
-
-}
-
-
-
-// ─── RULES SCREEN ─────────────────────────────────────────────────────────────
-
-function RulesScreen({setScreen}){
-
-  const [tab,setTab]=useState("format");
-
-  const TABS=[
-
-    {id:"format",label:"Format"},
-
-    {id:"points",label:"Points & Ties"},
-
-    {id:"checkin",label:"Check-in"},
-
-    {id:"edgecases",label:"Edge Cases"},
-
-    {id:"conduct",label:"Conduct"},
-
-  ];
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{marginBottom:32}}>
-
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Official</div>
-
-        <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Tournament Rules</h1>
-
-        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:600,lineHeight:1.7}}>TFT Clash follows rules based on our community rulebook, adapted for competitive play. All participants are expected to read and understand these rules before competing.</p>
-
-      </div>
-
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:24}}>
-
-        {TABS.map(t=>(
-
-          <Btn key={t.id} v={tab===t.id?"primary":"dark"} s="sm" onClick={()=>setTab(t.id)}>{t.label}</Btn>
-
-        ))}
-
-      </div>
-
-
-
-      {tab==="format"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Russo One',sans-serif"}}>Clash Format</h2>
-
-            <div style={{display:"flex",flexDirection:"column",gap:16}}>
-
-              <div>
-
-                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Standard Format (24 players)</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>24 players → 3 lobbies of 8 → 3–5 games per lobby → cumulative points determine final standings. No elimination stage at this size - everyone plays all rounds.</div>
-
+          {liveTournaments.length>0&&(
+            <Panel style={{padding:"18px",marginBottom:16,border:"1px solid rgba(82,196,124,.2)"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
+                <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
+                  <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+                </span>
+                <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>Active Tournament</span>
               </div>
-
-              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
-
-              <div>
-
-                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Lobby Seeding</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>Players are seeded by rank using <span style={{color:"#4ECDC4",fontWeight:600}}>snake-draft</span> so each lobby has a balanced mix of skill levels. Random draw is used when players have equal LP.</div>
-
-                <div style={{marginTop:12,background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
-
-                  <div className="cond" style={{fontSize:11,color:"#BECBD9",marginBottom:8,letterSpacing:".06em",textTransform:"uppercase"}}>Snake seeding example - 3 lobbies</div>
-
-                  <div className="mono" style={{fontSize:12,color:"#4ECDC4",marginBottom:4}}>Lobby A: seeds 1, 6, 7, 12, 13, 18, 19, 24</div>
-
-                  <div className="mono" style={{fontSize:12,color:"#9B72CF",marginBottom:4}}>Lobby B: seeds 2, 5, 8, 11, 14, 17, 20, 23</div>
-
-                  <div className="mono" style={{fontSize:12,color:"#E8A838"}}>Lobby C: seeds 3, 4, 9, 10, 15, 16, 21, 22</div>
-
-                </div>
-
-              </div>
-
-              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
-
-              <div>
-
-                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Multi-Stage Format (32+ players)</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8,marginBottom:12}}>For larger events, a two-stage Swiss format is used. Lobbies are reseeded every 2 games based on standings.</div>
-
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
-
-                  {[["Stage 1","Multiple lobbies · top 4 per lobby advance","#9B72CF"],["Stage 2","Survivors · reseeded lobbies · top 4 advance","#4ECDC4"],["Finals","Top 8 overall · single lobby · 1 winner","#E8A838"]].map(([s,d,c])=>(
-
-                    <div key={s} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
-
-                      <div style={{fontWeight:700,fontSize:13,color:c,marginBottom:4}}>{s}</div>
-
-                      <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.6}}>{d}</div>
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-              </div>
-
-              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
-
-              <div>
-
-                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:8}}>Swiss Reseeding</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>After every 2 games, lobbies reseed based on current standings - top performers face each other, making each round harder as you advance. Points reset between days but <span style={{color:"#4ECDC4"}}>not</span> between stages on Finals Day.</div>
-
-              </div>
-
-            </div>
-
-          </Panel>
-
-          <Panel style={{padding:"24px",background:"rgba(232,168,56,.03)",border:"1px solid rgba(232,168,56,.15)"}}>
-
-            <h3 style={{fontSize:15,color:"#E8A838",marginBottom:10}}>Result Submission</h3>
-
-            <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>Results are entered <span style={{color:"#F2EDE4",fontWeight:600}}>directly on the platform</span> — players enter their placement on the Bracket page after each round. No screenshots required.</div>
-
-          </Panel>
-
-        </div>
-
-      )}
-
-
-
-      {tab==="points"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:4,fontFamily:"'Russo One',sans-serif"}}>Tournament Point System</h2>
-
-            <div style={{fontSize:13,color:"#BECBD9",marginBottom:20}}>Per-game placement points — Clash Scoring used in all TFT Clash events.</div>
-
-            <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:8,marginBottom:24}}>
-
-              {[[1,"8","#E8A838"],[2,"7","#C0C0C0"],[3,"6","#CD7F32"],[4,"5","#4ECDC4"],[5,"4","#C8D4E0"],[6,"3","#C8D4E0"],[7,"2","#C8D4E0"],[8,"1","#C8D4E0"]].map(([place,pts,color])=>(
-
-                <div key={place} style={{background:"#0A0F1A",borderRadius:8,padding:"14px 8px",textAlign:"center",border:"1px solid rgba(242,237,228,.06)"}}>
-
-                  <div className="cond" style={{fontSize:10,color:"#BECBD9",marginBottom:4,textTransform:"uppercase",letterSpacing:".04em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
-
-                  <div className="mono" style={{fontSize:20,fontWeight:700,color:color,lineHeight:1}}>{pts}</div>
-
-                  <div style={{fontSize:9,color:"#9AAABF",marginTop:2}}>pts</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"16px",fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>
-
-              <strong style={{color:"#C4B5FD"}}>DNP (Did Not Play):</strong> 0 points - worse than last place. Players who miss a game without notifying admins receive DNP. Two DNPs triggers a disqualification review.
-
-            </div>
-
-          </Panel>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Russo One',sans-serif"}}>Tiebreakers</h2>
-
-            <div style={{fontSize:13,color:"#C8D4E0",marginBottom:16,lineHeight:1.7}}>When players are tied on cumulative points (for reseeding, cut-offs, or final placement), ties are broken in this exact order:</div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-
-              {[["1","Total Tournament Points","The raw cumulative score. Applied first in all contexts.","#E8A838"],["2","Wins + Top 4s","Count of 1st place finishes × 2, plus top-4 finishes. Higher score wins.","#4ECDC4"],["3","Best Placement Counts","Who has more 1sts? Then more 2nds? Counts position-by-position.","#9B72CF"],["4","Most Recent Game","Better finish in the most recent game, then the game before that.","#C4B5FD"],["5","Random","Last resort only - random sort between tied positions.","#BECBD9"]].map(([n,title,desc,color])=>(
-
-                <div key={n} style={{display:"flex",gap:14,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
-
-                  <div style={{width:26,height:26,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{n}</div>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:color,marginBottom:3}}>{title}</div>
-
-                    <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.6}}>{desc}</div>
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </Panel>
-
-        </div>
-
-      )}
-
-
-
-      {tab==="checkin"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Russo One',sans-serif"}}>Registration & Check-in</h2>
-
-            <div style={{display:"flex",flexDirection:"column",gap:20}}>
-
-              <div>
-
-                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Registration</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>Registration opens at least 24 hours before each clash and closes 30 minutes before start. You must have an account with a valid Riot ID linked. Registering indicates your commitment to play - only sign up if you intend to show up.</div>
-
-              </div>
-
-              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
-
-              <div>
-
-                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Check-in Window</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8,marginBottom:14}}>Check-in opens <span style={{color:"#F2EDE4"}}>60 minutes before start</span> and closes <span style={{color:"#F2EDE4"}}>15 minutes before start</span>. You must actively click "Check In" - being registered is not enough.</div>
-
-                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8}}>
-
-                  {[["T-60min","Check-in opens","#4ECDC4"],["T-30min","Registration closes","#C8D4E0"],["T-15min","Check-in closes · roster locked","#E8A838"],["T-10min","Lobbies generated & seeded","#9B72CF"],["T-5min","Lobby assignments posted","#C4B5FD"],["T-0","Games begin","#52C47C"]].map(([time,event,color])=>(
-
-                    <div key={time} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
-
-                      <div className="mono" style={{fontSize:12,fontWeight:700,color:color,marginBottom:3}}>{time}</div>
-
-                      <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{event}</div>
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-              </div>
-
-              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
-
-              <div>
-
-                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Auto-Drop & Waitlist</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>Players who registered but did not check in by the deadline are <span style={{color:"#F87171"}}>automatically removed</span>. Their spots are offered to waitlisted players in order. Waitlisted players must also check in to confirm availability.</div>
-
-              </div>
-
-              <div style={{height:1,background:"rgba(242,237,228,.06)"}}/>
-
-              <div>
-
-                <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",marginBottom:8,textTransform:"uppercase",letterSpacing:".08em"}}>Grace Period</div>
-
-                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>Once lobbies are assigned, there is a <span style={{color:"#F2EDE4"}}>5-minute grace period</span> before the game begins. If you haven't joined and haven't contacted an admin by then, the lobby starts without you (DNP for that game).</div>
-
-              </div>
-
-            </div>
-
-          </Panel>
-
-          <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 20px",fontSize:13,color:"#C8D4E0",lineHeight:1.7}}>
-
-            <strong style={{color:"#E8A838"}}>Important:</strong> Dropping from a tournament without a legitimate reason (emergency, illness) may result in a ban from the next clash cycle. If you need to withdraw, tell an admin before the event starts.
-
-          </div>
-
-        </div>
-
-      )}
-
-
-
-      {tab==="edgecases"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Russo One',sans-serif"}}>Uneven Numbers & Byes</h2>
-
-            <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8,marginBottom:16}}>Lobbies hold up to 8 players. When total player count is not a multiple of 8, these rules apply:</div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16}}>
-
-              {[["Lobby of 7","Fully valid - game runs normally. 8th place simply doesn't exist that game. Scoring is identical for the 7 players present."],["Lobby of 6","Allowed but not preferred. Admin will attempt to merge lobbies or promote from waitlist before running a 6-player lobby."],["BYE (advancement stages)","When a Stage 2 lobby can't be filled to 8, top-seeded players receive a BYE - they advance automatically. BYE = 0 points added (neutral, not rewarded, not penalized)."]].map(([title,desc])=>(
-
-                <div key={title} style={{background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
-
-                  <div style={{fontWeight:700,fontSize:13,color:"#4ECDC4",marginBottom:4}}>{title}</div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.6}}>{desc}</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </Panel>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:16,fontFamily:"'Russo One',sans-serif"}}>No-Shows & Disconnections</h2>
-
-            <div style={{display:"flex",flexDirection:"column",gap:12}}>
-
-              {[["Doesn't join lobby","Game starts after 5-min grace. Player receives DNP (0 pts) for that game.","#F87171"],["Disconnects mid-game","Riot-assigned final placement counts - no exceptions. Remakes only considered for server-wide outages or first-carousel DC, at admin discretion.","#EAB308"],["Drops out between rounds","Removed from roster. No mid-tournament replacement in competitive format.","#C8D4E0"],["Two DNPs","Admin prompted to review for disqualification from remainder of the clash.","#F87171"]].map(([title,desc,color])=>(
-
-                <div key={title} style={{display:"flex",gap:12,alignItems:"flex-start",background:"#0A0F1A",borderRadius:8,padding:"14px"}}>
-
-                  <div style={{width:8,height:8,borderRadius:"50%",background:color,flexShrink:0,marginTop:5}}/>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:3}}>{title}</div>
-
-                    <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.6}}>{desc}</div>
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </Panel>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:12,fontFamily:"'Russo One',sans-serif"}}>Pauses</h2>
-
-            <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.8,marginBottom:14}}>Type <span className="mono" style={{color:"#4ECDC4",background:"rgba(78,205,196,.08)",padding:"2px 6px",borderRadius:4}}>/pause</span> in game chat to pause and contact an admin. Abuse of the pause feature results in disciplinary action.</div>
-
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:10}}>
-
-              {[["Max per game (player)","10 min"],["Max total per tournament","25 min"],["Max per game (all players)","30 min"]].map(([l,v])=>(
-
-                <div key={l} style={{background:"#0A0F1A",borderRadius:8,padding:"12px",border:"1px solid rgba(242,237,228,.06)"}}>
-
-                  <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,lineHeight:1.5}}>{l}</div>
-
-                  <div className="mono" style={{fontSize:15,fontWeight:700,color:"#C4B5FD"}}>{v}</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </Panel>
-
-        </div>
-
-      )}
-
-
-
-      {tab==="conduct"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontSize:18,color:"#E8A838",marginBottom:6,fontFamily:"'Russo One',sans-serif"}}>Code of Conduct</h2>
-
-            <div style={{fontSize:13,color:"#BECBD9",marginBottom:20,lineHeight:1.7}}>All participants are bound by these rules. Violations result in warnings, point deductions, suspension, or permanent ban depending on severity.</div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:10}}>
-
-              {[["🎯","Play to win","Always play to the best of your ability. Intentionally underperforming or tanking games is a bannable offense."],["🚫","No collusion","Any agreement to soft-play allies, split prizes, or manipulate results is prohibited. This includes ghosting and external signaling."],["📵","No coaching during games","Receiving tips or build orders from anyone outside the lobby during an active game is strictly prohibited."],["🐛","No bugs or exploits","Do not knowingly use in-game bugs for advantage. Pause and report to an admin immediately if you encounter one."],["🔐","No account sharing","Playing under another person's account (ringing) is a permanent ban offense. Compete only on your registered account."],["🤝","Respect everyone","Harassment, hate speech, discrimination, and abusive behavior are not tolerated - in-game, Discord, or on the platform."],["📸","Result submission","All players enter their placement directly on the Bracket page. Discrepancies should be raised to an admin immediately."]].map(([icon,title,desc])=>(
-
-                <div key={title} style={{display:"flex",gap:14,background:"#0A0F1A",borderRadius:8,padding:"14px",border:"1px solid rgba(242,237,228,.06)"}}>
-
-                  <div style={{fontSize:20,flexShrink:0,width:28,textAlign:"center"}}>{icon}</div>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:3}}>{title}</div>
-
-                    <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.6}}>{desc}</div>
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </Panel>
-
-          <Panel style={{padding:"24px",background:"rgba(248,113,113,.03)",border:"1px solid rgba(248,113,113,.15)"}}>
-
-            <h3 style={{fontSize:15,color:"#F87171",marginBottom:12}}>Disciplinary Actions</h3>
-
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
-
-              {[["Official Warning","Minor first offenses. Noted on your record."],["Point Deduction","Applied at end of day/stage - never mid-game."],["Round/Match Forfeiture","Result nullified or replaced with 0 points."],["Tournament Suspension","Banned from one or more upcoming clashes."],["Permanent Ban","Ringing, extreme misconduct, or repeated major violations."]].map(([action,desc])=>(
-
-                <div key={action} style={{display:"flex",gap:10,alignItems:"flex-start",fontSize:13,paddingBottom:8,borderBottom:"1px solid rgba(242,237,228,.04)"}}>
-
-                  <span style={{color:"#F87171",fontWeight:700,minWidth:168,flexShrink:0}}>{action}</span>
-
-                  <span style={{color:"#C8D4E0",lineHeight:1.5}}>{desc}</span>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </Panel>
-
-        </div>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
-
-
-// ─── FAQ SCREEN ───────────────────────────────────────────────────────────────
-
-function FAQScreen({setScreen}){
-
-  const [open,setOpen]=useState(new Set());
-
-  const FAQS=[
-
-    {cat:"Getting Started",items:[
-
-      {q:"How do I join a TFT Clash?",a:"Create a free account, link your Riot ID in your profile, then register for the next upcoming clash on the Home screen. Competing is always free - no subscription required."},
-
-      {q:"Do I need Pro or Host to play?",a:"No. The free Player tier lets you compete in all clashes. Pro ($4.99/mo) unlocks extended stats, career graphs, and profile customization. Host ($19.99/mo) lets you run your own events."},
-
-      {q:"How do I link my Riot ID?",a:"Go to My Account → Edit Profile and enter your Riot ID (e.g. Username#TAG). This is used to verify your in-game account and for lobby invites."},
-
-    ]},
-
-    {cat:"Registration & Check-in",items:[
-
-      {q:"What's the difference between registering and checking in?",a:"Registration means you want to play. Check-in confirms you're present on the day. A check-in window opens 60 minutes before start - you must click Check In during that window. If you registered but don't check in, you're auto-removed and your spot goes to the waitlist."},
-
-      {q:"What happens if I'm on the waitlist?",a:"Waitlisted players are offered spots in order as registered players fail to check in. Stay available and keep the site open - you'll be notified if a slot opens for you."},
-
-      {q:"Can I register last minute?",a:"Registration closes 30 minutes before start. After that, the only way in is through the waitlist during the check-in window."},
-
-      {q:"I checked in but missed the lobby - what happens?",a:"If you haven't joined within the 5-minute grace period after lobby assignments drop, the game starts without you and you receive DNP (0 points) for that game. Contact an admin immediately if you're having technical issues."},
-
-    ]},
-
-    {cat:"Format & Scoring",items:[
-
-      {q:"How many games do I play per clash?",a:"In our standard 24-player format, each player plays 3–5 games in the same lobby. Final standings are determined by cumulative placement points across all games."},
-
-      {q:"How are lobbies decided?",a:"Lobbies are seeded by ladder rank using snake-draft - each lobby gets a balanced spread of skill levels. Unranked or equal-LP players are placed randomly."},
-
-      {q:"What's the points system?",a:"Clash Scoring per game: 1st=8, 2nd=7, 3rd=6, 4th=5, 5th=4, 6th=3, 7th=2, 8th=1."},
-
-      {q:"What if there aren't enough players for full 8-player lobbies?",a:"Lobbies of 7 are completely valid - scoring is identical for the 7 present. For advancement stages, top seeds may receive a BYE (0 points, neutral)."},
-
-      {q:"How do I submit my result after a game?",a:"You don't need to screenshot or message anyone. After each game, go to the Bracket page and enter your placement directly — the site records it instantly. If you're unsure, your admin can enter it for you."},
-
-      {q:"Do clash points carry over between events?",a:"In-game tournament points (1st=8pts etc.) are used only within a single clash. Season points - shown on the leaderboard - are separate and accumulate across all clashes in the season."},
-
-    ]},
-
-    {cat:"Disconnections & Edge Cases",items:[
-
-      {q:"What if I disconnect mid-game?",a:"Your Riot-assigned final placement counts - no exceptions. The result stands regardless of disconnect reason. Remakes are only considered for server-wide outages affecting multiple players, or a disconnect before your first augment selection - and only at admin discretion."},
-
-      {q:"What if someone no-shows their lobby?",a:"After the 5-minute grace period the game starts. The absent player receives DNP (0 points). In larger events, a waitlist player may be called in to fill the spot."},
-
-      {q:"Can I pause a game?",a:"Yes. Type /pause in game chat to pause and contact an admin. Maximum 10 minutes per pause, 25 minutes total across the entire tournament. Abusing pauses results in disciplinary action."},
-
-      {q:"What if I have to drop out mid-tournament?",a:"Tell an admin immediately. Dropping without a legitimate reason may result in a ban from the next clash cycle. Legitimate reasons (emergency, illness) are handled at admin discretion with no penalty."},
-
-    ]},
-
-    {cat:"Conduct & Fairness",items:[
-
-      {q:"Is soft-playing a friend allowed?",a:"Absolutely not. Soft play and collusion are among the most serious offenses. Always play to win. Penalties range from point forfeiture to permanent ban."},
-
-      {q:"Can I stream my games?",a:"Yes, you're free to stream your own POV. We recommend a delay to prevent opponents watching your stream for info. Using stream information to coach yourself or others during a game is prohibited."},
-
-      {q:"What if I see someone cheating?",a:"Report it to an admin privately with any screenshot evidence. All reports are investigated - you won't be penalized for reporting in good faith."},
-
-      {q:"Can I get banned?",a:"Yes. Account sharing (ringing), extreme harassment, collusion, or repeated violations result in suspension or permanent ban. All decisions are at admin discretion."},
-
-    ]},
-
-    {cat:"Leaderboard & Season",items:[
-
-      {q:"How are season points awarded?",a:"Your final placement in each clash earns season points. The better you finish, the more season points you earn. These accumulate across all clashes throughout the season."},
-
-      {q:"How are leaderboard ties broken?",a:"In order: total points → wins+top4s (wins count twice) → most favorable placement counts (most 1sts, then 2nds…) → most recent game result → random."},
-
-      {q:"Is there a reward for winning the season?",a:"Yes - the season champion is inducted into the Hall of Fame with a permanent record. Future seasons may include real prizes as the platform grows."},
-
-    ]},
-
-  ];
-
-  let qi=0;
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{marginBottom:32}}>
-
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".2em",textTransform:"uppercase",marginBottom:8}}>Help</div>
-
-        <h1 style={{fontSize:"clamp(26px,4vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.1,marginBottom:10}}>Frequently Asked Questions</h1>
-
-        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:560,lineHeight:1.7}}>Everything you need to know about competing in TFT Clash. Can't find your answer? Ask in Discord.</p>
-
-      </div>
-
-      <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:32}}>
-
-        <Btn v="primary" s="sm" onClick={()=>setScreen("rules")}>View Full Rules →</Btn>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("pricing")}>Pricing & Plans</Btn>
-
-      </div>
-
-      <div style={{display:"flex",flexDirection:"column",gap:28}}>
-
-        {FAQS.map(section=>(
-
-          <div key={section.cat}>
-
-            <div className="cond" style={{fontSize:12,fontWeight:700,color:"#4ECDC4",letterSpacing:".14em",textTransform:"uppercase",marginBottom:10,paddingBottom:8,borderBottom:"1px solid rgba(78,205,196,.2)"}}>{section.cat}</div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:4}}>
-
-              {section.items.map(item=>{
-
-                const idx=qi++;
-
-                const isOpen=open.has(idx);
-
+              {liveTournaments.map(function(t){
                 return(
-
-                  <div key={idx} style={{background:"linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95))",borderRadius:10,border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.09)"),overflow:"hidden",transition:"border-color .15s"}}>
-
-                    <button onClick={()=>setOpen(prev=>{const s=new Set(prev);isOpen?s.delete(idx):s.add(idx);return s;})} style={{display:"flex",justifyContent:"space-between",alignItems:"center",width:"100%",padding:"16px 20px",background:"none",border:"none",cursor:"pointer",textAlign:"left",gap:16}}>
-
-                      <span style={{fontSize:14,fontWeight:600,color:isOpen?"#F2EDE4":"#C8BFB0",lineHeight:1.5,flex:1}}>{item.q}</span>
-
-                      <span style={{fontSize:18,color:"#9B72CF",flexShrink:0,transition:"transform .2s",display:"inline-block",transform:isOpen?"rotate(45deg)":"none"}}>+</span>
-
-                    </button>
-
-                    {isOpen&&(
-
-                      <div style={{padding:"0 20px 18px",fontSize:13,color:"#C8D4E0",lineHeight:1.8,borderTop:"1px solid rgba(242,237,228,.05)"}}>{item.a}</div>
-
-                    )}
-
+                  <div key={t.id} style={{display:"flex",alignItems:"center",gap:12}}>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:4}}>{t.name}</div>
+                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{"📅"} {t.date} {"·"} {"👥"} {t.registered}/{t.size} players</div>
+                      <Bar val={t.registered} max={t.size} color="#6EE7B7" h={4}/>
+                    </div>
+                    <Btn v="primary" s="sm" onClick={function(){setScreen("bracket");}}>Live Bracket {"→"}</Btn>
                   </div>
-
                 );
-
               })}
-
+            </Panel>
+          )}
+          <Panel style={{padding:"18px"}}>
+            <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",marginBottom:12}}>Quick Actions</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <Btn v="ghost" s="sm" onClick={function(){setShowCreate(true);setTab("tournaments");}}>{"+"} New Tournament</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setTab("announce");}}>{"📢"} Announce</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setTab("branding");}}>{"🎨"} Edit Branding</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("bracket");}}>{"⚔"} View Bracket</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("featured");}}>{"⭐"} Featured Page</Btn>
             </div>
+          </Panel>
+        </div>
+      )}
 
+      {/* Tournaments tab */}
+      {tab==="tournaments"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {tournaments.map(function(t){
+            var statusColor=t.status==="live"?"#6EE7B7":t.status==="upcoming"?"#4ECDC4":t.status==="pending_approval"?"#E8A838":"#BECBD9";
+            var statusLabel=t.status==="live"?"🔴 Live":t.status==="upcoming"?"✓ Upcoming":t.status==="pending_approval"?"⏳ Pending":"Completed";
+            return(
+              <Panel key={t.id} style={{padding:"18px",border:t.status==="live"?"1px solid rgba(82,196,124,.25)":"1px solid rgba(242,237,228,.07)"}}>
+                <div style={{display:"flex",alignItems:"flex-start",gap:14,flexWrap:"wrap"}}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
+                      <span style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{t.name}</span>
+                      <Tag color={statusColor} size="sm">{statusLabel}</Tag>
+                      {t.invite&&<Tag color="#9B72CF" size="sm">{"🔒"} Invite Only</Tag>}
+                      {t.entryFee&&<Tag color="#EAB308" size="sm">{"💰"} {t.entryFee}</Tag>}
+                    </div>
+                    <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{"📅"} {t.date} {"·"} {"👥"} {t.registered}/{t.size} registered</div>
+                    <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
+                    <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{t.size-t.registered} spots remaining</div>
+                    {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{"📋"} {t.rules}</div>}
+                  </div>
+                  <div style={{display:"flex",gap:8,flexShrink:0}}>
+                    <Btn v="ghost" s="sm" onClick={function(){toast("Edit coming soon","success");}}>Edit</Btn>
+                    <Btn v="primary" s="sm" onClick={function(){setScreen("bracket");}}>Manage {"→"}</Btn>
+                  </div>
+                </div>
+              </Panel>
+            );
+          })}
+          {tournaments.length===0&&(
+            <div style={{textAlign:"center",padding:"48px",color:"#BECBD9"}}>
+              <div style={{fontSize:32,marginBottom:12}}>{"🎮"}</div>
+              <div style={{fontSize:14}}>No tournaments yet. Create your first one above.</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Registrations / Players tab */}
+      {tab==="registrations"&&(
+        <div>
+          {tournaments.filter(function(t){return t.status!=="completed";}).map(function(t){
+            return(
+              <Panel key={t.id} style={{padding:"18px",marginBottom:16}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+                  <h3 style={{fontSize:14,color:"#F2EDE4",margin:0,flex:1}}>{t.name}</h3>
+                  <Tag color={t.status==="live"?"#6EE7B7":"#4ECDC4"} size="sm">{t.registered}/{t.size}</Tag>
+                </div>
+                {players.slice(0,t.registered).map(function(p,i){
+                  return(
+                    <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<t.registered-1?"1px solid rgba(242,237,228,.05)":"none"}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</div>
+                        <div style={{fontSize:11,color:"#BECBD9"}}>{p.rank} {"·"} {p.region}</div>
+                      </div>
+                      <Tag color="#6EE7B7" size="sm">{"✓"} Registered</Tag>
+                    </div>
+                  );
+                })}
+                <div style={{marginTop:12,display:"flex",gap:8}}>
+                  <Btn v="ghost" s="sm" onClick={function(){toast("Player list exported (mock)","success");}}>{"📥"} Export CSV</Btn>
+                  <Btn v="ghost" s="sm" onClick={function(){toast("Check-in link copied (mock)","success");}}>{"🔗"} Check-in Link</Btn>
+                </div>
+              </Panel>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Announce tab */}
+      {tab==="announce"&&(
+        <div>
+          <Panel style={{padding:"20px",marginBottom:16}}>
+            <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>Send Announcement</h3>
+            <div style={{marginBottom:12}}>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Send to</div>
+              <Sel value={announceTo} onChange={setAnnounceTo}>
+                <option value="all">All registered players</option>
+                {tournaments.map(function(t){return <option key={t.id} value={t.name}>{t.name}</option>;})}
+              </Sel>
+            </div>
+            <div style={{marginBottom:14}}>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Message</div>
+              <textarea value={announceMsg} onChange={function(e){setAnnounceMsg(e.target.value);}}
+                placeholder="e.g. Check-in is now open! Join the Discord for lobby codes..."
+                style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:90,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
+            </div>
+            <Btn v="primary" onClick={sendAnnouncement}>{"📢"} Send Announcement</Btn>
+          </Panel>
+          <Panel style={{padding:"18px"}}>
+            <h3 style={{fontSize:14,color:"#F2EDE4",marginBottom:14}}>Sent Announcements</h3>
+            {announcements.length===0&&<div style={{fontSize:13,color:"#BECBD9",padding:"16px 0",textAlign:"center"}}>No announcements sent yet.</div>}
+            {announcements.map(function(a){
+              return(
+                <div key={a.id} style={{borderBottom:"1px solid rgba(242,237,228,.05)",padding:"12px 0"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                    <span style={{fontSize:11,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",borderRadius:20,padding:"2px 8px",color:"#C4B5FD",fontWeight:600}}>To: {a.to}</span>
+                    <span style={{fontSize:10,color:"#9AAABF",marginLeft:"auto"}}>{a.sentAt}</span>
+                  </div>
+                  <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.5}}>{a.msg}</div>
+                </div>
+              );
+            })}
+          </Panel>
+        </div>
+      )}
+
+      {/* Branding tab */}
+      {tab==="branding"&&(
+        <Panel style={{padding:"24px"}}>
+          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:18}}>{"🎨"} Host Branding</h3>
+          <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:24}}>
+            {/* Preview card */}
+            <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+brandColor+"55",borderRadius:14,padding:"16px 20px",minWidth:220,flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                <div style={{width:40,height:40,borderRadius:10,background:brandColor+"22",border:"1px solid "+brandColor+"44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{brandLogo}</div>
+                <div>
+                  <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{brandName}</div>
+                  <div style={{fontSize:11,color:brandColor,fontWeight:600}}>Host Partner</div>
+                </div>
+              </div>
+              {brandBio&&<div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5}}>{brandBio}</div>}
+            </div>
           </div>
-
-        ))}
-
-      </div>
-
-      <div style={{marginTop:40,background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"24px",textAlign:"center"}}>
-
-        <div style={{fontSize:24,marginBottom:10}}>💬</div>
-
-        <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:8}}>Still have questions?</h3>
-
-        <p style={{fontSize:13,color:"#C8D4E0",maxWidth:380,margin:"0 auto 16px",lineHeight:1.6}}>Ask in the TFT Clash Discord server or reach out to an admin before your first clash.</p>
-
-        <Btn v="ghost" onClick={()=>setScreen("rules")}>Read the Full Rules →</Btn>
-
-      </div>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Org / Display Name</div>
+              <Inp value={brandName} onChange={setBrandName} placeholder="Your org or community name"/>
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Logo Emoji</div>
+              <Inp value={brandLogo} onChange={setBrandLogo} placeholder="e.g. 🎮 🏆 👑"/>
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:8}}>Brand Color</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {["#9B72CF","#4ECDC4","#E8A838","#F87171","#6EE7B7","#60A5FA","#FB923C"].map(function(c){
+                  return(
+                    <div key={c} onClick={function(){setBrandColor(c);}}
+                      style={{width:28,height:28,borderRadius:"50%",background:c,cursor:"pointer",border:brandColor===c?"3px solid #fff":"3px solid transparent",transition:"border .15s"}}/>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Bio / Description <span style={{color:"#9AAABF",fontWeight:400}}>(shown on Featured page)</span></div>
+              <textarea value={brandBio} onChange={function(e){setBrandBio(e.target.value);}}
+                placeholder="Tell players about your org, community, and what kind of clashes you run..."
+                style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:80,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
+            </div>
+            <Btn v="primary" onClick={saveBranding}>{brandSaved?"✓ Saved!":"Save Branding"}</Btn>
+          </div>
+        </Panel>
+      )}
 
     </div>
-
   );
-
 }
 
 
+// ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
 
-// ─── AEGIS SHOWCASE ─────────────────────────────────────────────────────────────────────────────
+var FEATURED_EVENTS=[
+  {id:"clash-kings-3",name:"Clash Kings Invitational #3",host:"ClashKings",sponsor:"RiotBar",status:"live",date:"Mar 17 2026",time:"NOW",format:"Double Elim",size:16,registered:16,prizePool:"$100",region:"EUW",description:"Invite-only invitational for top EUW players. Live brackets and real-time commentary.",tags:["Invite Only","EUW","Broadcast"],logo:"👑",screen:null},
+  {id:"aegis-152",name:"Aegis Esports TFT Showdown #152",host:"Aegis Esports",sponsor:"ZenMarket",status:"upcoming",date:"Mar 22 2026",time:"8:00 PM EST",format:"Swiss (6 rounds)",size:64,registered:47,prizePool:"$200",region:"NA/LATAM",description:"The premier weekly TFT series. Open to all ranked players. Top 8 earn prizes and broadcast coverage.",tags:["Broadcast","Prizes","Open"],logo:"🏆",screen:"aegis-showcase"},
+  {id:"tft-academy-8",name:"TFT Academy Weekly #8",host:"TFT Academy",sponsor:null,status:"upcoming",date:"Mar 21 2026",time:"6:00 PM CET",format:"Single Lobby",size:8,registered:6,prizePool:null,region:"EMEA",description:"Community learning series for Diamond+ players. Coaches analyze every game post-tournament.",tags:["Educational","EMEA","Diamond+"],logo:"🎓",screen:null},
+  {id:"aegis-151",name:"Aegis Esports TFT Showdown #151",host:"Aegis Esports",sponsor:"ZenMarket",status:"completed",date:"Mar 15 2026",format:"Swiss",size:64,registered:64,prizePool:"$200",region:"NA/LATAM",champion:"D0PA#111",top4:["D0PA#111","LC Abyss#CAPO","vnck#NA1","Ken Kitade"],logo:"🏆",screen:"aegis-showcase"},
+  {id:"tft-community-feb",name:"TFT Community Open — February",host:"TFT Community",sponsor:null,status:"completed",date:"Feb 28 2026",format:"Swiss",size:32,registered:32,prizePool:null,champion:"Levitate",top4:["Levitate","Zounderkite","Uri","BingBing"],logo:"⚡",screen:null},
+  {id:"clash-kings-2",name:"Clash Kings Invitational #2",host:"ClashKings",sponsor:"RiotBar",status:"completed",date:"Feb 14 2026",format:"Double Elim",size:16,registered:16,prizePool:"$100",region:"EUW",champion:"StarForge",top4:["StarForge","IronMask","DawnBreaker","GhostRider"],logo:"👑",screen:null},
+];
+
+function FeaturedScreen({setScreen,currentUser,onAuthClick,toast}){
+  var [filter,setFilter]=useState("all");
+  var live=FEATURED_EVENTS.filter(function(e){return e.status==="live";});
+  var upcoming=FEATURED_EVENTS.filter(function(e){return e.status==="upcoming";});
+  var past=FEATURED_EVENTS.filter(function(e){return e.status==="completed";});
+  var active=live.concat(upcoming);
+  var shown=filter==="all"?active:filter==="live"?live:upcoming;
+
+  return(
+    <div className="page wrap">
+
+      <div style={{marginBottom:28}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6,flexWrap:"wrap"}}>
+          <h1 style={{color:"#F2EDE4",fontSize:24,fontWeight:700,margin:0}}>Featured Events</h1>
+          {live.length>0&&(
+            <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
+              <span style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>
+              {live.length} LIVE NOW
+            </span>
+          )}
+        </div>
+        <p style={{color:"#BECBD9",fontSize:13,margin:0}}>Partner tournaments, community clashes and special events. Free to watch, free to enter.</p>
+      </div>
+
+      <div style={{display:"flex",gap:6,marginBottom:20}}>
+        {[["all","All Active"],["live","Live Now"],["upcoming","Upcoming"]].map(function(arr){
+          var f=arr[0],label=arr[1];
+          return(
+            <button key={f} onClick={function(){setFilter(f)}}
+              style={{background:filter===f?"rgba(155,114,207,.2)":"rgba(255,255,255,.04)",border:"1px solid "+(filter===f?"rgba(155,114,207,.5)":"rgba(242,237,228,.08)"),borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:600,color:filter===f?"#C4B5FD":"#BECBD9",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {live.length>0&&(function(){
+        var hero=live[0];
+        return(
+          <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,overflow:"hidden",marginBottom:20,cursor:hero.screen?"pointer":"default"}}
+            onClick={function(){if(hero.screen){setScreen(hero.screen);}}}>
+            <div style={{background:"rgba(232,168,56,.07)",borderBottom:"1px solid rgba(232,168,56,.18)",padding:"9px 18px",display:"flex",alignItems:"center",gap:8}}>
+              <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.15)",border:"1px solid rgba(82,196,124,.35)",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
+                <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE NOW
+              </span>
+              <span style={{color:"#E8A838",fontWeight:600,fontSize:12,marginLeft:4}}>Round in progress</span>
+            </div>
+            <div style={{padding:"20px 22px"}}>
+              <div style={{display:"flex",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
+                <div style={{width:52,height:52,borderRadius:14,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{hero.logo}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontWeight:700,fontSize:18,color:"#F2EDE4",marginBottom:4}}>{hero.name}</div>
+                  <div style={{fontSize:12,color:"#9B72CF",fontWeight:600,marginBottom:10}}>Hosted by {hero.host}{hero.sponsor?" · Presented by "+hero.sponsor:""}</div>
+                  <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.5,marginBottom:14}}>{hero.description}</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {(hero.tags||[]).map(function(t){return(
+                      <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{t}</span>
+                    );})
+                    }
+                    <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#E8A838"}}>{hero.registered}/{hero.size} players</span>
+                    {hero.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{hero.prizePool}</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {shown.length>0&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14,marginBottom:32}}>
+          {shown.map(function(ev){
+            var isLive=ev.status==="live";
+            return(
+              <div key={ev.id}
+                style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,overflow:"hidden",cursor:ev.screen?"pointer":"default",transition:"border-color .2s"}}
+                onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.5)";}}
+                onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.2)";}}
+                onClick={function(){if(ev.screen){setScreen(ev.screen);}}}>
+                <div style={{padding:"16px 18px"}}>
+                  <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
+                    <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo}</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",lineHeight:1.3,marginBottom:2}}>{ev.name}</div>
+                      <div style={{fontSize:11,color:"#9B72CF",fontWeight:600}}>{ev.host}</div>
+                    </div>
+                    <div style={{flexShrink:0}}>
+                      {isLive?(
+                        <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#6EE7B7"}}>
+                          <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+                        </span>
+                      ):(
+                        <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#4ECDC4"}}>UPCOMING</span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:12}}>{ev.description}</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+                    <span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#BECBD9"}}>{ev.date}</span>
+                    {ev.time&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#BECBD9"}}>{ev.time}</span>}
+                    {ev.region&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#BECBD9"}}>{ev.region}</span>}
+                  </div>
+                  <div style={{marginBottom:10}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                      <span style={{fontSize:10,color:"#BECBD9"}}>Registration</span>
+                      <span style={{fontSize:10,fontWeight:700,color:"#E8A838"}}>{ev.registered}/{ev.size}</span>
+                    </div>
+                    <Bar val={ev.registered} max={ev.size} color="#E8A838" h={4}/>
+                  </div>
+                  <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                    {ev.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{ev.prizePool}</span>}
+                    {ev.sponsor&&<span style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:600,color:"#C4B5FD"}}>by {ev.sponsor}</span>}
+                    {ev.screen&&(
+                      <button style={{marginLeft:"auto",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}
+                        onClick={function(e){e.stopPropagation();setScreen(ev.screen);}}>View
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {shown.length===0&&(
+        <div style={{textAlign:"center",padding:"48px 24px",color:"#BECBD9",marginBottom:24}}>
+          <div style={{fontSize:32,marginBottom:12}}>📅</div>
+          <div style={{fontSize:14}}>No events matching this filter right now.</div>
+        </div>
+      )}
+
+      {past.length>0&&(
+        <div style={{marginBottom:32}}>
+          <h3 style={{color:"#F2EDE4",fontSize:15,fontWeight:700,marginBottom:14}}>Past Events</h3>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {past.map(function(ev){
+              return(
+                <div key={ev.id}
+                  style={{background:"#111827",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,cursor:ev.screen?"pointer":"default",transition:"border-color .2s"}}
+                  onMouseEnter={function(e){if(ev.screen)e.currentTarget.style.borderColor="rgba(155,114,207,.3)";}}
+                  onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.06)";}}
+                  onClick={function(){if(ev.screen){setScreen(ev.screen);}}}>
+                  <div style={{fontSize:20,flexShrink:0}}>{ev.logo}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{ev.name}</div>
+                    <div style={{fontSize:11,color:"#BECBD9"}}>{ev.date} · {ev.registered} players · {ev.format}</div>
+                  </div>
+                  {ev.champion&&(
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <div style={{fontSize:10,color:"#BECBD9",marginBottom:2}}>Champion</div>
+                      <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>🏆 {ev.champion}</div>
+                    </div>
+                  )}
+                  {ev.screen&&<span style={{fontSize:12,color:"#9B72CF",flexShrink:0}}>→</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.05))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",textAlign:"center"}}>
+        <div style={{fontSize:28,marginBottom:10}}>🎮</div>
+        <h3 style={{color:"#F2EDE4",fontSize:18,fontWeight:700,marginBottom:8}}>Run Your Own Tournament</h3>
+        <p style={{fontSize:13,color:"#BECBD9",lineHeight:1.7,marginBottom:20,maxWidth:420,margin:"0 auto 20px"}}>
+          Get featured here. Create and manage TFT tournaments with our full host suite.
+        </p>
+        <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+          <Btn v="primary" onClick={function(){currentUser?setScreen("host-apply"):onAuthClick("signup");}}>Apply to Host</Btn>
+          <Btn v="dark" onClick={function(){setScreen("pricing");}}>View Host Plans</Btn>
+        </div>
+      </div>
+
+    </div>
+  );
+}
 
 function AegisShowcaseScreen({setScreen}){
 
@@ -16255,7 +15651,7 @@ function TFTClash(){
 
     }
 
-    const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","aegis-showcase","host-apply","host-dashboard","scrims","admin","roster"];
+    const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","aegis-showcase","host-apply","host-dashboard","scrims","admin","roster","featured"];
 
     const dest=safeScreens.includes(h)?h:"home";
 
@@ -16466,6 +15862,8 @@ function TFTClash(){
         {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/>}
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
+
+        {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast}/>}
 
         {screen==="aegis-showcase"&&<AegisShowcaseScreen setScreen={navTo}/>}
 
