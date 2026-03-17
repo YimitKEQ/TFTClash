@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS seasons (
   start_date date not null,
   end_date date,
   status text not null default 'active' check (status in ('upcoming','active','completed','archived')),
-  champion_player_id bigint references players(id) on delete set null,
+  champion_player_id uuid references players(id) on delete set null,
   config jsonb default '{}',
   created_at timestamptz default now()
 );

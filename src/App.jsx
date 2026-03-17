@@ -2733,8 +2733,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"archive",label:"Archive"},
 
-    {id:"tournament-aegis-151",label:"AEGIS #151"},
-
     {id:"milestones",label:"Milestones"},
 
     {id:"challenges",label:"Challenges"},
@@ -2758,8 +2756,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"archive",icon:"📁",label:"Archive"},
 
     {id:"featured",icon:"⭐",label:"Featured Events"},
-
-    {id:"tournament-aegis-151",icon:"🏆",label:"AEGIS #151 Results"},
 
     {id:"rules",icon:"📋",label:"Tournament Rules"},
 
@@ -3238,159 +3234,10 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
 
 
-// ─── PARTNER EVENT CARD ───────────────────────────────────────────────────────
-
-function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
-
-  const [registered,setRegistered]=useState(false);
-
-  const [showForm,setShowForm]=useState(false);
-
-  const [customIgn,setCustomIgn]=useState("");
-
-
-
-  function doRegister(){
-
-    var ign=customIgn.trim();
-
-    if(!ign){toast("Enter your Riot ID to register","error");return;}
-
-    if(!isValidRiotId(ign)){toast("Format: Name#TAG (e.g. Levitate#EUW)","error");return;}
-
-    setRegistered(true);setShowForm(false);
-
-    toast("Registered for Aegis Showdown #151! GL HF ⚡","success");
-
-  }
-
-
-
-  return(
-
-    <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(155,114,207,.35)",borderRadius:16,overflow:"hidden",transition:"border-color .2s"}}
-
-      onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.65)"}
-
-      onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(155,114,207,.35)"}>
-
-      {/* Announcement strip */}
-
-      <div style={{background:"rgba(232,168,56,.07)",borderBottom:"1px solid rgba(232,168,56,.18)",padding:"9px 16px",display:"flex",alignItems:"center",gap:8}}>
-
-        <span style={{fontSize:14,flexShrink:0}}>📢</span>
-
-        <span style={{color:"#E8A838",fontWeight:600,fontSize:12,lineHeight:1.4}}>
-
-          Showdown #152 sign-ups are <span style={{color:"#6EE7B7"}}>OPEN</span> · Sat 22 Mar 8PM EST · 64 spots · Presented by <span style={{color:"#C4B5FD"}}>ZenMarket</span>
-
-        </span>
-
-      </div>
-
-      {/* Card body */}
-
-      <div style={{padding:"18px 20px",cursor:"pointer"}} onClick={()=>setScreen("featured")}>
-
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
-
-          <div style={{width:40,height:40,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>🏆</div>
-
-          <div style={{flex:1,minWidth:0}}>
-
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>Aegis Esports TFT Showdown</div>
-
-            <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>Presented by ZenMarket</div>
-
-          </div>
-
-          <div style={{display:"flex",gap:5,flexWrap:"wrap",flexShrink:0}}>
-
-            <span style={{background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#6EE7B7",display:"flex",alignItems:"center",gap:4}}>
-
-              <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
-
-            </span>
-
-            <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#E8A838"}}>64p</span>
-
-            <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>Swiss</span>
-
-          </div>
-
-        </div>
-
-        <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:14}}>
-
-          Official partner clash for Aegis Esports — open to all ranked players. Prizes, broadcast, and full bracket. Season points separate from TFT Clash standings.
-
-        </div>
-
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}} onClick={e=>e.stopPropagation()}>
-
-          {registered?(
-
-            <div style={{display:"flex",alignItems:"center",gap:8,flex:1,background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:9,padding:"8px 14px"}}>
-
-              <span style={{fontSize:14}}>✅</span>
-
-              <span style={{fontSize:12,fontWeight:600,color:"#6EE7B7"}}>Registered!</span>
-
-              <Btn v="dark" s="sm" style={{marginLeft:"auto"}} onClick={()=>setScreen("featured")}>View Events →</Btn>
-
-            </div>
-
-          ):(
-
-            <>
-
-              {showForm?(
-
-                <div style={{flex:1,display:"flex",gap:6,flexWrap:"wrap"}}>
-
-                  <Inp value={customIgn} onChange={setCustomIgn} placeholder={currentUser?currentUser.riotId||"Your Riot ID#TAG":"Riot ID#TAG"} style={{flex:1,minWidth:140}}/>
-
-                  <Btn v="purple" onClick={doRegister}>Confirm ⚡</Btn>
-
-                  <Btn v="dark" onClick={()=>setShowForm(false)}>Cancel</Btn>
-
-                </div>
-
-              ):(
-
-                <>
-
-                  <Btn v="purple" s="sm" onClick={()=>{if(!currentUser){onAuthClick("login");return;}setCustomIgn(currentUser.riotId||"");setShowForm(true);}}>
-
-                    {currentUser?"Register for #152 →":"Sign In to Register"}
-
-                  </Btn>
-
-                  <Btn v="dark" s="sm" onClick={()=>setScreen("featured")}>View Events</Btn>
-
-                </>
-
-              )}
-
-            </>
-
-          )}
-
-        </div>
-
-      </div>
-
-    </div>
-
-  );
-
-}
-
-
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
-function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements}){
+function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents}){
 
   const [name,setName]=useState("");
 
@@ -4163,29 +4010,55 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       {/* Featured Events */}
 
-      <div style={{marginTop:20,marginBottom:4}}>
-
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-
-          <div>
-
-            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Partner Events</div>
-
-            <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",lineHeight:1}}>Featured Tournaments</h3>
-
+      {(function(){
+        var evts=featuredEvents||[];
+        var activeEvts=evts.filter(function(e){return e.status==="live"||e.status==="upcoming";});
+        if(activeEvts.length===0)return null;
+        return(
+          <div style={{marginTop:20,marginBottom:4}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
+              <div>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Partner Events</div>
+                <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",lineHeight:1}}>Featured Tournaments</h3>
+              </div>
+              <Btn v="dark" s="sm" onClick={function(){setScreen("featured");}}>View All →</Btn>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+              {activeEvts.slice(0,3).map(function(ev){
+                var isLive=ev.status==="live";
+                return(
+                  <div key={ev.id} onClick={function(){setScreen("tournament-"+ev.id);}}
+                    style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+(isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)"),borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"border-color .2s"}}
+                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";}}
+                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";}}>
+                    {isLive&&(
+                      <div style={{background:"rgba(82,196,124,.07)",borderBottom:"1px solid rgba(82,196,124,.18)",padding:"7px 16px",display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>
+                        <span style={{fontSize:10,fontWeight:700,color:"#6EE7B7"}}>LIVE NOW</span>
+                      </div>
+                    )}
+                    <div style={{padding:"16px 18px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||"🏆"}</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>{ev.name}</div>
+                          <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>{ev.host||"Community Event"}{ev.sponsor?" · "+ev.sponsor:""}</div>
+                        </div>
+                      </div>
+                      {ev.description&&<div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{ev.description}</div>}
+                      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                        {(ev.tags||[]).map(function(t){return <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{t}</span>;})}
+                        <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#E8A838"}}>{ev.registered||0}/{ev.size||"?"} players</span>
+                        {ev.date&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{ev.date}</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-
-          <Btn v="dark" s="sm" onClick={()=>setScreen("featured")}>View All →</Btn>
-
-        </div>
-
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
-
-          <PartnerEventCard currentUser={currentUser} onAuthClick={onAuthClick} setScreen={setScreen} toast={toast}/>
-
-        </div>
-
-      </div>
+        );
+      })()}
 
       {/* Bottom row */}
 
@@ -13455,11 +13328,29 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
   var [brandName,setBrandName]=useState((hostBranding&&hostBranding.name)||(currentUser&&currentUser.username)||"My Org");
   var [brandLogo,setBrandLogo]=useState((hostBranding&&hostBranding.logo)||"🎮");
   var [brandColor,setBrandColor]=useState((hostBranding&&hostBranding.color)||"#9B72CF");
+
   var [brandBio,setBrandBio]=useState((hostBranding&&hostBranding.bio)||"");
   var [brandLogoUrl,setBrandLogoUrl]=useState((hostBranding&&hostBranding.logoUrl)||"");
   var [brandBannerUrl,setBrandBannerUrl]=useState((hostBranding&&hostBranding.bannerUrl)||"");
   var [uploadingLogo,setUploadingLogo]=useState(false);
   var [uploadingBanner,setUploadingBanner]=useState(false);
+
+  // Load host profile from DB on mount
+  var [dbProfileLoaded,setDbProfileLoaded]=useState(false);
+  useEffect(function(){
+    if(!currentUser||!supabase.from||dbProfileLoaded)return;
+    supabase.from("host_profiles").select("*").eq("user_id",currentUser.id).single().then(function(res){
+      if(res.data){
+        var hp=res.data;
+        setBrandName(hp.org_name||brandName);
+        setBrandColor(hp.brand_color||brandColor);
+        setBrandBio(hp.bio||"");
+        if(hp.logo_url)setBrandLogoUrl(hp.logo_url);
+        if(hp.banner_url)setBrandBannerUrl(hp.banner_url);
+        setDbProfileLoaded(true);
+      }
+    });
+  },[currentUser]);
 
   function uploadImage(file,type){
     if(!file||!supabase.storage)return;
@@ -13491,7 +13382,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       supabase.from("host_profiles").select("id").eq("user_id",currentUser?currentUser.id:"").single()
         .then(function(hpRes){
           var hpId=hpRes.data?hpRes.data.id:null;
-          return supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",size:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules:tRules||null,host_profile_id:hpId,description:tRules||"Host tournament by "+brandName,region:""});
+          return supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",max_players:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules_text:tRules||null,host_profile_id:hpId,description:tRules||"Host tournament by "+brandName,region:""});
         }).then(function(res){if(res&&res.error)console.error("[TFT] Failed to create tournament:",res.error);});
     }
     setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
@@ -13759,10 +13650,13 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                               var placement=parseInt(val);
                               var pts={1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1}[placement]||0;
                               if(supabase.from&&t.dbId){
+                                var matchedPlayer=(players||[]).find(function(p){return p.username===username||p.name===username;});
+                                var playerId=matchedPlayer?matchedPlayer.dbId||matchedPlayer.id:null;
+                                if(!playerId){toast("Player "+username+" not found in roster","error");return;}
                                 supabase.from("game_results").insert({
                                   tournament_id:t.dbId,
                                   round_number:currentRound,
-                                  player_id:i+1,
+                                  player_id:playerId,
                                   placement:placement,
                                   points:pts
                                 }).then(function(res){
@@ -15391,7 +15285,7 @@ function TFTClash(){
 
 
 
-        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements}/>}
+        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents}/>}
 
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 

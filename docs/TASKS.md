@@ -304,22 +304,44 @@ Already existed (lines 14-50). Wraps root TFTClash component. Shows recovery UI 
 
 ## Phase 9 — Host System Overhaul (NEXT)
 
-### [ ] #43 — Host profiles DB-driven
+### [x] #43 — Host profiles DB-driven
 Wire host_profiles table to HostApplyScreen/HostDashboardScreen. Replace site_settings host_branding blob.
-**Status:** TODO — migration 015 ready
+**Status:** Done — HostApplyScreen inserts to host_profiles, HostDashboardScreen loads branding from DB on mount, saves branding to host_profiles
 
-### [ ] #44 — Generic TournamentBracketScreen
+### [x] #44 — Generic TournamentBracketScreen
 Replace AegisShowcaseScreen with data-driven component fed by tournament_rounds + tournament_results.
-**Status:** TODO
+**Status:** Done — AegisShowcaseScreen already removed in prior sessions, TournamentDetailScreen is the generic data-driven replacement
 
-### [ ] #45 — Upgrade TournamentDetailScreen
+### [x] #45 — Upgrade TournamentDetailScreen
 Tabs: Overview / Bracket / Standings / Results / Rules. Hero banner, host branding, registration, schedule.
-**Status:** TODO
+**Status:** Done — 4 tabs (Overview/Bracket/Standings/Rules), registration writes to DB, hero banner, host branding
 
-### [ ] #46 — Host self-service dashboard
+### [x] #46 — Host self-service dashboard
 Upload logo/banner (Supabase Storage), edit rules, manage tournament lifecycle, branding preview.
-**Status:** TODO
+**Status:** Done — host-assets storage bucket created (migration 024), image upload working, branding preview live, tournament creation writes correct columns to DB (migration 023), game flow uses real player UUIDs
 
-### [ ] #47 — Cleanup: Remove AegisShowcaseScreen + hardcoded Aegis nav
+### [x] #47 — Cleanup: Remove AegisShowcaseScreen + hardcoded Aegis nav
 Replace with generic data-driven tournament pages.
-**Status:** TODO
+**Status:** Done — PartnerEventCard removed, Aegis nav entries removed, HomeScreen featured section now dynamic (shows DB-driven featured events or hides if none)
+
+---
+
+## DB Migrations Applied (2026-03-17)
+
+Migrations 008-024 applied to Supabase:
+- 008: seasons table
+- 009: audit_log table
+- 010: player_achievements table (FK fixed uuid)
+- 011: season_snapshots table
+- 012: notifications table
+- 013: game_results indexes
+- 014: user_roles table
+- 015: host_profiles table
+- 016: tournaments host_profile_id + description/banner/featured columns
+- 017: DELETE RLS policies
+- 018: tournament_rounds table (FK fixed uuid)
+- 020: player_stats_v view
+- 021: stats refresh trigger (pid fixed uuid)
+- 022: season_id on tournaments + game_results
+- 023: invite_only, entry_fee, rules_text on tournaments
+- 024: host-assets storage bucket

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS player_achievements (
   id bigint generated always as identity primary key,
-  player_id bigint not null references players(id) on delete cascade,
+  player_id uuid not null references players(id) on delete cascade,
   achievement_id text not null,
   tier text not null default 'bronze' check (tier in ('bronze','silver','gold','legendary')),
   earned_at timestamptz default now(),

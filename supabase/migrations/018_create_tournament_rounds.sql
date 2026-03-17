@@ -3,7 +3,7 @@
 
 CREATE TABLE IF NOT EXISTS tournament_rounds (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  tournament_id BIGINT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+  tournament_id UUID NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
   round_number INT NOT NULL,
   lobby_assignments JSONB DEFAULT '[]'::jsonb,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'completed')),

@@ -5,7 +5,7 @@
 CREATE OR REPLACE FUNCTION refresh_player_stats()
 RETURNS TRIGGER AS $$
 DECLARE
-  pid BIGINT;
+  pid UUID;
 BEGIN
   -- Determine which player_id was affected
   IF TG_OP = 'DELETE' THEN
