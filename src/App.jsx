@@ -15827,7 +15827,7 @@ function TFTClash(){
 
         announcementInitRef.current=true;
 
-        if(!hadPlayers)bootstrapPlayersFromTable();
+        if(!hadPlayers){var hasPlayersKey=res.data.some(function(r){return r.key==='players';});if(!hasPlayersKey)bootstrapPlayersFromTable();}
 
         setIsLoadingData(false);
 
