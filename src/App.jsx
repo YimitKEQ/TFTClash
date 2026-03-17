@@ -15646,6 +15646,20 @@ function TFTClash(){
 
   function removeToast(id){setToasts(ts=>ts.filter(t=>t.id!==id));}
 
+  // Expose nuclear wipe for debugging — call window.tftNuke() from browser console
+  useEffect(function(){
+    window.tftNuke=function(){
+      console.log("[TFT] NUKE: clearing all players from state, localStorage, and Supabase");
+      setPlayers([]);
+      localStorage.removeItem("tft-players");
+      if(supabase.from){
+        supabase.from('site_settings').upsert({key:'players',value:JSON.stringify([]),updated_at:new Date().toISOString()}).then(function(r){console.log("[TFT] NUKE site_settings upsert:",r.error||"OK");});
+        supabase.from('players').delete().neq('id','00000000-0000-0000-0000-000000000000').then(function(r){console.log("[TFT] NUKE players delete:",r.error||"OK (rows deleted:",r.data?r.data.length:"unknown",")");});
+      }
+      console.log("[TFT] NUKE complete — refresh the page");
+    };
+  },[]);
+
   // Supabase auth listener — hydrates currentUser on load and keeps it in sync
 
   useEffect(()=>{
@@ -15711,10 +15725,12 @@ function TFTClash(){
 
   // ── Bootstrap players from players table (fallback when site_settings has none) ──
   function bootstrapPlayersFromTable(){
+    console.log("[TFT] bootstrapPlayersFromTable() called — loading from players table");
     if(!supabase.from)return;
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
         if(res.error){console.error("[TFT] Failed to bootstrap players:",res.error);return;}
+        console.log("[TFT] players table returned",res.data?res.data.length:0,"rows");
         if(!res.data||!res.data.length)return;
         var mapped=res.data.map(function(r){
           return{
@@ -15785,9 +15801,11 @@ function TFTClash(){
 
             else{
 
-              var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
+              var raw=row.value;
+              var val;
+              if(typeof raw==='string'){try{val=JSON.parse(raw);}catch(e){val=raw;}}else{val=raw;}
 
-              if(row.key==='players'&&Array.isArray(val)){rtRef.current.players=true;setPlayers(val);hadPlayers=true;}
+              if(row.key==='players'){console.log("[TFT] site_settings players — type:",typeof raw,"isArray:",Array.isArray(val),"length:",Array.isArray(val)?val.length:"N/A");rtRef.current.players=true;if(Array.isArray(val)){setPlayers(val);}hadPlayers=true;}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
 
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
