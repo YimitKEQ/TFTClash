@@ -2718,7 +2718,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"archive",label:"Archive"},
 
-    {id:"aegis-showcase",label:"AEGIS #151"},
+    {id:"tournament-aegis-151",label:"AEGIS #151"},
 
     {id:"milestones",label:"Milestones"},
 
@@ -2744,7 +2744,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"featured",icon:"⭐",label:"Featured Events"},
 
-    {id:"aegis-showcase",icon:"🏆",label:"AEGIS #151 — Client Demo"},
+    {id:"tournament-aegis-151",icon:"🏆",label:"AEGIS #151 Results"},
 
     {id:"rules",icon:"📋",label:"Tournament Rules"},
 
@@ -2868,11 +2868,13 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
       {/* Desktop top nav — two-row layout */}
 
-      <nav className="top-nav">
+      <nav className="top-nav" style={{borderBottom:"2px solid transparent",borderImage:"linear-gradient(90deg,transparent,rgba(155,114,207,.3),rgba(232,168,56,.2),transparent) 1"}}>
 
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:60,display:"flex",alignItems:"center",gap:0}}>
+        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:54,display:"flex",alignItems:"center",gap:0}}>
 
-          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:8,marginRight:12,flexShrink:0,cursor:"pointer"}}>
+          <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:8,marginRight:14,flexShrink:0,cursor:"pointer",transition:"filter .2s"}}
+            onMouseEnter={function(e){e.currentTarget.style.filter="drop-shadow(0 0 12px rgba(232,168,56,.4))";}}
+            onMouseLeave={function(e){e.currentTarget.style.filter="none";}}>
 
             <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:32,height:32,objectFit:"contain"}}/>
 
@@ -2880,7 +2882,10 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
               <div className="gold-shimmer" style={{fontFamily:"'Russo One',sans-serif",fontSize:14,fontWeight:700,lineHeight:1,letterSpacing:".06em"}}>TFT Clash</div>
 
-              <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>Season 16</div>
+              <div className="cond" style={{display:"flex",alignItems:"center",gap:4,fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>
+                <span style={{border:"1px solid rgba(232,168,56,.4)",borderRadius:4,padding:"1px 4px",fontSize:8,color:"#E8A838",fontWeight:700}}>S16</span>
+                Season 16
+              </div>
 
             </div>
 
@@ -2894,13 +2899,13 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
                 data-active={screen===l.id?"true":"false"}
 
-                style={{background:"none",border:"none",padding:"8px 10px",fontSize:12.5,fontWeight:600,
+                style={{background:screen===l.id?"rgba(232,168,56,.1)":"none",border:"none",padding:"6px 12px",fontSize:12.5,fontWeight:600,
 
                   color:screen===l.id?"#E8A838":"#9AAABF",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
 
-                  borderBottom:"2px solid transparent",
+                  borderRadius:8,
 
-                  transition:"color .2s",marginBottom:-1,letterSpacing:".02em",fontFamily:"'Chakra Petch',sans-serif"}}>
+                  transition:"all .2s",letterSpacing:".02em",fontFamily:"'Chakra Petch',sans-serif"}}>
 
                 {l.label}
 
@@ -3030,11 +3035,15 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
           const isMore=l.id==="more";
 
-          const active=isMore?["hof","archive","aegis-showcase","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq","featured"].includes(screen):screen===l.id;
+          const active=isMore?["hof","archive","aegis-showcase","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq","featured"].includes(screen)||screen.indexOf("tournament-")===0:screen===l.id;
 
           return(
 
-            <button key={l.id} className={active?"active":""} onClick={()=>{if(isMore){setDrawer(d=>!d);}else setScreen(l.id);}}>
+            <button key={l.id} className={active?"active":""} onClick={()=>{if(isMore){setDrawer(d=>!d);}else setScreen(l.id);}}
+              style={{transition:"transform .1s"}}
+              onMouseDown={function(e){e.currentTarget.style.transform="scale(0.95)";}}
+              onMouseUp={function(e){e.currentTarget.style.transform="scale(1)";}}
+              onMouseLeave={function(e){e.currentTarget.style.transform="scale(1)";}}>
 
               <span className="icon">{l.icon}</span>
 
@@ -3366,7 +3375,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
-function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides}){
+function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements}){
 
   const [name,setName]=useState("");
 
@@ -3566,7 +3575,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       )}
 
-
+      {hostAnnouncements&&hostAnnouncements.length>0&&(
+        <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"10px 14px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:14,flexShrink:0}}>{"📣"}</span>
+          <span style={{color:"#C4B5FD",fontWeight:600,fontSize:13}}>{hostAnnouncements[0].msg}</span>
+          <span style={{fontSize:10,color:"#9AAABF",marginLeft:"auto",flexShrink:0}}>{hostAnnouncements[0].sentAt}</span>
+        </div>
+      )}
 
       {/* Champion hero card - shown all season */}
 
@@ -10485,21 +10500,8 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
   const [hovered,setHovered]=useState(null);
 
-  async function handleSubscribe(plan){
-    if(!currentUser){toast("Sign in to subscribe","info");return;}
-    toast("Redirecting to checkout...","info");
-    try{
-      var r=await fetch('/api/create-checkout',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({plan,userId:currentUser.id,email:currentUser.email,
-          successUrl:window.location.origin+'/#account?checkout=success',
-          cancelUrl:window.location.origin+'/#pricing'})
-      });
-      var d=await r.json();
-      if(d.url)window.location.href=d.url;
-      else toast(d.error||'Checkout failed','error');
-    }catch(e){toast('Checkout unavailable','error');}
+  function handleSubscribe(plan){
+    toast("Stripe integration coming soon","info");
   }
 
 
@@ -13502,7 +13504,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
 var HOST_SEED_TOURNAMENTS=[];
 
-function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostTournaments,setHostTournaments,hostBranding,setHostBranding,hostAnnouncements,setHostAnnouncements}){
+function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostTournaments,setHostTournaments,hostBranding,setHostBranding,hostAnnouncements,setHostAnnouncements,featuredEvents,setFeaturedEvents}){
   var [tab,setTab]=useState("overview");
   var [showCreate,setShowCreate]=useState(false);
   var [tName,setTName]=useState("");
@@ -13526,6 +13528,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     if(!tName.trim()||!tDate.trim()){toast("Name and date required","error");return;}
     var newT={id:Date.now(),name:tName,date:tDate,size:parseInt(tSize),invite:tInvite,entryFee:tEntryFee,rules:tRules,status:tEntryFee?"pending_approval":"upcoming",registered:0,approved:!tEntryFee};
     setTournaments(function(ts){return ts.concat([newT]);});
+    if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.concat([{id:"host-"+newT.id,name:tName,host:brandName,sponsor:null,status:"upcoming",date:tDate,time:"TBD",format:"Swiss",size:parseInt(tSize),registered:0,registeredIds:[],prizePool:null,region:"",description:tRules||"Host tournament by "+brandName,tags:tInvite?["Invite Only"]:["Open"],logo:brandLogo,screen:"tournament-host-"+newT.id,hostTournamentId:newT.id}]);});}
     if(supabase.from)supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",size:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules:tRules||null}).then(function(){});
     setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
     toast(tEntryFee?"Tournament created — pending admin approval for entry fee":"Tournament created!","success");
@@ -13553,6 +13556,23 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
   var completedTournaments=tournaments.filter(function(t){return t.status==="completed";});
   var totalHosted=tournaments.length;
   var totalPlayers=tournaments.reduce(function(s,t){return s+t.registered;},0);
+
+  function updateTournamentAndFeatured(tournamentId, updates){
+    setTournaments(function(ts){return ts.map(function(t){return t.id===tournamentId?Object.assign({},t,updates):t;});});
+    if(setFeaturedEvents){
+      setFeaturedEvents(function(evts){return evts.map(function(ev){
+        if(ev.hostTournamentId===tournamentId){
+          var feUpdates={};
+          if(updates.status==="upcoming")feUpdates.status="upcoming";
+          if(updates.status==="checkin"||updates.status==="live")feUpdates.status="live";
+          if(updates.status==="closed")feUpdates.status="upcoming";
+          if(updates.status==="completed"){feUpdates.status="completed";if(updates.champion)feUpdates.champion=updates.champion;if(updates.top4)feUpdates.top4=updates.top4;}
+          return Object.assign({},ev,feUpdates);
+        }
+        return ev;
+      });});
+    }
+  }
 
   var TABS=[["overview","Overview"],["tournaments","Tournaments"],["registrations","Players"],["announce","Announce"],["branding","Branding"]];
 
@@ -13702,9 +13722,13 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                     <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{t.size-t.registered} spots remaining</div>
                     {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{"📋"} {t.rules}</div>}
                   </div>
-                  <div style={{display:"flex",gap:8,flexShrink:0}}>
-                    <Btn v="ghost" s="sm" onClick={function(){toast("Edit coming soon","success");}}>Edit</Btn>
-                    <Btn v="primary" s="sm" onClick={function(){setScreen("bracket");}}>Manage {"→"}</Btn>
+                  <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
+                    {t.status==="upcoming"&&<Btn v="ghost" s="sm" onClick={function(){updateTournamentAndFeatured(t.id,{status:"live"});toast("Check-in opened! Tournament is now LIVE","success");}}>{"Open Check-In"}</Btn>}
+                    {t.status==="live"&&<Btn v="ghost" s="sm" onClick={function(){updateTournamentAndFeatured(t.id,{status:"closed"});toast("Registration closed","info");}}>{"Close Registration"}</Btn>}
+                    {(t.status==="live"||t.status==="closed")&&<Btn v="primary" s="sm" onClick={function(){var champ=prompt("Enter champion name:");if(champ&&champ.trim()){updateTournamentAndFeatured(t.id,{status:"completed",champion:champ.trim(),top4:[champ.trim()]});toast("Tournament completed! Champion: "+champ.trim(),"success");}else{toast("Cancelled","info");}}}>{"Complete"}</Btn>}
+                    {t.status==="pending_approval"&&<span style={{fontSize:11,color:"#E8A838",fontWeight:600,padding:"5px 0"}}>{"Awaiting Approval"}</span>}
+                    {t.status==="completed"&&<Btn v="ghost" s="sm" onClick={function(){setScreen("tournament-host-"+t.id);}}>{"View Details"}</Btn>}
+                    <Btn v="ghost" s="sm" onClick={function(){if(confirm("Delete this tournament?")){setTournaments(function(ts){return ts.filter(function(x){return x.id!==t.id;});});if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.filter(function(ev){return ev.hostTournamentId!==t.id;});});}toast("Tournament deleted","info");}}} style={{color:"#F87171"}}>{"Delete"}</Btn>
                   </div>
                 </div>
               </Panel>
@@ -13723,27 +13747,26 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       {tab==="registrations"&&(
         <div>
           {tournaments.filter(function(t){return t.status!=="completed";}).map(function(t){
+            var matchingEvent=(featuredEvents||[]).find(function(ev){return ev.hostTournamentId===t.id;});
+            var regIds=matchingEvent?(matchingEvent.registeredIds||[]):[];
             return(
               <Panel key={t.id} style={{padding:"18px",marginBottom:16}}>
                 <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
                   <h3 style={{fontSize:14,color:"#F2EDE4",margin:0,flex:1}}>{t.name}</h3>
-                  <Tag color={t.status==="live"?"#6EE7B7":"#4ECDC4"} size="sm">{t.registered}/{t.size}</Tag>
+                  <Tag color={t.status==="live"?"#6EE7B7":"#4ECDC4"} size="sm">{regIds.length+"/"+t.size}</Tag>
                 </div>
-                {players.slice(0,t.registered).map(function(p,i){
+                {regIds.length===0&&<div style={{fontSize:13,color:"#BECBD9",padding:"16px 0",textAlign:"center"}}>{"No players registered yet."}</div>}
+                {regIds.map(function(username,i){
                   return(
-                    <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<t.registered-1?"1px solid rgba(242,237,228,.05)":"none"}}>
+                    <div key={username} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<regIds.length-1?"1px solid rgba(242,237,228,.05)":"none"}}>
                       <div style={{flex:1}}>
-                        <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</div>
-                        <div style={{fontSize:11,color:"#BECBD9"}}>{p.rank} {"·"} {p.region}</div>
+                        <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{username}</div>
                       </div>
-                      <Tag color="#6EE7B7" size="sm">{"✓"} Registered</Tag>
+                      <Tag color="#6EE7B7" size="sm">{"✓ Registered"}</Tag>
+                      <button onClick={function(){if(confirm("Remove "+username+"?")){if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.map(function(ev){if(ev.hostTournamentId!==t.id)return ev;return Object.assign({},ev,{registeredIds:(ev.registeredIds||[]).filter(function(u){return u!==username;}),registered:Math.max(0,(ev.registered||0)-1)});});});}toast(username+" removed","info");}}} style={{background:"rgba(220,38,38,.1)",border:"1px solid rgba(220,38,38,.3)",borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:700,color:"#F87171",cursor:"pointer",fontFamily:"inherit"}}>{"Remove"}</button>
                     </div>
                   );
                 })}
-                <div style={{marginTop:12,display:"flex",gap:8}}>
-                  <Btn v="ghost" s="sm" onClick={function(){toast("Player list exported (mock)","success");}}>{"📥"} Export CSV</Btn>
-                  <Btn v="ghost" s="sm" onClick={function(){toast("Check-in link copied (mock)","success");}}>{"🔗"} Check-in Link</Btn>
-                </div>
               </Panel>
             );
           })}
@@ -13841,18 +13864,164 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
 }
 
 
+// ─── TOURNAMENT DETAIL SCREEN ────────────────────────────────────────────
+
+function TournamentDetailScreen(props){
+  var event=props.event;
+  var featuredEvents=props.featuredEvents;
+  var setFeaturedEvents=props.setFeaturedEvents;
+  var currentUser=props.currentUser;
+  var onAuthClick=props.onAuthClick;
+  var toast=props.toast;
+  var setScreen=props.setScreen;
+  var players=props.players;
+
+  var isRegistered=currentUser&&event.registeredIds&&event.registeredIds.indexOf(currentUser.username)!==-1;
+  var isFull=event.registered>=event.size;
+  var isUpcoming=event.status==="upcoming";
+  var isLive=event.status==="live";
+  var isCompleted=event.status==="completed";
+  var canRegister=!isCompleted&&!isFull&&!isRegistered;
+
+  function handleRegister(){
+    if(!currentUser){onAuthClick("login");return;}
+    if(isRegistered){
+      setFeaturedEvents(function(evts){return evts.map(function(ev){
+        if(ev.id!==event.id)return ev;
+        var newIds=(ev.registeredIds||[]).filter(function(u){return u!==currentUser.username;});
+        return Object.assign({},ev,{registeredIds:newIds,registered:Math.max(0,(ev.registered||0)-1)});
+      });});
+      toast("Unregistered from "+event.name,"info");
+    }else{
+      if(isFull){toast("Tournament is full","error");return;}
+      setFeaturedEvents(function(evts){return evts.map(function(ev){
+        if(ev.id!==event.id)return ev;
+        var newIds=(ev.registeredIds||[]).concat([currentUser.username]);
+        return Object.assign({},ev,{registeredIds:newIds,registered:(ev.registered||0)+1});
+      });});
+      toast("Registered for "+event.name+"!","success");
+    }
+  }
+
+  var regPercent=event.size>0?Math.round((event.registered/event.size)*100):0;
+
+  return(
+    <div className="page wrap">
+      <div style={{marginBottom:20}}>
+        <button onClick={function(){setScreen("featured");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:0,marginBottom:12,fontFamily:"inherit"}}>{"← Back to Featured Events"}</button>
+      </div>
+
+      <Panel glow style={{padding:"28px 24px",marginBottom:20}}>
+        <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:20}}>
+          <div style={{width:56,height:56,borderRadius:14,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{event.logo}</div>
+          <div style={{flex:1,minWidth:200}}>
+            <h1 style={{fontSize:22,fontWeight:700,color:"#F2EDE4",margin:"0 0 6px 0"}}>{event.name}</h1>
+            <div style={{fontSize:13,color:"#9B72CF",fontWeight:600,marginBottom:4}}>{"Hosted by "+event.host+(event.sponsor?" · Presented by "+event.sponsor:"")}</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
+              {event.date&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:11,color:"#BECBD9"}}>{event.date}</span>}
+              {event.time&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:11,color:"#BECBD9"}}>{event.time}</span>}
+              {event.format&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:11,color:"#BECBD9"}}>{event.format}</span>}
+              {event.region&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:11,color:"#BECBD9"}}>{event.region}</span>}
+            </div>
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+            {isLive&&<span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}><span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>{"LIVE"}</span>}
+            {isUpcoming&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#4ECDC4"}}>{"UPCOMING"}</span>}
+            {isCompleted&&<span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#E8A838"}}>{"COMPLETED"}</span>}
+          </div>
+        </div>
+
+        {event.description&&<div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.6,marginBottom:20}}>{event.description}</div>}
+
+        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
+          {(event.tags||[]).map(function(t){return <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#C4B5FD"}}>{t}</span>;})}
+          {event.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#4ECDC4"}}>{event.prizePool+" Prize Pool"}</span>}
+        </div>
+      </Panel>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+        <Panel style={{padding:"20px",textAlign:"center"}}>
+          <div style={{marginBottom:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontSize:11,color:"#BECBD9"}}>{"Registration"}</span>
+              <span style={{fontSize:11,fontWeight:700,color:"#E8A838"}}>{event.registered+"/"+event.size+" ("+regPercent+"%)"}</span>
+            </div>
+            <Bar val={event.registered} max={event.size} color="#E8A838" h={6}/>
+          </div>
+          {!isCompleted&&(
+            currentUser?(
+              isRegistered?
+                <button onClick={handleRegister} style={{width:"100%",padding:"10px 16px",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,fontSize:13,fontWeight:700,color:"#6EE7B7",cursor:"pointer",fontFamily:"inherit"}}>{"Registered \u2713 (Click to Unregister)"}</button>
+              :canRegister?
+                <button onClick={handleRegister} style={{width:"100%",padding:"10px 16px",background:"linear-gradient(90deg,#9B72CF,#7C5BB0)",border:"none",borderRadius:8,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>{"Register Now"}</button>
+              :
+                <button disabled style={{width:"100%",padding:"10px 16px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,fontSize:13,fontWeight:700,color:"#9AAABF",cursor:"not-allowed",fontFamily:"inherit"}}>{"Full"}</button>
+            ):(
+              <button onClick={function(){onAuthClick("login");}} style={{width:"100%",padding:"10px 16px",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,fontSize:13,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>{"Sign In to Register"}</button>
+            )
+          )}
+        </Panel>
+
+        <Panel style={{padding:"20px",textAlign:"center"}}>
+          <div className="mono" style={{fontSize:28,fontWeight:700,color:"#E8A838",lineHeight:1}}>{event.size}</div>
+          <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{"Max Players"}</div>
+          {event.format&&<div style={{fontSize:12,color:"#C8D4E0",marginTop:8}}>{event.format}</div>}
+        </Panel>
+      </div>
+
+      {isCompleted&&event.champion&&(
+        <Panel glow style={{padding:"24px",marginBottom:20,border:"1px solid rgba(232,168,56,.3)"}}>
+          <h3 style={{fontSize:16,fontWeight:700,color:"#E8A838",marginBottom:14}}>{"🏆 Champion"}</h3>
+          <div style={{fontSize:20,fontWeight:700,color:"#F2EDE4",marginBottom:12}}>{event.champion}</div>
+          {event.top4&&event.top4.length>0&&(
+            <div>
+              <div style={{fontSize:11,color:"#BECBD9",marginBottom:8,fontWeight:600}}>{"Top 4"}</div>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {event.top4.map(function(p,i){return <span key={i} style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"5px 10px",fontSize:12,fontWeight:600,color:i===0?"#E8A838":"#C8D4E0"}}>{(i+1)+". "+p}</span>;})}
+              </div>
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {(event.registeredIds||[]).length>0&&(
+        <Panel style={{padding:"20px",marginBottom:20}}>
+          <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>{"Registered Players ("+(event.registeredIds||[]).length+")"}</h3>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {(event.registeredIds||[]).map(function(username,i){
+              return(
+                <div key={username} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(255,255,255,.02)",borderRadius:8}}>
+                  <span style={{fontSize:12,fontWeight:700,color:"#E8A838",minWidth:20}}>{i+1}</span>
+                  <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>{username}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
+
+      {currentUser&&event.hostTournamentId&&event.host===(currentUser.username)&&(
+        <div style={{textAlign:"center",marginTop:16}}>
+          <button onClick={function(){setScreen("host-dashboard");}} style={{background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"10px 20px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}>{"Manage Tournament →"}</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 // ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
 
 var FEATURED_EVENTS=[
-  {id:"clash-kings-3",name:"Clash Kings Invitational #3",host:"ClashKings",sponsor:"RiotBar",status:"live",date:"Mar 17 2026",time:"NOW",format:"Double Elim",size:16,registered:16,prizePool:"$100",region:"EUW",description:"Invite-only invitational for top EUW players. Live brackets and real-time commentary.",tags:["Invite Only","EUW","Broadcast"],logo:"👑",screen:null},
-  {id:"aegis-152",name:"Aegis Esports TFT Showdown #152",host:"Aegis Esports",sponsor:"ZenMarket",status:"upcoming",date:"Mar 22 2026",time:"8:00 PM EST",format:"Swiss (6 rounds)",size:64,registered:47,prizePool:"$200",region:"NA/LATAM",description:"The premier weekly TFT series. Open to all ranked players. Top 8 earn prizes and broadcast coverage.",tags:["Broadcast","Prizes","Open"],logo:"🏆",screen:"aegis-showcase"},
-  {id:"tft-academy-8",name:"TFT Academy Weekly #8",host:"TFT Academy",sponsor:null,status:"upcoming",date:"Mar 21 2026",time:"6:00 PM CET",format:"Single Lobby",size:8,registered:6,prizePool:null,region:"EMEA",description:"Community learning series for Diamond+ players. Coaches analyze every game post-tournament.",tags:["Educational","EMEA","Diamond+"],logo:"🎓",screen:null},
-  {id:"aegis-151",name:"Aegis Esports TFT Showdown #151",host:"Aegis Esports",sponsor:"ZenMarket",status:"completed",date:"Mar 15 2026",format:"Swiss",size:64,registered:64,prizePool:"$200",region:"NA/LATAM",champion:"D0PA#111",top4:["D0PA#111","LC Abyss#CAPO","vnck#NA1","Ken Kitade"],logo:"🏆",screen:"aegis-showcase"},
-  {id:"tft-community-feb",name:"TFT Community Open — February",host:"TFT Community",sponsor:null,status:"completed",date:"Feb 28 2026",format:"Swiss",size:32,registered:32,prizePool:null,champion:"Levitate",top4:["Levitate","Zounderkite","Uri","BingBing"],logo:"⚡",screen:null},
-  {id:"clash-kings-2",name:"Clash Kings Invitational #2",host:"ClashKings",sponsor:"RiotBar",status:"completed",date:"Feb 14 2026",format:"Double Elim",size:16,registered:16,prizePool:"$100",region:"EUW",champion:"StarForge",top4:["StarForge","IronMask","DawnBreaker","GhostRider"],logo:"👑",screen:null},
+  {id:"clash-kings-3",name:"Clash Kings Invitational #3",host:"ClashKings",sponsor:"RiotBar",status:"live",date:"Mar 17 2026",time:"NOW",format:"Double Elim",size:16,registered:16,registeredIds:[],prizePool:"$100",region:"EUW",description:"Invite-only invitational for top EUW players. Live brackets and real-time commentary.",tags:["Invite Only","EUW","Broadcast"],logo:"👑",screen:"tournament-clash-kings-3"},
+  {id:"aegis-152",name:"Aegis Esports TFT Showdown #152",host:"Aegis Esports",sponsor:"ZenMarket",status:"upcoming",date:"Mar 22 2026",time:"8:00 PM EST",format:"Swiss (6 rounds)",size:64,registered:47,registeredIds:[],prizePool:"$200",region:"NA/LATAM",description:"The premier weekly TFT series. Open to all ranked players. Top 8 earn prizes and broadcast coverage.",tags:["Broadcast","Prizes","Open"],logo:"🏆",screen:"tournament-aegis-152"},
+  {id:"tft-academy-8",name:"TFT Academy Weekly #8",host:"TFT Academy",sponsor:null,status:"upcoming",date:"Mar 21 2026",time:"6:00 PM CET",format:"Single Lobby",size:8,registered:6,registeredIds:[],prizePool:null,region:"EMEA",description:"Community learning series for Diamond+ players. Coaches analyze every game post-tournament.",tags:["Educational","EMEA","Diamond+"],logo:"🎓",screen:"tournament-tft-academy-8"},
+  {id:"aegis-151",name:"Aegis Esports TFT Showdown #151",host:"Aegis Esports",sponsor:"ZenMarket",status:"completed",date:"Mar 15 2026",format:"Swiss",size:64,registered:64,registeredIds:[],prizePool:"$200",region:"NA/LATAM",champion:"D0PA#111",top4:["D0PA#111","LC Abyss#CAPO","vnck#NA1","Ken Kitade"],logo:"🏆",screen:"tournament-aegis-151"},
+  {id:"tft-community-feb",name:"TFT Community Open — February",host:"TFT Community",sponsor:null,status:"completed",date:"Feb 28 2026",format:"Swiss",size:32,registered:32,registeredIds:[],prizePool:null,champion:"Levitate",top4:["Levitate","Zounderkite","Uri","BingBing"],logo:"⚡",screen:"tournament-tft-community-feb"},
+  {id:"clash-kings-2",name:"Clash Kings Invitational #2",host:"ClashKings",sponsor:"RiotBar",status:"completed",date:"Feb 14 2026",format:"Double Elim",size:16,registered:16,registeredIds:[],prizePool:"$100",region:"EUW",champion:"StarForge",top4:["StarForge","IronMask","DawnBreaker","GhostRider"],logo:"👑",screen:"tournament-clash-kings-2"},
 ];
 
-function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents}){
+function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,setFeaturedEvents}){
   var [filter,setFilter]=useState("all");
   var allEvents=featuredEvents||FEATURED_EVENTS;
   var live=allEvents.filter(function(e){return e.status==="live";});
@@ -13892,8 +14061,8 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents}
       {live.length>0&&(function(){
         var hero=live[0];
         return(
-          <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,overflow:"hidden",marginBottom:20,cursor:hero.screen?"pointer":"default"}}
-            onClick={function(){if(hero.screen){setScreen(hero.screen);}}}>
+          <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,overflow:"hidden",marginBottom:20,cursor:"pointer"}}
+            onClick={function(){setScreen("tournament-"+hero.id);}}>
             <div style={{background:"rgba(232,168,56,.07)",borderBottom:"1px solid rgba(232,168,56,.18)",padding:"9px 18px",display:"flex",alignItems:"center",gap:8}}>
               <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.15)",border:"1px solid rgba(82,196,124,.35)",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
                 <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE NOW
@@ -13928,10 +14097,10 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents}
             var isLive=ev.status==="live";
             return(
               <div key={ev.id}
-                style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,overflow:"hidden",cursor:ev.screen?"pointer":"default",transition:"border-color .2s"}}
+                style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s"}}
                 onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.5)";}}
                 onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.2)";}}
-                onClick={function(){if(ev.screen){setScreen(ev.screen);}}}>
+                onClick={function(){setScreen("tournament-"+ev.id);}}>
                 <div style={{padding:"16px 18px"}}>
                   <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
                     <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo}</div>
@@ -13965,11 +14134,15 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents}
                   <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                     {ev.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{ev.prizePool}</span>}
                     {ev.sponsor&&<span style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:600,color:"#C4B5FD"}}>by {ev.sponsor}</span>}
-                    {ev.screen&&(
-                      <button style={{marginLeft:"auto",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}
-                        onClick={function(e){e.stopPropagation();setScreen(ev.screen);}}>View
-                      </button>
-                    )}
+                    {(function(){
+                      var evRegIds=ev.registeredIds||[];
+                      var amRegistered=currentUser&&evRegIds.indexOf(currentUser.username)!==-1;
+                      var evFull=ev.registered>=ev.size;
+                      if(amRegistered)return <span style={{marginLeft:"auto",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>Registered {"\u2713"}</span>;
+                      if(evFull)return <span style={{marginLeft:"auto",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#9AAABF"}}>Full</span>;
+                      if(!currentUser)return <button style={{marginLeft:"auto",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}} onClick={function(e){e.stopPropagation();onAuthClick("login");}}>Sign In</button>;
+                      return <button style={{marginLeft:"auto",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}} onClick={function(e){e.stopPropagation();if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.map(function(evt){if(evt.id!==ev.id)return evt;return Object.assign({},evt,{registeredIds:(evt.registeredIds||[]).concat([currentUser.username]),registered:(evt.registered||0)+1});});});toast("Registered for "+ev.name+"!","success");}}}>Register</button>;
+                    })()}
                   </div>
                 </div>
               </div>
@@ -13992,10 +14165,10 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents}
             {past.map(function(ev){
               return(
                 <div key={ev.id}
-                  style={{background:"#111827",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,cursor:ev.screen?"pointer":"default",transition:"border-color .2s"}}
-                  onMouseEnter={function(e){if(ev.screen)e.currentTarget.style.borderColor="rgba(155,114,207,.3)";}}
+                  style={{background:"#111827",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",transition:"border-color .2s"}}
+                  onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.3)";}}
                   onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.06)";}}
-                  onClick={function(){if(ev.screen){setScreen(ev.screen);}}}>
+                  onClick={function(){setScreen("tournament-"+ev.id);}}>
                   <div style={{fontSize:20,flexShrink:0}}>{ev.logo}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{ev.name}</div>
@@ -14007,7 +14180,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents}
                       <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>🏆 {ev.champion}</div>
                     </div>
                   )}
-                  {ev.screen&&<span style={{fontSize:12,color:"#9B72CF",flexShrink:0}}>→</span>}
+                  <span style={{fontSize:12,color:"#9B72CF",flexShrink:0}}>{"→"}</span>
                 </div>
               );
             })}
@@ -15184,6 +15357,57 @@ function FAQScreen({setScreen}){
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
+
+// ─── FOOTER ───────────────────────────────────────────────────────────────────
+
+function Footer(props){
+  var setScreen=props.setScreen;
+  var platformLinks=[["home","Home"],["roster","Roster"],["leaderboard","Leaderboard"],["hof","Hall of Fame"],["archive","Archive"]];
+  var communityLinks=[["featured","Featured Events"],["rules","Rules"],["faq","FAQ"]];
+  var hostingLinks=[["pricing","Pricing"],["host-apply","Apply to Host"],["host-dashboard","Host Dashboard"]];
+  return(
+    <footer style={{background:"#06060C",borderTop:"1px solid rgba(155,114,207,.15)",padding:"40px 24px 24px",marginTop:40}}>
+      <div style={{maxWidth:1200,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:32,marginBottom:32}}>
+          <div>
+            <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Platform</div>
+            {platformLinks.map(function(arr){return(
+              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
+                onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
+                onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
+            );})}
+          </div>
+          <div>
+            <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Community</div>
+            {communityLinks.map(function(arr){return(
+              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
+                onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
+                onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
+            );})}
+            <button onClick={function(){}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"not-allowed",fontFamily:"inherit",opacity:0.5}}>Discord (Coming Soon)</button>
+          </div>
+          <div>
+            <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Hosting</div>
+            {hostingLinks.map(function(arr){return(
+              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
+                onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
+                onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
+            );})}
+          </div>
+        </div>
+        <div style={{borderTop:"1px solid rgba(155,114,207,.08)",paddingTop:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <div style={{fontSize:11,color:"#8896A8"}}>{"\u00a9"} 2026 TFT Clash {"\u00b7"} Season 16 {"\u00b7"} Free to compete, always.</div>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <img src="/icon-border.png" alt="" style={{width:16,height:16,opacity:0.4}}/>
+            <span style={{fontSize:10,color:"#5A6573"}}>Built for the community</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+
 function TFTClash(){
 
   const [screen,setScreen]=useState("home");
@@ -15233,6 +15457,8 @@ function TFTClash(){
   const [pastClashes,setPastClashes]=useState([]);
 
   const [featuredEvents,setFeaturedEvents]=useState(function(){try{var s=localStorage.getItem('tft-featured-events');return s?JSON.parse(s):FEATURED_EVENTS;}catch(e){return FEATURED_EVENTS;}});
+
+  const [featuredHosts,setFeaturedHosts]=useState(function(){try{var s=localStorage.getItem('tft-featured-hosts');return s?JSON.parse(s):[];}catch(e){return [];}});
 
   const [challengeCompletions,setChallengeCompletions]=useState(function(){try{var s=localStorage.getItem('tft-challenge-completions');return s?JSON.parse(s):{};}catch(e){return {};}});
 
@@ -15591,6 +15817,10 @@ function TFTClash(){
   },[featuredEvents]);
 
   useEffect(function(){
+    localStorage.setItem('tft-featured-hosts',JSON.stringify(featuredHosts));
+  },[featuredHosts]);
+
+  useEffect(function(){
     if(rtRef.current.challenge_completions){rtRef.current.challenge_completions=false;return;}
     localStorage.setItem('tft-challenge-completions',JSON.stringify(challengeCompletions));
     if(supabase.from)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(){});
@@ -15852,7 +16082,7 @@ function TFTClash(){
 
 
 
-        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides}/>}
+        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements}/>}
 
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 
@@ -15886,15 +16116,17 @@ function TFTClash(){
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
-        {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents}/>}
+        {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
         {screen==="aegis-showcase"&&<AegisShowcaseScreen setScreen={navTo}/>}
 
+        {screen.indexOf("tournament-")===0&&(function(){var evId=screen.replace("tournament-","");var ev=featuredEvents.find(function(e){return e.id===evId;});if(!ev)return <div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{"\U0001f50d"}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Event Not Found</h2><p style={{color:"#BECBD9"}}>This event may have been removed.</p><Btn v="primary" onClick={function(){navTo("featured");}}>Back to Featured</Btn></div>;return <TournamentDetailScreen event={ev} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>;})()}
+
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
 
-        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements}/>}
+        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);}))||(currentUser&&featuredHosts.some(function(h){return h.username===currentUser.username;})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
-        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>🔒</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
+        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);}))||(currentUser&&featuredHosts.some(function(h){return h.username===currentUser.username;})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>🔒</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
         {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
 
@@ -15915,6 +16147,8 @@ function TFTClash(){
           </div>
 
         )}
+
+        <Footer setScreen={navTo}/>
 
       </div>
 
