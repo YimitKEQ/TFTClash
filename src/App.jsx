@@ -3050,7 +3050,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
           const isMore=l.id==="more";
 
-          const active=isMore?["hof","archive","aegis-showcase","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq","featured"].includes(screen)||screen.indexOf("tournament-")===0:screen===l.id;
+          const active=isMore?["hof","archive","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq","featured"].includes(screen)||screen.indexOf("tournament-")===0:screen===l.id;
 
           return(
 
@@ -3290,7 +3290,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 
       {/* Card body */}
 
-      <div style={{padding:"18px 20px",cursor:"pointer"}} onClick={()=>setScreen("aegis-showcase")}>
+      <div style={{padding:"18px 20px",cursor:"pointer"}} onClick={()=>setScreen("featured")}>
 
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
 
@@ -3336,7 +3336,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 
               <span style={{fontSize:12,fontWeight:600,color:"#6EE7B7"}}>Registered!</span>
 
-              <Btn v="dark" s="sm" style={{marginLeft:"auto"}} onClick={()=>setScreen("aegis-showcase")}>View Event →</Btn>
+              <Btn v="dark" s="sm" style={{marginLeft:"auto"}} onClick={()=>setScreen("featured")}>View Events →</Btn>
 
             </div>
 
@@ -3366,7 +3366,7 @@ function PartnerEventCard({currentUser,onAuthClick,setScreen,toast}){
 
                   </Btn>
 
-                  <Btn v="dark" s="sm" onClick={()=>setScreen("aegis-showcase")}>View Event</Btn>
+                  <Btn v="dark" s="sm" onClick={()=>setScreen("featured")}>View Events</Btn>
 
                 </>
 
@@ -4175,7 +4175,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
           </div>
 
-          <Btn v="dark" s="sm" onClick={()=>setScreen("aegis-showcase")}>View All →</Btn>
+          <Btn v="dark" s="sm" onClick={()=>setScreen("featured")}>View All →</Btn>
 
         </div>
 
@@ -9012,7 +9012,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             </div>
 
-            <button onClick={()=>setScreen("aegis-showcase")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>🏆 Aegis Client Demo</button>
+            <button onClick={()=>setScreen("featured")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>🏆 Featured Events</button>
 
           </div>
 
@@ -13305,11 +13305,23 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
     if(!name.trim()||!reason.trim()){toast("Name and reason required","error");return;}
 
     var app={id:Date.now(),name:name.trim(),org:org.trim(),reason:reason.trim(),freq,email:currentUser?.email||"",status:"pending",submittedAt:new Date().toLocaleDateString()};
-
     setHostApps&&setHostApps(function(apps){return [app,...apps];});
-
+    // Write to host_profiles DB table
+    if(supabase.from&&currentUser){
+      var slug=(org.trim()||name.trim()).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+      supabase.from("host_profiles").insert({
+        user_id:currentUser.id,
+        org_name:org.trim()||name.trim(),
+        slug:slug,
+        bio:reason.trim(),
+        status:"pending",
+        social_links:{freq:freq}
+      }).then(function(res){
+        if(res.error)console.error("[TFT] host_profiles insert failed:",res.error);
+        else console.log("[TFT] host_profiles application saved to DB");
+      });
+    }
     setSubmitted(true);
-
     toast("Application submitted! We'll review it within 48h","success");
 
   }
@@ -13444,6 +13456,25 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
   var [brandLogo,setBrandLogo]=useState((hostBranding&&hostBranding.logo)||"🎮");
   var [brandColor,setBrandColor]=useState((hostBranding&&hostBranding.color)||"#9B72CF");
   var [brandBio,setBrandBio]=useState((hostBranding&&hostBranding.bio)||"");
+  var [brandLogoUrl,setBrandLogoUrl]=useState((hostBranding&&hostBranding.logoUrl)||"");
+  var [brandBannerUrl,setBrandBannerUrl]=useState((hostBranding&&hostBranding.bannerUrl)||"");
+  var [uploadingLogo,setUploadingLogo]=useState(false);
+  var [uploadingBanner,setUploadingBanner]=useState(false);
+
+  function uploadImage(file,type){
+    if(!file||!supabase.storage)return;
+    var setUploading=type==="logo"?setUploadingLogo:setUploadingBanner;
+    var setUrl=type==="logo"?setBrandLogoUrl:setBrandBannerUrl;
+    setUploading(true);
+    var path="host-images/"+(currentUser?currentUser.id:"anon")+"/"+type+"-"+Date.now()+"-"+file.name;
+    supabase.storage.from("host-assets").upload(path,file,{cacheControl:"3600",upsert:true}).then(function(res){
+      setUploading(false);
+      if(res.error){toast("Upload failed: "+res.error.message,"error");return;}
+      var url=supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
+      setUrl(url);
+      toast((type==="logo"?"Logo":"Banner")+" uploaded!","success");
+    });
+  }
   var [brandSaved,setBrandSaved]=useState(false);
   var [announceMsg,setAnnounceMsg]=useState("");
   var [announceTo,setAnnounceTo]=useState("all");
@@ -13455,14 +13486,32 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     var newT={id:Date.now(),name:tName,date:tDate,size:parseInt(tSize),invite:tInvite,entryFee:tEntryFee,rules:tRules,status:tEntryFee?"pending_approval":"upcoming",registered:0,approved:!tEntryFee};
     setTournaments(function(ts){return ts.concat([newT]);});
     if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.concat([{id:"host-"+newT.id,name:tName,host:brandName,sponsor:null,status:"upcoming",date:tDate,time:"TBD",format:"Swiss",size:parseInt(tSize),registered:0,registeredIds:[],prizePool:null,region:"",description:tRules||"Host tournament by "+brandName,tags:tInvite?["Invite Only"]:["Open"],logo:brandLogo,screen:"tournament-host-"+newT.id,hostTournamentId:newT.id}]);});}
-    if(supabase.from)supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",size:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules:tRules||null})
-      .then(function(res){if(res.error)console.error("[TFT] Failed to create tournament:",res.error);});
+    if(supabase.from){
+      // Fetch host_profile_id for the current user, then insert tournament with FK
+      supabase.from("host_profiles").select("id").eq("user_id",currentUser?currentUser.id:"").single()
+        .then(function(hpRes){
+          var hpId=hpRes.data?hpRes.data.id:null;
+          return supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",size:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules:tRules||null,host_profile_id:hpId,description:tRules||"Host tournament by "+brandName,region:""});
+        }).then(function(res){if(res&&res.error)console.error("[TFT] Failed to create tournament:",res.error);});
+    }
     setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
     toast(tEntryFee?"Tournament created — pending admin approval for entry fee":"Tournament created!","success");
   }
 
   function saveBranding(){
-    if(setHostBranding)setHostBranding({name:brandName,logo:brandLogo,color:brandColor,bio:brandBio});
+    if(setHostBranding)setHostBranding({name:brandName,logo:brandLogo,color:brandColor,bio:brandBio,logoUrl:brandLogoUrl,bannerUrl:brandBannerUrl});
+    // Sync branding to host_profiles DB table
+    if(supabase.from&&currentUser){
+      supabase.from("host_profiles").update({
+        org_name:brandName,
+        brand_color:brandColor,
+        bio:brandBio,
+        logo_url:brandLogoUrl||brandLogo,
+        banner_url:brandBannerUrl||""
+      }).eq("user_id",currentUser.id).then(function(res){
+        if(res.error)console.error("[TFT] host_profiles branding update failed:",res.error);
+      });
+    }
     setBrandSaved(true);
     toast("Branding saved!","success");
     setTimeout(function(){setBrandSaved(false);},3000);
@@ -13501,7 +13550,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     }
   }
 
-  var TABS=[["overview","Overview"],["tournaments","Tournaments"],["registrations","Players"],["announce","Announce"],["branding","Branding"]];
+  var TABS=[["overview","Overview"],["tournaments","Tournaments"],["game-flow","Game Flow"],["registrations","Players"],["announce","Announce"],["branding","Branding"]];
 
   return(
     <div className="page wrap">
@@ -13670,6 +13719,90 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
         </div>
       )}
 
+      {/* Game Flow tab — enter results per round */}
+      {tab==="game-flow"&&(
+        <div>
+          {tournaments.filter(function(t){return t.status==="live"||t.status==="closed";}).length===0&&(
+            <Panel style={{padding:"40px 24px",textAlign:"center"}}>
+              <div style={{fontSize:36,marginBottom:12}}>{"\u2694\ufe0f"}</div>
+              <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Live Tournaments</h3>
+              <p style={{color:"#BECBD9",fontSize:13}}>Open check-in on a tournament to start the game flow. You can then enter placements round by round.</p>
+            </Panel>
+          )}
+          {tournaments.filter(function(t){return t.status==="live"||t.status==="closed";}).map(function(t){
+            var matchingEvent=(featuredEvents||[]).find(function(ev){return ev.hostTournamentId===t.id;});
+            var regIds=matchingEvent?(matchingEvent.registeredIds||[]):[];
+            var roundCount=t.roundCount||3;
+            var currentRound=t.currentRound||1;
+            return(
+              <Panel key={t.id} style={{padding:"20px",marginBottom:16,border:"1px solid rgba(82,196,124,.2)"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+                  <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",margin:0,flex:1}}>{t.name}</h3>
+                  <Tag color="#6EE7B7" size="sm">Round {currentRound}/{roundCount}</Tag>
+                  <Tag color="#E8A838" size="sm">{regIds.length} players</Tag>
+                </div>
+
+                {regIds.length===0&&(
+                  <div style={{fontSize:13,color:"#BECBD9",padding:"16px 0",textAlign:"center"}}>No players registered yet. Players need to register before you can enter results.</div>
+                )}
+
+                {regIds.length>0&&(
+                  <div>
+                    <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:10}}>Enter placements for Round {currentRound}</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:14}}>
+                      {regIds.map(function(username,i){
+                        return(
+                          <div key={username} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(255,255,255,.02)",borderRadius:8,border:"1px solid rgba(242,237,228,.04)"}}>
+                            <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4",flex:1}}>{username}</span>
+                            <Sel value="" onChange={function(val){
+                              if(!val)return;
+                              var placement=parseInt(val);
+                              var pts={1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1}[placement]||0;
+                              if(supabase.from&&t.dbId){
+                                supabase.from("game_results").insert({
+                                  tournament_id:t.dbId,
+                                  round_number:currentRound,
+                                  player_id:i+1,
+                                  placement:placement,
+                                  points:pts
+                                }).then(function(res){
+                                  if(res.error)toast("Failed to save: "+res.error.message,"error");
+                                  else toast(username+" placed "+placement+(placement===1?"st":placement===2?"nd":placement===3?"rd":"th")+" ("+pts+"pts)","success");
+                                });
+                              }else{
+                                toast(username+" placed "+placement+(placement===1?"st":placement===2?"nd":placement===3?"rd":"th")+" ("+pts+"pts)","success");
+                              }
+                            }} style={{width:90}}>
+                              <option value="">Place</option>
+                              {[1,2,3,4,5,6,7,8].map(function(p){return <option key={p} value={p}>{p}{p===1?"st":p===2?"nd":p===3?"rd":"th"} ({({1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1})[p]}pts)</option>;})}
+                            </Sel>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                      <Btn v="primary" s="sm" onClick={function(){
+                        if(currentRound<roundCount){
+                          updateTournamentAndFeatured(t.id,{currentRound:currentRound+1});
+                          toast("Advanced to Round "+(currentRound+1),"success");
+                        }else{
+                          var champ=prompt("Enter champion name:");
+                          if(champ&&champ.trim()){
+                            updateTournamentAndFeatured(t.id,{status:"completed",champion:champ.trim(),top4:[champ.trim()]});
+                            toast("Tournament completed! Champion: "+champ.trim(),"success");
+                          }
+                        }
+                      }}>{currentRound<roundCount?"Advance to Round "+(currentRound+1):"Finalize Tournament"}</Btn>
+                      <Btn v="ghost" s="sm" onClick={function(){setScreen("tournament-host-"+t.id);}}>View Public Page</Btn>
+                    </div>
+                  </div>
+                )}
+              </Panel>
+            );
+          })}
+        </div>
+      )}
+
       {/* Registrations / Players tab */}
       {tab==="registrations"&&(
         <div>
@@ -13781,6 +13914,28 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                 placeholder="Tell players about your org, community, and what kind of clashes you run..."
                 style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:80,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
             </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Logo Image <span style={{color:"#9AAABF",fontWeight:400}}>(URL or upload)</span></div>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <Inp value={brandLogoUrl} onChange={setBrandLogoUrl} placeholder="https://example.com/logo.png"/>
+                <label style={{background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",whiteSpace:"nowrap"}}>
+                  {uploadingLogo?"Uploading...":"Upload"}
+                  <input type="file" accept="image/*" style={{display:"none"}} onChange={function(e){if(e.target.files[0])uploadImage(e.target.files[0],"logo");}}/>
+                </label>
+              </div>
+              {brandLogoUrl&&<img src={brandLogoUrl} alt="Logo preview" style={{width:48,height:48,borderRadius:10,objectFit:"cover",marginTop:8,border:"1px solid rgba(242,237,228,.1)"}}/>}
+            </div>
+            <div>
+              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Banner Image <span style={{color:"#9AAABF",fontWeight:400}}>(URL or upload)</span></div>
+              <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                <Inp value={brandBannerUrl} onChange={setBrandBannerUrl} placeholder="https://example.com/banner.png"/>
+                <label style={{background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"8px 14px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",whiteSpace:"nowrap"}}>
+                  {uploadingBanner?"Uploading...":"Upload"}
+                  <input type="file" accept="image/*" style={{display:"none"}} onChange={function(e){if(e.target.files[0])uploadImage(e.target.files[0],"banner");}}/>
+                </label>
+              </div>
+              {brandBannerUrl&&<img src={brandBannerUrl} alt="Banner preview" style={{width:"100%",maxHeight:120,borderRadius:10,objectFit:"cover",marginTop:8,border:"1px solid rgba(242,237,228,.1)"}}/>}
+            </div>
             <Btn v="primary" onClick={saveBranding}>{brandSaved?"✓ Saved!":"Save Branding"}</Btn>
           </div>
         </Panel>
@@ -13802,6 +13957,7 @@ function TournamentDetailScreen(props){
   var toast=props.toast;
   var setScreen=props.setScreen;
   var players=props.players;
+  var [detailTab,setDetailTab]=useState("overview");
 
   var isRegistered=currentUser&&event.registeredIds&&event.registeredIds.indexOf(currentUser.username)!==-1;
   var isFull=event.registered>=event.size;
@@ -13818,6 +13974,12 @@ function TournamentDetailScreen(props){
         var newIds=(ev.registeredIds||[]).filter(function(u){return u!==currentUser.username;});
         return Object.assign({},ev,{registeredIds:newIds,registered:Math.max(0,(ev.registered||0)-1)});
       });});
+      // Also unregister from DB registrations table
+      if(supabase.from&&currentUser&&event.dbTournamentId){
+        supabase.from("players").select("id").eq("auth_user_id",currentUser.id).single().then(function(pRes){
+          if(pRes.data)supabase.from("registrations").delete().eq("tournament_id",event.dbTournamentId).eq("player_id",pRes.data.id);
+        });
+      }
       toast("Unregistered from "+event.name,"info");
     }else{
       if(isFull){toast("Tournament is full","error");return;}
@@ -13826,24 +13988,59 @@ function TournamentDetailScreen(props){
         var newIds=(ev.registeredIds||[]).concat([currentUser.username]);
         return Object.assign({},ev,{registeredIds:newIds,registered:(ev.registered||0)+1});
       });});
+      // Also register in DB registrations table
+      if(supabase.from&&currentUser&&event.dbTournamentId){
+        supabase.from("players").select("id").eq("auth_user_id",currentUser.id).single().then(function(pRes){
+          if(pRes.data)supabase.from("registrations").insert({tournament_id:event.dbTournamentId,player_id:pRes.data.id,status:"registered"})
+            .then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+        });
+      }
       toast("Registered for "+event.name+"!","success");
     }
   }
 
   var regPercent=event.size>0?Math.round((event.registered/event.size)*100):0;
 
+  // Load tournament results from DB for bracket/standings tabs
+  var [tournamentResults,setTournamentResults]=useState([]);
+  var [loadingResults,setLoadingResults]=useState(false);
+  useEffect(function(){
+    if(!event.dbTournamentId||!supabase.from)return;
+    setLoadingResults(true);
+    supabase.from("game_results").select("*").eq("tournament_id",event.dbTournamentId).order("round_number",{ascending:true}).order("placement",{ascending:true})
+      .then(function(res){
+        setLoadingResults(false);
+        if(res.data)setTournamentResults(res.data);
+      });
+  },[event.dbTournamentId]);
+
+  // Derive standings from game_results
+  var standings=[];
+  if(tournamentResults.length>0){
+    var playerMap={};
+    tournamentResults.forEach(function(r){
+      if(!playerMap[r.player_id])playerMap[r.player_id]={player_id:r.player_id,total:0,games:[]};
+      playerMap[r.player_id].total+=r.points||0;
+      playerMap[r.player_id].games.push({round:r.round_number,placement:r.placement,points:r.points});
+    });
+    standings=Object.values(playerMap).sort(function(a,b){return b.total-a.total;});
+  }
+
+  var DETAIL_TABS=[["overview","Overview"],["bracket","Bracket"],["standings","Standings"],["rules","Rules"]];
+
   return(
     <div className="page wrap">
       <div style={{marginBottom:20}}>
-        <button onClick={function(){setScreen("featured");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:0,marginBottom:12,fontFamily:"inherit"}}>{"← Back to Featured Events"}</button>
+        <button onClick={function(){setScreen("featured");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:0,marginBottom:12,fontFamily:"inherit"}}>{"\u2190 Back to Featured Events"}</button>
       </div>
 
+      {/* Hero */}
       <Panel glow style={{padding:"28px 24px",marginBottom:20}}>
         <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:20}}>
           <div style={{width:56,height:56,borderRadius:14,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,flexShrink:0}}>{event.logo}</div>
           <div style={{flex:1,minWidth:200}}>
             <h1 style={{fontSize:22,fontWeight:700,color:"#F2EDE4",margin:"0 0 6px 0"}}>{event.name}</h1>
-            <div style={{fontSize:13,color:"#9B72CF",fontWeight:600,marginBottom:4}}>{"Hosted by "+event.host+(event.sponsor?" · Presented by "+event.sponsor:"")}</div>
+            <div style={{fontSize:13,color:"#9B72CF",fontWeight:600,marginBottom:4}}>{"Hosted by "+event.host+(event.sponsor?" \u00b7 Presented by "+event.sponsor:"")}</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:8}}>
               {event.date&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:11,color:"#BECBD9"}}>{event.date}</span>}
               {event.time&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:11,color:"#BECBD9"}}>{event.time}</span>}
@@ -13857,84 +14054,232 @@ function TournamentDetailScreen(props){
             {isCompleted&&<span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#E8A838"}}>{"COMPLETED"}</span>}
           </div>
         </div>
-
         {event.description&&<div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.6,marginBottom:20}}>{event.description}</div>}
-
-        <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20}}>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           {(event.tags||[]).map(function(t){return <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#C4B5FD"}}>{t}</span>;})}
           {event.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#4ECDC4"}}>{event.prizePool+" Prize Pool"}</span>}
         </div>
       </Panel>
 
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
-        <Panel style={{padding:"20px",textAlign:"center"}}>
-          <div style={{marginBottom:10}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-              <span style={{fontSize:11,color:"#BECBD9"}}>{"Registration"}</span>
-              <span style={{fontSize:11,fontWeight:700,color:"#E8A838"}}>{event.registered+"/"+event.size+" ("+regPercent+"%)"}</span>
-            </div>
-            <Bar val={event.registered} max={event.size} color="#E8A838" h={6}/>
-          </div>
-          {!isCompleted&&(
-            currentUser?(
-              isRegistered?
-                <button onClick={handleRegister} style={{width:"100%",padding:"10px 16px",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,fontSize:13,fontWeight:700,color:"#6EE7B7",cursor:"pointer",fontFamily:"inherit"}}>{"Registered \u2713 (Click to Unregister)"}</button>
-              :canRegister?
-                <button onClick={handleRegister} style={{width:"100%",padding:"10px 16px",background:"linear-gradient(90deg,#9B72CF,#7C5BB0)",border:"none",borderRadius:8,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>{"Register Now"}</button>
-              :
-                <button disabled style={{width:"100%",padding:"10px 16px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,fontSize:13,fontWeight:700,color:"#9AAABF",cursor:"not-allowed",fontFamily:"inherit"}}>{"Full"}</button>
-            ):(
-              <button onClick={function(){onAuthClick("login");}} style={{width:"100%",padding:"10px 16px",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,fontSize:13,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>{"Sign In to Register"}</button>
-            )
-          )}
-        </Panel>
-
-        <Panel style={{padding:"20px",textAlign:"center"}}>
-          <div className="mono" style={{fontSize:28,fontWeight:700,color:"#E8A838",lineHeight:1}}>{event.size}</div>
-          <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{"Max Players"}</div>
-          {event.format&&<div style={{fontSize:12,color:"#C8D4E0",marginTop:8}}>{event.format}</div>}
-        </Panel>
+      {/* Tabs */}
+      <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
+        {DETAIL_TABS.map(function(arr){return(
+          <button key={arr[0]} onClick={function(){setDetailTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"inherit",letterSpacing:".04em",transition:"all .15s",background:detailTab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:detailTab===arr[0]?"#C4B5FD":"#BECBD9",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
+        );})}
       </div>
 
-      {isCompleted&&event.champion&&(
-        <Panel glow style={{padding:"24px",marginBottom:20,border:"1px solid rgba(232,168,56,.3)"}}>
-          <h3 style={{fontSize:16,fontWeight:700,color:"#E8A838",marginBottom:14}}>{"🏆 Champion"}</h3>
-          <div style={{fontSize:20,fontWeight:700,color:"#F2EDE4",marginBottom:12}}>{event.champion}</div>
-          {event.top4&&event.top4.length>0&&(
-            <div>
-              <div style={{fontSize:11,color:"#BECBD9",marginBottom:8,fontWeight:600}}>{"Top 4"}</div>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {event.top4.map(function(p,i){return <span key={i} style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"5px 10px",fontSize:12,fontWeight:600,color:i===0?"#E8A838":"#C8D4E0"}}>{(i+1)+". "+p}</span>;})}
+      {/* Overview Tab */}
+      {detailTab==="overview"&&(
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:20}}>
+            <Panel style={{padding:"20px",textAlign:"center"}}>
+              <div style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                  <span style={{fontSize:11,color:"#BECBD9"}}>{"Registration"}</span>
+                  <span style={{fontSize:11,fontWeight:700,color:"#E8A838"}}>{event.registered+"/"+event.size+" ("+regPercent+"%)"}</span>
+                </div>
+                <Bar val={event.registered} max={event.size} color="#E8A838" h={6}/>
               </div>
-            </div>
+              {!isCompleted&&(
+                currentUser?(
+                  isRegistered?
+                    <button onClick={handleRegister} style={{width:"100%",padding:"10px 16px",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,fontSize:13,fontWeight:700,color:"#6EE7B7",cursor:"pointer",fontFamily:"inherit"}}>{"Registered \u2713 (Click to Unregister)"}</button>
+                  :canRegister?
+                    <button onClick={handleRegister} style={{width:"100%",padding:"10px 16px",background:"linear-gradient(90deg,#9B72CF,#7C5BB0)",border:"none",borderRadius:8,fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"inherit"}}>{"Register Now"}</button>
+                  :
+                    <button disabled style={{width:"100%",padding:"10px 16px",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,fontSize:13,fontWeight:700,color:"#9AAABF",cursor:"not-allowed",fontFamily:"inherit"}}>{"Full"}</button>
+                ):(
+                  <button onClick={function(){onAuthClick("login");}} style={{width:"100%",padding:"10px 16px",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,fontSize:13,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>{"Sign In to Register"}</button>
+                )
+              )}
+            </Panel>
+            <Panel style={{padding:"20px",textAlign:"center"}}>
+              <div className="mono" style={{fontSize:28,fontWeight:700,color:"#E8A838",lineHeight:1}}>{event.size}</div>
+              <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{"Max Players"}</div>
+              {event.format&&<div style={{fontSize:12,color:"#C8D4E0",marginTop:8}}>{event.format}</div>}
+            </Panel>
+          </div>
+
+          {isCompleted&&event.champion&&(
+            <Panel glow style={{padding:"24px",marginBottom:20,border:"1px solid rgba(232,168,56,.3)"}}>
+              <h3 style={{fontSize:16,fontWeight:700,color:"#E8A838",marginBottom:14}}>{"\ud83c\udfc6 Champion"}</h3>
+              <div style={{fontSize:20,fontWeight:700,color:"#F2EDE4",marginBottom:12}}>{event.champion}</div>
+              {event.top4&&event.top4.length>0&&(
+                <div>
+                  <div style={{fontSize:11,color:"#BECBD9",marginBottom:8,fontWeight:600}}>{"Top 4"}</div>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    {event.top4.map(function(p,i){return <span key={i} style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"5px 10px",fontSize:12,fontWeight:600,color:i===0?"#E8A838":"#C8D4E0"}}>{(i+1)+". "+p}</span>;})}
+                  </div>
+                </div>
+              )}
+            </Panel>
           )}
-        </Panel>
+
+          {(event.registeredIds||[]).length>0&&(
+            <Panel style={{padding:"20px",marginBottom:20}}>
+              <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>{"Registered Players ("+(event.registeredIds||[]).length+")"}</h3>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {(event.registeredIds||[]).map(function(username,i){
+                  return(
+                    <div key={username} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(255,255,255,.02)",borderRadius:8}}>
+                      <span style={{fontSize:12,fontWeight:700,color:"#E8A838",minWidth:20}}>{i+1}</span>
+                      <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>{username}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          )}
+        </div>
       )}
 
-      {(event.registeredIds||[]).length>0&&(
-        <Panel style={{padding:"20px",marginBottom:20}}>
-          <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>{"Registered Players ("+(event.registeredIds||[]).length+")"}</h3>
-          <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            {(event.registeredIds||[]).map(function(username,i){
-              return(
-                <div key={username} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(255,255,255,.02)",borderRadius:8}}>
-                  <span style={{fontSize:12,fontWeight:700,color:"#E8A838",minWidth:20}}>{i+1}</span>
-                  <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>{username}</span>
+      {/* Bracket Tab */}
+      {detailTab==="bracket"&&(
+        <div>
+          {tournamentResults.length===0&&!loadingResults&&(
+            <Panel style={{padding:"40px 24px",textAlign:"center"}}>
+              <div style={{fontSize:36,marginBottom:12}}>{"\u2694\ufe0f"}</div>
+              <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Bracket Data Yet</h3>
+              <p style={{color:"#BECBD9",fontSize:13}}>Bracket and lobby assignments will appear here once the tournament begins and results are entered.</p>
+            </Panel>
+          )}
+          {loadingResults&&(
+            <Panel style={{padding:"40px 24px",textAlign:"center"}}>
+              <div style={{fontSize:14,color:"#BECBD9"}}>Loading bracket data...</div>
+            </Panel>
+          )}
+          {tournamentResults.length>0&&(function(){
+            // Group results by round
+            var rounds={};
+            tournamentResults.forEach(function(r){
+              var rk="Round "+r.round_number;
+              if(!rounds[rk])rounds[rk]=[];
+              rounds[rk].push(r);
+            });
+            var roundKeys=Object.keys(rounds).sort();
+            return(
+              <div style={{display:"flex",flexDirection:"column",gap:14}}>
+                {roundKeys.map(function(rk){
+                  var results=rounds[rk].sort(function(a,b){return a.placement-b.placement;});
+                  return(
+                    <Panel key={rk} style={{padding:"18px"}}>
+                      <h3 style={{fontSize:15,fontWeight:700,color:"#E8A838",marginBottom:12}}>{rk}</h3>
+                      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                        {results.map(function(r,i){
+                          var placeColors=["#FFD700","#C0C0C0","#CD7F32","#52C47C","#9B72CF","#4ECDC4","#BECBD9","#8896A8"];
+                          var pc=placeColors[Math.min(r.placement-1,7)]||"#8896A8";
+                          return(
+                            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",background:r.placement<=3?"rgba(232,168,56,.05)":"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(r.placement<=3?"rgba(232,168,56,.12)":"rgba(242,237,228,.04)")}}>
+                              <div style={{width:24,fontWeight:700,fontSize:13,color:pc,textAlign:"center",flexShrink:0}}>{r.placement}</div>
+                              <div style={{flex:1,fontSize:13,color:"#F2EDE4"}}>{r.player_id}</div>
+                              <div className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{r.points}pts</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Panel>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Standings Tab */}
+      {detailTab==="standings"&&(
+        <div>
+          {standings.length===0&&!loadingResults&&(
+            <Panel style={{padding:"40px 24px",textAlign:"center"}}>
+              <div style={{fontSize:36,marginBottom:12}}>{"\ud83d\udcca"}</div>
+              <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Standings Yet</h3>
+              <p style={{color:"#BECBD9",fontSize:13}}>Standings will update as games are played and results are entered.</p>
+            </Panel>
+          )}
+          {standings.length>0&&(
+            <Panel style={{padding:"20px"}}>
+              <h3 style={{fontSize:16,fontWeight:700,color:"#E8A838",marginBottom:16}}>Tournament Standings</h3>
+              <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                {standings.map(function(s,i){
+                  var placeColors=["#FFD700","#C0C0C0","#CD7F32","#52C47C"];
+                  var pc=placeColors[Math.min(i,3)]||"#BECBD9";
+                  return(
+                    <div key={s.player_id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:i<3?"rgba(232,168,56,.05)":"rgba(255,255,255,.02)",borderRadius:8,border:"1px solid "+(i<3?"rgba(232,168,56,.12)":"rgba(242,237,228,.04)")}}>
+                      <div style={{width:28,fontWeight:700,fontSize:15,color:pc,textAlign:"center",flexShrink:0}}>{i+1}</div>
+                      <div style={{flex:1,fontSize:14,fontWeight:600,color:"#F2EDE4"}}>{s.player_id}</div>
+                      <div style={{fontSize:11,color:"#BECBD9"}}>{s.games.length} games</div>
+                      <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838",minWidth:40,textAlign:"right"}}>{s.total}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          )}
+        </div>
+      )}
+
+      {/* Rules Tab */}
+      {detailTab==="rules"&&(
+        <div>
+          <Panel style={{padding:"24px",marginBottom:16}}>
+            <h3 style={{fontSize:16,fontWeight:700,color:"#E8A838",marginBottom:14}}>Points System</h3>
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
+                <thead>
+                  <tr>
+                    {["Place","1st","2nd","3rd","4th","5th","6th","7th","8th"].map(function(h){return(
+                      <th key={h} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.12)",color:"#E8A838",fontWeight:700,textAlign:"center"}}>{h}</th>
+                    );})}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#BECBD9",fontWeight:600,textAlign:"center"}}>Points</td>
+                    {[8,7,6,5,4,3,2,1].map(function(p){return(
+                      <td key={p} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#F2EDE4",fontWeight:700,textAlign:"center",fontFamily:"monospace"}}>{p}</td>
+                    );})}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+          <Panel style={{padding:"24px",marginBottom:16}}>
+            <h3 style={{fontSize:16,fontWeight:700,color:"#9B72CF",marginBottom:14}}>Tiebreaker Rules</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[
+                {n:"1",t:"Total Tournament Points",d:"Sum of all placement points across games."},
+                {n:"2",t:"Wins + Top 4s",d:"Wins count twice."},
+                {n:"3",t:"Most of Each Placement",d:"Compare 1st counts, then 2nd, then 3rd..."},
+                {n:"4",t:"Most Recent Game Finish",d:"Higher placement in the most recent game wins."}
+              ].map(function(tb){return(
+                <div key={tb.n} style={{display:"flex",gap:10,alignItems:"flex-start",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"10px 12px"}}>
+                  <div style={{width:24,height:24,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{tb.n}</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{tb.t}</div>
+                    <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.4}}>{tb.d}</div>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </Panel>
+              );})}
+            </div>
+          </Panel>
+          {event.rules&&(
+            <Panel style={{padding:"24px"}}>
+              <h3 style={{fontSize:16,fontWeight:700,color:"#4ECDC4",marginBottom:14}}>Tournament-Specific Rules</h3>
+              <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.7,whiteSpace:"pre-wrap"}}>{event.rules}</div>
+            </Panel>
+          )}
+        </div>
       )}
 
       {currentUser&&event.hostTournamentId&&event.host===(currentUser.username)&&(
         <div style={{textAlign:"center",marginTop:16}}>
-          <button onClick={function(){setScreen("host-dashboard");}} style={{background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"10px 20px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}>{"Manage Tournament →"}</button>
+          <button onClick={function(){setScreen("host-dashboard");}} style={{background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"10px 20px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}>{"Manage Tournament \u2192"}</button>
         </div>
       )}
     </div>
   );
 }
+
 
 
 // ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
@@ -14131,1010 +14476,6 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
     </div>
   );
 }
-
-function AegisShowcaseScreen({setScreen}){
-
-  var [tab,setTab]=useState("format");
-
-  var [lobbyRound,setLobbyRound]=useState("G1");
-
-  var [showAll,setShowAll]=useState(false);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  var STANDINGS=[
-
-    {place:1, ign:"D0PA#111",              g1:5,g2:6,g3:7,g4:7,g5:8,g6:7,total:29,prize:60},
-
-    {place:2, ign:"LC Abyss#CAPO",         g1:5,g2:5,g3:8,g4:7,g5:7,g6:6,total:28,prize:40},
-
-    {place:3, ign:"vnck#NA1",              g1:5,g2:5,g3:5,g4:6,g5:6,g6:8,total:25,prize:30},
-
-    {place:4, ign:"Ken Kitade",            g1:5,g2:8,g3:6,g4:5,g5:7,g6:5,total:23,prize:20},
-
-    {place:5, ign:"Hydro#1000",            g1:5,g2:6,g3:5,g4:8,g5:6,g6:3,total:22,prize:17},
-
-    {place:6, ign:"arzootft #na1",         g1:5,g2:8,g3:8,g4:6,g5:3,g6:4,total:21,prize:13},
-
-    {place:7, ign:"ryt hardpuzzle#na2",    g1:5,g2:8,g3:7,g4:8,g5:2,g6:2,total:19,prize:10},
-
-    {place:8, ign:"Talelelelelelel#NA1",   g1:5,g2:6,g3:6,g4:7,g5:4,g6:1,total:18,prize:10},
-
-    {place:9, ign:"koke na gringa#na1",    g1:5,g2:8,g3:4,g4:4,g5:8,g6:null,total:16,prize:0},
-
-    {place:10,ign:"LUNA Arcanine#NA3",     g1:5,g2:8,g3:8,g4:4,g5:4,g6:null,total:16,prize:0},
-
-    {place:11,ign:"Mujjiwaraa#na1",        g1:5,g2:7,g3:7,g4:6,g5:3,g6:null,total:16,prize:0},
-
-    {place:12,ign:"Gerinha #777",          g1:5,g2:7,g3:5,g4:5,g5:5,g6:null,total:15,prize:0},
-
-    {place:13,ign:"Haykaroo#PHI",          g1:5,g2:7,g3:8,g4:2,g5:5,g6:null,total:15,prize:0},
-
-    {place:14,ign:"Pun#TFT",              g1:5,g2:6,g3:3,g4:8,g5:2,g6:null,total:13,prize:0},
-
-    {place:15,ign:"Xenor#NA1",             g1:5,g2:8,g3:7,g4:5,g5:1,g6:null,total:13,prize:0},
-
-    {place:16,ign:"Politicess#na1",        g1:5,g2:8,g3:6,g4:4,g5:1,g6:null,total:11,prize:0},
-
-    {place:17,ign:"PoGamoRNA#NA1",         g1:5,g2:5,g3:5,g4:3,g5:null,g6:null,total:8,prize:0},
-
-    {place:18,ign:"MGC Fizz#mgc",          g1:5,g2:7,g3:6,g4:2,g5:null,g6:null,total:8,prize:0},
-
-    {place:19,ign:"Lukwer#Kata",           g1:5,g2:7,g3:4,g4:3,g5:null,g6:null,total:7,prize:0},
-
-    {place:20,ign:"kininaru#oreo",         g1:5,g2:5,g3:4,g4:3,g5:null,g6:null,total:7,prize:0},
-
-    {place:21,ign:"XcorpionTFT",           g1:5,g2:5,g3:3,g4:2,g5:null,g6:null,total:5,prize:0},
-
-    {place:22,ign:"Hoshimi Miyabi#3110",   g1:5,g2:5,g3:4,g4:1,g5:null,g6:null,total:5,prize:0},
-
-    {place:23,ign:"ChunChunMaru#KSuba",    g1:5,g2:6,g3:3,g4:1,g5:null,g6:null,total:4,prize:0},
-
-    {place:24,ign:"LC Dominus#CAPO",       g1:5,g2:8,g3:3,g4:0,g5:null,g6:null,total:3,prize:0},
-
-    {place:25,ign:"YoonEna#joshu",         g1:5,g2:7,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
-
-    {place:26,ign:"i love cat memes#xaste",g1:5,g2:7,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
-
-    {place:27,ign:"bourbon#GGG",           g1:5,g2:6,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
-
-    {place:28,ign:"MarksM #3004",          g1:5,g2:5,g3:2,g4:null,g5:null,g6:null,total:2,prize:0},
-
-    {place:29,ign:"Theonelukeyg#NA1",      g1:5,g2:7,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
-
-    {place:30,ign:"BESTIAROCK22#9708",     g1:5,g2:6,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
-
-    {place:31,ign:"PowerPuff Tundie#na1",  g1:5,g2:6,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
-
-    {place:32,ign:"Only Lowroll#NA1",      g1:5,g2:5,g3:1,g4:null,g5:null,g6:null,total:1,prize:0},
-
-    {place:33,ign:"TheDeadlyinx",          g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:34,ign:"BrazilianKlein#NA1",    g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:35,ign:"Hastyles4#Na",          g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:36,ign:"52HzGrimlocking#NA13",  g1:5,g2:1,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:37,ign:"MassiveBBC",            g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:38,ign:"AshSvr#Na1",            g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:39,ign:"reddell#010",           g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:40,ign:"Minimalrage19",         g1:5,g2:1,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:41,ign:"alandioss#NA2",         g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:42,ign:"ASaltedSam#1330",       g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:43,ign:"DUSK Hallo#weens",      g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:44,ign:"Grepizza#4389",         g1:5,g2:1,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:45,ign:"Braven#8888",           g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:46,ign:"Zuko#louee",            g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:47,ign:"YukiAruu",              g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:48,ign:"Nabitona#na1",          g1:5,g2:0,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:49,ign:"LC AnkallE#CAPO",       g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:50,ign:"Ego#8421",              g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:51,ign:"xrebel#rebel",          g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:52,ign:"Danzel#NA0",            g1:5,g2:1,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:53,ign:"Emrys#pog",             g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:54,ign:"patobsg #NA1",          g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:55,ign:"moeen#moeen",           g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:56,ign:"SamerNAs#NAs",          g1:5,g2:1,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:57,ign:"LC DYAMZ #L33T",        g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:58,ign:"Yonah#0724",            g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:59,ign:"cancelmyfuneral#na1",   g1:5,g2:2,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:60,ign:"NoSoyAntonio21#NA2",    g1:5,g2:1,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:61,ign:"LevitateNA#Buff",       g1:5,g2:4,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-    {place:62,ign:"Candyland player#NA1",  g1:5,g2:3,g3:null,g4:null,g5:null,g6:null,total:0,prize:0,elim:"G2"},
-
-  ];
-
-
-
-  var LOBBIES={
-
-    G1:[
-
-      {name:"Lobby 1", note:"Qualifier",players:[{ign:"Talelelelelelel#NA1",pts:5},{ign:"YoonEna#joshu",pts:5},{ign:"BrazilianKlein#NA1",pts:5},{ign:"52HzGrimlocking#NA13",pts:5}]},
-
-      {name:"Lobby 2", note:"Qualifier",players:[{ign:"koke na gringa#na1",pts:5},{ign:"Hastyles4#Na",pts:5},{ign:"MarksM #3004",pts:5},{ign:"TheDeadlyinx",pts:5}]},
-
-      {name:"Lobby 3", note:"Qualifier",players:[{ign:"Ken Kitade",pts:5},{ign:"reddell#010",pts:5},{ign:"Minimalrage19",pts:5},{ign:"MassiveBBC",pts:5}]},
-
-      {name:"Lobby 4", note:"Qualifier",players:[{ign:"vnck#NA1",pts:5},{ign:"Theonelukeyg#NA1",pts:5},{ign:"BESTIAROCK22#9708",pts:5},{ign:"AshSvr#Na1",pts:5}]},
-
-      {name:"Lobby 5", note:"Qualifier",players:[{ign:"Xenor#NA1",pts:5},{ign:"bourbon#GGG",pts:5},{ign:"alandioss#NA2",pts:5},{ign:"DUSK Hallo#weens",pts:5}]},
-
-      {name:"Lobby 6", note:"Qualifier",players:[{ign:"Lukwer#Kata",pts:5},{ign:"Hoshimi Miyabi#3110",pts:5},{ign:"ASaltedSam#1330",pts:5},{ign:"Grepizza#4389",pts:5}]},
-
-      {name:"Lobby 7", note:"Qualifier",players:[{ign:"LC Abyss#CAPO",pts:5},{ign:"MGC Fizz#mgc",pts:5},{ign:"Braven#8888",pts:5},{ign:"Zuko#louee",pts:5}]},
-
-      {name:"Lobby 8", note:"Qualifier",players:[{ign:"Hydro#1000",pts:5},{ign:"LC Dominus#CAPO",pts:5},{ign:"Nabitona#na1",pts:5},{ign:"YukiAruu",pts:5}]},
-
-      {name:"Lobby 9", note:"Qualifier",players:[{ign:"LUNA Arcanine#NA3",pts:5},{ign:"i love cat memes#xaste",pts:5},{ign:"D0PA#111",pts:5},{ign:"XcorpionTFT",pts:5}]},
-
-      {name:"Lobby 10",note:"Qualifier",players:[{ign:"LC AnkallE#CAPO",pts:5},{ign:"Ego#8421",pts:5},{ign:"xrebel#rebel",pts:5},{ign:"Danzel#NA0",pts:5}]},
-
-      {name:"Lobby 11",note:"Qualifier",players:[{ign:"ryt hardpuzzle#na2",pts:5},{ign:"Gerinha #777",pts:5},{ign:"PowerPuff Tundie#na1",pts:5},{ign:"PoGamoRNA#NA1",pts:5}]},
-
-      {name:"Lobby 12",note:"Qualifier",players:[{ign:"Emrys#pog",pts:5},{ign:"patobsg #NA1",pts:5},{ign:"moeen#moeen",pts:5},{ign:"SamerNAs#NAs",pts:5}]},
-
-      {name:"Lobby 13",note:"Qualifier",players:[{ign:"arzootft #na1",pts:5},{ign:"Haykaroo#PHI",pts:5},{ign:"Pun#TFT",pts:5},{ign:"kininaru#oreo",pts:5}]},
-
-      {name:"Lobby 14",note:"Qualifier",players:[{ign:"LC DYAMZ #L33T",pts:5},{ign:"Yonah#0724",pts:5},{ign:"cancelmyfuneral#na1",pts:5},{ign:"NoSoyAntonio21#NA2",pts:5}]},
-
-      {name:"Lobby 15",note:"Qualifier",players:[{ign:"Politicess#na1",pts:5},{ign:"Mujjiwaraa#na1",pts:5},{ign:"ChunChunMaru#KSuba",pts:5},{ign:"Only Lowroll#NA1",pts:5}]},
-
-      {name:"Lobby 16",note:"Qualifier",players:[{ign:"LevitateNA#Buff",pts:5},{ign:"Candyland player#NA1",pts:5}]},
-
-    ],
-
-    G2:[
-
-      {name:"Lobby 9",  note:"Qualifier 2",players:[{ign:"koke na gringa#na1",pts:8},{ign:"YoonEna#joshu",pts:7},{ign:"Talelelelelelel#NA1",pts:6},{ign:"MarksM #3004",pts:5},{ign:"TheDeadlyinx",pts:4},{ign:"BrazilianKlein#NA1",pts:3},{ign:"Hastyles4#Na",pts:2},{ign:"52HzGrimlocking#NA13",pts:1}]},
-
-      {name:"Lobby 10", note:"Qualifier 2",players:[{ign:"Ken Kitade",pts:8},{ign:"Theonelukeyg#NA1",pts:7},{ign:"BESTIAROCK22#9708",pts:6},{ign:"vnck#NA1",pts:5},{ign:"MassiveBBC",pts:4},{ign:"AshSvr#Na1",pts:3},{ign:"reddell#010",pts:2},{ign:"Minimalrage19",pts:1}]},
-
-      {name:"Lobby 11", note:"Qualifier 2",players:[{ign:"Xenor#NA1",pts:8},{ign:"Lukwer#Kata",pts:7},{ign:"bourbon#GGG",pts:6},{ign:"Hoshimi Miyabi#3110",pts:5},{ign:"alandioss#NA2",pts:4},{ign:"ASaltedSam#1330",pts:3},{ign:"DUSK Hallo#weens",pts:2},{ign:"Grepizza#4389",pts:1}]},
-
-      {name:"Lobby 12", note:"Qualifier 2",players:[{ign:"LC Dominus#CAPO",pts:8},{ign:"MGC Fizz#mgc",pts:7},{ign:"Hydro#1000",pts:6},{ign:"LC Abyss#CAPO",pts:5},{ign:"Braven#8888",pts:4},{ign:"Zuko#louee",pts:3},{ign:"YukiAruu",pts:2},{ign:"Nabitona#na1",pts:0}]},
-
-      {name:"Lobby 13", note:"Qualifier 2",players:[{ign:"LUNA Arcanine#NA3",pts:8},{ign:"i love cat memes#xaste",pts:7},{ign:"D0PA#111",pts:6},{ign:"XcorpionTFT",pts:5},{ign:"LC AnkallE#CAPO",pts:4},{ign:"Ego#8421",pts:3},{ign:"xrebel#rebel",pts:2},{ign:"Danzel#NA0",pts:1}]},
-
-      {name:"Lobby 14", note:"Qualifier 2",players:[{ign:"ryt hardpuzzle#na2",pts:8},{ign:"Gerinha #777",pts:7},{ign:"PowerPuff Tundie#na1",pts:6},{ign:"PoGamoRNA#NA1",pts:5},{ign:"Emrys#pog",pts:4},{ign:"patobsg #NA1",pts:3},{ign:"moeen#moeen",pts:2},{ign:"SamerNAs#NAs",pts:1}]},
-
-      {name:"Lobby 15", note:"Qualifier 2",players:[{ign:"arzootft #na1",pts:8},{ign:"Haykaroo#PHI",pts:7},{ign:"Pun#TFT",pts:6},{ign:"kininaru#oreo",pts:5},{ign:"LC DYAMZ #L33T",pts:4},{ign:"Yonah#0724",pts:3},{ign:"cancelmyfuneral#na1",pts:2},{ign:"NoSoyAntonio21#NA2",pts:1}]},
-
-      {name:"Lobby 16", note:"Qualifier 2",players:[{ign:"Politicess#na1",pts:8},{ign:"Mujjiwaraa#na1",pts:7},{ign:"ChunChunMaru#KSuba",pts:6},{ign:"Only Lowroll#NA1",pts:5},{ign:"LevitateNA#Buff",pts:4},{ign:"Candyland player#NA1",pts:3}]},
-
-    ],
-
-    G3:[
-
-      {name:"Lobby 17",note:"Point Stage · Game 1",players:[{ign:"arzootft #na1",pts:8},{ign:"Xenor#NA1",pts:7},{ign:"Talelelelelelel#NA1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Hoshimi Miyabi#3110",pts:4},{ign:"XcorpionTFT",pts:3},{ign:"YoonEna#joshu",pts:2},{ign:"BESTIAROCK22#9708",pts:1}]},
-
-      {name:"Lobby 18",note:"Point Stage · Game 1",players:[{ign:"Haykaroo#PHI",pts:8},{ign:"ryt hardpuzzle#na2",pts:7},{ign:"Politicess#na1",pts:6},{ign:"vnck#NA1",pts:5},{ign:"PoGamoRNA#NA1",pts:5},{ign:"kininaru#oreo",pts:4},{ign:"ChunChunMaru#KSuba",pts:3},{ign:"Ken Kitade",pts:6}]},
-
-      {name:"Lobby 19",note:"Point Stage · Game 1",players:[{ign:"LC Abyss#CAPO",pts:8},{ign:"Mujjiwaraa#na1",pts:7},{ign:"MGC Fizz#mgc",pts:6},{ign:"koke na gringa#na1",pts:4},{ign:"Pun#TFT",pts:3},{ign:"i love cat memes#xaste",pts:2},{ign:"PowerPuff Tundie#na1",pts:1},{ign:"Theonelukeyg#NA1",pts:1}]},
-
-      {name:"Lobby 20",note:"Point Stage · Game 1",players:[{ign:"LUNA Arcanine#NA3",pts:8},{ign:"D0PA#111",pts:7},{ign:"Hydro#1000",pts:5},{ign:"Lukwer#Kata",pts:4},{ign:"LC Dominus#CAPO",pts:3},{ign:"MarksM #3004",pts:2},{ign:"bourbon#GGG",pts:2},{ign:"Only Lowroll#NA1",pts:1}]},
-
-    ],
-
-    G4:[
-
-      {name:"Lobby 21",note:"Point Stage · Game 2",players:[{ign:"ryt hardpuzzle#na2",pts:8},{ign:"Talelelelelelel#NA1",pts:7},{ign:"D0PA#111",pts:7},{ign:"Mujjiwaraa#na1",pts:6},{ign:"arzootft #na1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Xenor#NA1",pts:5},{ign:"koke na gringa#na1",pts:4}]},
-
-      {name:"Lobby 22",note:"Point Stage · Game 2",players:[{ign:"Pun#TFT",pts:8},{ign:"Hydro#1000",pts:8},{ign:"LC Abyss#CAPO",pts:7},{ign:"vnck#NA1",pts:6},{ign:"Politicess#na1",pts:4},{ign:"kininaru#oreo",pts:3},{ign:"Haykaroo#PHI",pts:2},{ign:"XcorpionTFT",pts:2}]},
-
-      {name:"Lobby 23",note:"Point Stage · Game 2",players:[{ign:"Ken Kitade",pts:5},{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Lukwer#Kata",pts:3},{ign:"PoGamoRNA#NA1",pts:3},{ign:"MGC Fizz#mgc",pts:2},{ign:"Hoshimi Miyabi#3110",pts:1},{ign:"ChunChunMaru#KSuba",pts:1},{ign:"LC Dominus#CAPO",pts:0}]},
-
-    ],
-
-    G5:[
-
-      {name:"Lobby 24",note:"Point Stage · Game 3",players:[{ign:"koke na gringa#na1",pts:8},{ign:"Ken Kitade",pts:7},{ign:"Hydro#1000",pts:6},{ign:"LUNA Arcanine#NA3",pts:4},{ign:"Talelelelelelel#NA1",pts:4},{ign:"arzootft #na1",pts:3},{ign:"ryt hardpuzzle#na2",pts:2},{ign:"Xenor#NA1",pts:1}]},
-
-      {name:"Lobby 25",note:"Point Stage · Game 3",players:[{ign:"D0PA#111",pts:8},{ign:"LC Abyss#CAPO",pts:7},{ign:"vnck#NA1",pts:6},{ign:"Gerinha #777",pts:5},{ign:"Haykaroo#PHI",pts:5},{ign:"Mujjiwaraa#na1",pts:3},{ign:"Pun#TFT",pts:2},{ign:"Politicess#na1",pts:1}]},
-
-    ],
-
-    G6:[
-
-      {name:"Finals",note:"Final Lobby",players:[{ign:"vnck#NA1",pts:8},{ign:"D0PA#111",pts:7},{ign:"LC Abyss#CAPO",pts:6},{ign:"Ken Kitade",pts:5},{ign:"arzootft #na1",pts:4},{ign:"Hydro#1000",pts:3},{ign:"ryt hardpuzzle#na2",pts:2},{ign:"Talelelelelelel#NA1",pts:1}]},
-
-    ],
-
-  };
-
-
-
-  var ROUND_META={
-
-    G1:{label:"Game 1",tag:"Top 4 Qualifier - Round 1",color:"#9B72CF",desc:"All 62+ participants compete across 16 lobbies. Top 4 per lobby advance to Game 2. Scores are NOT counted toward cumulative points but used as tiebreaker if needed.",count:"62+ players · 16 lobbies"},
-
-    G2:{label:"Game 2",tag:"Top 4 Qualifier - Round 2",color:"#9B72CF",desc:"Survivors from Game 1 compete again. Top 4 per lobby advance to the Point Stage. G1 and G2 placements form the tiebreaker chain - most recent first.",count:"62 players · 8 lobbies"},
-
-    G3:{label:"Game 3",tag:"Point Stage - Game 1",color:"#4ECDC4",desc:"32 players. Clash Scoring begins: 1st=8pts, 2nd=7pts … 8th=1pt. Cumulative totals tracked. Bottom 8 eliminated after results.",count:"32 players · 4 lobbies"},
-
-    G4:{label:"Game 4",tag:"Point Stage - Game 2",color:"#4ECDC4",desc:"24 players. Points accumulate. Lobbies reshuffle based on current standings. Bottom 8 eliminated after results.",count:"24 players · 3 lobbies"},
-
-    G5:{label:"Game 5",tag:"Point Stage - Game 3",color:"#4ECDC4",desc:"16 players. Top 8 by cumulative total after this game advance to the Finals.",count:"16 players · 2 lobbies"},
-
-    G6:{label:"Game 6",tag:"Finals",color:"#E8A838",desc:"The top 8 players compete in one final lobby. Highest cumulative total wins. Tiebreaker: most recent game placement.",count:"8 players · 1 lobby"},
-
-  };
-
-
-
-  var SAMPLE_ANNOUNCEMENTS=[
-
-    {label:"Format Reminder",text:"@Weeklies reminder: Games 1-2 are qualifier rounds - top 4 per lobby advance. Games 3-6 use Clash Scoring (1st=8pts). Points accumulate from Game 3 onwards only."},
-
-    {label:"Lobby Assignments Live",text:"Game 3 lobby assignments are now live! Check the Lobbies tab for your group. Point stage starts NOW - good luck everyone!"},
-
-    {label:"Scores Updated",text:"Game 4 results are in! Standings have been updated. 8 players eliminated. Check the Standings tab to see where you are heading into Game 5."},
-
-    {label:"Finals Announced",text:"Your Game 6 finalists: D0PA, LC Abyss, vnck, Ken Kitade, arzootft, Hydro, ryt hardpuzzle, Talelelelelelel. Finals lobby assignments are live - check the Lobbies tab!"},
-
-    {label:"Prize Distribution",text:"GGs to everyone! Full results and prize distribution are now on the Standings tab. Winners will be contacted for payment. Thanks to ZenMarket for sponsoring this week!"},
-
-  ];
-
-
-
-  var placeCol=function(p){
-
-    if(p===1)return"#FFD700";
-
-    if(p===2)return"#C0C0C0";
-
-    if(p===3)return"#CD7F32";
-
-    if(p<=4)return"#52C47C";
-
-    if(p<=8)return"#9B72CF";
-
-    return"#8896A8";
-
-  };
-
-
-
-  var ptCol=function(g){
-
-    if(g===null||g===undefined)return"#7A8BA0";
-
-    if(g>=7)return"#E8A838";
-
-    if(g>=5)return"#9B72CF";
-
-    if(g>=3)return"#4ECDC4";
-
-    if(g>=1)return"#BECBD9";
-
-    return"#F87171";
-
-  };
-
-
-
-  var toggleScore=function(lobbyName,ign,place){
-
-    var key=lobbyName+"::"+ign;
-
-    setScores(function(prev){
-
-      var next=Object.assign({},prev);
-
-      var existingKey=null;
-
-      Object.keys(next).forEach(function(k){
-
-        if(k.startsWith(lobbyName+"::")&&next[k]===place) existingKey=k;
-
-      });
-
-      if(existingKey) delete next[existingKey];
-
-      if(next[key]===place) delete next[key];
-
-      else next[key]=place;
-
-      return next;
-
-    });
-
-  };
-
-
-
-  var displayed=showAll?STANDINGS:STANDINGS.slice(0,16);
-
-  var roundMeta=ROUND_META[lobbyRound];
-
-
-
-  return(
-
-    <div className="page" style={{maxWidth:820,margin:"0 auto"}}>
-
-
-
-      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.13) 0%,rgba(232,168,56,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"28px",marginBottom:20,position:"relative",overflow:"hidden"}}>
-
-        <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(232,168,56,.14) 0%,transparent 70%)",pointerEvents:"none"}}/>
-
-        <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:16}}>
-
-          <div>
-
-            <div style={{display:"flex",gap:8,marginBottom:10}}>
-
-              <div className="cond" style={{background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.35)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#E8A838",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Client Demo</div>
-
-              <div className="cond" style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.3)",borderRadius:5,padding:"3px 10px",fontSize:12,color:"#4ECDC4",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase"}}>Live Data</div>
-
-            </div>
-
-            <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:28,fontWeight:700,color:"#F2EDE4",marginBottom:6,lineHeight:1.2}}>
-
-              Aegis Esports TFT Showdown <span style={{color:"#E8A838"}}>#151</span>
-
-            </h1>
-
-            <div style={{fontSize:15,color:"#C8D4E0",marginBottom:4}}>Presented by <span style={{color:"#F2EDE4",fontWeight:600}}>ZenMarket</span></div>
-
-            <div style={{fontSize:13,color:"#BECBD9"}}>North America · 62+ participants · 6 games · $200 prize pool</div>
-
-          </div>
-
-          <div style={{textAlign:"right",display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10}}>
-
-            <img src="/Aegis_Esports.png" alt="Aegis Esports" style={{height:48,width:"auto",objectFit:"contain"}}/>
-
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-
-              <img src="/icon-border.png" alt="TFT Clash" style={{filter:"drop-shadow(0 0 10px rgba(155,114,207,.55))",width:28,height:28,objectFit:"contain",opacity:.85}}/>
-
-              <div>
-
-                <div className="cond" style={{fontSize:11,color:"#8896A8",marginBottom:3,textTransform:"uppercase",letterSpacing:".1em"}}>Powered by</div>
-
-                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:20,fontWeight:700,color:"#9B72CF"}}>TFT Clash</div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        <div style={{display:"flex",gap:32,marginTop:20,flexWrap:"wrap"}}>
-
-          {[["62+","Participants"],["16","G1 Lobbies"],["6","Games"],["$200","Prize Pool"]].map(function(arr){return(
-
-            <div key={arr[1]}>
-
-              <div style={{fontSize:26,fontWeight:700,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif",lineHeight:1}}>{arr[0]}</div>
-
-              <div className="cond" style={{fontSize:12,color:"#BECBD9",marginTop:3,textTransform:"uppercase",letterSpacing:".07em"}}>{arr[1]}</div>
-
-            </div>
-
-          );})}
-
-        </div>
-
-      </div>
-
-
-
-      <div style={{display:"flex",gap:4,marginBottom:20,background:"rgba(255,255,255,.025)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.06)"}}>
-
-        {[["format","Format"],["standings","Standings"],["lobbies","Lobbies"],["platform","Platform"]].map(function(arr){return(
-
-          <button key={arr[0]} onClick={function(){setTab(arr[0]);}} style={{flex:1,padding:"10px 6px",borderRadius:7,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".06em",transition:"all .15s",background:tab===arr[0]?"rgba(155,114,207,.22)":"transparent",color:tab===arr[0]?"#C4B5FD":"#BECBD9",outline:"none",textTransform:"uppercase"}}>{arr[1]}</button>
-
-        );})}
-
-      </div>
-
-
-
-      {tab==="format"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          <div style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"22px 24px"}}>
-
-            <div className="cond" style={{fontSize:12,color:"#9B72CF",fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Official Format - Showdown #151</div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:16,paddingLeft:16,borderLeft:"3px solid rgba(155,114,207,.5)"}}>
-
-              <div>
-
-                <div className="cond" style={{background:"rgba(155,114,207,.2)",border:"1px solid rgba(155,114,207,.4)",borderRadius:5,padding:"3px 10px",fontSize:13,color:"#C4B5FD",fontWeight:700,display:"inline-block",marginBottom:4}}>Games 1 – 2 · Qualifier Format</div>
-
-                <div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.8}}>Players are split into groups of 8 (evenly distributed based on check-ins). Each group plays one game. <span style={{color:"#F2EDE4",fontWeight:600}}>Top 4 from each lobby advance</span> to the next round. Scores are NOT counted toward points but are saved as tiebreakers.</div>
-
-              </div>
-
-              <div>
-
-                <div className="cond" style={{background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",borderRadius:5,padding:"3px 10px",fontSize:13,color:"#E8A838",fontWeight:700,display:"inline-block",marginBottom:4}}>Games 3 – 6 · Point Stage Format</div>
-
-                <div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.8}}>Qualified players split into lobbies of 8 based on qualifier performance. Clash Scoring in effect. <span style={{color:"#F2EDE4",fontWeight:600}}>8 players eliminated after every game</span>, lobbies reshuffled after each game.</div>
-
-              </div>
-
-            </div>
-
-            <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"12px 16px",fontSize:14,color:"#C8D4E0",lineHeight:1.8}}>
-
-              <span style={{color:"#F87171",fontWeight:700}}>Tiebreaker (point stage):</span> Equal cumulative totals broken by <span style={{color:"#F2EDE4",fontWeight:600}}>most recent game placement</span> until the tie is broken.
-
-            </div>
-
-          </div>
-
-
-
-          <Panel style={{padding:"24px"}}>
-
-            <h2 style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#E8A838",marginBottom:20}}>Stage Breakdown</h2>
-
-            <div style={{display:"flex",flexDirection:"column",gap:0}}>
-
-              {[
-
-                {label:"Game 1",sub:"Qualifier Round 1",color:"#9B72CF",icon:"1",count:"62+ players · 16 lobbies",
-
-                  bullets:["All check-ins split into lobbies of 8 (evenly distributed)","Top 4 per lobby advance - bottom 4 eliminated","Scores NOT counted toward cumulative total","G1 placement saved as final tiebreaker if needed"]},
-
-                {label:"Game 2",sub:"Qualifier Round 2",color:"#9B72CF",icon:"2",count:"62 players · 8 lobbies",
-
-                  bullets:["Survivors from G1 compete again in reshuffled lobbies","Top 4 per lobby advance to the Point Stage","G2 placement is the first tiebreaker (most recent)","G1 is the second tiebreaker"]},
-
-                {label:"Game 3",sub:"Point Stage - 32 Players",color:"#4ECDC4",icon:"3",count:"32 players · 4 lobbies",
-
-                  bullets:["Clash Scoring begins: 1st=8 · 2nd=7 · 3rd=6 · 4th=5 · 5th=4 · 6th=3 · 7th=2 · 8th=1","Lobbies seeded by qualifier performance","8 lowest scorers eliminated after results"]},
-
-                {label:"Game 4",sub:"Point Stage - 24 Players",color:"#4ECDC4",icon:"4",count:"24 players · 3 lobbies",
-
-                  bullets:["Points accumulate from G3+G4","Lobbies reshuffled based on current standings","8 lowest scorers eliminated after results"]},
-
-                {label:"Game 5",sub:"Point Stage - 16 Players",color:"#4ECDC4",icon:"5",count:"16 players · 2 lobbies",
-
-                  bullets:["Points accumulate from G3+G4+G5","Top 8 by cumulative total advance to Finals","8 lowest scorers eliminated"]},
-
-                {label:"Game 6",sub:"Finals - 8 Players",color:"#E8A838",icon:"F",count:"8 players · 1 lobby",
-
-                  bullets:["Single final lobby - highest cumulative total wins","Points still count in Finals","Champion $60 · Runner-up $40 · Top 8 all paid","Tiebreaker: G6 → G5 → G4 → G3 → G2 → G1"]},
-
-              ].map(function(s,i,arr){return(
-
-                <div key={s.label} style={{display:"flex",gap:14}}>
-
-                  <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
-
-                    <div style={{width:42,height:42,borderRadius:10,background:"rgba(0,0,0,.5)",border:"2px solid "+s.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,fontWeight:700,color:s.color,flexShrink:0,fontFamily:"'Chakra Petch',sans-serif"}}>{s.icon}</div>
-
-                    {i<arr.length-1&&<div style={{width:2,flex:1,minHeight:24,background:"rgba(255,255,255,.05)",margin:"4px 0"}}/>}
-
-                  </div>
-
-                  <div style={{flex:1,paddingBottom:i<arr.length-1?22:0}}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
-
-                      <div style={{fontFamily:"'Russo One',sans-serif",fontSize:16,fontWeight:700,color:"#F2EDE4"}}>{s.label}</div>
-
-                      <div className="cond" style={{background:"rgba(0,0,0,.4)",border:"1px solid "+s.color+"45",borderRadius:4,padding:"2px 8px",fontSize:11,fontWeight:700,color:s.color}}>{s.sub}</div>
-
-                      <div className="cond" style={{fontSize:11,color:"#8896A8"}}>{s.count}</div>
-
-                    </div>
-
-                    <div style={{display:"flex",flexDirection:"column",gap:4}}>
-
-                      {s.bullets.map(function(b,bi){return(
-
-                        <div key={bi} style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-
-                          <div style={{width:5,height:5,borderRadius:"50%",background:s.color,flexShrink:0,marginTop:7}}/>
-
-                          <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>{b}</div>
-
-                        </div>
-
-                      );})}
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              );})}
-
-            </div>
-
-          </Panel>
-
-
-
-          <Panel style={{padding:"22px 24px"}}>
-
-            <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:16,color:"#F2EDE4",marginBottom:14}}>Points Table - Games 3 to 6</h3>
-
-            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
-
-              {[[1,8,"#FFD700","1st"],[2,7,"#C0C0C0","2nd"],[3,6,"#CD7F32","3rd"],[4,5,"#52C47C","4th"],[5,4,"#9B72CF","5th"],[6,3,"#4ECDC4","6th"],[7,2,"#BECBD9","7th"],[8,1,"#8896A8","8th"]].map(function(row){return(
-
-                <div key={row[0]} style={{display:"flex",flexDirection:"column",alignItems:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.05)",borderRadius:8,padding:"12px 14px",minWidth:58}}>
-
-                  <div className="cond" style={{fontSize:22,fontWeight:700,color:row[2]}}>{row[1]}</div>
-
-                  <div style={{fontSize:11,color:"#8896A8",marginTop:1}}>pts</div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>{row[3]}</div>
-
-                </div>
-
-              );})}
-
-            </div>
-
-            <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"12px 16px",fontSize:13,color:"#C8D4E0",lineHeight:1.8}}>
-
-              <span style={{color:"#E8A838",fontWeight:600}}>Tiebreaker chain:</span> Equal cumulative totals broken by most recent game placement - G6 first, then G5, G4, G3, then G2 and G1 (the qualifier rounds).
-
-            </div>
-
-          </Panel>
-
-        </div>
-
-      )}
-
-
-
-      {tab==="standings"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          <Panel style={{padding:"20px 22px"}}>
-
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-
-              <div>
-
-                <h2 style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#E8A838",margin:0}}>All Participants</h2>
-
-                <div style={{fontSize:13,color:"#BECBD9",marginTop:3}}>{STANDINGS.length} players · {STANDINGS.filter(function(p){return p.place<=32;}).length} reached point stage</div>
-
-              </div>
-
-              <div style={{display:"flex",gap:6,alignItems:"center"}}>
-
-                {[["G1","#9B72CF"],["G2","#9B72CF"],["G3","#4ECDC4"],["G4","#4ECDC4"],["G5","#4ECDC4"],["G6","#E8A838"],["PTS","#F2EDE4"]].map(function(arr){return(
-
-                  <div key={arr[0]} className="cond" style={{width:arr[0]==="PTS"?38:28,textAlign:"center",fontSize:12,color:arr[1],fontWeight:700,letterSpacing:".04em"}}>{arr[0]}</div>
-
-                );})}
-
-              </div>
-
-            </div>
-
-            <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
-
-              {[["G1–G2","Qualifier","#9B72CF"],["G3–G5","Point Stage","#4ECDC4"],["G6","Finals","#E8A838"],["-","Elim in G2","#F87171"]].map(function(arr){return(
-
-                <div key={arr[0]} style={{display:"flex",alignItems:"center",gap:5}}>
-
-                  <div style={{width:10,height:10,borderRadius:2,background:arr[2]+"30",border:"1px solid "+arr[2]+"50"}}/>
-
-                  <div style={{fontSize:12,color:"#BECBD9"}}><span style={{color:arr[2],fontWeight:600}}>{arr[0]}</span> {arr[1]}</div>
-
-                </div>
-
-              );})}
-
-            </div>
-
-            <div style={{display:"flex",flexDirection:"column",gap:3}}>
-
-              {displayed.map(function(p){
-
-                var isElim=p.elim==="G2";
-
-                var rowBg=p.place===1?"rgba(255,215,0,.06)":p.place<=3?"rgba(155,114,207,.05)":p.place<=8?"rgba(255,255,255,.025)":isElim?"rgba(248,113,113,.03)":"rgba(255,255,255,.015)";
-
-                var rowBorder=p.place===1?"rgba(255,215,0,.18)":p.place<=3?"rgba(155,114,207,.12)":p.place<=8?"rgba(155,114,207,.05)":isElim?"rgba(248,113,113,.08)":"rgba(242,237,228,.03)";
-
-                return(
-
-                  <div key={p.ign} style={{display:"flex",alignItems:"center",gap:8,background:rowBg,borderRadius:7,padding:"8px 10px",border:"1px solid "+rowBorder}}>
-
-                    <div style={{width:24,fontWeight:700,fontSize:12,color:isElim?"#8896A8":placeCol(p.place),textAlign:"right",flexShrink:0,fontFamily:"'Chakra Petch',sans-serif"}}>{p.place}</div>
-
-                    <div style={{flex:1,fontSize:14,color:p.place<=8&&!isElim?"#F2EDE4":isElim?"#BECBD9":"#C8D4E0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",minWidth:0}}>{p.ign}</div>
-
-                    {isElim&&<div className="cond" style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.18)",borderRadius:4,padding:"1px 6px",fontSize:11,color:"#F87171",flexShrink:0}}>OUT G2</div>}
-
-                    {p.prize>0&&<div style={{background:"rgba(78,205,196,.1)",border:"1px solid rgba(78,205,196,.2)",borderRadius:4,padding:"1px 6px",fontSize:11,fontWeight:700,color:"#4ECDC4",fontFamily:"'Chakra Petch',sans-serif",flexShrink:0}}>${p.prize}</div>}
-
-                    <div style={{display:"flex",gap:2,flexShrink:0}}>
-
-                      {[p.g1,p.g2,p.g3,p.g4,p.g5,p.g6].map(function(g,i){
-
-                        var isQ=i<2;
-
-                        var isFin=i===5;
-
-                        var hasVal=g!==null&&g!==undefined;
-
-                        return(
-
-                          <div key={i} style={{width:28,height:24,borderRadius:4,background:hasVal?"rgba(0,0,0,.4)":"rgba(255,255,255,.015)",border:"1px solid "+(hasVal?(isQ?"rgba(155,114,207,.22)":isFin?"rgba(232,168,56,.28)":"rgba(78,205,196,.22)"):"rgba(255,255,255,.03)"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:hasVal?ptCol(g):"#1F2937"}}>
-
-                            {hasVal?g:"-"}
-
-                          </div>
-
-                        );
-
-                      })}
-
-                    </div>
-
-                    <div className="cond" style={{fontSize:16,fontWeight:700,color:isElim?"#8896A8":"#C4B5FD",minWidth:36,textAlign:"right",flexShrink:0}}>{isElim?"-":p.total}</div>
-
-                  </div>
-
-                );
-
-              })}
-
-            </div>
-
-            {!showAll&&(
-
-              <button onClick={function(){setShowAll(true);}} style={{width:"100%",marginTop:10,padding:"10px",background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.18)",borderRadius:8,color:"#9B72CF",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
-
-                Show all {STANDINGS.length} participants (includes G2 eliminated)
-
-              </button>
-
-            )}
-
-            {showAll&&(
-
-              <button onClick={function(){setShowAll(false);}} style={{width:"100%",marginTop:10,padding:"10px",background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,color:"#8896A8",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
-
-                Collapse
-
-              </button>
-
-            )}
-
-          </Panel>
-
-        </div>
-
-      )}
-
-
-
-      {tab==="lobbies"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          <div style={{display:"flex",gap:4,background:"rgba(255,255,255,.02)",borderRadius:10,padding:4,border:"1px solid rgba(242,237,228,.05)"}}>
-
-            {["G1","G2","G3","G4","G5","G6"].map(function(r){
-
-              var colors={"G1":"#9B72CF","G2":"#9B72CF","G3":"#4ECDC4","G4":"#4ECDC4","G5":"#4ECDC4","G6":"#E8A838"};
-
-              var labels={"G1":"Game 1","G2":"Game 2","G3":"Game 3","G4":"Game 4","G5":"Game 5","G6":"Finals"};
-
-              var active=lobbyRound===r;
-
-              return(
-
-                <button key={r} onClick={function(){setLobbyRound(r);setEditMode(false);}} style={{flex:1,padding:"9px 4px",borderRadius:7,border:"none",cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".05em",transition:"all .15s",background:active?"rgba(255,255,255,.08)":"transparent",color:active?colors[r]:"#8896A8",outline:"none",textTransform:"uppercase",fontWeight:700,fontSize:12}}>
-
-                  <div>{r}</div>
-
-                  <div style={{fontSize:10,fontWeight:400,marginTop:1,color:active?colors[r]+"AA":"#8896A8"}}>{labels[r]}</div>
-
-                </button>
-
-              );
-
-            })}
-
-          </div>
-
-
-
-          <div style={{background:"rgba(0,0,0,.35)",border:"1px solid "+roundMeta.color+"30",borderRadius:10,padding:"14px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
-
-            <div>
-
-              <div className="cond" style={{fontSize:12,color:roundMeta.color,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>{roundMeta.tag}</div>
-
-              <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.7,maxWidth:600}}>{roundMeta.desc}</div>
-
-            </div>
-
-            <div style={{display:"flex",gap:8,alignItems:"center"}}>
-
-              <div className="cond" style={{fontSize:12,color:"#BECBD9",padding:"4px 10px",background:"rgba(255,255,255,.03)",borderRadius:6,border:"1px solid rgba(255,255,255,.06)"}}>{roundMeta.count}</div>
-
-              <button onClick={function(){setEditMode(function(p){return !p;});setScores({});}} style={{padding:"7px 14px",borderRadius:7,border:"1px solid "+(editMode?"rgba(78,205,196,.4)":"rgba(155,114,207,.3)"),background:editMode?"rgba(78,205,196,.1)":"rgba(155,114,207,.08)",color:editMode?"#4ECDC4":"#C4B5FD",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>
-
-                {editMode?"Save Results":"Enter Results"}
-
-              </button>
-
-            </div>
-
-          </div>
-
-
-
-          {editMode&&(
-
-            <div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:10,padding:"14px 18px",fontSize:13,color:"#C8D4E0",lineHeight:1.7}}>
-
-              <span style={{color:"#4ECDC4",fontWeight:700}}>Score entry mode active.</span> Click a placement number next to each player name to record their finish. Placements auto-de-conflict - assigning a spot removes it from any other player. Click "Save Results" when done.
-
-            </div>
-
-          )}
-
-
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:10}}>
-
-            {(LOBBIES[lobbyRound]||[]).map(function(lobby){
-
-              var sorted=[].concat(lobby.players).sort(function(a,b){return b.pts-a.pts;});
-
-              var isQual=lobbyRound==="G1"||lobbyRound==="G2";
-
-              var maxPlaces=lobby.players.length;
-
-              return(
-
-                <Panel key={lobby.name} style={{padding:"16px"}}>
-
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-
-                    <div style={{fontFamily:"'Russo One',sans-serif",fontSize:15,fontWeight:700,color:"#F2EDE4"}}>{lobby.name}</div>
-
-                    <div className="cond" style={{fontSize:11,color:roundMeta.color,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",background:"rgba(0,0,0,.3)",border:"1px solid "+roundMeta.color+"30",borderRadius:4,padding:"2px 7px"}}>{lobby.note}</div>
-
-                  </div>
-
-                  <div style={{display:"flex",flexDirection:"column",gap:4}}>
-
-                    {(editMode?lobby.players:[].concat(lobby.players).sort(function(a,b){return b.pts-a.pts;})).map(function(pl,idx){
-
-                      var key=lobby.name+"::"+pl.ign;
-
-                      var assignedPlace=scores[key];
-
-                      var displayIdx=editMode?idx:sorted.indexOf(pl);
-
-                      var top4=displayIdx<4&&isQual&&!editMode;
-
-                      var winner=!isQual&&displayIdx===0&&!editMode;
-
-                      var usedPlaces={};
-
-                      Object.keys(scores).forEach(function(k){
-
-                        if(k.startsWith(lobby.name+"::")) usedPlaces[scores[k]]=true;
-
-                      });
-
-                      return(
-
-                        <div key={pl.ign} style={{display:"flex",alignItems:"center",gap:8,background:winner?"rgba(255,215,0,.07)":top4?"rgba(82,196,124,.05)":"rgba(255,255,255,.02)",borderRadius:6,padding:"7px 8px",border:"1px solid "+(winner?"rgba(255,215,0,.18)":top4?"rgba(82,196,124,.1)":"rgba(242,237,228,.03)")}}>
-
-                          {!editMode&&<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(0,0,0,.45)",border:"1px solid "+placeCol(displayIdx+1),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:placeCol(displayIdx+1),flexShrink:0}}>{displayIdx+1}</div>}
-
-                          <div style={{flex:1,fontSize:13,color:top4||winner?"#F2EDE4":"#C8D4E0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{pl.ign}</div>
-
-                          {editMode&&(
-
-                            <div style={{display:"flex",gap:2,flexShrink:0,flexWrap:"wrap",justifyContent:"flex-end",maxWidth:180}}>
-
-                              {Array.from({length:maxPlaces},function(_,pi){return pi+1;}).map(function(place){
-
-                                var taken=usedPlaces[place]&&assignedPlace!==place;
-
-                                var selected=assignedPlace===place;
-
-                                return(
-
-                                  <button key={place} onClick={function(){toggleScore(lobby.name,pl.ign,place);}} disabled={taken} style={{width:26,height:26,borderRadius:5,border:"1px solid "+(selected?"#4ECDC4":taken?"rgba(255,255,255,.04)":"rgba(255,255,255,.1)"),background:selected?"rgba(78,205,196,.2)":taken?"rgba(255,255,255,.02)":"rgba(255,255,255,.03)",color:selected?"#4ECDC4":taken?"#7A8BA0":"#BECBD9",fontSize:11,fontWeight:700,cursor:taken?"not-allowed":"pointer",fontFamily:"'Chakra Petch',sans-serif"}}>{place}</button>
-
-                                );
-
-                              })}
-
-                            </div>
-
-                          )}
-
-                          {!editMode&&(
-
-                            <div style={{display:"flex",alignItems:"center",gap:4}}>
-
-                              {top4&&<div className="cond" style={{fontSize:10,color:"#52C47C",fontWeight:700,background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.2)",borderRadius:3,padding:"1px 5px"}}>ADV</div>}
-
-                              <div className="cond" style={{fontSize:14,fontWeight:700,color:isQual?"#C8D4E0":ptCol(pl.pts),minWidth:22,textAlign:"right"}}>{pl.pts===0?"DNF":pl.pts}</div>
-
-                              {!isQual&&<div style={{fontSize:11,color:"#8896A8"}}>pts</div>}
-
-                            </div>
-
-                          )}
-
-                        </div>
-
-                      );
-
-                    })}
-
-                  </div>
-
-                  {editMode&&(
-
-                    <div style={{marginTop:10,padding:"8px 10px",background:"rgba(0,0,0,.25)",borderRadius:6,fontSize:12,color:"#8896A8",textAlign:"center"}}>
-
-                      {Object.keys(scores).filter(function(k){return k.startsWith(lobby.name+"::");}).length}/{lobby.players.length} placements entered
-
-                    </div>
-
-                  )}
-
-                </Panel>
-
-              );
-
-            })}
-
-          </div>
-
-
-
-          {lobbyRound==="G1"&&!editMode&&(
-
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.14)",borderRadius:8,padding:"12px 16px",fontSize:13,color:"#BECBD9",lineHeight:1.7}}>
-
-              <span style={{color:"#C4B5FD",fontWeight:600}}>Game 1 shows qualifying advancers only.</span> Each lobby had additional participants who were eliminated in round 1 and did not advance to Game 2. Top 4 per lobby (shown here) moved on.
-
-            </div>
-
-          )}
-
-        </div>
-
-      )}
-
-
-
-
-
-            {tab==="platform"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:10}}>
-
-            {[
-
-              {icon:"⚙",title:"Custom Formats",desc:"Top 4 qualifier, point stage, double elim, Swiss - any bracket structure you've run in Excel, we replicate it live."},
-
-              {icon:"📡",title:"Live Score Input",desc:"Admins enter placements per game. Standings refresh instantly. Every player sees the update in real time."},
-
-              {icon:"🎯",title:"Automated Seeding",desc:"Platform auto-generates lobby assignments per stage based on your format rules. No manual reshuffling."},
-
-              {icon:"👤",title:"Player Profiles",desc:"Full history across every tournament - per-game placements, career stats, trends, and achievements."},
-
-              {icon:"💰",title:"Prize Display",desc:"Prize pool, tier breakdown, and per-place payouts shown publicly on the tournament page throughout the event."},
-
-              {icon:"🏷",title:"Org Branding",desc:"Your name, your sponsors, your logo front and center. Aegis Esports x ZenMarket - this page is already an example."},
-
-              {icon:"📈",title:"Season Series",desc:"Run #151, #152, #153 as a season - cumulative leaderboard, Hall of Fame, and season recap auto-generated."},
-
-              {icon:"📋",title:"Full Archives",desc:"Every past tournament preserved with lobby logs, standings, and stats. Shareable link for each event."},
-
-            ].map(function(f){return(
-
-              <Panel key={f.title} style={{padding:"18px"}}>
-
-                <div style={{fontSize:24,marginBottom:10}}>{f.icon}</div>
-
-                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6}}>{f.title}</div>
-
-                <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.7}}>{f.desc}</div>
-
-              </Panel>
-
-            );})}
-
-          </div>
-
-          <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12) 0%,rgba(78,205,196,.07) 100%)",border:"1px solid rgba(155,114,207,.28)",borderRadius:16,padding:"26px"}}>
-
-            <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:20,color:"#F2EDE4",marginBottom:8}}>Ready to run Showdown #152 on TFT Clash?</h3>
-
-            <div style={{fontSize:14,color:"#C8D4E0",lineHeight:1.8,marginBottom:18}}>This entire page was generated from your Showdown #151 spreadsheet - your exact format, every lobby, every placement, all 62+ players. No Excel. No manual updates. This is what your community sees live, every week.</div>
-
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-
-              <button onClick={function(){setScreen("host-apply");}} style={{background:"#9B72CF",border:"none",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>Apply as Host Partner</button>
-
-              <button onClick={function(){setScreen("pricing");}} style={{background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,padding:"11px 22px",fontSize:13,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",letterSpacing:".06em",textTransform:"uppercase"}}>View Hosting Plans</button>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
-
-
-
 
 // ─── RULES SCREEN ─────────────────────────────────────────────────────────────
 
@@ -15433,6 +14774,17 @@ function TFTClash(){
     return ()=>subscription.unsubscribe();
 
   },[]);
+
+  // Load host branding from host_profiles DB on auth
+  useEffect(function(){
+    if(!currentUser||!supabase.from)return;
+    supabase.from("host_profiles").select("*").eq("user_id",currentUser.id).single()
+      .then(function(res){
+        if(res.data&&res.data.status==="approved"){
+          setHostBranding({name:res.data.org_name||"",logo:res.data.logo_url||"\ud83c\udfae",color:res.data.brand_color||"#9B72CF",bio:res.data.bio||"",logoUrl:res.data.logo_url||"",bannerUrl:res.data.banner_url||""});
+        }
+      });
+  },[currentUser]);
 
   // ── Stamp checkedIn from tournamentState.checkedInIds onto players ────────────
 
@@ -15857,7 +15209,7 @@ function TFTClash(){
 
     }
 
-    const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","aegis-showcase","host-apply","host-dashboard","scrims","admin","roster","featured"];
+    const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured"];
 
     const dest=safeScreens.includes(h)?h:"home";
 
@@ -16074,8 +15426,6 @@ function TFTClash(){
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
         {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
-
-        {screen==="aegis-showcase"&&<AegisShowcaseScreen setScreen={navTo}/>}
 
         {screen.indexOf("tournament-")===0&&(function(){var evId=screen.replace("tournament-","");var ev=featuredEvents.find(function(e){return e.id===evId;});if(!ev)return <div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{"\U0001f50d"}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Event Not Found</h2><p style={{color:"#BECBD9"}}>This event may have been removed.</p><Btn v="primary" onClick={function(){navTo("featured");}}>Back to Featured</Btn></div>;return <TournamentDetailScreen event={ev} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>;})()}
 
