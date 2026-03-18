@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef, useMemo, Component } from "react";
+import * as Sentry from '@sentry/react';
 
 import { supabase } from './lib/supabase.js';
-import { startCheckout } from './lib/stripe.js';
 
 // ─── DATA VERSION — bump to bust stale localStorage ─────────────────────────
 var DATA_VERSION=2;
-(function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));console.log("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
+(function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
 
 
+
+// ─── DEBUG LOGGING ─────────────────────────────────────────────────────────────
+var TFT_DEBUG=typeof window!=="undefined"&&window.location.search.indexOf("debug=1")>-1;
+function dbg(){if(TFT_DEBUG)console.log.apply(console,arguments);}
 
 // ─── ERROR BOUNDARY ────────────────────────────────────────────────────────────
 
@@ -17,7 +21,7 @@ class ErrorBoundary extends Component {
 
   static getDerivedStateFromError(){return{hasError:true};}
 
-  componentDidCatch(error,info){console.error("TFT Clash error:",error,info);}
+  componentDidCatch(error,info){console.error("TFT Clash error:",error,info);Sentry.captureException(error,{extra:{componentStack:info&&info.componentStack}});}
 
   render(){
 
@@ -49,6 +53,35 @@ class ErrorBoundary extends Component {
 
 }
 
+// Per-screen error boundary — isolates crashes to individual screens
+class ScreenBoundary extends Component {
+
+  constructor(props){super(props);this.state={hasError:false,error:null};}
+
+  static getDerivedStateFromError(error){return{hasError:true,error:error};}
+
+  componentDidCatch(error,info){console.error("[TFT] Screen crash ("+this.props.name+"):",error,info);Sentry.captureException(error,{tags:{screen:this.props.name},extra:{componentStack:info&&info.componentStack}});}
+
+  render(){
+    if(this.state.hasError){
+      var self=this;
+      return(
+        <div className="page wrap" style={{textAlign:"center",paddingTop:80,maxWidth:440,margin:"0 auto"}}>
+          <div style={{fontSize:42,marginBottom:16}}>⚠️</div>
+          <h2 style={{color:"#F2EDE4",marginBottom:8,fontFamily:"'Russo One',sans-serif"}}>{"Something went wrong"}</h2>
+          <div style={{fontSize:14,color:"#9AAABF",marginBottom:20,lineHeight:1.6}}>{"This screen ran into an error. Your data is safe."}</div>
+          <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+            <button onClick={function(){self.setState({hasError:false,error:null});}} style={{padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:14}}>Try Again</button>
+            <button onClick={function(){self.setState({hasError:false,error:null});if(self.props.onHome)self.props.onHome();}} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:13}}>Go Home</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+
+}
+
 
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
@@ -74,6 +107,12 @@ const DEFAULT_SEASON_CONFIG = {
   attendanceBonus: false,
 
   comebackBonus: false,
+
+  seasonName: "Season 1",
+
+  seasonTag: "S1",
+
+  defaultClashSize: 126,
 
 };
 
@@ -361,17 +400,17 @@ function tiebreaker(a, b) {
 
     var p = placements[i];
 
-    var aC = (a.clashHistory || []).filter(function(h) { return h.place === p; }).length;
+    var aC = (a.clashHistory || []).filter(function(h) { return (h.place||h.placement) === p; }).length;
 
-    var bC = (b.clashHistory || []).filter(function(h) { return h.place === p; }).length;
+    var bC = (b.clashHistory || []).filter(function(h) { return (h.place||h.placement) === p; }).length;
 
     if (bC !== aC) return bC - aC;
 
   }
 
-  var aLast = a.clashHistory && a.clashHistory.length ? a.clashHistory[a.clashHistory.length - 1].place || 9 : 9;
+  var aLast = a.clashHistory && a.clashHistory.length ? (a.clashHistory[a.clashHistory.length - 1].place||a.clashHistory[a.clashHistory.length - 1].placement) || 9 : 9;
 
-  var bLast = b.clashHistory && b.clashHistory.length ? b.clashHistory[b.clashHistory.length - 1].place || 9 : 9;
+  var bLast = b.clashHistory && b.clashHistory.length ? (b.clashHistory[b.clashHistory.length - 1].place||b.clashHistory[b.clashHistory.length - 1].placement) || 9 : 9;
 
   return aLast - bLast;
 
@@ -674,18 +713,7 @@ function computeClashAwards(players){
 
 
 
-function computeLiveStandings(lobbies, players) {
-  const pts = {};
-  (lobbies || []).forEach(function(lobby) {
-    (lobby.placements || []).forEach(function(entry) {
-      var p = players.find(function(pl) { return pl.name === entry.name; });
-      if (!p) return;
-      var id = String(p.id);
-      pts[id] = (pts[id] || 0) + (PTS[entry.place] || 0);
-    });
-  });
-  return pts;
-}
+
 
 
 
@@ -717,12 +745,6 @@ let SEASON_CHAMPION=null; // computed from live standings — no hardcoded champ
 // ─── MILESTONE REWARDS ────────────────────────────────────────────────────────
 
 // ─── SPONSOR / AD DATA ────────────────────────────────────────────────────────
-
-const SPONSORS=[];
-
-const ACTIVE_SPONSOR=null;
-
-const ORG_SPONSORSHIPS={};
 
 // ─── PREMIUM TIERS ────────────────────────────────────────────────────────────
 
@@ -1915,7 +1937,7 @@ function Sparkline({data,color,w,h}){
 
 function SponsorBanner({sponsor,onNavigate}){
 
-  const s=sponsor||ACTIVE_SPONSOR;
+  const s=sponsor;
 
   if(!s)return null;
 
@@ -1985,14 +2007,7 @@ function SponsorBanner({sponsor,onNavigate}){
 
 }
 
-// ─── ORG SPONSOR TAG ──────────────────────────────────────────────────────────
 
-function OrgSponsorTag({playerId}){
-  // This component renders inline org sponsor badges next to player names
-  // orgSponsors data comes from AdminPanel state — not available at this scope
-  // so it renders nothing. The tag is only meaningful inside AdminPanel's sponsorship preview.
-  return null;
-}
 
 // ─── CHAMPION HERO CARD (homepage) ────────────────────────────────────────────
 
@@ -2831,7 +2846,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:16,fontWeight:700,color:"#E8A838"}}>TFT Clash</div>
 
-                <div style={{fontSize:12,color:"#BECBD9"}}>Season 16</div>
+                <div style={{fontSize:12,color:"#BECBD9"}}>Season 1</div>
 
               </div>
 
@@ -2894,8 +2909,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               <div className="gold-shimmer" style={{fontFamily:"'Russo One',sans-serif",fontSize:14,fontWeight:700,lineHeight:1,letterSpacing:".06em"}}>TFT Clash</div>
 
               <div className="cond" style={{display:"flex",alignItems:"center",gap:4,fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>
-                <span style={{border:"1px solid rgba(232,168,56,.4)",borderRadius:4,padding:"1px 4px",fontSize:8,color:"#E8A838",fontWeight:700}}>S16</span>
-                Season 16
+                <span style={{border:"1px solid rgba(232,168,56,.4)",borderRadius:4,padding:"1px 4px",fontSize:8,color:"#E8A838",fontWeight:700}}>S1</span>
+                Season 1
               </div>
 
             </div>
@@ -3190,7 +3205,6 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
                   {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🥶</span>}
 
-                  <OrgSponsorTag playerId={p.id}/>
 
                 </div>
 
@@ -3413,12 +3427,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
 
   var autoTickerItems=players.length>0?[
-    sortedPts[0]&&("🏆 "+sortedPts[0].name+" leads Season 16 with "+sortedPts[0].pts+" pts"),
+    sortedPts[0]&&("🏆 "+sortedPts[0].name+" leads Season 1 with "+sortedPts[0].pts+" pts"),
     totalGames>0&&("🎮 "+totalGames+" games played this season"),
     sortedWins[0]&&sortedWins[0].wins>0&&("🥇 "+sortedWins[0].name+" · "+sortedWins[0].wins+" tournament wins"),
     sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&("🔥 "+sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"),
     "⚡ "+players.filter(p=>p.checkedIn).length+" / "+players.length+" players checked in",
-    "📊 Season 16 active — "+players.length+" registered",
+    "📊 Season 1 active — "+players.length+" registered",
   ].filter(Boolean):[];
   const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
 
@@ -3800,7 +3814,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join {clashName}</h3>
 
-            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>Saturday 8PM EST · Season 16 · Set 16</div>
+            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>Saturday 8PM EST · Season 1</div>
 
 
 
@@ -4432,7 +4446,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
     var earned=0;
 
-    (p.clashHistory||[]).forEach(function(h){if(h.clashId===clashId){earned+=(PTS[h.place]||0);}});
+    (p.clashHistory||[]).forEach(function(h){if(h.clashId===clashId){earned+=(PTS[h.place||h.placement]||0);}});
 
     return {name:p.name,id:p.id,earned:earned};
 
@@ -4710,11 +4724,11 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       var gameRows=[];
       lobby.forEach(function(p){
         var place=parseInt(placementEntry[li].placements[p.id]||"0");
-        if(place>0)gameRows.push({tournament_id:currentClashId,round_number:round,player_id:String(p.id),placement:place,points:PTS[place]||0,is_dnp:false});
+        if(place>0)gameRows.push({tournament_id:currentClashId,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false});
       });
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
-          if(res.error)console.error("[TFT] Failed to save game results:",res.error);
+          if(res.error){console.error("[TFT] Failed to save game results:",res.error);toast("Failed to save game results","error");}
         });
       }
     }
@@ -4738,7 +4752,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       allPlayers.forEach(function(p){
         var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
         entries.forEach(function(h){
-          rows.push({tournament_id:tId,player_id:String(p.id),final_placement:h.place,total_points:(h.pts||0)+(h.bonusPts||0),wins:h.place===1?1:0,top4_count:h.place<=4?1:0});
+          rows.push({tournament_id:tId,player_id:p.id,final_placement:(h.place||h.placement),total_points:(h.pts||0)+(h.bonusPts||0),wins:(h.place||h.placement)===1?1:0,top4_count:(h.place||h.placement)<=4?1:0});
         });
       });
       if(rows.length>0){
@@ -5245,7 +5259,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
     ctx.font="9px monospace";ctx.fillStyle="#BECBD9";
 
-    ctx.fillText("#TFTClash  #Season16",480,328);
+    ctx.fillText("#TFTClash  #Season1",480,328);
 
     var a=document.createElement("a");a.download=player.name+"-stats.png";a.href=canvas.toDataURL("image/png");a.click();
 
@@ -5253,6 +5267,22 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
   }
 
+  function copyStatsToClipboard(){
+    var canvas=document.createElement("canvas");
+    canvas.width=600;canvas.height=340;
+    var ctx=canvas.getContext("2d");
+    ctx.fillStyle="#08080F";ctx.fillRect(0,0,600,340);
+    ctx.fillStyle="#9B72CF";ctx.fillRect(0,0,600,4);
+    ctx.fillStyle="#F2EDE4";ctx.font="bold 22px 'Playfair Display',serif";ctx.fillText(player.name,24,40);
+    ctx.fillStyle="#9B72CF";ctx.font="14px 'Barlow Condensed',sans-serif";ctx.fillText((player.rank||"Unranked")+" \u00b7 "+(player.region||"EUW"),24,62);
+    ctx.fillStyle="#E8A838";ctx.font="bold 36px 'Russo One',sans-serif";ctx.fillText(String(st.avgPlacement||"0"),24,120);
+    ctx.fillStyle="#8896A8";ctx.font="12px sans-serif";ctx.fillText("AVG",24,138);
+    canvas.toBlob(function(blob){
+      if(blob&&navigator.clipboard&&navigator.clipboard.write){
+        navigator.clipboard.write([new ClipboardItem({"image/png":blob})]).then(function(){toast&&toast("Stats card copied to clipboard!","success");}).catch(function(){toast&&toast("Copy failed \u2014 try downloading instead","error");});
+      }else{toast&&toast("Clipboard not supported \u2014 try downloading","error");}
+    },"image/png");
+  }
 
 
   return(
@@ -5267,7 +5297,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
         {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>⚡ Challenges</Btn>}
 
-        <Btn v="teal" s="sm" onClick={downloadStatsCard}>📤 Share Card</Btn>
+        <Btn v="teal" s="sm" onClick={downloadStatsCard}>📤 Download Card</Btn>
+        <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>📋 Copy</Btn>
 
 
 
@@ -5953,7 +5984,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
           <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:3}}>Leaderboard</h2>
 
-          <p style={{color:"#BECBD9",fontSize:13}}>Season 16 · tap a player for full profile</p>
+          <p style={{color:"#BECBD9",fontSize:13}}>Season 1 · tap a player for full profile</p>
 
         </div>
 
@@ -6267,7 +6298,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 function ClashReport({clashData,players}){
 
-  const allP=players.length>0?players:SEED;
+  const allP=players.length>0?players:[];
 
   const report=clashData.report;
 
@@ -6475,7 +6506,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     const lines=[
 
-      "**🏆 TFT Clash S16 — "+CLASH_NAME+" Results**",
+      "**🏆 TFT Clash S1 — "+CLASH_NAME+" Results**",
 
       "```",
 
@@ -6515,7 +6546,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     ctx.font="bold 13px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="4px";
 
-    ctx.fillText("TFT CLASH S16 — FINAL RESULTS",40,44);ctx.letterSpacing="0px";
+    ctx.fillText("TFT CLASH S1 — FINAL RESULTS",40,44);ctx.letterSpacing="0px";
 
     ctx.font="11px monospace";ctx.fillStyle="#BECBD9";
 
@@ -6583,7 +6614,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
         <div style={{flex:1,minWidth:0}}>
 
-          <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Season 16</div>
+          <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Season 1</div>
 
           <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,3.5vw,34px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME} — Final Results</h1>
 
@@ -6591,11 +6622,18 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
         </div>
 
-        <div style={{display:"flex",gap:8,flexShrink:0}}>
+        <div style={{display:"flex",gap:8,flexShrink:0,flexWrap:"wrap"}}>
 
           <Btn v="dark" s="sm" onClick={shareDiscord}>Discord</Btn>
 
           <Btn v="ghost" s="sm" onClick={downloadCard}>⬇ PNG</Btn>
+
+          <Btn v="dark" s="sm" onClick={function(){
+            var text="TFT Clash Results\n"+CLASH_NAME+" \u2014 "+CLASH_DATE+"\n\n";
+            sorted.slice(0,8).forEach(function(p,i){text+=(i+1)+". "+p.name+" \u2014 "+p.pts+"pts (avg: "+computeStats(p).avgPlacement+")\n";});
+            text+="\n#TFTClash tftclash.gg";
+            navigator.clipboard.writeText(text).then(function(){toast("Results copied!","success");}).catch(function(){toast("Copy failed","error");});
+          }}>📋 Copy</Btn>
 
         </div>
 
@@ -6869,7 +6907,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <p style={{fontSize:13,color:"#BECBD9",marginBottom:20}}>{CLASH_DATE} · {sorted.length} players</p>
 
-          <ClashReport clashData={{id:"latest",name:CLASH_NAME,date:CLASH_DATE,season:"S16",champion:champ.name,top3:sorted.slice(0,3).map(p=>p.name),players:sorted.length,lobbies:Math.ceil(sorted.length/8),report:{mostImproved:sorted[3]?.name,biggestUpset:(sorted[4]?.name||"")+" beat "+(sorted[0]?.name||"")}}} players={players}/>
+          <ClashReport clashData={{id:"latest",name:CLASH_NAME,date:CLASH_DATE,season:"S1",champion:champ.name,top3:sorted.slice(0,3).map(p=>p.name),players:sorted.length,lobbies:Math.ceil(sorted.length/8),report:{mostImproved:sorted[3]?.name,biggestUpset:(sorted[4]?.name||"")+" beat "+(sorted[0]?.name||"")}}} players={players}/>
 
         </Panel>
 
@@ -6901,7 +6939,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes}){
 
   const [expandRecord,setExpandRecord]=useState(null);
 
-  const allP=players.length>0?players:SEED;
+  const allP=players.length>0?players:[];
 
   const sorted=[...allP].sort((a,b)=>b.pts-a.pts);
 
@@ -6928,7 +6966,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes}){
   // Season champs built from PAST_CLASHES + current leader
 
   var pastChamps=(pastClashes||[]).map(function(c){return {season:c.season||("S"+(c.id||"?")),champion:c.champion||"Unknown",pts:c.pts||0,rank:c.rank||"",wins:c.wins||0,status:"past"};});
-  const SEASON_CHAMPS=king?pastChamps.concat([{season:"S16",champion:king.name,pts:king.pts,rank:king.rank,wins:king.wins,status:"active"}]):pastChamps;
+  const SEASON_CHAMPS=king?pastChamps.concat([{season:"S1",champion:king.name,pts:king.pts,rank:king.rank,wins:king.wins,status:"active"}]):pastChamps;
 
 
 
@@ -6984,7 +7022,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes}){
 
         <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,rgba(232,168,56,.06),transparent 70%)",pointerEvents:"none"}}/>
 
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".3em",textTransform:"uppercase",marginBottom:10}}>TFT Clash · Season 16</div>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".3em",textTransform:"uppercase",marginBottom:10}}>TFT Clash · Season 1</div>
 
         <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(36px,7vw,72px)",fontWeight:900,color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:"-.02em"}}>
 
@@ -7036,7 +7074,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes}){
 
               </div>
 
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 16 Leader</div>
+              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 1 Leader</div>
 
               <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(15px,2.5vw,22px)",fontWeight:900,color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
 
@@ -7683,7 +7721,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const [scoreEdit,setScoreEdit]=useState({});
 
-  const [seasonName,setSeasonName]=useState("Season 16");
+  const [seasonName,setSeasonName]=useState(seasonConfig&&seasonConfig.seasonName||"Season 1");
 
   const [addPlayerForm,setAddPlayerForm]=useState({name:"",riotId:"",region:"EUW",rank:"Gold"});
 
@@ -8663,7 +8701,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Season Name</label>
 
-            <Inp value={seasonName} onChange={setSeasonName} placeholder="e.g. Season 16" style={{marginBottom:14}}/>
+            <Inp value={seasonName} onChange={setSeasonName} placeholder="e.g. Season 1" style={{marginBottom:14}}/>
 
             <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season renamed: "+seasonName);toast("Season name saved","success");}}>Save Name</Btn>
 
@@ -8951,7 +8989,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
 
-            {Object.entries(orgSponsors&&Object.keys(orgSponsors).length?orgSponsors:ORG_SPONSORSHIPS).map(([pid,s])=>{
+            {Object.entries(orgSponsors||{}).map(([pid,s])=>{
 
               const p=players.find(pl=>pl.id===parseInt(pid));
 
@@ -8971,7 +9009,6 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
 
-                    <OrgSponsorTag playerId={parseInt(pid)}/>
 
                     <Btn v="danger" s="sm" onClick={()=>{setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);delete n[pid];return n;});addAudit("ACTION","Sponsor removed: "+s.org);toast(s.org+" removed","success");}}>Remove</Btn>
 
@@ -9160,7 +9197,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
 
       {tab==="featured"&&(function(){
-        var evts=featuredEvents||FEATURED_EVENTS;
+        var evts=featuredEvents||[];
         var feAddName=null;var feAddHost=null;var feAddDate=null;var feAddStatus=null;var feAddFormat=null;var feAddSize=null;
         return(
         <div>
@@ -9257,7 +9294,7 @@ function ScrimSparkline({placements,w,h}){
   );
 }
 
-function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scrimAccess,setScrimAccess}){
+function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications}){
 
   var [tab,setTab]=useState("dashboard");
 
@@ -12847,7 +12884,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
     // Season statement
 
-    const stmts=[`${player.name} dominated Season 16 with ${s.top1Rate}% win rate.`,`Consistent performer - AVP of ${s.avgPlacement} across ${s.games} games.`,`${player.name} showed up every week. ${s.wins} victories speak for themselves.`];
+    const stmts=[`${player.name} dominated Season 1 with ${s.top1Rate}% win rate.`,`Consistent performer - AVP of ${s.avgPlacement} across ${s.games} games.`,`${player.name} showed up every week. ${s.wins} victories speak for themselves.`];
 
     const stmt=stmts[player.id%stmts.length];
 
@@ -12867,13 +12904,13 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
     ctx.font="11px monospace";ctx.fillStyle="#BECBD9";
 
-    ctx.fillText("Season 16 · "+new Date().toLocaleDateString(),200,975);
+    ctx.fillText("Season 1 · "+new Date().toLocaleDateString(),200,975);
 
-    ctx.fillText("#TFTClash  #TFT  #Season16",500,975);
+    ctx.fillText("#TFTClash  #TFT  #Season1",500,975);
 
 
 
-    const a=document.createElement("a");a.download=player.name+"-S16-Recap.png";a.href=canvas.toDataURL("image/png");a.click();
+    const a=document.createElement("a");a.download=player.name+"-S1-Recap.png";a.href=canvas.toDataURL("image/png");a.click();
 
     toast("Season recap downloaded! 🎉","success");
 
@@ -12883,7 +12920,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
   function shareTwitter(){
 
-    const text=`🏆 My TFT Clash Season 16 Recap\n\n📊 #${position} overall (${player.pts}pts)\n⚡ ${s.wins} wins · AVP ${s.avgPlacement}\n🔥 Best streak: ${player.bestStreak||0}\n${awards.length>0?"🎖 Awards: "+awards.map(a=>a.title).join(", ")+"\n":""}\n#TFTClash #TFT #Season16`;
+    const text=`🏆 My TFT Clash Season 1 Recap\n\n📊 #${position} overall (${player.pts}pts)\n⚡ ${s.wins} wins · AVP ${s.avgPlacement}\n🔥 Best streak: ${player.bestStreak||0}\n${awards.length>0?"🎖 Awards: "+awards.map(a=>a.title).join(", ")+"\n":""}\n#TFTClash #TFT #Season1`;
 
     navigator.clipboard?.writeText(text).then(()=>toast("Copied for Twitter! 🐦","success"));
 
@@ -12899,7 +12936,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
         <Btn v="dark" s="sm" onClick={()=>setScreen("profile")}>← Back</Btn>
 
-        <h2 style={{color:"#F2EDE4",fontSize:20,flex:1}}>Season 16 Recap</h2>
+        <h2 style={{color:"#F2EDE4",fontSize:20,flex:1}}>Season 1 Recap</h2>
 
       </div>
 
@@ -12917,7 +12954,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
           <div>
 
-            <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6}}>TFT Clash · Season 16 Recap</div>
+            <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6}}>TFT Clash · Season 1 Recap</div>
 
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(24px,5vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{player.name}</div>
 
@@ -13191,7 +13228,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
         social_links:{freq:freq}
       }).then(function(res){
         if(res.error)console.error("[TFT] host_profiles insert failed:",res.error);
-        else console.log("[TFT] host_profiles application saved to DB");
+        else dbg("[TFT] host_profiles application saved to DB");
       });
     }
     setSubmitted(true);
@@ -13320,7 +13357,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
   var [showCreate,setShowCreate]=useState(false);
   var [tName,setTName]=useState("");
   var [tDate,setTDate]=useState("");
-  var [tSize,setTSize]=useState("16");
+  var [tSize,setTSize]=useState("126");
   var [tInvite,setTInvite]=useState(false);
   var [tEntryFee,setTEntryFee]=useState("");
   var [tRules,setTRules]=useState("");
@@ -13482,7 +13519,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Max Players</div>
-              <Sel value={tSize} onChange={setTSize}>{[8,16,24,32,48,64].map(function(n){return <option key={n} value={n}>{n} players</option>;})}</Sel>
+              <Sel value={tSize} onChange={setTSize}>{[8,16,24,32,48,64,96,126,128].map(function(n){return <option key={n} value={n}>{n} players</option>;})}</Sel>
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Entry Fee <span style={{color:"#9AAABF",fontWeight:400}}>(requires admin approval)</span></div>
@@ -13871,7 +13908,7 @@ function TournamentDetailScreen(props){
       // Also unregister from DB registrations table
       if(supabase.from&&currentUser&&event.dbTournamentId){
         supabase.from("players").select("id").eq("auth_user_id",currentUser.id).single().then(function(pRes){
-          if(pRes.data)supabase.from("registrations").delete().eq("tournament_id",event.dbTournamentId).eq("player_id",pRes.data.id);
+          if(pRes.data)supabase.from("registrations").delete().eq("tournament_id",event.dbTournamentId).eq("player_id",pRes.data.id).then(function(r){if(r.error){console.error("[TFT] unregister failed:",r.error);toast("Unregister failed","error");}});
         });
       }
       toast("Unregistered from "+event.name,"info");
@@ -13904,6 +13941,7 @@ function TournamentDetailScreen(props){
     supabase.from("game_results").select("*").eq("tournament_id",event.dbTournamentId).order("round_number",{ascending:true}).order("placement",{ascending:true})
       .then(function(res){
         setLoadingResults(false);
+        if(res.error){console.error("[TFT] Failed to load game results:",res.error);toast("Failed to load results","error");return;}
         if(res.data)setTournamentResults(res.data);
       });
   },[event.dbTournamentId]);
@@ -14065,7 +14103,7 @@ function TournamentDetailScreen(props){
                           return(
                             <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",background:r.placement<=3?"rgba(232,168,56,.05)":"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(r.placement<=3?"rgba(232,168,56,.12)":"rgba(242,237,228,.04)")}}>
                               <div style={{width:24,fontWeight:700,fontSize:13,color:pc,textAlign:"center",flexShrink:0}}>{r.placement}</div>
-                              <div style={{flex:1,fontSize:13,color:"#F2EDE4"}}>{r.player_id}</div>
+                              <div style={{flex:1,fontSize:13,color:"#F2EDE4"}}>{((players||[]).find(function(p){return p.id===r.player_id||p.dbId===r.player_id;})||{}).name||r.player_id}</div>
                               <div className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{r.points}pts</div>
                             </div>
                           );
@@ -14178,11 +14216,10 @@ function TournamentDetailScreen(props){
 
 // ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
 
-var FEATURED_EVENTS=[];
 
 function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,setFeaturedEvents}){
   var [filter,setFilter]=useState("all");
-  var allEvents=featuredEvents||FEATURED_EVENTS;
+  var allEvents=featuredEvents||[];
   var live=allEvents.filter(function(e){return e.status==="live";});
   var upcoming=allEvents.filter(function(e){return e.status==="upcoming";});
   var past=allEvents.filter(function(e){return e.status==="completed";});
@@ -14518,6 +14555,65 @@ function FAQScreen({setScreen}){
 }
 
 
+// ─── PRIVACY POLICY ──────────────────────────────────────────────────────────
+
+function PrivacyScreen(props){
+  var setScreen=props.setScreen;
+  return(
+    <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
+      <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
+      <h1 style={{color:"#F2EDE4",fontSize:26,marginTop:16,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>Privacy Policy</h1>
+      <div style={{color:"#BECBD9",fontSize:14,lineHeight:1.8}}>
+        <p style={{marginBottom:16}}><strong style={{color:"#F2EDE4"}}>Effective Date:</strong> March 2026</p>
+        <p style={{marginBottom:16}}>TFT Clash ("we", "us") respects your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>1. Data We Collect</h3>
+        <p style={{marginBottom:16}}>When you create an account, we collect your email address, username, and optionally your Riot ID and Discord username. During tournaments, we record your game placements and points. We also store session cookies to keep you logged in.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>2. How We Use Your Data</h3>
+        <p style={{marginBottom:16}}>Your data is used to operate the platform: displaying leaderboards, tracking tournament results, managing subscriptions, and sending you relevant notifications. We never sell your data to third parties.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>3. Data Storage</h3>
+        <p style={{marginBottom:16}}>Data is stored in Supabase (EU West region) with row-level security. Passwords are handled by Supabase Auth and never stored in plaintext. Payment data is processed by Stripe and never touches our servers.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>4. Your Rights</h3>
+        <p style={{marginBottom:16}}>You can request deletion of your account and data at any time by contacting us. You can export your stats from your profile page. Under GDPR, you have the right to access, correct, and delete your personal data.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>5. Cookies</h3>
+        <p style={{marginBottom:16}}>We use essential cookies for authentication and session management. We do not use tracking cookies. Analytics (if enabled) use privacy-respecting, cookieless solutions.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>6. Contact</h3>
+        <p style={{marginBottom:16}}>For privacy questions or data requests, reach out via Discord or email at the address listed on our GitHub repository.</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── TERMS OF SERVICE ────────────────────────────────────────────────────────
+
+function TermsScreen(props){
+  var setScreen=props.setScreen;
+  return(
+    <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
+      <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
+      <h1 style={{color:"#F2EDE4",fontSize:26,marginTop:16,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>Terms of Service</h1>
+      <div style={{color:"#BECBD9",fontSize:14,lineHeight:1.8}}>
+        <p style={{marginBottom:16}}><strong style={{color:"#F2EDE4"}}>Effective Date:</strong> March 2026</p>
+        <p style={{marginBottom:16}}>By using TFT Clash, you agree to these terms. If you disagree, please do not use the platform.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>1. Eligibility</h3>
+        <p style={{marginBottom:16}}>You must be at least 16 years old to create an account. By signing up, you confirm you meet this requirement.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>2. Fair Play</h3>
+        <p style={{marginBottom:16}}>All participants must compete fairly. Cheating, match-fixing, account sharing, or exploiting bugs results in immediate disqualification and potential permanent ban. Decisions by tournament admins are final.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>3. Accounts</h3>
+        <p style={{marginBottom:16}}>You are responsible for your account security. Do not share credentials. One account per person. We reserve the right to suspend or terminate accounts that violate these terms.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>4. Subscriptions</h3>
+        <p style={{marginBottom:16}}>Pro and Host subscriptions are billed monthly via Stripe. You can cancel anytime from your account page. Refunds are handled on a case-by-case basis. Free-to-compete access is never restricted by subscription status.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>5. Content</h3>
+        <p style={{marginBottom:16}}>Tournament results, leaderboards, and player stats are public. By participating, you agree to your username and results being displayed publicly. Offensive usernames or behavior will be moderated.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>6. Limitation of Liability</h3>
+        <p style={{marginBottom:16}}>TFT Clash is provided "as is". We are not liable for service interruptions, data loss, or tournament disputes. We make best efforts to maintain uptime and data integrity.</p>
+        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>7. Changes</h3>
+        <p style={{marginBottom:16}}>We may update these terms. Continued use after changes constitutes acceptance. Material changes will be announced on the platform.</p>
+      </div>
+    </div>
+  );
+}
+
+
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 
@@ -14559,7 +14655,11 @@ function Footer(props){
           </div>
         </div>
         <div style={{borderTop:"1px solid rgba(155,114,207,.08)",paddingTop:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-          <div style={{fontSize:11,color:"#8896A8"}}>{"\u00a9"} 2026 TFT Clash {"\u00b7"} Season 16 {"\u00b7"} Free to compete, always.</div>
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            <span style={{fontSize:11,color:"#8896A8"}}>{"\u00a9"} 2026 TFT Clash {"\u00b7"} Season 1 {"\u00b7"} Free to compete, always.</span>
+            <button onClick={function(){setScreen("privacy");}} style={{background:"none",border:"none",color:"#5A6573",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Privacy</button>
+            <button onClick={function(){setScreen("terms");}} style={{background:"none",border:"none",color:"#5A6573",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Terms</button>
+          </div>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             <img src="/icon-border.png" alt="" style={{width:16,height:16,opacity:0.4}}/>
             <span style={{fontSize:10,color:"#5A6573"}}>Built for the community</span>
@@ -14573,9 +14673,9 @@ function Footer(props){
 
 function TFTClash(){
 
-  const [screen,setScreen]=useState("home");
+  const [screen,setScreen]=useState(function(){var h=window.location.hash.replace("#","");return h||"home";});
 
-  const [players,setPlayers]=useState(()=>{try{const s=localStorage.getItem("tft-players");return s?JSON.parse(s):SEED;}catch{return SEED;}});
+  const [players,setPlayers]=useState(()=>{try{const s=localStorage.getItem("tft-players");return s?JSON.parse(s):[];}catch{return [];}});
 
   const [isLoadingData,setIsLoadingData]=useState(true);
 
@@ -14619,17 +14719,19 @@ function TFTClash(){
 
   const [pastClashes,setPastClashes]=useState([]);
 
-  const [featuredEvents,setFeaturedEvents]=useState(function(){try{var s=localStorage.getItem('tft-featured-events');return s?JSON.parse(s):FEATURED_EVENTS;}catch(e){return FEATURED_EVENTS;}});
+  const [featuredEvents,setFeaturedEvents]=useState(function(){try{var s=localStorage.getItem('tft-featured-events');return s?JSON.parse(s):[];}catch(e){return [];}});
 
-  const [featuredHosts,setFeaturedHosts]=useState(function(){try{var s=localStorage.getItem('tft-featured-hosts');return s?JSON.parse(s):[];}catch(e){return [];}});
+
 
   const [challengeCompletions,setChallengeCompletions]=useState(function(){try{var s=localStorage.getItem('tft-challenge-completions');return s?JSON.parse(s):{};}catch(e){return {};}});
 
   // Auth state
 
   const [currentUser,setCurrentUser]=useState(null); // null = guest; hydrated by Supabase auth
+  const [isAuthLoading,setIsAuthLoading]=useState(true);
 
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
+  const [cookieConsent,setCookieConsent]=useState(function(){try{return localStorage.getItem("tft-cookie-consent")==="1";}catch(e){return false;}});
 
 
 
@@ -14661,7 +14763,7 @@ function TFTClash(){
 
     }
 
-    supabase.auth.getSession().then(({data:{session}})=>setCurrentUser(mapUser(session?.user??null)));
+    supabase.auth.getSession().then(({data:{session}})=>{setCurrentUser(mapUser(session?.user??null));setIsAuthLoading(false);}).catch(function(){setIsAuthLoading(false);});
 
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,session)=>setCurrentUser(mapUser(session?.user??null)));
 
@@ -14679,6 +14781,28 @@ function TFTClash(){
         }
       });
   },[currentUser]);
+
+  // ── Hash routing — single popstate handler for back/forward ────────────
+  var navSourceRef=useRef("user");
+  useEffect(function(){function onPop(){navSourceRef.current="popstate";var h=window.location.hash.replace("#","");if(h==="standings")h="leaderboard";setScreen(h||"home");}window.addEventListener("popstate",onPop);return function(){window.removeEventListener("popstate",onPop);};},[]);
+
+  // ── Screen→hash sync: auto-updates URL, title, meta, scroll on any screen change ──
+  useEffect(function(){
+    if(navSourceRef.current==="popstate"){navSourceRef.current="user";}
+    else{try{window.history.pushState({screen:screen},"","#"+screen);}catch(e){}}
+    var titles={home:"Home",standings:"Standings",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service"};
+    var t=titles[screen]||(screen.indexOf("tournament-")===0?"Tournament":"");
+    document.title="TFT Clash"+(t?" \u2014 "+t:"");
+    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame \u2014 records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans \u2014 Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy \u2014 how we handle your data.",terms:"TFT Clash terms of service \u2014 rules for using the platform."};
+    var desc=descs[screen]||"TFT Clash \u2014 weekly competitive TFT tournaments.";
+    var metaDesc=document.querySelector('meta[name="description"]');
+    if(metaDesc)metaDesc.setAttribute("content",desc);
+    var ogTitle=document.querySelector('meta[property="og:title"]');
+    if(ogTitle)ogTitle.setAttribute("content","TFT Clash"+(t?" \u2014 "+t:""));
+    var ogDesc=document.querySelector('meta[property="og:description"]');
+    if(ogDesc)ogDesc.setAttribute("content",desc);
+    window.scrollTo(0,0);
+  },[screen]);
 
   // ── Stamp checkedIn from tournamentState.checkedInIds onto players ────────────
 
@@ -14761,7 +14885,7 @@ function TFTClash(){
 
   // ── Supabase shared state — single channel for all keys ──────────────────
 
-  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false});
+  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
 
   const announcementInitRef=useRef(false);
 
@@ -14831,8 +14955,7 @@ function TFTClash(){
 
         announcementInitRef.current=true;
 
-        if(!hadPlayers){var hasPlayersKey=res.data.some(function(r){return r.key==='players';});if(!hasPlayersKey)bootstrapPlayersFromTable();}
-
+        if(!hadPlayers)bootstrapPlayersFromTable();
         setIsLoadingData(false);
 
       });
@@ -15015,9 +15138,7 @@ function TFTClash(){
     if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[featuredEvents]);
 
-  useEffect(function(){
-    localStorage.setItem('tft-featured-hosts',JSON.stringify(featuredHosts));
-  },[featuredHosts]);
+
 
   useEffect(function(){
     if(rtRef.current.challenge_completions){rtRef.current.challenge_completions=false;return;}
@@ -15045,7 +15166,7 @@ function TFTClash(){
                 var p=players.find(function(pl){return String(pl.id)===String(r.player_id);});
                 return p?p.name:('Player '+r.player_id);
               });
-              return{id:t.id,name:t.name,date:t.date,season:'S16',players:results.length,lobbies:Math.ceil(results.length/8),champion:top8[0]||'Unknown',top3:top8};
+              return{id:t.id,name:t.name,date:t.date,season:'S1',players:results.length,lobbies:Math.ceil(results.length/8),champion:top8[0]||'Unknown',top3:top8};
             });
             setPastClashes(clashes);
           });
@@ -15053,70 +15174,31 @@ function TFTClash(){
   },[players]);
 
   function navTo(s){
-
-    var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
-
+    if(s==="standings")s="leaderboard";
     if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
-
+    var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
     if(s==="scrims"&&!canScrims){toast("Access restricted","error");return;}
-
-
-    window.history.pushState({screen:s},'','#'+s);
-
     setScreen(s);
-
   }
 
-  useEffect(()=>{
-
-    const params=new URLSearchParams(window.location.search);
-
+  useEffect(function(){
+    var params=new URLSearchParams(window.location.search);
     if(params.get("error")){
-
-      const desc=params.get("error_description")||"Sign-in failed. Please try again.";
-
+      var desc=params.get("error_description")||"Sign-in failed. Please try again.";
       toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
-
     }
-
     if(params.get("checkout")==="success"){
-
       toast("Subscription activated! Welcome to Pro. ✨","success");
-
-      window.history.replaceState({},'',window.location.pathname+'#account');
-
+      window.history.replaceState({},"",window.location.pathname+"#account");
     }
-
-    const h=window.location.hash.slice(1);
-
-    // If this is a Supabase auth callback, leave the URL alone — Supabase's async
-
-    // initialize() needs to read #access_token=... before we strip it
-
-    const isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
-
-    if(isAuthCallback){
-
-      window.addEventListener("popstate",function onPop(e){setScreen(e.state?.screen||"home");});
-
-      return;
-
-    }
-
-    const safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured"];
-
-    const dest=safeScreens.includes(h)?h:"home";
-
-    if(dest!=="home"){setScreen(dest);}
-
-    window.history.replaceState({screen:dest},'','#'+dest);
-
-    function onPop(e){setScreen(e.state?.screen||"home");}
-
-    window.addEventListener("popstate",onPop);
-
-    return ()=>window.removeEventListener("popstate",onPop);
-
+    var h=window.location.hash.slice(1);
+    var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
+    if(isAuthCallback)return;
+    var safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms"];
+    var isSafe=safeScreens.includes(h)||h.indexOf("tournament-")===0;
+    var dest=isSafe?h:"home";
+    if(dest!=="home")setScreen(dest);
+    window.history.replaceState({screen:dest},"","#"+dest);
   },[]);
 
   function handleLogin(user){
@@ -15270,7 +15352,7 @@ function TFTClash(){
 
       <Hexbg/>
 
-      {isLoadingData&&(
+      {(isLoadingData||isAuthLoading)&&(
         <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:9999}}>
           <div style={{width:48,height:48,border:"3px solid rgba(155,114,207,.2)",borderTopColor:"#9B72CF",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
           <div style={{fontFamily:"'Chakra Petch',sans-serif",fontSize:14,color:"#6B7280",letterSpacing:"0.1em"}}>Loading...</div>
@@ -15284,6 +15366,8 @@ function TFTClash(){
           currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead} scrimAccess={scrimAccess}/>
 
 
+
+        <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents}/>}
 
@@ -15309,11 +15393,15 @@ function TFTClash(){
 
         {screen==="faq"        &&<FAQScreen setScreen={navTo}/>}
 
-        {screen==="pricing"    &&<PricingScreen currentPlan="free" toast={toast} currentUser={currentUser} setScreen={navTo}/>}
+        {screen==="privacy"    &&<PrivacyScreen setScreen={navTo}/>}
+
+        {screen==="terms"      &&<TermsScreen setScreen={navTo}/>}
+
+        {screen==="pricing"    &&<PricingScreen currentPlan={currentUser&&currentUser.plan||"free"} toast={toast} currentUser={currentUser} setScreen={navTo}/>}
 
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
 
-        {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||SEED[0]} players={players} toast={toast} setScreen={navTo}/>}
+        {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
 
         {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/>}
 
@@ -15325,11 +15413,10 @@ function TFTClash(){
 
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
 
-        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);}))||(currentUser&&featuredHosts.some(function(h){return h.username===currentUser.username;})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
+        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
-        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);}))||(currentUser&&featuredHosts.some(function(h){return h.username===currentUser.username;})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>🔒</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
+        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>🔒</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
-        {screen==="fantasy"    &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)}/>}
 
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications}/>}
 
@@ -15349,11 +15436,21 @@ function TFTClash(){
 
         )}
 
+        </ScreenBoundary>
+
         <Footer setScreen={navTo}/>
 
       </div>
 
 
+
+      {/* Cookie Consent */}
+      {!cookieConsent&&(
+        <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(17,24,39,.97)",borderTop:"1px solid rgba(155,114,207,.2)",padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:16,zIndex:9997,flexWrap:"wrap",backdropFilter:"blur(8px)"}}>
+          <span style={{fontSize:13,color:"#BECBD9",maxWidth:480}}>We use essential cookies for authentication. No tracking cookies. <button onClick={function(){navTo("privacy");}} style={{background:"none",border:"none",color:"#9B72CF",cursor:"pointer",fontFamily:"inherit",fontSize:13,textDecoration:"underline",padding:0}}>Privacy Policy</button></span>
+          <button onClick={function(){setCookieConsent(true);try{localStorage.setItem("tft-cookie-consent","1");}catch(e){}}} style={{padding:"8px 20px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:13,flexShrink:0}}>Got it</button>
+        </div>
+      )}
 
       {/* Toasts */}
 

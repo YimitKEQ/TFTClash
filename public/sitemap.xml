@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://tft-clash.vercel.app/#home</loc><priority>1.0</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#leaderboard</loc><priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#bracket</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#hof</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#archive</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#featured</loc><priority>0.7</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#rules</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#faq</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#pricing</loc><priority>0.6</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#privacy</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://tft-clash.vercel.app/#terms</loc><priority>0.3</priority><changefreq>yearly</changefreq></url>
+</urlset>
