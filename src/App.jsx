@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, Component } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo, Component } from "react";
 import * as Sentry from '@sentry/react';
 
 import { supabase } from './lib/supabase.js';
@@ -814,6 +814,14 @@ button{font-family:'Chakra Petch',sans-serif;cursor:pointer;-webkit-tap-highligh
 
 input::placeholder{color:#6B7280!important;opacity:1!important;}
 
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.4),0 0 16px rgba(155,114,207,.08)!important;}
+
+button:active:not(:disabled){transform:scale(0.97);}
+
+.inner-box{background:rgba(14,22,40,.6);border:1px solid rgba(242,237,228,.06);border-radius:10px;transition:border-color .2s,box-shadow .2s;}
+
+.inner-box:hover{border-color:rgba(155,114,207,.2);box-shadow:0 0 12px rgba(155,114,207,.06);}
+
 select option{background:#1C2030;color:#F2EDE4;}
 
 h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-spacing:.02em;}
@@ -1451,6 +1459,12 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .cond{letter-spacing:.02em!important;}
   .lab-tabs button{padding:6px 8px!important;font-size:11px!important;}
   .challenges-grid{grid-template-columns:1fr 44px 44px 44px 44px 44px!important;}
+
+  /* Force horizontal scroll on data tables that exceed 375px */
+  .leaderboard-table-wrap,.stats-table-wrap,.admin-grid-wrap{overflow-x:auto!important;-webkit-overflow-scrolling:touch;}
+
+  /* AdminPanel 4-col dashboard → 2-col on small phones */
+  .admin-dash-grid{grid-template-columns:1fr 1fr!important;gap:8px!important;}
 
 }
 /* -- Lab (Scrims) mobile grid fixes -- */
@@ -3288,6 +3302,9 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
 
 
+// Wrap heavy component in memo to prevent unnecessary re-renders
+var MemoStandingsTable = memo(StandingsTable);
+
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents}){
@@ -4688,7 +4705,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     return computeLobbies();
   },[tournamentState&&tournamentState.savedLobbies,checkedIn,round]);
 
-  // Auto-persist lobby assignments so page refresh keeps them
+  // Auto-persist lobby assignments so page refresh keeps them + sync to DB
   useEffect(function(){
     if(lobbies.length===0)return;
     var saved=tournamentState&&tournamentState.savedLobbies;
@@ -4696,6 +4713,19 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     // Only save if different from what's stored
     if(saved&&JSON.stringify(saved)===JSON.stringify(lobbyIds))return;
     setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:lobbyIds});});
+    // Persist lobbies to DB
+    if(supabase.from&&tournamentState.dbTournamentId){
+      lobbyIds.forEach(function(playerIds,idx){
+        supabase.from('lobbies').upsert({
+          tournament_id:tournamentState.dbTournamentId,
+          lobby_number:idx+1,
+          round_number:round,
+          player_ids:playerIds,
+          status:'pending'
+        },{onConflict:'tournament_id,lobby_number,round_number'})
+        .then(function(res){if(res.error)console.error("[TFT] Failed to persist lobby "+(idx+1)+":",res.error);});
+      });
+    }
   },[lobbies]);
 
   function findMyLobby(){
@@ -4809,6 +4839,15 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     setTournamentState(ts=>({...ts,lockedLobbies:[...(ts.lockedLobbies||[]),li]}));
 
     setPlacementEntry(pe=>({...pe,[li]:{...pe[li],open:false}}));
+
+    // Update lobby status to locked in DB
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('lobbies').update({status:'locked'})
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('lobby_number',li+1)
+        .eq('round_number',round)
+        .then(function(res){if(res.error)console.error("[TFT] Failed to lock lobby in DB:",res.error);});
+    }
 
     // Persist per-game results to game_results table
     if(supabase.from){
@@ -5218,6 +5257,8 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
 
 
+var MemoBracketScreen = memo(BracketScreen);
+
 const styleHideMobile=`@media(max-width:767px){.hide-mobile{display:none!important;}}`;
 
 
@@ -5471,6 +5512,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
               <ClashRankBadge xp={estimateXp(player)} size="sm"/>
 
               <span className="mono" style={{fontSize:12,color:"#BECBD9"}}>{player.riotId}</span>
+
+              {(function(){var refCode=player.name?player.name.toLowerCase().replace(/[^a-z0-9]/g,""):"";var refCount=0;try{var rc2=localStorage.getItem("tft-referral-count-"+refCode);if(rc2)refCount=parseInt(rc2)||0;}catch(e){}return refCount>0?<Tag color={refCount>=10?"#E8A838":refCount>=5?"#C0C0C0":"#CD7F32"}>{refCount>=10?"Gold":refCount>=5?"Silver":"Bronze"} Recruiter ({refCount})</Tag>:null;})()}
 
             </div>
 
@@ -6172,7 +6215,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
 
 
-      {tab==="season"&&sorted.length>0&&<StandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
+      {tab==="season"&&sorted.length>0&&<MemoStandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
 
       {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>🏆</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
 
@@ -6374,7 +6417,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       )}
 
-      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"#111827",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:20}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div>{[["Season Points",comparePlayers.map(p=>p.pts),false],["Avg Placement",comparePlayers.map(p=>parseFloat(computeStats(p).avgPlacement)||99),true],["Wins",comparePlayers.map(p=>computeStats(p).wins),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top4Rate)||0),false],["Win Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top1Rate)||0),false],["Games",comparePlayers.map(p=>computeStats(p).games),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"8px 0",borderBottom:"1px solid rgba(242,237,228,.05)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0"}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center"}}>{label==="Avg Placement"?v===99?"-":v:label==="Top 4 Rate"||label==="Win Rate"?v+"%":v}</span>))}</div>);})}</div>}
+      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"⚔️"}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=computeStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(computeStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>computeStats(p).wins),false],["Games",comparePlayers.map(p=>computeStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(computeStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(computeStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(computeStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{"★"}</span>}</span>))}</div>);})}</div>}
 
     </div>
 
@@ -6385,6 +6428,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
 
 
+
+var MemoLeaderboardScreen = memo(LeaderboardScreen);
 
 // ─── CLASH REPORT component ───────────────────────────────────────────────────
 
@@ -8103,7 +8148,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
         <div>
 
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
+          <div className="admin-dash-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
 
             {[
 
@@ -14862,6 +14907,83 @@ function TermsScreen(props){
 
 // ─── FOOTER ───────────────────────────────────────────────────────────────────
 
+function NewsletterSignup(props){
+  var toast=props.toast;
+  var email=props.emailRef;
+  var submitted=props.submitted;
+  var setSubmitted=props.setSubmitted;
+  return(
+    <div style={{background:"linear-gradient(145deg,rgba(14,22,40,.88),rgba(8,12,24,.92))",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"24px 20px",textAlign:"center"}}>
+      <div style={{fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:6,fontFamily:"'Russo One',sans-serif"}}>Stay in the Loop</div>
+      <div style={{fontSize:12,color:"#BECBD9",marginBottom:14,lineHeight:1.5}}>Weekly recap, upcoming clashes, and meta updates. No spam.</div>
+      {submitted?<div style={{color:"#6EE7B7",fontSize:13,fontWeight:600}}>{"\u2713"} Subscribed! Check your inbox.</div>:(
+        <form onSubmit={function(e){e.preventDefault();var val=email.current&&email.current.value;if(!val||!val.includes("@")){if(toast)toast("Enter a valid email","error");return;}try{var subs=JSON.parse(localStorage.getItem("tft-newsletter-subs")||"[]");if(!subs.includes(val)){subs.push(val);localStorage.setItem("tft-newsletter-subs",JSON.stringify(subs));}}catch(ex){}setSubmitted(true);if(toast)toast("Subscribed! Welcome aboard.","success");}} style={{display:"flex",gap:8,maxWidth:360,margin:"0 auto"}}>
+          <input ref={email} type="email" placeholder="your@email.com" style={{flex:1,background:"#0D1525",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"10px 12px",color:"#F2EDE4",fontSize:13,fontFamily:"'Chakra Petch',sans-serif"}}/>
+          <button type="submit" style={{padding:"10px 20px",background:"linear-gradient(135deg,#9B72CF,#7C5AAF)",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:13,flexShrink:0}}>Subscribe</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function ClashReminderBtn(props){
+  var toast=props.toast;
+  var enabled=props.enabled;
+  var setEnabled=props.setEnabled;
+  function requestNotif(){
+    if(!("Notification" in window)){if(toast)toast("Browser doesn't support notifications","error");return;}
+    if(Notification.permission==="granted"){setEnabled(true);if(toast)toast("Clash reminders enabled!","success");}
+    else if(Notification.permission!=="denied"){Notification.requestPermission().then(function(perm){if(perm==="granted"){setEnabled(true);if(toast)toast("Clash reminders enabled!","success");}else{if(toast)toast("Notification permission denied","error");}});}
+    else{if(toast)toast("Notifications blocked. Enable in browser settings.","error");}
+  }
+  return(
+    <button onClick={function(){if(enabled){setEnabled(false);if(toast)toast("Reminders disabled","info");}else{requestNotif();}}}
+      style={{display:"flex",alignItems:"center",gap:8,padding:"10px 16px",
+        background:enabled?"rgba(78,205,196,.1)":"rgba(155,114,207,.08)",
+        border:"1px solid "+(enabled?"rgba(78,205,196,.4)":"rgba(155,114,207,.2)"),
+        borderRadius:10,cursor:"pointer",color:enabled?"#5EEAD4":"#C4B5FD",fontSize:13,fontWeight:600,
+        fontFamily:"'Chakra Petch',sans-serif",transition:"all .2s"}}>
+      <span style={{fontSize:16}}>{enabled?"🔔":"🔕"}</span>
+      {enabled?"Reminders On":"Enable Clash Reminders"}
+    </button>
+  );
+}
+
+function WeeklyRecapCard(props){
+  var players=props.players;
+  var pastClashes=props.pastClashes;
+  if(!players||players.length===0)return null;
+  var thisWeek=new Date();thisWeek.setDate(thisWeek.getDate()-7);
+  var recentClashes=pastClashes?pastClashes.filter(function(c){return new Date(c.date)>=thisWeek;}):[];
+  var sorted=players.slice().sort(function(a,b){return(b.pts||0)-(a.pts||0);});
+  var top5=sorted.slice(0,5);
+  var totalGames=players.reduce(function(acc,p){return acc+(p.games||0);},0);
+  var totalWins=players.reduce(function(acc,p){return acc+(p.wins||0);},0);
+  if(totalGames===0)return null;
+  return(
+    <Panel style={{padding:20}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+        <span style={{fontSize:18}}>{"📊"}</span>
+        <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>Weekly Recap</div>
+        <Tag color="#9B72CF">This Week</Tag>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+        <div className="inner-box" style={{padding:12,textAlign:"center"}}><div className="mono" style={{fontSize:20,fontWeight:700,color:"#E8A838"}}>{recentClashes.length}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em"}}>Clashes</div></div>
+        <div className="inner-box" style={{padding:12,textAlign:"center"}}><div className="mono" style={{fontSize:20,fontWeight:700,color:"#4ECDC4"}}>{totalGames}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em"}}>Games</div></div>
+        <div className="inner-box" style={{padding:12,textAlign:"center"}}><div className="mono" style={{fontSize:20,fontWeight:700,color:"#6EE7B7"}}>{totalWins}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em"}}>Total Wins</div></div>
+      </div>
+      <div style={{fontSize:12,fontWeight:700,color:"#C4B5FD",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>Top Performers</div>
+      {top5.map(function(p,i){return(
+        <div key={p.id} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:i<4?"1px solid rgba(242,237,228,.04)":"none"}}>
+          <span className="mono" style={{fontSize:12,fontWeight:700,color:i<3?"#E8A838":"#9AAABF",width:18}}>{i+1}</span>
+          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.name}</span>
+          <span className="mono" style={{fontSize:13,fontWeight:700,color:"#E8A838"}}>{p.pts} pts</span>
+        </div>
+      );})}
+    </Panel>
+  );
+}
+
 function Footer(props){
   var setScreen=props.setScreen;
   var platformLinks=[["home","Home"],["roster","Roster"],["leaderboard","Leaderboard"],["hof","Hall of Fame"],["archive","Archive"]];
@@ -14976,7 +15098,14 @@ function TFTClash(){
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
   const [cookieConsent,setCookieConsent]=useState(function(){try{return localStorage.getItem("tft-cookie-consent")==="1";}catch(e){return false;}});
 
+  // Newsletter + push notification state
+  const newsletterEmailRef=useRef(null);
+  const [newsletterSubmitted,setNewsletterSubmitted]=useState(function(){try{var subs=JSON.parse(localStorage.getItem("tft-newsletter-subs")||"[]");return subs.length>0;}catch(e){return false;}});
+  const [clashRemindersOn,setClashRemindersOn]=useState(function(){try{return localStorage.getItem("tft-clash-reminders")==="1";}catch(e){return false;}});
 
+
+
+  useEffect(function(){try{localStorage.setItem("tft-clash-reminders",clashRemindersOn?"1":"0");}catch(e){}},[clashRemindersOn]);
 
   function markAllRead(){setNotifications(ns=>ns.map(n=>({...n,read:true})));}
 
@@ -15640,6 +15769,32 @@ function TFTClash(){
 
         }
 
+        @media(max-width:480px){
+
+          .grid-home{grid-template-columns:1fr!important;gap:12px!important;}
+
+          .wrap{padding:0 8px;}
+
+          .page{padding:12px 8px 88px;}
+
+        }
+
+        @media(max-width:375px){
+
+          .wrap{padding:0 6px;}
+
+          .page{padding:10px 6px 80px;}
+
+          h1{font-size:clamp(18px,5vw,28px)!important;}
+
+          h2{font-size:clamp(16px,4.5vw,22px)!important;}
+
+          .bottom-nav{padding:6px 4px!important;}
+
+          .bottom-nav button{font-size:10px!important;padding:4px 2px!important;}
+
+        }
+
         @keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
         .ticker-scroll{display:flex;width:max-content;animation:ticker-scroll 32s linear infinite;will-change:transform;}
@@ -15700,9 +15855,9 @@ function TFTClash(){
 
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 
-        {screen==="bracket"    &&<BracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
+        {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
-        {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
+        {screen==="leaderboard"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
         {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
@@ -15772,6 +15927,17 @@ function TFTClash(){
       </div>
 
 
+
+      {/* Newsletter + Weekly Recap — before footer */}
+      {screen==="home"&&(
+        <div className="wrap" style={{maxWidth:1200,margin:"0 auto",padding:"24px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
+          <WeeklyRecapCard players={players} pastClashes={pastClashes}/>
+          <div style={{display:"flex",flexDirection:"column",gap:16}}>
+            <NewsletterSignup toast={toast} emailRef={newsletterEmailRef} submitted={newsletterSubmitted} setSubmitted={setNewsletterSubmitted}/>
+            <ClashReminderBtn toast={toast} nextClash={scheduledEvents&&scheduledEvents[0]&&scheduledEvents[0].date} enabled={clashRemindersOn} setEnabled={setClashRemindersOn}/>
+          </div>
+        </div>
+      )}
 
       {/* Cookie Consent */}
       {!cookieConsent&&(
