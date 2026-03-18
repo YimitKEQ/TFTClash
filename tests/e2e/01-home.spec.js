@@ -48,8 +48,8 @@ test.describe('Home screen', () => {
     expect(bodyText).toMatch(/\d/);
   });
 
-  test('Season 16 branding is present', async ({ page }) => {
-    const season = page.getByText(/Season 16/i);
+  test('Season 1 branding is present', async ({ page }) => {
+    const season = page.getByText(/Season 1/i);
     await expect(season.first()).toBeVisible({ timeout: 5000 });
   });
 

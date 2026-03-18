@@ -21,7 +21,7 @@ async function openMoreScreen(page, label) {
   await moreBtn.click();
   await page.waitForTimeout(300);
 
-  const menuItem = page.getByRole('button', { name: label, exact: true });
+  const menuItem = nav.getByRole('button', { name: label, exact: true });
   await menuItem.waitFor({ timeout: 5000 });
   await menuItem.click();
   await page.waitForTimeout(600);

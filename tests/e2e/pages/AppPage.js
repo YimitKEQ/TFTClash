@@ -43,7 +43,9 @@ export class AppPage {
 
   async clickMoreMenuItem(label) {
     await this.openMoreMenu();
-    await this.page.getByRole('button', { name: label, exact: true }).click();
+    // Scope to the nav to avoid strict-mode violations with duplicate footer buttons
+    const nav = this.page.locator('nav').first();
+    await nav.getByRole('button', { name: label, exact: true }).click();
     await this.page.waitForTimeout(400);
   }
 

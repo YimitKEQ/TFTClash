@@ -69,8 +69,8 @@ test.describe('Desktop navigation — More menu links', () => {
       await moreBtn.click();
       await page.waitForTimeout(300);
 
-      // Click the menu item
-      const menuItem = page.getByRole('button', { name: label, exact: true });
+      // Click the menu item — scope to nav to avoid strict-mode with footer duplicates
+      const menuItem = nav.getByRole('button', { name: label, exact: true });
       await expect(menuItem).toBeVisible({ timeout: 4000 });
       await menuItem.click();
       await page.waitForTimeout(600);

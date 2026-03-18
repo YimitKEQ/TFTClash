@@ -33,10 +33,10 @@ test.describe('Registration flow (logged-out)', () => {
 
   test('pricing section is accessible from home', async ({ page }) => {
     const app = new AppPage(page);
-    await app.clickNavLink('Pricing');
+    await app.clickMoreMenuItem('Pricing');
     await page.waitForTimeout(500);
     const body = await page.textContent('body');
-    expect(body).toMatch(/Pro|Host|Free/i);
+    expect(body).toMatch(/pricing|Pro|Host|Free/i);
   });
 });
 

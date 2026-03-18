@@ -1608,6 +1608,9 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   /* Standings table allow shrink */
   .standings-table-wrap{min-width:0!important;}
 
+  /* Podium stack on mobile */
+  .podium-grid{grid-template-columns:1fr!important;gap:8px!important;}
+
 }
 
 @media(max-width:375px){
@@ -3708,19 +3711,52 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-      {/* Phase status pill */}
+      {/* Phase status pill with progress */}
 
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16,flexWrap:"wrap"}}>
+      <div style={{marginBottom:16}}>
 
-        <div style={{background:"rgba(0,0,0,.3)",border:"1px solid "+phaseStatusColor(),borderRadius:20,padding:"6px 14px",fontSize:12,fontWeight:700,color:phaseStatusColor(),letterSpacing:".04em",cursor:tPhase==="complete"?"pointer":"default"}}
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:tPhase==="registration"||tPhase==="checkin"?8:0,flexWrap:"wrap"}}>
 
-          onClick={()=>tPhase==="complete"&&setScreen("leaderboard")}>
+          <div style={{background:"rgba(0,0,0,.3)",border:"1px solid "+phaseStatusColor(),borderRadius:20,padding:"6px 14px",fontSize:12,fontWeight:700,color:phaseStatusColor(),letterSpacing:".04em",cursor:tPhase==="complete"?"pointer":"default"}}
 
-          {tPhase==="inprogress"&&<span style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#52C47C",marginRight:7,verticalAlign:"middle",animation:"pulse 1.5s infinite"}}/>}
+            onClick={()=>tPhase==="complete"&&setScreen("leaderboard")}>
 
-          {phaseStatusText()}
+            {tPhase==="inprogress"&&<span style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#52C47C",marginRight:7,verticalAlign:"middle",animation:"pulse 1.5s infinite"}}/>}
+
+            {phaseStatusText()}
+
+          </div>
+
+          {(tPhase==="registration"||tPhase==="checkin")&&(
+            <div style={{display:"flex",alignItems:"center",gap:0,fontSize:10,color:"#9AAABF",fontWeight:600}}>
+              {["registration","checkin","inprogress","complete"].map(function(phase,i){
+                var PHASES=["registration","checkin","inprogress","complete"];
+                var currentIdx=PHASES.indexOf(tPhase);
+                var isDone=i<currentIdx;
+                var isCurrent=i===currentIdx;
+                return(
+                  <div key={phase} style={{display:"flex",alignItems:"center",gap:0}}>
+                    {i>0&&<div style={{width:16,height:1,background:isDone||isCurrent?"rgba(232,168,56,.5)":"rgba(255,255,255,.1)"}}/>}
+                    <div style={{width:8,height:8,borderRadius:"50%",background:isCurrent?phaseStatusColor():isDone?"rgba(232,168,56,.4)":"rgba(255,255,255,.08)",border:isCurrent?"2px solid "+phaseStatusColor():"1px solid "+(isDone?"rgba(232,168,56,.3)":"rgba(255,255,255,.08)"),transition:"all .3s"}}/>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
         </div>
+
+        {tPhase==="registration"&&(
+          <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
+            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#9B72CF,#4ECDC4)",width:Math.min(100,Math.round(registeredCount/24*100))+"%",transition:"width .5s ease"}}/>
+          </div>
+        )}
+
+        {tPhase==="checkin"&&(
+          <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
+            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#E8A838,#52C47C)",width:Math.min(100,registeredCount>0?Math.round(checkedInCount/registeredCount*100):0)+"%",transition:"width .5s ease"}}/>
+          </div>
+        )}
 
       </div>
 
@@ -3838,6 +3874,26 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
         </div>
 
+      )}
+
+      {/* Live tournament banner — visible to everyone during inprogress */}
+      {tPhase==="inprogress"&&(
+        <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+          <div style={{fontSize:22}}>⚡</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE — Game {tRound}/{tournamentState.totalGames||3}</div>
+            <div style={{fontSize:12,color:"#C8D4E0"}}>{checkedInCount} players competing across {Math.ceil(checkedInCount/8)} lobbies</div>
+          </div>
+          <Btn v="success" s="sm" onClick={()=>setScreen("bracket")}>Watch Live →</Btn>
+        </div>
+      )}
+
+      {/* Registration closed notice — when checkin/inprogress and user not registered */}
+      {(tPhase==="checkin"||tPhase==="inprogress")&&currentUser&&linkedPlayer&&!isMyRegistered&&(
+        <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:12,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:18}}>🚫</span>
+          <span style={{fontSize:13,color:"#F87171",fontWeight:600}}>Registration is closed for this clash. You can still spectate!</span>
+        </div>
       )}
 
 
@@ -4806,6 +4862,8 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   const [placementEntry,setPlacementEntry]=useState({});
 
+  const [showFinalizeConfirm,setShowFinalizeConfirm]=useState(false);
+
 
 
   function computeLobbies(){
@@ -5081,15 +5139,39 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
     <div className="page wrap">
 
+      {showFinalizeConfirm&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1003,padding:16}}>
+          <Panel glow style={{width:"100%",maxWidth:420,padding:"28px"}}>
+            <div style={{textAlign:"center",marginBottom:20}}>
+              <div style={{fontSize:48,marginBottom:12}}>🏆</div>
+              <h3 style={{color:"#F2EDE4",fontSize:20,marginBottom:8}}>Finalize This Clash?</h3>
+              <p style={{color:"#BECBD9",fontSize:14,lineHeight:1.5,marginBottom:4}}>This will end the tournament and post final results. All {checkedIn.length} players will receive their season points.</p>
+              <p style={{color:"#E8A838",fontSize:12,fontWeight:600}}>This action cannot be undone.</p>
+            </div>
+            <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+              <Btn v="dark" onClick={()=>setShowFinalizeConfirm(false)}>Cancel</Btn>
+              <Btn v="primary" onClick={()=>{setShowFinalizeConfirm(false);saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[],savedLobbies:[]}));toast("Clash complete! View results →","success");}}>Finalize Clash</Btn>
+            </div>
+          </Panel>
+        </div>
+      )}
+
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
 
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
 
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>
+        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
 
-          Game {round}/{tournamentState.totalGames||3}
+          <span>Game {round}/{tournamentState.totalGames||3}</span>
 
-          <span style={{fontSize:13,fontWeight:400,color:"#BECBD9",marginLeft:10}}>{lobbies.length} {lobbies.length===1?"Lobby":"Lobbies"} · {checkedIn.length} players</span>
+          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:12,letterSpacing:".08em",textTransform:"uppercase",
+            background:tournamentState.phase==="inprogress"?"rgba(82,196,124,.12)":tournamentState.phase==="complete"?"rgba(78,205,196,.12)":"rgba(155,114,207,.12)",
+            color:tournamentState.phase==="inprogress"?"#6EE7B7":tournamentState.phase==="complete"?"#4ECDC4":"#C4B5FD",
+            border:"1px solid "+(tournamentState.phase==="inprogress"?"rgba(82,196,124,.3)":tournamentState.phase==="complete"?"rgba(78,205,196,.3)":"rgba(155,114,207,.3)")}}>
+            {tournamentState.phase==="inprogress"?"Live":tournamentState.phase==="complete"?"Complete":tournamentState.phase==="checkin"?"Check-in":"Setup"}
+          </span>
+
+          <span style={{fontSize:13,fontWeight:400,color:"#BECBD9"}}>{lobbies.length} {lobbies.length===1?"Lobby":"Lobbies"} · {checkedIn.length} players</span>
 
         </h2>
 
@@ -5099,7 +5181,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[],savedLobbies:[]}))}>← Round</Btn>
 
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[],savedLobbies:[]}));toast("Clash complete! View results →","success");}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg=" — "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
+            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg=" — "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
 
               {round>=(tournamentState.totalGames||3)?"Finalize Clash ✓":"Next Game →"}
 
@@ -5111,7 +5193,12 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
       </div>
 
-
+      {isAdmin&&allLocked&&checkedIn.length>0&&(
+        <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
+          <span style={{fontSize:16}}>✅</span>
+          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7"}}>All {lobbies.length} lobbies locked — {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}</span>
+        </div>
+      )}
 
       {checkedIn.length===0&&(
 
@@ -5155,7 +5242,15 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
           </Panel>
 
-
+          {/* Lobby lock progress */}
+          {lobbies.length>0&&tournamentState.phase==="inprogress"&&(
+            <div style={{marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{flex:1,background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:8,background:allLocked?"linear-gradient(90deg,#52C47C,#6EE7B7)":"linear-gradient(90deg,#E8A838,#9B72CF)",width:Math.round(lockedLobbies.length/lobbies.length*100)+"%",transition:"width .5s ease"}}/>
+              </div>
+              <span style={{fontSize:11,fontWeight:700,color:allLocked?"#6EE7B7":"#E8A838",whiteSpace:"nowrap"}}>{lockedLobbies.length}/{lobbies.length} locked</span>
+            </div>
+          )}
 
           {/* Round progress + complete banner */}
 
@@ -7011,7 +7106,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
       {sorted.length>=3&&(
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1.1fr 1fr",gap:10,marginBottom:24,alignItems:"end"}}>
+        <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.1fr 1fr",gap:10,marginBottom:24,alignItems:"end"}}>
 
           {top3.map((p,idx)=>{
 

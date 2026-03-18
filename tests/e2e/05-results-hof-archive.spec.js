@@ -122,7 +122,7 @@ test.describe('Archive screen', () => {
     await moreBtn.click();
     await page.waitForTimeout(300);
 
-    const archiveBtn = page.getByRole('button', { name: 'Archive', exact: true });
+    const archiveBtn = nav.getByRole('button', { name: 'Archive', exact: true });
     await archiveBtn.waitFor({ timeout: 5000 });
     await archiveBtn.click();
     await page.waitForTimeout(700);
