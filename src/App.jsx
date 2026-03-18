@@ -3201,6 +3201,10 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
                   <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
 
+                  {p.plan==="pro"&&<span style={{fontSize:9,fontWeight:800,color:"#E8A838",background:"rgba(232,168,56,.15)",padding:"1px 5px",borderRadius:4,flexShrink:0,letterSpacing:".04em"}}>PRO</span>}
+
+                  {p.plan==="host"&&<span style={{fontSize:9,fontWeight:800,color:"#9B72CF",background:"rgba(155,114,207,.15)",padding:"1px 5px",borderRadius:4,flexShrink:0,letterSpacing:".04em"}}>HOST</span>}
+
                   {isHotStreak(p)&&<span title={"Win streak: "+(p.currentStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🔥</span>}
 
                   {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🥶</span>}
@@ -6109,6 +6113,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
                     <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:4}}>
 
                       <span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{p.name}</span>
+
+                      {p.plan==="pro"&&<span style={{fontSize:9,fontWeight:800,color:"#E8A838",background:"rgba(232,168,56,.15)",padding:"1px 4px",borderRadius:4,marginLeft:2}}>PRO</span>}
 
                       {isHotStreak(p)&&"🔥"}{isOnTilt(p)&&"💀"}
 
@@ -14555,6 +14561,79 @@ function FAQScreen({setScreen}){
 }
 
 
+
+// ─── REFERRAL SYSTEM ─────────────────────────────────────────────────────────
+
+function ReferralPanel(props){
+  var currentUser=props.currentUser;
+  var toast=props.toast;
+  if(!currentUser)return null;
+  var code=currentUser.username?currentUser.username.toLowerCase().replace(/[^a-z0-9]/g,""):"";
+  var refUrl="https://tft-clash.vercel.app/?ref="+code+"#home";
+  var referrals=0;
+  try{var s=localStorage.getItem("tft-referral-count-"+code);if(s)referrals=parseInt(s)||0;}catch(e){}
+  var tier=referrals>=10?"gold":referrals>=5?"silver":referrals>=1?"bronze":"none";
+  var tierColors={gold:"#E8A838",silver:"#C0C0C0",bronze:"#CD7F32",none:"#8896A8"};
+  var tierNames={gold:"Gold Recruiter",silver:"Silver Recruiter",bronze:"Bronze Recruiter",none:"No referrals yet"};
+  return(
+    <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12,padding:18,marginTop:16}}>
+      <div style={{fontSize:14,fontWeight:700,color:"#C4B5FD",marginBottom:10}}>Referral Program</div>
+      <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.6,marginBottom:12}}>Invite friends to TFT Clash. Both of you earn a badge when they complete their first clash.</div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+        <input readOnly value={refUrl} style={{flex:1,minWidth:180,background:"rgba(0,0,0,.3)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"8px 10px",color:"#F2EDE4",fontSize:12,fontFamily:"monospace"}} onClick={function(e){e.target.select();}}/>
+        <button onClick={function(){navigator.clipboard.writeText(refUrl).then(function(){toast("Referral link copied!","success");}).catch(function(){toast("Copy failed","error");});}} style={{padding:"8px 14px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:12,flexShrink:0}}>Copy Link</button>
+      </div>
+      <div style={{display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:11,fontWeight:700,color:tierColors[tier]}}>{tierNames[tier]}</span>
+        {tier!=="none"&&<span style={{fontSize:9,fontWeight:800,color:tierColors[tier],background:tierColors[tier]+"18",padding:"2px 6px",borderRadius:4,textTransform:"uppercase",letterSpacing:".06em"}}>{referrals} referred</span>}
+      </div>
+    </div>
+  );
+}
+
+// ─── GEAR / AFFILIATE LINKS ─────────────────────────────────────────────────
+
+function GearScreen(props){
+  var setScreen=props.setScreen;
+  var items=[
+    {cat:"VPN",name:"NordVPN",desc:"Low-ping gaming VPN. Trusted by millions of gamers worldwide.",tag:"40-68% off",color:"#4687FF",icon:"\ud83d\udd12"},
+    {cat:"VPN",name:"Surfshark",desc:"Unlimited devices, great speeds. Budget-friendly VPN for gaming.",tag:"Up to 81% off",color:"#1CBFB0",icon:"\ud83c\udf0a"},
+    {cat:"Peripherals",name:"Razer DeathAdder V3",desc:"Ultra-lightweight ergonomic mouse. The go-to for competitive play.",tag:"Top Pick",color:"#44D62C",icon:"\ud83d\uddb1\ufe0f"},
+    {cat:"Peripherals",name:"Logitech G Pro X",desc:"Tournament-proven wireless mouse with HERO 25K sensor.",tag:"Pro Choice",color:"#00B8FC",icon:"\ud83d\uddb1\ufe0f"},
+    {cat:"Audio",name:"HyperX Cloud III",desc:"Comfortable, clear audio for long tournament sessions.",tag:"Best Value",color:"#E31937",icon:"\ud83c\udfa7"},
+    {cat:"Monitor",name:"ASUS VG27AQ1A",desc:"27\" 1440p 170Hz IPS. Smooth visuals for every round.",tag:"Editor Pick",color:"#D4AF37",icon:"\ud83d\udcfa"},
+    {cat:"Chair",name:"Secretlab TITAN Evo",desc:"Ergonomic gaming chair for marathon clash sessions.",tag:"Premium",color:"#9B72CF",icon:"\ud83e\ude91"}
+  ];
+  return(
+    <div className="page wrap" style={{maxWidth:800,margin:"0 auto"}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:24,flexWrap:"wrap"}}>
+        <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"\u2190 Back"}</Btn>
+        <h2 style={{color:"#F2EDE4",fontSize:22,margin:0,fontFamily:"'Playfair Display',serif"}}>Recommended Gear</h2>
+      </div>
+      <p style={{color:"#BECBD9",fontSize:13,marginBottom:24,lineHeight:1.6}}>Gear we trust for competitive TFT sessions. Links may earn us a small commission at no extra cost to you \u2014 it helps keep TFT Clash free.</p>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
+        {items.map(function(item,i){
+          return(
+            <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:18,transition:"border-color .2s",cursor:"default"}}
+              onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"66";}}
+              onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.08)";}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                <span style={{fontSize:22}}>{item.icon}</span>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:"#F2EDE4"}}>{item.name}</div>
+                  <div style={{fontSize:10,color:item.color,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{item.cat}</div>
+                </div>
+              </div>
+              <p style={{fontSize:12,color:"#BECBD9",lineHeight:1.5,marginBottom:10}}>{item.desc}</p>
+              <span style={{display:"inline-block",fontSize:10,fontWeight:700,color:item.color,background:item.color+"18",padding:"3px 8px",borderRadius:6}}>{item.tag}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── PRIVACY POLICY ──────────────────────────────────────────────────────────
 
 function PrivacyScreen(props){
@@ -14622,7 +14701,7 @@ function TermsScreen(props){
 function Footer(props){
   var setScreen=props.setScreen;
   var platformLinks=[["home","Home"],["roster","Roster"],["leaderboard","Leaderboard"],["hof","Hall of Fame"],["archive","Archive"]];
-  var communityLinks=[["featured","Featured Events"],["rules","Rules"],["faq","FAQ"]];
+  var communityLinks=[["featured","Featured Events"],["rules","Rules"],["faq","FAQ"],["gear","Gear"]];
   var hostingLinks=[["pricing","Pricing"],["host-apply","Apply to Host"],["host-dashboard","Host Dashboard"]];
   return(
     <footer style={{background:"#06060C",borderTop:"1px solid rgba(155,114,207,.15)",padding:"40px 24px 24px",marginTop:40}}>
@@ -14790,10 +14869,10 @@ function TFTClash(){
   useEffect(function(){
     if(navSourceRef.current==="popstate"){navSourceRef.current="user";}
     else{try{window.history.pushState({screen:screen},"","#"+screen);}catch(e){}}
-    var titles={home:"Home",standings:"Standings",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service"};
+    var titles={home:"Home",standings:"Standings",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear"};
     var t=titles[screen]||(screen.indexOf("tournament-")===0?"Tournament":"");
     document.title="TFT Clash"+(t?" \u2014 "+t:"");
-    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame \u2014 records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans \u2014 Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy \u2014 how we handle your data.",terms:"TFT Clash terms of service \u2014 rules for using the platform."};
+    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame \u2014 records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans \u2014 Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy \u2014 how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service \u2014 rules for using the platform."};
     var desc=descs[screen]||"TFT Clash \u2014 weekly competitive TFT tournaments.";
     var metaDesc=document.querySelector('meta[name="description"]');
     if(metaDesc)metaDesc.setAttribute("content",desc);
@@ -14801,6 +14880,13 @@ function TFTClash(){
     if(ogTitle)ogTitle.setAttribute("content","TFT Clash"+(t?" \u2014 "+t:""));
     var ogDesc=document.querySelector('meta[property="og:description"]');
     if(ogDesc)ogDesc.setAttribute("content",desc);
+    var existingLD=document.getElementById("tft-jsonld");
+    if(existingLD)existingLD.remove();
+    var ld=null;
+    if(screen==="home")ld={"@context":"https://schema.org","@type":"WebApplication","name":"TFT Clash","url":"https://tft-clash.vercel.app","description":desc,"applicationCategory":"GameApplication","operatingSystem":"Any","offers":{"@type":"AggregateOffer","lowPrice":"0","highPrice":"19.99","priceCurrency":"EUR"}};
+    if(screen.indexOf("tournament-")===0)ld={"@context":"https://schema.org","@type":"SportsEvent","name":"TFT Clash Tournament","location":{"@type":"VirtualLocation","url":"https://tft-clash.vercel.app/#"+screen},"organizer":{"@type":"Organization","name":"TFT Clash"}};
+    if(screen==="profile"||screen==="leaderboard")ld={"@context":"https://schema.org","@type":"SportsOrganization","name":"TFT Clash","sport":"Teamfight Tactics","url":"https://tft-clash.vercel.app"};
+    if(ld){var s2=document.createElement("script");s2.type="application/ld+json";s2.id="tft-jsonld";s2.textContent=JSON.stringify(ld);document.head.appendChild(s2);}
     window.scrollTo(0,0);
   },[screen]);
 
@@ -15187,6 +15273,8 @@ function TFTClash(){
       var desc=params.get("error_description")||"Sign-in failed. Please try again.";
       toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
     }
+    var refParam=params.get("ref");
+    if(refParam){try{var prev=localStorage.getItem("tft-referred-by");if(!prev){localStorage.setItem("tft-referred-by",refParam);var rc=parseInt(localStorage.getItem("tft-referral-count-"+refParam)||"0");localStorage.setItem("tft-referral-count-"+refParam,String(rc+1));}}catch(e){}}
     if(params.get("checkout")==="success"){
       toast("Subscription activated! Welcome to Pro. ✨","success");
       window.history.replaceState({},"",window.location.pathname+"#account");
@@ -15194,7 +15282,7 @@ function TFTClash(){
     var h=window.location.hash.slice(1);
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
-    var safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms"];
+    var safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear"];
     var isSafe=safeScreens.includes(h)||h.indexOf("tournament-")===0;
     var dest=isSafe?h:"home";
     if(dest!=="home")setScreen(dest);
@@ -15397,13 +15485,15 @@ function TFTClash(){
 
         {screen==="terms"      &&<TermsScreen setScreen={navTo}/>}
 
+        {screen==="gear"       &&<GearScreen setScreen={navTo}/>}
+
         {screen==="pricing"    &&<PricingScreen currentPlan={currentUser&&currentUser.plan||"free"} toast={toast} currentUser={currentUser} setScreen={navTo}/>}
 
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
 
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
 
-        {screen==="account"    &&currentUser&&<AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/>}
+        {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
