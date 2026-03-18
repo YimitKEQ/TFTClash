@@ -4269,7 +4269,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 
 
-  const filtered=players
+  const filtered=players.filter(function(p){return(p.games||0)>0||p.checkedIn;})
 
     .filter(p=>{
 
@@ -12043,7 +12043,7 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
 
 
-function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfilePlayer,isAdmin,hostApps}){
+function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayers,setProfilePlayer,isAdmin,hostApps}){
 
   const [tab,setTab]=useState("profile");
 
@@ -12468,8 +12468,12 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
                   if(!window.confirm("Delete your account permanently? This cannot be undone."))return;
 
-                  try{await supabase.auth.admin?.deleteUser?.(user.id).catch(()=>{});await supabase.auth.signOut();onLogout();toast("Account deleted","success");}
-
+                  try{
+                    // Remove player from DB and local state
+                    if(supabase.from){await supabase.from('players').delete().eq('auth_user_id',user.id).catch(function(){});}
+                    if(setPlayers){setPlayers(function(ps){return ps.filter(function(p){return p.authUserId!==user.id&&(p.name||"").toLowerCase()!==(user.username||"").toLowerCase();});});}
+                    await supabase.auth.admin?.deleteUser?.(user.id).catch(()=>{});await supabase.auth.signOut();onLogout();toast("Account deleted","success");
+                  }
                   catch(e){await supabase.auth.signOut();onLogout();}
 
                 }} style={{padding:"7px 14px",background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.5)",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#F87171"}}>
@@ -15728,7 +15732,7 @@ function TFTClash(){
 
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
 
-        {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
+        {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
