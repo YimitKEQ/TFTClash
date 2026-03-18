@@ -842,6 +842,14 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 @keyframes lock-flash{0%{background:rgba(82,196,124,0)}40%{background:rgba(82,196,124,.12)}100%{background:rgba(82,196,124,0)}}
 
+@keyframes screen-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+@keyframes skeleton-pulse{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+@keyframes achievement-glow{0%{box-shadow:0 0 0 0 rgba(155,114,207,.4)}50%{box-shadow:0 0 16px 4px rgba(155,114,207,.15)}100%{box-shadow:0 0 0 0 rgba(155,114,207,0)}}
+
+@keyframes achievement-pop{0%{transform:scale(.95);opacity:.7}60%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
+
 @keyframes confetti-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
 
 @keyframes champ-reveal{0%{transform:scale(.75) translateY(30px);opacity:0;filter:blur(12px)}100%{transform:scale(1) translateY(0);opacity:1;filter:blur(0)}}
@@ -864,7 +872,7 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 .wrap{max-width:1400px;margin:0 auto;padding:0 16px;}
 
-.page{padding:24px 16px 100px;}
+.page{padding:24px 16px 100px;animation:screen-enter .3s ease-out both;}
 
 
 
@@ -1624,6 +1632,33 @@ function Inp({value,onChange,placeholder,type,onKeyDown,style}){
 }
 
 
+
+function Skeleton({width,height,radius,style}){
+  return(
+    <div style={Object.assign({
+      width:width||"100%",height:height||16,borderRadius:radius||8,
+      background:"linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.08) 50%,rgba(255,255,255,.04) 75%)",
+      backgroundSize:"200% 100%",animation:"skeleton-pulse 1.8s ease-in-out infinite"
+    },style||{})}/>
+  );
+}
+
+function ShareBar({text,url,toast}){
+  var shareUrl=url||window.location.href;
+  function copyLink(){navigator.clipboard.writeText(shareUrl).then(function(){toast&&toast("Link copied!","success");}).catch(function(){toast&&toast("Copy failed","error");});}
+  function shareX(){window.open("https://x.com/intent/tweet?text="+encodeURIComponent(text||"")+"&url="+encodeURIComponent(shareUrl),"_blank");}
+  function shareNative(){
+    if(navigator.share){navigator.share({title:"TFT Clash",text:text||"Check this out on TFT Clash!",url:shareUrl}).catch(function(){});}
+    else{copyLink();}
+  }
+  return(
+    <div style={{display:"flex",gap:6,alignItems:"center"}}>
+      <button onClick={copyLink} title="Copy link" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>📋 Copy</button>
+      <button onClick={shareX} title="Share on X" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>𝕏 Post</button>
+      <button onClick={shareNative} title="Share" style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#9B72CF",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>↗ Share</button>
+    </div>
+  );
+}
 
 function Sel({value,onChange,children,style}){
 
@@ -3303,13 +3338,21 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-  const checkedN=players.filter(p=>p.checkedIn).length;
+  const checkedN=useMemo(function(){return players.filter(p=>p.checkedIn).length;},[players]);
 
-  const top5=[...players].sort((a,b)=>b.pts-a.pts).slice(0,5);
+  const top5=useMemo(function(){return[...players].sort((a,b)=>b.pts-a.pts).slice(0,5);},[players]);
 
-  const linkedPlayer=currentUser?players.find(p=>p.name===currentUser.username):null;
+  const linkedPlayer=useMemo(function(){
+    if(!currentUser)return null;
+    return players.find(function(p){
+      if(p.authUserId&&currentUser.id&&p.authUserId===currentUser.id)return true;
+      if(p.name&&currentUser.username&&p.name.toLowerCase()===currentUser.username.toLowerCase())return true;
+      if(p.riotId&&currentUser.riotId&&p.riotId.toLowerCase()===currentUser.riotId.toLowerCase())return true;
+      return false;
+    })||null;
+  },[players,currentUser]);
 
-  const alreadyRegistered=currentUser&&players.find(p=>p.riotId&&p.riotId.toLowerCase()===(currentUser.riotId||"").toLowerCase());
+  const alreadyRegistered=!!linkedPlayer;
 
   const profileComplete=currentUser&&currentUser.riotId&&currentUser.riotId.trim().length>0;
 
@@ -3323,9 +3366,11 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   const checkedInCount=players.filter(p=>p.checkedIn).length;
 
-  const registeredCount=players.length;
+  const registeredCount=(tournamentState.registeredIds||[]).length;
 
   const myCheckedIn=linkedPlayer&&linkedPlayer.checkedIn;
+
+  const isMyRegistered=linkedPlayer&&(tournamentState.registeredIds||[]).includes(String(linkedPlayer.id));
 
 
 
@@ -3344,32 +3389,42 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
   function registerFromAccount(){
-
-    if(!currentUser||!profileComplete){return;}
-
-    if(players.length>=64){toast("Tournament is full","error");return;}
-
-    if(alreadyRegistered){toast("You're already registered!","error");return;}
-
-    const lp=Math.floor(Math.random()*2000)+900;
-
-    const ri=Math.min(Math.floor(lp/300),RANKS.length-1);
-
-    const np={id:Date.now()%100000,name:currentUser.username,riotId:currentUser.riotId,rank:RANKS[ri],lp,
-
-      region:currentUser.region||"EUW",pts:0,wins:0,top4:0,games:0,avg:"0",
-
-      bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,
-
-      role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
-
-    setPlayers(p=>[...p,np]);
-
-    // Also register in tournamentState.registeredIds
-    setTournamentState(function(ts){var ids=ts.registeredIds||[];var sid=String(np.id);return ids.includes(sid)?ts:{...ts,registeredIds:[...ids,sid]};});
-
+    if(!currentUser||!profileComplete)return;
+    if(!linkedPlayer){toast("Account not linked to a player profile","error");return;}
+    var sid=String(linkedPlayer.id);
+    var isReg=(tournamentState.registeredIds||[]).includes(sid);
+    if(isReg){toast("You're already registered!","error");return;}
+    // Add to registeredIds
+    setTournamentState(function(ts){
+      var ids=ts.registeredIds||[];
+      return ids.includes(sid)?ts:{...ts,registeredIds:[...ids,sid]};
+    });
+    // Sync to DB registrations table
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('registrations').insert({
+        tournament_id:tournamentState.dbTournamentId,
+        player_id:linkedPlayer.id,
+        status:'registered'
+      }).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+    }
     toast(currentUser.username+" registered for "+clashName+"! ✓","success");
+  }
 
+  function unregisterFromClash(){
+    if(!linkedPlayer)return;
+    var sid=String(linkedPlayer.id);
+    setTournamentState(function(ts){
+      var ids=ts.registeredIds||[];
+      return{...ts,registeredIds:ids.filter(function(id){return id!==sid;})};
+    });
+    // Sync to DB
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('registrations').delete()
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('player_id',linkedPlayer.id)
+        .then(function(r){if(r.error)console.error("[TFT] unregister failed:",r.error);});
+    }
+    toast("Unregistered from "+clashName,"info");
   }
 
 
@@ -3498,9 +3553,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       {tPhase==="registration"&&(
 
-        currentUser&&linkedPlayer?(
-
-          tournamentState.registeredIds&&tournamentState.registeredIds.includes(String(linkedPlayer.id))?(
+        currentUser&&linkedPlayer&&isMyRegistered?(
 
             <div style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
@@ -3518,13 +3571,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{fontSize:12,fontWeight:700,color:"#4ECDC4",background:"rgba(78,205,196,.12)",border:"1px solid rgba(78,205,196,.3)",borderRadius:8,padding:"6px 14px"}}>✓ Registered</div>
 
-                <Btn v="dark" s="sm" onClick={()=>onRegister&&onRegister(linkedPlayer.id)}>Unregister</Btn>
+                <Btn v="dark" s="sm" onClick={unregisterFromClash}>Unregister</Btn>
 
               </div>
 
             </div>
 
-          ):(
+        ):currentUser&&linkedPlayer&&!isMyRegistered?(
 
             <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
@@ -3538,11 +3591,27 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               </div>
 
-              <Btn v="success" onClick={()=>onRegister&&onRegister(linkedPlayer.id)}>Register for Clash</Btn>
+              <Btn v="success" onClick={registerFromAccount}>Register for Clash</Btn>
 
             </div>
 
-          )
+        ):currentUser&&!linkedPlayer?(
+
+            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+
+              <div style={{fontSize:22}}>📋</div>
+
+              <div style={{flex:1,minWidth:0}}>
+
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
+
+                <div style={{fontSize:12,color:"#C8D4E0"}}>{profileComplete?"Ready to register — your profile is linked":"Complete your profile to register"}</div>
+
+              </div>
+
+              {profileComplete?<Btn v="primary" s="sm" onClick={()=>setScreen("account")}>View account</Btn>:<Btn v="primary" s="sm" onClick={()=>setScreen("account")}>Complete profile</Btn>}
+
+            </div>
 
         ):(
 
@@ -3884,9 +3953,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-            {/* Already registered */}
+            {/* Already registered — show status + unregister */}
 
-            {currentUser&&profileComplete&&alreadyRegistered&&(
+            {currentUser&&profileComplete&&alreadyRegistered&&isMyRegistered&&(
 
               <div style={{background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
 
@@ -3896,17 +3965,17 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Playing as <span style={{color:"#F2EDE4",fontWeight:600}}>{currentUser.username}</span> · {currentUser.riotId}</div>
 
-                <div style={{fontSize:11,color:"#9AAABF"}}>Check-in opens 60 min before start</div>
+                <div style={{fontSize:11,color:"#9AAABF",marginBottom:14}}>Check-in opens 60 min before start</div>
+
+                <Btn v="dark" s="sm" onClick={unregisterFromClash}>Unregister</Btn>
 
               </div>
 
             )}
 
+            {/* In roster but not yet registered for this clash */}
 
-
-            {/* Ready to register */}
-
-            {currentUser&&profileComplete&&!alreadyRegistered&&(
+            {currentUser&&profileComplete&&alreadyRegistered&&!isMyRegistered&&(
 
               <div>
 
@@ -3929,6 +3998,24 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                 </div>
 
                 <Btn v="primary" full onClick={registerFromAccount}>Register for {clashName} →</Btn>
+
+              </div>
+
+            )}
+
+            {/* Not in roster yet — direct them to complete setup */}
+
+            {currentUser&&profileComplete&&!alreadyRegistered&&(
+
+              <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
+
+                <div style={{fontSize:20,marginBottom:8}}>⚠️</div>
+
+                <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Profile not linked to roster</div>
+
+                <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Your account needs to be linked to the player roster. Try refreshing the page or contact an admin.</div>
+
+                <Btn v="dark" s="sm" onClick={()=>window.location.reload()}>Refresh</Btn>
 
               </div>
 
@@ -4510,7 +4597,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
 function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig}){
 
-  const checkedIn=players.filter(p=>p.checkedIn);
+  const checkedIn=useMemo(function(){return players.filter(p=>p.checkedIn);},[players]);
 
   const lobbySize=8;
 
@@ -5930,7 +6017,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 
-function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
+function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast}){
 
   const [tab,setTab]=useState("season");
 
@@ -5946,17 +6033,14 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 
 
-  const filtered=players.filter(p=>{
-
-    const mn=p.name.toLowerCase().includes(search.toLowerCase());
-
-    const mr=regionFilter==="All"||p.region===regionFilter;
-
-    return mn&&mr;
-
-  });
-
-  const sorted=[...filtered].sort((a,b)=>b.pts-a.pts);
+  const sorted=useMemo(function(){
+    var f=players.filter(function(p){
+      var mn=p.name.toLowerCase().includes(search.toLowerCase());
+      var mr=regionFilter==="All"||p.region===regionFilter;
+      return mn&&mr;
+    });
+    return[...f].sort(function(a,b){return b.pts-a.pts;});
+  },[players,search,regionFilter]);
 
   const top3=sorted.slice(0,3);
 
@@ -5991,6 +6075,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser}){
           <p style={{color:"#BECBD9",fontSize:13}}>Season 1 · tap a player for full profile</p>
 
         </div>
+
+        <ShareBar text={"Check out the TFT Clash leaderboard!"} toast={toast}/>
 
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
 
@@ -6941,7 +7027,7 @@ function AutoLogin({setAuthScreen}){
 
 // ─── HALL OF FAME ─────────────────────────────────────────────────────────────
 
-function HofScreen({players,setScreen,setProfilePlayer,pastClashes}){
+function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
   const [expandRecord,setExpandRecord]=useState(null);
 
@@ -7036,7 +7122,9 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes}){
 
         </h1>
 
-        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65}}>These records are permanent. Every name here earned their place.</p>
+        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65,marginBottom:16}}>These records are permanent. Every name here earned their place.</p>
+
+        <div style={{display:"flex",justifyContent:"center"}}><ShareBar text={"Check out the TFT Clash Hall of Fame!"} toast={toast}/></div>
 
         <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.35),transparent)",marginTop:24}}/>
 
@@ -8808,6 +8896,58 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               </div>
 
               <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season health rules updated");toast("Health rules saved","success");}}>Save Rules</Btn>
+
+            </div>
+
+          </Panel>
+
+          <Panel style={{padding:"20px",border:"1px solid rgba(155,114,207,.2)",gridColumn:"1/-1"}}>
+
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+
+              <span style={{fontSize:18}}>📅</span>
+
+              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Season Lifecycle</div>
+
+            </div>
+
+            <div style={{fontSize:12,color:"#C8D4E0",marginBottom:16,lineHeight:1.5}}>Create a new season in the database or end the current one. Ending a season snapshots all player stats and creates a new season record.</div>
+
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+
+              <Btn v="primary" onClick={function(){
+                var name=window.prompt("New season name:","Season "+(parseInt((seasonName||"Season 1").replace(/\D/g,""))||1));
+                if(!name)return;
+                if(supabase.from){
+                  supabase.from('seasons').insert({name:name,status:'active',started_at:new Date().toISOString()}).select().single()
+                    .then(function(res){
+                      if(res.error){toast("Failed to create season: "+res.error.message,"error");return;}
+                      setSeasonConfig(function(c){return Object.assign({},c,{seasonId:res.data.id});});
+                      setSeasonName(name);
+                      addAudit("ACTION","New season created: "+name+" (id: "+res.data.id+")");
+                      toast("Season '"+name+"' created!","success");
+                    });
+                }else{
+                  setSeasonName(name);
+                  toast("Season renamed to "+name,"success");
+                }
+              }}>Create New Season</Btn>
+
+              <Btn v="dark" onClick={function(){
+                if(!window.confirm("End the current season? This will snapshot all stats and mark the season as completed."))return;
+                if(supabase.from&&seasonConfig&&seasonConfig.seasonId){
+                  // Snapshot player stats
+                  var snapshots=players.map(function(p){return{season_id:seasonConfig.seasonId,player_id:p.id,pts:p.pts||0,wins:p.wins||0,top4:p.top4||0,games:p.games||0,avg_placement:parseFloat(p.avg)||0,final_rank:[...players].sort(function(a,b){return b.pts-a.pts;}).findIndex(function(x){return x.id===p.id;})+1};});
+                  supabase.from('season_snapshots').insert(snapshots).then(function(r){if(r.error)console.error("[TFT] snapshot insert failed:",r.error);});
+                  // Mark season complete
+                  supabase.from('seasons').update({status:'completed',ended_at:new Date().toISOString()}).eq('id',seasonConfig.seasonId)
+                    .then(function(r){if(r.error)console.error("[TFT] season end failed:",r.error);});
+                  addAudit("ACTION","Season ended: "+(seasonName||"Season")+" — "+players.length+" players snapshotted");
+                  toast("Season ended. Stats snapshotted.","success");
+                }else{
+                  toast("No active season found in database","error");
+                }
+              }}>End Current Season</Btn>
 
             </div>
 
@@ -10798,7 +10938,9 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                   opacity:myPlayer&&!unlocked?.55:1,
 
-                  transition:"all .2s"}}>
+                  transition:"all .2s",
+
+                  animation:unlocked?"achievement-pop .4s ease-out both":"none"}}>
 
                   <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
 
@@ -10812,7 +10954,9 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                       fontSize:22,flexShrink:0,
 
-                      boxShadow:unlocked?"0 0 12px "+col+"33":"none"}}>
+                      boxShadow:unlocked?"0 0 12px "+col+"33":"none",
+
+                      animation:unlocked?"achievement-glow 2s ease-in-out infinite":"none"}}>
 
                       {a.icon}
 
@@ -11369,7 +11513,7 @@ function isValidRiotId(id) {
   return /^.{3,16}#[A-Za-z0-9]{3,5}$/.test((id||'').trim());
 }
 
-function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
+function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
   const [step,setStep]=useState(1); // 1=credentials, 2=profile
 
@@ -11451,13 +11595,29 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast}){
 
     });
 
-    if(!error)await supabase.from('players').insert({username:username.trim(),riot_id:riotId.trim(),region});
-
     setLoading(false);
 
     if(error){toast(error.message,"error");return;}
 
-    onSignUp({...data.user,username:username.trim()});
+    // Insert into DB players table with auth_user_id link
+    var authUserId=data.user?data.user.id:null;
+    var dbInsert=await supabase.from('players').insert({username:username.trim(),riot_id:riotId.trim(),region,auth_user_id:authUserId}).select().single();
+
+    // Add to local players[] state immediately so linkedPlayer works
+    var newPlayer={
+      id:dbInsert.data?dbInsert.data.id:(Date.now()%100000),
+      name:username.trim(),username:username.trim(),
+      riotId:riotId.trim(),rank:'Iron',region:region||'EUW',
+      bio:bio.trim(),authUserId:authUserId,
+      pts:0,wins:0,top4:0,games:0,avg:"0",
+      banned:false,dnpCount:0,notes:'',checkedIn:false,
+      clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
+      tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
+      role:"player",sponsor:null
+    };
+    if(setPlayers)setPlayers(function(ps){return ps.concat([newPlayer]);});
+
+    onSignUp({...data.user,username:username.trim(),riotId:riotId.trim(),region:region});
 
     toast("Welcome to TFT Clash, "+username.trim()+"! 🎉","success");
 
@@ -11903,9 +12063,9 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
   const [bannerUrl,setBannerUrl]=useState(user.user_metadata?.bannerUrl||user.bannerUrl||"");
   const [profileAccent,setProfileAccent]=useState(user.user_metadata?.profileAccent||user.profileAccent||"");
 
-  const [riotId,setRiotId]=useState(user.user_metadata?.riotId||"");
+  const [riotId,setRiotId]=useState(user.user_metadata?.riotId||user.user_metadata?.riot_id||"");
 
-  const [riotRegion,setRiotRegion]=useState(user.user_metadata?.riotRegion||"EUW");
+  const [riotRegion,setRiotRegion]=useState(user.user_metadata?.riotRegion||user.user_metadata?.riot_region||user.user_metadata?.region||"EUW");
 
   const [secondRiotId,setSecondRiotId]=useState(user.user_metadata?.secondRiotId||user.secondRiotId||"");
 
@@ -11915,7 +12075,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
   const usernameChanged=!!(user.user_metadata?.username_changed);
 
-  const riotIdSet=!!(user.user_metadata?.riotId);
+  const riotIdSet=!!(user.user_metadata?.riotId||user.user_metadata?.riot_id);
 
   const EU_NA=["EUW","EUNE","NA"];
 
@@ -12206,7 +12366,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
                   ["Username",user.username,usernameChanged?"#9B72CF":"#F2EDE4"],
 
-                  ["Riot ID",user.user_metadata?.riotId?(user.user_metadata.riotId+" · "+user.user_metadata.riotRegion):null,"#E8A838"],
+                  ["Riot ID",(user.user_metadata?.riotId||user.user_metadata?.riot_id)?((user.user_metadata?.riotId||user.user_metadata?.riot_id)+" · "+(user.user_metadata?.riotRegion||user.user_metadata?.riot_region||user.user_metadata?.region||"EUW")):null,"#E8A838"],
 
                   ["Secondary Riot ID",user.user_metadata?.secondRiotId?(user.user_metadata.secondRiotId+" · "+user.user_metadata.secondRegion):null,"#C4B5FD"],
 
@@ -12386,7 +12546,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setProfil
 
                     <div style={{display:"flex",gap:8,alignItems:"center"}}>
 
-                      <div style={{flex:1,background:"#0F1520",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"9px 12px",color:"#E8A838",fontSize:13,fontWeight:600}}>{user.user_metadata?.riotId} · {user.user_metadata?.riotRegion}</div>
+                      <div style={{flex:1,background:"#0F1520",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"9px 12px",color:"#E8A838",fontSize:13,fontWeight:600}}>{user.user_metadata?.riotId||user.user_metadata?.riot_id} · {user.user_metadata?.riotRegion||user.user_metadata?.riot_region||user.user_metadata?.region||"EUW"}</div>
 
                       <Btn v="dark" s="sm" onClick={()=>requestChange("riotId")}>Request Change</Btn>
 
@@ -14834,9 +14994,9 @@ function TFTClash(){
 
       const username=u.user_metadata?.username||discordName||u.email?.split('@')[0]||"Player";
 
-      const riotId=u.user_metadata?.riotId||"";
+      const riotId=u.user_metadata?.riotId||u.user_metadata?.riot_id||"";
 
-      const region=u.user_metadata?.riotRegion||u.user_metadata?.region||"EUW";
+      const region=u.user_metadata?.riotRegion||u.user_metadata?.riot_region||u.user_metadata?.region||"EUW";
 
       return{...u,username,riotId,region};
 
@@ -14935,6 +15095,7 @@ function TFTClash(){
             id:r.id,name:r.username,username:r.username,
             riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
             bio:r.bio||'',discord_user_id:r.discord_user_id||null,
+            authUserId:r.auth_user_id||null,
             pts:0,wins:0,top4:0,games:0,avg:"0",
             banned:false,dnpCount:0,notes:'',checkedIn:false,
             clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
@@ -15290,19 +15451,49 @@ function TFTClash(){
   },[]);
 
   function handleLogin(user){
-
-    setCurrentUser(user); // null = guest continue
-
+    setCurrentUser(user);
     setAuthScreen(null);
-
+    // Hydrate player from DB if not in local state
+    if(user&&supabase.from){
+      var alreadyLocal=players.some(function(p){
+        return(p.name&&user.username&&p.name.toLowerCase()===user.username.toLowerCase())
+          ||(p.riotId&&user.riotId&&p.riotId.toLowerCase()===user.riotId.toLowerCase());
+      });
+      if(alreadyLocal){
+        // Patch authUserId onto existing local player if missing
+        if(user.id){
+          setPlayers(function(ps){return ps.map(function(p){
+            var nameMatch=p.name&&user.username&&p.name.toLowerCase()===user.username.toLowerCase();
+            var riotMatch=p.riotId&&user.riotId&&p.riotId.toLowerCase()===user.riotId.toLowerCase();
+            if((nameMatch||riotMatch)&&!p.authUserId)return Object.assign({},p,{authUserId:user.id});
+            return p;
+          });});
+        }
+      }else{
+        supabase.from('players').select('*').eq('auth_user_id',user.id).single()
+          .then(function(res){
+            if(res.data){
+              var r=res.data;
+              var np={
+                id:r.id,name:r.username,username:r.username,
+                riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
+                bio:r.bio||'',authUserId:r.auth_user_id,
+                pts:0,wins:0,top4:0,games:0,avg:"0",
+                banned:false,dnpCount:0,notes:'',checkedIn:false,
+                clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
+                tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
+                role:"player",sponsor:null
+              };
+              setPlayers(function(ps){return ps.concat([np]);});
+            }
+          });
+      }
+    }
   }
 
   function handleSignUp(user){
-
     setCurrentUser(user);
-
     setAuthScreen(null);
-
   }
 
   async function handleLogout(){
@@ -15324,6 +15515,21 @@ function TFTClash(){
       var ids=ts.registeredIds||[];
       return {...ts,registeredIds:isRegistered?ids.filter(function(id){return id!==sid;}):[...ids,sid]};
     });
+    // Sync to DB registrations table
+    if(supabase.from&&tournamentState.dbTournamentId){
+      if(isRegistered){
+        supabase.from('registrations').delete()
+          .eq('tournament_id',tournamentState.dbTournamentId)
+          .eq('player_id',playerId)
+          .then(function(r){if(r.error)console.error("[TFT] unregister failed:",r.error);});
+      }else{
+        supabase.from('registrations').insert({
+          tournament_id:tournamentState.dbTournamentId,
+          player_id:playerId,
+          status:'registered'
+        }).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+      }
+    }
     toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
   }
 
@@ -15392,7 +15598,7 @@ function TFTClash(){
 
       <div style={{position:"relative",zIndex:1}}>
 
-        <SignUpScreen onSignUp={handleSignUp} onGoLogin={()=>setAuthScreen("login")} onBack={()=>setAuthScreen(null)} toast={toast}/>
+        <SignUpScreen onSignUp={handleSignUp} onGoLogin={()=>setAuthScreen("login")} onBack={()=>setAuthScreen(null)} toast={toast} setPlayers={setPlayers}/>
 
         <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -15441,9 +15647,38 @@ function TFTClash(){
       <Hexbg/>
 
       {(isLoadingData||isAuthLoading)&&(
-        <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:9999}}>
-          <div style={{width:48,height:48,border:"3px solid rgba(155,114,207,.2)",borderTopColor:"#9B72CF",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-          <div style={{fontFamily:"'Chakra Petch',sans-serif",fontSize:14,color:"#6B7280",letterSpacing:"0.1em"}}>Loading...</div>
+        <div style={{position:"fixed",inset:0,background:"#08080F",zIndex:9999,overflow:"hidden"}}>
+          {/* Skeleton navbar */}
+          <div style={{height:56,background:"#111827",borderBottom:"1px solid rgba(242,237,228,.06)",display:"flex",alignItems:"center",padding:"0 20px",gap:16}}>
+            <Skeleton width={120} height={20} radius={6}/>
+            <div style={{flex:1}}/>
+            <Skeleton width={60} height={14} radius={4}/>
+            <Skeleton width={60} height={14} radius={4}/>
+            <Skeleton width={60} height={14} radius={4}/>
+          </div>
+          {/* Skeleton content */}
+          <div style={{maxWidth:1200,margin:"0 auto",padding:"32px 24px",display:"grid",gridTemplateColumns:"1fr 340px",gap:24}}>
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <Skeleton height={140} radius={12}/>
+              <Skeleton height={24} width={200} radius={6}/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+                <Skeleton height={80} radius={10}/>
+                <Skeleton height={80} radius={10}/>
+                <Skeleton height={80} radius={10}/>
+              </div>
+              <Skeleton height={200} radius={12}/>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              <Skeleton height={180} radius={12}/>
+              <Skeleton height={120} radius={12}/>
+              <Skeleton height={100} radius={12}/>
+            </div>
+          </div>
+          {/* Loading indicator */}
+          <div style={{position:"fixed",bottom:40,left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:20,height:20,border:"2px solid rgba(155,114,207,.2)",borderTopColor:"#9B72CF",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+            <div style={{fontFamily:"'Chakra Petch',sans-serif",fontSize:12,color:"#6B7280",letterSpacing:"0.1em"}}>Loading TFT Clash...</div>
+          </div>
         </div>
       )}
 
@@ -15463,13 +15698,13 @@ function TFTClash(){
 
         {screen==="bracket"    &&<BracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
-        {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
+        {screen==="leaderboard"&&<LeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
         {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
         {screen==="results"    &&<ResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
 
-        {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} pastClashes={pastClashes}/>}
+        {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} pastClashes={pastClashes} toast={toast}/>}
 
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
 
