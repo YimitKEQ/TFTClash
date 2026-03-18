@@ -48,8 +48,16 @@ setInterval(() => {
 // Handler
 // ---------------------------------------------------------------------------
 export default function handler(req, res) {
-  // CORS — same-origin only
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin ?? '');
+  // CORS — restrict to known origins
+  const allowedOrigins = [
+    'https://tft-clash.vercel.app',
+    'https://tftclash.com',
+    'http://localhost:5173',
+    'http://localhost:3000',
+  ];
+  const origin = req.headers.origin ?? '';
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  res.setHeader('Access-Control-Allow-Origin', corsOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

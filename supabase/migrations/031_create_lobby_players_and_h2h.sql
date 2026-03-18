@@ -1,0 +1,4 @@
+-- Already applied in prior session (tables exist)
+-- NEW-001: lobby_players junction table
+-- NEW-002: head_to_head records table
+-- See docs/RECOMMENDED-MIGRATIONS.sql for full DDL

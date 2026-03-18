@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
   async function upsertSubscription(userId, plan, status, stripeCustomerId, stripeSubId) {
     if (!userId) return;
-    await supabase.from('subscriptions').upsert({
+    const { error } = await supabase.from('subscriptions').upsert({
       user_id: userId,
       plan,
       status,
@@ -75,6 +75,10 @@ export default async function handler(req, res) {
       stripe_subscription_id: stripeSubId,
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' });
+    if (error) {
+      console.error('Subscription upsert failed:', error.message);
+      throw new Error('Subscription DB write failed: ' + error.message);
+    }
   }
 
   try {

@@ -306,3 +306,77 @@ Based on all of the above, here's what the platform needs:
 - [ ] Define advancement rules per stage (top X per lobby, or top X overall)
 - [ ] Auto-generate Stage 2 lobbies from Stage 1 results
 - [ ] Points reset at stage boundary
+
+---
+
+## 8. LARGE TOURNAMENT FORMAT — 128 PLAYERS (by Ole)
+
+Exact math for a 128-player, 6-game tournament with a cut after Game 4.
+
+### Scoring Math
+
+| Metric | Value |
+|--------|-------|
+| Points per lobby per game | 8+7+6+5+4+3+2+1 = **36** |
+| Lobbies (128 / 8) | **16** |
+| Total points after 4 games | 16 x 36 x 4 = **2,304** |
+| Average per player after 4 games | 2,304 / 128 = **18 pts** |
+| Max points from Games 5-6 | **16 pts** |
+| Typical 16th-place score after 6 games | **~27-30 pts** |
+
+### The Cut: 13 Points or Fewer = Eliminated
+
+After 4 games, players with **13 points or fewer are eliminated**. You need **at least 14 points** to advance to Phase 2.
+
+**Announceable rule:** "You must average better than 6th place across 4 games to advance."
+
+### Why 13 Is the Correct Cut Line
+
+**1. Clean competitive separation:**
+- 6th every game = 3 x 4 = 12 pts -> eliminated
+- 5th every game = 4 x 4 = 16 pts -> survives
+
+**2. Avoids unfair edge cases:**
+- Player A: 4th, 4th, 4th, 4th = 16 pts -> advances
+- Player B: 8th, 4th, 4th, 4th = 15 pts -> advances (would be eliminated at a 15-pt cut despite near-identical performance)
+
+**3. Handles high variance properly:**
+- 1st, 1st, 8th, 8th = 18 pts -> advances (rewards strong peaks)
+- 1st, 6th, 7th, 8th = 14 pts -> advances (barely, but deserved)
+
+### Cut Line Comparison
+
+| Cut Line | Players Advancing | Lobbies | Verdict |
+|----------|-------------------|---------|---------|
+| <=10 pts | ~72-80 | 9-10 | Too lenient |
+| <=11 pts | ~64-72 | 8-9 | Lenient |
+| <=12 pts | ~56-64 | 7-8 | Slightly lenient |
+| **<=13 pts** | **~48-56** | **6-7** | **Recommended** |
+| <=14 pts | ~40-48 | 5-6 | Also viable |
+| <=15 pts | ~32-40 | 4-5 | Slightly harsh |
+| <=16 pts | ~24-32 | 3-4 | Too harsh |
+
+### Score Reference (After 4 Games)
+
+| Avg Placement | Total Points | Result |
+|---------------|-------------|--------|
+| 1st | 32 | Advances |
+| 2nd | 28 | Advances |
+| 3rd | 24 | Advances |
+| 4th | 20 | Advances |
+| 5th | 16 | Advances |
+| 6th | 12 | Eliminated |
+| 7th | 8 | Eliminated |
+| 8th | 4 | Eliminated |
+
+### Expected Outcome
+- ~48-56 players advance to Phase 2
+- 6-7 clean lobbies of 8
+- Strong competitive field for Games 5-6
+- Clear, fair, and defensible system
+
+### Implementation Notes
+- Cut line should be **configurable per tournament** (host sets threshold in tournament config)
+- Default: 13 pts for 128-player events
+- For smaller events (64 players), the cut math changes — provide a calculator or suggested defaults per player count
+- The system must support **mid-tournament elimination** (Phase 4.2 registration flow already covers DQ/DNP tracking)

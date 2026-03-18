@@ -9,5 +9,5 @@ const mockAuth = {
   signUp: noop, linkIdentity: noop, updateUser: noop,
 };
 export const supabase = (url && key)
-  ? createClient(url, key, { auth: { flowType: 'implicit' } })
+  ? createClient(url, key, { auth: { flowType: 'pkce' } })
   : { auth: mockAuth };

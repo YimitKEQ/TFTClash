@@ -35,6 +35,7 @@
     "api/create-checkout.js": { "memory": 256, "maxDuration": 10 },
     "api/stripe-webhook.js":  { "memory": 256, "maxDuration": 10 },
     "api/check-admin.js":     { "memory": 128, "maxDuration": 5  },
-    "api/health.js":          { "memory": 128, "maxDuration": 5  }
+    "api/health.js":          { "memory": 128, "maxDuration": 5  },
+    "api/ai-commentary.js":   { "memory": 128, "maxDuration": 10 }
   }
 }

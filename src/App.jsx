@@ -332,7 +332,18 @@ function computeStats(player){
 
 }
 
-
+// ─── STATS CACHE ─────────────────────────────────────────────────────────────
+// WeakMap keyed by player object — cache invalidates automatically when player
+// object identity changes (which happens on every immutable state update).
+var _statsCache=new WeakMap();
+function getStats(player){
+  if(!player)return{games:0,wins:0,top4:0,bot4:0,top1Rate:"0.0",top4Rate:"0.0",bot4Rate:"0.0",avgPlacement:"-",perClashAvp:null,roundAvgs:{r1:null,r2:null,r3:null,finals:null},comebackRate:0,clutchRate:0,ppg:0};
+  var cached=_statsCache.get(player);
+  if(cached)return cached;
+  var result=computeStats(player);
+  _statsCache.set(player,result);
+  return result;
+}
 
 function effectivePts(player, seasonConfig) {
 
@@ -408,11 +419,12 @@ function tiebreaker(a, b) {
 
   }
 
-  var aLast = a.clashHistory && a.clashHistory.length ? (a.clashHistory[a.clashHistory.length - 1].place||a.clashHistory[a.clashHistory.length - 1].placement) || 9 : 9;
+  // Step 4: Most recent game finish — player who competed more recently wins
+  var aLastId = a.clashHistory && a.clashHistory.length ? (a.clashHistory[a.clashHistory.length - 1].clashId || a.clashHistory[a.clashHistory.length - 1].date || a.clashHistory.length) : 0;
 
-  var bLast = b.clashHistory && b.clashHistory.length ? (b.clashHistory[b.clashHistory.length - 1].place||b.clashHistory[b.clashHistory.length - 1].placement) || 9 : 9;
+  var bLastId = b.clashHistory && b.clashHistory.length ? (b.clashHistory[b.clashHistory.length - 1].clashId || b.clashHistory[b.clashHistory.length - 1].date || b.clashHistory.length) : 0;
 
-  return aLast - bLast;
+  return bLastId - aLastId;
 
 }
 
@@ -631,6 +643,131 @@ function isOnTilt(p){return(p.tiltStreak||0)>=3;}
 
 
 
+// ─── TOURNAMENT ENGINE ───────────────────────────────────────────────────────
+
+// Tournament phases — strict state machine
+var T_PHASE={
+  DRAFT:"draft",
+  REGISTRATION:"registration",
+  CHECK_IN:"checkin",
+  LOBBY_SETUP:"lobby_setup",
+  IN_PROGRESS:"inprogress",
+  BETWEEN_ROUNDS:"between_rounds",
+  COMPLETE:"complete"
+};
+
+// Valid state transitions
+var T_TRANSITIONS={};
+T_TRANSITIONS[T_PHASE.DRAFT]=[T_PHASE.REGISTRATION];
+T_TRANSITIONS[T_PHASE.REGISTRATION]=[T_PHASE.CHECK_IN,T_PHASE.DRAFT];
+T_TRANSITIONS[T_PHASE.CHECK_IN]=[T_PHASE.LOBBY_SETUP,T_PHASE.REGISTRATION];
+T_TRANSITIONS[T_PHASE.LOBBY_SETUP]=[T_PHASE.IN_PROGRESS,T_PHASE.CHECK_IN];
+T_TRANSITIONS[T_PHASE.IN_PROGRESS]=[T_PHASE.BETWEEN_ROUNDS,T_PHASE.COMPLETE];
+T_TRANSITIONS[T_PHASE.BETWEEN_ROUNDS]=[T_PHASE.IN_PROGRESS,T_PHASE.COMPLETE];
+T_TRANSITIONS[T_PHASE.COMPLETE]=[];
+
+function canTransition(from,to){
+  return(T_TRANSITIONS[from]||[]).indexOf(to)!==-1;
+}
+
+// Format presets
+var TOURNAMENT_FORMATS={
+  casual:{name:"Casual Clash",description:"Single stage, 3 games, all players",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random"},
+  standard:{name:"Standard Clash",description:"Single stage, 5 games, seeded lobbies",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake"},
+  competitive:{name:"Competitive (128p)",description:"6 games, cut after 4, snake seeded",games:6,stages:2,maxPlayers:128,cutEnabled:true,cutLine:13,cutAfterGame:4,seeding:"snake"},
+  weekly:{name:"Weekly Clash",description:"3 games, friend group format",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"rank-based"}
+};
+
+// Snake seeding: distributes players across lobbies so each has a mix of skill levels
+// Input: sorted players array (best first), lobbyCount
+// Output: array of arrays (lobbies)
+function snakeSeed(sortedPlayers,lobbySize){
+  var lobbyCount=Math.ceil(sortedPlayers.length/lobbySize);
+  if(lobbyCount<=0)return[];
+  var lobbies=Array.from({length:lobbyCount},function(){return[];});
+  sortedPlayers.forEach(function(p,i){
+    var row=Math.floor(i/lobbyCount);
+    var col=row%2===0?(i%lobbyCount):(lobbyCount-1-(i%lobbyCount));
+    lobbies[col].push(p);
+  });
+  return lobbies;
+}
+
+// Calculate lobby assignments based on seeding method
+function buildLobbies(players,method,lobbySize){
+  lobbySize=lobbySize||8;
+  if(!players||players.length===0)return[];
+  var pool;
+  if(method==="random"){
+    pool=[].concat(players);
+    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;}
+    var result=[];
+    for(var k=0;k<pool.length;k+=lobbySize)result.push(pool.slice(k,k+lobbySize));
+    return result;
+  }
+  if(method==="snake"){
+    var sorted=[].concat(players).sort(function(a,b){return(b.pts||0)-(a.pts||0)||(b.wins||0)-(a.wins||0);});
+    return snakeSeed(sorted,lobbySize);
+  }
+  // Default: rank-based (top seeds together)
+  var ranked=[].concat(players).sort(function(a,b){return(b.pts||0)-(a.pts||0);});
+  var res=[];
+  for(var m=0;m<ranked.length;m+=lobbySize)res.push(ranked.slice(m,m+lobbySize));
+  return res;
+}
+
+// Cut line: determine which players advance after N games
+// Returns { advancing: [], eliminated: [] }
+function applyCutLine(playerStandings,cutLine,cutAfterGame){
+  if(!cutLine||cutLine<=0)return{advancing:playerStandings,eliminated:[]};
+  var advancing=[];
+  var eliminated=[];
+  playerStandings.forEach(function(p){
+    var gamesPlayed=p.gamesInTournament||0;
+    if(gamesPlayed<cutAfterGame){advancing.push(p);return;}
+    var pts=p.tournamentPts||0;
+    if(pts>cutLine){advancing.push(p);}
+    else{eliminated.push(p);}
+  });
+  return{advancing:advancing,eliminated:eliminated};
+}
+
+// Calculate suggested cut line for a given player count
+function suggestedCutLine(playerCount){
+  if(playerCount>=96)return{cutLine:13,cutAfterGame:4,reason:"128p format: avg 18pts after 4 games, cut at 13"};
+  if(playerCount>=48)return{cutLine:15,cutAfterGame:3,reason:"64p format: tighter field, cut after 3 games"};
+  if(playerCount>=24)return{cutLine:12,cutAfterGame:3,reason:"32p format: smaller field, lower cut"};
+  return{cutLine:0,cutAfterGame:0,reason:"Small event: no cut recommended"};
+}
+
+// Compute tournament standings from game_results
+function computeTournamentStandings(players,gameResults,tournamentId){
+  var standingsMap={};
+  gameResults.forEach(function(g){
+    if(tournamentId&&g.tournamentId!==tournamentId)return;
+    var pid=g.player_id||g.playerId;
+    if(!standingsMap[pid])standingsMap[pid]={playerId:pid,tournamentPts:0,gamesInTournament:0,placements:[],wins:0,top4:0};
+    var s=standingsMap[pid];
+    s.tournamentPts+=(g.points||PTS[g.placement]||0);
+    s.gamesInTournament+=1;
+    s.placements.push(g.placement);
+    if(g.placement===1)s.wins+=1;
+    if(g.placement<=4)s.top4+=1;
+  });
+  // Merge with player info
+  return players.map(function(p){
+    var s=standingsMap[p.id]||{tournamentPts:0,gamesInTournament:0,placements:[],wins:0,top4:0};
+    return Object.assign({},p,s);
+  }).filter(function(p){return p.gamesInTournament>0;})
+    .sort(function(a,b){
+      if(b.tournamentPts!==a.tournamentPts)return b.tournamentPts-a.tournamentPts;
+      var aScore=a.wins*2+a.top4;var bScore=b.wins*2+b.top4;
+      if(bScore!==aScore)return bScore-aScore;
+      return 0;
+    });
+}
+
+
 // ─── POST-CLASH AWARDS ENGINE ─────────────────────────────────────────────────
 
 
@@ -671,15 +808,38 @@ function computeClashAwards(players){
 
 
 
-  // Most Improved - biggest avg drop (we simulate vs "last season" avg using avg-0.5 as prior)
+  // Most Improved - biggest improvement from first half to second half of games
+  const mostImproved=(function(){
+    var candidates=eligible.filter(function(p){return(p.clashHistory||[]).length>=4;});
+    if(!candidates.length)return byAvp[0]||null;
+    var best=null;var bestDelta=0;
+    candidates.forEach(function(p){
+      var h=p.clashHistory||[];var mid=Math.floor(h.length/2);
+      var firstHalf=h.slice(0,mid);var secondHalf=h.slice(mid);
+      var avgFirst=firstHalf.reduce(function(s,g){return s+(g.place||g.placement||5);},0)/firstHalf.length;
+      var avgSecond=secondHalf.reduce(function(s,g){return s+(g.place||g.placement||5);},0)/secondHalf.length;
+      var delta=avgFirst-avgSecond; // positive = improved (lower placement is better)
+      if(delta>bestDelta){bestDelta=delta;best=p;}
+    });
+    return best||byAvp[0]||null;
+  })();
 
-  const mostImproved=byAvp[0]||null;
-
-
-
-  // Ice Cold - most consistent, lowest AVP (5+ games)
-
-  const iceCold=byAvp[0]||null;
+  // Ice Cold - longest streak without a top-4 finish (3+ games)
+  const iceCold=(function(){
+    var candidates=eligible.filter(function(p){return(p.clashHistory||[]).length>=3;});
+    if(!candidates.length)return null;
+    var worst=null;var worstStreak=0;
+    candidates.forEach(function(p){
+      var streak=0;var maxStreak=0;
+      (p.clashHistory||[]).forEach(function(g){
+        var pl=g.place||g.placement||5;
+        if(pl>4){streak++;}else{if(streak>maxStreak)maxStreak=streak;streak=0;}
+      });
+      if(streak>maxStreak)maxStreak=streak;
+      if(maxStreak>worstStreak){worstStreak=maxStreak;worst=p;}
+    });
+    return worst;
+  })();
 
 
 
@@ -693,19 +853,19 @@ function computeClashAwards(players){
 
     lobbyBully&&{icon:"🗡️",id:"bully",title:"Lobby Bully",desc:"Most 1st place finishes",winner:lobbyBully,stat:lobbyBully.wins+" wins",color:"#E8A838"},
 
-    choker&&choker!==lobbyBully&&{icon:"💀",id:"choker",title:"The Choker",desc:"Highest AVP in the top half - ouch",winner:choker,stat:"AVP "+computeStats(choker).avgPlacement,color:"#F87171"},
+    choker&&choker!==lobbyBully&&{icon:"💀",id:"choker",title:"The Choker",desc:"Highest AVP in the top half - ouch",winner:choker,stat:"AVP "+getStats(choker).avgPlacement,color:"#F87171"},
 
     singleMVP&&{icon:"⚡",id:"single",title:"Single Clash MVP",desc:"Highest points in one event",winner:singleMVP,stat:(singleMVP.bestHaul||0)+" pts haul",color:"#EAB308"},
 
-    mostImproved&&{icon:"📈",id:"improved",title:"Most Improved",desc:"Biggest AVP improvement this season",winner:mostImproved,stat:"AVP "+computeStats(mostImproved).avgPlacement,color:"#52C47C"},
+    mostImproved&&{icon:"📈",id:"improved",title:"Most Improved",desc:"Biggest AVP improvement this season",winner:mostImproved,stat:"AVP "+getStats(mostImproved).avgPlacement,color:"#52C47C"},
 
-    iceCold&&iceCold!==mostImproved&&{icon:"🧊",id:"cold",title:"Ice Cold",desc:"Most consistent - lowest AVP (3+ games)",winner:iceCold,stat:"AVP "+computeStats(iceCold).avgPlacement,color:"#4ECDC4"},
+    iceCold&&iceCold!==mostImproved&&{icon:"🧊",id:"cold",title:"Ice Cold",desc:"Longest streak outside top 4",winner:iceCold,stat:"AVP "+getStats(iceCold).avgPlacement,color:"#4ECDC4"},
 
     onFire&&{icon:"🔥",id:"streak",title:"On Fire",desc:"Best 1st place streak this season",winner:onFire,stat:(onFire.bestStreak||0)+" in a row",color:"#F97316"},
 
     byPts[0]&&{icon:"🏆",id:"mvp",title:"MVP",desc:"Highest season points",winner:byPts[0],stat:byPts[0].pts+" pts",color:"#E8A838"},
 
-    byPts[0]&&{icon:"📊",id:"consistent2",title:"Most Consistent",desc:"Lowest AVP (3+ games)",winner:byAvp[0],stat:"AVP "+(byAvp[0]?computeStats(byAvp[0]).avgPlacement:"-"),color:"#C4B5FD"},
+    byPts[0]&&{icon:"📊",id:"consistent2",title:"Most Consistent",desc:"Lowest AVP (3+ games)",winner:byAvp[0],stat:"AVP "+(byAvp[0]?getStats(byAvp[0]).avgPlacement:"-"),color:"#C4B5FD"},
 
   ].filter(Boolean);
 
@@ -3373,7 +3533,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   const profileComplete=currentUser&&currentUser.riotId&&currentUser.riotId.trim().length>0;
 
-  const s2=linkedPlayer?computeStats(linkedPlayer):null;
+  const s2=linkedPlayer?getStats(linkedPlayer):null;
 
   const myRankIdx=linkedPlayer?[...players].sort((a,b)=>b.pts-a.pts).findIndex(p=>p.id===linkedPlayer.id)+1:0;
 
@@ -3452,7 +3612,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
     if(tPhase==="checkin")return"Check-in Open · "+checkedInCount+" checked in · Closes soon";
 
-    if(tPhase==="inprogress")return"Clash is LIVE · Round "+tRound+"/3";
+    if(tPhase==="inprogress")return"Clash is LIVE · Game "+tRound+"/"+(tournamentState.totalGames||3);
 
     if(tPhase==="complete")return"Results Posted · View Final Standings";
 
@@ -4549,14 +4709,18 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
   var clashId=tournamentState&&tournamentState.clashId?tournamentState.clashId:"";
+  var cutLine=tournamentState&&tournamentState.cutLine?tournamentState.cutLine:0;
+  var cutAfterGame=tournamentState&&tournamentState.cutAfterGame?tournamentState.cutAfterGame:0;
+  var showCutLine=cutLine>0&&cutAfterGame>0&&round>=cutAfterGame;
+  var totalGames=tournamentState&&tournamentState.totalGames?tournamentState.totalGames:3;
 
   var liveRows=checkedIn.map(function(p){
 
-    var earned=0;
+    var earned=0;var gamesPlayed=0;
 
-    (p.clashHistory||[]).forEach(function(h){if(h.clashId===clashId){earned+=(PTS[h.place||h.placement]||0);}});
+    (p.clashHistory||[]).forEach(function(h){if(h.clashId===clashId){earned+=(PTS[h.place||h.placement]||0);gamesPlayed+=1;}});
 
-    return {name:p.name,id:p.id,earned:earned};
+    return {name:p.name,id:p.id,earned:earned,gamesPlayed:gamesPlayed};
 
   }).sort(function(a,b){return b.earned-a.earned;});
 
@@ -4566,33 +4730,43 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
     <Panel style={{padding:"20px",marginTop:24}}>
 
-      <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:14,display:"flex",alignItems:"center",gap:8}}>
+      <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
 
-        <span style={{fontSize:16}}>📊</span> Live Standings — Round {round}
+        <span style={{fontSize:16}}>📊</span> Live Standings — Game {round}/{totalGames}
 
         <span style={{fontSize:11,color:"#BECBD9",fontWeight:400,marginLeft:4}}>({lockedCount} of {lobbies.length} {lobbies.length===1?"lobby":"lobbies"} locked)</span>
 
       </div>
+
+      {showCutLine&&(
+        <div style={{fontSize:11,color:"#E8A838",marginBottom:10,padding:"4px 10px",background:"rgba(232,168,56,.06)",borderRadius:4,border:"1px solid rgba(232,168,56,.12)"}}>Cut line: {cutLine} pts — players at or below are eliminated after Game {cutAfterGame}</div>
+      )}
 
       <div style={{display:"flex",flexDirection:"column",gap:4}}>
 
         {liveRows.map(function(row,ri){
 
           var isLeader=ri===0&&row.earned>0;
+          var belowCut=showCutLine&&row.earned<=cutLine;
+          var nearCut=showCutLine&&!belowCut&&row.earned<=cutLine+3;
 
           return(
 
             <div key={row.id} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",
 
-              background:isLeader?"rgba(232,168,56,.07)":ri%2===0?"rgba(255,255,255,.01)":"transparent",
+              background:belowCut?"rgba(248,113,113,.06)":isLeader?"rgba(232,168,56,.07)":ri%2===0?"rgba(255,255,255,.01)":"transparent",
 
-              borderRadius:6,border:isLeader?"1px solid rgba(232,168,56,.18)":"1px solid transparent"}}>
+              borderRadius:6,border:belowCut?"1px solid rgba(248,113,113,.2)":isLeader?"1px solid rgba(232,168,56,.18)":"1px solid transparent",opacity:belowCut?0.6:1}}>
 
-              <span className="mono" style={{fontSize:12,fontWeight:700,color:ri===0?"#E8A838":ri===1?"#C0C0C0":ri===2?"#CD7F32":"#9AAABF",minWidth:22,textAlign:"center"}}>{ri+1}</span>
+              <span className="mono" style={{fontSize:12,fontWeight:700,color:belowCut?"#F87171":ri===0?"#E8A838":ri===1?"#C0C0C0":ri===2?"#CD7F32":"#9AAABF",minWidth:22,textAlign:"center"}}>{ri+1}</span>
 
-              <span style={{flex:1,fontSize:13,fontWeight:isLeader?700:500,color:isLeader?"#E8A838":"#F2EDE4"}}>{row.name}</span>
+              <span style={{flex:1,fontSize:13,fontWeight:isLeader?700:500,color:belowCut?"#F87171":isLeader?"#E8A838":"#F2EDE4"}}>{row.name}</span>
 
-              <span className="mono" style={{fontSize:13,fontWeight:700,color:row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:"—"} pts</span>
+              {belowCut&&<span style={{fontSize:9,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.25)",borderRadius:3,padding:"1px 6px",textTransform:"uppercase"}}>Cut</span>}
+
+              {nearCut&&<span style={{fontSize:9,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:3,padding:"1px 6px"}}>Bubble</span>}
+
+              <span className="mono" style={{fontSize:13,fontWeight:700,color:belowCut?"#F87171":row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:"—"} pts</span>
 
             </div>
 
@@ -4913,7 +5087,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>
 
-          Bracket - Round {round}
+          Game {round}/{tournamentState.totalGames||3}
 
           <span style={{fontSize:13,fontWeight:400,color:"#BECBD9",marginLeft:10}}>{lobbies.length} {lobbies.length===1?"Lobby":"Lobbies"} · {checkedIn.length} players</span>
 
@@ -4925,9 +5099,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[],savedLobbies:[]}))}>← Round</Btn>
 
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{if(round>=3){saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[],savedLobbies:[]}));toast("Clash complete! View results →","success");}else{setTournamentState(ts=>({...ts,round:ts.round+1,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Round "+(round+1),"success");}}}>
+            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[],savedLobbies:[]}));toast("Clash complete! View results →","success");}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg=" — "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
 
-              {round>=3?"Finalize Clash ✓":"Next Round →"}
+              {round>=(tournamentState.totalGames||3)?"Finalize Clash ✓":"Next Game →"}
 
             </Btn>
 
@@ -5180,6 +5354,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
                                   <Sel value={placementEntry[li].placements[p.id]||"1"} onChange={v=>setPlace(li,p.id,v)} style={{width:60,border:dup?"1px solid #F87171":undefined}}>
 
                                     {[1,2,3,4,5,6,7,8].map(n=><option key={n} value={n}>{n}</option>)}
+                                    <option value="0">DNP</option>
 
                                   </Sel>
 
@@ -5309,7 +5484,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
   const achievements=getAchievements(player);
 
-  const s=computeStats(player);
+  const s=getStats(player);
 
 
 
@@ -6058,6 +6233,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
 
 
+var MemoPlayerProfileScreen=memo(PlayerProfileScreen);
+
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
 
 function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast}){
@@ -6145,7 +6322,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
             const ri=idx===0?1:idx===1?0:2;
 
-            const s2=computeStats(p);
+            const s2=getStats(p);
 
             return(
 
@@ -6227,7 +6404,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
           {sorted.map((p,i)=>{
 
-            const s2=computeStats(p);
+            const s2=getStats(p);
 
             return(
 
@@ -6319,7 +6496,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
           {sorted.map((p,i)=>{
 
-            const s2=computeStats(p);
+            const s2=getStats(p);
 
             const inCmp=compareIds.includes(p.id);
 
@@ -6379,7 +6556,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
           {[...sorted].sort((a,b)=>(b.bestStreak||0)-(a.bestStreak||0)).map((p,i)=>{
 
-            const s2=computeStats(p);
+            const s2=getStats(p);
 
             return(
 
@@ -6417,7 +6594,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       )}
 
-      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"⚔️"}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=computeStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(computeStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(computeStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>computeStats(p).wins),false],["Games",comparePlayers.map(p=>computeStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(computeStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(computeStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(computeStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{"★"}</span>}</span>))}</div>);})}</div>}
+      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"⚔️"}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{"★"}</span>}</span>))}</div>);})}</div>}
 
     </div>
 
@@ -6647,7 +6824,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
       "```",
 
-      ...sorted.slice(0,8).map((p,i)=>"#"+(i+1)+" "+p.name.padEnd(16)+" "+String(p.pts).padStart(4)+"pts  avg "+computeStats(p).avgPlacement),
+      ...sorted.slice(0,8).map((p,i)=>"#"+(i+1)+" "+p.name.padEnd(16)+" "+String(p.pts).padStart(4)+"pts  avg "+getStats(p).avgPlacement),
 
       "```",
 
@@ -6701,7 +6878,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     ctx.font="bold 22px monospace";ctx.fillStyle="#E8A838";ctx.fillText(champ.pts+" pts",110,174);
 
-    ctx.font="11px monospace";ctx.fillStyle="#BECBD9";ctx.fillText("Champion · AVP: "+computeStats(champ).avgPlacement,110,194);
+    ctx.font="11px monospace";ctx.fillStyle="#BECBD9";ctx.fillText("Champion · AVP: "+getStats(champ).avgPlacement,110,194);
 
     sorted.slice(0,8).forEach((p,i)=>{
 
@@ -6715,7 +6892,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
       ctx.font="bold 14px monospace";ctx.fillStyle="#E8A838";ctx.fillText(p.pts+"pts",x+200,210+iy*36);
 
-      const av=computeStats(p).avgPlacement;
+      const av=getStats(p).avgPlacement;
 
       ctx.font="12px monospace";ctx.fillStyle=parseFloat(av)<3?"#4ade80":parseFloat(av)<5?"#facc15":"#f87171";
 
@@ -6767,7 +6944,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <Btn v="dark" s="sm" onClick={function(){
             var text="TFT Clash Results\n"+CLASH_NAME+" \u2014 "+CLASH_DATE+"\n\n";
-            sorted.slice(0,8).forEach(function(p,i){text+=(i+1)+". "+p.name+" \u2014 "+p.pts+"pts (avg: "+computeStats(p).avgPlacement+")\n";});
+            sorted.slice(0,8).forEach(function(p,i){text+=(i+1)+". "+p.name+" \u2014 "+p.pts+"pts (avg: "+getStats(p).avgPlacement+")\n";});
             text+="\n#TFTClash tftclash.gg";
             navigator.clipboard.writeText(text).then(function(){toast("Results copied!","success");}).catch(function(){toast("Copy failed","error");});
           }}>📋 Copy</Btn>
@@ -6812,7 +6989,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
 
-          {[["Season Pts",champ.pts,"#E8A838"],["Wins",champ.wins,"#6EE7B7"],["Avg",computeStats(champ).avgPlacement,avgCol(computeStats(champ).avgPlacement)],["Top4%",computeStats(champ).top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
+          {[["Season Pts",champ.pts,"#E8A838"],["Wins",champ.wins,"#6EE7B7"],["Avg",getStats(champ).avgPlacement,avgCol(getStats(champ).avgPlacement)],["Top4%",getStats(champ).top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
 
             <div key={l} style={{textAlign:"center",padding:"10px 16px",background:"rgba(0,0,0,.3)",borderRadius:10,minWidth:64}}>
 
@@ -6864,7 +7041,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                 <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:10}}>
 
-                  {[["W",computeStats(p).wins,"#6EE7B7"],["Avg",computeStats(p).avgPlacement,avgCol(computeStats(p).avgPlacement)]].map(([l,v,c])=>(
+                  {[["W",getStats(p).wins,"#6EE7B7"],["Avg",getStats(p).avgPlacement,avgCol(getStats(p).avgPlacement)]].map(([l,v,c])=>(
 
                     <div key={l} style={{textAlign:"center"}}>
 
@@ -6922,7 +7099,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           {sorted.map((p,i)=>{
 
-            const st=computeStats(p);
+            const st=getStats(p);
 
             const isTop3=i<3;
 
@@ -7070,6 +7247,8 @@ function AutoLogin({setAuthScreen}){
 
 
 
+var MemoResultsScreen=memo(ResultsScreen);
+
 // ─── HALL OF FAME ─────────────────────────────────────────────────────────────
 
 function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
@@ -7082,7 +7261,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
   const king=sorted[0];
 
-  const kingStats=king?computeStats(king):null;
+  const kingStats=king?getStats(king):null;
 
   const challengers=sorted.slice(1,4);
 
@@ -7583,6 +7762,8 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
 }
 
+var MemoHofScreen=memo(HofScreen);
+
 // ─── ARCHIVE ──────────────────────────────────────────────────────────────────
 
 function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
@@ -7836,7 +8017,7 @@ function TickerAdminPanel({tickerOverrides,setTickerOverrides,toast,addAudit}){
   );
 }
 
-function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications,featuredEvents,setFeaturedEvents}){
+function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications,featuredEvents,setFeaturedEvents,currentUser}){
 
   const [tab,setTab]=useState("dashboard");
 
@@ -7870,7 +8051,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const [qcPlacements,setQcPlacements]=useState({});
 
-  const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30"});
+  const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30",cutLine:"0",cutAfterGame:"0"});
 
   const [flashEvents,setFlashEvents]=useState([]);
 
@@ -8490,7 +8671,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened — "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
-              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"inprogress",round:1,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based"}));if(supabase.from){supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:'single_stage',size:24,seeding_method:'snake'}).select().then(function(res){if(!res.error&&res.data&&res.data[0]){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data[0].id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}addAudit("ACTION","Tournament started");toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',size:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().then(function(res){if(!res.error&&res.data&&res.data[0]){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data[0].id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}addAudit("ACTION","Tournament started — "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
               <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
@@ -8506,7 +8687,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?"▶ Resume Round":"⏸ Pause Round"}</Btn>
 
-              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var next=ts.round+1;if(next>3)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[],savedLobbies:[]});});addAudit("ACTION","Force advance");toast("Force advancing","success");}}>Force Advance Round →</Btn>
+              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var maxG=ts.totalGames||3;var next=ts.round+1;if(next>maxG)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[],savedLobbies:[]});});addAudit("ACTION","Force advance game");toast("Force advancing","success");}}>Force Advance Game →</Btn>
 
               <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],savedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
 
@@ -8586,9 +8767,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:0}}>
 
-              {[["3 Games \xb7 24 Players","24","3"],["3 Games \xb7 16 Players","16","3"],["5 Games \xb7 24 Players","24","5"]].map(function(preset){return(
+              {[["3 Games \xb7 24p","24","3","0","0"],["3 Games \xb7 16p","16","3","0","0"],["5 Games \xb7 24p","24","5","0","0"],["6 Games \xb7 128p (Cut at 4)","128","6","13","4"]].map(function(preset){return(
 
-                <button key={preset[0]} onClick={function(){setRoundConfig(function(c){return Object.assign({},c,{maxPlayers:preset[1],roundCount:preset[2]});});toast("Preset loaded: "+preset[0],"success");}} style={{padding:"7px 14px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",color:"#C4B5FD",transition:"all .15s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(155,114,207,.2)";}} onMouseLeave={function(e){e.currentTarget.style.background="rgba(155,114,207,.1)";}}>
+                <button key={preset[0]} onClick={function(){setRoundConfig(function(c){return Object.assign({},c,{maxPlayers:preset[1],roundCount:preset[2],cutLine:preset[3],cutAfterGame:preset[4]});});if(preset[3]!=="0"){toast("Preset loaded: "+preset[0]+" — cut line: "+preset[3]+"pts after game "+preset[4],"success");}else{toast("Preset loaded: "+preset[0],"success");}}} style={{padding:"7px 14px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",color:"#C4B5FD",transition:"all .15s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(155,114,207,.2)";}} onMouseLeave={function(e){e.currentTarget.style.background="rgba(155,114,207,.1)";}}>
 
                   {preset[0]}
 
@@ -8610,9 +8791,31 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Max Players</label><Inp type="number" value={roundConfig.maxPlayers} onChange={v=>setRoundConfig(c=>Object.assign({},c,{maxPlayers:v}))} placeholder="24"/></div>
 
-              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Round Count</label><Sel value={roundConfig.roundCount} onChange={v=>setRoundConfig(c=>Object.assign({},c,{roundCount:v}))}><option value="2">2 Rounds</option><option value="3">3 Rounds</option></Sel></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Games</label><Sel value={roundConfig.roundCount} onChange={v=>setRoundConfig(c=>Object.assign({},c,{roundCount:v}))}><option value="2">2 Games</option><option value="3">3 Games</option><option value="4">4 Games</option><option value="5">5 Games</option><option value="6">6 Games</option></Sel></div>
 
               <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Check-in Window</label><Sel value={roundConfig.checkinWindowMins} onChange={v=>setRoundConfig(c=>Object.assign({},c,{checkinWindowMins:v}))}><option value="15">15 min</option><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option></Sel></div>
+
+            </div>
+
+            <div style={{marginTop:14,padding:"14px",background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8}}>
+
+              <div style={{fontWeight:700,fontSize:13,color:"#E8A838",marginBottom:10}}>Cut Line (Elimination)</div>
+
+              <div style={{fontSize:12,color:"#BECBD9",marginBottom:12,lineHeight:1.5}}>Players at or below this point threshold after the specified game are eliminated. Set to 0 to disable.</div>
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Cut After Game #</label><Sel value={roundConfig.cutAfterGame||"0"} onChange={v=>setRoundConfig(c=>Object.assign({},c,{cutAfterGame:v}))}><option value="0">No Cut</option><option value="2">After Game 2</option><option value="3">After Game 3</option><option value="4">After Game 4</option><option value="5">After Game 5</option></Sel></div>
+
+                <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Min Points to Advance</label><Inp type="number" value={roundConfig.cutLine||""} onChange={v=>setRoundConfig(c=>Object.assign({},c,{cutLine:v}))} placeholder="14"/></div>
+
+              </div>
+
+              {roundConfig.cutAfterGame&&parseInt(roundConfig.cutAfterGame)>0&&parseInt(roundConfig.cutLine)>0&&(
+                <div style={{marginTop:10,padding:"8px 12px",background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.15)",borderRadius:6,fontSize:12,color:"#4ECDC4",lineHeight:1.5}}>
+                  Players with {roundConfig.cutLine} pts or fewer after Game {roundConfig.cutAfterGame} will be eliminated. You need at least {parseInt(roundConfig.cutLine)+1} pts to advance.
+                </div>
+              )}
 
             </div>
 
@@ -12128,7 +12331,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
   const linkedPlayer=players.find(p=>p.id===user.linkedPlayerId||p.name===user.username);
 
-  const s=linkedPlayer?computeStats(linkedPlayer):null;
+  const s=linkedPlayer?getStats(linkedPlayer):null;
 
   const myAchievements=linkedPlayer?ACHIEVEMENTS.filter(a=>{try{return a.check(linkedPlayer);}catch{return false;}}):[];
 
@@ -12973,7 +13176,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
 function SeasonRecapScreen({player,players,toast,setScreen}){
 
-  const s=computeStats(player);
+  const s=getStats(player);
 
   const awards=computeClashAwards(players).filter(a=>a.winner?.id===player.id);
 
@@ -13279,7 +13482,7 @@ function AICommentaryPanel({players,toast}){
 
     try{
 
-      const top3=sorted.slice(0,3).map((p,i)=>`${["1st","2nd","3rd"][i]}: ${p.name} (${p.pts}pts, AVP ${computeStats(p).avgPlacement})`).join(", ");
+      const top3=sorted.slice(0,3).map((p,i)=>`${["1st","2nd","3rd"][i]}: ${p.name} (${p.pts}pts, AVP ${getStats(p).avgPlacement})`).join(", ");
 
       const bottom=sorted[sorted.length-1];
 
@@ -13301,27 +13504,19 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 
 
 
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
+      const res=await fetch("/api/ai-commentary",{
 
         method:"POST",
 
         headers:{"Content-Type":"application/json"},
 
-        body:JSON.stringify({
-
-          model:"claude-sonnet-4-20250514",
-
-          max_tokens:200,
-
-          messages:[{role:"user",content:prompt}]
-
-        })
+        body:JSON.stringify({prompt:prompt})
 
       });
 
       const data=await res.json();
 
-      const text=data.content?.map(c=>c.text||"").join("")||"Commentary unavailable.";
+      const text=data.text||"Commentary unavailable.";
 
       setCommentary(text);
 
@@ -15195,33 +15390,33 @@ function TFTClash(){
 
   // localStorage sync (fast cache)
 
-  useEffect(()=>{try{localStorage.setItem("tft-players",JSON.stringify(players));}catch{}},[players]);
+  useEffect(()=>{var t=setTimeout(()=>{try{localStorage.setItem("tft-players",JSON.stringify(players));}catch{}},300);return()=>clearTimeout(t);},[players]);
 
-  useEffect(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},[notifications]);
+  useEffect(()=>{var t=setTimeout(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},300);return()=>clearTimeout(t);},[notifications]);
 
   useEffect(()=>{try{localStorage.setItem("tft-admin",isAdmin?"1":"0");}catch{}},[isAdmin]);
 
-  useEffect(()=>{try{localStorage.setItem("tft-tournament",JSON.stringify(tournamentState));}catch{}},[tournamentState]);
+  useEffect(()=>{var t=setTimeout(()=>{try{localStorage.setItem("tft-tournament",JSON.stringify(tournamentState));}catch{}},300);return()=>clearTimeout(t);},[tournamentState]);
 
-  useEffect(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},[seasonConfig]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);
 
-  useEffect(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},[quickClashes]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},300);return function(){clearTimeout(t);};},[quickClashes]);
 
-  useEffect(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},[orgSponsors]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},300);return function(){clearTimeout(t);};},[orgSponsors]);
 
-  useEffect(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},[announcement]);
-  useEffect(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},[scheduledEvents]);
-  useEffect(function(){try{localStorage.setItem("tft-audit-log",JSON.stringify(auditLog));}catch(e){}},[auditLog]);
-  useEffect(function(){try{localStorage.setItem("tft-host-apps",JSON.stringify(hostApps));}catch(e){}},[hostApps]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},300);return function(){clearTimeout(t);};},[announcement]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},300);return function(){clearTimeout(t);};},[scheduledEvents]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-audit-log",JSON.stringify(auditLog));}catch(e){}},300);return function(){clearTimeout(t);};},[auditLog]);
+  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-host-apps",JSON.stringify(hostApps));}catch(e){}},300);return function(){clearTimeout(t);};},[hostApps]);
 
 
 
-  // ── Bootstrap players from players table (fallback when site_settings has none) ──
-  function bootstrapPlayersFromTable(){
+  // ── Load players from normalized players table (primary source of truth) ──
+  function loadPlayersFromTable(){
     if(!supabase.from)return;
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
-        if(res.error){console.error("[TFT] Failed to bootstrap players:",res.error);return;}
+        if(res.error){console.error("[TFT] Failed to load players:",res.error);return;}
         if(!res.data||!res.data.length)return;
         var mapped=res.data.map(function(r){
           return{
@@ -15229,43 +15424,46 @@ function TFTClash(){
             riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
             bio:r.bio||'',discord_user_id:r.discord_user_id||null,
             authUserId:r.auth_user_id||null,
-            pts:0,wins:0,top4:0,games:0,avg:"0",
+            pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
+            avg:r.avg_placement?String(r.avg_placement):"0",
             banned:false,dnpCount:0,notes:'',checkedIn:false,
             clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
             tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
             role:"player",sponsor:null
           };
         });
-        // Aggregate stats from game_results table if available
-        supabase.from('game_results').select('player_id,placement,points')
+        // Enrich with game_results for detailed stats (clashHistory, streaks, etc.)
+        supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
+          .order('tournament_id',{ascending:true}).order('round_number',{ascending:true}).order('game_number',{ascending:true})
           .then(function(gr){
             if(!gr.error&&gr.data&&gr.data.length>0){
-              var statsMap={};
+              var historyMap={};
               gr.data.forEach(function(g){
                 var pid=g.player_id;
-                if(!statsMap[pid])statsMap[pid]={pts:0,wins:0,top4:0,games:0,totalPlace:0};
-                statsMap[pid].games+=1;
-                statsMap[pid].pts+=g.points||0;
-                statsMap[pid].totalPlace+=g.placement||0;
-                if(g.placement===1)statsMap[pid].wins+=1;
-                if(g.placement<=4)statsMap[pid].top4+=1;
+                if(!historyMap[pid])historyMap[pid]=[];
+                historyMap[pid].push({place:g.placement,placement:g.placement,points:g.points,round:g.round_number,tournamentId:g.tournament_id,gameNumber:g.game_number});
               });
               mapped=mapped.map(function(p){
-                var s=statsMap[p.id];
-                if(!s)return p;
-                return Object.assign({},p,{pts:s.pts,wins:s.wins,top4:s.top4,games:s.games,avg:s.games>0?(s.totalPlace/s.games).toFixed(1):"0"});
+                var hist=historyMap[p.id];
+                if(!hist||!hist.length)return p;
+                var totalPts=hist.reduce(function(s,g){return s+(g.points||0);},0);
+                var wins=hist.filter(function(g){return g.placement===1;}).length;
+                var top4=hist.filter(function(g){return g.placement<=4;}).length;
+                var avgP=hist.reduce(function(s,g){return s+g.placement;},0)/hist.length;
+                return Object.assign({},p,{
+                  pts:totalPts,wins:wins,top4:top4,games:hist.length,
+                  avg:avgP.toFixed(1),clashHistory:hist
+                });
               });
             }
             setPlayers(mapped);
-            supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(mapped),updated_at:new Date().toISOString()})
-              .then(function(res){if(res.error)console.error("[TFT] Failed to cache players:",res.error);});
           });
       });
   }
 
   // ── Supabase shared state — single channel for all keys ──────────────────
 
-  const rtRef=useRef({players:false,tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
+  const rtRef=useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
 
   const announcementInitRef=useRef(false);
 
@@ -15273,17 +15471,17 @@ function TFTClash(){
 
     if(!supabase.from){setIsLoadingData(false);return;}
 
-    // fetch all shared keys on mount
+    // Players: load from normalized players table (primary source of truth)
+    loadPlayersFromTable();
 
+    // Settings/config: load from site_settings (these remain as key-value pairs)
     supabase.from('site_settings').select('key,value')
 
-      .in('key',['players','tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps','scrim_access','scrim_data','ticker_overrides','host_tournaments','host_branding','host_announcements','featured_events','challenge_completions'])
+      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps','scrim_access','scrim_data','ticker_overrides','host_tournaments','host_branding','host_announcements','featured_events','challenge_completions'])
 
       .then(function(res){
 
-        if(!res.data){bootstrapPlayersFromTable();return;}
-
-        var hadPlayers=false;
+        if(!res.data){setIsLoadingData(false);return;}
 
         res.data.forEach(function(row){
 
@@ -15295,7 +15493,6 @@ function TFTClash(){
 
               var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
 
-              if(row.key==='players'){rtRef.current.players=true;if(Array.isArray(val)){setPlayers(val);}hadPlayers=true;}
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
 
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
@@ -15335,7 +15532,6 @@ function TFTClash(){
 
         announcementInitRef.current=true;
 
-        if(!hadPlayers)bootstrapPlayersFromTable();
         setIsLoadingData(false);
 
       });
@@ -15360,7 +15556,6 @@ function TFTClash(){
 
           if(!val)return;
 
-          if(key==='players'&&Array.isArray(val)&&val.length>0){rtRef.current.players=true;setPlayers(val);}
           if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
 
           if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
@@ -15398,7 +15593,43 @@ function TFTClash(){
 
       .subscribe();
 
-    return function(){supabase.removeChannel(ch);};
+    // Realtime on players table — reload when any player row changes
+    var playersCh=supabase.channel('players_realtime')
+      .on('postgres_changes',{event:'*',schema:'public',table:'players'},function(){
+        loadPlayersFromTable();
+      })
+      .subscribe();
+
+    // Realtime on game_results — triggers player stats refresh (via DB trigger) and reloads players
+    var gameResultsCh=supabase.channel('game_results_realtime')
+      .on('postgres_changes',{event:'*',schema:'public',table:'game_results'},function(){
+        loadPlayersFromTable();
+      })
+      .subscribe();
+
+    // Realtime on registrations — update tournament state when players register/check in
+    var regCh=supabase.channel('registrations_realtime')
+      .on('postgres_changes',{event:'*',schema:'public',table:'registrations'},function(payload){
+        var row=payload.new;
+        if(!row)return;
+        if(row.status==='checked_in'){
+          setTournamentState(function(ts){
+            var ids=new Set((ts.checkedInIds||[]).map(String));
+            ids.add(String(row.player_id));
+            return Object.assign({},ts,{checkedInIds:Array.from(ids)});
+          });
+        }
+        if(row.status==='registered'){
+          setTournamentState(function(ts){
+            var ids=new Set((ts.registeredIds||[]).map(String));
+            ids.add(String(row.player_id));
+            return Object.assign({},ts,{registeredIds:Array.from(ids)});
+          });
+        }
+      })
+      .subscribe();
+
+    return function(){supabase.removeChannel(ch);supabase.removeChannel(playersCh);supabase.removeChannel(gameResultsCh);supabase.removeChannel(regCh);};
 
   },[]);
 
@@ -15473,11 +15704,7 @@ function TFTClash(){
 
   },[hostApps]);
 
-  useEffect(function(){
-    if(rtRef.current.players){rtRef.current.players=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'players',value:JSON.stringify(players),updated_at:new Date().toISOString()})
-      .then(function(res){if(res.error)console.error("[TFT] Failed to sync players:",res.error);});
-  },[players]);
+  // Players no longer synced to site_settings — players table is the source of truth
 
   useEffect(function(){
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
@@ -15528,8 +15755,10 @@ function TFTClash(){
 
 
   // Load past clashes from tournament_results + tournaments tables
+  // Use players.length as stable flag — only refetch when count changes, not on every mutation
+  var playersLoadedCount=players.length;
   useEffect(function(){
-    if(!supabase.from||!players.length)return;
+    if(!supabase.from||!playersLoadedCount)return;
     supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false})
       .then(function(res){
         if(res.error){console.error("Failed to load tournaments:",res.error);return;}
@@ -15540,10 +15769,11 @@ function TFTClash(){
           .then(function(rRes){
             if(rRes.error){console.error("Failed to load results:",rRes.error);return;}
             if(!rRes.data)return;
+            var playersCopy=players;
             var clashes=res.data.map(function(t){
               var results=rRes.data.filter(function(r){return r.tournament_id===t.id;});
               var top8=results.slice(0,8).map(function(r){
-                var p=players.find(function(pl){return String(pl.id)===String(r.player_id);});
+                var p=playersCopy.find(function(pl){return String(pl.id)===String(r.player_id);});
                 return p?p.name:('Player '+r.player_id);
               });
               return{id:t.id,name:t.name,date:t.date,season:'S1',players:results.length,lobbies:Math.ceil(results.length/8),champion:top8[0]||'Unknown',top3:top8};
@@ -15551,15 +15781,15 @@ function TFTClash(){
             setPastClashes(clashes);
           });
       });
-  },[players]);
+  },[playersLoadedCount]);
 
-  function navTo(s){
+  var navTo=useCallback(function(s){
     if(s==="standings")s="leaderboard";
     if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
     var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
     if(s==="scrims"&&!canScrims){toast("Access restricted","error");return;}
     setScreen(s);
-  }
+  },[isAdmin,currentUser,scrimAccess,toast]);
 
   useEffect(function(){
     var params=new URLSearchParams(window.location.search);
@@ -15682,18 +15912,17 @@ function TFTClash(){
 
 
 
-  // -- Compute SEASON_CHAMPION from live standings --
-  if(players&&players.length>0){
+  // -- Compute SEASON_CHAMPION from live standings (derived state, not mutated) --
+  var computedChampion=useMemo(function(){
+    if(!players||players.length===0)return null;
     var scSorted=players.slice().sort(function(a,b){return(b.pts||0)-(a.pts||0);});
     var scTop=scSorted[0];
     if(scTop&&scTop.pts>0){
-      SEASON_CHAMPION={name:scTop.name,title:"Season Leader",season:seasonConfig.name||"Season 1",since:"",pts:scTop.pts,wins:scTop.wins||0,rank:scTop.rank||"Challenger"};
-    }else{
-      SEASON_CHAMPION=null;
+      return{name:scTop.name,title:"Season Leader",season:seasonConfig.name||"Season 1",since:"",pts:scTop.pts,wins:scTop.wins||0,rank:scTop.rank||"Challenger"};
     }
-  }else{
-    SEASON_CHAMPION=null;
-  }
+    return null;
+  },[players,seasonConfig]);
+  SEASON_CHAMPION=computedChampion;
 
   // Show auth screens fullscreen
 
@@ -15859,11 +16088,11 @@ function TFTClash(){
 
         {screen==="leaderboard"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
-        {screen==="profile"    &&profilePlayer&&<PlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
+        {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
-        {screen==="results"    &&<ResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
+        {screen==="results"    &&<MemoResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
 
-        {screen==="hof"        &&<HofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} pastClashes={pastClashes} toast={toast}/>}
+        {screen==="hof"        &&<MemoHofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} pastClashes={pastClashes} toast={toast}/>}
 
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
 
@@ -15904,7 +16133,7 @@ function TFTClash(){
 
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications}/>}
 
-        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
+        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser}/>}
 
         {screen==="admin"      &&!isAdmin&&(
 

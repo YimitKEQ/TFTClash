@@ -83,8 +83,8 @@ export function welcomeEmbed(member) {
       `You've joined **TFT Clash** — the weekly competitive TFT platform for the community.\n\n` +
       `${DIVIDER}\n` +
       `**Get started:**\n` +
-      `> 1️⃣  Read the rules in <#RULES_ID>\n` +
-      `> 2️⃣  Verify yourself in <#VERIFY_ID>\n` +
+      `> 1️⃣  Read the rules in <#${process.env.RULES_CHANNEL_ID || 'rules'}>\n` +
+      `> 2️⃣  Verify yourself in <#${process.env.VERIFY_CHANNEL_ID || 'verify'}>\n` +
       `> 3️⃣  Link your account: \`/link account <username>\`\n` +
       `> 4️⃣  Register for the next clash at [tft-clash.vercel.app](https://tft-clash.vercel.app)\n\n` +
       `${DIVIDER}\n*Free to compete, always.*`
@@ -139,8 +139,9 @@ export function profileEmbed(player, standings = []) {
   const maxPts    = standings[0]?.pts ?? player.pts ?? 1;
   const color     = RANK_COLORS[player.rank] ?? PURPLE;
   const rIcon     = rankIcon(player.rank);
-  const winRate   = Math.round((player.wins / SEASON.currentClash) * 100);
-  const top4Rate  = Math.round((player.top4 / SEASON.currentClash) * 100);
+  const gamesPlayed = player.games || player.wins + (player.top4 - player.wins) + 1 || SEASON.currentClash;
+  const winRate   = gamesPlayed > 0 ? Math.round((player.wins / gamesPlayed) * 100) : 0;
+  const top4Rate  = gamesPlayed > 0 ? Math.round((player.top4 / gamesPlayed) * 100) : 0;
 
   return new EmbedBuilder()
     .setColor(color)
@@ -158,8 +159,8 @@ export function profileEmbed(player, standings = []) {
         name: 'Season Progress',
         value:
           `**Points**   ${bar(player.pts, maxPts)} ${player.pts}/${maxPts}\n` +
-          `**Wins**     ${bar(player.wins, SEASON.currentClash)} ${winRate}%\n` +
-          `**Top 4**    ${bar(player.top4, SEASON.currentClash)} ${top4Rate}%`,
+          `**Wins**     ${bar(player.wins, gamesPlayed)} ${winRate}%\n` +
+          `**Top 4**    ${bar(player.top4, gamesPlayed)} ${top4Rate}%`,
         inline: false,
       },
     )

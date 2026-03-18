@@ -146,6 +146,6 @@ export default async function handler(req, res) {
     res.json({ url: session.url, sessionId: session.id });
   } catch (err) {
     console.error('Stripe checkout error:', err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Unable to create checkout session. Please try again.' });
   }
 }
