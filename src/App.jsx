@@ -3541,6 +3541,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     setPlayers(ps=>ps.map(p=>p.id===linkedPlayer.id?{...p,checkedIn:true}:p));
     setTournamentState(function(ts){var ids=ts.checkedInIds||[];var sid=String(linkedPlayer.id);return ids.includes(sid)?ts:{...ts,checkedInIds:[...ids,sid]};});
 
+    // Sync check-in to DB registrations table
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('registrations').update({status:'checked_in',checked_in_at:new Date().toISOString()})
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('player_id',linkedPlayer.id)
+        .then(function(r){if(r.error)console.error("[TFT] check-in update failed:",r.error);});
+    }
 
     toast("You're checked in! Good luck, "+linkedPlayer.name+" ✓","success");
 
@@ -3573,13 +3580,27 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       var ids=ts.registeredIds||[];
       return ids.includes(sid)?ts:{...ts,registeredIds:[...ids,sid]};
     });
-    // Sync to DB registrations table
-    if(supabase.from&&tournamentState.dbTournamentId){
-      supabase.from('registrations').insert({
-        tournament_id:tournamentState.dbTournamentId,
-        player_id:linkedPlayer.id,
-        status:'registered'
-      }).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+    // Sync to DB registrations table — auto-create tournament if needed
+    if(supabase.from){
+      var doInsert=function(tid){
+        supabase.from('registrations').upsert({
+          tournament_id:tid,
+          player_id:linkedPlayer.id,
+          status:'registered'
+        },{onConflict:'tournament_id,player_id'}).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+      };
+      if(tournamentState.dbTournamentId){
+        doInsert(tournamentState.dbTournamentId);
+      }else{
+        // Auto-create tournament in DB so registrations are tracked
+        supabase.from('tournaments').insert({name:clashName||'Next Clash',date:new Date().toISOString().split('T')[0],phase:'registration',max_players:parseInt(tournamentState.maxPlayers)||24}).select().single().then(function(res){
+          if(!res.error&&res.data){
+            var newId=res.data.id;
+            setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:newId});});
+            doInsert(newId);
+          }else if(res.error){console.error("[TFT] Failed to auto-create tournament:",res.error);}
+        });
+      }
     }
     toast(currentUser.username+" registered for "+clashName+"! ✓","success");
   }
@@ -5146,11 +5167,12 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     }
 
     // Persist per-game results to game_results table
-    if(supabase.from){
+    if(supabase.from&&tournamentState.dbTournamentId){
+      var dbTid=tournamentState.dbTournamentId;
       var gameRows=[];
       lobby.forEach(function(p){
         var place=parseInt(placementEntry[li].placements[p.id]||"0");
-        if(place>0)gameRows.push({tournament_id:currentClashId,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false});
+        if(place>0)gameRows.push({tournament_id:dbTid,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false,game_number:round});
       });
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
@@ -5204,7 +5226,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     });
     if(supabase.from&&tournamentState.dbTournamentId){
       supabase.from('game_results').delete()
-        .eq('tournament_id',currentClashId)
+        .eq('tournament_id',tournamentState.dbTournamentId)
         .eq('round_number',round)
         .then(function(res){if(res.error)console.error("[TFT] Failed to delete game results:",res.error);});
       supabase.from('lobbies').update({status:'active'})
@@ -5261,23 +5283,38 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
   function saveResultsToSupabase(allPlayers,clashId){
     if(!supabase.from)return;
     var clashName=(tournamentState&&tournamentState.clashName)?tournamentState.clashName:("Clash "+new Date().toLocaleDateString());
-    supabase.from('tournaments').insert({name:clashName,date:new Date().toISOString().split('T')[0],phase:'complete'}).select('id').single().then(function(res){
-      if(res.error){console.error("Failed to save tournament:",res.error);toast("Failed to save results to database","error");return;}
-      if(!res.data)return;
-      var tId=res.data.id;
-      var rows=[];
+    var doSave=function(tId){
+      // Mark tournament as complete
+      supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()}).eq('id',tId)
+        .then(function(r){if(r.error)console.error("Failed to update tournament phase:",r.error);});
+      // Aggregate results per player across all rounds
+      var playerTotals={};
       allPlayers.forEach(function(p){
         var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
-        entries.forEach(function(h){
-          rows.push({tournament_id:tId,player_id:p.id,final_placement:(h.place||h.placement),total_points:(h.pts||0)+(h.bonusPts||0),wins:(h.place||h.placement)===1?1:0,top4_count:(h.place||h.placement)<=4?1:0});
-        });
+        if(entries.length===0)return;
+        var totalPts=entries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
+        var wins=entries.filter(function(h){return(h.place||h.placement)===1;}).length;
+        var top4=entries.filter(function(h){return(h.place||h.placement)<=4;}).length;
+        var bestPlace=Math.min.apply(null,entries.map(function(h){return h.place||h.placement;}));
+        playerTotals[p.id]={tournament_id:tId,player_id:p.id,final_placement:bestPlace,total_points:totalPts,wins:wins,top4_count:top4};
       });
+      var rows=Object.values(playerTotals);
       if(rows.length>0){
         supabase.from('tournament_results').insert(rows).then(function(r){
           if(r.error){console.error("Failed to save results:",r.error);toast("Failed to save player results","error");}
         });
       }
-    });
+    };
+    // Reuse existing dbTournamentId if available
+    var existingId=tournamentState.dbTournamentId;
+    if(existingId){
+      doSave(existingId);
+    }else{
+      supabase.from('tournaments').insert({name:clashName,date:new Date().toISOString().split('T')[0],phase:'complete'}).select('id').single().then(function(res){
+        if(res.error){console.error("Failed to save tournament:",res.error);toast("Failed to save results to database","error");return;}
+        if(res.data)doSave(res.data.id);
+      });
+    }
   }
 
 
@@ -8390,10 +8427,10 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
     setPlayers(ps=>[...ps,np]);
 
-    // Write to players table too
+    // Write to players table and patch local state with real UUID
     if(supabase.from){
-      supabase.from('players').insert({username:n,riot_id:r,rank:addPlayerForm.rank||"Gold",region:addPlayerForm.region||"EUW",auth_user_id:null})
-        .then(function(res){if(res.error)console.error("[TFT] Failed to insert player to DB:",res.error);else if(res.data&&res.data[0]){setPlayers(function(ps){return ps.map(function(p){return p.name===n?Object.assign({},p,{id:res.data[0].id}):p;});});}});
+      supabase.from('players').insert({username:n,riot_id:r,rank:addPlayerForm.rank||"Gold",region:addPlayerForm.region||"EUW",auth_user_id:null}).select().single()
+        .then(function(res){if(res.error)console.error("[TFT] Failed to insert player to DB:",res.error);else if(res.data){setPlayers(function(ps){return ps.map(function(p){return p.name===n?Object.assign({},p,{id:res.data.id}):p;});});}});
     }
 
     addAudit("ACTION","Player added: "+n);
@@ -8941,9 +8978,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened — "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
-              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',size:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().then(function(res){if(!res.error&&res.data&&res.data[0]){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data[0].id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}addAudit("ACTION","Tournament started — "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){var existingId=tournamentState.dbTournamentId;if(existingId){supabase.from('tournaments').update({phase:'upcoming',format:cutL>0?'two_stage':'single_stage',round_count:games,seeding_method:seedAlgo||'snake'}).eq('id',existingId).then(function(r){if(r.error)console.error("[TFT] Failed to update tournament:",r.error);});}else{supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',max_players:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().single().then(function(res){if(!res.error&&res.data){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data.id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}}addAudit("ACTION","Tournament started — "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
-              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
+              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){var oldId=tournamentState.dbTournamentId;setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));if(supabase.from&&oldId){supabase.from('registrations').delete().eq('tournament_id',oldId).then(function(){});supabase.from('tournaments').update({phase:'cancelled'}).eq('id',oldId).then(function(){});}addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
             </div>
 
@@ -9437,7 +9474,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                 var name=window.prompt("New season name:","Season "+(parseInt((seasonName||"Season 1").replace(/\D/g,""))||1));
                 if(!name)return;
                 if(supabase.from){
-                  supabase.from('seasons').insert({name:name,status:'active',started_at:new Date().toISOString()}).select().single()
+                  supabase.from('seasons').insert({name:name,number:Date.now()%10000,status:'active',start_date:new Date().toISOString().split('T')[0]}).select().single()
                     .then(function(res){
                       if(res.error){toast("Failed to create season: "+res.error.message,"error");return;}
                       setSeasonConfig(function(c){return Object.assign({},c,{seasonId:res.data.id});});
@@ -9454,11 +9491,12 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               <Btn v="dark" onClick={function(){
                 if(!window.confirm("End the current season? This will snapshot all stats and mark the season as completed."))return;
                 if(supabase.from&&seasonConfig&&seasonConfig.seasonId){
-                  // Snapshot player stats
-                  var snapshots=players.map(function(p){return{season_id:seasonConfig.seasonId,player_id:p.id,pts:p.pts||0,wins:p.wins||0,top4:p.top4||0,games:p.games||0,avg_placement:parseFloat(p.avg)||0,final_rank:[...players].sort(function(a,b){return b.pts-a.pts;}).findIndex(function(x){return x.id===p.id;})+1};});
-                  supabase.from('season_snapshots').insert(snapshots).then(function(r){if(r.error)console.error("[TFT] snapshot insert failed:",r.error);});
+                  // Snapshot player stats into standings JSONB column
+                  var sorted=[...players].sort(function(a,b){return b.pts-a.pts;});
+                  var standingsData=sorted.map(function(p,idx){return{player_id:p.id,username:p.name||p.username,pts:p.pts||0,wins:p.wins||0,top4:p.top4||0,games:p.games||0,avg_placement:parseFloat(p.avg)||0,final_rank:idx+1};});
+                  supabase.from('season_snapshots').insert({season_id:seasonConfig.seasonId,week_number:0,standings:standingsData,snapshot_date:new Date().toISOString().split('T')[0]}).then(function(r){if(r.error)console.error("[TFT] snapshot insert failed:",r.error);});
                   // Mark season complete
-                  supabase.from('seasons').update({status:'completed',ended_at:new Date().toISOString()}).eq('id',seasonConfig.seasonId)
+                  supabase.from('seasons').update({status:'completed',end_date:new Date().toISOString().split('T')[0]}).eq('id',seasonConfig.seasonId)
                     .then(function(r){if(r.error)console.error("[TFT] season end failed:",r.error);});
                   addAudit("ACTION","Season ended: "+(seasonName||"Season")+" — "+players.length+" players snapshotted");
                   toast("Season ended. Stats snapshotted.","success");
@@ -13907,14 +13945,14 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
     // Write to host_profiles DB table
     if(supabase.from&&currentUser){
       var slug=(org.trim()||name.trim()).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-      supabase.from("host_profiles").insert({
+      supabase.from("host_profiles").upsert({
         user_id:currentUser.id,
         org_name:org.trim()||name.trim(),
         slug:slug,
         bio:reason.trim(),
         status:"pending",
         social_links:{freq:freq}
-      }).then(function(res){
+      },{onConflict:'user_id'}).then(function(res){
         if(res.error)console.error("[TFT] host_profiles insert failed:",res.error);
         else dbg("[TFT] host_profiles application saved to DB");
       });
@@ -14107,8 +14145,15 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       supabase.from("host_profiles").select("id").eq("user_id",currentUser?currentUser.id:"").single()
         .then(function(hpRes){
           var hpId=hpRes.data?hpRes.data.id:null;
-          return supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",max_players:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules_text:tRules||null,host_profile_id:hpId,description:tRules||"Host tournament by "+brandName,region:""});
-        }).then(function(res){if(res&&res.error)console.error("[TFT] Failed to create tournament:",res.error);});
+          return supabase.from("tournaments").insert({name:tName,date:tDate,format:"swiss",max_players:parseInt(tSize),invite_only:tInvite,entry_fee:tEntryFee||null,rules_text:tRules||null,host_profile_id:hpId,description:tRules||"Host tournament by "+brandName,region:""}).select().single();
+        }).then(function(res){
+          if(res&&res.error)console.error("[TFT] Failed to create tournament:",res.error);
+          else if(res&&res.data){
+            var dbId=res.data.id;
+            setTournaments(function(ts){return ts.map(function(t){return t.name===tName&&!t.dbId?Object.assign({},t,{dbId:dbId}):t;});});
+            if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.map(function(ev){return ev.name===tName&&!ev.dbTournamentId?Object.assign({},ev,{dbTournamentId:dbId}):ev;});});}
+          }
+        });
     }
     setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
     toast(tEntryFee?"Tournament created — pending admin approval for entry fee":"Tournament created!","success");
@@ -15836,6 +15881,27 @@ function TFTClash(){
 
         announcementInitRef.current=true;
 
+        // Reconcile registrations from DB — source of truth for who is registered
+        setTournamentState(function(ts){
+          if(!ts.dbTournamentId)return ts;
+          supabase.from('registrations').select('player_id,status')
+            .eq('tournament_id',ts.dbTournamentId)
+            .then(function(regRes){
+              if(regRes.error||!regRes.data)return;
+              var regIds=[];
+              var checkIds=[];
+              regRes.data.forEach(function(r){
+                if(r.status==='registered'||r.status==='checked_in')regIds.push(String(r.player_id));
+                if(r.status==='checked_in')checkIds.push(String(r.player_id));
+              });
+              setTournamentState(function(ts2){
+                rtRef.current.tournament_state=true;
+                return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds.length>0?checkIds:ts2.checkedInIds||[]});
+              });
+            });
+          return ts;
+        });
+
         setIsLoadingData(false);
 
       });
@@ -15911,25 +15977,49 @@ function TFTClash(){
       })
       .subscribe();
 
-    // Realtime on registrations — update tournament state when players register/check in
+    // Realtime on registrations — handle INSERT, UPDATE, and DELETE
     var regCh=supabase.channel('registrations_realtime')
-      .on('postgres_changes',{event:'*',schema:'public',table:'registrations'},function(payload){
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'registrations'},function(payload){
         var row=payload.new;
-        if(!row)return;
+        if(!row||!row.player_id)return;
+        var pid=String(row.player_id);
         if(row.status==='checked_in'){
           setTournamentState(function(ts){
             var ids=new Set((ts.checkedInIds||[]).map(String));
-            ids.add(String(row.player_id));
+            ids.add(pid);
             return Object.assign({},ts,{checkedInIds:Array.from(ids)});
           });
         }
         if(row.status==='registered'){
           setTournamentState(function(ts){
             var ids=new Set((ts.registeredIds||[]).map(String));
-            ids.add(String(row.player_id));
+            ids.add(pid);
             return Object.assign({},ts,{registeredIds:Array.from(ids)});
           });
         }
+      })
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'registrations'},function(payload){
+        var row=payload.new;
+        if(!row||!row.player_id)return;
+        var pid=String(row.player_id);
+        if(row.status==='checked_in'){
+          setTournamentState(function(ts){
+            var cids=new Set((ts.checkedInIds||[]).map(String));
+            cids.add(pid);
+            return Object.assign({},ts,{checkedInIds:Array.from(cids)});
+          });
+        }
+      })
+      .on('postgres_changes',{event:'DELETE',schema:'public',table:'registrations'},function(payload){
+        var old=payload.old;
+        if(!old||!old.player_id)return;
+        var pid=String(old.player_id);
+        setTournamentState(function(ts){
+          return Object.assign({},ts,{
+            registeredIds:(ts.registeredIds||[]).filter(function(id){return String(id)!==pid;}),
+            checkedInIds:(ts.checkedInIds||[]).filter(function(id){return String(id)!==pid;})
+          });
+        });
       })
       .subscribe();
 
@@ -16182,19 +16272,32 @@ function TFTClash(){
       var ids=ts.registeredIds||[];
       return {...ts,registeredIds:isRegistered?ids.filter(function(id){return id!==sid;}):[...ids,sid]};
     });
-    // Sync to DB registrations table
-    if(supabase.from&&tournamentState.dbTournamentId){
-      if(isRegistered){
+    // Sync to DB registrations table — auto-create tournament if needed
+    if(supabase.from){
+      if(isRegistered&&tournamentState.dbTournamentId){
         supabase.from('registrations').delete()
           .eq('tournament_id',tournamentState.dbTournamentId)
           .eq('player_id',playerId)
           .then(function(r){if(r.error)console.error("[TFT] unregister failed:",r.error);});
-      }else{
-        supabase.from('registrations').insert({
-          tournament_id:tournamentState.dbTournamentId,
-          player_id:playerId,
-          status:'registered'
-        }).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+      }else if(!isRegistered){
+        var doInsert=function(tid){
+          supabase.from('registrations').upsert({
+            tournament_id:tid,
+            player_id:playerId,
+            status:'registered'
+          },{onConflict:'tournament_id,player_id'}).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+        };
+        if(tournamentState.dbTournamentId){
+          doInsert(tournamentState.dbTournamentId);
+        }else{
+          supabase.from('tournaments').insert({name:tournamentState.clashName||'Next Clash',date:new Date().toISOString().split('T')[0],phase:'registration',max_players:parseInt(tournamentState.maxPlayers)||24}).select().single().then(function(res){
+            if(!res.error&&res.data){
+              var newId=res.data.id;
+              setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:newId});});
+              doInsert(newId);
+            }
+          });
+        }
       }
     }
     toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
