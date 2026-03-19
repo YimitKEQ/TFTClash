@@ -3470,13 +3470,9 @@ var MemoStandingsTable = memo(StandingsTable);
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
-function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents}){
+function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
 
-  const [name,setName]=useState("");
-
-  const [riot,setRiot]=useState("");
-
-  const [region,setRegion]=useState("EUW");
+  // Dead state variables removed (name, riot, region) — registration now uses registerFromAccount()
 
   const clashName=tournamentState?.clashName||"Next Clash";
 
@@ -3496,25 +3492,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-  function register(){
-
-    if(!name.trim()||!riot.trim()){toast("Name and Riot ID required","error");return;}
-
-    if(players.length>=64){toast("Tournament full","error");return;}
-
-    if(players.find(p=>p.riotId.toLowerCase()===riot.toLowerCase())){toast("Riot ID taken","error");return;}
-
-    const lp=Math.floor(Math.random()*2000)+900;
-
-    const ri=Math.min(Math.floor(lp/300),RANKS.length-1);
-
-    const np={id:Date.now()%100000,name:name.trim(),riotId:riot.trim(),rank:RANKS[ri],lp,region,pts:0,wins:0,top4:0,games:0,avg:"0",bestStreak:0,currentStreak:0,tiltStreak:0,bestHaul:0,checkedIn:false,role:"player",banned:false,dnpCount:0,notes:"",clashHistory:[],sparkline:[],attendanceStreak:0,lastClashId:null,sponsor:null};
-
-    setPlayers(p=>[...p,np]);setName("");setRiot("");
-
-    toast(name.trim()+" joined!","success");
-
-  }
+  // Guest self-registration removed — all registration goes through registerFromAccount()
 
 
 
@@ -3701,12 +3679,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
 
   var autoTickerItems=players.length>0?[
-    sortedPts[0]&&("🏆 "+sortedPts[0].name+" leads Season 1 with "+sortedPts[0].pts+" pts"),
+    sortedPts[0]&&sortedPts[0].pts>0&&("🏆 "+sortedPts[0].name+" leads "+(seasonConfig&&seasonConfig.seasonName||"the season")+" with "+sortedPts[0].pts+" pts"),
     totalGames>0&&("🎮 "+totalGames+" games played this season"),
     sortedWins[0]&&sortedWins[0].wins>0&&("🥇 "+sortedWins[0].name+" · "+sortedWins[0].wins+" tournament wins"),
     sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&("🔥 "+sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"),
-    "⚡ "+players.filter(p=>p.checkedIn).length+" / "+players.length+" players checked in",
-    "📊 Season 1 active — "+players.length+" registered",
+    players.filter(function(p){return p.checkedIn;}).length>0&&("⚡ "+players.filter(function(p){return p.checkedIn;}).length+" / "+players.length+" players checked in"),
+    "📊 "+(seasonConfig&&seasonConfig.seasonName||"Season")+" active — "+players.length+" registered",
   ].filter(Boolean):[];
   const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
 
@@ -3783,7 +3761,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
         {tPhase==="registration"&&(
           <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
-            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#9B72CF,#4ECDC4)",width:Math.min(100,Math.round(registeredCount/24*100))+"%",transition:"width .5s ease"}}/>
+            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#9B72CF,#4ECDC4)",width:Math.min(100,Math.round(registeredCount/(tournamentState.maxPlayers||24)*100))+"%",transition:"width .5s ease"}}/>
           </div>
         )}
 
@@ -3911,9 +3889,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       )}
 
-      {/* Check-in card — visible during registration and check-in phases */}
+      {/* Check-in card — visible during check-in phase only */}
 
-      {tPhase!=="inprogress"&&tPhase!=="complete"&&currentUser&&linkedPlayer&&(
+      {tPhase==="checkin"&&currentUser&&linkedPlayer&&(
 
         <div style={{background:myCheckedIn?"rgba(82,196,124,.08)":"rgba(232,168,56,.08)",border:"1px solid "+(myCheckedIn?"rgba(82,196,124,.4)":"rgba(232,168,56,.4)"),borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
@@ -4179,7 +4157,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join {clashName}</h3>
 
-            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>Saturday 8PM EST · Season 1</div>
+            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>{clashDate||clashTime?(clashDate||"")+(clashDate&&clashTime?" · ":"")+(clashTime||""):"Upcoming"} · {seasonConfig&&seasonConfig.seasonName||"Season 1"}</div>
 
 
 
@@ -4325,13 +4303,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             {[
 
-              {n:"01",t:"Sign Up",d:"Register your Riot ID and join the season. Free for everyone."},
+              {n:"01",t:"Sign Up",d:"Create a free account and link your Riot ID. Registration is always free."},
 
-              {n:"02",t:"Compete Weekly",d:"Show up Saturday. Play your lobby. Earn Clash Points based on placement."},
+              {n:"02",t:"Register & Check In",d:"Register for the next clash on the Home screen. Check in when the window opens to confirm your spot."},
 
-              {n:"03",t:"Climb the Board",d:"Points accumulate all season. Top 8 at season end make the Grand Finals."},
+              {n:"03",t:"Play & Submit",d:"Play your lobby games. Submit your placement on the Bracket page. Admin locks results and points are awarded automatically."},
 
-              {n:"04",t:"Win the Crown",d:"One player is crowned Season Champion. The record lives here forever."},
+              {n:"04",t:"Win the Crown",d:"Points accumulate across all clashes. The season leader is crowned Champion and enters the Hall of Fame."},
 
             ].map(({n,t,d})=>(
 
@@ -4979,7 +4957,20 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
     } else {
 
-      pool=[...checkedIn].sort((a,b)=>b.pts-a.pts);
+      // Swiss reseeding for round 2+: snake by current tournament pts for balanced lobbies
+      var byPts=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
+      var lCount=Math.ceil(byPts.length/lobbySize);
+      if(lCount<=1){
+        pool=byPts;
+      } else {
+        var swissBuckets=Array.from({length:lCount},function(){return[];});
+        byPts.forEach(function(p,i){
+          var row=Math.floor(i/lCount);
+          var col=row%2===0?i%lCount:(lCount-1-(i%lCount));
+          swissBuckets[col].push(p);
+        });
+        pool=[].concat.apply([],swissBuckets);
+      }
 
     }
 
@@ -5465,7 +5456,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
           {/* Lobby grid */}
 
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(320px,1fr))",gap:16}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(320px,100%),1fr))",gap:16}}>
 
             {lobbies.map((lobby,li)=>{
 
@@ -8952,7 +8943,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',size:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().then(function(res){if(!res.error&&res.data&&res.data[0]){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data[0].id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}addAudit("ACTION","Tournament started — "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
-              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[]});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
+              <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
             </div>
 
@@ -11440,6 +11431,14 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
           {/* Achievement grid */}
 
           <div className="grid-2" style={{gap:10}}>
+
+            {filteredAch.length===0&&(
+              <div style={{gridColumn:"1/-1",textAlign:"center",padding:"40px 20px"}}>
+                <div style={{fontSize:32,marginBottom:12}}>🏅</div>
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>No achievements match this filter</div>
+                <div style={{fontSize:12,color:"#9AAABF"}}>Try selecting a different tier or category.</div>
+              </div>
+            )}
 
             {filteredAch.map(a=>{
 
@@ -15153,12 +15152,14 @@ function RulesScreen({setScreen}){
       </Panel>
 
       <Panel style={{padding:"24px",marginBottom:16}}>
-        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#4ECDC4",marginBottom:14}}>Tournament Format</h3>
+        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#4ECDC4",marginBottom:14}}>How a Clash Works</h3>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           {[
-            {icon:"1",title:"Qualifier Stage",desc:"All players are randomly assigned to lobbies of 4-8 players. Top performers from each lobby advance to the Point Stage."},
-            {icon:"2",title:"Point Stage",desc:"Qualified players compete across multiple rounds. Points accumulate across all games. Final standings are based on total points."},
-            {icon:"3",title:"Swiss Format (Alternative)",desc:"Players are matched against opponents with similar records each round. No elimination — everyone plays all rounds. Final standings by total points."}
+            {icon:"1",title:"Register",desc:"Sign up on the Home screen when registration opens. If the clash is full (max 24 players), you are placed on a waitlist and auto-promoted when a spot opens."},
+            {icon:"2",title:"Check In",desc:"Check in when the check-in window opens (usually 60 minutes before start). If you do not check in, your spot is forfeited."},
+            {icon:"3",title:"Play",desc:"Checked-in players are assigned to 8-player lobbies. Seeding is configurable (random, rank-based, snake draft, or anti-stack). Multiple rounds are played."},
+            {icon:"4",title:"Submit Results",desc:"After each game, you can self-report your placement directly on the Bracket page. The admin reviews and locks lobby results. Points are applied automatically."},
+            {icon:"5",title:"Season Standings",desc:"Points accumulate across all clashes in the season. The player with the most points at season end is crowned Champion and enters the Hall of Fame."}
           ].map(function(s){return(
             <div key={s.icon} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(78,205,196,.04)",border:"1px solid rgba(78,205,196,.12)",borderRadius:10,padding:"12px 14px"}}>
               <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(78,205,196,.12)",border:"1px solid rgba(78,205,196,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#4ECDC4",flexShrink:0}}>{s.icon}</div>
@@ -15171,21 +15172,41 @@ function RulesScreen({setScreen}){
         </div>
       </Panel>
 
-      <Panel style={{padding:"24px"}}>
+      <Panel style={{padding:"24px",marginBottom:16}}>
         <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#E8A838",marginBottom:14}}>General Rules</h3>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {[
-            "All players must check in before the tournament start time.",
-            "Players who fail to check in will forfeit their spot.",
-            "Disconnects during a game count as a loss (8th place) unless the lobby agrees to a remake.",
-            "Intentional griefing, win-trading, or collusion will result in disqualification.",
-            "Tournament hosts have final say on all disputes.",
-            "Results are final once published by the tournament admin.",
+            "All players must check in before the tournament start time. No-shows forfeit their spot.",
+            "2 DNPs (Did Not Play) in a single clash result in automatic disqualification.",
+            "Disconnects during a game count as 8th place unless the lobby unanimously agrees to a remake.",
+            "Intentional griefing, win-trading, or collusion will result in a ban.",
+            "Players can self-submit their placement after each game. Admin confirms and locks results.",
+            "Once a lobby is locked, results are final. Admins can unlock and re-enter if a mistake was made.",
+            "When all lobbies are locked, the next round auto-advances after 15 seconds (admin can cancel).",
             "Free to compete — no entry fee required for standard clashes."
           ].map(function(rule,i){return(
-            <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 0",borderBottom:i<6?"1px solid rgba(242,237,228,.05)":"none"}}>
+            <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 0",borderBottom:i<7?"1px solid rgba(242,237,228,.05)":"none"}}>
               <span style={{color:"#E8A838",fontWeight:700,fontSize:13,flexShrink:0}}>•</span>
               <span style={{fontSize:13,color:"#BECBD9",lineHeight:1.5}}>{rule}</span>
+            </div>
+          );})}
+        </div>
+      </Panel>
+
+      <Panel style={{padding:"24px"}}>
+        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#9B72CF",marginBottom:14}}>Tournament Formats</h3>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {[
+            {icon:"3",title:"Standard (Default)",desc:"3 games, all players play every round. Seeded lobbies, total points determine final standings. Great for friend groups up to 24 players."},
+            {icon:"5",title:"Competitive",desc:"5-6 games with optional cut line. After a set number of games, players below the cut are eliminated. Remaining players compete for the title."},
+            {icon:"S",title:"Swiss",desc:"Players are reseeded between rounds based on current standings. Everyone plays all rounds. Final standings by cumulative points."}
+          ].map(function(s){return(
+            <div key={s.icon} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:10,padding:"12px 14px"}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{s.icon}</div>
+              <div>
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{s.title}</div>
+                <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{s.desc}</div>
+              </div>
             </div>
           );})}
         </div>
@@ -15202,15 +15223,19 @@ function FAQScreen({setScreen}){
   var [open,setOpen]=useState(null);
 
   var faqs=[
-    {q:"How does the points system work?",a:"Points are awarded based on your final placement in each game: 1st = 8 pts, 2nd = 7, 3rd = 6, 4th = 5, 5th = 4, 6th = 3, 7th = 2, 8th = 1. These follow the official EMEA rulebook scoring."},
-    {q:"How do I join a clash?",a:"Navigate to the Home screen and click 'Register' on an upcoming clash. You'll need to create a free account first. Check in before the start time to confirm your spot."},
+    {q:"How do I join a clash?",a:"Go to the Home screen and click Register. You need a free account with a Riot ID. Once registered, check in when the check-in window opens (usually 60 min before start) to confirm your spot."},
     {q:"Is it free to play?",a:"Yes! TFT Clash is always free to compete. There is no paywall on tournament entry. Pro and Host tiers offer additional features but are never required to play."},
-    {q:"What does Pro ($4.99/mo) include?",a:"Pro members get advanced stats and analytics, priority tournament registration, custom profile badges, detailed match history exports, and access to exclusive Pro-only clashes."},
-    {q:"What does the Host tier ($19.99/mo) include?",a:"Host tier includes everything in Pro, plus the ability to create and manage your own tournaments, custom branding/logos, announcement tools, player management, and a dedicated tournament dashboard."},
+    {q:"What if the clash is full?",a:"If registration hits the player cap (usually 24), you are automatically placed on a waitlist. If a registered player drops out, the first person on the waitlist is auto-promoted to a confirmed spot."},
+    {q:"How does the points system work?",a:"Points are awarded based on your final placement in each game: 1st = 8 pts, 2nd = 7, 3rd = 6, 4th = 5, 5th = 4, 6th = 3, 7th = 2, 8th = 1. These follow the official EMEA rulebook scoring."},
+    {q:"How do I submit my results?",a:"After each game, go to the Bracket screen and find your lobby. Use the placement dropdown next to your name to report your finish (1st-8th). The admin reviews all submissions, can adjust if needed, and locks the lobby to finalize results."},
+    {q:"What if the admin locks wrong results?",a:"Admins can unlock a lobby to revert results and re-enter placements. All stats (points, wins, averages) are automatically rolled back when a lobby is unlocked."},
     {q:"How do tiebreakers work?",a:"Ties are broken in order: (1) total tournament points, (2) wins + top-4s (wins count twice), (3) most of each placement from 1st down, (4) most recent game finish."},
-    {q:"What are scrims?",a:"Scrims are practice lobbies for players with scrim access. They don't count toward official standings but help you prepare. Contact an admin to request scrim access."},
+    {q:"What is DNP?",a:"DNP means Did Not Play. If you miss a game during a clash, the admin marks you as DNP (0 points for that round). Two DNPs in a single clash result in automatic disqualification."},
     {q:"How does the season work?",a:"Each season runs for a set number of weeks with weekly clashes. Points accumulate across all clashes. The player with the most points at the end is crowned Season Champion and enters the Hall of Fame."},
-    {q:"Can I host my own tournament?",a:"Yes! Apply as a host through the Host Application page. Once approved, you get access to the Host Dashboard where you can create events, manage registrations, and run brackets."},
+    {q:"What are the different tournament formats?",a:"Standard (3 games, everyone plays all rounds), Competitive (5-6 games with a cut line that eliminates lower players mid-tournament), and Swiss (players are reseeded between rounds based on standings)."},
+    {q:"What are scrims?",a:"Scrims are practice lobbies that do not count toward official standings. They help you warm up and try new strategies. Contact an admin to request scrim access."},
+    {q:"What does Pro ($4.99/mo) include?",a:"Pro members get advanced stats and analytics, priority tournament registration, custom profile badges, detailed match history exports, and access to exclusive Pro-only clashes."},
+    {q:"Can I host my own tournament?",a:"Yes! Subscribe to the Host tier ($19.99/mo) and apply through the Host Application page. Once approved, you get a full Host Dashboard to create events, upload branding, manage registrations, and run brackets independently."},
     {q:"What happens if I disconnect?",a:"Disconnects count as 8th place unless the lobby unanimously agrees to a remake. Make sure your connection is stable before joining."}
   ];
 
@@ -15500,7 +15525,7 @@ function Footer(props){
             <button onClick={function(){setScreen("terms");}} style={{background:"none",border:"none",color:"#5A6573",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Terms</button>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
-            <img src="/icon-border.png" alt="" style={{width:16,height:16,opacity:0.4}}/>
+            <img src="/icon-border.png" alt="TFT Clash" style={{width:16,height:16,opacity:0.4}}/>
             <span style={{fontSize:10,color:"#5A6573"}}>Built for the community</span>
           </div>
         </div>
@@ -15536,7 +15561,7 @@ function TFTClash(){
 
   const [profilePlayer,setProfilePlayer]=useState(null);
 
-  const [tournamentState,setTournamentState]=useState(()=>{try{const s=localStorage.getItem("tft-tournament");return s?JSON.parse(s):{phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]};}catch{return {phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]};}});
+  const [tournamentState,setTournamentState]=useState(()=>{var defaults={phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24};try{const s=localStorage.getItem("tft-tournament");if(s){var parsed=JSON.parse(s);return Object.assign({},defaults,parsed);}return defaults;}catch{return defaults;}});
 
   const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
 
@@ -16359,7 +16384,7 @@ function TFTClash(){
 
         <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
-        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents}/>}
+        {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents} seasonConfig={seasonConfig}/>}
 
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 
