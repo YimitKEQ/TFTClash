@@ -3551,6 +3551,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const myCheckedIn=linkedPlayer&&linkedPlayer.checkedIn;
 
   const isMyRegistered=linkedPlayer&&(tournamentState.registeredIds||[]).includes(String(linkedPlayer.id));
+  const isMyWaitlisted=linkedPlayer&&(tournamentState.waitlistIds||[]).includes(String(linkedPlayer.id));
+  const myWaitlistPos=isMyWaitlisted?(tournamentState.waitlistIds||[]).indexOf(String(linkedPlayer.id))+1:0;
 
 
 
@@ -3574,6 +3576,20 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     var sid=String(linkedPlayer.id);
     var isReg=(tournamentState.registeredIds||[]).includes(sid);
     if(isReg){toast("You're already registered!","error");return;}
+    var isWl=(tournamentState.waitlistIds||[]).includes(sid);
+    if(isWl){toast("You're already on the waitlist!","error");return;}
+    // Check capacity — if full, add to waitlist
+    var maxCap=parseInt((tournamentState&&tournamentState.maxPlayers)||24);
+    var regCount=(tournamentState.registeredIds||[]).length;
+    if(regCount>=maxCap){
+      setTournamentState(function(ts){
+        var wl=ts.waitlistIds||[];
+        if(wl.includes(sid))return ts;
+        return Object.assign({},ts,{waitlistIds:[].concat(wl,[sid])});
+      });
+      toast(currentUser.username+" added to waitlist (position "+((tournamentState.waitlistIds||[]).length+1)+")","info");
+      return;
+    }
     // Add to registeredIds
     setTournamentState(function(ts){
       var ids=ts.registeredIds||[];
@@ -3605,13 +3621,32 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         .then(function(r){if(r.error)console.error("[TFT] unregister failed:",r.error);});
     }
     toast("Unregistered from "+clashName,"info");
+    // Promote first waitlisted player
+    setTournamentState(function(ts2){
+      var wl=ts2.waitlistIds||[];
+      if(wl.length===0)return ts2;
+      var promoted=wl[0];
+      var remainingWl=wl.slice(1);
+      var newRegIds=[].concat(ts2.registeredIds||[],[promoted]);
+      return Object.assign({},ts2,{registeredIds:newRegIds,waitlistIds:remainingWl});
+    });
+  }
+
+  function removeFromWaitlist(){
+    if(!linkedPlayer)return;
+    var sid=String(linkedPlayer.id);
+    setTournamentState(function(ts){
+      var wl=ts.waitlistIds||[];
+      return Object.assign({},ts,{waitlistIds:wl.filter(function(id){return id!==sid;})});
+    });
+    toast("Removed from waitlist","info");
   }
 
 
 
   function phaseStatusText(){
 
-    if(tPhase==="registration")return"Registration Open · "+registeredCount+"/24 registered";
+    if(tPhase==="registration")return"Registration Open · "+registeredCount+"/"+(tournamentState.maxPlayers||24)+" registered"+((tournamentState.waitlistIds||[]).length>0?" · "+(tournamentState.waitlistIds||[]).length+" waitlisted":"");
 
     if(tPhase==="checkin")return"Check-in Open · "+checkedInCount+" checked in · Closes soon";
 
@@ -3790,7 +3825,31 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             </div>
 
-        ):currentUser&&linkedPlayer&&!isMyRegistered?(
+        ):currentUser&&linkedPlayer&&isMyWaitlisted?(
+
+            <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+
+              <div style={{fontSize:22}}>⏳</div>
+
+              <div style={{flex:1,minWidth:0}}>
+
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>On the Waitlist</div>
+
+                <div style={{fontSize:12,color:"#C8D4E0"}}>You are #{myWaitlistPos} on the waitlist, {linkedPlayer.name}. You will be promoted if a spot opens.</div>
+
+              </div>
+
+              <div style={{display:"flex",gap:8,flexShrink:0}}>
+
+                <div style={{fontSize:12,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px"}}>#{myWaitlistPos} Waitlisted</div>
+
+                <Btn v="dark" s="sm" onClick={removeFromWaitlist}>Leave Waitlist</Btn>
+
+              </div>
+
+            </div>
+
+        ):currentUser&&linkedPlayer&&!isMyRegistered&&!isMyWaitlisted?(
 
             <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
@@ -4862,7 +4921,13 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   const [placementEntry,setPlacementEntry]=useState({});
 
+  const [playerSubmissions,setPlayerSubmissions]=useState({});
+  // Shape: { lobbyIndex: { playerId: { placement: number, name: string, confirmed: boolean } } }
+
   const [showFinalizeConfirm,setShowFinalizeConfirm]=useState(false);
+
+  const [autoAdvanceCountdown,setAutoAdvanceCountdown]=useState(null);
+  const autoAdvanceRef=useRef(null);
 
 
 
@@ -4978,13 +5043,21 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   function openPlacementEntry(li){
 
-    const lobby=lobbies[li];
+    var lobby=lobbies[li];
 
-    const init={};
+    var init={};
 
-    lobby.forEach((p,i)=>{init[p.id]=String(i+1);});
+    var subs=(playerSubmissions||{})[li]||{};
 
-    setPlacementEntry(pe=>({...pe,[li]:{open:true,placements:init}}));
+    lobby.forEach(function(p,i){
+      if(subs[p.id]&&subs[p.id].placement){
+        init[p.id]=String(subs[p.id].placement);
+      } else {
+        init[p.id]=String(i+1);
+      }
+    });
+
+    setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:{open:true,placements:init}});});
 
   }
 
@@ -5068,7 +5141,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
     }));
 
-    setTournamentState(ts=>({...ts,lockedLobbies:[...(ts.lockedLobbies||[]),li]}));
+    setTournamentState(ts=>({...ts,lockedLobbies:[...(ts.lockedLobbies||[]),li],lockedPlacements:{...(ts.lockedPlacements||{}),[li]:placements}}));
 
     setPlacementEntry(pe=>({...pe,[li]:{...pe[li],open:false}}));
 
@@ -5099,9 +5172,100 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   }
 
+  function submitMyPlacement(li,playerId,playerName,placement){
+    var p=parseInt(placement);
+    if(p<1||p>8){toast("Invalid placement","error");return;}
+    setPlayerSubmissions(function(ps){
+      var lobbySubmissions=Object.assign({},ps[li]||{});
+      lobbySubmissions[playerId]={placement:p,name:playerName,confirmed:false};
+      return Object.assign({},ps,{[li]:lobbySubmissions});
+    });
+    toast("Placement submitted — waiting for admin confirmation","success");
+  }
 
+
+
+  function unlockLobby(li){
+    if(!window.confirm("Unlock Lobby "+(li+1)+"? This will revert all results for this lobby in the current round."))return;
+    var savedPlacements=(tournamentState.lockedPlacements||{})[li];
+    if(savedPlacements){
+      setPlayers(function(prev){return prev.map(function(p){
+        var place=savedPlacements[p.id];
+        if(place===undefined)return p;
+        var earned=PTS[place]||0;
+        var newGames=Math.max((p.games||1)-1,0);
+        var newWins=Math.max((p.wins||0)-(place===1?1:0),0);
+        var newTop4=Math.max((p.top4||0)-(place<=4?1:0),0);
+        var newPts=Math.max((p.pts||0)-earned,0);
+        var newAvg=newGames>0?(((parseFloat(p.avg)||0)*(p.games||1)-place)/newGames).toFixed(2):"0.00";
+        var newHistory=(p.clashHistory||[]).filter(function(h){return !(h.round===round&&h.clashId===currentClashId);});
+        var newSparkline=(p.sparkline||[]).slice(0,-1);
+        var newStreak=place<=4?Math.max((p.currentStreak||0)-1,0):p.currentStreak;
+        return Object.assign({},p,{pts:newPts,wins:newWins,top4:newTop4,games:newGames,avg:newAvg,
+          clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak});
+      });});
+    }
+    setTournamentState(function(ts){
+      var newLocked=(ts.lockedLobbies||[]).filter(function(i){return i!==li;});
+      var newSavedPlacements=Object.assign({},ts.lockedPlacements||{});
+      delete newSavedPlacements[li];
+      return Object.assign({},ts,{lockedLobbies:newLocked,lockedPlacements:newSavedPlacements});
+    });
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('game_results').delete()
+        .eq('tournament_id',currentClashId)
+        .eq('round_number',round)
+        .then(function(res){if(res.error)console.error("[TFT] Failed to delete game results:",res.error);});
+      supabase.from('lobbies').update({status:'active'})
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('lobby_number',li+1)
+        .eq('round_number',round)
+        .then(function(res){if(res.error)console.error("[TFT] Failed to unlock lobby in DB:",res.error);});
+    }
+    toast("Lobby "+(li+1)+" unlocked — results reverted","success");
+  }
 
   const allLocked=lobbies.length>0&&lobbies.every((_,i)=>lockedLobbies.includes(i));
+
+  // Auto-advance countdown when all lobbies locked (admin only, not on final round)
+  useEffect(function(){
+    if(!isAdmin||!allLocked||round>=(tournamentState.totalGames||3)){
+      if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
+      setAutoAdvanceCountdown(null);
+      return;
+    }
+    setAutoAdvanceCountdown(15);
+    autoAdvanceRef.current=setInterval(function(){
+      setAutoAdvanceCountdown(function(c){
+        if(c===null)return null;
+        if(c<=1){
+          clearInterval(autoAdvanceRef.current);
+          autoAdvanceRef.current=null;
+          return 0;
+        }
+        return c-1;
+      });
+    },1000);
+    return function(){if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}};
+  },[allLocked,isAdmin,round,tournamentState.totalGames]);
+
+  // Trigger advance when countdown hits 0
+  useEffect(function(){
+    if(autoAdvanceCountdown!==0||!isAdmin||!allLocked)return;
+    var maxRounds=tournamentState.totalGames||3;
+    if(round<maxRounds){
+      var nextRound=round+1;
+      setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
+      toast("Auto-advanced to Game "+nextRound,"success");
+    }
+    setAutoAdvanceCountdown(null);
+  },[autoAdvanceCountdown]);
+
+  function cancelAutoAdvance(){
+    if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
+    setAutoAdvanceCountdown(null);
+    toast("Auto-advance cancelled","info");
+  }
 
   function saveResultsToSupabase(allPlayers,clashId){
     if(!supabase.from)return;
@@ -5193,10 +5357,13 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
       </div>
 
-      {isAdmin&&allLocked&&checkedIn.length>0&&(
+      {allLocked&&checkedIn.length>0&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
           <span style={{fontSize:16}}>✅</span>
-          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7"}}>All {lobbies.length} lobbies locked — {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}</span>
+          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked — {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
+          {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)&&(
+            <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
+          )}
         </div>
       )}
 
@@ -5356,6 +5523,8 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                     {locked&&!isMyLobby&&<div style={{fontSize:11,color:"#6EE7B7",fontWeight:700}}>✓ Locked</div>}
 
+                    {locked&&isAdmin&&<button onClick={function(e){e.stopPropagation();unlockLobby(li);}} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"3px 10px",marginLeft:6}}>Unlock</button>}
+
                   </div>
 
                   {/* Player list */}
@@ -5406,6 +5575,17 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                           <div className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts}pts</div>
 
+                          {isMe&&!locked&&tournamentState.phase==="inprogress"&&(
+                            playerSubmissions[li]&&playerSubmissions[li][p.id]?(
+                              <div style={{fontSize:10,color:"#6EE7B7",fontWeight:700,flexShrink:0}}>#{playerSubmissions[li][p.id].placement} ✓</div>
+                            ):(
+                              <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}} style={{width:52,fontSize:11,flexShrink:0}}>
+                                <option value="">—</option>
+                                {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
+                              </Sel>
+                            )
+                          )}
+
                         </div>
 
                       );
@@ -5424,7 +5604,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                         <div style={{padding:"10px 12px",background:"rgba(255,255,255,.01)"}}>
 
-                          <Btn v="teal" s="sm" full onClick={()=>openPlacementEntry(li)}>Enter Placements</Btn>
+                          <Btn v="teal" s="sm" full onClick={function(){openPlacementEntry(li);}}>
+                            Enter Placements{playerSubmissions[li]?" ("+Object.keys(playerSubmissions[li]).length+" submitted)":""}
+                          </Btn>
 
                         </div>
 
@@ -5440,11 +5622,13 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                               const dup=lobby.filter(x=>placementEntry[li].placements[x.id]===placementEntry[li].placements[p.id]).length>1;
 
+                              const wasSelfSubmitted=((playerSubmissions||{})[li]||{})[p.id];
+
                               return(
 
                                 <div key={p.id} style={{display:"flex",alignItems:"center",gap:8}}>
 
-                                  <span style={{fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
+                                  <span style={{fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}{wasSelfSubmitted&&<span style={{fontSize:9,color:"#4ECDC4",fontWeight:700,marginLeft:4}}>SELF</span>}</span>
 
                                   <Sel value={placementEntry[li].placements[p.id]||"1"} onChange={v=>setPlace(li,p.id,v)} style={{width:60,border:dup?"1px solid #F87171":undefined}}>
 
