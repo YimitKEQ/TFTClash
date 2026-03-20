@@ -3911,7 +3911,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>⏳</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-hourglass"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -8761,7 +8761,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));setTournamentState(function(ts){return{...ts,checkedInIds:[]};});addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>Clear Check-In</Btn>
 
-              <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"▶ Resume":"⏸ Pause"}</Btn>
+              <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?<>{React.createElement("i",{className:"ti ti-player-play",style:{marginRight:4}})}Resume</>:<>{React.createElement("i",{className:"ti ti-player-pause",style:{marginRight:4}})}Pause</>}</Btn>
 
               <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"ti ti-speakerphone",style:{marginRight:3}})}Broadcast</Btn>
 
@@ -9079,7 +9079,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
 
-              <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?"▶ Resume Round":"⏸ Pause Round"}</Btn>
+              <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?<>{React.createElement("i",{className:"ti ti-player-play",style:{marginRight:4}})}Resume Round</>:<>{React.createElement("i",{className:"ti ti-player-pause",style:{marginRight:4}})}Pause Round</>}</Btn>
 
               <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var maxG=ts.totalGames||3;var next=ts.round+1;if(next>maxG)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[],savedLobbies:[]});});addAudit("ACTION","Force advance game");toast("Force advancing","success");}}>Force Advance Game →</Btn>
 
