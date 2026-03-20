@@ -1945,7 +1945,7 @@ function ClashRankBadge({xp,size,showProgress}){
 
         borderRadius:sm?6:8,padding:sm?"2px 7px":"4px 10px"}}>
 
-        {React.createElement("i",{className:"bi bi-"+rank.icon,style:{fontSize:sm?12:15,color:rank.color}})}
+        {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[rank.icon]||rank.icon),style:{fontSize:sm?12:15,color:rank.color}})}
 
         <span style={{fontSize:sm?10:12,fontWeight:700,color:rank.color,letterSpacing:".04em"}}>{rank.name}</span>
 
@@ -2377,7 +2377,7 @@ function MilestoneCard({milestone,unlocked}){
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:unlocked?8:0}}>
 
-        {React.createElement("i",{className:"bi bi-"+milestone.icon,style:{fontSize:22,filter:unlocked?"none":"grayscale(1)"}})}
+        {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[milestone.icon]||milestone.icon),style:{fontSize:22,filter:unlocked?"none":"grayscale(1)"}})}
 
         <div style={{flex:1,minWidth:0}}>
 
@@ -2423,7 +2423,7 @@ function AwardCard({award,onClick}){
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
 
-        <div style={{width:44,height:44,background:award.color+"18",border:"1px solid "+award.color+"44",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+award.icon,style:{color:award.color}})}</div>
+        <div style={{width:44,height:44,background:award.color+"18",border:"1px solid "+award.color+"44",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[award.icon]||award.icon),style:{color:award.color}})}</div>
 
         <div>
 
@@ -2881,7 +2881,7 @@ function NotificationBell({notifications,onMarkAllRead}){
 
                   <div key={n.id} style={{padding:"12px 14px",borderBottom:"1px solid rgba(242,237,228,.05)",background:n.read?"transparent":"rgba(232,168,56,.03)",display:"flex",gap:10,alignItems:"flex-start"}}>
 
-                    <div style={{flexShrink:0,marginTop:2}}>{React.createElement("i",{className:"bi bi-"+(n.icon||"bell"),style:{fontSize:16}})}</div>
+                    <div style={{flexShrink:0,marginTop:2}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[(n.icon||"bell")]||(n.icon||"bell")),style:{fontSize:16}})}</div>
 
                     <div style={{flex:1,minWidth:0}}>
 
@@ -3122,7 +3122,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
                   border:"none",color:l.id==="account"&&currentUser?"#E8A838":screen===l.id?"#E8A838":"#C8BFB0",fontSize:14,fontWeight:600,width:"100%",textAlign:"left",cursor:"pointer",transition:"all .15s"}}>
 
-                <span style={{minWidth:22}}>{React.createElement("i",{className:"bi bi-"+l.icon,style:{fontSize:18}})}</span>{l.label}
+                <span style={{minWidth:22}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[l.icon]||l.icon),style:{fontSize:18}})}</span>{l.label}
 
               </button>
 
@@ -3325,7 +3325,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               onMouseUp={function(e){e.currentTarget.style.transform="scale(1)";}}
               onMouseLeave={function(e){e.currentTarget.style.transform="scale(1)";}}>
 
-              <span className="icon">{React.createElement("i",{className:"bi bi-"+l.icon,style:{fontSize:18}})}</span>
+              <span className="icon">{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[l.icon]||l.icon),style:{fontSize:18}})}</span>
 
               {l.label}
 
@@ -3443,7 +3443,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
             <div className="mono rank-num" style={{fontSize:top3?18:13,fontWeight:900,color:rankCol,minWidth:24,textAlign:"center",textShadow:i===0?"0 0 18px rgba(232,168,56,.8)":i===1?"0 0 12px rgba(192,192,192,.6)":i===2?"0 0 12px rgba(205,127,50,.6)":"none"}}>
 
-              {i===0?"award-fill":i===1?"award-fill":i===2?"award-fill":i+1}
+              {i<3?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")}):i+1}
 
             </div>
 
@@ -3800,7 +3800,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       {hostAnnouncements&&hostAnnouncements.length>0&&(
         <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"10px 14px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:14,flexShrink:0}}>{"megaphone-fill"}</span>
+          <span style={{fontSize:14,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["megaphone-fill"]||"megaphone-fill")})}</span>
           <span style={{color:"#C4B5FD",fontWeight:600,fontSize:13}}>{hostAnnouncements[0].msg}</span>
           <span style={{fontSize:10,color:"#9AAABF",marginLeft:"auto",flexShrink:0}}>{hostAnnouncements[0].sentAt}</span>
         </div>
@@ -4024,7 +4024,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
 
-                  <div style={{fontSize:18}}>{qc.status==="live"?"lightning-charge-fill":"controller"}</div>
+                  <div style={{fontSize:18}}>{qc.status==="live"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["lightning-charge-fill"]||"lightning-charge-fill")}):React.createElement("i",{className:"ti ti-"+(ICON_REMAP["controller"]||"controller")})}</div>
 
                   <div style={{flex:1,minWidth:0}}>
 
@@ -4457,7 +4457,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               <span key={i} style={{display:"inline-flex",alignItems:"center",padding:"8px 22px",fontSize:12,color:"#C8D4E0",fontWeight:600,whiteSpace:"nowrap",borderRight:"1px solid rgba(155,114,207,.1)"}}>
 
-                {typeof item==="object"?React.createElement(React.Fragment,null,React.createElement("i",{className:"bi bi-"+item.icon,style:{fontSize:12,marginRight:6}}),item.text):item}
+                {typeof item==="object"?React.createElement(React.Fragment,null,React.createElement("i",{className:"ti ti-"+(ICON_REMAP[item.icon]||item.icon),style:{fontSize:12,marginRight:6}}),item.text):item}
 
               </span>
 
@@ -4504,7 +4504,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                     )}
                     <div style={{padding:"16px 18px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||"trophy-fill"}</div>
+                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")})}</div>
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>{ev.name}</div>
                           <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>{ev.host||"Community Event"}{ev.sponsor?" · "+ev.sponsor:""}</div>
@@ -5474,7 +5474,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
         <div style={{textAlign:"center",padding:"60px 20px"}}>
 
-          <div style={{fontSize:48,marginBottom:16}}>{tournamentState&&tournamentState.phase==="complete"?"trophy-fill":tournamentState&&tournamentState.phase==="inprogress"?"lightning-charge-fill":"controller"}</div>
+          <div style={{fontSize:48,marginBottom:16}}>{tournamentState&&tournamentState.phase==="complete"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")}):tournamentState&&tournamentState.phase==="inprogress"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["lightning-charge-fill"]||"lightning-charge-fill")}):React.createElement("i",{className:"ti ti-"+(ICON_REMAP["controller"]||"controller")})}</div>
 
           <h3 style={{color:"#F2EDE4",marginBottom:8}}>{tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}</h3>
 
@@ -6080,7 +6080,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                 <div key={a.id} title={a.desc} style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:6,padding:"3px 8px",display:"flex",alignItems:"center",gap:4,fontSize:12}}>
 
-                  {React.createElement("i",{className:"bi bi-"+a.icon,style:{fontSize:12}})}<span style={{color:"#E8A838",fontWeight:600,fontSize:11}}>{a.name}</span>
+                  {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon),style:{fontSize:12}})}<span style={{color:"#E8A838",fontWeight:600,fontSize:11}}>{a.name}</span>
 
                 </div>
 
@@ -6291,7 +6291,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                     <div key={r.id} style={{display:"flex",alignItems:"center",gap:7,padding:"7px 10px",background:unlocked?"rgba(232,168,56,.04)":"rgba(255,255,255,.02)",borderRadius:7,border:"1px solid "+(unlocked?r.color+"33":"rgba(242,237,228,.05)"),opacity:unlocked?1:.4}}>
 
-                      {React.createElement("i",{className:"bi bi-"+r.icon,style:{fontSize:14,color:r.color}})}
+                      {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[r.icon]||r.icon),style:{fontSize:14,color:r.color}})}
 
                       <span style={{fontSize:11,fontWeight:600,color:unlocked?r.color:"#BECBD9"}}>{r.name}</span>
 
@@ -6587,7 +6587,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <Panel key={a.id} style={{padding:"16px",opacity:unlocked?1:.4,border:"1px solid "+(unlocked?"rgba(232,168,56,.3)":"rgba(242,237,228,.07)")}}>
 
-                <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"bi bi-"+a.icon})}</div>
+                <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon)})}</div>
 
                 <div style={{fontWeight:700,fontSize:14,color:unlocked?"#F2EDE4":"#BECBD9",marginBottom:4}}>{a.name}</div>
 
@@ -6710,7 +6710,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
               <Panel key={p.id} hover style={{padding:"18px 14px",textAlign:"center",border:"1px solid "+MCOLS[ri]+"44",marginTop:ri===0?0:14,cursor:"pointer"}} onClick={()=>open(p)}>
 
-                <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"bi bi-"+MEDALS[ri],style:{color:MCOLS[ri]}})}</div>
+                <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[MEDALS[ri]]||MEDALS[ri]),style:{color:MCOLS[ri]}})}</div>
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:16,fontWeight:700,color:"#F2EDE4",marginTop:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
 
@@ -6976,7 +6976,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       )}
 
-      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"diagram-3-fill"}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{"star-fill"}</span>}</span>))}</div>);})}</div>}
+      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["star-fill"]||"star-fill")})}</span>}</span>))}</div>);})}</div>}
 
     </div>
 
@@ -7411,7 +7411,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                 style={{background:isGold?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(isGold?"rgba(232,168,56,.3)":"rgba(255,255,255,.07)"),borderRadius:14,padding:"20px 14px",textAlign:"center",cursor:"pointer",borderTop:"3px solid "+col,paddingTop:isGold?28:20}}>
 
-                <div style={{fontSize:28,marginBottom:8}}>{React.createElement("i",{className:"bi bi-"+MEDALS[actualRank],style:{color:PODIUM_COLS[actualRank]}})}</div>
+                <div style={{fontSize:28,marginBottom:8}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[MEDALS[actualRank]]||MEDALS[actualRank]),style:{color:PODIUM_COLS[actualRank]}})}</div>
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:isGold?17:14,fontWeight:700,color:"#F2EDE4",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
 
@@ -8020,7 +8020,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
                 <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.08),rgba(232,168,56,.02))",padding:"16px 18px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid rgba(232,168,56,.1)"}}>
 
-                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+r.icon,style:{color:r.color||"#E8A838"}})}</div>
+                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[r.icon]||r.icon),style:{color:r.color||"#E8A838"}})}</div>
 
                   <div style={{flex:1,minWidth:0}}>
 
@@ -8236,7 +8236,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
                         <div key={i} style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"8px 10px",textAlign:"center"}}>
 
-                          <div style={{fontSize:16,marginBottom:4}}>{i===0?"award-fill":i===1?"award-fill":i===2?"award-fill":"award-fill"}</div>
+                          <div style={{fontSize:16,marginBottom:4}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")})}</div>
 
                           <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{name}</div>
 
@@ -8696,7 +8696,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 13px",background:tab===t.id?"rgba(155,114,207,.18)":"rgba(255,255,255,.03)",border:"1px solid "+(tab===t.id?"rgba(155,114,207,.5)":"rgba(242,237,228,.07)"),borderRadius:8,color:tab===t.id?"#C4B5FD":"#9AAABF",cursor:"pointer",fontSize:12,fontWeight:tab===t.id?700:400,whiteSpace:"nowrap",flexShrink:0,transition:"all .12s",fontFamily:"inherit"}}>
 
-            <span>{React.createElement("i",{className:"bi bi-"+t.icon,style:{fontSize:13}})}</span><span>{t.label}</span>
+            <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[t.icon]||t.icon),style:{fontSize:13}})}</span><span>{t.label}</span>
 
           </button>
 
@@ -8738,7 +8738,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Panel key={c.label} style={{padding:"18px 12px",textAlign:"center"}}>
 
-                <div style={{fontSize:20,marginBottom:6}}>{React.createElement("i",{className:"bi bi-"+c.icon,style:{color:c.color}})}</div>
+                <div style={{fontSize:20,marginBottom:6}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[c.icon]||c.icon),style:{color:c.color}})}</div>
 
                 <div className="mono" style={{fontSize:26,fontWeight:800,color:c.color,lineHeight:1}}>{c.value}</div>
 
@@ -9996,7 +9996,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {evts.map(function(ev,idx){return(
                 <div key={ev.id||idx} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8}}>
-                  <div style={{fontSize:18,flexShrink:0}}>{ev.logo||"trophy-fill"}</div>
+                  <div style={{fontSize:18,flexShrink:0}}>{ev.logo||React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")})}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
                     <div style={{fontSize:11,color:"#BECBD9"}}>{ev.host} · {ev.date} · <span style={{color:ev.status==="live"?"#52C47C":ev.status==="upcoming"?"#E8A838":"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{ev.status}</span></div>
@@ -10624,7 +10624,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                             <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-                              <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+a.icon,style:{color:a.color}})}</div>
+                              <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon),style:{color:a.color}})}</div>
 
                               <div style={{flex:1,minWidth:0}}>
 
@@ -11728,7 +11728,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                       animation:unlocked?"achievement-glow 2s ease-in-out infinite":"none"}}>
 
-                      {React.createElement("i",{className:"bi bi-"+a.icon})}
+                      {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon)})}
 
                     </div>
 
@@ -11800,7 +11800,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                     fontSize:26,flexShrink:0}}>
 
-                    {React.createElement("i",{className:"bi bi-"+m.icon})}
+                    {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[m.icon]||m.icon)})}
 
                   </div>
 
@@ -12036,7 +12036,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
         <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
 
-          <div style={{fontSize:36,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"bi bi-"+rankInfo.rank.icon,style:{color:rankInfo.rank.color}})}</div>
+          <div style={{fontSize:36,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[rankInfo.rank.icon]||rankInfo.rank.icon),style:{color:rankInfo.rank.color}})}</div>
 
           <div style={{flex:1,minWidth:200}}>
 
@@ -12044,7 +12044,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
               <span style={{fontSize:16,fontWeight:700,color:rankInfo.rank.color}}>{rankInfo.rank.name}</span>
 
-              {rankInfo.next&&<span style={{fontSize:12,color:"#BECBD9"}}>→ {React.createElement("i",{className:"bi bi-"+rankInfo.next.icon,style:{fontSize:12,color:rankInfo.next.color}})} {rankInfo.next.name}</span>}
+              {rankInfo.next&&<span style={{fontSize:12,color:"#BECBD9"}}>→ {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[rankInfo.next.icon]||rankInfo.next.icon),style:{fontSize:12,color:rankInfo.next.color}})} {rankInfo.next.name}</span>}
 
             </div>
 
@@ -12102,7 +12102,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
 
-                  <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+c.icon})}</div>
+                  <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[c.icon]||c.icon)})}</div>
 
                   <div style={{flex:1,minWidth:0}}>
 
@@ -12160,7 +12160,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                   <div style={{display:"flex",alignItems:"center",gap:12}}>
 
-                    <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+(done?"check-circle-fill":c.icon),style:{color:done?"#52C47C":undefined}})}</div>
+                    <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[(done?"check-circle-fill":c.icon)]||(done?"check-circle-fill":c.icon)),style:{color:done?"#52C47C":undefined}})}</div>
 
                     <div style={{flex:1,minWidth:0}}>
 
@@ -12211,7 +12211,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
           {done.length>0&&<div style={{display:"flex",flexDirection:"column",gap:6,marginTop:16,textAlign:"left",maxWidth:360,margin:"16px auto 0"}}>
             {done.map(function(c){return(
               <div key={c.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.2)",borderRadius:8}}>
-                <span>{React.createElement("i",{className:"bi bi-"+c.icon,style:{fontSize:16}})}</span>
+                <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[c.icon]||c.icon),style:{fontSize:16}})}</span>
                 <span style={{flex:1,fontSize:13,color:"#6EE7B7",fontWeight:600}}>{c.name}</span>
                 <span className="mono" style={{fontSize:12,color:"#52C47C"}}>+{c.xp} XP</span>
               </div>
@@ -12248,7 +12248,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
             <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<5?"1px solid rgba(242,237,228,.05)":"none"}}>
 
-              <div style={{width:32,height:32,background:"rgba(255,255,255,.04)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+e.icon,style:{fontSize:15,color:e.c}})}</div>
+              <div style={{width:32,height:32,background:"rgba(255,255,255,.04)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[e.icon]||e.icon),style:{fontSize:15,color:e.c}})}</div>
 
               <div style={{flex:1}}>
 
@@ -13028,7 +13028,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               <div style={{position:"absolute",bottom:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"#E8A838",border:"2px solid #08080F",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>
 
-                {React.createElement("i",{className:"bi bi-"+myMilestones[myMilestones.length-1].icon,style:{fontSize:11}})}
+                {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[myMilestones[myMilestones.length-1].icon]||myMilestones[myMilestones.length-1].icon),style:{fontSize:11}})}
 
               </div>
 
@@ -13539,7 +13539,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                   {l:"Games Played",v:linkedPlayer.games,c:"#4ECDC4"},
 
-                  {l:"Best Streak",v:linkedPlayer.bestStreak+"fire",c:"#F87171"},
+                  {l:"Best Streak",v:linkedPlayer.bestStreak,c:"#F87171"},
 
                   {l:"PPG",v:s.ppg,c:"#EAB308"},
 
@@ -13641,7 +13641,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                       display:"flex",gap:10,alignItems:"center"}}>
 
-                      <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+a.icon})}</div>
+                      <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon)})}</div>
 
                       <div>
 
@@ -13971,7 +13971,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
 
-          {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#C8D4E0"],["Best Streak",(player.bestStreak||0)+"fire","#F97316"]].map(([l,v,c])=>(
+          {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#C8D4E0"],["Best Streak",(player.bestStreak||0),"#F97316"]].map(([l,v,c])=>(
 
             <div key={l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"12px 14px"}}>
 
@@ -13995,7 +13995,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
 
-              {awards.map(a=><Tag key={a.id} color={a.color} size="sm">{React.createElement("i",{className:"bi bi-"+a.icon,style:{fontSize:11,color:a.color}})} {a.title}</Tag>)}
+              {awards.map(a=><Tag key={a.id} color={a.color} size="sm">{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon),style:{fontSize:11,color:a.color}})} {a.title}</Tag>)}
 
             </div>
 
@@ -14481,7 +14481,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20,flexWrap:"wrap"}}>
         <div style={{flex:1}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
-            <span style={{fontSize:24}}>{brandLogo}</span>
+            <span style={{fontSize:24}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[brandLogo]||brandLogo)})}</span>
             <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>{brandName}</h2>
             <Tag color="#9B72CF">{React.createElement("i",{className:"ti ti-device-gamepad-2"})} Host</Tag>
             {liveTournaments.length>0&&(
@@ -14577,7 +14577,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                   <div key={t.id} style={{display:"flex",alignItems:"center",gap:12}}>
                     <div style={{flex:1}}>
                       <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:4}}>{t.name}</div>
-                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{"calendar-event-fill"} {t.date} {"·"} {"people-fill"} {t.registered}/{t.size} players</div>
+                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["calendar-event-fill"]||"calendar-event-fill")})} {t.date} · {React.createElement("i",{className:"ti ti-"+(ICON_REMAP["people-fill"]||"people-fill")})} {t.registered}/{t.size} players</div>
                       <Bar val={t.registered} max={t.size} color="#6EE7B7" h={4}/>
                     </div>
                     <Btn v="primary" s="sm" onClick={function(){setScreen("bracket");}}>Live Bracket {"→"}</Btn>
@@ -14590,10 +14590,10 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
             <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",marginBottom:12}}>Quick Actions</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               <Btn v="ghost" s="sm" onClick={function(){setShowCreate(true);setTab("tournaments");}}>{"+"} New Tournament</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setTab("announce");}}>{"megaphone-fill"} Announce</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setTab("branding");}}>{"palette-fill"} Edit Branding</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setScreen("bracket");}}>{"diagram-3-fill"} View Bracket</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setScreen("featured");}}>{"star-fill"} Featured Page</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setTab("announce");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["megaphone-fill"]||"megaphone-fill")})} Announce</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setTab("branding");}}>{React.createElement("i",{className:"ti ti-palette"})} Edit Branding</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("bracket");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})} View Bracket</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("featured");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["star-fill"]||"star-fill")})} Featured Page</Btn>
             </div>
           </Panel>
         </div>
@@ -14612,10 +14612,10 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
                       <span style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{t.name}</span>
                       <Tag color={statusColor} size="sm">{statusLabel}</Tag>
-                      {t.invite&&<Tag color="#9B72CF" size="sm">{"lock-fill"} Invite Only</Tag>}
-                      {t.entryFee&&<Tag color="#EAB308" size="sm">{"tag-fill"} {t.entryFee}</Tag>}
+                      {t.invite&&<Tag color="#9B72CF" size="sm">{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["lock-fill"]||"lock-fill")})} Invite Only</Tag>}
+                      {t.entryFee&&<Tag color="#EAB308" size="sm">{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["tag-fill"]||"tag-fill")})} {t.entryFee}</Tag>}
                     </div>
-                    <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{"calendar-event-fill"} {t.date} {"·"} {"people-fill"} {t.registered}/{t.size} registered</div>
+                    <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["calendar-event-fill"]||"calendar-event-fill")})} {t.date} · {React.createElement("i",{className:"ti ti-"+(ICON_REMAP["people-fill"]||"people-fill")})} {t.registered}/{t.size} registered</div>
                     <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
                     <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{t.size-t.registered} spots remaining</div>
                     {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{React.createElement("i",{className:"ti ti-clipboard"})} {t.rules}</div>}
@@ -14776,7 +14776,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                 placeholder="e.g. Check-in is now open! Join the Discord for lobby codes..."
                 style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:90,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
             </div>
-            <Btn v="primary" onClick={sendAnnouncement}>{"megaphone-fill"} Send Announcement</Btn>
+            <Btn v="primary" onClick={sendAnnouncement}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["megaphone-fill"]||"megaphone-fill")})} Send Announcement</Btn>
           </Panel>
           <Panel style={{padding:"18px"}}>
             <h3 style={{fontSize:14,color:"#F2EDE4",marginBottom:14}}>Sent Announcements</h3>
@@ -14799,12 +14799,12 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       {/* Branding tab */}
       {tab==="branding"&&(
         <Panel style={{padding:"24px"}}>
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:18}}>{"palette-fill"} Host Branding</h3>
+          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:18}}>{React.createElement("i",{className:"ti ti-palette"})} Host Branding</h3>
           <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:24}}>
             {/* Preview card */}
             <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+brandColor+"55",borderRadius:14,padding:"16px 20px",minWidth:220,flex:1}}>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <div style={{width:40,height:40,borderRadius:10,background:brandColor+"22",border:"1px solid "+brandColor+"44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{brandLogo}</div>
+                <div style={{width:40,height:40,borderRadius:10,background:brandColor+"22",border:"1px solid "+brandColor+"44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[brandLogo]||brandLogo)})}</div>
                 <div>
                   <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{brandName}</div>
                   <div style={{fontSize:11,color:brandColor,fontWeight:600}}>Host Partner</div>
@@ -16149,7 +16149,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           )}
           {lobbies.length===0&&(
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-              <div style={{fontSize:28,marginBottom:12}}>{"diagram-3-fill"}</div>
+              <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})}</div>
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
               <div style={{fontSize:13,color:"#9AAABF"}}>Lobbies will appear once the admin generates them.</div>
             </Panel>
@@ -16301,7 +16301,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                   return(
                     <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,order:displayOrder,flex:isFirst?"0 0 160px":"0 0 130px",background:cardBgs[rankIdx],border:"1px solid "+cardBorders[rankIdx],borderRadius:14,padding:cardPaddings[rankIdx],minWidth:isFirst?140:110,maxWidth:isFirst?180:150}}>
                       {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>}
-                      {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{pos===2?"award-fill":"award-fill"}</div>}
+                      {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")})}</div>}
                       <div style={{width:avatarSizes[rankIdx],height:avatarSizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"44,"+colors[rankIdx]+"11)",border:"2.5px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:isFirst?24:18,color:colors[rankIdx],boxShadow:isFirst?"0 0 18px "+colors[rankIdx]+"55":"none"}}>{"#"+pos}</div>
                       <div style={{fontWeight:700,fontSize:nameSizes[rankIdx],color:"#F2EDE4",textAlign:"center",marginTop:4,lineHeight:1.2}}>{entry.name}</div>
                       <div style={{fontSize:12,color:colors[rankIdx],fontWeight:700,background:colors[rankIdx]+"18",borderRadius:8,padding:"2px 10px"}}>{entry.totalPts+" pts"}</div>
@@ -16356,7 +16356,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                       return(
                         <tr key={entry.id} style={{background:bg,borderBottom:"1px solid rgba(242,237,228,.04)",outline:isMe?"1px solid rgba(232,168,56,.35)":"none",position:"relative"}}>
                           <td style={{padding:"10px 10px 10px 16px",fontWeight:700,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":"#8896A8",borderLeft:borderL,whiteSpace:"nowrap",position:"sticky",left:0,zIndex:2,background:"#0D1421"}}>
-                            {pos===1?"award-fill":pos===2?"award-fill":pos===3?"award-fill":pos}
+                            {pos<=3?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill"),style:{color:pos===1?"#E8A838":pos===2?"#C0C0C0":"#CD7F32"}}):pos}
                           </td>
                           <td style={{padding:"10px 10px",maxWidth:160,position:"sticky",left:40,zIndex:2,background:"#0D1421"}}>
                             <div style={{fontWeight:600,color:isMe?"#E8A838":"#F2EDE4",fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.name+(isMe?" (you)":"")}</div>
@@ -16918,7 +16918,7 @@ function GearScreen(props){
               onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"66";}}
               onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.08)";}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                <span>{React.createElement("i",{className:"bi bi-"+item.icon,style:{fontSize:22,color:item.color}})}</span>
+                <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[item.icon]||item.icon),style:{fontSize:22,color:item.color}})}</span>
                 <div>
                   <div style={{fontSize:14,fontWeight:700,color:"#F2EDE4"}}>{item.name}</div>
                   <div style={{fontSize:10,color:item.color,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{item.cat}</div>
