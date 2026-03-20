@@ -15216,6 +15216,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   var [myPlacement,setMyPlacement]=useState(0);
   var [disputeForm,setDisputeForm]=useState({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});
   var [disputes,setDisputes]=useState([]);
+  var [gameResults,setGameResults]=useState([]);
 
   function loadTournament(){
     return supabase.from('tournaments').select('*').eq('id',tournamentId).single().then(function(res){
@@ -15255,8 +15256,19 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       });
   }
 
+  function loadResults(){
+    return supabase.from('game_results')
+      .select('player_id, placement, points, game_number, players(username, rank, riot_id)')
+      .eq('tournament_id',tournamentId)
+      .order('game_number')
+      .then(function(res){
+        if(res.data)setGameResults(res.data);
+        return res;
+      });
+  }
+
   useEffect(function(){
-    Promise.all([loadTournament(),loadRegistrations(),loadLobbies(),loadDisputes()]).then(function(){setLoading(false);});
+    Promise.all([loadTournament(),loadRegistrations(),loadLobbies(),loadDisputes(),loadResults()]).then(function(){setLoading(false);});
   },[tournamentId]);
 
   useEffect(function(){
@@ -15506,6 +15518,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         toast("Lobby locked!","success");
         loadLobbies();
         loadReports();
+        loadResults();
       });
     });
   }
@@ -15555,6 +15568,76 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     });
   }
 
+  // Start next game
+  function startNextGame(){
+    var nextGame=currentGameNumber+1;
+    supabase.from('tournaments').update({current_round:nextGame}).eq('id',tournamentId)
+      .then(function(res){
+        if(res.error){toast("Failed: "+res.error.message,"error");return;}
+        var seedMethod=tournament.seeding_method||"snake";
+        if(seedMethod==="snake"){
+          var checkedIn=registrations.filter(function(r){return r.status==='checked_in';});
+          var checkedInPlayers=checkedIn.map(function(r){return r.players||getPlayerById(r.player_id);}).filter(Boolean);
+          checkedInPlayers.sort(function(a,b){
+            var aStand=standings.find(function(s){return s.id===a.id;});
+            var bStand=standings.find(function(s){return s.id===b.id;});
+            return((bStand?bStand.totalPts:0)-(aStand?aStand.totalPts:0));
+          });
+          var result=buildFlashLobbies(checkedInPlayers,"snake");
+          var lobbyRows=result.lobbies.map(function(lobbyPlayers,idx){
+            var host=lobbyPlayers.reduce(function(best,p){
+              return RANKS.indexOf(p.rank||"Iron")>RANKS.indexOf(best.rank||"Iron")?p:best;
+            },lobbyPlayers[0]);
+            return{
+              tournament_id:tournamentId,
+              round_number:nextGame,
+              lobby_number:idx+1,
+              player_ids:lobbyPlayers.map(function(p){return p.id;}),
+              host_player_id:host?host.id:null,
+              status:'pending',
+              game_number:nextGame
+            };
+          });
+          supabase.from('lobbies').insert(lobbyRows).select().then(function(){
+            setTournament(Object.assign({},tournament,{current_round:nextGame}));
+            loadLobbies();
+            loadReports();
+            toast("Game "+nextGame+" started! New lobbies generated.","success");
+          });
+        } else {
+          var currentLobbies=lobbies.filter(function(l){return l.game_number===currentGameNumber;});
+          var newLobbies=currentLobbies.map(function(l){
+            return{
+              tournament_id:tournamentId,
+              round_number:nextGame,
+              lobby_number:l.lobby_number,
+              player_ids:l.player_ids,
+              host_player_id:l.host_player_id,
+              status:'pending',
+              game_number:nextGame
+            };
+          });
+          supabase.from('lobbies').insert(newLobbies).select().then(function(){
+            setTournament(Object.assign({},tournament,{current_round:nextGame}));
+            loadLobbies();
+            loadReports();
+            toast("Game "+nextGame+" started!","success");
+          });
+        }
+      });
+  }
+
+  // Finalize tournament
+  function finalizeTournament(){
+    if(!confirm("Finalize this tournament? This cannot be undone."))return;
+    supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()})
+      .eq('id',tournamentId).then(function(res){
+        if(res.error){toast("Failed: "+res.error.message,"error");return;}
+        setTournament(Object.assign({},tournament,{phase:'complete'}));
+        toast("Tournament finalized!","success");
+      });
+  }
+
   if(loading){
     return(
       <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
@@ -15574,8 +15657,8 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     );
   }
 
-  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
-  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed"};
+  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4",complete:"#4ECDC4"};
+  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed",complete:"Complete"};
   var dateStr=tournament.date?new Date(tournament.date).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
 
   // Registration button logic
@@ -15597,13 +15680,64 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
 
   var canUnregister=myReg&&(phase==="registration"||phase==="check_in")&&myReg.status!=="dropped";
 
+  // Compute standings from gameResults
+  var standings=[];
+  if(gameResults.length>0){
+    var _playerMap={};
+    gameResults.forEach(function(g){
+      if(!_playerMap[g.player_id]){
+        var pi=g.players||getPlayerById(g.player_id);
+        _playerMap[g.player_id]={
+          id:g.player_id,
+          name:(pi&&(pi.username||pi.name))||"Unknown",
+          rank:(pi&&pi.rank)||"Iron",
+          riotId:(pi&&(pi.riot_id||pi.riotId))||"",
+          totalPts:0,wins:0,top4:0,games:0,avgPlace:0,placements:[],gameDetails:[]
+        };
+      }
+      var _p=_playerMap[g.player_id];
+      _p.totalPts+=(g.points||0);
+      _p.games+=1;
+      if(g.placement===1)_p.wins+=1;
+      if(g.placement<=4)_p.top4+=1;
+      _p.placements.push(g.placement);
+      _p.gameDetails.push({game:g.game_number,placement:g.placement,points:g.points});
+    });
+    standings=Object.keys(_playerMap).map(function(k){
+      var _p=_playerMap[k];
+      _p.avgPlace=_p.games>0?(_p.placements.reduce(function(s,v){return s+v;},0)/_p.games):0;
+      return _p;
+    });
+    standings.sort(function(a,b){
+      if(b.totalPts!==a.totalPts)return b.totalPts-a.totalPts;
+      var aScore=a.wins*2+a.top4;
+      var bScore=b.wins*2+b.top4;
+      if(bScore!==aScore)return bScore-aScore;
+      for(var _pl=1;_pl<=8;_pl++){
+        var aC=a.placements.filter(function(p){return p===_pl;}).length;
+        var bC=b.placements.filter(function(p){return p===_pl;}).length;
+        if(bC!==aC)return bC-aC;
+      }
+      return 0;
+    });
+  }
+
+  // Multi-game admin state
+  var allLobbiesLocked=lobbies.length>0&&lobbies.every(function(l){return l.status==='locked';});
+  var isLastGame=currentGameNumber>=(tournament&&tournament.round_count?tournament.round_count:3);
+
+  // All unique game numbers played
+  var allGameNums=[];
+  gameResults.forEach(function(g){if(allGameNums.indexOf(g.game_number)===-1)allGameNums.push(g.game_number);});
+  allGameNums.sort(function(a,b){return a-b;});
+
   // Tabs based on phase
   var tabs=[{id:"info",label:"Info"},{id:"players",label:"Players ("+regCount+")"}];
-  if(phase==="in_progress"||phase==="completed"||(phase==="check_in"&&isAdmin)){
+  if(phase==="in_progress"||phase==="completed"||phase==="complete"||(phase==="check_in"&&isAdmin)){
     tabs.push({id:"bracket",label:"Lobbies"+(lobbies.length>0?" ("+lobbies.length+")":"")});
   }
-  if(phase==="in_progress"||phase==="completed"){
-    tabs.push({id:"standings",label:"Standings"});
+  if(phase==="in_progress"||phase==="completed"||phase==="complete"){
+    tabs.push({id:"standings",label:phase==="complete"||phase==="completed"?"Final Results":"Standings"});
   }
 
   // Sorted registered players
@@ -15926,13 +16060,128 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         </div>
       )}
 
-      {/* Standings tab placeholder */}
+      {/* Standings tab */}
       {activeTab==="standings"&&(
-        <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-          <div style={{fontSize:28,marginBottom:12}}>{"📊"}</div>
-          <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
-          <div style={{fontSize:13,color:"#9AAABF"}}>Standings will update as games are reported.</div>
-        </Panel>
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          {/* Podium — only when complete */}
+          {phase==="complete"&&standings.length>=3&&(
+            <Panel style={{padding:"24px 20px",background:"linear-gradient(135deg,rgba(232,168,56,.07),rgba(155,114,207,.07))"}}>
+              <div style={{textAlign:"center",fontWeight:700,fontSize:15,color:"#E8A838",marginBottom:20,letterSpacing:".5px"}}>{"FINAL RESULTS"}</div>
+              <div style={{display:"flex",gap:10,justifyContent:"center",alignItems:"flex-end",flexWrap:"wrap"}}>
+                {[1,0,2].map(function(rankIdx){
+                  var entry=standings[rankIdx];
+                  if(!entry)return null;
+                  var pos=rankIdx+1;
+                  var colors=["#E8A838","#C0C0C0","#CD7F32"];
+                  var sizes=[72,60,56];
+                  var heights=[120,100,90];
+                  var prizeEntry=prizes.find(function(pr){return pr.placement===pos;});
+                  var isFirst=pos===1;
+                  return(
+                    <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,minWidth:100,maxWidth:160}}>
+                      {isFirst&&<div style={{fontSize:22}}>{"👑"}</div>}
+                      <div style={{width:sizes[rankIdx],height:sizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"33,"+colors[rankIdx]+"11)",border:"2px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:isFirst?20:16,color:colors[rankIdx]}}>{"#"+pos}</div>
+                      <div style={{fontWeight:700,fontSize:isFirst?15:13,color:"#F2EDE4",textAlign:"center"}}>{entry.name}</div>
+                      <div style={{fontSize:11,color:colors[rankIdx],fontWeight:700}}>{entry.totalPts+" pts"}</div>
+                      {prizeEntry&&<div style={{fontSize:12,fontWeight:700,color:colors[rankIdx],background:colors[rankIdx]+"18",border:"1px solid "+colors[rankIdx]+"44",borderRadius:6,padding:"3px 10px"}}>{prizeEntry.prize}</div>}
+                      <div style={{height:heights[rankIdx],background:"linear-gradient(to top,"+colors[rankIdx]+"33,transparent)",borderRadius:"8px 8px 0 0",border:"1px solid "+colors[rankIdx]+"33",borderBottom:"none",width:"100%",marginBottom:-16}}/>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
+          )}
+
+          {/* Standings table */}
+          {standings.length===0?(
+            <Panel style={{padding:"48px 20px",textAlign:"center"}}>
+              <div style={{fontSize:28,marginBottom:12}}>{"📊"}</div>
+              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
+              <div style={{fontSize:13,color:"#9AAABF"}}>Standings will update as games are reported and locked.</div>
+            </Panel>
+          ):(
+            <Panel style={{padding:"16px 0 0 0",overflow:"hidden"}}>
+              <div style={{padding:"0 18px 12px 18px",fontWeight:700,fontSize:14,color:"#F2EDE4"}}>
+                {"Standings — Game "+(allGameNums.length>0?allGameNums[allGameNums.length-1]:currentGameNumber)+" of "+(tournament.round_count||3)}
+              </div>
+              <div style={{overflowX:"auto"}}>
+                <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,tableLayout:"auto",minWidth:360}}>
+                  <thead>
+                    <tr style={{background:"rgba(255,255,255,.03)",borderBottom:"1px solid rgba(242,237,228,.08)"}}>
+                      <th style={{padding:"8px 10px 8px 18px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>#</th>
+                      <th style={{padding:"8px 10px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Player</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#E8A838",whiteSpace:"nowrap"}}>Pts</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Avg</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Wins</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Top4</th>
+                      {allGameNums.map(function(gn){
+                        return(<th key={gn} style={{padding:"8px 8px",textAlign:"center",fontWeight:600,fontSize:11,color:"#9B72CF",whiteSpace:"nowrap"}}>{"G"+gn}</th>);
+                      })}
+                      {phase==="complete"&&prizes.length>0&&(
+                        <th style={{padding:"8px 10px 8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#52C47C",whiteSpace:"nowrap"}}>Prize</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {standings.map(function(entry,rankIdx){
+                      var pos=rankIdx+1;
+                      var isMe=myPlayer&&entry.id===myPlayer.id;
+                      var isCut=tournament.cut_line_pts&&entry.totalPts<tournament.cut_line_pts&&phase==="in_progress";
+                      var rowColors=["rgba(232,168,56,.08)","rgba(192,192,192,.05)","rgba(205,127,50,.05)"];
+                      var borderColors=["rgba(232,168,56,.3)","rgba(192,192,192,.15)","rgba(205,127,50,.15)"];
+                      var bg=pos<=3?rowColors[pos-1]:(isCut?"rgba(248,113,113,.04)":"transparent");
+                      var borderL=isMe?"3px solid #E8A838":(pos<=3?"3px solid "+borderColors[pos-1]:(isCut?"3px solid rgba(248,113,113,.3)":"3px solid transparent"));
+                      var prizeEntry=prizes.find(function(pr){return pr.placement===pos;});
+                      return(
+                        <tr key={entry.id} style={{background:bg,borderBottom:"1px solid rgba(242,237,228,.04)",outline:isMe?"1px solid rgba(232,168,56,.35)":"none",position:"relative"}}>
+                          <td style={{padding:"10px 10px 10px 16px",fontWeight:700,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":"#8896A8",borderLeft:borderL,whiteSpace:"nowrap"}}>
+                            {pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":pos}
+                          </td>
+                          <td style={{padding:"10px 10px",maxWidth:160}}>
+                            <div style={{fontWeight:600,color:isMe?"#E8A838":"#F2EDE4",fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.name+(isMe?" (you)":"")}</div>
+                            <div style={{fontSize:10,color:"#8896A8"}}>{entry.rank}</div>
+                          </td>
+                          <td style={{padding:"10px 10px",textAlign:"center",fontWeight:700,color:"#E8A838",fontSize:14,whiteSpace:"nowrap"}}>{entry.totalPts}</td>
+                          <td style={{padding:"10px 10px",textAlign:"center",color:"#BECBD9",fontSize:12,whiteSpace:"nowrap"}}>{entry.avgPlace.toFixed(1)}</td>
+                          <td style={{padding:"10px 10px",textAlign:"center",color:"#F2EDE4",fontWeight:600,whiteSpace:"nowrap"}}>{entry.wins}</td>
+                          <td style={{padding:"10px 10px",textAlign:"center",color:"#F2EDE4",whiteSpace:"nowrap"}}>{entry.top4}</td>
+                          {allGameNums.map(function(gn){
+                            var detail=entry.gameDetails.find(function(d){return d.game===gn;});
+                            var plc=detail?detail.placement:null;
+                            var plcColor=plc===1?"#E8A838":plc===2?"#C0C0C0":plc===3?"#CD7F32":plc<=4?"#52C47C":"#8896A8";
+                            return(
+                              <td key={gn} style={{padding:"10px 8px",textAlign:"center",whiteSpace:"nowrap"}}>
+                                {plc?(
+                                  <span style={{fontSize:12,fontWeight:700,color:plcColor,background:plcColor+"18",borderRadius:4,padding:"2px 6px"}}>{plc}</span>
+                                ):(
+                                  <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}>—</span>
+                                )}
+                              </td>
+                            );
+                          })}
+                          {phase==="complete"&&prizes.length>0&&(
+                            <td style={{padding:"10px 10px 10px 10px",textAlign:"center",whiteSpace:"nowrap"}}>
+                              {prizeEntry?(
+                                <span style={{fontSize:12,fontWeight:700,color:"#52C47C",background:"rgba(82,196,124,.12)",borderRadius:4,padding:"2px 8px"}}>{prizeEntry.prize}</span>
+                              ):(
+                                <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}>—</span>
+                              )}
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {tournament.cut_line_pts&&phase==="in_progress"&&(
+                <div style={{padding:"10px 18px",fontSize:11,color:"#F87171",borderTop:"1px solid rgba(248,113,113,.15)",background:"rgba(248,113,113,.03)"}}>
+                  {"Cut line: "+tournament.cut_line_pts+" pts — players below this threshold are at risk of elimination"}
+                </div>
+              )}
+            </Panel>
+          )}
+        </div>
       )}
 
       {/* Admin: Disputes panel */}
@@ -15996,9 +16245,15 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
               <span style={{fontSize:12,color:"#52C47C",padding:"4px 10px",background:"rgba(82,196,124,.1)",borderRadius:6,border:"1px solid rgba(82,196,124,.2)",fontWeight:600}}>{"\u2713 "+lobbies.length+" lobbies ready"}</span>
             )}
             {(phase==="check_in"||phase==="registration")&&<Btn v="dark" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
+            {phase==="in_progress"&&allLobbiesLocked&&!isLastGame&&(
+              <Btn v="primary" s="sm" onClick={startNextGame}>{"Start Game "+(currentGameNumber+1)}</Btn>
+            )}
+            {phase==="in_progress"&&allLobbiesLocked&&isLastGame&&(
+              <Btn v="success" s="sm" onClick={finalizeTournament}>Finalize Tournament</Btn>
+            )}
           </div>
           <div style={{fontSize:11,color:"#8896A8",marginTop:10}}>
-            {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount+(lobbies.length>0?" · "+lobbies.length+" lobbies":"")}
+            {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount+(lobbies.length>0?" · "+lobbies.length+" lobbies":"")+(phase==="in_progress"?" · Game "+currentGameNumber+" of "+(tournament.round_count||3):"")}
           </div>
         </Panel>
       )}
