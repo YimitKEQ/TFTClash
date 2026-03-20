@@ -16094,7 +16094,9 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             var cardBorderColor=hasDuplicate?"rgba(248,113,113,.5)":isLocked?"rgba(82,196,124,.3)":isMyLobby?"rgba(155,114,207,.4)":"rgba(242,237,228,.08)";
             var cardBorderLeft=isLocked?"4px solid #52C47C":hasDuplicate?"4px solid #F87171":"4px solid transparent";
             return(
-              <Panel key={lobby.id} style={{padding:"16px 18px",borderColor:cardBorderColor,boxShadow:isMyLobby&&!hasDuplicate?"0 0 0 1px rgba(155,114,207,.2)":"none",borderLeft:cardBorderLeft}}>
+              <Panel key={lobby.id} style={{padding:0,borderColor:cardBorderColor,boxShadow:isMyLobby&&!hasDuplicate?"0 0 0 1px rgba(155,114,207,.2)":"none",borderLeft:cardBorderLeft,background:isLocked?"rgba(82,196,124,.08)":undefined,borderRadius:"10px",overflow:"hidden"}}>
+                {isLocked&&React.createElement("div",{style:{background:"linear-gradient(90deg,#52C47C,#3DA867)",padding:"4px 12px",borderRadius:"10px 10px 0 0",fontSize:11,fontWeight:700,color:"#fff",textAlign:"center",letterSpacing:".04em"}},"\u2713 LOCKED")}
+                <div style={{padding:"16px 18px"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8,flexWrap:"wrap"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
                     <div style={{width:36,height:36,borderRadius:10,background:isLocked?"rgba(82,196,124,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(isLocked?"rgba(82,196,124,.4)":"rgba(155,114,207,.3)"),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:18,color:letterColor,flexShrink:0}}>
@@ -16168,13 +16170,13 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                 )}
                 {/* Admin: Lock lobby button */}
                 {isAdmin&&phase==="in_progress"&&!isLocked&&(
-                  <div style={{display:"flex",gap:8,alignItems:"center",paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",flexWrap:"wrap"}}>
+                  <div style={{display:"flex",gap:8,alignItems:"center",paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",flexWrap:"wrap",opacity:isLocked?0.7:1,pointerEvents:isLocked?"none":"auto"}}>
                     {hasDuplicate&&<span style={{fontSize:11,color:"#F87171"}}>{"Duplicate placements  -  resolve before locking"}</span>}
                     <Btn v="success" s="sm" onClick={function(){lockLobby(lobby.id);}} disabled={!canLock}>{isLocked?"Locked":canLock?"Lock Lobby":"Cannot Lock Yet"}</Btn>
                   </div>
                 )}
                 {iAmHost&&!lobby.lobby_code&&(
-                  <div style={{display:"flex",gap:8,alignItems:"center",marginTop:8,paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)"}}>
+                  <div style={{display:"flex",gap:8,alignItems:"center",marginTop:8,paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",opacity:isLocked?0.7:1,pointerEvents:isLocked?"none":"auto"}}>
                     <input
                       placeholder="Enter lobby code..."
                       value={codeInput}
@@ -16184,6 +16186,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                     <Btn v="primary" s="sm" onClick={function(){submitLobbyCode(lobby.id,codeInput);}}>Save</Btn>
                   </div>
                 )}
+                </div>
               </Panel>
             );
           })}
