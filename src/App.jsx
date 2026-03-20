@@ -17980,7 +17980,7 @@ function TFTClash(){
 
         {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
 
-        {screen.indexOf("flash-")===0&&FlashTournamentScreen({tournamentId:parseInt(screen.replace("flash-","")),currentUser:currentUser,onAuthClick:function(m){setAuthScreen(m);},toast:toast,setScreen:navTo,players:players,isAdmin:isAdmin})}
+        {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={parseInt(screen.replace("flash-",""))} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
 
         {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
