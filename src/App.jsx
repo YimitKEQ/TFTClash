@@ -637,7 +637,7 @@ function getAchievements(p){return ACHIEVEMENTS.filter(a=>{try{return a.check(p)
 function createNotification(userId,title,body,icon){
   if(!userId)return Promise.resolve();
   return supabase.from('notifications').insert({
-    user_id:userId,title:title,body:body,icon:icon||"bell",
+    user_id:userId,title:title,body:body,message:body,icon:icon||"bell",type:"info",
     read:false,created_at:new Date().toISOString()
   });
 }
