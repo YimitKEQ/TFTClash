@@ -16268,8 +16268,8 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                 <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,tableLayout:"auto",minWidth:360}}>
                   <thead>
                     <tr style={{background:"rgba(255,255,255,.03)",borderBottom:"1px solid rgba(242,237,228,.08)"}}>
-                      <th style={{padding:"8px 10px 8px 18px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>#</th>
-                      <th style={{padding:"8px 10px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Player</th>
+                      <th style={{padding:"8px 10px 8px 18px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap",position:"sticky",left:0,zIndex:3,background:"#0D1421"}}>#</th>
+                      <th style={{padding:"8px 10px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap",position:"sticky",left:40,zIndex:3,background:"#0D1421"}}>Player</th>
                       <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#E8A838",whiteSpace:"nowrap"}}>Pts</th>
                       <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Avg</th>
                       <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Wins</th>
@@ -16294,10 +16294,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                       var prizeEntry=prizes.find(function(pr){return pr.placement===pos;});
                       return(
                         <tr key={entry.id} style={{background:bg,borderBottom:"1px solid rgba(242,237,228,.04)",outline:isMe?"1px solid rgba(232,168,56,.35)":"none",position:"relative"}}>
-                          <td style={{padding:"10px 10px 10px 16px",fontWeight:700,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":"#8896A8",borderLeft:borderL,whiteSpace:"nowrap"}}>
+                          <td style={{padding:"10px 10px 10px 16px",fontWeight:700,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":"#8896A8",borderLeft:borderL,whiteSpace:"nowrap",position:"sticky",left:0,zIndex:2,background:"#0D1421"}}>
                             {pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":pos}
                           </td>
-                          <td style={{padding:"10px 10px",maxWidth:160}}>
+                          <td style={{padding:"10px 10px",maxWidth:160,position:"sticky",left:40,zIndex:2,background:"#0D1421"}}>
                             <div style={{fontWeight:600,color:isMe?"#E8A838":"#F2EDE4",fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.name+(isMe?" (you)":"")}</div>
                             <div style={{fontSize:10,color:"#8896A8"}}>{entry.rank}</div>
                           </td>
