@@ -3823,9 +3823,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
-      {/* Champion hero card - shown all season */}
+      {/* Champion hero card - shown all season (logged-in only) */}
 
-      {SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
+      {currentUser&&SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
 
 
 
@@ -3844,9 +3844,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
-      {/* Phase status pill with progress */}
+      {/* Phase status pill with progress (logged-in only) */}
 
-      <div style={{marginBottom:16}}>
+      {currentUser&&(<div style={{marginBottom:16}}>
 
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:tPhase==="registration"||tPhase==="checkin"?8:0,flexWrap:"wrap"}}>
 
@@ -3891,13 +3891,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           </div>
         )}
 
-      </div>
+      </div>)}
 
 
 
-      {/* Registration card  -  visible during registration phase */}
+      {/* Registration/check-in/live cards - hidden for logged-in (grid panel handles it) */}
 
-      {tPhase==="registration"&&(
+      {!currentUser&&tPhase==="registration"&&(
 
         currentUser&&linkedPlayer&&isMyRegistered?(
 
@@ -4009,30 +4009,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       )}
 
-      {/* Check-in card  -  visible during check-in phase only */}
-
-      {tPhase==="checkin"&&currentUser&&linkedPlayer&&(
-
-        <div style={{background:myCheckedIn?"rgba(82,196,124,.08)":"rgba(232,168,56,.08)",border:"1px solid "+(myCheckedIn?"rgba(82,196,124,.4)":"rgba(232,168,56,.4)"),borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-          <div style={{fontSize:22}}>{myCheckedIn?"✅":"⏰"}</div>
-
-          <div style={{flex:1,minWidth:0}}>
-
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{myCheckedIn?"You're checked in!":"Check-in is open"}</div>
-
-            <div style={{fontSize:12,color:"#C8D4E0"}}>{myCheckedIn?"Good luck today, "+linkedPlayer.name+"!":"Confirm you're ready for today's clash"}</div>
-
-          </div>
-
-          {!myCheckedIn&&<Btn v="primary" onClick={handleCheckIn}>Check In Now →</Btn>}
-
-          {myCheckedIn&&<div style={{fontSize:12,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,padding:"6px 14px"}}>✓ Checked In</div>}
-
-        </div>
-
-      )}
-
       {/* Live tournament banner  -  visible to everyone during inprogress */}
       {tPhase==="inprogress"&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
@@ -4045,43 +4021,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
-      {/* Registration closed notice  -  when checkin/inprogress and user not registered */}
-      {(tPhase==="checkin"||tPhase==="inprogress")&&currentUser&&linkedPlayer&&!isMyRegistered&&(
-        <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:12,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:18}}>🚫</span>
-          <span style={{fontSize:13,color:"#F87171",fontWeight:600}}>Registration is closed for this clash. You can still spectate!</span>
-        </div>
-      )}
 
-
-
-      {/* Guest sign-in nudge */}
-
-      {!currentUser&&(
-
-        <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-          <div style={{fontSize:22}}>👤</div>
-
-          <div style={{flex:1,minWidth:0}}>
-
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
-
-            <div style={{fontSize:12,color:"#C8D4E0"}}>Public profile URL · Career stats · Match history · Bio & social links</div>
-
-          </div>
-
-          <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-            <Btn v="purple" s="sm" onClick={()=>onAuthClick("signup")}>Sign Up Free</Btn>
-
-            <Btn v="dark" s="sm" onClick={()=>onAuthClick("login")}>Sign In</Btn>
-
-          </div>
-
-        </div>
-
-      )}
 
       {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
 
@@ -4139,31 +4079,13 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       )}
 
-      {currentUser&&(
-
-        <div style={{background:"rgba(82,196,124,.05)",border:"1px solid rgba(82,196,124,.2)",borderRadius:12,padding:"12px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-
-          <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#08080F",flexShrink:0}}>
-
-            {currentUser.username.charAt(0).toUpperCase()}
-
-          </div>
-
-          <div style={{flex:1,fontSize:13,color:"#6EE7B7",fontWeight:600}}>Welcome back, {currentUser.username}! 👋</div>
-
-          <Btn v="dark" s="sm" onClick={()=>setScreen("account")}>My Account →</Btn>
-
-        </div>
-
-      )}
-
-
-
       {currentUser&&linkedPlayer&&s2&&(
 
         <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.04))",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"16px 18px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
 
           <div style={{flex:1,minWidth:0}}>
+
+            <div style={{fontSize:13,fontWeight:600,color:"#6EE7B7",marginBottom:6}}>Welcome back, {currentUser.username}!</div>
 
             <div style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Your Season Standing</div>
 
@@ -4195,6 +4117,56 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
         </div>
 
+      )}
+
+      {!currentUser&&(
+        <div style={{marginBottom:24}}>
+          {/* Full-width hero for visitors */}
+          <div style={{position:"relative",padding:"48px 32px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)",marginBottom:24,textAlign:"center"}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:24}}>
+              <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
+              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Free to compete - No paywall, ever</span>
+            </div>
+            <h1 className="display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20,maxWidth:700,marginLeft:"auto",marginRight:"auto"}}>
+              The<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2)"}}>COMPETITIVE TFT</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>PLATFORM</span>
+            </h1>
+            <p style={{fontSize:16,color:"#C8D4E0",lineHeight:1.65,marginBottom:28,maxWidth:520,marginLeft:"auto",marginRight:"auto"}}>
+              Weekly Saturday tournaments, seasonal standings, and a permanent record of every champion crowned. Join {players.length} players competing this season.
+            </p>
+            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
+              <Btn v="primary" s="lg" onClick={function(){onAuthClick("signup");}}>Create Free Account</Btn>
+              <Btn v="ghost" s="lg" onClick={function(){onAuthClick("login");}}>Sign In</Btn>
+            </div>
+            {/* Stats row */}
+            <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
+              {[[players.length,"Players","#E8A838"],[players.reduce(function(s,p){return s+(p.games||0);},0),"Games Played","#4ECDC4"],[players.reduce(function(s,p){return s+p.pts;},0),"Season Points","#9B72CF"]].map(function(item){
+                return React.createElement("div",{key:item[1],style:{textAlign:"center",minWidth:80}},
+                  React.createElement("div",{className:"mono",style:{fontSize:24,fontWeight:800,color:item[2],lineHeight:1}},item[0]),
+                  React.createElement("div",{style:{fontSize:10,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}},item[1])
+                );
+              })}
+            </div>
+          </div>
+
+          {/* How It Works - for visitors */}
+          <Panel style={{padding:"24px",marginBottom:24}}>
+            <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",marginBottom:18,textAlign:"center"}}>How It Works</h3>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16}}>
+              {[
+                {n:"01",t:"Sign Up",d:"Create a free account and link your Riot ID."},
+                {n:"02",t:"Register & Check In",d:"Register for the next clash. Check in to confirm your spot."},
+                {n:"03",t:"Play & Submit",d:"Play your lobby games and submit your placement."},
+                {n:"04",t:"Win the Crown",d:"Season leader is crowned Champion and enters the Hall of Fame."}
+              ].map(function(step){
+                return React.createElement("div",{key:step.n,style:{textAlign:"center",padding:"16px 12px"}},
+                  React.createElement("div",{style:{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#C4B5FD",margin:"0 auto 10px",fontFamily:"'Russo One',sans-serif"}},step.n),
+                  React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}},step.t),
+                  React.createElement("div",{style:{fontSize:12,color:"#BECBD9",lineHeight:1.5}},step.d)
+                );
+              })}
+            </div>
+          </Panel>
+        </div>
       )}
 
       <div className="grid-home">
@@ -4415,9 +4387,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-          {/* How it works */}
+          {/* How it works - hidden for logged-in (shown in visitor hero instead) */}
 
-          <Panel style={{padding:"18px"}}>
+          {!currentUser&&(<Panel style={{padding:"18px"}}>
 
             <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>How It Works</h3>
 
@@ -4449,7 +4421,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             ))}
 
-          </Panel>
+          </Panel>)}
 
 
 
@@ -4473,9 +4445,20 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       </div>
 
-
-
-
+      {/* Guest sign-in nudge - after grid for visitors */}
+      {!currentUser&&(
+        <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginTop:16,marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
+          <div style={{fontSize:22}}>👤</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
+            <div style={{fontSize:12,color:"#C8D4E0"}}>Public profile URL - Career stats - Match history - Bio & social links</div>
+          </div>
+          <div style={{display:"flex",gap:8,flexShrink:0}}>
+            <Btn v="purple" s="sm" onClick={function(){onAuthClick("signup");}}>Sign Up Free</Btn>
+            <Btn v="dark" s="sm" onClick={function(){onAuthClick("login");}}>Sign In</Btn>
+          </div>
+        </div>
+      )}
 
       {/* Community Pulse Ticker */}
 
