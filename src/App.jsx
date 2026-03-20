@@ -1653,6 +1653,21 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   /* Podium stack on mobile */
   .podium-grid{grid-template-columns:1fr!important;gap:8px!important;}
 
+  /* Leaderboard podium - stack vertically */
+  .lb-podium{flex-direction:column!important;align-items:center!important;}
+
+  /* Standings rows - smaller font on mobile */
+  .standings-row{font-size:12px!important;}
+  .standings-row .mono{font-size:12px!important;}
+  .standings-row .rank-num{font-size:14px!important;}
+  .pts-glow{font-size:14px!important;}
+
+  /* Tournament / flash screen card padding reduction */
+  .flash-panel{padding:14px!important;}
+
+  /* Lobby player list containment */
+  .lobby-players-list{overflow:hidden!important;max-width:100%!important;}
+
 }
 
 @media(max-width:375px){
@@ -1728,7 +1743,7 @@ function Hexbg(){
 
 
 
-function Panel({children,style,glow,accent,danger,color,hover,onClick}){
+function Panel({children,style,glow,accent,danger,color,hover,onClick,className}){
 
   const [hov,setHov]=useState(false);
 
@@ -1745,6 +1760,8 @@ function Panel({children,style,glow,accent,danger,color,hover,onClick}){
       onMouseEnter={hover?()=>setHov(true):undefined}
 
       onMouseLeave={hover?()=>setHov(false):undefined}
+
+      className={className||undefined}
 
       style={Object.assign({background:"linear-gradient(145deg,rgba(14,22,40,.88) 0%,rgba(8,12,24,.92) 100%)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",border:"1px solid "+bdr,borderRadius:16,position:"relative",overflow:"hidden",
 
@@ -6709,7 +6726,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       {top3.length>=3&&(tab==="season"||tab==="cards")&&(
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1.08fr 1fr",gap:10,marginBottom:20}}>
+        <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.08fr 1fr",gap:10,marginBottom:20}}>
 
           {[top3[1],top3[0],top3[2]].map((p,idx)=>{
 
@@ -8701,7 +8718,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       {/* TAB NAVIGATION */}
 
-      <div style={{display:"flex",gap:4,flexWrap:"nowrap",overflowX:"auto",paddingBottom:4,marginBottom:4,scrollbarWidth:"none"}}>
+      <div style={{display:"flex",gap:4,flexWrap:"nowrap",overflowX:"auto",paddingBottom:4,marginBottom:4,scrollbarWidth:"none",WebkitOverflowScrolling:"touch",msOverflowStyle:"none"}}>
 
         {TABS.map(t=>(
 
@@ -15963,7 +15980,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
 
       {/* Prize pool */}
       {prizes.length>0&&(
-        <Panel style={{padding:"18px",marginBottom:16}}>
+        <Panel className="flash-panel" style={{padding:"18px",marginBottom:16}}>
           <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:12}}>{"Prize Pool"}</div>
           <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
             {prizes.map(function(p,i){
@@ -15981,7 +15998,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       )}
 
       {/* Registration bar */}
-      <Panel style={{padding:"16px 20px",marginBottom:16}}>
+      <Panel className="flash-panel" style={{padding:"16px 20px",marginBottom:16}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
           <div>
             <div style={{fontSize:22,fontWeight:700,color:"#F2EDE4"}}>{regCount+" / "+maxP}</div>
@@ -16219,7 +16236,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                 </div>
                 {/* Admin: per-player report rows */}
                 {isAdmin&&phase==="in_progress"?(
-                  <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+                  <div className="lobby-players-list" style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
                     {lobbyPlayers.map(function(p,pi){
                       var isHost=p.id===hostId;
                       var rc=rankColors[p.rank||"Iron"]||"#8896A8";
@@ -16245,7 +16262,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                     })}
                   </div>
                 ):(
-                  <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:iAmHost&&!lobby.lobby_code?12:0}}>
+                  <div className="lobby-players-list" style={{display:"flex",flexDirection:"column",gap:4,marginBottom:iAmHost&&!lobby.lobby_code?12:0}}>
                     {lobbyPlayers.map(function(p,pi){
                       var isHost=p.id===hostId;
                       var rc=rankColors[p.rank||"Iron"]||"#8896A8";
