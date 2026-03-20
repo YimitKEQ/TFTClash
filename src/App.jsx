@@ -17119,6 +17119,38 @@ function TFTClash(){
 
   },[]);
 
+  // Auto-create player row for OAuth users (Discord etc.) who bypass SignUpScreen
+  useEffect(function(){
+    if(!currentUser||!currentUser.id)return;
+    supabase.from('players').select('id,riot_id').eq('auth_user_id',currentUser.id).maybeSingle()
+      .then(function(res){
+        if(res.error){console.error("[TFT] player check failed:",res.error);return;}
+        if(res.data){
+          // Player row exists — reload players to pick it up
+          loadPlayersFromTable();
+          return;
+        }
+        // No player row — create one
+        var username=currentUser.username||currentUser.email?.split('@')[0]||"Player";
+        var riotId=currentUser.riotId||"";
+        var region=currentUser.region||"EUW";
+        supabase.from('players').insert({
+          username:username,
+          riot_id:riotId,
+          region:region,
+          rank:'Iron',
+          auth_user_id:currentUser.id
+        }).select().single().then(function(ins){
+          if(ins.error&&ins.error.code!=='23505'){
+            console.error("[TFT] auto-create player failed:",ins.error);
+            return;
+          }
+          console.log("[TFT] auto-created player row for",username);
+          loadPlayersFromTable();
+        });
+      });
+  },[currentUser?.id]);
+
   // Monitor realtime connection status for offline banner
   useEffect(function(){
     var channel=supabase.channel("app-status");
@@ -17210,7 +17242,7 @@ function TFTClash(){
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
         if(res.error){console.error("[TFT] Failed to load players:",res.error);return;}
-        if(!res.data||!res.data.length)return;
+        if(!res.data||!res.data.length){setPlayers([]);return;}
         var mapped=res.data.map(function(r){
           return{
             id:r.id,name:r.username,username:r.username,
