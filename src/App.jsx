@@ -15275,6 +15275,29 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     if(tournament)loadReports();
   },[tournament&&tournament.current_round,tournament&&tournament.id]);
 
+  useEffect(function(){
+    if(!tournamentId)return;
+    var channel=supabase.channel("tournament-"+tournamentId);
+    channel.on("broadcast",{event:"update"},function(payload){
+      var type=payload.payload?payload.payload.type:"";
+      if(type==="phase_change")loadTournament();
+      if(type==="registration")loadRegistrations();
+      if(type==="lobbies_generated")loadLobbies();
+      if(type==="report_submitted")loadReports();
+      if(type==="lobby_locked"){loadLobbies();loadResults();}
+      if(type==="next_game"){loadTournament();loadLobbies();loadReports();}
+      if(type==="finalized"){loadTournament();loadResults();}
+    });
+    channel.subscribe();
+    return function(){supabase.removeChannel(channel);};
+  },[tournamentId]);
+
+  function broadcastUpdate(type){
+    supabase.channel("tournament-"+tournamentId).send({
+      type:"broadcast",event:"update",payload:{type:type}
+    });
+  }
+
   // Rank color map
   var rankColors={Iron:"#5A6573",Bronze:"#CD7F32",Silver:"#C0C0C0",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#93B5F7",Master:"#9B72CF",Grandmaster:"#DC2626",Challenger:"#F59E0B"};
 
@@ -15324,6 +15347,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
               setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
             });
           toast(result.lobbies.length+" lobbies generated!","success");
+          broadcastUpdate("lobbies_generated");
           loadLobbies();
         });
       });
@@ -15361,6 +15385,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         setActionLoading(false);
         if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
         toast("Added to waitlist (position #"+waitPos+")!","info");
+        broadcastUpdate("registration");
         loadRegistrations();
       });
       return;
@@ -15373,6 +15398,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       setActionLoading(false);
       if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
       toast("Registered!","success");
+      broadcastUpdate("registration");
       loadRegistrations();
     });
   }
@@ -15386,6 +15412,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       setActionLoading(false);
       if(res.error){toast("Failed to unregister: "+res.error.message,"error");return;}
       toast("Unregistered","success");
+      broadcastUpdate("registration");
       loadRegistrations();
     });
   }
@@ -15398,6 +15425,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       setActionLoading(false);
       if(res.error){toast("Check-in failed: "+res.error.message,"error");return;}
       toast("Checked in!","success");
+      broadcastUpdate("registration");
       loadRegistrations();
     });
   }
@@ -15408,6 +15436,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       if(res.error){toast("Failed: "+res.error.message,"error");return;}
       setTournament(Object.assign({},tournament,{phase:'check_in'}));
       toast("Check-in opened!","success");
+      broadcastUpdate("phase_change");
     });
   }
 
@@ -15437,6 +15466,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         loadRegistrations();
       }
       toast("Check-in closed. "+notCheckedIn.length+" player(s) dropped.","success");
+      broadcastUpdate("phase_change");
     });
   }
 
@@ -15446,6 +15476,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       if(res.error){toast("Failed: "+res.error.message,"error");return;}
       setTournament(Object.assign({},tournament,{phase:'registration'}));
       toast("Registration opened!","success");
+      broadcastUpdate("phase_change");
     });
   }
 
@@ -15455,6 +15486,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       if(res.error){toast("Failed: "+res.error.message,"error");return;}
       setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
       toast("Tournament started!","success");
+      broadcastUpdate("phase_change");
     });
   }
 
@@ -15472,6 +15504,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       .then(function(res){
         if(res.error){toast("Failed to submit: "+res.error.message,"error");return;}
         toast("Placement reported!","success");
+        broadcastUpdate("report_submitted");
         setMyPlacement(0);
         loadReports();
       });
@@ -15516,6 +15549,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       if(res.error){toast("Failed to lock: "+res.error.message,"error");return;}
       supabase.from('lobbies').update({status:'locked',reports_complete:true}).eq('id',lobbyId).then(function(){
         toast("Lobby locked!","success");
+        broadcastUpdate("lobby_locked");
         loadLobbies();
         loadReports();
         loadResults();
@@ -15603,6 +15637,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             loadLobbies();
             loadReports();
             toast("Game "+nextGame+" started! New lobbies generated.","success");
+            broadcastUpdate("next_game");
           });
         } else {
           var currentLobbies=lobbies.filter(function(l){return l.game_number===currentGameNumber;});
@@ -15622,6 +15657,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             loadLobbies();
             loadReports();
             toast("Game "+nextGame+" started!","success");
+            broadcastUpdate("next_game");
           });
         }
       });
@@ -15635,6 +15671,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         if(res.error){toast("Failed: "+res.error.message,"error");return;}
         setTournament(Object.assign({},tournament,{phase:'complete'}));
         toast("Tournament finalized!","success");
+        broadcastUpdate("finalized");
       });
   }
 
@@ -16917,11 +16954,11 @@ function TFTClash(){
 
   const [disputes]=useState([]);
 
-  const [announcement,setAnnouncement]=useState(()=>{try{return localStorage.getItem("tft-announcement")||"";}catch{return "";}});
+  const [announcement,setAnnouncement]=useState("");
 
   const [profilePlayer,setProfilePlayer]=useState(null);
 
-  const [tournamentState,setTournamentState]=useState(()=>{var defaults={phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24};try{const s=localStorage.getItem("tft-tournament");if(s){var parsed=JSON.parse(s);return Object.assign({},defaults,parsed);}return defaults;}catch{return defaults;}});
+  const [tournamentState,setTournamentState]=useState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});
 
   const [seasonConfig,setSeasonConfig]=useState(()=>{try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
 
@@ -16931,7 +16968,7 @@ function TFTClash(){
 
   const [scheduledEvents,setScheduledEvents]=useState(()=>{try{var s=localStorage.getItem('tft-scheduled-events');return s?JSON.parse(s):[];}catch(e){return [];}});
 
-  const [auditLog,setAuditLog]=useState(()=>{try{var s=localStorage.getItem('tft-audit-log');return s?JSON.parse(s):[];}catch(e){return [];}});
+  const [auditLog,setAuditLog]=useState([]);
 
   const [hostApps,setHostApps]=useState(()=>{try{var s=localStorage.getItem('tft-host-apps');return s?JSON.parse(s):[];}catch(e){return [];}});
 
@@ -16953,6 +16990,7 @@ function TFTClash(){
 
   const [currentUser,setCurrentUser]=useState(null); // null = guest; hydrated by Supabase auth
   const [isAuthLoading,setIsAuthLoading]=useState(true);
+  var [isOffline,setIsOffline]=useState(false);
 
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
   const [cookieConsent,setCookieConsent]=useState(function(){try{return localStorage.getItem("tft-cookie-consent")==="1";}catch(e){return false;}});
@@ -17000,6 +17038,21 @@ function TFTClash(){
 
     return ()=>subscription.unsubscribe();
 
+  },[]);
+
+  // Monitor realtime connection status for offline banner
+  useEffect(function(){
+    var channel=supabase.channel("app-status");
+    channel.on("system",{},function(payload){
+      if(payload.extension==="error"||payload.status==="channel_error"){
+        setIsOffline(true);
+      }
+    });
+    channel.subscribe(function(status){
+      if(status==="SUBSCRIBED")setIsOffline(false);
+      if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")setIsOffline(true);
+    });
+    return function(){supabase.removeChannel(channel);};
   },[]);
 
   // Load host branding from host_profiles DB on auth
@@ -17060,7 +17113,6 @@ function TFTClash(){
 
   useEffect(()=>{try{localStorage.setItem("tft-admin",isAdmin?"1":"0");}catch{}},[isAdmin]);
 
-  useEffect(()=>{var t=setTimeout(()=>{try{localStorage.setItem("tft-tournament",JSON.stringify(tournamentState));}catch{}},300);return()=>clearTimeout(t);},[tournamentState]);
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);
 
@@ -17068,9 +17120,7 @@ function TFTClash(){
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},300);return function(){clearTimeout(t);};},[orgSponsors]);
 
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-announcement",announcement);}catch(e){}},300);return function(){clearTimeout(t);};},[announcement]);
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},300);return function(){clearTimeout(t);};},[scheduledEvents]);
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-audit-log",JSON.stringify(auditLog));}catch(e){}},300);return function(){clearTimeout(t);};},[auditLog]);
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-host-apps",JSON.stringify(hostApps));}catch(e){}},300);return function(){clearTimeout(t);};},[hostApps]);
 
 
@@ -17757,6 +17807,13 @@ function TFTClash(){
       `}</style>
 
       <Hexbg/>
+
+      {isOffline&&(
+        <div style={{position:"fixed",top:0,left:0,right:0,zIndex:9998,background:"rgba(220,38,38,.9)",color:"#fff",textAlign:"center",padding:"8px 16px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+          <span>Connection lost — trying to reconnect...</span>
+          <button onClick={function(){window.location.reload();}} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:6,padding:"4px 12px",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}}>Retry</button>
+        </div>
+      )}
 
       {(isLoadingData||isAuthLoading)&&(
         <div style={{position:"fixed",inset:0,background:"#08080F",zIndex:9999,overflow:"hidden"}}>
