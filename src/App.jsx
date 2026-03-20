@@ -10112,7 +10112,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Existing Flash Tournaments ({flashEvents.length})</div>
             {flashEvents.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No flash tournaments yet. Create one above.</div>}
             {flashEvents.map(function(ev){
-              var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
+              var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
               return(
                 <div key={ev.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,marginBottom:6}}>
                   <div style={{fontSize:16,flexShrink:0}}>{"⚡"}</div>
@@ -15175,7 +15175,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
     });
   },[tournaments]);
 
-  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
+  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
   var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",complete:"Completed"};
 
   return(
@@ -15204,8 +15204,8 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
             var dateStr=t.date?new Date(t.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
             var prizes=Array.isArray(t.prize_pool_json)?t.prize_pool_json:[];
             // Status badge styles
-            var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(82,196,124,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(155,114,207,.15)",complete:"rgba(78,205,196,.15)"};
-            var phaseBadgeColor={draft:"#9AAABF",registration:"#52C47C",check_in:"#E8A838",in_progress:"#9B72CF",complete:"#4ECDC4"};
+            var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(155,114,207,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(82,196,124,.15)",complete:"rgba(78,205,196,.15)"};
+            var phaseBadgeColor={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
             var badgeBg=phaseBadgeBg[t.phase]||"rgba(154,170,191,.1)";
             var badgeColor=phaseBadgeColor[t.phase]||"#9AAABF";
             // Countdown timer
@@ -15755,7 +15755,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     );
   }
 
-  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4",complete:"#4ECDC4"};
+  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
   var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed",complete:"Complete"};
   var dateStr=tournament.date?new Date(tournament.date).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
 
