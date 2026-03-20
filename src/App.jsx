@@ -15537,6 +15537,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
 
   // Admin: Close check-in
   function adminCloseCheckIn(){
+    var unchecked = registrations.filter(function(r) { return r.status === "registered"; }).length;
+    if (unchecked > 0) {
+      if (!window.confirm("This will drop " + unchecked + " player" + (unchecked !== 1 ? "s" : "") + " who haven't checked in. Continue?")) return;
+    }
     // 1. Set close time
     supabase.from('tournaments').update({checkin_close_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
       if(res.error){toast("Failed: "+res.error.message,"error");return;}
