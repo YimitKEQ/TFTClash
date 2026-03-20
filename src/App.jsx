@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react';
 
 import { supabase, CANONICAL_ORIGIN } from './lib/supabase.js';
 
-// ─── DATA VERSION — bump to bust stale localStorage ─────────────────────────
+// ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 var DATA_VERSION=2;
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
 
@@ -35,7 +35,7 @@ class ErrorBoundary extends Component {
 
           <div style={{fontFamily:"'Russo One',sans-serif",fontSize:22,color:"#F2EDE4",textAlign:"center"}}>Something went wrong</div>
 
-          <div style={{fontSize:14,color:"#9AAABF",maxWidth:340,textAlign:"center",lineHeight:1.6}}>The app hit an unexpected error. Your data is safe — refresh to get back in.</div>
+          <div style={{fontSize:14,color:"#9AAABF",maxWidth:340,textAlign:"center",lineHeight:1.6}}>The app hit an unexpected error. Your data is safe  -  refresh to get back in.</div>
 
           <button onClick={()=>this.setState({hasError:false})} style={{marginTop:8,padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Chakra Petch',sans-serif",fontSize:14}}>Try Again</button>
 
@@ -53,7 +53,7 @@ class ErrorBoundary extends Component {
 
 }
 
-// Per-screen error boundary — isolates crashes to individual screens
+// Per-screen error boundary  -  isolates crashes to individual screens
 class ScreenBoundary extends Component {
 
   constructor(props){super(props);this.state={hasError:false,error:null};}
@@ -333,7 +333,7 @@ function computeStats(player){
 }
 
 // ─── STATS CACHE ─────────────────────────────────────────────────────────────
-// WeakMap keyed by player object — cache invalidates automatically when player
+// WeakMap keyed by player object  -  cache invalidates automatically when player
 // object identity changes (which happens on every immutable state update).
 var _statsCache=new WeakMap();
 function getStats(player){
@@ -419,7 +419,7 @@ function tiebreaker(a, b) {
 
   }
 
-  // Step 4: Most recent game finish — player who competed more recently wins
+  // Step 4: Most recent game finish  -  player who competed more recently wins
   var aLastId = a.clashHistory && a.clashHistory.length ? (a.clashHistory[a.clashHistory.length - 1].clashId || a.clashHistory[a.clashHistory.length - 1].date || a.clashHistory.length) : 0;
 
   var bLastId = b.clashHistory && b.clashHistory.length ? (b.clashHistory[b.clashHistory.length - 1].clashId || b.clashHistory[b.clashHistory.length - 1].date || b.clashHistory.length) : 0;
@@ -645,7 +645,7 @@ function isOnTilt(p){return(p.tiltStreak||0)>=3;}
 
 // ─── TOURNAMENT ENGINE ───────────────────────────────────────────────────────
 
-// Tournament phases — strict state machine
+// Tournament phases  -  strict state machine
 var T_PHASE={
   DRAFT:"draft",
   REGISTRATION:"registration",
@@ -930,7 +930,7 @@ const PAST_CLASHES=[];
 
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
-let SEASON_CHAMPION=null; // computed from live standings — no hardcoded champion
+let SEASON_CHAMPION=null; // computed from live standings  -  no hardcoded champion
 
 
 
@@ -3136,7 +3136,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
 
 
-      {/* Desktop top nav — two-row layout */}
+      {/* Desktop top nav  -  two-row layout */}
 
       <nav className="top-nav" style={{borderBottom:"2px solid transparent",borderImage:"linear-gradient(90deg,transparent,rgba(155,114,207,.3),rgba(232,168,56,.2),transparent) 1"}}>
 
@@ -3498,7 +3498,7 @@ var MemoStandingsTable = memo(StandingsTable);
 
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
 
-  // Dead state variables removed (name, riot, region) — registration now uses registerFromAccount()
+  // Dead state variables removed (name, riot, region)  -  registration now uses registerFromAccount()
 
   const clashName=tournamentState?.clashName||"Next Clash";
 
@@ -3518,7 +3518,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-  // Guest self-registration removed — all registration goes through registerFromAccount()
+  // Guest self-registration removed  -  all registration goes through registerFromAccount()
 
   const [upcomingTournament,setUpcomingTournament]=useState(null);
   useEffect(function(){
@@ -3599,7 +3599,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     if(isReg){toast("You're already registered!","error");return;}
     var isWl=(tournamentState.waitlistIds||[]).includes(sid);
     if(isWl){toast("You're already on the waitlist!","error");return;}
-    // Check capacity — if full, add to waitlist
+    // Check capacity  -  if full, add to waitlist
     var maxCap=parseInt((tournamentState&&tournamentState.maxPlayers)||24);
     var regCount=(tournamentState.registeredIds||[]).length;
     if(regCount>=maxCap){
@@ -3616,7 +3616,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       var ids=ts.registeredIds||[];
       return ids.includes(sid)?ts:{...ts,registeredIds:[...ids,sid]};
     });
-    // Sync to DB registrations table — auto-create tournament if needed
+    // Sync to DB registrations table  -  auto-create tournament if needed
     if(supabase.from){
       var doInsert=function(tid){
         supabase.from('registrations').upsert({
@@ -3741,7 +3741,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     sortedWins[0]&&sortedWins[0].wins>0&&("🥇 "+sortedWins[0].name+" · "+sortedWins[0].wins+" tournament wins"),
     sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&("🔥 "+sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"),
     players.filter(function(p){return p.checkedIn;}).length>0&&("⚡ "+players.filter(function(p){return p.checkedIn;}).length+" / "+players.length+" players checked in"),
-    "📊 "+(seasonConfig&&seasonConfig.seasonName||"Season")+" active — "+players.length+" registered",
+    "📊 "+(seasonConfig&&seasonConfig.seasonName||"Season")+" active  -  "+players.length+" registered",
   ].filter(Boolean):[];
   const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
 
@@ -3842,7 +3842,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-      {/* Registration card — visible during registration phase */}
+      {/* Registration card  -  visible during registration phase */}
 
       {tPhase==="registration"&&(
 
@@ -3904,7 +3904,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
 
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Sign up for the next clash — free to compete!</div>
+                <div style={{fontSize:12,color:"#C8D4E0"}}>Sign up for the next clash  -  free to compete!</div>
 
               </div>
 
@@ -3922,7 +3922,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
 
-                <div style={{fontSize:12,color:"#C8D4E0"}}>{profileComplete?"Ready to register — your profile is linked":"Complete your profile to register"}</div>
+                <div style={{fontSize:12,color:"#C8D4E0"}}>{profileComplete?"Ready to register  -  your profile is linked":"Complete your profile to register"}</div>
 
               </div>
 
@@ -3956,7 +3956,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       )}
 
-      {/* Check-in card — visible during check-in phase only */}
+      {/* Check-in card  -  visible during check-in phase only */}
 
       {tPhase==="checkin"&&currentUser&&linkedPlayer&&(
 
@@ -3980,19 +3980,19 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       )}
 
-      {/* Live tournament banner — visible to everyone during inprogress */}
+      {/* Live tournament banner  -  visible to everyone during inprogress */}
       {tPhase==="inprogress"&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
           <div style={{fontSize:22}}>⚡</div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE — Game {tRound}/{tournamentState.totalGames||3}</div>
+            <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE  -  Game {tRound}/{tournamentState.totalGames||3}</div>
             <div style={{fontSize:12,color:"#C8D4E0"}}>{checkedInCount} players competing across {Math.ceil(checkedInCount/8)} lobbies</div>
           </div>
           <Btn v="success" s="sm" onClick={()=>setScreen("bracket")}>Watch Live →</Btn>
         </div>
       )}
 
-      {/* Registration closed notice — when checkin/inprogress and user not registered */}
+      {/* Registration closed notice  -  when checkin/inprogress and user not registered */}
       {(tPhase==="checkin"||tPhase==="inprogress")&&currentUser&&linkedPlayer&&!isMyRegistered&&(
         <div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:12,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
           <span style={{fontSize:18}}>🚫</span>
@@ -4242,7 +4242,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                     <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Account required to register</div>
 
-                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Create a free account with your Riot ID to join the clash. Takes 30 seconds — competing is always free.</div>
+                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Create a free account with your Riot ID to join the clash. Takes 30 seconds  -  competing is always free.</div>
 
                   </div>
 
@@ -4290,7 +4290,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-            {/* Already registered — show status + unregister */}
+            {/* Already registered  -  show status + unregister */}
 
             {currentUser&&profileComplete&&alreadyRegistered&&isMyRegistered&&(
 
@@ -4340,7 +4340,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             )}
 
-            {/* Not in roster yet — direct them to complete setup */}
+            {/* Not in roster yet  -  direct them to complete setup */}
 
             {currentUser&&profileComplete&&!alreadyRegistered&&(
 
@@ -4892,14 +4892,14 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
       <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
 
-        <span style={{fontSize:16}}>📊</span> Live Standings — Game {round}/{totalGames}
+        <span style={{fontSize:16}}>📊</span> Live Standings  -  Game {round}/{totalGames}
 
         <span style={{fontSize:11,color:"#BECBD9",fontWeight:400,marginLeft:4}}>({lockedCount} of {lobbies.length} {lobbies.length===1?"lobby":"lobbies"} locked)</span>
 
       </div>
 
       {showCutLine&&(
-        <div style={{fontSize:11,color:"#E8A838",marginBottom:10,padding:"4px 10px",background:"rgba(232,168,56,.06)",borderRadius:4,border:"1px solid rgba(232,168,56,.12)"}}>Cut line: {cutLine} pts — players at or below are eliminated after Game {cutAfterGame}</div>
+        <div style={{fontSize:11,color:"#E8A838",marginBottom:10,padding:"4px 10px",background:"rgba(232,168,56,.06)",borderRadius:4,border:"1px solid rgba(232,168,56,.12)"}}>Cut line: {cutLine} pts  -  players at or below are eliminated after Game {cutAfterGame}</div>
       )}
 
       <div style={{display:"flex",flexDirection:"column",gap:4}}>
@@ -4926,7 +4926,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
               {nearCut&&<span style={{fontSize:9,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:3,padding:"1px 6px"}}>Bubble</span>}
 
-              <span className="mono" style={{fontSize:13,fontWeight:700,color:belowCut?"#F87171":row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:"—"} pts</span>
+              <span className="mono" style={{fontSize:13,fontWeight:700,color:belowCut?"#F87171":row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:" - "} pts</span>
 
             </div>
 
@@ -5239,7 +5239,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       lobbySubmissions[playerId]={placement:p,name:playerName,confirmed:false};
       return Object.assign({},ps,{[li]:lobbySubmissions});
     });
-    toast("Placement submitted — waiting for admin confirmation","success");
+    toast("Placement submitted  -  waiting for admin confirmation","success");
   }
 
 
@@ -5281,7 +5281,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
         .eq('round_number',round)
         .then(function(res){if(res.error)console.error("[TFT] Failed to unlock lobby in DB:",res.error);});
     }
-    toast("Lobby "+(li+1)+" unlocked — results reverted","success");
+    toast("Lobby "+(li+1)+" unlocked  -  results reverted","success");
   }
 
   const allLocked=lobbies.length>0&&lobbies.every((_,i)=>lockedLobbies.includes(i));
@@ -5419,7 +5419,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[],savedLobbies:[]}))}>← Round</Btn>
 
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg=" — "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
+            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg="  -  "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
 
               {round>=(tournamentState.totalGames||3)?"Finalize Clash ✓":"Next Game →"}
 
@@ -5434,7 +5434,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       {allLocked&&checkedIn.length>0&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
           <span style={{fontSize:16}}>✅</span>
-          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked — {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
+          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked  -  {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
           {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)&&(
             <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
           )}
@@ -5654,7 +5654,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
                               <div style={{fontSize:10,color:"#6EE7B7",fontWeight:700,flexShrink:0}}>#{playerSubmissions[li][p.id].placement} ✓</div>
                             ):(
                               <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}} style={{width:52,fontSize:11,flexShrink:0}}>
-                                <option value="">—</option>
+                                <option value=""> - </option>
                                 {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
                               </Sel>
                             )
@@ -5688,7 +5688,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                         <div style={{padding:"12px",background:"rgba(78,205,196,.03)",borderTop:"1px solid rgba(78,205,196,.12)"}}>
 
-                          <div style={{fontSize:11,fontWeight:700,color:"#4ECDC4",marginBottom:10,textTransform:"uppercase",letterSpacing:".08em"}}>Enter Placements — Round {round}</div>
+                          <div style={{fontSize:11,fontWeight:700,color:"#4ECDC4",marginBottom:10,textTransform:"uppercase",letterSpacing:".08em"}}>Enter Placements  -  Round {round}</div>
 
                           <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:10}}>
 
@@ -6130,9 +6130,9 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
 
-                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>🔥 Hot Streak — {player.currentStreak} wins in a row</div>}
+                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>🔥 Hot Streak  -  {player.currentStreak} wins in a row</div>}
 
-                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>🥶 Cold Streak — {player.tiltStreak} losses</div>}
+                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>🥶 Cold Streak  -  {player.tiltStreak} losses</div>}
 
               </div>
 
@@ -7173,7 +7173,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     const lines=[
 
-      "**🏆 TFT Clash S1 — "+CLASH_NAME+" Results**",
+      "**🏆 TFT Clash S1  -  "+CLASH_NAME+" Results**",
 
       "```",
 
@@ -7213,7 +7213,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     ctx.font="bold 13px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="4px";
 
-    ctx.fillText("TFT CLASH S1 — FINAL RESULTS",40,44);ctx.letterSpacing="0px";
+    ctx.fillText("TFT CLASH S1  -  FINAL RESULTS",40,44);ctx.letterSpacing="0px";
 
     ctx.font="11px monospace";ctx.fillStyle="#BECBD9";
 
@@ -7283,7 +7283,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Season 1</div>
 
-          <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,3.5vw,34px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME} — Final Results</h1>
+          <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,3.5vw,34px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME}  -  Final Results</h1>
 
           <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>{CLASH_DATE} · {sorted.length} players · {Math.ceil(sorted.length/8)} lobbies</div>
 
@@ -7360,7 +7360,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
 
 
-      {/* Podium — top 3 */}
+      {/* Podium  -  top 3 */}
 
       {sorted.length>=3&&(
 
@@ -7510,7 +7510,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                 <div className="mono" style={{fontSize:13,color:"#4ECDC4"}}>{st.top4Rate}%</div>
 
-                <div style={{fontSize:12}}>{REWARDS[i]?<Tag color={col} size="sm">{REWARDS[i]}</Tag>:<span style={{color:"#9AAABF"}}>—</span>}</div>
+                <div style={{fontSize:12}}>{REWARDS[i]?<Tag color={col} size="sm">{REWARDS[i]}</Tag>:<span style={{color:"#9AAABF"}}> - </span>}</div>
 
               </div>
 
@@ -7570,7 +7570,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
         <Panel style={{padding:"20px"}}>
 
-          <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:16,color:"#F2EDE4",marginBottom:4}}>{CLASH_NAME} — Round by Round</h3>
+          <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:16,color:"#F2EDE4",marginBottom:4}}>{CLASH_NAME}  -  Round by Round</h3>
 
           <p style={{fontSize:13,color:"#BECBD9",marginBottom:20}}>{CLASH_DATE} · {sorted.length} players</p>
 
@@ -8322,7 +8322,7 @@ function ScrimAccessPanel({scrimAccess,setScrimAccess,toast,addAudit}){
         <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.6}}>
           <p style={{marginBottom:10}}>The Lab is the private scrims section where your friend group logs practice games, tracks stats, and sees head-to-head records.</p>
           <p style={{marginBottom:10}}>Only users on this allowlist (plus admin) can see and access the Scrims tab in the nav.</p>
-          <p>Usernames must match exactly — they are case-sensitive and must match the account username on this platform.</p>
+          <p>Usernames must match exactly  -  they are case-sensitive and must match the account username on this platform.</p>
         </div>
       </Panel>
     </div>
@@ -8452,7 +8452,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       addAudit("WARN","DNP #"+newCount+": "+name+(isDQ?" → AUTO-DQ":""));
 
-      if(isDQ)toast(name+" has 2 DNPs — DISQUALIFIED","error");
+      if(isDQ)toast(name+" has 2 DNPs  -  DISQUALIFIED","error");
 
       else toast(name+" marked DNP ("+newCount+"/2 before DQ)","success");
 
@@ -8555,7 +8555,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
     round:"Full tournament lifecycle: open check-in → start → advance rounds → complete. Configure seeding and round settings here.",
 
-    quickclash:"Spin up an instant open clash (4–16 players, no registration). Appears live on the home screen. Players join immediately.",
+    quickclash:"Spin up an instant open clash (4-16 players, no registration). Appears live on the home screen. Players join immediately.",
 
     schedule:"Add upcoming clashes to the public calendar. Players see scheduled events on the home screen.",
 
@@ -8873,7 +8873,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               )}
 
-              {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet — add one above.</div></Panel>}
+              {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet  -  add one above.</div></Panel>}
 
               {players.map(p=>(
 
@@ -9033,9 +9033,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
 
-              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened — "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
+              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened  -  "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
-              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){var existingId=tournamentState.dbTournamentId;if(existingId){supabase.from('tournaments').update({phase:'upcoming',format:cutL>0?'two_stage':'single_stage',round_count:games,seeding_method:seedAlgo||'snake'}).eq('id',existingId).then(function(r){if(r.error)console.error("[TFT] Failed to update tournament:",r.error);});}else{supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',max_players:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().single().then(function(res){if(!res.error&&res.data){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data.id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}}addAudit("ACTION","Tournament started — "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
+              <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){var existingId=tournamentState.dbTournamentId;if(existingId){supabase.from('tournaments').update({phase:'upcoming',format:cutL>0?'two_stage':'single_stage',round_count:games,seeding_method:seedAlgo||'snake'}).eq('id',existingId).then(function(r){if(r.error)console.error("[TFT] Failed to update tournament:",r.error);});}else{supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',max_players:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().single().then(function(res){if(!res.error&&res.data){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data.id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}}addAudit("ACTION","Tournament started  -  "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
               <Btn v="danger" full onClick={()=>{if(window.confirm("Reset tournament to registration?")){var oldId=tournamentState.dbTournamentId;setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],savedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));if(supabase.from&&oldId){supabase.from('registrations').delete().eq('tournament_id',oldId).then(function(){});supabase.from('tournaments').update({phase:'cancelled'}).eq('id',oldId).then(function(){});}addAudit("DANGER","Tournament reset");toast("Tournament reset","success");}}}>Reset to Registration</Btn>
 
@@ -9067,7 +9067,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}}>
 
-              {[["random","🎲 Random","Fully shuffled, no weighting — great for casual events"],["rank-based","🏆 By Rank","Top players spread evenly across lobbies for fair games"],["snake","🐍 Snake Draft","Alternating pick order — balances skill across lobbies"]].map(function(item){
+              {[["random","🎲 Random","Fully shuffled, no weighting  -  great for casual events"],["rank-based","🏆 By Rank","Top players spread evenly across lobbies for fair games"],["snake","🐍 Snake Draft","Alternating pick order  -  balances skill across lobbies"]].map(function(item){
 
                 var v=item[0];var l=item[1];var d=item[2];
 
@@ -9127,13 +9127,13 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:8}}>Quick Clash Setup</div>
 
-            <div style={{fontSize:12,color:"#9AAABF",marginBottom:12}}>One-click presets — fills Max Players and Round Count below.</div>
+            <div style={{fontSize:12,color:"#9AAABF",marginBottom:12}}>One-click presets  -  fills Max Players and Round Count below.</div>
 
             <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:0}}>
 
               {[["3 Games \xb7 24p","24","3","0","0"],["3 Games \xb7 16p","16","3","0","0"],["5 Games \xb7 24p","24","5","0","0"],["6 Games \xb7 128p (Cut at 4)","128","6","13","4"]].map(function(preset){return(
 
-                <button key={preset[0]} onClick={function(){setRoundConfig(function(c){return Object.assign({},c,{maxPlayers:preset[1],roundCount:preset[2],cutLine:preset[3],cutAfterGame:preset[4]});});if(preset[3]!=="0"){toast("Preset loaded: "+preset[0]+" — cut line: "+preset[3]+"pts after game "+preset[4],"success");}else{toast("Preset loaded: "+preset[0],"success");}}} style={{padding:"7px 14px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",color:"#C4B5FD",transition:"all .15s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(155,114,207,.2)";}} onMouseLeave={function(e){e.currentTarget.style.background="rgba(155,114,207,.1)";}}>
+                <button key={preset[0]} onClick={function(){setRoundConfig(function(c){return Object.assign({},c,{maxPlayers:preset[1],roundCount:preset[2],cutLine:preset[3],cutAfterGame:preset[4]});});if(preset[3]!=="0"){toast("Preset loaded: "+preset[0]+"  -  cut line: "+preset[3]+"pts after game "+preset[4],"success");}else{toast("Preset loaded: "+preset[0],"success");}}} style={{padding:"7px 14px",borderRadius:7,fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",color:"#C4B5FD",transition:"all .15s"}} onMouseEnter={function(e){e.currentTarget.style.background="rgba(155,114,207,.2)";}} onMouseLeave={function(e){e.currentTarget.style.background="rgba(155,114,207,.1)";}}>
 
                   {preset[0]}
 
@@ -9231,7 +9231,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               </div>
 
-              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open — "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash ⚡</Btn>
+              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open  -  "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash ⚡</Btn>
 
             </div>
 
@@ -9555,7 +9555,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                   // Mark season complete
                   supabase.from('seasons').update({status:'completed',end_date:new Date().toISOString().split('T')[0]}).eq('id',seasonConfig.seasonId)
                     .then(function(r){if(r.error)console.error("[TFT] season end failed:",r.error);});
-                  addAudit("ACTION","Season ended: "+(seasonName||"Season")+" — "+players.length+" players snapshotted");
+                  addAudit("ACTION","Season ended: "+(seasonName||"Season")+"  -  "+players.length+" players snapshotted");
                   toast("Season ended. Stats snapshotted.","success");
                 }else{
                   toast("No active season found in database","error");
@@ -9586,7 +9586,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <Btn v="danger" onClick={()=>{if(window.confirm("Remove ALL players from the roster? This syncs to the database.")){setPlayers([]);if(supabase.from){supabase.from('players').delete().neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Failed to clear players table:",r.error);});}addAudit("DANGER","Players cleared");toast("All players removed","success");}}}>Clear All Players</Btn>
 
-                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears ALL players, stats, history, events, featured events, and tournament state. This is a complete wipe. Syncs to database.")){setPlayers([]);setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setScheduledEvents([]);setFeaturedEvents([]);if(supabase.from){supabase.from('players').delete().neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Failed to clear players table:",r.error);});supabase.from('game_results').delete().neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Failed to clear game_results:",r.error);});}setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Full season reset — all players, stats, events, and featured events cleared"}]);toast("Full season reset complete","success");}}}>Full Season Reset</Btn>
+                <Btn v="danger" onClick={()=>{if(window.confirm("Full season reset? Clears ALL players, stats, history, events, featured events, and tournament state. This is a complete wipe. Syncs to database.")){setPlayers([]);setTournamentState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[]});setScheduledEvents([]);setFeaturedEvents([]);if(supabase.from){supabase.from('players').delete().neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Failed to clear players table:",r.error);});supabase.from('game_results').delete().neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Failed to clear game_results:",r.error);});}setAuditLog([{ts:Date.now(),type:"DANGER",msg:"Full season reset  -  all players, stats, events, and featured events cleared"}]);toast("Full season reset complete","success");}}}>Full Season Reset</Btn>
 
               </div>
 
@@ -9624,7 +9624,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Message</label>
 
-                <Inp value={broadMsg} onChange={setBroadMsg} placeholder="e.g. Clash starts in 10 min — check in now!"/>
+                <Inp value={broadMsg} onChange={setBroadMsg} placeholder="e.g. Clash starts in 10 min  -  check in now!"/>
 
               </div>
 
@@ -9793,7 +9793,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Accent Colour</div><Inp value={spForm.color} onChange={v=>setSpForm(f=>Object.assign({},f,{color:v}))} placeholder="#4ECDC4"/></div>
 
-              <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Assign to Player</div><Sel value={spForm.playerId} onChange={v=>setSpForm(f=>Object.assign({},f,{playerId:v}))}><option value="">— Select Player —</option>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel></div>
+              <div><div style={{fontSize:11,fontWeight:700,color:"#C8D4E0",marginBottom:5,textTransform:"uppercase",letterSpacing:".06em"}}>Assign to Player</div><Sel value={spForm.playerId} onChange={v=>setSpForm(f=>Object.assign({},f,{playerId:v}))}><option value=""> -  Select Player  - </option>{players.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</Sel></div>
 
             </div>
 
@@ -11419,7 +11419,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
-  /* Pricing is under construction — Stripe integration being reworked */
+  /* Pricing is under construction  -  Stripe integration being reworked */
 
   return(
 
@@ -11447,7 +11447,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
         <p style={{fontSize:15,color:"#C8D4E0",lineHeight:1.7,marginBottom:12}}>
 
-          We're reworking our payment system to give you a better experience. The tiers you know and love — Player, Pro, and Host — are staying, but the checkout flow is getting an upgrade.
+          We're reworking our payment system to give you a better experience. The tiers you know and love  -  Player, Pro, and Host  -  are staying, but the checkout flow is getting an upgrade.
 
         </p>
 
@@ -12877,7 +12877,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
       await supabase.auth.updateUser({data:meta});
 
-    }catch(e){console.warn("Supabase update failed",e);toast("Failed to save profile — please try again","error");return;}
+    }catch(e){console.warn("Supabase update failed",e);toast("Failed to save profile  -  please try again","error");return;}
 
     // Also update players table row linked to this auth user
     var playerUpdate={bio:meta.bio||"",region:riotRegion};
@@ -12905,7 +12905,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
     try{await supabase.auth.updateUser({data:{...(user.user_metadata||{}),pending_changes:pending}});}catch{}
 
-    toast("Change request submitted — an admin will review it","success");
+    toast("Change request submitted  -  an admin will review it","success");
 
   }
 
@@ -13150,7 +13150,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                     <span style={{color:"#BECBD9",fontSize:13}}>{label}</span>
 
-                    <span style={{color:val?col:"#9AAABF",fontSize:13,fontWeight:val?600:400,maxWidth:280,textAlign:"right"}}>{val||"—"}</span>
+                    <span style={{color:val?col:"#9AAABF",fontSize:13,fontWeight:val?600:400,maxWidth:280,textAlign:"right"}}>{val||" - "}</span>
 
                   </div>
 
@@ -13270,13 +13270,13 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               <div style={{display:"grid",gap:16}}>
 
-                {/* Username — change once */}
+                {/* Username  -  change once */}
 
                 <div>
 
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
 
-                    <div style={{fontSize:12,color:"#BECBD9"}}>Username {usernameChanged&&<span style={{color:"#9B72CF",fontSize:11}}>(locked — changed once)</span>}</div>
+                    <div style={{fontSize:12,color:"#BECBD9"}}>Username {usernameChanged&&<span style={{color:"#9B72CF",fontSize:11}}>(locked  -  changed once)</span>}</div>
 
                   </div>
 
@@ -13304,7 +13304,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                 </div>
 
-                {/* Main Riot ID — locked after set */}
+                {/* Main Riot ID  -  locked after set */}
 
                 <div>
 
@@ -14356,7 +14356,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
         });
     }
     setShowCreate(false);setTName("");setTDate("");setTEntryFee("");setTRules("");setTInvite(false);
-    toast(tEntryFee?"Tournament created — pending admin approval for entry fee":"Tournament created!","success");
+    toast(tEntryFee?"Tournament created  -  pending admin approval for entry fee":"Tournament created!","success");
   }
 
   function saveBranding(){
@@ -14429,7 +14429,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
               </span>
             )}
           </div>
-          <p style={{fontSize:13,color:"#BECBD9",margin:0}}>Host Dashboard — manage tournaments, players, and branding.</p>
+          <p style={{fontSize:13,color:"#BECBD9",margin:0}}>Host Dashboard  -  manage tournaments, players, and branding.</p>
         </div>
         <div style={{display:"flex",gap:8}}>
           <Btn v="dark" s="sm" onClick={function(){setScreen("featured");}}>{"← "} Featured</Btn>
@@ -14580,7 +14580,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
         </div>
       )}
 
-      {/* Game Flow tab — enter results per round */}
+      {/* Game Flow tab  -  enter results per round */}
       {tab==="game-flow"&&(
         <div>
           {tournaments.filter(function(t){return t.status==="live"||t.status==="closed";}).length===0&&(
@@ -15959,7 +15959,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {/* Lobbies tab */}
       {activeTab==="bracket"&&(
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {/* My Lobby — score self-report section */}
+          {/* My Lobby  -  score self-report section */}
           {phase==="in_progress"&&myPlayer&&myLobby&&(
             <Panel style={{padding:"18px",borderColor:"rgba(155,114,207,.35)",background:"rgba(155,114,207,.05)"}}>
               <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:12}}>{"Game "+currentGameNumber+" \u2014 Report Your Placement"}</div>
@@ -16142,7 +16142,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                 {/* Admin: Lock lobby button */}
                 {isAdmin&&phase==="in_progress"&&!isLocked&&(
                   <div style={{display:"flex",gap:8,alignItems:"center",paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",flexWrap:"wrap"}}>
-                    {hasDuplicate&&<span style={{fontSize:11,color:"#F87171"}}>{"Duplicate placements — resolve before locking"}</span>}
+                    {hasDuplicate&&<span style={{fontSize:11,color:"#F87171"}}>{"Duplicate placements  -  resolve before locking"}</span>}
                     <Btn v="success" s="sm" onClick={function(){lockLobby(lobby.id);}} disabled={!canLock}>{isLocked?"Locked":canLock?"Lock Lobby":"Cannot Lock Yet"}</Btn>
                   </div>
                 )}
@@ -16166,7 +16166,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {/* Standings tab */}
       {activeTab==="standings"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          {/* Podium — only when complete */}
+          {/* Podium  -  only when complete */}
           {phase==="complete"&&standings.length>=3&&(
             <Panel style={{padding:"28px 20px 16px 20px",background:"linear-gradient(160deg,rgba(232,168,56,.09),rgba(155,114,207,.09),rgba(17,24,39,0))",border:"1px solid rgba(232,168,56,.18)"}}>
               <div style={{textAlign:"center",fontWeight:800,fontSize:13,color:"#E8A838",marginBottom:24,letterSpacing:"2px",textTransform:"uppercase"}}>{"Final Results"}</div>
@@ -16210,7 +16210,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           ):(
             <Panel style={{padding:"16px 0 0 0",overflow:"hidden"}}>
               <div style={{padding:"0 18px 12px 18px",fontWeight:700,fontSize:14,color:"#F2EDE4"}}>
-                {"Standings — Game "+(allGameNums.length>0?allGameNums[allGameNums.length-1]:currentGameNumber)+" of "+(tournament.round_count||3)}
+                {"Standings  -  Game "+(allGameNums.length>0?allGameNums[allGameNums.length-1]:currentGameNumber)+" of "+(tournament.round_count||3)}
               </div>
               <div style={{overflowX:"auto"}}>
                 <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,tableLayout:"auto",minWidth:360}}>
@@ -16262,7 +16262,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                                 {plc?(
                                   <span style={{fontSize:12,fontWeight:700,color:plcColor,background:plcColor+"18",borderRadius:4,padding:"2px 6px"}}>{plc}</span>
                                 ):(
-                                  <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}>—</span>
+                                  <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}> - </span>
                                 )}
                               </td>
                             );
@@ -16272,7 +16272,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                               {prizeEntry?(
                                 <span style={{fontSize:12,fontWeight:700,color:"#52C47C",background:"rgba(82,196,124,.12)",borderRadius:4,padding:"2px 8px"}}>{prizeEntry.prize}</span>
                               ):(
-                                <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}>—</span>
+                                <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}> - </span>
                               )}
                             </td>
                           )}
@@ -16284,7 +16284,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
               </div>
               {tournament.cut_line_pts&&phase==="in_progress"&&(
                 <div style={{padding:"10px 18px",fontSize:11,color:"#F87171",borderTop:"1px solid rgba(248,113,113,.15)",background:"rgba(248,113,113,.03)"}}>
-                  {"Cut line: "+tournament.cut_line_pts+" pts — players below this threshold are at risk of elimination"}
+                  {"Cut line: "+tournament.cut_line_pts+" pts  -  players below this threshold are at risk of elimination"}
                 </div>
               )}
             </Panel>
@@ -16649,7 +16649,7 @@ function RulesScreen({setScreen}){
             "Players can self-submit their placement after each game. Admin confirms and locks results.",
             "Once a lobby is locked, results are final. Admins can unlock and re-enter if a mistake was made.",
             "When all lobbies are locked, the next round auto-advances after 15 seconds (admin can cancel).",
-            "Free to compete — no entry fee required for standard clashes."
+            "Free to compete  -  no entry fee required for standard clashes."
           ].map(function(rule,i){return(
             <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 0",borderBottom:i<7?"1px solid rgba(242,237,228,.05)":"none"}}>
               <span style={{color:"#E8A838",fontWeight:700,fontSize:13,flexShrink:0}}>•</span>
@@ -17079,7 +17079,7 @@ function TFTClash(){
 
   function removeToast(id){setToasts(ts=>ts.filter(t=>t.id!==id));}
 
-// Supabase auth listener — hydrates currentUser on load and keeps it in sync
+// Supabase auth listener  -  hydrates currentUser on load and keeps it in sync
 
   useEffect(()=>{
 
@@ -17116,11 +17116,11 @@ function TFTClash(){
       .then(function(res){
         if(res.error){console.error("[TFT] player check failed:",res.error);return;}
         if(res.data){
-          // Player row exists — reload players to pick it up
+          // Player row exists  -  reload players to pick it up
           loadPlayersFromTable();
           return;
         }
-        // No player row — create one
+        // No player row  -  create one
         var username=currentUser.username||currentUser.email?.split('@')[0]||"Player";
         var riotId=currentUser.riotId||"";
         var region=currentUser.region||"EUW";
@@ -17167,7 +17167,7 @@ function TFTClash(){
       });
   },[currentUser]);
 
-  // ── Hash routing — single popstate handler for back/forward ────────────
+  // ── Hash routing  -  single popstate handler for back/forward ────────────
   var navSourceRef=useRef("user");
   useEffect(function(){function onPop(){navSourceRef.current="popstate";var h=window.location.hash.replace("#","");if(h==="standings")h="leaderboard";setScreen(h||"home");}window.addEventListener("popstate",onPop);return function(){window.removeEventListener("popstate",onPop);};},[]);
 
@@ -17276,7 +17276,7 @@ function TFTClash(){
       });
   }
 
-  // ── Supabase shared state — single channel for all keys ──────────────────
+  // ── Supabase shared state  -  single channel for all keys ──────────────────
 
   const rtRef=useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
 
@@ -17347,7 +17347,7 @@ function TFTClash(){
 
         announcementInitRef.current=true;
 
-        // Reconcile registrations from DB — source of truth for who is registered
+        // Reconcile registrations from DB  -  source of truth for who is registered
         setTournamentState(function(ts){
           if(!ts.dbTournamentId)return ts;
           supabase.from('registrations').select('player_id,status')
@@ -17372,7 +17372,7 @@ function TFTClash(){
 
       });
 
-    // realtime — push changes to all browsers instantly
+    // realtime  -  push changes to all browsers instantly
 
     var ch=supabase.channel('shared_state')
 
@@ -17429,21 +17429,21 @@ function TFTClash(){
 
       .subscribe();
 
-    // Realtime on players table — reload when any player row changes
+    // Realtime on players table  -  reload when any player row changes
     var playersCh=supabase.channel('players_realtime')
       .on('postgres_changes',{event:'*',schema:'public',table:'players'},function(){
         loadPlayersFromTable();
       })
       .subscribe();
 
-    // Realtime on game_results — triggers player stats refresh (via DB trigger) and reloads players
+    // Realtime on game_results  -  triggers player stats refresh (via DB trigger) and reloads players
     var gameResultsCh=supabase.channel('game_results_realtime')
       .on('postgres_changes',{event:'*',schema:'public',table:'game_results'},function(){
         loadPlayersFromTable();
       })
       .subscribe();
 
-    // Realtime on registrations — handle INSERT, UPDATE, and DELETE
+    // Realtime on registrations  -  handle INSERT, UPDATE, and DELETE
     var regCh=supabase.channel('registrations_realtime')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'registrations'},function(payload){
         var row=payload.new;
@@ -17564,7 +17564,7 @@ function TFTClash(){
 
   },[hostApps]);
 
-  // Players no longer synced to site_settings — players table is the source of truth
+  // Players no longer synced to site_settings  -  players table is the source of truth
 
   useEffect(function(){
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
@@ -17615,7 +17615,7 @@ function TFTClash(){
 
 
   // Load past clashes from tournament_results + tournaments tables
-  // Use players.length as stable flag — only refetch when count changes, not on every mutation
+  // Use players.length as stable flag  -  only refetch when count changes, not on every mutation
   var playersLoadedCount=players.length;
   useEffect(function(){
     if(!supabase.from||!playersLoadedCount)return;
@@ -17740,7 +17740,7 @@ function TFTClash(){
       var ids=ts.registeredIds||[];
       return {...ts,registeredIds:isRegistered?ids.filter(function(id){return id!==sid;}):[...ids,sid]};
     });
-    // Sync to DB registrations table — auto-create tournament if needed
+    // Sync to DB registrations table  -  auto-create tournament if needed
     if(supabase.from){
       if(isRegistered&&tournamentState.dbTournamentId){
         supabase.from('registrations').delete()
@@ -17911,7 +17911,7 @@ function TFTClash(){
 
       {isOffline&&(
         <div style={{position:"fixed",top:0,left:0,right:0,zIndex:9998,background:"rgba(220,38,38,.9)",color:"#fff",textAlign:"center",padding:"8px 16px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
-          <span>Connection lost — trying to reconnect...</span>
+          <span>Connection lost  -  trying to reconnect...</span>
           <button onClick={function(){window.location.reload();}} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:6,padding:"4px 12px",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}}>Retry</button>
         </div>
       )}
@@ -18043,7 +18043,7 @@ function TFTClash(){
 
 
 
-      {/* Newsletter + Weekly Recap — before footer */}
+      {/* Newsletter + Weekly Recap  -  before footer */}
       {screen==="home"&&(
         <div className="wrap" style={{maxWidth:1200,margin:"0 auto",padding:"24px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
           <WeeklyRecapCard players={players} pastClashes={pastClashes}/>
