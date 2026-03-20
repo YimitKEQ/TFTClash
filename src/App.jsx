@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback, memo, Component } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback, memo, Component } from "react";
 import * as Sentry from '@sentry/react';
 
 import { supabase, CANONICAL_ORIGIN } from './lib/supabase.js';
