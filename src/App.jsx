@@ -633,7 +633,14 @@ const MILESTONES=[
 
 function getAchievements(p){return ACHIEVEMENTS.filter(a=>{try{return a.check(p);}catch{return false;}});}
 
-
+// Module-level helper - usable in any component without prop-drilling
+function createNotification(userId,title,body,icon){
+  if(!userId)return Promise.resolve();
+  return supabase.from('notifications').insert({
+    user_id:userId,title:title,body:body,icon:icon||"bell",
+    read:false,created_at:new Date().toISOString()
+  });
+}
 
 function isHotStreak(p){return(p.currentStreak||0)>=3;}
 
@@ -2806,8 +2813,6 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
 
 // ─── NAVBAR (desktop top + mobile bottom) ────────────────────────────────────
-
-const NOTIF_SEED=[];
 
 function NotificationBell({notifications,onMarkAllRead}){
 
@@ -5347,7 +5352,11 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       var rows=Object.values(playerTotals);
       if(rows.length>0){
         supabase.from('tournament_results').insert(rows).then(function(r){
-          if(r.error){console.error("Failed to save results:",r.error);toast("Failed to save player results","error");}
+          if(r.error){console.error("Failed to save results:",r.error);toast("Failed to save player results","error");return;}
+          // Notify each player that results are finalized
+          allPlayers.forEach(function(p){
+            if(p.authUserId){createNotification(p.authUserId,"Results Finalized",clashName+" results are in! Check the Results screen to see your placement and points.","trophy");}
+          });
         });
       }
     };
@@ -15405,6 +15414,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           toast(result.lobbies.length+" lobbies generated!","success");
           broadcastUpdate("lobbies_generated");
           loadLobbies();
+          // Notify each checked-in player of their lobby assignment
+          supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).eq('status','checked_in').then(function(rRes){
+            if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Lobby Assigned","Your lobby has been assigned for "+(tournament?tournament.name:"the tournament")+". Check your lobby now!","trophy");}});}
+          });
         });
       });
   }
@@ -15453,6 +15466,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     }).then(function(res){
       setActionLoading(false);
       if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
+      if(currentUser){createNotification(currentUser.id,"Registration Confirmed","You are registered for "+(tournament?tournament.name:"the tournament")+". Check in when the check-in window opens.","🎮");}
       toast("Registered!","success");
       broadcastUpdate("registration");
       loadRegistrations();
@@ -15493,6 +15507,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       setTournament(Object.assign({},tournament,{phase:'check_in'}));
       toast("Check-in opened!","success");
       broadcastUpdate("phase_change");
+      // Notify all registered players
+      supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).eq('status','registered').then(function(rRes){
+        if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Check-in is Open","Check in now to secure your spot in "+(tournament?tournament.name:"the tournament")+"!","checkmark");}});}
+      });
     });
   }
 
@@ -15658,6 +15676,11 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       }
       toast("Dispute "+(accept?"accepted":"rejected"),"success");
       loadDisputes();
+      // Notify the disputing player
+      var disputingPlayer=players.find(function(p){return p.id===d.player_id;});
+      if(disputingPlayer&&disputingPlayer.authUserId){
+        createNotification(disputingPlayer.authUserId,"Dispute "+(accept?"Accepted":"Rejected"),"Your placement dispute has been "+(accept?"accepted. Your placement has been updated.":"rejected. The original result stands."),"bell");
+      }
     });
   }
 
@@ -15731,6 +15754,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         setTournament(Object.assign({},tournament,{phase:'complete'}));
         toast("Tournament finalized!","success");
         broadcastUpdate("finalized");
+        // Notify all participants that results are final
+        supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).in('status',['checked_in','registered']).then(function(rRes){
+          if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Results Finalized",(tournament?tournament.name:"The tournament")+" has been finalized. Check the results screen for your placement and points.","trophy");}});}
+        });
       });
   }
 
@@ -17017,7 +17044,7 @@ function TFTClash(){
   const [scrimSessions,setScrimSessions]=useState([]);
 
 
-  const [notifications,setNotifications]=useState(()=>{try{const s=localStorage.getItem("tft-notifications");return s?JSON.parse(s):NOTIF_SEED;}catch{return NOTIF_SEED;}});
+  const [notifications,setNotifications]=useState([]);
 
   const [toasts,setToasts]=useState([]);
 
@@ -17073,7 +17100,33 @@ function TFTClash(){
 
   useEffect(function(){try{localStorage.setItem("tft-clash-reminders",clashRemindersOn?"1":"0");}catch(e){}},[clashRemindersOn]);
 
-  function markAllRead(){setNotifications(ns=>ns.map(n=>({...n,read:true})));}
+  useEffect(function(){
+    if(!currentUser)return;
+    supabase.from('notifications').select('*')
+      .eq('user_id',currentUser.id)
+      .order('created_at',{ascending:false})
+      .limit(20)
+      .then(function(res){
+        if(res.data){
+          setNotifications(res.data.map(function(n){
+            var d=n.created_at?new Date(n.created_at):null;
+            var time=d?d.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"";
+            return Object.assign({},n,{time:time});
+          }));
+        }
+      });
+  },[currentUser]);
+
+  function markAllRead(){
+    if(!currentUser)return;
+    supabase.from('notifications').update({read:true})
+      .eq('user_id',currentUser.id).eq('read',false)
+      .then(function(){
+        setNotifications(function(prev){
+          return prev.map(function(n){return Object.assign({},n,{read:true});});
+        });
+      });
+  }
 
   function toast(msg,type){const id=Date.now()+Math.random();setToasts(ts=>[...ts,{id,msg,type}]);}
 
@@ -17210,7 +17263,7 @@ function TFTClash(){
 
   useEffect(()=>{var t=setTimeout(()=>{try{localStorage.setItem("tft-players",JSON.stringify(players));}catch{}},300);return()=>clearTimeout(t);},[players]);
 
-  useEffect(()=>{var t=setTimeout(()=>{try{localStorage.setItem("tft-notifications",JSON.stringify(notifications));}catch{}},300);return()=>clearTimeout(t);},[notifications]);
+  // notifications are stored in Supabase, not localStorage
 
   useEffect(()=>{try{localStorage.setItem("tft-admin",isAdmin?"1":"0");}catch{}},[isAdmin]);
 
@@ -17767,6 +17820,9 @@ function TFTClash(){
           });
         }
       }
+    }
+    if(!isRegistered&&currentUser){
+      createNotification(currentUser.id,"Registration Confirmed","You are registered for the next clash. Check in when the check-in window opens.","🎮");
     }
     toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
   }
