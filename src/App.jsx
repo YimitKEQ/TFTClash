@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, memo, Component } from "react";
 import * as Sentry from '@sentry/react';
 
-import { supabase } from './lib/supabase.js';
+import { supabase, CANONICAL_ORIGIN } from './lib/supabase.js';
 
 // ─── DATA VERSION — bump to bust stale localStorage ─────────────────────────
 var DATA_VERSION=2;
@@ -12469,7 +12469,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
-              <button onClick={async()=>{await supabase.auth.signInWithOAuth({provider:'discord',options:{redirectTo:window.location.origin}});}}
+              <button onClick={async()=>{await supabase.auth.signInWithOAuth({provider:'discord',options:{redirectTo:CANONICAL_ORIGIN}});}}
 
                 style={{width:"100%",padding:"10px 14px",background:"#5865F2",border:"none",borderRadius:8,cursor:"pointer",
 
@@ -12753,7 +12753,7 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
             </div>
 
-            <button onClick={async()=>{await supabase.auth.signInWithOAuth({provider:'discord',options:{redirectTo:window.location.origin}});}}
+            <button onClick={async()=>{await supabase.auth.signInWithOAuth({provider:'discord',options:{redirectTo:CANONICAL_ORIGIN}});}}
 
               style={{width:"100%",padding:"10px 14px",background:"#5865F2",border:"none",borderRadius:8,cursor:"pointer",
 
@@ -13196,7 +13196,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                     {!discordId?(
 
-                      <button onClick={async()=>{await supabase.auth.linkIdentity({provider:'discord',options:{redirectTo:window.location.origin+"#account"}});}}
+                      <button onClick={async()=>{await supabase.auth.linkIdentity({provider:'discord',options:{redirectTo:CANONICAL_ORIGIN+"#account"}});}}
 
                         style={{padding:"7px 14px",background:"#5865F2",border:"none",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0,transition:"opacity .15s"}}
 

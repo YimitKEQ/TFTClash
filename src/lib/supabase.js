@@ -8,6 +8,15 @@ const mockAuth = {
   signOut: noop, signInWithOAuth: noop, signInWithPassword: noop,
   signUp: noop, linkIdentity: noop, updateUser: noop,
 };
+export const CANONICAL_ORIGIN = 'https://tftclash.com';
 export const supabase = (url && key)
-  ? createClient(url, key, { auth: { flowType: 'pkce' } })
+  ? createClient(url, key, {
+      auth: {
+        flowType: 'pkce',
+        persistSession: true,
+        detectSessionInUrl: true,
+        storageKey: 'tft-clash-auth',
+        storage: globalThis.localStorage,
+      }
+    })
   : { auth: mockAuth };
