@@ -16089,6 +16089,11 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
               )}
             </Panel>
           )}
+          {phase==="in_progress"&&myPlayer&&myLobby&&myLobby.status==="locked"&&myReport&&(
+            <div style={{marginTop:10,padding:"10px 14px",background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:10,fontSize:13,color:myReport.reported_placement===1?"#E8A838":myReport.reported_placement===2?"#C0C0C0":myReport.reported_placement===3?"#CD7F32":"#4ECDC4",fontWeight:600}}>
+              {"Your result: "+myReport.reported_placement+(myReport.reported_placement===1?"st":myReport.reported_placement===2?"nd":myReport.reported_placement===3?"rd":"th")+" place \u2014 "+(PTS[myReport.reported_placement]||0)+" points"}
+            </div>
+          )}
           {phase==="in_progress"&&myPlayer&&myDisputes.length>0&&(
             <div style={{padding:"14px 18px",background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",flexDirection:"column",gap:10}}>
               <div style={{fontWeight:700,fontSize:12,color:"#E8A838",letterSpacing:".05em",textTransform:"uppercase"}}>Your Disputes</div>
