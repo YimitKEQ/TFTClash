@@ -1625,6 +1625,9 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   /* Mobile nav spacing */
   .mobile-bottom-nav{padding-bottom:env(safe-area-inset-bottom,8px);}
 
+  /* Prevent footer overlap with fixed mobile bottom nav */
+  footer{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))!important;}
+
   /* Mobile profile tabs - horizontal scroll */
   .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
 
