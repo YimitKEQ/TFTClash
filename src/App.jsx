@@ -2993,30 +2993,23 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
 
   const DRAWER_ITEMS=[
-
-    {id:"hof",icon:"award-fill",label:"Hall of Fame"},
-
-    {id:"archive",icon:"archive-fill",label:"Archive"},
-
-    {id:"tournaments",icon:"lightning-charge-fill",label:"Tournaments"},
-
-    {id:"featured",icon:"star-fill",label:"Featured Events"},
-
-    {id:"rules",icon:"journal-text",label:"Tournament Rules"},
-
-    {id:"faq",icon:"question-circle-fill",label:"FAQ"},
-
-    {id:"challenges",icon:"star-fill",label:"Challenges & XP"},
-
-    {id:"milestones",icon:"gift-fill",label:"Milestones & Rewards"},
-
-    {id:"pricing",icon:"tag-fill",label:"Pricing & Plans"},
-
-    {id:"account",icon:"person-fill",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up"},
-
-    ...(canScrims?[{id:"scrims",icon:"controller",label:"Scrims"}]:[]),
-
-    ...(isAdmin?[{id:"admin",icon:"hexagon-fill",label:"Admin Panel"}]:[]),
+    {id:"home",icon:"house-fill",label:"Home",section:"main"},
+    {id:"roster",icon:"people-fill",label:"Roster",section:"main"},
+    {id:"bracket",icon:"diagram-3-fill",label:"Bracket",section:"main"},
+    {id:"leaderboard",icon:"bar-chart-line-fill",label:"Leaderboard",section:"main"},
+    {id:"results",icon:"clipboard-check-fill",label:"Results",section:"main"},
+    {id:"hof",icon:"award-fill",label:"Hall of Fame",section:"explore"},
+    ...(canScrims?[{id:"scrims",icon:"controller",label:"Scrims",section:"main"}]:[]),
+    ...(isAdmin?[{id:"admin",icon:"hexagon-fill",label:"Admin Panel",section:"main"}]:[]),
+    {id:"archive",icon:"archive-fill",label:"Archive",section:"explore"},
+    {id:"tournaments",icon:"lightning-charge-fill",label:"Tournaments",section:"explore"},
+    {id:"featured",icon:"star-fill",label:"Featured Events",section:"explore"},
+    {id:"challenges",icon:"star-fill",label:"Challenges & XP",section:"community"},
+    {id:"milestones",icon:"gift-fill",label:"Milestones & Rewards",section:"community"},
+    {id:"rules",icon:"journal-text",label:"Tournament Rules",section:"info"},
+    {id:"faq",icon:"question-circle-fill",label:"FAQ",section:"info"},
+    {id:"pricing",icon:"tag-fill",label:"Pricing & Plans",section:"info"},
+    {id:"account",icon:"person-fill",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up",section:"account"},
 
   ];
 
