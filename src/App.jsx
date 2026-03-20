@@ -2974,8 +2974,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"results",label:"Results"},
 
-    {id:"featured",label:"Featured"},
-
     {id:"hof",label:"Hall of Fame"},
 
     ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
@@ -2988,7 +2986,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     {id:"tournaments",label:"Tournaments"},
 
-    {id:"featured",label:"Featured Events"},
+    {id:"featured",label:"Featured"},
 
     {id:"archive",label:"Archive"},
 
