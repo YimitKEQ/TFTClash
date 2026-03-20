@@ -15279,6 +15279,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   var [disputeForm,setDisputeForm]=useState({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});
   var [disputes,setDisputes]=useState([]);
   var [gameResults,setGameResults]=useState([]);
+  var channelRef=useRef(null);
 
   function loadTournament(){
     return supabase.from('tournaments').select('*').eq('id',tournamentId).single().then(function(res){
@@ -15330,7 +15331,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   }
 
   useEffect(function(){
-    Promise.all([loadTournament(),loadRegistrations(),loadLobbies(),loadDisputes(),loadResults()]).then(function(){setLoading(false);});
+    Promise.all([loadTournament(),loadRegistrations(),loadLobbies(),loadDisputes(),loadResults()]).then(function(){setLoading(false);}).catch(function(e){console.error("[Flash] Initial load failed:",e);setLoading(false);});
   },[tournamentId]);
 
   useEffect(function(){
@@ -15340,6 +15341,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   useEffect(function(){
     if(!tournamentId)return;
     var channel=supabase.channel("tournament-"+tournamentId);
+    channelRef.current=channel;
     channel.on("broadcast",{event:"update"},function(payload){
       var type=payload.payload?payload.payload.type:"";
       if(type==="phase_change")loadTournament();
@@ -15351,13 +15353,13 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       if(type==="finalized"){loadTournament();loadResults();}
     });
     channel.subscribe();
-    return function(){supabase.removeChannel(channel);};
+    return function(){supabase.removeChannel(channel);channelRef.current=null;};
   },[tournamentId]);
 
   function broadcastUpdate(type){
-    supabase.channel("tournament-"+tournamentId).send({
-      type:"broadcast",event:"update",payload:{type:type}
-    });
+    if(channelRef.current){
+      channelRef.current.send({type:"broadcast",event:"update",payload:{type:type}});
+    }
   }
 
   // Rank color map
@@ -15516,7 +15518,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           // 3. Promote waitlisted players if spots opened
           var openSpots=maxP-checkedInCount;
           var waitlisted=registrations.filter(function(r){return r.status==='waitlisted';}).sort(function(a,b){return(a.waitlist_position||999)-(b.waitlist_position||999);});
-          var toPromote=waitlisted.slice(0,Math.max(0,openSpots-checkedInCount));
+          var toPromote=waitlisted.slice(0,Math.max(0,openSpots));
           if(toPromote.length>0){
             var promoteIds=toPromote.map(function(r){return r.id;});
             supabase.from('registrations').update({status:'checked_in',checked_in_at:new Date().toISOString()}).in('id',promoteIds).then(function(){loadRegistrations();});
@@ -15635,6 +15637,9 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         loadReports();
       });
   }
+
+  // URL safety check for screenshot links
+  function isSafeUrl(url){return url&&(url.indexOf("https://")===0||url.indexOf("http://")===0);}
 
   // Admin: Resolve dispute
   function resolveDispute(disputeId,accept){
@@ -15822,7 +15827,8 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   }
 
   // Multi-game admin state
-  var allLobbiesLocked=lobbies.length>0&&lobbies.every(function(l){return l.status==='locked';});
+  var currentGameLobbies=lobbies.filter(function(l){return l.game_number===currentGameNumber;});
+  var allLobbiesLocked=currentGameLobbies.length>0&&currentGameLobbies.every(function(l){return l.status==='locked';});
   var isLastGame=currentGameNumber>=(tournament&&tournament.round_count?tournament.round_count:3);
 
   // All unique game numbers played
@@ -16322,9 +16328,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                         {"Claimed: "+(d.claimed_placement||"?")+(d.claimed_placement===1?"st":d.claimed_placement===2?"nd":d.claimed_placement===3?"rd":"th")+" · Reported: "+(d.reported_placement||"?")+(d.reported_placement===1?"st":d.reported_placement===2?"nd":d.reported_placement===3?"rd":"th")}
                       </div>
                       {d.reason&&<div style={{fontSize:12,color:"#9AAABF",fontStyle:"italic",marginBottom:4}}>{d.reason}</div>}
-                      {d.screenshot_url&&(
-                        <a href={d.screenshot_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#4ECDC4"}}>{"View screenshot"}</a>
-                      )}
+                      {isSafeUrl(d.screenshot_url)&&<a href={d.screenshot_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#4ECDC4"}}>{"View screenshot"}</a>}
                     </div>
                     {isOpen&&(
                       <div style={{display:"flex",gap:6,flexShrink:0}}>
