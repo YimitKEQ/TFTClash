@@ -3537,6 +3537,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       });
   },[]);
 
+  const [tick,setTick]=useState(0);
+  useEffect(function(){
+    var t=setInterval(function(){setTick(function(n){return n+1;});},60000);
+    return function(){clearInterval(t);};
+  },[]);
+
   const checkedN=useMemo(function(){return players.filter(p=>p.checkedIn).length;},[players]);
 
   const top5=useMemo(function(){return[...players].sort((a,b)=>b.pts-a.pts).slice(0,5);},[players]);
@@ -3750,7 +3756,20 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   ].filter(Boolean):[];
   const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
 
-
+  var countdownText="";
+  var countdownColor="#E8A838";
+  if(upcomingTournament){
+    var cdDiff=new Date(upcomingTournament.date).getTime()-Date.now();
+    if(cdDiff<=0){
+      countdownText="LIVE NOW";
+      countdownColor="#52C47C";
+    } else {
+      var cdD=Math.floor(cdDiff/86400000);
+      var cdH=Math.floor((cdDiff%86400000)/3600000);
+      var cdM=Math.floor((cdDiff%3600000)/60000);
+      countdownText="Starts in "+(cdD>0?cdD+"d ":"")+cdH+"h "+cdM+"m";
+    }
+  }
 
   return(
 
@@ -3791,7 +3810,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             <span style={{fontSize:11,color:"#E8A838"}}>{new Date(upcomingTournament.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
           </div>
           <div style={{fontSize:18,fontWeight:700,color:"#F2EDE4",marginBottom:4}}>{upcomingTournament.name}</div>
-          <div style={{fontSize:13,color:"#BECBD9",marginBottom:10}}>{(upcomingTournament.round_count||3)+" games \u00b7 "+(upcomingTournament.max_players||128)+" max players"}</div>
+          <div style={{fontSize:13,color:"#BECBD9",marginBottom:6}}>{(upcomingTournament.round_count||3)+" games \u00b7 "+(upcomingTournament.max_players||128)+" max players"}</div>
+          {countdownText&&<div style={{fontSize:12,fontWeight:700,color:countdownColor,marginBottom:10}}>{countdownText}</div>}
           <Btn v="primary" s="sm">{"Register Now \u2192"}</Btn>
         </div>
       )}
