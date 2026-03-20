@@ -8676,7 +8676,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
           <Panel style={{padding:"16px",marginBottom:16}}>
 
-            <div style={{fontSize:11,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:12}}>Quick Actions</div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>{React.createElement("i",{className:"ti ti-bolt",style:{fontSize:14,color:"#9B72CF"}})}<span style={{fontSize:11,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Quick Actions</span></div>
 
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
 
@@ -8901,45 +8901,52 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
         <div>
 
-          <Panel style={{overflow:"hidden",marginBottom:14}}>
+          {/* Warning banner */}
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.18)",borderRadius:10,marginBottom:16}}>
+            {React.createElement("i",{className:"ti ti-alert-triangle",style:{fontSize:18,color:"#F87171",flexShrink:0}})}
+            <div>
+              <div style={{fontSize:13,fontWeight:700,color:"#F87171"}}>Danger Zone</div>
+              <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>Score overrides are logged as DANGER in the audit trail. Leave blank to keep current value. Enter 0 to reset.</div>
+            </div>
+          </div>
 
-            <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <Panel style={{overflow:"hidden",marginBottom:14,border:"1px solid rgba(248,113,113,.12)"}}>
 
-              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Season Points Override</div>
-
-              <div style={{fontSize:11,color:"#BECBD9"}}>Leave blank to keep current</div>
-
+            <div style={{padding:"12px 16px",background:"rgba(248,113,113,.04)",borderBottom:"1px solid rgba(248,113,113,.1)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                {React.createElement("i",{className:"ti ti-pencil",style:{fontSize:15,color:"#F87171"}})}
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Season Points Override</div>
+              </div>
+              <div className="mono" style={{fontSize:11,color:"#BECBD9"}}>{Object.keys(scoreEdit).filter(function(k){return scoreEdit[k]!==undefined&&scoreEdit[k]!=="";}).length} pending changes</div>
             </div>
 
-            {players.map(p=>(
+            {/* Column headers */}
+            <div style={{display:"flex",alignItems:"center",gap:12,padding:"8px 16px",borderBottom:"1px solid rgba(242,237,228,.06)",background:"rgba(0,0,0,.15)"}}>
+              <span style={{flex:1,fontSize:10,fontWeight:700,color:"#5A6577",textTransform:"uppercase",letterSpacing:".08em"}}>Player</span>
+              <span style={{width:70,fontSize:10,fontWeight:700,color:"#5A6577",textTransform:"uppercase",letterSpacing:".08em",textAlign:"right"}}>Current</span>
+              <span style={{width:110,fontSize:10,fontWeight:700,color:"#5A6577",textTransform:"uppercase",letterSpacing:".08em",textAlign:"center"}}>New Value</span>
+            </div>
 
-              <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"11px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
-
-                <span style={{fontWeight:600,fontSize:14,color:"#F2EDE4",flex:1}}>{p.name}</span>
-
-                <span className="mono" style={{fontSize:13,color:"#BECBD9",minWidth:64}}>Now: <span style={{color:"#E8A838",fontWeight:700}}>{p.pts}</span></span>
-
-                <div style={{width:110,flexShrink:0}}>
-
-                  <Inp value={scoreEdit[p.id]!==undefined?scoreEdit[p.id]:""} onChange={v=>setScoreEdit(e=>({...e,[p.id]:v}))} placeholder={String(p.pts)} type="number"/>
-
+            {players.map(function(p,idx){
+              var hasChange=scoreEdit[p.id]!==undefined&&scoreEdit[p.id]!=="";
+              return(
+              <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",background:hasChange?"rgba(248,113,113,.04)":"transparent",transition:"background .15s"}}>
+                <div style={{flex:1,minWidth:0,display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontWeight:600,fontSize:14,color:hasChange?"#F2EDE4":"#C8BFB0"}}>{p.name}</span>
+                  {p.banned&&React.createElement(Tag,{color:"#F87171",size:"sm"},"BANNED")}
                 </div>
-
+                <span className="mono" style={{width:70,fontSize:14,color:"#E8A838",fontWeight:700,textAlign:"right"}}>{p.pts}</span>
+                <div style={{width:110,flexShrink:0}}>
+                  <Inp value={scoreEdit[p.id]!==undefined?scoreEdit[p.id]:""} onChange={function(v){setScoreEdit(function(e){return Object.assign({},e,{[p.id]:v});});}} placeholder={String(p.pts)} type="number"/>
+                </div>
               </div>
-
-            ))}
+            );})}
 
           </Panel>
 
-          <div style={{display:"flex",gap:10}}>
-
-            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" → "+nv);var parsed=parseInt(nv);return{...p,pts:isNaN(parsed)?p.pts:parsed};}));setScoreEdit({});
-// Sync score overrides to DB
-if(supabase.from){ps.forEach(function(p){var nv=scoreEdit[p.id];if(nv===undefined)return;var parsed=parseInt(nv);if(isNaN(parsed))return;supabase.from('players').update({season_pts:parsed}).eq('id',p.id).then(function(r){if(r.error)console.error("[TFT] Score sync failed for",p.name,r.error);});});}
-toast("Score changes applied","success");}}>Apply Changes</Btn>
-
-            <Btn v="dark" onClick={()=>setScoreEdit({})}>Clear</Btn>
-
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            <Btn v="danger" onClick={function(){var changeCount=Object.keys(scoreEdit).filter(function(k){return scoreEdit[k]!==undefined&&scoreEdit[k]!=="";}).length;if(changeCount===0){toast("No changes to apply","error");return;}if(!window.confirm("Apply "+changeCount+" score override"+(changeCount>1?"s":"")+"? This is logged as DANGER."))return;setPlayers(function(ps){return ps.map(function(p){var nv=scoreEdit[p.id];if(nv===undefined||nv==="")return p;addAudit("DANGER","Score override: "+p.name+" "+p.pts+" → "+nv);var parsed=parseInt(nv);return Object.assign({},p,{pts:isNaN(parsed)?p.pts:parsed});});});if(supabase.from){players.forEach(function(p){var nv=scoreEdit[p.id];if(nv===undefined||nv==="")return;var parsed=parseInt(nv);if(isNaN(parsed))return;supabase.from('players').update({season_pts:parsed}).eq('id',p.id).then(function(r){if(r.error)console.error("[TFT] Score sync failed for",p.name,r.error);});});}setScoreEdit({});toast("Score changes applied & synced to DB","success");}}>{React.createElement("i",{className:"ti ti-check",style:{marginRight:4}})}Apply Changes</Btn>
+            <Btn v="dark" onClick={function(){setScoreEdit({});}}>Clear All</Btn>
           </div>
 
         </div>
@@ -9202,13 +9209,13 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
             {(!quickClashes||quickClashes.length===0)&&(
 
-              <Panel style={{padding:"36px",textAlign:"center"}}>
+              <Panel style={{padding:"44px",textAlign:"center"}}>
 
-                <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
+                <div style={{width:52,height:52,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px"}}>{React.createElement("i",{className:"ti ti-bolt",style:{fontSize:24,color:"#9B72CF"}})}</div>
 
-                <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes active</div>
+                <div style={{color:"#9AAABF",fontSize:13,fontWeight:600}}>No quick clashes active</div>
 
-                <div style={{color:"#7A8BA0",fontSize:11,marginTop:4}}>Create one on the left</div>
+                <div style={{color:"#5A6577",fontSize:11,marginTop:4}}>Create one using the form</div>
 
               </Panel>
 
@@ -9597,7 +9604,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Active Announcements</div>
 
-            {announcements.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#9AAABF",fontSize:13}}>No active announcements</div>}
+            {announcements.length===0&&<div style={{textAlign:"center",padding:"36px 0"}}>{React.createElement("i",{className:"ti ti-speakerphone",style:{fontSize:32,color:"#5A6577",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:13}}>No active announcements</div><div style={{color:"#5A6577",fontSize:11,marginTop:4}}>Send one using the form</div></div>}
 
             {announcements.map(a=>(
 
@@ -9611,7 +9618,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
                 </div>
 
-                <button onClick={()=>{setAnnouncements(as=>as.filter(x=>x.id!==a.id));setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(''),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});}} style={{background:"none",border:"none",color:"#9AAABF",cursor:"pointer",fontSize:22,lineHeight:1,flexShrink:0,padding:"0 4px"}}>×</button>
+                <Btn v="danger" s="sm" onClick={function(){setAnnouncements(function(as){return as.filter(function(x){return x.id!==a.id;});});setAnnouncement("");if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(''),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});}}>{React.createElement("i",{className:"ti ti-x",style:{fontSize:12}})}</Btn>
 
               </div>
 
@@ -9641,11 +9648,11 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
             </div>
 
-            <button onClick={()=>setScreen("featured")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,marginRight:4}})}Featured Events</button>
+            <Btn v="primary" s="sm" onClick={function(){setScreen("featured");}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,marginRight:4}})}Featured Events</Btn>
 
           </div>
 
-          {hostApps.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No host applications yet.</div></Panel>}
+          {hostApps.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}>{React.createElement("i",{className:"ti ti-device-gamepad-2",style:{fontSize:36,color:"#5A6577",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:14}}>No host applications yet</div><div style={{color:"#5A6577",fontSize:12,marginTop:4}}>Applications from the Pricing page will appear here</div></Panel>}
 
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
@@ -9742,7 +9749,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
           <Panel style={{padding:"20px",border:"1px solid rgba(155,114,207,.2)"}}>
 
-            <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:14}}>Add New Sponsorship</div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>{React.createElement("i",{className:"ti ti-plus",style:{fontSize:15,color:"#C4B5FD"}})}<div style={{fontWeight:700,fontSize:14,color:"#C4B5FD"}}>Add New Sponsorship</div></div>
 
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
 
@@ -9774,7 +9781,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
           <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
 
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Audit Log</div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>{React.createElement("i",{className:"ti ti-clipboard-data",style:{fontSize:15,color:"#9B72CF"}})}<div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Audit Log</div></div>
 
             <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
 
@@ -9844,7 +9851,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
           <Panel style={{padding:"20px"}}>
 
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:16}}>Role Permissions</div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>{React.createElement("i",{className:"ti ti-shield-lock",style:{fontSize:16,color:"#E8A838"}})}<div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Role Permissions</div></div>
 
             {[
 
@@ -9878,7 +9885,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
 
           <Panel style={{padding:"20px"}}>
 
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:16}}>Admin Quickstart</div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>{React.createElement("i",{className:"ti ti-rocket",style:{fontSize:16,color:"#9B72CF"}})}<div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Admin Quickstart</div></div>
 
             {[
 
@@ -9919,65 +9926,50 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
         var feAddName=null;var feAddHost=null;var feAddDate=null;var feAddStatus=null;var feAddFormat=null;var feAddSize=null;
         return(
         <div>
-          <Panel style={{padding:"20px",marginBottom:16}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
-              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Featured Events ({evts.length})</div>
+          <Panel style={{overflow:"hidden",marginBottom:16}}>
+            <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                {React.createElement("i",{className:"ti ti-star",style:{fontSize:15,color:"#E8A838"}})}
+                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Featured Events</div>
+              </div>
+              <Tag color="#E8A838" size="sm">{evts.length} event{evts.length!==1?"s":""}</Tag>
             </div>
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",flexDirection:"column"}}>
               {evts.map(function(ev,idx){return(
-                <div key={ev.id||idx} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8}}>
-                  <div style={{fontSize:18,flexShrink:0}}>{ev.logo||React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")})}</div>
+                <div key={ev.id||idx} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
+                  <div style={{width:36,height:36,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:16,color:"#E8A838"}})}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
-                    <div style={{fontSize:11,color:"#BECBD9"}}>{ev.host} · {ev.date} · <span style={{color:ev.status==="live"?"#52C47C":ev.status==="upcoming"?"#E8A838":"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{ev.status}</span></div>
+                    <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{ev.host} · {ev.date} · <Tag color={ev.status==="live"?"#52C47C":ev.status==="upcoming"?"#E8A838":"#9AAABF"} size="sm">{ev.status}</Tag></div>
                   </div>
-                  <button onClick={function(){if(setFeaturedEvents)setFeaturedEvents(evts.filter(function(e){return e.id!==ev.id;}));toast("Event removed","success");}} style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)",borderRadius:6,padding:"5px 10px",fontSize:11,fontWeight:700,color:"#F87171",cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Remove</button>
+                  <Btn v="danger" s="sm" onClick={function(){if(setFeaturedEvents)setFeaturedEvents(evts.filter(function(e){return e.id!==ev.id;}));toast("Event removed","success");}}>Remove</Btn>
                 </div>
               );})}
-              {evts.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No featured events. Add one below.</div>}
+              {evts.length===0&&<div style={{textAlign:"center",padding:"40px 0"}}>{React.createElement("i",{className:"ti ti-star",style:{fontSize:36,color:"#5A6577",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:13}}>No featured events yet</div><div style={{color:"#5A6577",fontSize:12,marginTop:4}}>Add community tournaments and partner events below</div></div>}
             </div>
           </Panel>
 
-          <Panel style={{padding:"20px"}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Add Featured Event</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
-              <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Event Name</div>
-                <input ref={function(el){feAddName=el;}} placeholder="Tournament name..." style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-              </div>
-              <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Host</div>
-                <input ref={function(el){feAddHost=el;}} placeholder="Host org..." style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-              </div>
-              <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Date</div>
-                <input ref={function(el){feAddDate=el;}} placeholder="Mar 22 2026" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-              </div>
-              <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Status</div>
-                <select ref={function(el){feAddStatus=el;}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box"}}>
-                  <option value="upcoming">Upcoming</option>
-                  <option value="live">Live</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-              <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Format</div>
-                <input ref={function(el){feAddFormat=el;}} defaultValue="Swiss" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-              </div>
-              <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Size</div>
-                <input ref={function(el){feAddSize=el;}} type="number" defaultValue="16" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box"}}/>
-              </div>
+          <Panel style={{padding:"20px",border:"1px solid rgba(232,168,56,.12)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+              {React.createElement("i",{className:"ti ti-plus",style:{fontSize:15,color:"#E8A838"}})}
+              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Add Featured Event</div>
             </div>
-            <Btn v="primary" s="sm" onClick={function(){
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Event Name</label><input ref={function(el){feAddName=el;}} placeholder="Tournament name..." style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Host</label><input ref={function(el){feAddHost=el;}} placeholder="Host org..." style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date</label><input ref={function(el){feAddDate=el;}} placeholder="Mar 22 2026" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Status</label><select ref={function(el){feAddStatus=el;}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option></select></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><input ref={function(el){feAddFormat=el;}} defaultValue="Swiss" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/></div>
+              <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Size</label><input ref={function(el){feAddSize=el;}} type="number" defaultValue="16" style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 12px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/></div>
+            </div>
+            <Btn v="primary" onClick={function(){
               var nm=feAddName&&feAddName.value;var ho=feAddHost&&feAddHost.value;var dt=feAddDate&&feAddDate.value;
               if(!nm||!ho){toast("Name and host required","error");return;}
               var newEv={id:"fe-"+Date.now(),name:nm,host:ho,date:dt||"TBD",status:(feAddStatus&&feAddStatus.value)||"upcoming",format:(feAddFormat&&feAddFormat.value)||"Swiss",size:parseInt((feAddSize&&feAddSize.value)||"16")||16,registered:0,logo:"trophy-fill",tags:[],description:""};
               if(setFeaturedEvents)setFeaturedEvents(evts.concat([newEv]));
               if(feAddName)feAddName.value="";if(feAddHost)feAddHost.value="";if(feAddDate)feAddDate.value="";
               toast("Event added","success");
-            }}>Add Event</Btn>
+            }}>{React.createElement("i",{className:"ti ti-plus",style:{marginRight:4}})}Add Event</Btn>
           </Panel>
         </div>
         );
@@ -9986,54 +9978,49 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
       {tab==="flash"&&(
         <div>
           <Panel style={{padding:"20px",marginBottom:16}}>
-            <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:16}}>Create Flash Tournament</div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
+              {React.createElement("i",{className:"ti ti-tournament",style:{fontSize:18,color:"#9B72CF"}})}
+              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4"}}>Create Flash Tournament</div>
+            </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
               <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Tournament Name</div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Tournament Name</label>
                 <Inp value={flashForm.name} onChange={function(v){setFlashForm(Object.assign({},flashForm,{name:v}));}} placeholder="Flash Tournament #1"/>
               </div>
               <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Date & Time</div>
-                <input type="datetime-local" value={flashForm.date} onChange={function(e){setFlashForm(Object.assign({},flashForm,{date:e.target.value}));}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date & Time</label>
+                <Inp value={flashForm.date} onChange={function(v){setFlashForm(Object.assign({},flashForm,{date:v}));}} placeholder="2026-04-01T20:00" type="datetime-local"/>
               </div>
               <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Max Players</div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Max Players</label>
                 <Inp type="number" value={flashForm.maxPlayers} onChange={function(v){setFlashForm(Object.assign({},flashForm,{maxPlayers:v}));}} placeholder="128"/>
               </div>
               <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Game Count</div>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Game Count</label>
                 <Inp type="number" value={flashForm.gameCount} onChange={function(v){setFlashForm(Object.assign({},flashForm,{gameCount:v}));}} placeholder="3"/>
               </div>
               <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Format Preset</div>
-                <select value={flashForm.formatPreset} onChange={function(e){setFlashForm(Object.assign({},flashForm,{formatPreset:e.target.value}));}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}>
-                  <option value="casual">Casual</option>
-                  <option value="standard">Standard</option>
-                  <option value="competitive">Competitive (128p)</option>
-                </select>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format Preset</label>
+                <Sel value={flashForm.formatPreset} onChange={function(v){setFlashForm(Object.assign({},flashForm,{formatPreset:v}));}}><option value="casual">Casual</option><option value="standard">Standard</option><option value="competitive">Competitive (128p)</option></Sel>
               </div>
               <div>
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Seeding Method</div>
-                <select value={flashForm.seedingMethod} onChange={function(e){setFlashForm(Object.assign({},flashForm,{seedingMethod:e.target.value}));}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}>
-                  <option value="snake">Snake Seeding</option>
-                  <option value="random">Random</option>
-                  <option value="rank-based">Rank-Based</option>
-                </select>
+                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Seeding Method</label>
+                <Sel value={flashForm.seedingMethod} onChange={function(v){setFlashForm(Object.assign({},flashForm,{seedingMethod:v}));}}><option value="snake">Snake Seeding</option><option value="random">Random</option><option value="rank-based">Rank-Based</option></Sel>
               </div>
             </div>
 
             <div style={{marginBottom:14}}>
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                <div style={{fontSize:11,color:"#BECBD9",fontWeight:600}}>Prize Pool</div>
-                <button onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.concat([{placement:String(flashForm.prizeRows.length+1),prize:""}])}));}} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}>+ Add Prize</button>
+                <label style={{fontSize:11,color:"#C8D4E0",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Prize Pool</label>
+                <Btn v="dark" s="sm" onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.concat([{placement:String(flashForm.prizeRows.length+1),prize:""}])}));}}>+ Add Prize</Btn>
               </div>
               {flashForm.prizeRows.map(function(row,idx){
                 return(
                   <div key={idx} style={{display:"flex",gap:8,marginBottom:6,alignItems:"center"}}>
                     <div style={{fontSize:12,color:"#E8A838",fontWeight:700,width:30,textAlign:"center"}}>#{row.placement}</div>
-                    <input value={row.prize} onChange={function(e){var updated=flashForm.prizeRows.map(function(r,i){return i===idx?Object.assign({},r,{prize:e.target.value}):r;});setFlashForm(Object.assign({},flashForm,{prizeRows:updated}));}} placeholder="e.g. $50, RP, Skin code..." style={{flex:1,background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"7px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/>
+                    <div style={{flex:1}}><Inp value={row.prize} onChange={function(v){var updated=flashForm.prizeRows.map(function(r,i){return i===idx?Object.assign({},r,{prize:v}):r;});setFlashForm(Object.assign({},flashForm,{prizeRows:updated}));}} placeholder="e.g. $50, RP, Skin code..."/></div>
                     {flashForm.prizeRows.length>1&&(
-                      <button onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.filter(function(_,i){return i!==idx;})}));}} style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)",borderRadius:6,padding:"4px 8px",fontSize:11,color:"#F87171",cursor:"pointer",fontFamily:"inherit"}}>X</button>
+                      <Btn v="danger" s="sm" onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.filter(function(_,i){return i!==idx;})}));}}>X</Btn>
                     )}
                   </div>
                 );
@@ -10089,7 +10076,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
                       setScreen("flash-"+ev.id);
                     }
                   }}>{ev.phase==="draft"?"Open Registration":"View"}</Btn>
-                  <button onClick={function(){
+                  <Btn v="danger" s="sm" onClick={function(){
                     if(!confirm("Delete tournament '"+ev.name+"'?"))return;
                     supabase.from('tournaments').delete().eq('id',ev.id).then(function(res){
                       if(res.error){toast("Failed: "+res.error.message,"error");return;}
@@ -10097,7 +10084,7 @@ toast("Score changes applied","success");}}>Apply Changes</Btn>
                       toast("Tournament deleted","success");
                       addAudit("DANGER","Flash tournament deleted: "+ev.name);
                     });
-                  }} style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)",borderRadius:6,padding:"5px 10px",fontSize:11,fontWeight:700,color:"#F87171",cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Delete</button>
+                  }}>Delete</Btn>
                 </div>
               );
             })}
