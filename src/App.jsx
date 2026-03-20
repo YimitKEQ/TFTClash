@@ -9057,11 +9057,11 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             <div style={{fontSize:12,color:"#9AAABF",marginBottom:16}}>Choose how players are distributed across lobbies. Applies when tournament starts or lobbies are reseeded.</div>
 
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
 
-              {[["random","Random","Fully shuffled, no weighting  -  great for casual events"],["rank-based","By Rank","Top players spread evenly across lobbies for fair games"],["snake","Snake Draft","Alternating pick order  -  balances skill across lobbies"]].map(function(item){
+              {[["random","Random","Fully shuffled, no weighting  -  great for casual events","arrows-shuffle"],["rank-based","By Rank","Top players spread evenly across lobbies for fair games","sort-descending"],["snake","Snake Draft","Alternating pick order  -  balances skill across lobbies","route"],["swiss","Swiss","Players matched by similar score each round  -  competitive fairness","tournament"]].map(function(item){
 
-                var v=item[0];var l=item[1];var d=item[2];
+                var v=item[0];var l=item[1];var d=item[2];var icon=item[3];
 
                 var active=seedAlgo===v;
 
@@ -9079,9 +9079,9 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
                     transition:"all .15s"}}>
 
-                    <span style={{fontSize:22}}>{l.split(" ")[0]}</span>
+                    <span style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-"+icon,style:{color:active?"#C4B5FD":"#7A8BA0"}})}</span>
 
-                    <span style={{fontSize:13,fontWeight:700,color:active?"#C4B5FD":"#C8BFB0"}}>{l.split(" ").slice(1).join(" ")}</span>
+                    <span style={{fontSize:13,fontWeight:700,color:active?"#C4B5FD":"#C8BFB0"}}>{l}</span>
 
                     <span style={{fontSize:11,color:active?"#A78BFA":"#7A8BA0",lineHeight:1.4}}>{d}</span>
 
