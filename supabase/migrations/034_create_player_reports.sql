@@ -2,11 +2,11 @@
 -- players.id and lobbies.id are BIGINT, tournaments.id is BIGINT
 
 CREATE TABLE IF NOT EXISTS player_reports (
-  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  tournament_id BIGINT REFERENCES tournaments(id) ON DELETE CASCADE,
-  lobby_id BIGINT REFERENCES lobbies(id) ON DELETE CASCADE,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tournament_id UUID REFERENCES tournaments(id) ON DELETE CASCADE,
+  lobby_id UUID REFERENCES lobbies(id) ON DELETE CASCADE,
   game_number INT NOT NULL,
-  player_id BIGINT REFERENCES players(id) ON DELETE CASCADE,
+  player_id UUID REFERENCES players(id) ON DELETE CASCADE,
   reported_placement INT CHECK (reported_placement BETWEEN 1 AND 8),
   reported_at TIMESTAMPTZ DEFAULT now(),
   UNIQUE(lobby_id, game_number, player_id)

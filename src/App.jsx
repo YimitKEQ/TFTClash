@@ -10104,7 +10104,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                 max_players:parseInt(flashForm.maxPlayers)||128,
                 round_count:parseInt(flashForm.gameCount)||3,
                 seeding_method:flashForm.seedingMethod||'snake',
-                prize_pool:prizePool.length>0?prizePool:null,
+                prize_pool_json:prizePool.length>0?prizePool:null,
                 lobby_host_method:'random'
               }).select().single().then(function(res){
                 if(res.error){toast("Failed to create: "+res.error.message,"error");return;}
@@ -15208,7 +15208,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
             var maxP=t.max_players||128;
             var pct=Math.min(100,Math.round((regCount/maxP)*100));
             var dateStr=t.date?new Date(t.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
-            var prizes=Array.isArray(t.prize_pool)?t.prize_pool:[];
+            var prizes=Array.isArray(t.prize_pool_json)?t.prize_pool_json:[];
             // Status badge styles
             var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(82,196,124,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(155,114,207,.15)",complete:"rgba(78,205,196,.15)",completed:"rgba(78,205,196,.15)"};
             var phaseBadgeColor={draft:"#9AAABF",registration:"#52C47C",check_in:"#E8A838",in_progress:"#9B72CF",complete:"#4ECDC4",completed:"#4ECDC4"};
@@ -15428,7 +15428,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   var checkedInCount=registrations.filter(function(r){return r.status==='checked_in';}).length;
   var maxP=tournament?tournament.max_players||128:128;
   var phase=tournament?tournament.phase:"draft";
-  var prizes=tournament&&Array.isArray(tournament.prize_pool)?tournament.prize_pool:[];
+  var prizes=tournament&&Array.isArray(tournament.prize_pool_json)?tournament.prize_pool_json:[];
 
   // Registration handler
   function handleRegister(){
