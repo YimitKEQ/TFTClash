@@ -1080,47 +1080,13 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 .wrap{max-width:1400px;margin:0 auto;padding:0 16px;}
 
-.page{padding:24px 16px 100px;animation:screen-enter .3s ease-out both;}
+.page{padding:24px 16px 40px;animation:screen-enter .3s ease-out both;}
 
 
 
 /* ── mobile bottom nav ───────────────────────────────────────── */
 
-.bottom-nav{
-
-  position:fixed;bottom:0;left:0;right:0;z-index:200;
-
-  background:rgba(7,7,14,.98);
-
-  border-top:1px solid rgba(232,168,56,.2);
-
-  box-shadow:0 -4px 24px rgba(0,0,0,.5),0 -1px 0 rgba(232,168,56,.06);
-
-  display:flex;
-
-  padding-bottom:env(safe-area-inset-bottom);
-
-  backdrop-filter:blur(20px);
-
-}
-
-.bottom-nav button{
-
-  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-
-  gap:3px;padding:9px 4px;background:none;border:none;
-
-  font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
-
-  color:#6B7280;transition:color .2s,text-shadow .2s;font-family:'Chakra Petch',sans-serif;
-
-  -webkit-tap-highlight-color:transparent;min-height:54px;
-
-}
-
-.bottom-nav button.active{color:#E8A838;}
-
-.bottom-nav button span.icon{font-size:20px;line-height:1;}
+/* bottom-nav removed — hamburger menu replaces it */
 
 
 
@@ -1136,15 +1102,23 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
   backdrop-filter:blur(20px);
 
-  display:none;
+  display:block;
+
+}
+
+.top-nav .desktop-links{display:none;}
+
+.top-nav .mobile-hamburger{display:flex;}
+
+@media(min-width:768px){
+
+  .top-nav .desktop-links{display:flex;}
+
+  .top-nav .mobile-hamburger{display:none;}
 
 }
 
 @media(min-width:768px){
-
-  .top-nav{display:block;}
-
-  .bottom-nav{display:none;}
 
   .page{padding:28px 24px 40px;}
 
@@ -1202,7 +1176,7 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:190;animation:fadeup .2s ease;}
 
-.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:linear-gradient(180deg,#0E1826,#08101A);border-right:1px solid rgba(232,168,56,.2);z-index:195;animation:slide-drawer .22s ease;display:flex;flex-direction:column;padding:32px 0;box-shadow:4px 0 32px rgba(0,0,0,.6);}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:280px;max-width:85vw;background:linear-gradient(180deg,#0E1826,#08101A);border-right:1px solid rgba(232,168,56,.2);z-index:195;animation:slide-drawer .22s ease;display:flex;flex-direction:column;padding:16px 0;box-shadow:4px 0 32px rgba(0,0,0,.6);overflow-y:auto;}
 
 
 
@@ -1603,7 +1577,7 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .mobile-bottom-nav{padding-bottom:env(safe-area-inset-bottom,8px);}
 
   /* Prevent footer overlap with fixed mobile bottom nav */
-  footer{padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))!important;}
+  
 
   /* Mobile profile tabs - horizontal scroll */
   .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
@@ -3108,25 +3082,15 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
             </div>
 
-            {DRAWER_ITEMS.map(l=>(
-
-              <button key={l.id} onClick={()=>{
-
-                if(l.id==="account"&&!currentUser){onAuthClick("login");setDrawer(false);return;}
-
-                setScreen(l.id);setDrawer(false);
-
-              }}
-
-                style={{display:"flex",alignItems:"center",gap:14,padding:"14px 20px",background:screen===l.id?"rgba(232,168,56,.08)":"none",
-
-                  border:"none",color:l.id==="account"&&currentUser?"#E8A838":screen===l.id?"#E8A838":"#C8BFB0",fontSize:14,fontWeight:600,width:"100%",textAlign:"left",cursor:"pointer",transition:"all .15s"}}>
-
-                <span style={{minWidth:22}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[l.icon]||l.icon),style:{fontSize:18}})}</span>{l.label}
-
-              </button>
-
-            ))}
+            {(function(){var lastSection="";return DRAWER_ITEMS.map(function(l){
+              var divider=l.section!==lastSection&&lastSection!==""?React.createElement("div",{key:"div-"+l.section,style:{height:1,background:"rgba(242,237,228,.06)",margin:"8px 16px"}}):null;
+              lastSection=l.section;
+              return React.createElement(React.Fragment,{key:l.id},divider,
+                React.createElement("button",{onClick:function(){if(l.id==="account"&&!currentUser){onAuthClick("login");setDrawer(false);return;}setScreen(l.id);setDrawer(false);},
+                  style:{display:"flex",alignItems:"center",gap:14,padding:"12px 20px",background:screen===l.id?"rgba(232,168,56,.08)":"none",
+                    border:"none",color:screen===l.id?"#E8A838":"#C8BFB0",fontSize:13,fontWeight:600,width:"100%",textAlign:"left",cursor:"pointer",transition:"all .15s",borderRadius:0}},
+                  React.createElement("span",{style:{minWidth:22,display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("i",{className:"ti ti-"+(ICON_REMAP[l.icon]||l.icon),style:{fontSize:17,opacity:screen===l.id?1:.7}})),l.label)
+              );});})()}
 
             <div style={{marginTop:"auto",padding:"20px"}}>
 
@@ -3152,7 +3116,13 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
       <nav className="top-nav" style={{borderBottom:"2px solid transparent",borderImage:"linear-gradient(90deg,transparent,rgba(155,114,207,.3),rgba(232,168,56,.2),transparent) 1"}}>
 
-        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 24px",height:54,display:"flex",alignItems:"center",gap:0}}>
+        <div style={{maxWidth:1400,margin:"0 auto",padding:"0 16px",height:54,display:"flex",alignItems:"center",gap:0}}>
+
+          {/* Hamburger button — mobile only */}
+          <button className="mobile-hamburger" onClick={()=>setDrawer(d=>!d)}
+            style={{background:"none",border:"none",padding:"8px",marginRight:8,cursor:"pointer",color:"#C8D4E0",fontSize:22,display:"flex",alignItems:"center",justifyContent:"center",WebkitTapHighlightColor:"transparent"}}>
+            {React.createElement("i",{className:"ti ti-menu-2"})}
+          </button>
 
           <div onClick={()=>setScreen("home")} style={{display:"flex",alignItems:"center",gap:8,marginRight:14,flexShrink:0,cursor:"pointer",transition:"filter .2s"}}
             onMouseEnter={function(e){e.currentTarget.style.filter="drop-shadow(0 0 12px rgba(232,168,56,.4))";}}
@@ -3173,7 +3143,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
           </div>
 
-          <div style={{display:"flex",alignItems:"center",gap:0,flex:1,minWidth:0}}>
+          <div className="desktop-links" style={{display:"flex",alignItems:"center",gap:0,flex:1,minWidth:0}}>
 
             {DESKTOP_PRIMARY.map(l=>(
 
@@ -3245,9 +3215,9 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
             </div>
 
-          </div>
+          </div>{/* end desktop-links */}
 
-          <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:4,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:6,marginLeft:"auto",flexShrink:0}}>
 
             {dispCount>0&&(
 
@@ -3307,37 +3277,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
 
 
-      {/* Mobile bottom nav */}
 
-      <nav className="bottom-nav">
-
-        {PRIMARY.map(l=>{
-
-          const isMore=l.id==="more";
-
-          const active=isMore?["hof","archive","scrims","admin","milestones","pricing","account","challenges","recap","host-apply","host-dashboard","rules","faq","featured"].includes(screen)||screen.indexOf("tournament-")===0:screen===l.id;
-
-          return(
-
-            <button key={l.id} className={active?"active":""} onClick={()=>{if(isMore){setDrawer(d=>!d);}else setScreen(l.id);}}
-              style={{transition:"transform .1s"}}
-              onMouseDown={function(e){e.currentTarget.style.transform="scale(0.95)";}}
-              onMouseUp={function(e){e.currentTarget.style.transform="scale(1)";}}
-              onMouseLeave={function(e){e.currentTarget.style.transform="scale(1)";}}>
-
-              <span className="icon">{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[l.icon]||l.icon),style:{fontSize:18}})}</span>
-
-              {l.label}
-
-              {l.id==="bracket"&&dispCount>0&&<div style={{width:7,height:7,borderRadius:"50%",background:"#EF4444",position:"absolute",top:6,right:"calc(50% - 14px)"}}/>}
-
-            </button>
-
-          );
-
-        })}
-
-      </nav>
 
     </>
 
@@ -18030,7 +17970,7 @@ function TFTClash(){
 
           .wrap{overflow-x:hidden;padding:0 12px;}
 
-          .page{padding:16px 12px 96px;}
+          .page{padding:16px 12px 40px;}
 
         }
 
@@ -18040,7 +17980,7 @@ function TFTClash(){
 
           .wrap{padding:0 8px;}
 
-          .page{padding:12px 8px 88px;}
+          .page{padding:12px 8px 40px;}
 
         }
 
@@ -18048,7 +17988,7 @@ function TFTClash(){
 
           .wrap{padding:0 6px;}
 
-          .page{padding:10px 6px 80px;}
+          .page{padding:10px 6px 40px;}
 
           h1{font-size:clamp(18px,5vw,28px)!important;}
 
