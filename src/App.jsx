@@ -14392,7 +14392,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
 
   var liveTournaments=tournaments.filter(function(t){return t.status==="live";});
   var upcomingTournaments=tournaments.filter(function(t){return t.status==="upcoming";});
-  var completedTournaments=tournaments.filter(function(t){return t.status==="completed";});
+  var completedTournaments=tournaments.filter(function(t){return t.status==="complete";});
   var totalHosted=tournaments.length;
   var totalPlayers=tournaments.reduce(function(s,t){return s+t.registered;},0);
 
@@ -14405,7 +14405,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           if(updates.status==="upcoming")feUpdates.status="upcoming";
           if(updates.status==="checkin"||updates.status==="live")feUpdates.status="live";
           if(updates.status==="closed")feUpdates.status="upcoming";
-          if(updates.status==="completed"){feUpdates.status="completed";if(updates.champion)feUpdates.champion=updates.champion;if(updates.top4)feUpdates.top4=updates.top4;}
+          if(updates.status==="complete"){feUpdates.status="complete";if(updates.champion)feUpdates.champion=updates.champion;if(updates.top4)feUpdates.top4=updates.top4;}
           return Object.assign({},ev,feUpdates);
         }
         return ev;
@@ -14564,9 +14564,9 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                   <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
                     {t.status==="upcoming"&&<Btn v="ghost" s="sm" onClick={function(){updateTournamentAndFeatured(t.id,{status:"live"});toast("Check-in opened! Tournament is now LIVE","success");}}>{"Open Check-In"}</Btn>}
                     {t.status==="live"&&<Btn v="ghost" s="sm" onClick={function(){updateTournamentAndFeatured(t.id,{status:"closed"});toast("Registration closed","info");}}>{"Close Registration"}</Btn>}
-                    {(t.status==="live"||t.status==="closed")&&<Btn v="primary" s="sm" onClick={function(){var champ=prompt("Enter champion name:");if(champ&&champ.trim()){updateTournamentAndFeatured(t.id,{status:"completed",champion:champ.trim(),top4:[champ.trim()]});toast("Tournament completed! Champion: "+champ.trim(),"success");}else{toast("Cancelled","info");}}}>{"Complete"}</Btn>}
+                    {(t.status==="live"||t.status==="closed")&&<Btn v="primary" s="sm" onClick={function(){var champ=prompt("Enter champion name:");if(champ&&champ.trim()){updateTournamentAndFeatured(t.id,{status:"complete",champion:champ.trim(),top4:[champ.trim()]});toast("Tournament completed! Champion: "+champ.trim(),"success");}else{toast("Cancelled","info");}}}>{"Complete"}</Btn>}
                     {t.status==="pending_approval"&&<span style={{fontSize:11,color:"#E8A838",fontWeight:600,padding:"5px 0"}}>{"Awaiting Approval"}</span>}
-                    {t.status==="completed"&&<Btn v="ghost" s="sm" onClick={function(){setScreen("tournament-host-"+t.id);}}>{"View Details"}</Btn>}
+                    {t.status==="complete"&&<Btn v="ghost" s="sm" onClick={function(){setScreen("tournament-host-"+t.id);}}>{"View Details"}</Btn>}
                     <Btn v="ghost" s="sm" onClick={function(){if(confirm("Delete this tournament?")){setTournaments(function(ts){return ts.filter(function(x){return x.id!==t.id;});});if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.filter(function(ev){return ev.hostTournamentId!==t.id;});});}toast("Tournament deleted","info");}}} style={{color:"#F87171"}}>{"Delete"}</Btn>
                   </div>
                 </div>
@@ -14654,7 +14654,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                         }else{
                           var champ=prompt("Enter champion name:");
                           if(champ&&champ.trim()){
-                            updateTournamentAndFeatured(t.id,{status:"completed",champion:champ.trim(),top4:[champ.trim()]});
+                            updateTournamentAndFeatured(t.id,{status:"complete",champion:champ.trim(),top4:[champ.trim()]});
                             toast("Tournament completed! Champion: "+champ.trim(),"success");
                           }
                         }
@@ -14672,7 +14672,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       {/* Registrations / Players tab */}
       {tab==="registrations"&&(
         <div>
-          {tournaments.filter(function(t){return t.status!=="completed";}).map(function(t){
+          {tournaments.filter(function(t){return t.status!=="complete";}).map(function(t){
             var matchingEvent=(featuredEvents||[]).find(function(ev){return ev.hostTournamentId===t.id;});
             var regIds=matchingEvent?(matchingEvent.registeredIds||[]):[];
             return(
@@ -14829,7 +14829,7 @@ function TournamentDetailScreen(props){
   var isFull=event.registered>=event.size;
   var isUpcoming=event.status==="upcoming";
   var isLive=event.status==="live";
-  var isCompleted=event.status==="completed";
+  var isCompleted=event.status==="complete";
   var canRegister=!isCompleted&&!isFull&&!isRegistered;
 
   function handleRegister(){
@@ -15176,7 +15176,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
   },[tournaments]);
 
   var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
-  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed"};
+  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",complete:"Completed"};
 
   return(
     <div className="page wrap">
@@ -15204,8 +15204,8 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
             var dateStr=t.date?new Date(t.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
             var prizes=Array.isArray(t.prize_pool_json)?t.prize_pool_json:[];
             // Status badge styles
-            var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(82,196,124,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(155,114,207,.15)",complete:"rgba(78,205,196,.15)",completed:"rgba(78,205,196,.15)"};
-            var phaseBadgeColor={draft:"#9AAABF",registration:"#52C47C",check_in:"#E8A838",in_progress:"#9B72CF",complete:"#4ECDC4",completed:"#4ECDC4"};
+            var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(82,196,124,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(155,114,207,.15)",complete:"rgba(78,205,196,.15)"};
+            var phaseBadgeColor={draft:"#9AAABF",registration:"#52C47C",check_in:"#E8A838",in_progress:"#9B72CF",complete:"#4ECDC4"};
             var badgeBg=phaseBadgeBg[t.phase]||"rgba(154,170,191,.1)";
             var badgeColor=phaseBadgeColor[t.phase]||"#9AAABF";
             // Countdown timer
@@ -15832,11 +15832,11 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
 
   // Tabs based on phase
   var tabs=[{id:"info",label:"Info"},{id:"players",label:"Players ("+regCount+")"}];
-  if(phase==="in_progress"||phase==="completed"||phase==="complete"||(phase==="check_in"&&isAdmin)){
+  if(phase==="in_progress"||phase==="complete"||(phase==="check_in"&&isAdmin)){
     tabs.push({id:"bracket",label:"Lobbies"+(lobbies.length>0?" ("+lobbies.length+")":"")});
   }
-  if(phase==="in_progress"||phase==="completed"||phase==="complete"){
-    tabs.push({id:"standings",label:phase==="complete"||phase==="completed"?"Final Results":"Standings"});
+  if(phase==="in_progress"||phase==="complete"){
+    tabs.push({id:"standings",label:phase==="complete"?"Final Results":"Standings"});
   }
 
   // Sorted registered players
@@ -16169,7 +16169,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {activeTab==="standings"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           {/* Podium — only when complete */}
-          {(phase==="complete"||phase==="completed")&&standings.length>=3&&(
+          {phase==="complete"&&standings.length>=3&&(
             <Panel style={{padding:"28px 20px 16px 20px",background:"linear-gradient(160deg,rgba(232,168,56,.09),rgba(155,114,207,.09),rgba(17,24,39,0))",border:"1px solid rgba(232,168,56,.18)"}}>
               <div style={{textAlign:"center",fontWeight:800,fontSize:13,color:"#E8A838",marginBottom:24,letterSpacing:"2px",textTransform:"uppercase"}}>{"Final Results"}</div>
               <div style={{display:"flex",gap:8,justifyContent:"center",alignItems:"flex-end",flexWrap:"wrap"}}>
@@ -16378,7 +16378,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
   var allEvents=featuredEvents||[];
   var live=allEvents.filter(function(e){return e.status==="live";});
   var upcoming=allEvents.filter(function(e){return e.status==="upcoming";});
-  var past=allEvents.filter(function(e){return e.status==="completed";});
+  var past=allEvents.filter(function(e){return e.status==="complete";});
   var active=live.concat(upcoming);
   var shown=filter==="all"?active:filter==="live"?live:upcoming;
 
