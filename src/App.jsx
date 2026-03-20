@@ -2915,8 +2915,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   const [drawer,setDrawer]=useState(false);
 
-  const checkedIn=players.filter(p=>p.checkedIn).length;
-
   const dispCount=(disputes||[]).length;
 
   const canScrims=isAdmin||(currentUser&&(scrimAccess||[]).includes(currentUser.username));
@@ -3252,12 +3250,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               </button>
 
             )}
-
-            <div style={{fontSize:12,color:"#BECBD9",whiteSpace:"nowrap"}}>
-
-              <span style={{color:"#6EE7B7",fontWeight:700}}>{checkedIn}</span>/{players.length}
-
-            </div>
 
             <NotificationBell notifications={notifications||[]} onMarkAllRead={onMarkAllRead||function(){}}/>
 
