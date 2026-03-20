@@ -12545,7 +12545,7 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
             <div style={{textAlign:"right",marginTop:-6}}>
 
-              <span style={{fontSize:12,color:"#E8A838",cursor:"pointer"}}>Forgot password?</span>
+              <span style={{fontSize:12,color:"#E8A838",cursor:"pointer"}} onClick={async function(){if(!email){toast("Please enter your email first","error");return;}try{await supabase.auth.resetPasswordForEmail(email);toast("Password reset email sent! Check your inbox","info");}catch(e){console.error("[TFT] password reset failed:",e);toast("Failed to send reset email","error");}}}>Forgot password?</span>
 
             </div>
 
@@ -12645,7 +12645,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
 
 
-  const linkedPlayer=players.find(p=>p.id===user.linkedPlayerId||p.name===user.username);
+  const linkedPlayer=players.find(p=>(p.authUserId&&p.authUserId===user.id)||(p.id===user.linkedPlayerId)||(p.name===user.username));
 
   const s=linkedPlayer?getStats(linkedPlayer):null;
 
@@ -15806,7 +15806,7 @@ function TFTClash(){
               });
             }
             setPlayers(mapped);
-          });
+          }).catch(function(e){ console.error("[TFT] game_results enrichment failed:", e); setPlayers(mapped); });
       });
   }
 
@@ -16254,13 +16254,15 @@ function TFTClash(){
   }
 
   async function handleLogout(){
-
-    await supabase.auth.signOut();
-
-    setCurrentUser(null);
-
-    setScreen("home");
-
+    try{
+      await supabase.auth.signOut();
+      setCurrentUser(null);
+      setScreen("home");
+      toast("Logged out successfully","info");
+    }catch(e){
+      console.error("[TFT] logout failed:",e);
+      toast("Logout failed","error");
+    }
   }
 
   function updateUser(updated){setCurrentUser(updated);}
