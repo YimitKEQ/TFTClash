@@ -11476,8 +11476,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
-  /* Pricing is under construction  -  Stripe integration being reworked */
-
   return(
 
     <div className="page wrap">
@@ -11491,20 +11489,20 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
       <div style={{textAlign:"center",padding:"80px 20px",maxWidth:560,margin:"0 auto"}}>
 
         <div style={{width:80,height:80,margin:"0 auto 24px",background:"rgba(232,168,56,.08)",border:"2px solid rgba(232,168,56,.25)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
-          🔧
+          ✨
         </div>
 
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Under Construction</div>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Coming Soon</div>
 
         <h1 style={{fontSize:"clamp(24px,4vw,40px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.15,marginBottom:16}}>
 
-          Pricing is being rebuilt
+          Subscriptions are on the way
 
         </h1>
 
         <p style={{fontSize:15,color:"#C8D4E0",lineHeight:1.7,marginBottom:12}}>
 
-          We're reworking our payment system to give you a better experience. The tiers you know and love  -  Player, Pro, and Host  -  are staying, but the checkout flow is getting an upgrade.
+          We are upgrading our payment system to give you a better experience. The tiers you know and love - Player, Pro, and Host - are staying, but the checkout flow is getting a full upgrade.
 
         </p>
 
