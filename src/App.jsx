@@ -1644,6 +1644,9 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .lab-dash-grid{grid-template-columns:1fr!important;}
   .lab-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;display:flex!important;}
   .lab-tabs button{flex-shrink:0;}
+  /* Admin sidebar → hidden on mobile, toggle shows it as overlay */
+  .admin-sidebar{position:fixed!important;left:0;top:0;bottom:0;z-index:200!important;box-shadow:8px 0 32px rgba(0,0,0,.5);}
+  .admin-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}
 }
 
 `;
@@ -8373,6 +8376,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const [spForm,setSpForm]=useState({name:"",logo:"",color:"",playerId:""});
 
   const [auditFilter,setAuditFilter]=useState("All");
+  const [sidebarOpen,setSidebarOpen]=useState(true);
 
 
 
@@ -8426,7 +8430,10 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   function clearDNP(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,dnpCount:0}:p));addAudit("ACTION","DNP cleared: "+name);toast("DNP cleared for "+name,"success");}
 
-  function remove(id,name){setPlayers(ps=>ps.filter(p=>p.id!==id));addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
+  function remove(id,name){setPlayers(ps=>ps.filter(p=>p.id!==id));
+// Sync removal to DB
+if(supabase.from&&id){supabase.from('players').delete().eq('id',id).then(function(r){if(r.error)console.error("[TFT] Player delete failed:",r.error);});}
+addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
   function saveNote(){setPlayers(ps=>ps.map(p=>p.id===noteTarget.id?{...p,notes:noteText}:p));addAudit("ACTION","Note updated: "+noteTarget.name);setNoteTarget(null);}
 
@@ -8474,40 +8481,32 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
 
 
-  const TABS=[
-
-    {id:"dashboard",icon:"speedometer2",label:"Dashboard"},
-
-    {id:"round",icon:"lightning-charge-fill",label:"Round"},
-
-    {id:"quickclash",icon:"dice-5-fill",label:"Quick Clash"},
-
-    {id:"schedule",icon:"calendar-event-fill",label:"Schedule"},
-
-    {id:"players",icon:"people-fill",label:"Players"},
-
-    {id:"scores",icon:"pencil-fill",label:"Scores"},
-
-    {id:"broadcast",icon:"megaphone-fill",label:"Broadcast"},
-
-    {id:"hosts",icon:"controller",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
-
-    {id:"season",icon:"trophy-fill",label:"Season"},
-
-    {id:"sponsorships",icon:"building",label:"Sponsors"},
-
-    {id:"audit",icon:"clipboard-data-fill",label:"Audit"},
-
-    {id:"friends",icon:"controller",label:"Scrims Access"},
-    {id:"ticker",icon:"broadcast-pin",label:"Ticker"},
-
-    {id:"settings",icon:"gear-fill",label:"Settings"},
-
-    {id:"featured",icon:"stars",label:"Featured"},
-
-    {id:"flash",icon:"lightning-charge-fill",label:"Flash Tournaments"},
-
-  ];
+  const ADMIN_GROUPS=[
+    {label:"TOURNAMENT",items:[
+      {id:"dashboard",icon:"gauge",label:"Dashboard"},
+      {id:"round",icon:"bolt",label:"Round Control"},
+      {id:"quickclash",icon:"dice-5",label:"Quick Clash"},
+      {id:"flash",icon:"tournament",label:"Flash Tournaments"},
+    ]},
+    {label:"MANAGEMENT",items:[
+      {id:"players",icon:"users",label:"Players"},
+      {id:"scores",icon:"pencil",label:"Scores"},
+      {id:"broadcast",icon:"speakerphone",label:"Broadcast"},
+      {id:"schedule",icon:"calendar-event",label:"Schedule"},
+      {id:"featured",icon:"star",label:"Featured"},
+    ]},
+    {label:"CONFIGURE",items:[
+      {id:"season",icon:"trophy",label:"Season"},
+      {id:"sponsorships",icon:"building",label:"Sponsors"},
+      {id:"hosts",icon:"device-gamepad-2",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
+      {id:"friends",icon:"sword",label:"Scrims Access"},
+      {id:"ticker",icon:"broadcast",label:"Ticker"},
+    ]},
+    {label:"SYSTEM",items:[
+      {id:"audit",icon:"clipboard-data",label:"Audit Log"},
+      {id:"settings",icon:"settings",label:"Settings"},
+    ]},
+  ]
 
 
 
@@ -8583,69 +8582,61 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
 
 
-      {/* PAGE HEADER */}
+      {/* ADMIN LAYOUT — SIDEBAR + CONTENT */}
+      <div style={{display:"flex",gap:0,minHeight:"calc(100vh - 80px)",margin:"0 -16px -16px"}}>
 
-      <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
+        {/* SIDEBAR */}
+        <div style={{width:sidebarOpen?230:0,overflow:sidebarOpen?"visible":"hidden",background:"#0A0A14",borderRight:"1px solid rgba(242,237,228,.06)",flexShrink:0,display:"flex",flexDirection:"column",transition:"width .2s",position:"relative",zIndex:10}}>
 
-        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-hexagon",style:{fontSize:22}})}</div>
-
-        <div style={{flex:1,minWidth:0}}>
-
-          <h2 style={{color:"#F2EDE4",fontSize:20,fontWeight:800,lineHeight:1,margin:0}}>Admin Panel</h2>
-
-          <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>TFT Clash · {seasonName}</div>
-
-        </div>
-
-        <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0,flexWrap:"wrap"}}>
-
-          <div style={{padding:"5px 13px",background:phaseColor[currentPhase]+"1A",border:"1px solid "+phaseColor[currentPhase]+"44",borderRadius:20,fontSize:12,fontWeight:700,color:phaseColor[currentPhase]}}>
-
-            {phaseLabel[currentPhase]}
-
+          {/* Sidebar Header */}
+          <div style={{padding:"18px 16px 14px",borderBottom:"1px solid rgba(242,237,228,.06)"}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:34,height:34,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.05))",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-shield-cog",style:{fontSize:17,color:"#C4B5FD"}})}</div>
+              <div style={{minWidth:0}}>
+                <div style={{fontWeight:800,fontSize:14,color:"#F2EDE4",lineHeight:1}}>Admin</div>
+                <div style={{fontSize:10,color:"#7A8BA0",marginTop:3}}>{seasonName}</div>
+              </div>
+            </div>
+            <div style={{marginTop:10,padding:"4px 10px",background:phaseColor[currentPhase]+"12",border:"1px solid "+phaseColor[currentPhase]+"33",borderRadius:6,fontSize:10,fontWeight:700,color:phaseColor[currentPhase],textAlign:"center"}}>{phaseLabel[currentPhase]}</div>
+            {pendingHosts>0&&<div style={{marginTop:6,padding:"4px 10px",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.2)",borderRadius:6,fontSize:10,fontWeight:700,color:"#F87171",textAlign:"center",cursor:"pointer"}} onClick={function(){setTab("hosts");}}>{pendingHosts} pending host app{pendingHosts>1?"s":""}</div>}
           </div>
 
-          {pendingHosts>0&&(
+          {/* Nav Groups */}
+          <div style={{flex:1,overflowY:"auto",padding:"8px 0",scrollbarWidth:"none"}}>
+            {ADMIN_GROUPS.map(function(group){return(
+              React.createElement("div",{key:group.label,style:{marginBottom:4}},
+                React.createElement("div",{style:{padding:"8px 16px 4px",fontSize:10,fontWeight:700,color:"#5A6577",letterSpacing:".1em",textTransform:"uppercase"}},group.label),
+                group.items.map(function(item){
+                  var active=tab===item.id;
+                  return React.createElement("button",{key:item.id,onClick:function(){setTab(item.id);},style:{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 16px",background:active?"rgba(155,114,207,.1)":"transparent",borderLeft:active?"3px solid #9B72CF":"3px solid transparent",border:"none",borderBottom:"none",borderTop:"none",borderRight:"none",color:active?"#C4B5FD":"#9AAABF",cursor:"pointer",fontSize:13,fontWeight:active?600:400,fontFamily:"inherit",transition:"all .12s",textAlign:"left"}},
+                    React.createElement("i",{className:"ti ti-"+item.icon,style:{fontSize:16,width:20,textAlign:"center",flexShrink:0,opacity:active?1:.6}}),
+                    React.createElement("span",{style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},item.label)
+                  );
+                })
+              )
+            );})}
+          </div>
 
-            <div style={{padding:"5px 13px",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:20,fontSize:12,fontWeight:700,color:"#F87171",cursor:"pointer"}} onClick={()=>setTab("hosts")}>
-
-              {pendingHosts} host app{pendingHosts>1?"s":""}
-
-            </div>
-
-          )}
-
+          {/* Sidebar Footer */}
+          <div style={{padding:"12px 16px",borderTop:"1px solid rgba(242,237,228,.06)",fontSize:11,color:"#5A6577"}}>
+            {React.createElement("i",{className:"ti ti-info-circle",style:{marginRight:5,fontSize:12}})}
+            <span style={{lineHeight:1.4}}>{TAB_INFO[tab]||""}</span>
+          </div>
         </div>
 
-      </div>
+        {/* MAIN CONTENT AREA */}
+        <div style={{flex:1,minWidth:0,padding:"20px 24px",overflowY:"auto"}}>
 
-
-
-      {/* TAB NAVIGATION */}
-
-      <div style={{display:"flex",gap:4,flexWrap:"nowrap",overflowX:"auto",paddingBottom:4,marginBottom:4,scrollbarWidth:"none",WebkitOverflowScrolling:"touch",msOverflowStyle:"none"}}>
-
-        {TABS.map(t=>(
-
-          <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 13px",background:tab===t.id?"rgba(155,114,207,.18)":"rgba(255,255,255,.03)",border:"1px solid "+(tab===t.id?"rgba(155,114,207,.5)":"rgba(242,237,228,.07)"),borderRadius:8,color:tab===t.id?"#C4B5FD":"#9AAABF",cursor:"pointer",fontSize:12,fontWeight:tab===t.id?700:400,whiteSpace:"nowrap",flexShrink:0,transition:"all .12s",fontFamily:"inherit"}}>
-
-            <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[t.icon]||t.icon),style:{fontSize:13}})}</span><span>{t.label}</span>
-
-          </button>
-
-        ))}
-
-      </div>
-
-
-
-      {/* TAB INFO BANNER */}
-
-      <div style={{padding:"9px 14px",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:8,marginBottom:18,fontSize:12,color:"#9AAABF",lineHeight:1.5}}>
-
-        {React.createElement("i",{className:"ti ti-info-circle",style:{color:"#C4B5FD",marginRight:6}})}{TAB_INFO[tab]||""}
-
-      </div>
+          {/* Top bar with toggle + breadcrumb */}
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
+            <button onClick={function(){setSidebarOpen(function(v){return !v;});}} style={{width:32,height:32,background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.08)",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",color:"#9AAABF",flexShrink:0,fontFamily:"inherit",fontSize:16}}>{React.createElement("i",{className:"ti ti-"+(sidebarOpen?"layout-sidebar-left-collapse":"layout-sidebar-left-expand")})}</button>
+            <div style={{flex:1,minWidth:0}}>
+              <h2 style={{color:"#F2EDE4",fontSize:18,fontWeight:800,lineHeight:1,margin:0}}>{(ADMIN_GROUPS.reduce(function(found,g){return found||g.items.find(function(i){return i.id===tab;});},null)||{label:"Admin"}).label}</h2>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+              <div style={{padding:"5px 13px",background:phaseColor[currentPhase]+"1A",border:"1px solid "+phaseColor[currentPhase]+"44",borderRadius:20,fontSize:12,fontWeight:700,color:phaseColor[currentPhase]}}>{phaseLabel[currentPhase]}</div>
+            </div>
+          </div>
 
 
 
@@ -8789,7 +8780,10 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                 <div style={{display:"flex",gap:10}}>
 
-                  <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>p.id===editP.id?editP:p));addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success");}}>Save Changes</Btn>
+                  <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>p.id===editP.id?editP:p));
+// Sync edit to DB
+if(supabase.from&&editP.id){supabase.from('players').update({username:editP.name,riot_id:editP.riotId,region:editP.region,rank:editP.rank}).eq('id',editP.id).then(function(r){if(r.error)console.error("[TFT] Player edit sync failed:",r.error);});}
+addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success");}}>Save Changes</Btn>
 
                   <Btn v="dark" onClick={()=>setEditP(null)}>Cancel</Btn>
 
@@ -8939,7 +8933,10 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <div style={{display:"flex",gap:10}}>
 
-            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" → "+nv);return{...p,pts:parseInt(nv)||p.pts};}));setScoreEdit({});toast("Score changes applied","success");}}>Apply Changes</Btn>
+            <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>{const nv=scoreEdit[p.id];if(nv===undefined)return p;addAudit("DANGER","Score override: "+p.name+" → "+nv);var parsed=parseInt(nv);return{...p,pts:isNaN(parsed)?p.pts:parsed};}));setScoreEdit({});
+// Sync score overrides to DB
+if(supabase.from){ps.forEach(function(p){var nv=scoreEdit[p.id];if(nv===undefined)return;var parsed=parseInt(nv);if(isNaN(parsed))return;supabase.from('players').update({season_pts:parsed}).eq('id',p.id).then(function(r){if(r.error)console.error("[TFT] Score sync failed for",p.name,r.error);});});}
+toast("Score changes applied","success");}}>Apply Changes</Btn>
 
             <Btn v="dark" onClick={()=>setScoreEdit({})}>Clear</Btn>
 
@@ -10108,6 +10105,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         </div>
       )}
 
+        </div>{/* main content */}
+      </div>{/* flex layout */}
     </div>
 
   );
