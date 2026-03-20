@@ -3009,6 +3009,10 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
 
+  var navProfileFields=currentUser?[currentUser.user_metadata&&currentUser.user_metadata.riot_id,currentUser.user_metadata&&currentUser.user_metadata.bio,currentUser.user_metadata&&currentUser.user_metadata.region]:[];
+  var navProfileComplete=navProfileFields.filter(Boolean).length;
+  var navProfileTotal=currentUser?3:3;
+
 
 
   const DRAWER_ITEMS=[
@@ -3265,6 +3269,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
                 onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}>
 
                 <span style={{fontSize:12,fontWeight:600,color:"#E8A838"}}>{currentUser.username}</span>
+
+                <span style={{width:6,height:6,borderRadius:"50%",background:navProfileComplete===navProfileTotal?"#52C47C":"#E8A838",display:"inline-block",flexShrink:0}}/>
 
               </button>
 
@@ -12953,6 +12959,12 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
   const myMilestones=linkedPlayer?MILESTONES.filter(m=>{try{return m.check(linkedPlayer);}catch{return false;}}):[];
 
+  var acctProfileFields=[user.user_metadata&&user.user_metadata.riot_id,user.user_metadata&&user.user_metadata.bio,user.user_metadata&&user.user_metadata.region];
+  var acctProfileComplete=acctProfileFields.filter(Boolean).length;
+  var acctProfileTotal=acctProfileFields.length;
+  var acctMissingField=!(user.user_metadata&&user.user_metadata.riot_id)?"Riot ID":!(user.user_metadata&&user.user_metadata.bio)?"bio":"region";
+  var acctProgressMsg="Profile "+acctProfileComplete+"/"+acctProfileTotal+" complete"+(acctProfileComplete<acctProfileTotal?" - Add a "+acctMissingField+" to finish":"");
+
 
 
   return(
@@ -12978,6 +12990,11 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
           </div>
         </div>
       )}
+
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+        <span style={{width:6,height:6,borderRadius:"50%",background:acctProfileComplete===acctProfileTotal?"#52C47C":"#E8A838",display:"inline-block",flexShrink:0}}/>
+        <span style={{fontSize:12,color:acctProfileComplete===acctProfileTotal?"#52C47C":"#BECBD9",fontWeight:500}}>{acctProgressMsg}</span>
+      </div>
 
       {/* Hero card - Twitter-style profile */}
 
