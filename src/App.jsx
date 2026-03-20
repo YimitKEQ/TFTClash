@@ -1638,6 +1638,59 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .admin-dash-grid{grid-template-columns:1fr 1fr!important;gap:8px!important;}
 
 }
+
+/* === TABLER-INSPIRED ADMIN STYLES === */
+.tbl-card{background:#111827;border:1px solid rgba(128,150,172,.12);border-radius:8px;box-shadow:0 1px 2px 0 rgba(18,18,23,.15);overflow:hidden;transition:box-shadow .15s;}
+.tbl-card:hover{box-shadow:0 4px 6px -2px rgba(18,18,23,.15),0 10px 15px -3px rgba(18,18,23,.12);}
+.tbl-card-header{padding:16px 20px;border-bottom:1px solid rgba(128,150,172,.1);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.tbl-card-header h3{font-size:15px;font-weight:600;color:#F2EDE4;margin:0;display:flex;align-items:center;gap:8px;}
+.tbl-card-body{padding:20px;}
+.tbl-card-footer{padding:12px 20px;border-top:1px solid rgba(128,150,172,.1);background:rgba(0,0,0,.15);}
+
+/* Stat card with colored top bar */
+.tbl-stat{position:relative;padding:20px 16px 16px;text-align:center;overflow:hidden;}
+.tbl-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--stat-color,#9B72CF);}
+.tbl-stat .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:18px;}
+.tbl-stat .stat-value{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+.tbl-stat .stat-label{font-size:10px;font-weight:700;color:#6b7280;letter-spacing:.08em;text-transform:uppercase;}
+
+/* Data table */
+.tbl-table{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl-table th{padding:8px 16px;font-size:10px;font-weight:700;color:#6b7280;letter-spacing:.08em;text-transform:uppercase;text-align:left;border-bottom:1px solid rgba(128,150,172,.15);background:rgba(0,0,0,.15);}
+.tbl-table td{padding:10px 16px;border-bottom:1px solid rgba(128,150,172,.06);color:#e5e7eb;vertical-align:middle;}
+.tbl-table tr:hover td{background:rgba(155,114,207,.03);}
+.tbl-table .td-actions{white-space:nowrap;text-align:right;}
+
+/* Timeline / activity feed */
+.tbl-timeline-item{display:flex;gap:12px;padding:10px 20px;border-bottom:1px solid rgba(128,150,172,.06);position:relative;}
+.tbl-timeline-item::before{content:'';position:absolute;left:30px;top:28px;bottom:-2px;width:1px;background:rgba(128,150,172,.1);}
+.tbl-timeline-item:last-child::before{display:none;}
+.tbl-timeline-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+
+/* Phase stepper */
+.tbl-stepper{display:flex;gap:0;margin-bottom:16px;}
+.tbl-step{flex:1;text-align:center;padding:10px 8px;font-size:11px;font-weight:700;position:relative;color:#6b7280;transition:all .15s;}
+.tbl-step::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(128,150,172,.1);transition:all .15s;}
+.tbl-step.active{color:var(--step-color,#9B72CF);}
+.tbl-step.active::after{background:var(--step-color,#9B72CF);}
+.tbl-step.done{color:#52C47C;}
+.tbl-step.done::after{background:#52C47C;}
+
+/* Form group */
+.tbl-form-group{margin-bottom:14px;}
+.tbl-form-label{display:block;font-size:11px;color:#9ca3af;margin-bottom:6px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+
+/* Admin mobile */
+@media(max-width:767px){
+  .tbl-card-body{padding:14px;}
+  .tbl-card-header{padding:12px 14px;}
+  .tbl-table th,.tbl-table td{padding:8px 10px;font-size:12px;}
+  .admin-dash-grid{grid-template-columns:1fr 1fr!important;gap:8px!important;}
+}
+@media(max-width:480px){
+  .admin-dash-grid{grid-template-columns:1fr!important;}
+}
+
 /* -- Lab (Scrims) mobile grid fixes -- */
 @media(max-width:767px){
   .lab-play-grid{grid-template-columns:1fr!important;}
@@ -6240,7 +6293,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
                 })}
 
               </div>
-
             </Panel>
 
           </div>
@@ -8586,7 +8638,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
       <div style={{display:"flex",gap:0,minHeight:"calc(100vh - 80px)",margin:"0 -16px -16px"}}>
 
         {/* SIDEBAR */}
-        <div style={{width:sidebarOpen?230:0,overflow:sidebarOpen?"visible":"hidden",background:"#0A0A14",borderRight:"1px solid rgba(242,237,228,.06)",flexShrink:0,display:"flex",flexDirection:"column",transition:"width .2s",position:"relative",zIndex:10}}>
+        <div style={{width:sidebarOpen?230:0,overflow:sidebarOpen?"visible":"hidden",background:"#0C0E18",borderRight:"1px solid rgba(242,237,228,.06)",flexShrink:0,display:"flex",flexDirection:"column",transition:"width .2s",position:"relative",zIndex:10}}>
 
           {/* Sidebar Header */}
           <div style={{padding:"18px 16px 14px",borderBottom:"1px solid rgba(242,237,228,.06)"}}>
@@ -8646,81 +8698,62 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
         <div>
 
-          <div className="admin-dash-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:18}}>
-
+          {/* Stat cards with colored top bar */}
+          <div className="admin-dash-grid" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:14,marginBottom:20}}>
             {[
-
-              {label:"Players",value:players.length,color:"#E8A838",icon:"people-fill"},
-
-              {label:"Checked In",value:players.filter(p=>p.checkedIn).length,color:"#52C47C",icon:"check-circle-fill"},
-
-              {label:"Banned",value:players.filter(p=>p.banned).length,color:"#F87171",icon:"slash-circle-fill"},
-
-              {label:"Scheduled",value:scheduledEvents.length,color:"#C4B5FD",icon:"calendar-event-fill"},
-
-            ].map(c=>(
-
-              <Panel key={c.label} style={{padding:"18px 12px",textAlign:"center"}}>
-
-                <div style={{fontSize:20,marginBottom:6}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[c.icon]||c.icon),style:{color:c.color}})}</div>
-
-                <div className="mono" style={{fontSize:26,fontWeight:800,color:c.color,lineHeight:1}}>{c.value}</div>
-
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",marginTop:5,letterSpacing:".06em",textTransform:"uppercase"}}>{c.label}</div>
-
-              </Panel>
-
-            ))}
-
+              {label:"Players",value:players.length,color:"#E8A838",icon:"users",sub:players.filter(function(p){return p.role==="admin";}).length+" admin"},
+              {label:"Checked In",value:players.filter(function(p){return p.checkedIn;}).length,color:"#52C47C",icon:"circle-check",sub:"of "+players.length+" total"},
+              {label:"Banned",value:players.filter(function(p){return p.banned;}).length,color:"#F87171",icon:"ban",sub:players.filter(function(p){return(p.dnpCount||0)>0&&!p.banned;}).length+" with DNP"},
+              {label:"Events",value:scheduledEvents.length,color:"#C4B5FD",icon:"calendar-event",sub:(quickClashes||[]).length+" quick clash"+(((quickClashes||[]).length!==1)?"es":"")},
+            ].map(function(c){return(
+              <div key={c.label} className="tbl-card tbl-stat" style={{"--stat-color":c.color}}>
+                <div className="stat-icon" style={{background:c.color+"14",border:"1px solid "+c.color+"25"}}>{React.createElement("i",{className:"ti ti-"+c.icon,style:{color:c.color}})}</div>
+                <div className="mono stat-value" style={{color:c.color}}>{c.value}</div>
+                <div className="stat-label">{c.label}</div>
+                <div style={{fontSize:11,color:"#5A6577",marginTop:6}}>{c.sub}</div>
+              </div>
+            );})}
           </div>
 
-          <Panel style={{padding:"16px",marginBottom:16}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>{React.createElement("i",{className:"ti ti-bolt",style:{fontSize:14,color:"#9B72CF"}})}<span style={{fontSize:11,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Quick Actions</span></div>
-
-            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-
-              <Btn v="success" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:true})));setTournamentState(function(ts){return{...ts,checkedInIds:players.map(function(p){return String(p.id);})};});addAudit("ACTION","Check In All");toast("All players checked in","success");}}>Check In All</Btn>
-
-              <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));setTournamentState(function(ts){return{...ts,checkedInIds:[]};});addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>Clear Check-In</Btn>
-
+          {/* Quick actions */}
+          <div className="tbl-card" style={{marginBottom:16}}>
+            <div className="tbl-card-header">
+              <h3>{React.createElement("i",{className:"ti ti-bolt",style:{color:"#9B72CF"}})}Quick Actions</h3>
+              <Tag color={phaseColor[currentPhase]} size="sm">{phaseLabel[currentPhase]}</Tag>
+            </div>
+            <div className="tbl-card-body" style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <Btn v="success" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:true})));setTournamentState(function(ts){return{...ts,checkedInIds:players.map(function(p){return String(p.id);})};});addAudit("ACTION","Check In All");toast("All players checked in","success");}}>{React.createElement("i",{className:"ti ti-circle-check",style:{marginRight:4}})}Check In All</Btn>
+              <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));setTournamentState(function(ts){return{...ts,checkedInIds:[]};});addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>{React.createElement("i",{className:"ti ti-circle-x",style:{marginRight:4}})}Clear Check-In</Btn>
               <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?<>{React.createElement("i",{className:"ti ti-player-play",style:{marginRight:4}})}Resume</>:<>{React.createElement("i",{className:"ti ti-player-pause",style:{marginRight:4}})}Pause</>}</Btn>
-
-              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"ti ti-speakerphone",style:{marginRight:3}})}Broadcast</Btn>
-
-              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Round Controls</Btn>
-
+              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"ti ti-speakerphone",style:{marginRight:4}})}Broadcast</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:4}})}Round Controls</Btn>
             </div>
+          </div>
 
-          </Panel>
-
-          <Panel style={{overflow:"hidden"}}>
-
-            <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-
-              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Recent Activity</div>
-
-              <Btn v="dark" s="sm" onClick={()=>setTab("audit")}>Full Log →</Btn>
-
+          {/* Activity timeline */}
+          <div className="tbl-card">
+            <div className="tbl-card-header">
+              <h3>{React.createElement("i",{className:"ti ti-activity",style:{color:"#4ECDC4"}})}Recent Activity</h3>
+              <Btn v="dark" s="sm" onClick={()=>setTab("audit")}>{React.createElement("i",{className:"ti ti-clipboard-data",style:{marginRight:4}})}Full Log</Btn>
             </div>
-
-            {auditLog.length===0&&<div style={{padding:"28px",textAlign:"center",color:"#9AAABF",fontSize:13}}>No activity yet.</div>}
-
-            {auditLog.slice(0,10).map((l,i)=>(
-
-              <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid rgba(242,237,228,.04)"}}>
-
-                <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
-
-                <span style={{fontSize:13,color:"#C8BFB0",flex:1}}>{l.msg}</span>
-
-                <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleTimeString()}</span>
-
+            {auditLog.length===0&&<div style={{padding:"40px 20px",textAlign:"center"}}>{React.createElement("i",{className:"ti ti-activity",style:{fontSize:36,color:"#374151",display:"block",marginBottom:10}})}<div style={{color:"#6b7280",fontSize:13}}>No activity yet</div></div>}
+            <div style={{maxHeight:400,overflowY:"auto"}}>
+            {auditLog.slice(0,15).map(function(l,i){
+              var dotColor=l.type==="DANGER"?"#F87171":l.type==="WARN"?"#E8A838":l.type==="ACTION"?"#52C47C":l.type==="BROADCAST"?"#9B72CF":"#4ECDC4";
+              return(
+              <div key={i} className="tbl-timeline-item">
+                <div className="tbl-timeline-dot" style={{background:dotColor}}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+                    <Tag color={AUDIT_COLS[l.type]||"#E8A838"} size="sm">{l.type}</Tag>
+                    <span className="mono" style={{fontSize:10,color:"#6b7280"}}>{new Date(l.ts).toLocaleTimeString()}</span>
+                  </div>
+                  <div style={{fontSize:13,color:"#d1d5db",lineHeight:1.4}}>{l.msg}</div>
+                </div>
               </div>
-
-            ))}
-
-          </Panel>
+            );})}
+            </div>
+          </div>
 
         </div>
 
@@ -8736,23 +8769,13 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
           {editP?(
 
-            <Panel accent style={{padding:"22px",marginBottom:16}}>
+            <div className="tbl-card" style={{marginBottom:16,borderLeft:"3px solid #9B72CF"}}>
 
-              <div style={{marginTop:6}}>
-
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-
-                  <div>
-
-                    <h3 style={{color:"#F2EDE4",fontSize:16,fontWeight:700,margin:0}}>Edit Player</h3>
-
-                    <div style={{fontSize:12,color:"#9B72CF",marginTop:3}}>{editP.name}</div>
-
-                  </div>
-
-                  <Btn v="dark" s="sm" onClick={()=>setEditP(null)}>← Back</Btn>
-
-                </div>
+              <div className="tbl-card-header">
+                <h3>{React.createElement("i",{className:"ti ti-user-edit",style:{color:"#9B72CF"}})}Edit Player <span style={{fontWeight:400,color:"#9B72CF",marginLeft:4}}>{editP.name}</span></h3>
+                <Btn v="dark" s="sm" onClick={()=>setEditP(null)}>{React.createElement("i",{className:"ti ti-arrow-left",style:{marginRight:4}})}← Back</Btn>
+              </div>
+              <div className="tbl-card-body">
 
                 <div className="grid-2" style={{marginBottom:14}}>
 
@@ -8791,18 +8814,19 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               </div>
 
-            </Panel>
+            </div>
 
           ):(
 
-            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            <div>
 
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-
-                <div style={{fontSize:13,color:"#C8D4E0"}}>{players.length} players · {players.filter(p=>p.checkedIn).length} in · {players.filter(p=>p.banned).length} banned</div>
-
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <div style={{fontSize:13,color:"#d1d5db",fontWeight:500}}>{players.length} players</div>
+                  <Tag color="#52C47C" size="sm">{players.filter(function(p){return p.checkedIn;}).length} checked in</Tag>
+                  {players.filter(function(p){return p.banned;}).length>0&&<Tag color="#F87171" size="sm">{players.filter(function(p){return p.banned;}).length} banned</Tag>}
+                </div>
                 <Btn v="primary" s="sm" onClick={()=>setShowAddPlayer(v=>!v)}>{showAddPlayer?"Cancel":"+ Add Player"}</Btn>
-
               </div>
 
               {showAddPlayer&&(
@@ -8829,61 +8853,63 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               )}
 
-              {players.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}><div style={{color:"#9AAABF",fontSize:14}}>No players yet  -  add one above.</div></Panel>}
+              {players.length===0&&<div className="tbl-card" style={{padding:"48px 20px",textAlign:"center"}}>{React.createElement("i",{className:"ti ti-users",style:{fontSize:40,color:"#374151",display:"block",marginBottom:12}})}<div style={{color:"#6b7280",fontSize:14,fontWeight:500}}>No players yet</div><div style={{color:"#4b5563",fontSize:12,marginTop:4}}>Add your first player above</div></div>}
 
-              {players.map(p=>(
-
-                <Panel key={p.id} style={{padding:"14px 16px",background:p.banned?"rgba(127,29,29,.12)":undefined,border:p.banned?"1px solid rgba(248,113,113,.2)":"1px solid rgba(242,237,228,.09)"}}>
-
-                  <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-
-                    <div style={{flex:1,minWidth:0}}>
-
-                      <div style={{fontWeight:700,fontSize:14,color:p.banned?"#F87171":"#F2EDE4",display:"flex",alignItems:"center",gap:7,flexWrap:"wrap",marginBottom:3}}>
-
-                        {p.name}
-
-                        {p.role!=="player"&&<Tag color="#9B72CF" size="sm">{p.role}</Tag>}
-
-                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"DQ":"BANNED"}</Tag>}
-
-                        {!p.banned&&(p.dnpCount||0)>0&&<Tag color="#F97316" size="sm">DNP {p.dnpCount}/2</Tag>}
-
-                        {p.checkedIn&&<Tag color="#52C47C" size="sm">✓ In</Tag>}
-
-                        {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback</Tag>}
-
-                        {(p.attendanceStreak||0)>=3&&<Tag color="#E8A838" size="sm">{p.attendanceStreak}-streak</Tag>}
-
-                      </div>
-
-                      <div style={{fontSize:12,color:"#BECBD9"}}>{p.riotId} · {p.rank} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span> · {p.games||0}G</div>
-
-                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>{React.createElement("i",{className:"ti ti-pin",style:{fontSize:11,marginRight:3}})}{p.notes}</div>}
-
-                    </div>
-
-                    <div style={{display:"flex",gap:5,flexWrap:"wrap",flexShrink:0}}>
-
-                      <Btn s="sm" v="dark" onClick={()=>setEditP(p)}>Edit</Btn>
-
-                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">{React.createElement("i",{className:"ti ti-pin",style:{fontSize:12}})}</Btn>
-
-                      {!p.banned&&<Btn s="sm" v="warning" onClick={()=>markDNP(p.id,p.name)} title="Mark no-show (2 DNPs = DQ)">DNP</Btn>}
-
-                      {(p.dnpCount||0)>0&&!p.banned&&<Btn s="sm" v="dark" onClick={()=>clearDNP(p.id,p.name)} title="Clear DNP count">↩ DNP</Btn>}
-
-                      {p.banned?<Btn s="sm" v="success" onClick={()=>unban(p.id,p.name)}>Unban</Btn>:<Btn s="sm" v="danger" onClick={()=>ban(p.id,p.name)}>Ban</Btn>}
-
-                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">{React.createElement("i",{className:"ti ti-x",style:{fontSize:12}})}</Btn>
-
-                    </div>
-
-                  </div>
-
-                </Panel>
-
-              ))}
+              {players.length>0&&(
+              <div className="tbl-card" style={{overflow:"hidden"}}>
+                <table className="tbl-table">
+                  <thead>
+                    <tr>
+                      <th>Player</th>
+                      <th>Rank</th>
+                      <th>Points</th>
+                      <th>Status</th>
+                      <th style={{textAlign:"right"}}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {players.map(function(p){return(
+                    <tr key={p.id} style={{background:p.banned?"rgba(127,29,29,.08)":"transparent"}}>
+                      <td>
+                        <div style={{display:"flex",alignItems:"center",gap:10}}>
+                          <div style={{width:32,height:32,borderRadius:8,background:p.banned?"rgba(248,113,113,.12)":p.checkedIn?"rgba(82,196,124,.1)":"rgba(155,114,207,.08)",border:"1px solid "+(p.banned?"rgba(248,113,113,.2)":p.checkedIn?"rgba(82,196,124,.2)":"rgba(155,114,207,.15)"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:13,fontWeight:700,color:p.banned?"#F87171":p.checkedIn?"#52C47C":"#9B72CF"}}>{p.name.charAt(0).toUpperCase()}</div>
+                          <div>
+                            <div style={{fontWeight:600,fontSize:13,color:p.banned?"#F87171":"#F2EDE4",display:"flex",alignItems:"center",gap:6}}>
+                              {p.name}
+                              {p.role!=="player"&&React.createElement(Tag,{color:"#9B72CF",size:"sm"},p.role)}
+                            </div>
+                            <div style={{fontSize:11,color:"#6b7280",marginTop:1}}>{p.riotId||"No Riot ID"}{p.notes?(" · "+p.notes.slice(0,30)+(p.notes.length>30?"...":"")):"" }</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span style={{fontSize:12,color:"#d1d5db"}}>{p.rank}</span><br/><span style={{fontSize:10,color:"#6b7280"}}>{p.region||"EUW"}</span></td>
+                      <td><span className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{p.pts}</span><br/><span style={{fontSize:10,color:"#6b7280"}}>{p.games||0}G · {p.wins||0}W</span></td>
+                      <td style={{whiteSpace:"nowrap"}}>
+                        <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                          {p.banned&&React.createElement(Tag,{color:"#F87171",size:"sm"},(p.dnpCount||0)>=2?"DQ":"BANNED")}
+                          {!p.banned&&(p.dnpCount||0)>0&&React.createElement(Tag,{color:"#F97316",size:"sm"},"DNP "+p.dnpCount+"/2")}
+                          {p.checkedIn&&React.createElement(Tag,{color:"#52C47C",size:"sm"},"✓ In")}
+                          {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&React.createElement(Tag,{color:"#4ECDC4",size:"sm"},"Comeback")}
+                          {(p.attendanceStreak||0)>=3&&React.createElement(Tag,{color:"#E8A838",size:"sm"},p.attendanceStreak+"-streak")}
+                          {!p.banned&&!p.checkedIn&&(p.dnpCount||0)===0&&React.createElement("span",{style:{color:"#4b5563",fontSize:11}},"—")}
+                        </div>
+                      </td>
+                      <td className="td-actions">
+                        <div style={{display:"flex",gap:4,justifyContent:"flex-end"}}>
+                          <Btn s="sm" v="dark" onClick={function(){setEditP(p);}}>Edit</Btn>
+                          <Btn s="sm" v="ghost" onClick={function(){setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">{React.createElement("i",{className:"ti ti-pin",style:{fontSize:12}})}</Btn>
+                          {!p.banned&&React.createElement(Btn,{s:"sm",v:"warning",onClick:function(){markDNP(p.id,p.name);},title:"Mark no-show (2 DNPs = DQ)"},"DNP")}
+                          {(p.dnpCount||0)>0&&!p.banned&&React.createElement(Btn,{s:"sm",v:"dark",onClick:function(){clearDNP(p.id,p.name);},title:"Clear DNP count"},"↩")}
+                          {p.banned?React.createElement(Btn,{s:"sm",v:"success",onClick:function(){unban(p.id,p.name);}},"Unban"):React.createElement(Btn,{s:"sm",v:"danger",onClick:function(){ban(p.id,p.name);}},"Ban")}
+                          <Btn s="sm" v="danger" onClick={function(){remove(p.id,p.name);}} title="Remove permanently">{React.createElement("i",{className:"ti ti-trash",style:{fontSize:12}})}</Btn>
+                        </div>
+                      </td>
+                    </tr>
+                  );})}
+                  </tbody>
+                </table>
+              </div>
+              )}
 
             </div>
 
@@ -8983,18 +9009,18 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Tournament Phase</div>
 
-            <div style={{display:"flex",gap:5,marginBottom:16,flexWrap:"wrap"}}>
-
-              {["registration","checkin","inprogress","complete"].map(ph=>(
-
-                <div key={ph} style={{padding:"5px 10px",borderRadius:6,fontSize:11,fontWeight:700,background:currentPhase===ph?phaseColor[ph]+"22":"rgba(255,255,255,.03)",border:"1px solid "+(currentPhase===ph?phaseColor[ph]+"55":"rgba(242,237,228,.07)"),color:currentPhase===ph?phaseColor[ph]:"#7A8BA0"}}>
-
-                  {ph==="registration"?"1 Register":ph==="checkin"?"2 Check-in":ph==="inprogress"?"3 Live":"4 Done"}
-
-                </div>
-
-              ))}
-
+            <div className="tbl-stepper" style={{borderRadius:8,overflow:"hidden",border:"1px solid rgba(128,150,172,.1)"}}>
+              {["registration","checkin","inprogress","complete"].map(function(ph){
+                var phases=["registration","checkin","inprogress","complete"];
+                var ci=phases.indexOf(currentPhase);
+                var pi=phases.indexOf(ph);
+                var isDone=pi<ci;
+                var isActive=ph===currentPhase;
+                return React.createElement("div",{key:ph,className:"tbl-step"+(isActive?" active":"")+(isDone?" done":""),style:{"--step-color":phaseColor[ph],background:isActive?phaseColor[ph]+"0D":isDone?"rgba(82,196,124,.04)":"transparent"}},
+                  React.createElement("div",{style:{fontSize:16,marginBottom:2}},isDone?React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}}):React.createElement("i",{className:"ti ti-"+(ph==="registration"?"user-plus":ph==="checkin"?"clipboard-check":ph==="inprogress"?"flame":"flag"),style:{color:isActive?phaseColor[ph]:"#4b5563"}})),
+                  ph==="registration"?"Register":ph==="checkin"?"Check-in":ph==="inprogress"?"Live":"Complete"
+                );
+              })}
             </div>
 
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
@@ -9777,11 +9803,11 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
       {tab==="audit"&&(
 
-        <Panel style={{overflow:"hidden"}}>
+        <div className="tbl-card">
 
-          <div style={{padding:"12px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <div className="tbl-card-header">
 
-            <div style={{display:"flex",alignItems:"center",gap:8}}>{React.createElement("i",{className:"ti ti-clipboard-data",style:{fontSize:15,color:"#9B72CF"}})}<div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Audit Log</div></div>
+            <h3>{React.createElement("i",{className:"ti ti-clipboard-data",style:{color:"#9B72CF"}})}Audit Log</h3>
 
             <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
 
@@ -9825,7 +9851,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
           </div>
 
-        </Panel>
+        </div>
 
       )}
 
@@ -9849,9 +9875,9 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
         <div className="grid-2">
 
-          <Panel style={{padding:"20px"}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>{React.createElement("i",{className:"ti ti-shield-lock",style:{fontSize:16,color:"#E8A838"}})}<div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Role Permissions</div></div>
+          <div className="tbl-card">
+            <div className="tbl-card-header"><h3>{React.createElement("i",{className:"ti ti-shield-lock",style:{color:"#E8A838"}})}Role Permissions</h3></div>
+            <div className="tbl-card-body">
 
             {[
 
@@ -9881,11 +9907,11 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             );})}
 
-          </Panel>
+          </div></div>
 
-          <Panel style={{padding:"20px"}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>{React.createElement("i",{className:"ti ti-rocket",style:{fontSize:16,color:"#9B72CF"}})}<div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Admin Quickstart</div></div>
+          <div className="tbl-card">
+            <div className="tbl-card-header"><h3>{React.createElement("i",{className:"ti ti-rocket",style:{color:"#9B72CF"}})}Admin Quickstart</h3></div>
+            <div className="tbl-card-body">
 
             {[
 
@@ -9913,7 +9939,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             );})}
 
-          </Panel>
+          </div></div>
 
         </div>
 
