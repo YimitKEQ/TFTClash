@@ -5863,10 +5863,10 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
   // Resolve user metadata for this player (bio, socials, banner, pfp)
   var userMeta=player.userMeta||null;
   if(!userMeta&&allUsers){var mu=allUsers.find(function(u){return u.username===player.name||u.id===player.auth_user_id;});if(mu)userMeta=mu.user_metadata||null;}
-  var pBio=userMeta&&userMeta.bio||player.bio||"";
-  var pTwitch=userMeta&&userMeta.twitch||player.twitch||"";
-  var pTwitter=userMeta&&userMeta.twitter||player.twitter||"";
-  var pYoutube=userMeta&&userMeta.youtube||player.youtube||"";
+  var pBio=player.bio||userMeta&&userMeta.bio||"";
+  var pTwitch=player.twitch||userMeta&&userMeta.twitch||"";
+  var pTwitter=player.twitter||userMeta&&userMeta.twitter||"";
+  var pYoutube=player.youtube||userMeta&&userMeta.youtube||"";
   var pPic=player.profile_pic_url||userMeta&&userMeta.profilePic||player.profilePic||"";
   var pBanner=userMeta&&userMeta.bannerUrl||player.bannerUrl||"";
   var pAccent=userMeta&&userMeta.profileAccent||player.profileAccent||"";
@@ -12917,7 +12917,8 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
     }catch(e){console.warn("Supabase update failed",e);toast("Failed to save profile  -  please try again","error");return;}
 
     // Also update players table row linked to this auth user
-    var playerUpdate={bio:meta.bio||"",region:riotRegion};
+    var socialLinks={twitch:meta.twitch||"",twitter:meta.twitter||"",youtube:meta.youtube||""};
+    var playerUpdate={bio:meta.bio||"",region:riotRegion,social_links:socialLinks};
     if(!riotIdSet&&meta.riotId){
       playerUpdate.riot_id=meta.riotId;
       playerUpdate.region=riotRegion;
@@ -17386,7 +17387,10 @@ function TFTClash(){
             id:r.id,name:r.username,username:r.username,
             riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
             bio:r.bio||'',discord_user_id:r.discord_user_id||null,
-            authUserId:r.auth_user_id||null,
+            authUserId:r.auth_user_id||null,auth_user_id:r.auth_user_id||null,
+            twitch:(r.social_links&&r.social_links.twitch)||'',
+            twitter:(r.social_links&&r.social_links.twitter)||'',
+            youtube:(r.social_links&&r.social_links.youtube)||'',
             pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
             avg:r.avg_placement?String(r.avg_placement):"0",
             banned:false,dnpCount:0,notes:'',checkedIn:false,
@@ -17848,7 +17852,10 @@ function TFTClash(){
               var np={
                 id:r.id,name:r.username,username:r.username,
                 riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
-                bio:r.bio||'',authUserId:r.auth_user_id,
+                bio:r.bio||'',authUserId:r.auth_user_id,auth_user_id:r.auth_user_id,
+                twitch:(r.social_links&&r.social_links.twitch)||'',
+                twitter:(r.social_links&&r.social_links.twitter)||'',
+                youtube:(r.social_links&&r.social_links.youtube)||'',
                 pts:0,wins:0,top4:0,games:0,avg:"0",
                 banned:false,dnpCount:0,notes:'',checkedIn:false,
                 clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
