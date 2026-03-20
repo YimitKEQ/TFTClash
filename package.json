@@ -14,7 +14,7 @@
   "dependencies": {
     "@sentry/react": "^10.44.0",
     "@supabase/supabase-js": "^2.99.1",
-    "bootstrap-icons": "^1.13.1",
+    "@tabler/icons-webfont": "^3.40.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "stripe": "^17.7.0"

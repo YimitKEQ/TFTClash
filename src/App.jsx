@@ -31,7 +31,7 @@ class ErrorBoundary extends Component {
 
         <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:99999,padding:24}}>
 
-          <div style={{fontSize:48}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
+          <div style={{fontSize:48}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
 
           <div style={{fontFamily:"'Russo One',sans-serif",fontSize:22,color:"#F2EDE4",textAlign:"center"}}>Something went wrong</div>
 
@@ -67,7 +67,7 @@ class ScreenBoundary extends Component {
       var self=this;
       return(
         <div className="page wrap" style={{textAlign:"center",paddingTop:80,maxWidth:440,margin:"0 auto"}}>
-          <div style={{fontSize:42,marginBottom:16}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
+          <div style={{fontSize:42,marginBottom:16}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
           <h2 style={{color:"#F2EDE4",marginBottom:8,fontFamily:"'Russo One',sans-serif"}}>{"Something went wrong"}</h2>
           <div style={{fontSize:14,color:"#9AAABF",marginBottom:20,lineHeight:1.6}}>{"This screen ran into an error. Your data is safe."}</div>
           <div style={{display:"flex",gap:10,justifyContent:"center"}}>
@@ -1721,8 +1721,10 @@ function Hexbg(){
 
 
 
+var ICON_REMAP={"exclamation-triangle-fill":"alert-triangle","exclamation-octagon-fill":"alert-octagon","info-circle-fill":"info-circle","check-circle-fill":"circle-check","x-circle-fill":"circle-x","slash-circle-fill":"ban","patch-check-fill":"rosette-discount-check","house-fill":"home","search":"search","three-dots":"dots","x-lg":"x","gear-fill":"settings","speedometer2":"gauge","download":"download","inbox":"inbox","clipboard":"clipboard","clipboard-check-fill":"clipboard-check","clipboard-data-fill":"clipboard-data","person-fill":"user","people-fill":"users","person-arms-up":"mood-happy","trophy-fill":"trophy","award-fill":"award","controller":"device-gamepad-2","dice-5-fill":"dice-5","bullseye":"target","crosshair":"crosshair","flag-fill":"flag","fire":"flame","snow":"snowflake","lightning-charge-fill":"bolt","sun-fill":"sun","moon-fill":"moon","water":"droplet-half-2","droplet":"droplet","droplet-fill":"droplet","hexagon-fill":"hexagon","diamond-half":"diamond","gem":"diamond","star-fill":"star","stars":"stars","heart-fill":"heart","shield-fill":"shield","shield-check":"shield-check","coin":"coin","bell-fill":"bell","bell-slash-fill":"bell-off","chat-fill":"message","megaphone-fill":"speakerphone","mic-fill":"microphone","broadcast-pin":"broadcast","calendar-event-fill":"calendar-event","calendar3":"calendar","calendar-check-fill":"calendar-check","bar-chart-line-fill":"chart-bar","graph-up-arrow":"trending-up","diagram-3-fill":"tournament","gift-fill":"gift","lock-fill":"lock","pin-fill":"pin","pencil-fill":"pencil","tag-fill":"tag","building":"building","tv-fill":"device-tv","pc-display":"device-desktop","mouse-fill":"mouse","headphones":"headphones","mortarboard-fill":"school","rocket-takeoff-fill":"rocket","journal-text":"notebook","question-circle-fill":"help-circle","eye-fill":"eye","emoji-dizzy":"mood-sad","pause-fill":"player-pause","archive-fill":"archive","arrow-up-circle-fill":"arrow-up-circle","twitter-x":"brand-x",};
+
 function BI({n,size,color,style}){
-  return React.createElement("i",{className:"bi bi-"+n,style:Object.assign({fontSize:size||"inherit",color:color||"currentColor",lineHeight:1,verticalAlign:"middle"},style||{})});
+  return React.createElement("i",{className:"ti ti-"+(ICON_REMAP[n]||n),style:Object.assign({fontSize:size||"inherit",color:color||"currentColor",lineHeight:1,verticalAlign:"middle"},style||{})});
 }
 
 function Panel({children,style,glow,accent,danger,color,hover,onClick,className}){
@@ -1871,7 +1873,7 @@ function ShareBar({text,url,toast}){
   }
   return(
     <div style={{display:"flex",gap:6,alignItems:"center"}}>
-      <button onClick={copyLink} title="Copy link" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:3}})}Copy</button>
+      <button onClick={copyLink} title="Copy link" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:3}})}Copy</button>
       <button onClick={shareX} title="Share on X" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>𝕏 Post</button>
       <button onClick={shareNative} title="Share" style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#9B72CF",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>↗ Share</button>
     </div>
@@ -1964,7 +1966,7 @@ function ClashRankBadge({xp,size,showProgress}){
 
           <Bar val={current} max={needed} color={rank.color} h={4}/>
 
-          <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>Next: {React.createElement("i",{className:"bi bi-"+next.icon,style:{fontSize:10,color:next.color}})} {next.name}</div>
+          <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>Next: {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[next.icon]||next.icon),style:{fontSize:10,color:next.color}})} {next.name}</div>
 
         </div>
 
@@ -2094,7 +2096,7 @@ function Toast({msg,type,onClose}){
 
       minWidth:260,maxWidth:360}}>
 
-      {type==="success"?React.createElement("i",{className:"bi bi-check-circle-fill",style:{fontSize:17,color:c}}):type==="error"?React.createElement("i",{className:"bi bi-x-circle-fill",style:{fontSize:17,color:c}}):React.createElement("i",{className:"bi bi-info-circle-fill",style:{fontSize:17,color:c}})}
+      {type==="success"?React.createElement("i",{className:"ti ti-circle-check",style:{fontSize:17,color:c}}):type==="error"?React.createElement("i",{className:"ti ti-circle-x",style:{fontSize:17,color:c}}):React.createElement("i",{className:"ti ti-info-circle",style:{fontSize:17,color:c}})}
 
       <span style={{flex:1,color:"#F2EDE4",fontSize:14,lineHeight:1.4}}>{msg}</span>
 
@@ -2300,7 +2302,7 @@ function ChampionHeroCard({champion,onClick}){
 
         <div style={{textAlign:"center",flexShrink:0}}>
 
-          <div style={{fontSize:22,animation:"crown-glow 3s ease 1",marginBottom:4}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>
+          <div style={{fontSize:22,animation:"crown-glow 3s ease 1",marginBottom:4}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
 
           <div style={{width:56,height:56,borderRadius:"50%",
 
@@ -2326,7 +2328,7 @@ function ChampionHeroCard({champion,onClick}){
 
           <div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap"}}>
 
-            <Tag color="#E8A838" size="sm">{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{c.title}</Tag>
+            <Tag color="#E8A838" size="sm">{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{c.title}</Tag>
 
             <Tag color="#4ECDC4" size="sm">{c.rank}</Tag>
 
@@ -2394,7 +2396,7 @@ function MilestoneCard({milestone,unlocked}){
 
         <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"4px 8px",fontSize:10,fontWeight:700,color:"#E8A838"}}>
 
-          {React.createElement("i",{className:"bi bi-gift-fill",style:{fontSize:12,marginRight:4}})}{milestone.reward}
+          {React.createElement("i",{className:"ti ti-gift",style:{fontSize:12,marginRight:4}})}{milestone.reward}
 
         </div>
 
@@ -2480,7 +2482,7 @@ function FileDisputeModal({targetPlayer,claimPlacement,onSubmit,onClose}){
 
         <div style={{marginTop:6}}>
 
-          <div className="cond" style={{fontSize:16,fontWeight:800,color:"#F87171",marginBottom:4,letterSpacing:".08em",textTransform:"uppercase"}}>{React.createElement("i",{className:"bi bi-flag-fill",style:{fontSize:14,marginRight:4}})}File Dispute</div>
+          <div className="cond" style={{fontSize:16,fontWeight:800,color:"#F87171",marginBottom:4,letterSpacing:".08em",textTransform:"uppercase"}}>{React.createElement("i",{className:"ti ti-flag",style:{fontSize:14,marginRight:4}})}File Dispute</div>
 
           <div style={{fontSize:13,color:"#C8D4E0",marginBottom:20}}>Flagging <span style={{color:"#F2EDE4",fontWeight:700}}>{targetPlayer}</span> - claimed <span style={{color:"#E8A838",fontWeight:800,fontFamily:"monospace"}}>#{claimPlacement}</span></div>
 
@@ -2522,7 +2524,7 @@ function DisputeBanner({disputes,onResolve,isAdmin}){
 
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
 
-        <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-exclamation-octagon-fill",style:{color:"#F87171"}})}</span>
+        <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-alert-octagon",style:{color:"#F87171"}})}</span>
 
         <div className="cond" style={{fontSize:14,fontWeight:800,color:"#FCA5A5",letterSpacing:".1em",textTransform:"uppercase"}}>LOCKED - {disputes.length} Dispute{disputes.length>1?"s":""}</div>
 
@@ -2772,7 +2774,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
           </div>
 
-          {locked?<Tag color="#52C47C">✓ Locked</Tag>:paused?<Tag color="#EAB308">{React.createElement("i",{className:"bi bi-pause-fill",style:{fontSize:11,marginRight:3}})}Paused</Tag>:<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20}}><Dot/><span className="cond" style={{fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Live</span></div>}
+          {locked?<Tag color="#52C47C">✓ Locked</Tag>:paused?<Tag color="#EAB308">{React.createElement("i",{className:"ti ti-player-pause",style:{fontSize:11,marginRight:3}})}Paused</Tag>:<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20}}><Dot/><span className="cond" style={{fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Live</span></div>}
 
         </div>
 
@@ -2834,7 +2836,7 @@ function NotificationBell({notifications,onMarkAllRead}){
 
         onMouseLeave={e=>e.currentTarget.style.color="#C8D4E0"}>
 
-        {React.createElement("i",{className:"bi bi-bell-fill",style:{fontSize:18,color:"#C8D4E0"}})}
+        {React.createElement("i",{className:"ti ti-bell",style:{fontSize:18,color:"#C8D4E0"}})}
 
         {unread>0&&(
 
@@ -3458,9 +3460,9 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
                   {p.plan==="host"&&<span style={{fontSize:9,fontWeight:800,color:"#9B72CF",background:"rgba(155,114,207,.15)",padding:"1px 5px",borderRadius:4,flexShrink:0,letterSpacing:".04em"}}>HOST</span>}
 
-                  {isHotStreak(p)&&<span title={"Win streak: "+(p.currentStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
+                  {isHotStreak(p)&&<span title={"Win streak: "+(p.currentStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
-                  {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>{React.createElement("i",{className:"bi bi-snow",style:{color:"#38BDF8"}})}</span>}
+                  {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>{React.createElement("i",{className:"ti ti-snowflake",style:{color:"#38BDF8"}})}</span>}
 
 
                 </div>
@@ -3789,7 +3791,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
         <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
 
-          <span style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"bi bi-megaphone-fill"})}</span>
+          <span style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"ti ti-speakerphone"})}</span>
 
           <span style={{color:"#E8A838",fontWeight:600,fontSize:14}}>{announcement}</span>
 
@@ -3885,7 +3887,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-check-circle-fill",style:{color:"#52C47C"}})}</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3933,7 +3935,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-clipboard"})}</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-clipboard"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3951,7 +3953,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-clipboard"})}</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-clipboard"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3971,7 +3973,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3994,7 +3996,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       {/* Live tournament banner  -  visible to everyone during inprogress */}
       {tPhase==="inprogress"&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
+          <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE  -  Game {tRound}/{tournamentState.totalGames||3}</div>
             <div style={{fontSize:12,color:"#C8D4E0"}}>{checkedInCount} players competing across {Math.ceil(checkedInCount/8)} lobbies</div>
@@ -4243,7 +4245,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
 
-                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-lock-fill"})}</div>
+                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-lock"})}</div>
 
                   <div>
 
@@ -4277,7 +4279,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
 
-                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
+                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
 
                   <div>
 
@@ -4303,7 +4305,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               <div style={{background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
 
-                <div style={{fontSize:24,marginBottom:8}}>{React.createElement("i",{className:"bi bi-check-circle-fill",style:{color:"#52C47C"}})}</div>
+                <div style={{fontSize:24,marginBottom:8}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</div>
 
                 <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:4}}>You're registered!</div>
 
@@ -4353,7 +4355,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
 
-                <div style={{fontSize:20,marginBottom:8}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
+                <div style={{fontSize:20,marginBottom:8}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
 
                 <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Profile not linked to roster</div>
 
@@ -4430,7 +4432,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       {/* Guest sign-in nudge - after grid for visitors */}
       {!currentUser&&(
         <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginTop:16,marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div>{React.createElement("i",{className:"bi bi-person-fill",style:{fontSize:22}})}</div>
+          <div>{React.createElement("i",{className:"ti ti-user",style:{fontSize:22}})}</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
             <div style={{fontSize:12,color:"#C8D4E0"}}>Public profile URL - Career stats - Match history - Bio & social links</div>
@@ -4538,7 +4540,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       <div style={{background:"linear-gradient(90deg,rgba(88,101,242,.1),rgba(88,101,242,.05))",border:"1px solid rgba(88,101,242,.3)",borderRadius:12,padding:"14px 18px",marginTop:14,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-        <div style={{flexShrink:0}}>{React.createElement("i",{className:"bi bi-chat-fill",style:{fontSize:24}})}</div>
+        <div style={{flexShrink:0}}>{React.createElement("i",{className:"ti ti-message",style:{fontSize:24}})}</div>
 
         <div style={{flex:1,minWidth:0}}>
 
@@ -4760,7 +4762,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                   <div style={{position:"relative",flexShrink:0}}>
 
-                    {homie&&<div style={{position:"absolute",top:-4,right:-4,fontSize:12}}>{React.createElement("i",{className:"bi bi-heart-fill",style:{color:"#9B72CF"}})}</div>}
+                    {homie&&<div style={{position:"absolute",top:-4,right:-4,fontSize:12}}>{React.createElement("i",{className:"ti ti-heart",style:{color:"#9B72CF"}})}</div>}
 
                   </div>
 
@@ -4770,7 +4772,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                       <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
 
-                      {isHotStreak(p)&&<span style={{fontSize:12}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
+                      {isHotStreak(p)&&<span style={{fontSize:12}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
                     </div>
 
@@ -4866,7 +4868,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
         <div style={{textAlign:"center",padding:"60px 20px"}}>
 
-          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"bi bi-search"})}</div>
+          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"ti ti-search"})}</div>
 
           <div style={{color:"#BECBD9",fontSize:15}}>No players match your search.</div>
 
@@ -4916,7 +4918,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
       <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
 
-        <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</span> Live Standings  -  Game {round}/{totalGames}
+        <span style={{fontSize:16}}>{React.createElement("i",{className:"ti ti-chart-bar"})}</span> Live Standings  -  Game {round}/{totalGames}
 
         <span style={{fontSize:11,color:"#BECBD9",fontWeight:400,marginLeft:4}}>({lockedCount} of {lobbies.length} {lobbies.length===1?"lobby":"lobbies"} locked)</span>
 
@@ -5409,7 +5411,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1003,padding:16}}>
           <Panel glow style={{width:"100%",maxWidth:420,padding:"28px"}}>
             <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontSize:48,marginBottom:12}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div>
+              <div style={{fontSize:48,marginBottom:12}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
               <h3 style={{color:"#F2EDE4",fontSize:20,marginBottom:8}}>Finalize This Clash?</h3>
               <p style={{color:"#BECBD9",fontSize:14,lineHeight:1.5,marginBottom:4}}>This will end the tournament and post final results. All {checkedIn.length} players will receive their season points.</p>
               <p style={{color:"#E8A838",fontSize:12,fontWeight:600}}>This action cannot be undone.</p>
@@ -5461,7 +5463,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
       {allLocked&&checkedIn.length>0&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
-          <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-check-circle-fill",style:{color:"#52C47C"}})}</span>
+          <span style={{fontSize:16}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</span>
           <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked  -  {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
           {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)&&(
             <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
@@ -5501,7 +5503,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
           <Panel style={{padding:"14px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
 
-            <span style={{fontSize:13,color:"#C8D4E0",flexShrink:0}}>{React.createElement("i",{className:"bi bi-search",style:{fontSize:13,marginRight:4}})}Find your lobby:</span>
+            <span style={{fontSize:13,color:"#C8D4E0",flexShrink:0}}>{React.createElement("i",{className:"ti ti-search",style:{fontSize:13,marginRight:4}})}Find your lobby:</span>
 
             <Inp value={mySearch} onChange={setMySearch} placeholder="Your name or Riot ID" onKeyDown={e=>e.key==="Enter"&&findMyLobby()}/>
 
@@ -5527,7 +5529,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.4)",borderRadius:10,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
 
-              <span style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</span>
+              <span style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-trophy"})}</span>
 
               <div>
 
@@ -5665,9 +5667,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                               <span style={{fontWeight:isMe?700:600,fontSize:13,color:isMe?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
 
-                              {homie&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-heart-fill",style:{color:"#9B72CF"}})}</span>}
+                              {homie&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-heart",style:{color:"#9B72CF"}})}</span>}
 
-                              {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
+                              {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
                             </div>
 
@@ -5787,7 +5789,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Panel style={{padding:"24px",marginTop:24,textAlign:"center"}}>
 
-              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div>
+              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
 
               <h3 style={{color:"#E8A838",fontSize:20,marginBottom:8}}>Grand Finals</h3>
 
@@ -5981,12 +5983,12 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
         <Btn v="dark" s="sm" onClick={onBack}>← Back</Btn>
 
-        {setScreen&&<Btn v="ghost" s="sm" onClick={()=>setScreen("recap")}>{React.createElement("i",{className:"bi bi-calendar3",style:{fontSize:12,marginRight:4}})}Season Recap</Btn>}
+        {setScreen&&<Btn v="ghost" s="sm" onClick={()=>setScreen("recap")}>{React.createElement("i",{className:"ti ti-calendar",style:{fontSize:12,marginRight:4}})}Season Recap</Btn>}
 
-        {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Challenges</Btn>}
+        {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Challenges</Btn>}
 
-        <Btn v="teal" s="sm" onClick={downloadStatsCard}>{React.createElement("i",{className:"bi bi-download",style:{fontSize:12,marginRight:4}})}Download Card</Btn>
-        <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:4}})}Copy</Btn>
+        <Btn v="teal" s="sm" onClick={downloadStatsCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:4}})}Download Card</Btn>
+        <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
 
 
 
@@ -6000,7 +6002,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
         <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))",border:"1px solid rgba(232,168,56,.5)",borderRadius:10,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",gap:12,boxShadow:"0 0 0 0 rgba(232,168,56,.2)"}}>
 
-          <span style={{fontSize:22,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</span>
+          <span style={{fontSize:22,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</span>
 
           <div style={{flex:1}}>
 
@@ -6039,7 +6041,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:pPic?0:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
 
-            {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</span>}
+            {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</span>}
 
             {!pPic&&player.name.charAt(0)}
 
@@ -6051,11 +6053,11 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <h1 style={{fontSize:"clamp(20px,4vw,34px)",color:"#F2EDE4",lineHeight:1}}>{player.name}</h1>
 
-              {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{SEASON_CHAMPION.title}</Tag>}
+              {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{SEASON_CHAMPION.title}</Tag>}
 
-              {isHotStreak(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
+              {isHotStreak(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
-              {isOnTilt(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-emoji-dizzy",style:{color:"#F87171"}})}</span>}
+              {isOnTilt(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-mood-sad",style:{color:"#F87171"}})}</span>}
 
             </div>
 
@@ -6158,9 +6160,9 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
 
-                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})} Hot Streak  -  {player.currentStreak} wins in a row</div>}
+                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})} Hot Streak  -  {player.currentStreak} wins in a row</div>}
 
-                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>{React.createElement("i",{className:"bi bi-snow",style:{color:"#38BDF8"}})} Cold Streak  -  {player.tiltStreak} losses</div>}
+                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>{React.createElement("i",{className:"ti ti-snowflake",style:{color:"#38BDF8"}})} Cold Streak  -  {player.tiltStreak} losses</div>}
 
               </div>
 
@@ -6228,7 +6230,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <div style={{marginTop:12,display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,background:"rgba(234,179,8,.08)",border:"1px solid rgba(234,179,8,.3)"}}>
 
-                <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</span>
+                <span style={{fontSize:16}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</span>
 
                 <span style={{fontSize:13,color:"#EAB308",fontWeight:700}}>Best Streak: {player.bestStreak}</span>
 
@@ -6424,7 +6426,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                       <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:2}}>
 
-                        {g.claimedClutch&&<Tag color="#9B72CF" size="sm">{React.createElement("i",{className:"bi bi-bullseye",style:{fontSize:10,marginRight:3}})}Clutch</Tag>}
+                        {g.claimedClutch&&<Tag color="#9B72CF" size="sm">{React.createElement("i",{className:"ti ti-target",style:{fontSize:10,marginRight:3}})}Clutch</Tag>}
 
                         {isDropped&&<Tag color="#BECBD9" size="sm">Dropped</Tag>}
 
@@ -6482,7 +6484,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
             <div style={{textAlign:"center",padding:"40px 20px",background:"linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95))",borderRadius:12,border:"1px solid rgba(242,237,228,.09)",color:"#9AAABF"}}>
 
-              <div style={{marginBottom:10}}>{React.createElement("i",{className:"bi bi-diagram-3-fill",style:{fontSize:32}})}</div>
+              <div style={{marginBottom:10}}>{React.createElement("i",{className:"ti ti-tournament",style:{fontSize:32}})}</div>
 
               <div style={{fontSize:14,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>No H2H data yet</div>
 
@@ -6775,7 +6777,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       {tab==="season"&&sorted.length>0&&<MemoStandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
 
-      {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
+      {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-trophy"})}</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
 
 
 
@@ -6803,7 +6805,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                       {p.plan==="pro"&&<span style={{fontSize:9,fontWeight:800,color:"#E8A838",background:"rgba(232,168,56,.15)",padding:"1px 4px",borderRadius:4,marginLeft:2}}>PRO</span>}
 
-                      {isHotStreak(p)&&React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}{isOnTilt(p)&&React.createElement("i",{className:"bi bi-emoji-dizzy",style:{color:"#F87171"}})}
+                      {isHotStreak(p)&&React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}{isOnTilt(p)&&React.createElement("i",{className:"ti ti-mood-sad",style:{color:"#F87171"}})}
 
                     </div>
 
@@ -6951,7 +6953,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                 </div>
 
-                <span className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{p.bestStreak||0}{React.createElement("i",{className:"bi bi-fire",style:{fontSize:12,color:"#F97316",marginLeft:2}})}</span>
+                <span className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{p.bestStreak||0}{React.createElement("i",{className:"ti ti-flame",style:{fontSize:12,color:"#F97316",marginLeft:2}})}</span>
 
                 <span className="mono" style={{fontSize:13,color:p.currentStreak>=3?"#6EE7B7":p.tiltStreak>=3?"#F87171":"#C8BFB0"}}>
 
@@ -7071,7 +7073,7 @@ function ClashReport({clashData,players}){
 
                       <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</span>
 
-                      {p.name===mostImproved&&<Tag color="#52C47C" size="sm">{React.createElement("i",{className:"bi bi-graph-up-arrow",style:{marginRight:3}})}Improved</Tag>}
+                      {p.name===mostImproved&&<Tag color="#52C47C" size="sm">{React.createElement("i",{className:"ti ti-trending-up",style:{marginRight:3}})}Improved</Tag>}
 
                     </div>
 
@@ -7123,7 +7125,7 @@ function ClashReport({clashData,players}){
 
             <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-              <span style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-graph-up-arrow"})}</span>
+              <span style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-trending-up"})}</span>
 
               <div><div style={{fontWeight:700,fontSize:14,color:"#6EE7B7"}}>Most Improved</div>
 
@@ -7143,7 +7145,7 @@ function ClashReport({clashData,players}){
 
             <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-              <span style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-bullseye"})}</span>
+              <span style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-target"})}</span>
 
               <div><div style={{fontWeight:700,fontSize:14,color:"#C4B5FD"}}>Biggest Upset</div>
 
@@ -7321,14 +7323,14 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <Btn v="dark" s="sm" onClick={shareDiscord}>Discord</Btn>
 
-          <Btn v="ghost" s="sm" onClick={downloadCard}>{React.createElement("i",{className:"bi bi-download",style:{fontSize:12,marginRight:3}})}PNG</Btn>
+          <Btn v="ghost" s="sm" onClick={downloadCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:3}})}PNG</Btn>
 
           <Btn v="dark" s="sm" onClick={function(){
             var text="TFT Clash Results\n"+CLASH_NAME+" \u2014 "+CLASH_DATE+"\n\n";
             sorted.slice(0,8).forEach(function(p,i){text+=(i+1)+". "+p.name+" \u2014 "+p.pts+"pts (avg: "+getStats(p).avgPlacement+")\n";});
             text+="\n#TFTClash tftclash.gg";
             navigator.clipboard.writeText(text).then(function(){toast("Results copied!","success");}).catch(function(){toast("Copy failed","error");});
-          }}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:4}})}Copy</Btn>
+          }}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
 
         </div>
 
@@ -7346,13 +7348,13 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
         <div style={{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.06))",border:"2px solid rgba(232,168,56,.7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,flexShrink:0,boxShadow:"0 0 24px rgba(232,168,56,.35)"}}>
 
-          {React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:40,color:"#E8A838"}})}
+          {React.createElement("i",{className:"ti ti-trophy",style:{fontSize:40,color:"#E8A838"}})}
 
         </div>
 
         <div style={{flex:1,minWidth:0}}>
 
-          <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:11,color:"#E8A838",marginRight:3}})}Clash Champion</div>
+          <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:11,color:"#E8A838",marginRight:3}})}Clash Champion</div>
 
           <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(26px,4vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1,marginBottom:6}}>{champ.name}</div>
 
@@ -7362,7 +7364,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
             <Tag color="#4ECDC4" size="sm">{champ.region}</Tag>
 
-            {isHotStreak(champ)&&<Tag color="#F97316" size="sm">{React.createElement("i",{className:"bi bi-fire",style:{fontSize:11,color:"#F97316",marginRight:3}})}{champ.currentStreak}-streak</Tag>}
+            {isHotStreak(champ)&&<Tag color="#F97316" size="sm">{React.createElement("i",{className:"ti ti-flame",style:{fontSize:11,color:"#F97316",marginRight:3}})}{champ.currentStreak}-streak</Tag>}
 
           </div>
 
@@ -7510,9 +7512,9 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                       {p.name}
 
-                      {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-heart-fill",style:{color:"#9B72CF"}})}</span>}
+                      {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-heart",style:{color:"#9B72CF"}})}</span>}
 
-                      {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
+                      {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
                     </div>
 
@@ -7572,7 +7574,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <div style={{marginTop:16,padding:"16px 20px",background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-            <span style={{fontSize:24}}>{React.createElement("i",{className:"bi bi-gift-fill"})}</span>
+            <span style={{fontSize:24}}>{React.createElement("i",{className:"ti ti-gift"})}</span>
 
             <div style={{flex:1}}>
 
@@ -7765,7 +7767,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
             <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
 
-              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>
+              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
 
               <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Russo One',sans-serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
 
@@ -7913,7 +7915,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
           <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(155,114,207,.04))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
 
-            <div style={{fontSize:36,marginBottom:10}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>
+            <div style={{fontSize:36,marginBottom:10}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
 
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:17,fontWeight:700,color:"#E8A838",marginBottom:6}}>A champion yet to be crowned</div>
 
@@ -7959,7 +7961,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
                 </div>
 
-                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:"inherit",color:"#E8A838"}}):React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:"inherit"}})}</div>
+                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?React.createElement("i",{className:"ti ti-trophy",style:{fontSize:"inherit",color:"#E8A838"}}):React.createElement("i",{className:"ti ti-trophy",style:{fontSize:"inherit"}})}</div>
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,18px)",fontWeight:700,color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
 
@@ -7995,7 +7997,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
         {hofRecs.length===0&&(
           <div style={{textAlign:"center",padding:"64px 24px",color:"#6B7280"}}>
-            <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div>
+            <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#9AAABF",marginBottom:8}}>Hall of Fame loading...</div>
             <div style={{fontSize:14,lineHeight:1.6}}>Season champions will be enshrined here.</div>
           </div>
@@ -8177,7 +8179,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
         <div style={{textAlign:"center",padding:"60px 20px",color:"#9AAABF"}}>
 
-          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"bi bi-inbox"})}</div>
+          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"ti ti-inbox"})}</div>
 
           <div style={{fontSize:16,fontWeight:700,color:"#C8D4E0",marginBottom:6}}>No clashes archived yet</div>
 
@@ -8213,7 +8215,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
 
-                  <span style={{fontSize:14}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</span><span style={{fontWeight:700,color:"#E8A838",fontSize:13}}>{c.champion}</span>
+                  <span style={{fontSize:14}}>{React.createElement("i",{className:"ti ti-trophy"})}</span><span style={{fontWeight:700,color:"#E8A838",fontSize:13}}>{c.champion}</span>
 
                   <span style={{color:"#BECBD9",fontSize:14,marginLeft:6}}>{open===c.id?"▲":"▼"}</span>
 
@@ -8253,9 +8255,9 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
                     <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
 
-                      {c.report.mostImproved&&<div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#4ECDC4",fontWeight:700}}>{React.createElement("i",{className:"bi bi-graph-up-arrow",style:{marginRight:3}})}Most Improved:</span> <span style={{color:"#F2EDE4"}}>{c.report.mostImproved}</span></div>}
+                      {c.report.mostImproved&&<div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#4ECDC4",fontWeight:700}}>{React.createElement("i",{className:"ti ti-trending-up",style:{marginRight:3}})}Most Improved:</span> <span style={{color:"#F2EDE4"}}>{c.report.mostImproved}</span></div>}
 
-                      {c.report.biggestUpset&&<div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#F87171",fontWeight:700}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Upset:</span> <span style={{color:"#F2EDE4"}}>{c.report.biggestUpset}</span></div>}
+                      {c.report.biggestUpset&&<div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#F87171",fontWeight:700}}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Upset:</span> <span style={{color:"#F2EDE4"}}>{c.report.biggestUpset}</span></div>}
 
                     </div>
 
@@ -8653,7 +8655,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
 
-        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"bi bi-hexagon-fill",style:{fontSize:22}})}</div>
+        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-hexagon",style:{fontSize:22}})}</div>
 
         <div style={{flex:1,minWidth:0}}>
 
@@ -8709,7 +8711,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{padding:"9px 14px",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:8,marginBottom:18,fontSize:12,color:"#9AAABF",lineHeight:1.5}}>
 
-        {React.createElement("i",{className:"bi bi-info-circle-fill",style:{color:"#C4B5FD",marginRight:6}})}{TAB_INFO[tab]||""}
+        {React.createElement("i",{className:"ti ti-info-circle",style:{color:"#C4B5FD",marginRight:6}})}{TAB_INFO[tab]||""}
 
       </div>
 
@@ -8761,9 +8763,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"▶ Resume":"⏸ Pause"}</Btn>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"bi bi-megaphone-fill",style:{marginRight:3}})}Broadcast</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"ti ti-speakerphone",style:{marginRight:3}})}Broadcast</Btn>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Round Controls</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Round Controls</Btn>
 
             </div>
 
@@ -8931,7 +8933,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       <div style={{fontSize:12,color:"#BECBD9"}}>{p.riotId} · {p.rank} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span> · {p.games||0}G</div>
 
-                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>{React.createElement("i",{className:"bi bi-pin-fill",style:{fontSize:11,marginRight:3}})}{p.notes}</div>}
+                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>{React.createElement("i",{className:"ti ti-pin",style:{fontSize:11,marginRight:3}})}{p.notes}</div>}
 
                     </div>
 
@@ -8939,7 +8941,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       <Btn s="sm" v="dark" onClick={()=>setEditP(p)}>Edit</Btn>
 
-                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">{React.createElement("i",{className:"bi bi-pin-fill",style:{fontSize:12}})}</Btn>
+                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">{React.createElement("i",{className:"ti ti-pin",style:{fontSize:12}})}</Btn>
 
                       {!p.banned&&<Btn s="sm" v="warning" onClick={()=>markDNP(p.id,p.name)} title="Mark no-show (2 DNPs = DQ)">DNP</Btn>}
 
@@ -8947,7 +8949,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       {p.banned?<Btn s="sm" v="success" onClick={()=>unban(p.id,p.name)}>Unban</Btn>:<Btn s="sm" v="danger" onClick={()=>ban(p.id,p.name)}>Ban</Btn>}
 
-                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">{React.createElement("i",{className:"bi bi-x-lg",style:{fontSize:12}})}</Btn>
+                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">{React.createElement("i",{className:"ti ti-x",style:{fontSize:12}})}</Btn>
 
                     </div>
 
@@ -9139,7 +9141,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               borderRadius:8}}>
 
-              <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-x-circle-fill",style:{color:"#F87171"}})}</span>
+              <span style={{fontSize:16}}>{React.createElement("i",{className:"ti ti-circle-x",style:{color:"#F87171"}})}</span>
 
               <span style={{fontSize:13,fontWeight:seedAlgo==="anti-stack"?700:500,color:seedAlgo==="anti-stack"?"#F87171":"#C8BFB0",flex:1}}>Anti-Stack</span>
 
@@ -9231,7 +9233,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
 
-                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{React.createElement("i",{className:"bi bi-dice-5-fill"})}</div>
+                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{React.createElement("i",{className:"ti ti-dice-5"})}</div>
 
                 <div>
 
@@ -9273,7 +9275,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Panel style={{padding:"36px",textAlign:"center"}}>
 
-                <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
+                <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
 
                 <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes active</div>
 
@@ -9545,7 +9547,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
 
-              <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-calendar-event-fill"})}</span>
+              <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-calendar-event"})}</span>
 
               <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Season Lifecycle</div>
 
@@ -9600,7 +9602,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
 
-                <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</span>
+                <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</span>
 
                 <div style={{fontWeight:700,fontSize:14,color:"#F87171"}}>Danger Zone</div>
 
@@ -9710,7 +9712,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             </div>
 
-            <button onClick={()=>setScreen("featured")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:12,marginRight:4}})}Featured Events</button>
+            <button onClick={()=>setScreen("featured")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,marginRight:4}})}Featured Events</button>
 
           </div>
 
@@ -10141,7 +10143,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
               return(
                 <div key={ev.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,marginBottom:6}}>
-                  <div style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
+                  <div style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
                     <div style={{fontSize:11,color:"#BECBD9"}}>{ev.date?new Date(ev.date).toLocaleDateString():"TBD"} · <span style={{color:phaseColors[ev.phase]||"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{(ev.phase||"draft").replace("_"," ")}</span></div>
@@ -11460,7 +11462,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
       <div style={{textAlign:"center",padding:"80px 20px",maxWidth:560,margin:"0 auto"}}>
 
         <div style={{width:80,height:80,margin:"0 auto 24px",background:"rgba(232,168,56,.08)",border:"2px solid rgba(232,168,56,.25)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
-          {React.createElement("i",{className:"bi bi-stars",style:{fontSize:36,color:"#E8A838"}})}
+          {React.createElement("i",{className:"ti ti-stars",style:{fontSize:36,color:"#E8A838"}})}
         </div>
 
         <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Coming Soon</div>
@@ -11677,7 +11679,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
             {filteredAch.length===0&&(
               <div style={{gridColumn:"1/-1",textAlign:"center",padding:"40px 20px"}}>
-                <div style={{marginBottom:12}}>{React.createElement("i",{className:"bi bi-award-fill",style:{fontSize:32}})}</div>
+                <div style={{marginBottom:12}}>{React.createElement("i",{className:"ti ti-award",style:{fontSize:32}})}</div>
                 <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>No achievements match this filter</div>
                 <div style={{fontSize:12,color:"#9AAABF"}}>Try selecting a different tier or category.</div>
               </div>
@@ -11837,7 +11839,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                     <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"4px 10px"}}>
 
-                      <span style={{fontSize:11}}>{React.createElement("i",{className:"bi bi-gift-fill"})}</span>
+                      <span style={{fontSize:11}}>{React.createElement("i",{className:"ti ti-gift"})}</span>
 
                       <span style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{m.reward}</span>
 
@@ -12205,7 +12207,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
         var done=dailyChallenges.concat(weeklyChallenges).filter(function(c){return c.progress>=c.goal;});
         return(
         <div style={{textAlign:"center",padding:"48px 20px",color:"#BECBD9"}}>
-          <div style={{marginBottom:12}}>{React.createElement("i",{className:"bi bi-patch-check-fill",style:{fontSize:36}})}</div>
+          <div style={{marginBottom:12}}>{React.createElement("i",{className:"ti ti-rosette-discount-check",style:{fontSize:36}})}</div>
           <div style={{fontSize:15,fontWeight:600,color:"#F2EDE4",marginBottom:6}}>{done.length} challenge{done.length!==1?"s":""} completed</div>
           {done.length>0&&<div style={{display:"flex",flexDirection:"column",gap:6,marginTop:16,textAlign:"left",maxWidth:360,margin:"16px auto 0"}}>
             {done.map(function(c){return(
@@ -12975,7 +12977,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
       {!riotIdSet&&(
         <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</span>
+          <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</span>
           <div>
             <div style={{color:"#E8A838",fontWeight:600,fontSize:13}}>Set your Riot ID to join tournaments</div>
             <div style={{color:"#BECBD9",fontSize:12}}>You need a Riot ID to register for flash tournaments.</div>
@@ -13047,7 +13049,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               {linkedPlayer&&<ClashRankBadge rank={linkedPlayer.rank}/>}
 
-              {linkedPlayer&&isHotStreak(linkedPlayer)&&<span style={{fontSize:14}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
+              {linkedPlayer&&isHotStreak(linkedPlayer)&&<span style={{fontSize:14}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
             </div>
 
@@ -13069,7 +13071,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
               )}
               {(isAdmin||(hostApps||[]).some(function(a){return a.status==="approved"&&(a.name===user.username||a.email===user.email);}))&&(
                 <button onClick={()=>setScreen("host-dashboard")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>
-                  {React.createElement("i",{className:"bi bi-controller",style:{marginRight:4}})}Host Dashboard →
+                  {React.createElement("i",{className:"ti ti-device-gamepad-2",style:{marginRight:4}})}Host Dashboard →
                 </button>
               )}
             </div>
@@ -13090,9 +13092,9 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}}>
 
-                {user.twitch&&<a href={"https://twitch.tv/"+user.twitch} target="_blank" style={{fontSize:11,color:"#9147FF",background:"rgba(145,71,255,.1)",border:"1px solid rgba(145,71,255,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"bi bi-tv-fill",style:{fontSize:10,marginRight:3}})}{user.twitch}</a>}
+                {user.twitch&&<a href={"https://twitch.tv/"+user.twitch} target="_blank" style={{fontSize:11,color:"#9147FF",background:"rgba(145,71,255,.1)",border:"1px solid rgba(145,71,255,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"ti ti-device-tv",style:{fontSize:10,marginRight:3}})}{user.twitch}</a>}
 
-                {user.twitter&&<a href={"https://twitter.com/"+user.twitter} target="_blank" style={{fontSize:11,color:"#1DA1F2",background:"rgba(29,161,242,.1)",border:"1px solid rgba(29,161,242,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"bi bi-twitter-x",style:{fontSize:10,marginRight:3}})}{user.twitter}</a>}
+                {user.twitter&&<a href={"https://twitter.com/"+user.twitter} target="_blank" style={{fontSize:11,color:"#1DA1F2",background:"rgba(29,161,242,.1)",border:"1px solid rgba(29,161,242,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"ti ti-brand-x",style:{fontSize:10,marginRight:3}})}{user.twitter}</a>}
 
               </div>
 
@@ -13158,7 +13160,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                 <h3 style={{color:"#F2EDE4",fontSize:15,margin:0}}>Profile Details</h3>
 
-                <Btn v="dark" s="sm" onClick={()=>setEdit(true)}>{React.createElement("i",{className:"bi bi-pencil-fill",style:{fontSize:11,marginRight:3}})}Edit</Btn>
+                <Btn v="dark" s="sm" onClick={()=>setEdit(true)}>{React.createElement("i",{className:"ti ti-pencil",style:{fontSize:11,marginRight:3}})}Edit</Btn>
 
               </div>
 
@@ -13578,7 +13580,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
             <div style={{textAlign:"center",padding:"48px 20px"}}>
 
-              <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</div>
+              <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"ti ti-chart-bar"})}</div>
 
               <div style={{color:"#BECBD9",fontSize:14}}>No stats linked to your account yet.</div>
 
@@ -13710,7 +13712,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                     {(g.place||g.placement)===1?"Victory":(g.place||g.placement)<=4?"Top 4 Finish":"Outside Top 4"}
 
-                    {g.clutch&&<span style={{marginLeft:6,fontSize:11,color:"#9B72CF",fontWeight:700}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Clutch</span>}
+                    {g.clutch&&<span style={{marginLeft:6,fontSize:11,color:"#9B72CF",fontWeight:700}}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Clutch</span>}
 
                   </div>
 
@@ -14020,7 +14022,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
       <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
 
-        <Btn v="primary" s="lg" onClick={downloadRecap}>{React.createElement("i",{className:"bi bi-download",style:{fontSize:14,marginRight:4}})}Download PNG</Btn>
+        <Btn v="primary" s="lg" onClick={downloadRecap}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:14,marginRight:4}})}Download PNG</Btn>
 
         <Btn v="dark" onClick={shareTwitter}>𝕏 Copy for Twitter</Btn>
 
@@ -14118,7 +14120,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
 
-        <div>{React.createElement("i",{className:"bi bi-mic-fill",style:{fontSize:22}})}</div>
+        <div>{React.createElement("i",{className:"ti ti-microphone",style:{fontSize:22}})}</div>
 
         <div style={{flex:1}}>
 
@@ -14154,7 +14156,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 
           <div style={{marginTop:10,display:"flex",gap:8}}>
 
-            <Btn v="purple" s="sm" onClick={()=>navigator.clipboard?.writeText(commentary).then(()=>toast("Commentary copied!","success"))}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:4}})}Copy</Btn>
+            <Btn v="purple" s="sm" onClick={()=>navigator.clipboard?.writeText(commentary).then(()=>toast("Commentary copied!","success"))}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
 
           </div>
 
@@ -14228,7 +14230,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
     <div className="page wrap" style={{maxWidth:560,margin:"0 auto",textAlign:"center",paddingTop:60}}>
 
-      <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
+      <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
 
       <h2 style={{color:"#F2EDE4",marginBottom:10}}>Application Submitted!</h2>
 
@@ -14252,7 +14254,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
       <div style={{marginBottom:28}}>
 
-        <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
+        <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
 
         <h2 style={{color:"#F2EDE4",fontSize:22,marginBottom:8}}>Apply to Host</h2>
 
@@ -14482,7 +14484,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
             <span style={{fontSize:24}}>{brandLogo}</span>
             <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>{brandName}</h2>
-            <Tag color="#9B72CF">{React.createElement("i",{className:"bi bi-controller"})} Host</Tag>
+            <Tag color="#9B72CF">{React.createElement("i",{className:"ti ti-device-gamepad-2"})} Host</Tag>
             {liveTournaments.length>0&&(
               <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#6EE7B7"}}>
                 <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE
@@ -14534,7 +14536,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           </div>
           {tEntryFee&&(
             <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#E8A838"}}>
-              {React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})} Entry fee tournaments require admin approval before going live.
+              {React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})} Entry fee tournaments require admin approval before going live.
             </div>
           )}
           <Btn v="primary" onClick={createTournament}>Create Tournament</Btn>
@@ -14617,7 +14619,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                     <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{"calendar-event-fill"} {t.date} {"·"} {"people-fill"} {t.registered}/{t.size} registered</div>
                     <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
                     <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{t.size-t.registered} spots remaining</div>
-                    {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{React.createElement("i",{className:"bi bi-clipboard"})} {t.rules}</div>}
+                    {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{React.createElement("i",{className:"ti ti-clipboard"})} {t.rules}</div>}
                   </div>
                   <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
                     {t.status==="upcoming"&&<Btn v="ghost" s="sm" onClick={function(){updateTournamentAndFeatured(t.id,{status:"live"});toast("Check-in opened! Tournament is now LIVE","success");}}>{"Open Check-In"}</Btn>}
@@ -14633,7 +14635,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           })}
           {tournaments.length===0&&(
             <div style={{textAlign:"center",padding:"48px",color:"#BECBD9"}}>
-              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
+              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
               <div style={{fontSize:14}}>No tournaments yet. Create your first one above.</div>
             </div>
           )}
@@ -15247,7 +15249,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
 
       {!loading&&tournaments.length===0&&(
         <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-          <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
+          <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
           <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No Tournaments Yet</div>
           <div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Flash tournaments will appear here when admins create them.</div>
         </Panel>
@@ -15828,7 +15830,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   if(!tournament){
     return(
       <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
-        <div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
+        <div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
         <h2 style={{color:"#F2EDE4",marginBottom:10}}>Tournament Not Found</h2>
         <p style={{color:"#BECBD9"}}>This tournament may have been removed.</p>
         <Btn v="primary" onClick={function(){setScreen("tournaments");}}>Back to Tournaments</Btn>
@@ -16299,7 +16301,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                   var displayOrder=orderMap[rankIdx];
                   return(
                     <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,order:displayOrder,flex:isFirst?"0 0 160px":"0 0 130px",background:cardBgs[rankIdx],border:"1px solid "+cardBorders[rankIdx],borderRadius:14,padding:cardPaddings[rankIdx],minWidth:isFirst?140:110,maxWidth:isFirst?180:150}}>
-                      {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>}
+                      {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>}
                       {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{pos===2?"award-fill":"award-fill"}</div>}
                       <div style={{width:avatarSizes[rankIdx],height:avatarSizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"44,"+colors[rankIdx]+"11)",border:"2.5px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:isFirst?24:18,color:colors[rankIdx],boxShadow:isFirst?"0 0 18px "+colors[rankIdx]+"55":"none"}}>{"#"+pos}</div>
                       <div style={{fontWeight:700,fontSize:nameSizes[rankIdx],color:"#F2EDE4",textAlign:"center",marginTop:4,lineHeight:1.2}}>{entry.name}</div>
@@ -16315,7 +16317,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           {/* Standings table */}
           {standings.length===0?(
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-              <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</div>
+              <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-chart-bar"})}</div>
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
               <div style={{fontSize:13,color:"#9AAABF"}}>No results yet. Complete games to see standings.</div>
             </Panel>
@@ -16522,7 +16524,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
 
       {allEvents.length===0&&(
         <div style={{textAlign:"center",padding:"60px 20px"}}>
-          <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"bi bi-building"})}</div>
+          <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-building"})}</div>
           <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Featured Events Yet</h3>
           <p style={{color:"#BECBD9",fontSize:14,maxWidth:400,margin:"0 auto"}}>Featured tournaments and community events will appear here once they are created by event organizers.</p>
         </div>
@@ -16623,7 +16625,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
 
       {shown.length===0&&(
         <div style={{textAlign:"center",padding:"48px 24px",color:"#BECBD9",marginBottom:24}}>
-          <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"bi bi-calendar-event-fill"})}</div>
+          <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"ti ti-calendar-event"})}</div>
           <div style={{fontSize:14}}>No events matching this filter right now.</div>
         </div>
       )}
@@ -16647,7 +16649,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
                   {ev.champion&&(
                     <div style={{textAlign:"right",flexShrink:0}}>
                       <div style={{fontSize:10,color:"#BECBD9",marginBottom:2}}>Champion</div>
-                      <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:12,color:"#E8A838",marginRight:3}})}{ev.champion}</div>
+                      <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,color:"#E8A838",marginRight:3}})}{ev.champion}</div>
                     </div>
                   )}
                   <span style={{fontSize:12,color:"#9B72CF",flexShrink:0}}>{"→"}</span>
@@ -16659,7 +16661,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
       )}
 
       <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.05))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",textAlign:"center"}}>
-        <div style={{fontSize:28,marginBottom:10}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
+        <div style={{fontSize:28,marginBottom:10}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
         <h3 style={{color:"#F2EDE4",fontSize:18,fontWeight:700,marginBottom:8}}>Run Your Own Tournament</h3>
         <p style={{fontSize:13,color:"#BECBD9",lineHeight:1.7,marginBottom:20,maxWidth:420,margin:"0 auto 20px"}}>
           Get featured here. Create and manage TFT tournaments with our full host suite.
@@ -17033,7 +17035,7 @@ function ClashReminderBtn(props){
         border:"1px solid "+(enabled?"rgba(78,205,196,.4)":"rgba(155,114,207,.2)"),
         borderRadius:10,cursor:"pointer",color:enabled?"#5EEAD4":"#C4B5FD",fontSize:13,fontWeight:600,
         fontFamily:"'Chakra Petch',sans-serif",transition:"all .2s"}}>
-      {enabled?React.createElement("i",{className:"bi bi-bell-fill",style:{fontSize:16}}):React.createElement("i",{className:"bi bi-bell-slash-fill",style:{fontSize:16}})}
+      {enabled?React.createElement("i",{className:"ti ti-bell",style:{fontSize:16}}):React.createElement("i",{className:"ti ti-bell-off",style:{fontSize:16}})}
       {enabled?"Reminders On":"Enable Clash Reminders"}
     </button>
   );
@@ -17053,7 +17055,7 @@ function WeeklyRecapCard(props){
   return(
     <Panel style={{padding:20}}>
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-        <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</span>
+        <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-chart-bar"})}</span>
         <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>Weekly Recap</div>
         <Tag color="#9B72CF">This Week</Tag>
       </div>
@@ -18174,7 +18176,7 @@ function TFTClash(){
 
         {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
-        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"bi bi-lock-fill"})}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
+        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"ti ti-lock"})}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
 
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications}/>}
@@ -18185,7 +18187,7 @@ function TFTClash(){
 
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
 
-            <div style={{fontSize:38,marginBottom:14}}>{React.createElement("i",{className:"bi bi-lock-fill"})}</div>
+            <div style={{fontSize:38,marginBottom:14}}>{React.createElement("i",{className:"ti ti-lock"})}</div>
 
             <h2 style={{color:"#F2EDE4",marginBottom:8}}>Admin Required</h2>
 
