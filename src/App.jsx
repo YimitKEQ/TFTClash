@@ -16813,6 +16813,7 @@ function RulesScreen({setScreen}){
 
 function FAQScreen({setScreen}){
   var [open,setOpen]=useState(null);
+  var [faqSearch,setFaqSearch]=useState("");
 
   var faqs=[
     {q:"How do I join a clash?",a:"Go to the Home screen and click Register. You need a free account with a Riot ID. Once registered, check in when the check-in window opens (usually 60 min before start) to confirm your spot."},
@@ -16831,6 +16832,9 @@ function FAQScreen({setScreen}){
     {q:"What happens if I disconnect?",a:"Disconnects count as 8th place unless the lobby unanimously agrees to a remake. Make sure your connection is stable before joining."}
   ];
 
+  var faqQ=faqSearch.trim().toLowerCase();
+  var faqFiltered=faqQ?faqs.filter(function(faq){return faq.q.toLowerCase().indexOf(faqQ)!==-1||faq.a.toLowerCase().indexOf(faqQ)!==-1;}):faqs;
+
   return(
     <div className="page wrap">
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
@@ -16838,12 +16842,21 @@ function FAQScreen({setScreen}){
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Frequently Asked Questions</h2>
       </div>
 
+      <input
+        type="text"
+        placeholder="Search FAQ..."
+        value={faqSearch}
+        onChange={function(e){setFaqSearch(e.target.value);setOpen(null);}}
+        style={{width:"100%",padding:"10px 14px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:10,color:"#F2EDE4",fontSize:14,marginBottom:16,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}
+      />
+
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {faqs.map(function(faq,i){
-          var isOpen=open===i;
+        {faqFiltered.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"32px 16px",color:"#8896A8",fontSize:14}},"No results found for \""+faqSearch+"\". Try a different search term.")}
+        {faqFiltered.map(function(faq){
+          var isOpen=open===faq.q;
           return(
-            <div key={i} style={{background:isOpen?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.25)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .2s"}}>
-              <button onClick={function(){setOpen(isOpen?null:i);}} style={{width:"100%",padding:"16px 18px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,textAlign:"left"}}>
+            <div key={faq.q} style={{background:isOpen?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.25)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .2s"}}>
+              <button onClick={function(){setOpen(isOpen?null:faq.q);}} style={{width:"100%",padding:"16px 18px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,textAlign:"left"}}>
                 <span style={{fontSize:14,fontWeight:600,color:isOpen?"#C4B5FD":"#F2EDE4",lineHeight:1.4}}>{faq.q}</span>
                 <span style={{fontSize:18,color:isOpen?"#9B72CF":"#8896A8",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(45deg)":"rotate(0deg)"}}>+</span>
               </button>
