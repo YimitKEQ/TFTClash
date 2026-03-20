@@ -3530,7 +3530,17 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   // Guest self-registration removed — all registration goes through registerFromAccount()
 
-
+  const [upcomingTournament,setUpcomingTournament]=useState(null);
+  useEffect(function(){
+    supabase.from('tournaments').select('*')
+      .eq('type','flash_tournament')
+      .in('phase',['registration','check_in','upcoming'])
+      .order('date',{ascending:true})
+      .limit(1)
+      .then(function(res){
+        if(res.data&&res.data.length>0)setUpcomingTournament(res.data[0]);
+      });
+  },[]);
 
   const checkedN=useMemo(function(){return players.filter(p=>p.checkedIn).length;},[players]);
 
@@ -3779,7 +3789,17 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       <div style={{height:28}}/>
 
-
+      {upcomingTournament&&(
+        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.15),rgba(78,205,196,.1))",border:"1px solid rgba(155,114,207,.25)",borderRadius:14,padding:"20px 24px",marginBottom:20,cursor:"pointer"}} onClick={function(){setScreen("flash-"+upcomingTournament.id);}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+            <span style={{fontSize:11,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".5px",background:"rgba(155,114,207,.15)",borderRadius:6,padding:"2px 8px"}}>Flash Tournament</span>
+            <span style={{fontSize:11,color:"#E8A838"}}>{new Date(upcomingTournament.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
+          </div>
+          <div style={{fontSize:18,fontWeight:700,color:"#F2EDE4",marginBottom:4}}>{upcomingTournament.name}</div>
+          <div style={{fontSize:13,color:"#BECBD9",marginBottom:10}}>{(upcomingTournament.round_count||3)+" games \u00b7 "+(upcomingTournament.max_players||128)+" max players"}</div>
+          <Btn v="primary" s="sm">{"Register Now \u2192"}</Btn>
+        </div>
+      )}
 
       {/* Phase status pill with progress */}
 
@@ -12332,7 +12352,10 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
     // Insert into DB players table with auth_user_id link
     var authUserId=data.user?data.user.id:null;
-    var dbInsert=await supabase.from('players').insert({username:username.trim(),riot_id:riotId.trim(),region,auth_user_id:authUserId}).select().single();
+    var dbInsert=await supabase.from('players').insert({username:username.trim(),riot_id:riotId.trim(),region,rank:'Iron',auth_user_id:authUserId}).select().single();
+    if(dbInsert.error&&dbInsert.error.code!=='23505'){
+      console.error("[TFT] Failed to create player row:",dbInsert.error);
+    }
 
     // Add to local players[] state immediately so linkedPlayer works
     var newPlayer={
@@ -12864,6 +12887,16 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
     }catch(e){console.warn("Supabase update failed",e);toast("Failed to save profile — please try again","error");return;}
 
+    // Also update players table row linked to this auth user
+    var playerUpdate={bio:meta.bio||"",region:riotRegion};
+    if(!riotIdSet&&meta.riotId){
+      playerUpdate.riot_id=meta.riotId;
+      playerUpdate.region=riotRegion;
+    }
+    supabase.from('players').update(playerUpdate).eq('auth_user_id',user.id).then(function(pRes){
+      if(pRes.error)console.error("[TFT] Players table update failed:",pRes.error);
+    });
+
     onUpdate({...user,...meta,username:meta.username||user.username,user_metadata:meta,region:riotRegion,mainRegion:riotRegion,secondRiotId,secondRegion,profilePic,bannerUrl,profileAccent});
 
     setEdit(false);
@@ -12915,7 +12948,15 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
       </div>
 
-
+      {!riotIdSet&&(
+        <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
+          <span style={{fontSize:18}}>{"⚠"}</span>
+          <div>
+            <div style={{color:"#E8A838",fontWeight:600,fontSize:13}}>Set your Riot ID to join tournaments</div>
+            <div style={{color:"#BECBD9",fontSize:12}}>You need a Riot ID to register for flash tournaments.</div>
+          </div>
+        </div>
+      )}
 
       {/* Hero card - Twitter-style profile */}
 
