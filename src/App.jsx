@@ -10136,6 +10136,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
                         toast("Registration opened!","success");
                         addAudit("ACTION","Flash tournament registration opened: "+ev.name);
                       });
+                    } else {
+                      setScreen("flash-"+ev.id);
                     }
                   }}>{ev.phase==="draft"?"Open Registration":"View"}</Btn>
                   <button onClick={function(){
@@ -17980,7 +17982,7 @@ function TFTClash(){
 
         {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
 
-        {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={parseInt(screen.replace("flash-",""))} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
+        {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={screen.replace("flash-","")} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
 
         {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
