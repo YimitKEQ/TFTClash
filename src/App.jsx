@@ -1397,9 +1397,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 .panel-gradient{background:linear-gradient(135deg,rgba(155,114,207,.1),rgba(78,205,196,.04))!important;border:1px solid rgba(155,114,207,.18)!important;}
 
-.countdown-tile{background:linear-gradient(160deg,rgba(155,114,207,.15),rgba(78,205,196,.05));border:1px solid rgba(155,114,207,.3);border-radius:12px;padding:14px 12px;text-align:center;min-width:64px;}
+.countdown-tile{background:linear-gradient(145deg,rgba(155,114,207,.08),rgba(8,8,15,.5));border:1px solid rgba(155,114,207,.15);border-radius:12px;padding:14px 18px;text-align:center;min-width:64px;}
 
-.countdown-tile .digit{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:800;color:#E8A838;line-height:1;text-shadow:0 0 24px rgba(232,168,56,.6),0 0 48px rgba(232,168,56,.2);}
+.countdown-tile .digit{font-family:'JetBrains Mono',monospace;font-size:32px;font-weight:800;color:#E8A838;line-height:1;text-shadow:0 0 20px currentColor,0 0 24px rgba(232,168,56,.6),0 0 48px rgba(232,168,56,.2);}
 
 .countdown-tile .unit{font-family:'Chakra Petch',sans-serif;font-size:9px;color:#6B7280;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-top:4px;}
 
@@ -3832,7 +3832,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       <div style={{height:28}}/>
 
       {upcomingTournament&&(
-        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.15),rgba(78,205,196,.1))",border:"1px solid rgba(155,114,207,.25)",borderRadius:14,padding:"20px 24px",marginBottom:20,cursor:"pointer"}} onClick={function(){setScreen("flash-"+upcomingTournament.id);}}>
+        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.15),rgba(78,205,196,.1))",border:"1px solid rgba(155,114,207,.25)",borderRadius:14,padding:"20px 24px",marginBottom:24,cursor:"pointer"}} onClick={function(){setScreen("flash-"+upcomingTournament.id);}}>
           <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
             <span style={{fontSize:11,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".5px",background:"rgba(155,114,207,.15)",borderRadius:6,padding:"2px 8px"}}>Flash Tournament</span>
             <span style={{fontSize:11,color:"#E8A838"}}>{new Date(upcomingTournament.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
@@ -4169,7 +4169,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
-      <div className="grid-home">
+      <div className="grid-home" style={{marginTop:8}}>
 
         {/* Left: Hero */}
 
@@ -4460,6 +4460,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
+      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
+
       {/* Community Pulse Ticker */}
 
       {tickerItems.length>0&&(
@@ -4486,6 +4488,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
+      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
+
       {/* Featured Events */}
 
       {(function(){
@@ -4506,9 +4510,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                 var isLive=ev.status==="live";
                 return(
                   <div key={ev.id} onClick={function(){setScreen("tournament-"+ev.id);}}
-                    style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+(isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)"),borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"border-color .2s"}}
-                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";}}
-                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";}}>
+                    style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+(isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)"),borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s ease",transform:"translateY(0)"}}
+                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,.3)";}}
+                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
                     {isLive&&(
                       <div style={{background:"rgba(82,196,124,.07)",borderBottom:"1px solid rgba(82,196,124,.18)",padding:"7px 16px",display:"flex",alignItems:"center",gap:6}}>
                         <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>
@@ -4568,7 +4572,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 
 
-      <Panel accent style={{padding:"18px",marginTop:14}}>
+      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
+
+      <Panel accent style={{padding:"18px",marginTop:0}}>
 
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
 
@@ -4580,11 +4586,11 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
         {top5.map((p,i)=>(
 
-          <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer",transition:"opacity .15s"}}
+          <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 8px",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer",transition:"all .2s ease",borderRadius:8}}
 
-            onMouseEnter={e=>e.currentTarget.style.opacity=".8"}
+            onMouseEnter={function(e){e.currentTarget.style.transform="translateX(4px)";e.currentTarget.style.background="rgba(155,114,207,.06)";}}
 
-            onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+            onMouseLeave={function(e){e.currentTarget.style.transform="translateX(0)";e.currentTarget.style.background="transparent";}}>
 
             <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF",minWidth:20,textAlign:"center"}}>{i+1}</div>
 
