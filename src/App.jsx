@@ -3268,6 +3268,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
                 onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}>
 
+                {(function(){var navPlayer=players&&players.find(function(p){return p.auth_user_id===currentUser.id||p.authUserId===currentUser.id||p.name===currentUser.username;});var navPic=navPlayer&&navPlayer.profile_pic_url||currentUser.user_metadata&&currentUser.user_metadata.profilePic||"";if(navPic){return React.createElement("div",{style:{width:20,height:20,borderRadius:"50%",background:"url("+navPic+") center/cover",flexShrink:0}});}return null;})()}
+
                 <span style={{fontSize:12,fontWeight:600,color:"#E8A838"}}>{currentUser.username}</span>
 
                 <span style={{width:6,height:6,borderRadius:"50%",background:navProfileComplete===navProfileTotal?"#52C47C":"#E8A838",display:"inline-block",flexShrink:0}}/>
@@ -5865,7 +5867,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
   var pTwitch=userMeta&&userMeta.twitch||player.twitch||"";
   var pTwitter=userMeta&&userMeta.twitter||player.twitter||"";
   var pYoutube=userMeta&&userMeta.youtube||player.youtube||"";
-  var pPic=userMeta&&userMeta.profilePic||player.profilePic||"";
+  var pPic=player.profile_pic_url||userMeta&&userMeta.profilePic||player.profilePic||"";
   var pBanner=userMeta&&userMeta.bannerUrl||player.bannerUrl||"";
   var pAccent=userMeta&&userMeta.profileAccent||player.profileAccent||"";
   var isOwnProfile=currentUser&&(currentUser.username===player.name||currentUser.id===player.auth_user_id);
@@ -13437,9 +13439,31 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
                   {isPro?(
                     <div style={{display:"grid",gap:14}}>
                       <div>
-                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>{"Profile Picture URL"}</div>
+                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>{"Profile Picture"}</div>
+                        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
+                          <label style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600,color:"#C4B5FD",flexShrink:0}}>
+                            {"Upload Photo"}
+                            {React.createElement("input",{
+                              type:"file",accept:"image/*",style:{display:"none"},
+                              onChange:function(e){
+                                var file=e.target.files[0];
+                                if(!file){return;}
+                                if(file.size>2*1024*1024){toast("Max 2MB","error");return;}
+                                supabase.storage.from("avatars").upload(user.id+"/avatar.png",file,{upsert:true})
+                                  .then(function(res){
+                                    if(res.error){toast("Upload failed","error");return;}
+                                    var url=supabase.storage.from("avatars").getPublicUrl(user.id+"/avatar.png").data.publicUrl;
+                                    setProfilePic(url);
+                                    supabase.from("players").update({profile_pic_url:url}).eq("auth_user_id",user.id);
+                                    toast("Avatar updated!","success");
+                                  });
+                              }
+                            })}
+                          </label>
+                          <span style={{fontSize:11,color:"#9AAABF"}}>{"or paste URL below"}</span>
+                        </div>
                         <Inp value={profilePic} onChange={setProfilePic} placeholder="https://i.imgur.com/your-pic.png"/>
-                        <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{"Paste a direct image link (imgur, Discord CDN, etc). Square images work best."}</div>
+                        <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{"Max 2MB. Square images work best."}</div>
                         {profilePic&&<div style={{marginTop:8,display:"flex",alignItems:"center",gap:10}}><div style={{width:48,height:48,borderRadius:"50%",background:"url("+profilePic+") center/cover",border:"2px solid "+rankColor+"44"}}/>{"Preview"&&<span style={{fontSize:11,color:"#6EE7B7"}}>{"Preview"}</span>}</div>}
                       </div>
                       <div>
