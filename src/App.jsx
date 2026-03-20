@@ -121,8 +121,7 @@ const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C
 
 
 // ─── INPUT SANITIZATION ──────────────────────────────────────────────────────
-var SANITIZE_MAP={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#x27;"};
-function sanitize(str){if(typeof str!=='string')return '';return str.replace(/[&<>"']/g,function(c){return SANITIZE_MAP[c]||c;}).replace(/<[^>]*>/g,'');}
+function sanitize(str){if(typeof str!=='string')return '';return str.replace(/<[^>]*>/g,'');}
 
 function rc(r){return RCOLS[r]||"#A8B2CC";}
 
