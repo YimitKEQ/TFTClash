@@ -31,7 +31,7 @@ class ErrorBoundary extends Component {
 
         <div style={{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,zIndex:99999,padding:24}}>
 
-          <div style={{fontSize:48}}>⚠️</div>
+          <div style={{fontSize:48}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
 
           <div style={{fontFamily:"'Russo One',sans-serif",fontSize:22,color:"#F2EDE4",textAlign:"center"}}>Something went wrong</div>
 
@@ -67,7 +67,7 @@ class ScreenBoundary extends Component {
       var self=this;
       return(
         <div className="page wrap" style={{textAlign:"center",paddingTop:80,maxWidth:440,margin:"0 auto"}}>
-          <div style={{fontSize:42,marginBottom:16}}>⚠️</div>
+          <div style={{fontSize:42,marginBottom:16}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
           <h2 style={{color:"#F2EDE4",marginBottom:8,fontFamily:"'Russo One',sans-serif"}}>{"Something went wrong"}</h2>
           <div style={{fontSize:14,color:"#9AAABF",marginBottom:20,lineHeight:1.6}}>{"This screen ran into an error. Your data is safe."}</div>
           <div style={{display:"flex",gap:10,justifyContent:"center"}}>
@@ -152,23 +152,23 @@ function avgCol(avg){
 
 const CLASH_RANKS=[
 
-  {id:"iron",       name:"Iron",        icon:"⚙",  color:"#BECBD9", minXp:0,    maxXp:200},
+  {id:"iron",       name:"Iron",        icon:"gear-fill",  color:"#BECBD9", minXp:0,    maxXp:200},
 
-  {id:"bronze",     name:"Bronze",      icon:"🥉",  color:"#CD7F32", minXp:200,  maxXp:500},
+  {id:"bronze",     name:"Bronze",      icon:"shield-fill",  color:"#CD7F32", minXp:200,  maxXp:500},
 
-  {id:"silver",     name:"Silver",      icon:"🥈",  color:"#C0C0C0", minXp:500,  maxXp:900},
+  {id:"silver",     name:"Silver",      icon:"shield-fill",  color:"#C0C0C0", minXp:500,  maxXp:900},
 
-  {id:"gold",       name:"Gold",        icon:"🥇",  color:"#E8A838", minXp:900,  maxXp:1400},
+  {id:"gold",       name:"Gold",        icon:"shield-fill",  color:"#E8A838", minXp:900,  maxXp:1400},
 
-  {id:"platinum",   name:"Platinum",    icon:"💠",  color:"#4ECDC4", minXp:1400, maxXp:2000},
+  {id:"platinum",   name:"Platinum",    icon:"diamond-half",  color:"#4ECDC4", minXp:1400, maxXp:2000},
 
-  {id:"diamond",    name:"Diamond",     icon:"💎",  color:"#9B72CF", minXp:2000, maxXp:2800},
+  {id:"diamond",    name:"Diamond",     icon:"gem",  color:"#9B72CF", minXp:2000, maxXp:2800},
 
-  {id:"master",     name:"Master",      icon:"🔮",  color:"#EAB308", minXp:2800, maxXp:3800},
+  {id:"master",     name:"Master",      icon:"stars",  color:"#EAB308", minXp:2800, maxXp:3800},
 
-  {id:"grandmaster",name:"Grandmaster", icon:"👁",  color:"#F87171", minXp:3800, maxXp:5000},
+  {id:"grandmaster",name:"Grandmaster", icon:"eye-fill",  color:"#F87171", minXp:3800, maxXp:5000},
 
-  {id:"challenger", name:"Clash Challenger",icon:"👑",color:"#E8A838",minXp:5000,maxXp:99999},
+  {id:"challenger", name:"Clash Challenger",icon:"trophy-fill",color:"#E8A838",minXp:5000,maxXp:99999},
 
 ];
 
@@ -544,59 +544,59 @@ const ACHIEVEMENTS=[
 
   // ── PLACEMENT MILESTONES ─────────────────────────────────
 
-  {id:"first_blood",    tier:"bronze",    icon:"🩸",  name:"First Blood",       desc:"Win your first clash game",                            check:p=>p.wins>=1},
+  {id:"first_blood",    tier:"bronze",    icon:"droplet-fill",  name:"First Blood",       desc:"Win your first clash game",                            check:p=>p.wins>=1},
 
-  {id:"hat_trick",      tier:"bronze",    icon:"🎩",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:p=>p.wins>=3},
+  {id:"hat_trick",      tier:"bronze",    icon:"mortarboard-fill",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:p=>p.wins>=3},
 
-  {id:"top4_machine",   tier:"silver",    icon:"⚙️",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:p=>p.top4>=10},
+  {id:"top4_machine",   tier:"silver",    icon:"gear-fill",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:p=>p.top4>=10},
 
-  {id:"podium_hunter",  tier:"silver",    icon:"🏅",  name:"Podium Hunter",      desc:"5 wins total",                                         check:p=>p.wins>=5},
+  {id:"podium_hunter",  tier:"silver",    icon:"award-fill",  name:"Podium Hunter",      desc:"5 wins total",                                         check:p=>p.wins>=5},
 
-  {id:"clutch_god",     tier:"gold",      icon:"⚡",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
+  {id:"clutch_god",     tier:"gold",      icon:"lightning-charge-fill",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
 
-  {id:"dynasty",        tier:"gold",      icon:"👑",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:p=>p.wins>=10},
+  {id:"dynasty",        tier:"gold",      icon:"trophy-fill",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:p=>p.wins>=10},
 
-  {id:"untouchable",    tier:"legendary", icon:"💠",  name:"Untouchable",        desc:"Finish in top 4 every game in a single clash",         check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)<=4)&&p.top4>=p.games},
+  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"Finish in top 4 every game in a single clash",         check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)<=4)&&p.top4>=p.games},
 
-  {id:"the_grind",      tier:"legendary", icon:"🌑",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:p=>p.games>=30},
+  {id:"the_grind",      tier:"legendary", icon:"moon-fill",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:p=>p.games>=30},
 
   // ── STREAK ACHIEVEMENTS ───────────────────────────────────
 
-  {id:"hot_start",      tier:"bronze",    icon:"🔥",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:p=>p.wins>=1&&p.games<=8},
+  {id:"hot_start",      tier:"bronze",    icon:"fire",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:p=>p.wins>=1&&p.games<=8},
 
-  {id:"on_fire",        tier:"silver",    icon:"🌋",  name:"On Fire",            desc:"3 win streak at any point",                            check:p=>p.bestStreak>=3},
+  {id:"on_fire",        tier:"silver",    icon:"graph-up-arrow",  name:"On Fire",            desc:"3 win streak at any point",                            check:p=>p.bestStreak>=3},
 
-  {id:"cant_stop",      tier:"gold",      icon:"🚀",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:p=>p.bestStreak>=5},
+  {id:"cant_stop",      tier:"gold",      icon:"rocket-takeoff-fill",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:p=>p.bestStreak>=5},
 
-  {id:"goat_streak",    tier:"legendary", icon:"🐐",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:p=>p.bestStreak>=7},
+  {id:"goat_streak",    tier:"legendary", icon:"star-fill",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:p=>p.bestStreak>=7},
 
   // ── POINTS ACHIEVEMENTS ────────────────────────────────────
 
-  {id:"point_getter",   tier:"bronze",    icon:"💰",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:p=>p.pts>=100},
+  {id:"point_getter",   tier:"bronze",    icon:"coin",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:p=>p.pts>=100},
 
-  {id:"century",        tier:"silver",    icon:"💎",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:p=>p.pts>=500},
+  {id:"century",        tier:"silver",    icon:"gem",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:p=>p.pts>=500},
 
-  {id:"big_dog",        tier:"gold",      icon:"🏆",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:p=>p.pts>=800},
+  {id:"big_dog",        tier:"gold",      icon:"trophy-fill",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:p=>p.pts>=800},
 
-  {id:"thousand_club",  tier:"legendary", icon:"🌟",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:p=>p.pts>=1000},
+  {id:"thousand_club",  tier:"legendary", icon:"sun-fill",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:p=>p.pts>=1000},
 
   // ── SOCIAL / COMMUNITY ───────────────────────────────────
 
-  {id:"regular",        tier:"bronze",    icon:"📅",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:p=>p.games>=5},
+  {id:"regular",        tier:"bronze",    icon:"calendar-check-fill",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:p=>p.games>=5},
 
-  {id:"veteran",        tier:"silver",    icon:"🪖",  name:"Veteran",            desc:"20 total games across the season",                     check:p=>p.games>=20},
+  {id:"veteran",        tier:"silver",    icon:"shield-check",  name:"Veteran",            desc:"20 total games across the season",                     check:p=>p.games>=20},
 
-  {id:"season_finisher",tier:"gold",      icon:"🎖️",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:p=>p.games>=28},
+  {id:"season_finisher",tier:"gold",      icon:"patch-check-fill",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:p=>p.games>=28},
 
-  {id:"champion",       tier:"legendary", icon:"⚜️",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>SEASON_CHAMPION&&p.name===SEASON_CHAMPION.name},
+  {id:"champion",       tier:"legendary", icon:"award-fill",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>SEASON_CHAMPION&&p.name===SEASON_CHAMPION.name},
 
   // ── RARE / EASTER EGG ────────────────────────────────────
 
-  {id:"dishsoap",       tier:"legendary", icon:"🧼",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:p=>p.name==="Dishsoap"||p.riotId?.toLowerCase().includes("dishsoap")},
+  {id:"dishsoap",       tier:"legendary", icon:"droplet",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:p=>p.name==="Dishsoap"||p.riotId?.toLowerCase().includes("dishsoap")},
 
-  {id:"perfect_lobby",  tier:"legendary", icon:"🌀",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(v=>v<=3):true))},
+  {id:"perfect_lobby",  tier:"legendary", icon:"bullseye",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(v=>v<=3):true))},
 
-  {id:"silent_grinder", tier:"gold",      icon:"👁",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:p=>p.pts>=400&&p.wins===0},
+  {id:"silent_grinder", tier:"gold",      icon:"eye-fill",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:p=>p.pts>=400&&p.wins===0},
 
 ];
 
@@ -604,21 +604,21 @@ const ACHIEVEMENTS=[
 
 const MILESTONES=[
 
-  {id:"m1",icon:"🥉",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:p=>p.pts>=100},
+  {id:"m1",icon:"shield-fill",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:p=>p.pts>=100},
 
-  {id:"m2",icon:"🥈",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:p=>p.pts>=300},
+  {id:"m2",icon:"shield-fill",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:p=>p.pts>=300},
 
-  {id:"m3",icon:"🥇",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:p=>p.pts>=600},
+  {id:"m3",icon:"shield-fill",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:p=>p.pts>=600},
 
-  {id:"m4",icon:"💎",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:p=>p.pts>=800},
+  {id:"m4",icon:"gem",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:p=>p.pts>=800},
 
-  {id:"m5",icon:"👑",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:p=>p.pts>=1000},
+  {id:"m5",icon:"trophy-fill",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:p=>p.pts>=1000},
 
-  {id:"m6",icon:"🔥",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:p=>isHotStreak(p)},
+  {id:"m6",icon:"fire",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:p=>isHotStreak(p)},
 
-  {id:"m7",icon:"🏆",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:p=>p.wins>=1},
+  {id:"m7",icon:"trophy-fill",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:p=>p.wins>=1},
 
-  {id:"m8",icon:"⚡",name:"Clutch Player",   pts:null, reward:"⚡ Clutch tag on your stats",     check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
+  {id:"m8",icon:"lightning-charge-fill",name:"Clutch Player",   pts:null, reward:"Clutch tag on your stats",     check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
 
 ];
 
@@ -890,21 +890,21 @@ function computeClashAwards(players){
 
   return[
 
-    lobbyBully&&{icon:"🗡️",id:"bully",title:"Lobby Bully",desc:"Most 1st place finishes",winner:lobbyBully,stat:lobbyBully.wins+" wins",color:"#E8A838"},
+    lobbyBully&&{icon:"crosshair",id:"bully",title:"Lobby Bully",desc:"Most 1st place finishes",winner:lobbyBully,stat:lobbyBully.wins+" wins",color:"#E8A838"},
 
-    choker&&choker!==lobbyBully&&{icon:"💀",id:"choker",title:"The Choker",desc:"Highest AVP in the top half - ouch",winner:choker,stat:"AVP "+getStats(choker).avgPlacement,color:"#F87171"},
+    choker&&choker!==lobbyBully&&{icon:"emoji-dizzy",id:"choker",title:"The Choker",desc:"Highest AVP in the top half - ouch",winner:choker,stat:"AVP "+getStats(choker).avgPlacement,color:"#F87171"},
 
-    singleMVP&&{icon:"⚡",id:"single",title:"Single Clash MVP",desc:"Highest points in one event",winner:singleMVP,stat:(singleMVP.bestHaul||0)+" pts haul",color:"#EAB308"},
+    singleMVP&&{icon:"lightning-charge-fill",id:"single",title:"Single Clash MVP",desc:"Highest points in one event",winner:singleMVP,stat:(singleMVP.bestHaul||0)+" pts haul",color:"#EAB308"},
 
-    mostImproved&&{icon:"📈",id:"improved",title:"Most Improved",desc:"Biggest AVP improvement this season",winner:mostImproved,stat:"AVP "+getStats(mostImproved).avgPlacement,color:"#52C47C"},
+    mostImproved&&{icon:"graph-up-arrow",id:"improved",title:"Most Improved",desc:"Biggest AVP improvement this season",winner:mostImproved,stat:"AVP "+getStats(mostImproved).avgPlacement,color:"#52C47C"},
 
-    iceCold&&iceCold!==mostImproved&&{icon:"🧊",id:"cold",title:"Ice Cold",desc:"Longest streak outside top 4",winner:iceCold,stat:"AVP "+getStats(iceCold).avgPlacement,color:"#4ECDC4"},
+    iceCold&&iceCold!==mostImproved&&{icon:"snow",id:"cold",title:"Ice Cold",desc:"Longest streak outside top 4",winner:iceCold,stat:"AVP "+getStats(iceCold).avgPlacement,color:"#4ECDC4"},
 
-    onFire&&{icon:"🔥",id:"streak",title:"On Fire",desc:"Best 1st place streak this season",winner:onFire,stat:(onFire.bestStreak||0)+" in a row",color:"#F97316"},
+    onFire&&{icon:"fire",id:"streak",title:"On Fire",desc:"Best 1st place streak this season",winner:onFire,stat:(onFire.bestStreak||0)+" in a row",color:"#F97316"},
 
-    byPts[0]&&{icon:"🏆",id:"mvp",title:"MVP",desc:"Highest season points",winner:byPts[0],stat:byPts[0].pts+" pts",color:"#E8A838"},
+    byPts[0]&&{icon:"trophy-fill",id:"mvp",title:"MVP",desc:"Highest season points",winner:byPts[0],stat:byPts[0].pts+" pts",color:"#E8A838"},
 
-    byPts[0]&&{icon:"📊",id:"consistent2",title:"Most Consistent",desc:"Lowest AVP (3+ games)",winner:byAvp[0],stat:"AVP "+(byAvp[0]?getStats(byAvp[0]).avgPlacement:"-"),color:"#C4B5FD"},
+    byPts[0]&&{icon:"clipboard-data-fill",id:"consistent2",title:"Most Consistent",desc:"Lowest AVP (3+ games)",winner:byAvp[0],stat:"AVP "+(byAvp[0]?getStats(byAvp[0]).avgPlacement:"-"),color:"#C4B5FD"},
 
   ].filter(Boolean);
 
@@ -1043,7 +1043,7 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 @keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 rgba(232,168,56,.4)}70%{box-shadow:0 0 0 14px rgba(232,168,56,0)}}
 
-@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}70%{box-shadow:0 0 0 12px rgba(220,38,38,0)}}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.35)}70%{box-shadow:0 0 0 8px rgba(220,38,38,0)}}
 
 @keyframes disp-anim{0%,100%{border-color:rgba(220,38,38,.4)}50%{border-color:rgba(220,38,38,.9);box-shadow:0 0 24px rgba(220,38,38,.25)}}
 
@@ -1061,17 +1061,19 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 @keyframes champ-reveal{0%{transform:scale(.75) translateY(30px);opacity:0;filter:blur(12px)}100%{transform:scale(1) translateY(0);opacity:1;filter:blur(0)}}
 
-@keyframes crown-glow{0%,100%{filter:drop-shadow(0 0 8px rgba(232,168,56,.7))}50%{filter:drop-shadow(0 0 22px rgba(232,168,56,1))}}
+@keyframes crown-glow{0%,100%{filter:drop-shadow(0 0 4px rgba(232,168,56,.35))}50%{filter:drop-shadow(0 0 11px rgba(232,168,56,.5))}}
 
 @keyframes slide-drawer{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
 .au{animation:fadeup .4s ease both}
 
-.au1{animation:fadeup .4s .08s ease both}
+.au1{animation:fadeup .4s .05s ease both}
 
-.au2{animation:fadeup .4s .16s ease both}
+.au2{animation:fadeup .4s .1s ease both}
 
-.au3{animation:fadeup .4s .26s ease both}
+.au3{animation:fadeup .4s .13s ease both}
 
 
 
@@ -1207,13 +1209,8 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 /* ── esports glow enhancements ───────────────────────────────── */
 
-@keyframes gold-shimmer{0%{background-position:200% center}100%{background-position:-200% center}}
-
-@keyframes neon-flicker{0%,19%,21%,23%,25%,54%,56%,100%{text-shadow:0 0 20px rgba(232,168,56,.7),0 0 40px rgba(232,168,56,.35),0 0 80px rgba(232,168,56,.15)}20%,24%,55%{text-shadow:none;}}
 
 @keyframes border-glow{0%,100%{border-color:rgba(155,114,207,.3)}50%{border-color:rgba(155,114,207,.7);box-shadow:0 0 20px rgba(155,114,207,.2)}}
-
-@keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100vh)}}
 
 
 
@@ -1233,7 +1230,7 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 /* Gold shimmer text */
 
-.gold-shimmer{background:linear-gradient(90deg,#C4882A,#FFD700,#E8A838,#FFD700,#C4882A);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gold-shimmer 4s linear infinite;}
+.gold-shimmer{background:linear-gradient(135deg,#E8A838,#C8882A,#E8A838);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
 
 
@@ -1371,19 +1368,12 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 .standings-row-me{background:rgba(155,114,207,.1)!important;border-left:2px solid #9B72CF!important;}
 
-/* ── float animation ───────────────────────────────────────────────── */
-
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-
-@keyframes glow-text{0%,100%{text-shadow:0 0 14px rgba(232,168,56,.5)}50%{text-shadow:0 0 32px rgba(232,168,56,.9),0 0 64px rgba(232,168,56,.3)}}
 
 
 
 /* ── Phase 5: Arena redesign ──────────────────────────────────────────── */
 
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.15)}}
-
-@keyframes camelGlow{0%,100%{opacity:.18;filter:drop-shadow(0 0 0px #E8A838)}50%{opacity:.55;filter:drop-shadow(0 0 6px #E8A838)}}
 
 .glass{background:rgba(255,255,255,.04)!important;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.09)!important;}
 
@@ -1431,19 +1421,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── New keyframes ───────────────────────────────────────── */
 
-@keyframes glitch{0%,100%{transform:translate(0);clip-path:none}20%{transform:translate(-2px,1px);clip-path:inset(20% 0 60% 0)}40%{transform:translate(2px,-1px);clip-path:inset(60% 0 20% 0)}60%{transform:translate(0)}}
-
-@keyframes shimmer-scan{0%{left:-100%}100%{left:200%}}
-
-@keyframes holo-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-
-@keyframes trophy-pulse{0%,100%{filter:drop-shadow(0 0 6px rgba(232,168,56,.5))}50%{filter:drop-shadow(0 0 18px rgba(232,168,56,1)) drop-shadow(0 0 36px rgba(232,168,56,.4))}}
-
-@keyframes scan-move{0%{top:-3%}100%{top:103%}}
 
 @keyframes border-race{0%{background-position:0% 0%}100%{background-position:200% 0%}}
 
-@keyframes neon-border-pulse{0%,100%{box-shadow:0 0 0 0 rgba(155,114,207,0)}50%{box-shadow:0 0 0 2px rgba(155,114,207,.35),0 0 20px rgba(155,114,207,.15)}}
 
 
 
@@ -1451,7 +1431,6 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 .shimmer-card{position:relative;overflow:hidden;}
 
-.shimmer-card::after{content:"";position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);animation:shimmer-scan 4s ease infinite;pointer-events:none;}
 
 
 
@@ -1477,13 +1456,12 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── Trophy glow ─────────────────────────────────────────── */
 
-.trophy-glow{animation:trophy-pulse 2.5s ease infinite;}
+.trophy-glow{filter:drop-shadow(0 0 8px rgba(232,168,56,.6));}
 
 
 
 /* ── Moving retro scan line ──────────────────────────────── */
 
-.retro-scan-line{position:fixed;left:0;right:0;height:120px;background:linear-gradient(180deg,transparent,rgba(155,114,207,.025),transparent);pointer-events:none;z-index:2;animation:scan-move 10s linear infinite;}
 
 
 
@@ -1743,6 +1721,10 @@ function Hexbg(){
 
 
 
+function BI({n,size,color,style}){
+  return React.createElement("i",{className:"bi bi-"+n,style:Object.assign({fontSize:size||"inherit",color:color||"currentColor",lineHeight:1,verticalAlign:"middle"},style||{})});
+}
+
 function Panel({children,style,glow,accent,danger,color,hover,onClick,className}){
 
   const [hov,setHov]=useState(false);
@@ -1889,7 +1871,7 @@ function ShareBar({text,url,toast}){
   }
   return(
     <div style={{display:"flex",gap:6,alignItems:"center"}}>
-      <button onClick={copyLink} title="Copy link" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>📋 Copy</button>
+      <button onClick={copyLink} title="Copy link" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:3}})}Copy</button>
       <button onClick={shareX} title="Share on X" style={{background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#BECBD9",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>𝕏 Post</button>
       <button onClick={shareNative} title="Share" style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,padding:"6px 10px",cursor:"pointer",fontSize:13,color:"#9B72CF",display:"flex",alignItems:"center",gap:5,fontWeight:600,transition:"all .15s"}}>↗ Share</button>
     </div>
@@ -1962,7 +1944,7 @@ function ClashRankBadge({xp,size,showProgress}){
 
         borderRadius:sm?6:8,padding:sm?"2px 7px":"4px 10px"}}>
 
-        <span style={{fontSize:sm?12:15}}>{rank.icon}</span>
+        {React.createElement("i",{className:"bi bi-"+rank.icon,style:{fontSize:sm?12:15,color:rank.color}})}
 
         <span style={{fontSize:sm?10:12,fontWeight:700,color:rank.color,letterSpacing:".04em"}}>{rank.name}</span>
 
@@ -1982,7 +1964,7 @@ function ClashRankBadge({xp,size,showProgress}){
 
           <Bar val={current} max={needed} color={rank.color} h={4}/>
 
-          <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>Next: {next.icon} {next.name}</div>
+          <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>Next: {React.createElement("i",{className:"bi bi-"+next.icon,style:{fontSize:10,color:next.color}})} {next.name}</div>
 
         </div>
 
@@ -2112,7 +2094,7 @@ function Toast({msg,type,onClose}){
 
       minWidth:260,maxWidth:360}}>
 
-      <span style={{fontSize:17,color:c}}>{type==="success"?"✓":type==="error"?"✕":"ℹ"}</span>
+      {type==="success"?React.createElement("i",{className:"bi bi-check-circle-fill",style:{fontSize:17,color:c}}):type==="error"?React.createElement("i",{className:"bi bi-x-circle-fill",style:{fontSize:17,color:c}}):React.createElement("i",{className:"bi bi-info-circle-fill",style:{fontSize:17,color:c}})}
 
       <span style={{flex:1,color:"#F2EDE4",fontSize:14,lineHeight:1.4}}>{msg}</span>
 
@@ -2318,7 +2300,7 @@ function ChampionHeroCard({champion,onClick}){
 
         <div style={{textAlign:"center",flexShrink:0}}>
 
-          <div style={{fontSize:22,animation:"crown-glow 2.5s infinite",marginBottom:4}}>👑</div>
+          <div style={{fontSize:22,animation:"crown-glow 3s ease 1",marginBottom:4}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>
 
           <div style={{width:56,height:56,borderRadius:"50%",
 
@@ -2344,7 +2326,7 @@ function ChampionHeroCard({champion,onClick}){
 
           <div style={{display:"flex",gap:5,marginTop:5,flexWrap:"wrap"}}>
 
-            <Tag color="#E8A838" size="sm">👑 {c.title}</Tag>
+            <Tag color="#E8A838" size="sm">{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{c.title}</Tag>
 
             <Tag color="#4ECDC4" size="sm">{c.rank}</Tag>
 
@@ -2394,7 +2376,7 @@ function MilestoneCard({milestone,unlocked}){
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:unlocked?8:0}}>
 
-        <span style={{fontSize:22,filter:unlocked?"none":"grayscale(1)"}}>{milestone.icon}</span>
+        {React.createElement("i",{className:"bi bi-"+milestone.icon,style:{fontSize:22,filter:unlocked?"none":"grayscale(1)"}})}
 
         <div style={{flex:1,minWidth:0}}>
 
@@ -2412,7 +2394,7 @@ function MilestoneCard({milestone,unlocked}){
 
         <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"4px 8px",fontSize:10,fontWeight:700,color:"#E8A838"}}>
 
-          🎁 {milestone.reward}
+          {React.createElement("i",{className:"bi bi-gift-fill",style:{fontSize:12,marginRight:4}})}{milestone.reward}
 
         </div>
 
@@ -2440,7 +2422,7 @@ function AwardCard({award,onClick}){
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
 
-        <div style={{width:44,height:44,background:award.color+"18",border:"1px solid "+award.color+"44",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{award.icon}</div>
+        <div style={{width:44,height:44,background:award.color+"18",border:"1px solid "+award.color+"44",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+award.icon,style:{color:award.color}})}</div>
 
         <div>
 
@@ -2498,7 +2480,7 @@ function FileDisputeModal({targetPlayer,claimPlacement,onSubmit,onClose}){
 
         <div style={{marginTop:6}}>
 
-          <div className="cond" style={{fontSize:16,fontWeight:800,color:"#F87171",marginBottom:4,letterSpacing:".08em",textTransform:"uppercase"}}>⚑ File Dispute</div>
+          <div className="cond" style={{fontSize:16,fontWeight:800,color:"#F87171",marginBottom:4,letterSpacing:".08em",textTransform:"uppercase"}}>{React.createElement("i",{className:"bi bi-flag-fill",style:{fontSize:14,marginRight:4}})}File Dispute</div>
 
           <div style={{fontSize:13,color:"#C8D4E0",marginBottom:20}}>Flagging <span style={{color:"#F2EDE4",fontWeight:700}}>{targetPlayer}</span> - claimed <span style={{color:"#E8A838",fontWeight:800,fontFamily:"monospace"}}>#{claimPlacement}</span></div>
 
@@ -2540,7 +2522,7 @@ function DisputeBanner({disputes,onResolve,isAdmin}){
 
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
 
-        <span style={{fontSize:18}}>🚨</span>
+        <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-exclamation-octagon-fill",style:{color:"#F87171"}})}</span>
 
         <div className="cond" style={{fontSize:14,fontWeight:800,color:"#FCA5A5",letterSpacing:".1em",textTransform:"uppercase"}}>LOCKED - {disputes.length} Dispute{disputes.length>1?"s":""}</div>
 
@@ -2758,7 +2740,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
     onSubmit(results,lobbyNum||0);
 
-    toast((isFinals?"Finals":"Round "+round+(lobbyNum!==undefined?" Lobby "+(lobbyNum+1):""))+" locked! ✓","success");
+    toast((isFinals?"Finals":"Round "+round+(lobbyNum!==undefined?" Lobby "+(lobbyNum+1):""))+" locked!","success");
 
   }
 
@@ -2790,7 +2772,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
           </div>
 
-          {locked?<Tag color="#52C47C">✓ Locked</Tag>:paused?<Tag color="#EAB308">⏸ Paused</Tag>:<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20}}><Dot/><span className="cond" style={{fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Live</span></div>}
+          {locked?<Tag color="#52C47C">✓ Locked</Tag>:paused?<Tag color="#EAB308">{React.createElement("i",{className:"bi bi-pause-fill",style:{fontSize:11,marginRight:3}})}Paused</Tag>:<div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"3px 8px",background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.25)",borderRadius:20}}><Dot/><span className="cond" style={{fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".1em",textTransform:"uppercase"}}>Live</span></div>}
 
         </div>
 
@@ -2812,7 +2794,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
 
             <Btn v="primary" full disabled={!canLock} onClick={lockResults} s="lg">
 
-              {disputes.length>0?"🔒 Resolve Disputes First":paused?"⏸ Paused":!allPlaced?"Waiting for all placements...":"Lock Results ✓"}
+              {disputes.length>0?"Resolve Disputes First":paused?"Paused":!allPlaced?"Waiting for all placements...":"Lock Results"}
 
             </Btn>
 
@@ -2852,7 +2834,7 @@ function NotificationBell({notifications,onMarkAllRead}){
 
         onMouseLeave={e=>e.currentTarget.style.color="#C8D4E0"}>
 
-        <span>🔔</span>
+        {React.createElement("i",{className:"bi bi-bell-fill",style:{fontSize:18,color:"#C8D4E0"}})}
 
         {unread>0&&(
 
@@ -2898,7 +2880,7 @@ function NotificationBell({notifications,onMarkAllRead}){
 
                   <div key={n.id} style={{padding:"12px 14px",borderBottom:"1px solid rgba(242,237,228,.05)",background:n.read?"transparent":"rgba(232,168,56,.03)",display:"flex",gap:10,alignItems:"flex-start"}}>
 
-                    <div style={{fontSize:16,flexShrink:0,marginTop:2}}>{n.icon}</div>
+                    <div style={{flexShrink:0,marginTop:2}}>{React.createElement("i",{className:"bi bi-"+(n.icon||"bell"),style:{fontSize:16}})}</div>
 
                     <div style={{flex:1,minWidth:0}}>
 
@@ -2965,17 +2947,17 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   const PRIMARY=[
 
-    {id:"home",icon:"🏠",label:"Home"},
+    {id:"home",icon:"house-fill",label:"Home"},
 
-    {id:"roster",icon:"👥",label:"Roster"},
+    {id:"roster",icon:"people-fill",label:"Roster"},
 
-    {id:"bracket",icon:"⚔",label:"Bracket"},
+    {id:"bracket",icon:"diagram-3-fill",label:"Bracket"},
 
-    {id:"leaderboard",icon:"📊",label:"Board"},
+    {id:"leaderboard",icon:"bar-chart-line-fill",label:"Board"},
 
-    {id:"results",icon:"🏆",label:"Results"},
+    {id:"results",icon:"clipboard-check-fill",label:"Results"},
 
-    {id:"more",icon:"☰",label:"More"},
+    {id:"more",icon:"three-dots",label:"More"},
 
   ];
 
@@ -3003,7 +2985,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
     ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
 
-    ...(isAdmin?[{id:"admin",label:"⬡ Admin"}]:[]),
+    ...(isAdmin?[{id:"admin",label:"Admin"}]:[]),
 
   ];
 
@@ -3037,29 +3019,29 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   const DRAWER_ITEMS=[
 
-    {id:"hof",icon:"🏛",label:"Hall of Fame"},
+    {id:"hof",icon:"award-fill",label:"Hall of Fame"},
 
-    {id:"archive",icon:"📁",label:"Archive"},
+    {id:"archive",icon:"archive-fill",label:"Archive"},
 
-    {id:"tournaments",icon:"⚡",label:"Tournaments"},
+    {id:"tournaments",icon:"lightning-charge-fill",label:"Tournaments"},
 
-    {id:"featured",icon:"⭐",label:"Featured Events"},
+    {id:"featured",icon:"star-fill",label:"Featured Events"},
 
-    {id:"rules",icon:"📋",label:"Tournament Rules"},
+    {id:"rules",icon:"journal-text",label:"Tournament Rules"},
 
-    {id:"faq",icon:"❓",label:"FAQ"},
+    {id:"faq",icon:"question-circle-fill",label:"FAQ"},
 
-    {id:"challenges",icon:"⚡",label:"Challenges & XP"},
+    {id:"challenges",icon:"star-fill",label:"Challenges & XP"},
 
-    {id:"milestones",icon:"🎁",label:"Milestones & Rewards"},
+    {id:"milestones",icon:"gift-fill",label:"Milestones & Rewards"},
 
-    {id:"pricing",icon:"💰",label:"Pricing & Plans"},
+    {id:"pricing",icon:"tag-fill",label:"Pricing & Plans"},
 
-    {id:"account",icon:"👤",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up"},
+    {id:"account",icon:"person-fill",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up"},
 
-    ...(canScrims?[{id:"scrims",icon:"🎮",label:"Scrims"}]:[]),
+    ...(canScrims?[{id:"scrims",icon:"controller",label:"Scrims"}]:[]),
 
-    ...(isAdmin?[{id:"admin",icon:"⬡",label:"Admin Panel"}]:[]),
+    ...(isAdmin?[{id:"admin",icon:"hexagon-fill",label:"Admin Panel"}]:[]),
 
   ];
 
@@ -3139,7 +3121,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
                   border:"none",color:l.id==="account"&&currentUser?"#E8A838":screen===l.id?"#E8A838":"#C8BFB0",fontSize:14,fontWeight:600,width:"100%",textAlign:"left",cursor:"pointer",transition:"all .15s"}}>
 
-                <span style={{fontSize:18,minWidth:22}}>{l.icon}</span>{l.label}
+                <span style={{minWidth:22}}>{React.createElement("i",{className:"bi bi-"+l.icon,style:{fontSize:18}})}</span>{l.label}
 
               </button>
 
@@ -3342,7 +3324,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               onMouseUp={function(e){e.currentTarget.style.transform="scale(1)";}}
               onMouseLeave={function(e){e.currentTarget.style.transform="scale(1)";}}>
 
-              <span className="icon">{l.icon}</span>
+              <span className="icon">{React.createElement("i",{className:"bi bi-"+l.icon,style:{fontSize:18}})}</span>
 
               {l.label}
 
@@ -3460,7 +3442,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
             <div className="mono rank-num" style={{fontSize:top3?18:13,fontWeight:900,color:rankCol,minWidth:24,textAlign:"center",textShadow:i===0?"0 0 18px rgba(232,168,56,.8)":i===1?"0 0 12px rgba(192,192,192,.6)":i===2?"0 0 12px rgba(205,127,50,.6)":"none"}}>
 
-              {i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}
+              {i===0?"award-fill":i===1?"award-fill":i===2?"award-fill":i+1}
 
             </div>
 
@@ -3476,9 +3458,9 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
                   {p.plan==="host"&&<span style={{fontSize:9,fontWeight:800,color:"#9B72CF",background:"rgba(155,114,207,.15)",padding:"1px 5px",borderRadius:4,flexShrink:0,letterSpacing:".04em"}}>HOST</span>}
 
-                  {isHotStreak(p)&&<span title={"Win streak: "+(p.currentStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🔥</span>}
+                  {isHotStreak(p)&&<span title={"Win streak: "+(p.currentStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
 
-                  {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>🥶</span>}
+                  {isOnTilt(p)&&<span title={"Cold streak: "+(p.tiltStreak||0)} style={{flexShrink:0,fontSize:14,cursor:"default"}}>{React.createElement("i",{className:"bi bi-snow",style:{color:"#38BDF8"}})}</span>}
 
 
                 </div>
@@ -3624,7 +3606,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         .then(function(r){if(r.error)console.error("[TFT] check-in update failed:",r.error);});
     }
 
-    toast("You're checked in! Good luck, "+linkedPlayer.name+" ✓","success");
+    toast("You're checked in! Good luck, "+linkedPlayer.name+"","success");
 
   }
 
@@ -3677,7 +3659,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         });
       }
     }
-    toast(currentUser.username+" registered for "+clashName+"! ✓","success");
+    toast(currentUser.username+" registered for "+clashName+"!","success");
   }
 
   function unregisterFromClash(){
@@ -3775,12 +3757,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
 
   var autoTickerItems=players.length>0?[
-    sortedPts[0]&&sortedPts[0].pts>0&&("🏆 "+sortedPts[0].name+" leads "+(seasonConfig&&seasonConfig.seasonName||"the season")+" with "+sortedPts[0].pts+" pts"),
-    totalGames>0&&("🎮 "+totalGames+" games played this season"),
-    sortedWins[0]&&sortedWins[0].wins>0&&("🥇 "+sortedWins[0].name+" · "+sortedWins[0].wins+" tournament wins"),
-    sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&("🔥 "+sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"),
-    players.filter(function(p){return p.checkedIn;}).length>0&&("⚡ "+players.filter(function(p){return p.checkedIn;}).length+" / "+players.length+" players checked in"),
-    "📊 "+(seasonConfig&&seasonConfig.seasonName||"Season")+" active  -  "+players.length+" registered",
+    sortedPts[0]&&sortedPts[0].pts>0&&{icon:"trophy-fill",text:sortedPts[0].name+" leads "+(seasonConfig&&seasonConfig.seasonName||"the season")+" with "+sortedPts[0].pts+" pts"},
+    totalGames>0&&{icon:"controller",text:totalGames+" games played this season"},
+    sortedWins[0]&&sortedWins[0].wins>0&&{icon:"award-fill",text:sortedWins[0].name+" - "+sortedWins[0].wins+" tournament wins"},
+    sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&{icon:"fire",text:sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"},
+    players.filter(function(p){return p.checkedIn;}).length>0&&{icon:"lightning-charge-fill",text:players.filter(function(p){return p.checkedIn;}).length+" / "+players.length+" players checked in"},
+    {icon:"bar-chart-line-fill",text:(seasonConfig&&seasonConfig.seasonName||"Season")+" active  -  "+players.length+" registered"},
   ].filter(Boolean):[];
   const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
 
@@ -3807,7 +3789,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
         <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
 
-          <span style={{fontSize:16,flexShrink:0}}>📢</span>
+          <span style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"bi bi-megaphone-fill"})}</span>
 
           <span style={{color:"#E8A838",fontWeight:600,fontSize:14}}>{announcement}</span>
 
@@ -3817,7 +3799,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       {hostAnnouncements&&hostAnnouncements.length>0&&(
         <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"10px 14px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:14,flexShrink:0}}>{"📣"}</span>
+          <span style={{fontSize:14,flexShrink:0}}>{"megaphone-fill"}</span>
           <span style={{color:"#C4B5FD",fontWeight:600,fontSize:13}}>{hostAnnouncements[0].msg}</span>
           <span style={{fontSize:10,color:"#9AAABF",marginLeft:"auto",flexShrink:0}}>{hostAnnouncements[0].sentAt}</span>
         </div>
@@ -3854,7 +3836,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             onClick={()=>tPhase==="complete"&&setScreen("leaderboard")}>
 
-            {tPhase==="inprogress"&&<span style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#52C47C",marginRight:7,verticalAlign:"middle",animation:"pulse 1.5s infinite"}}/>}
+            {tPhase==="inprogress"&&<span style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#52C47C",marginRight:7,verticalAlign:"middle",animation:"pulse 2s infinite"}}/>}
 
             {phaseStatusText()}
 
@@ -3903,7 +3885,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>✅</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-check-circle-fill",style:{color:"#52C47C"}})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3951,7 +3933,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>📋</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-clipboard"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3969,7 +3951,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>📋</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-clipboard"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -3989,7 +3971,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
             <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-              <div style={{fontSize:22}}>🎮</div>
+              <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
 
               <div style={{flex:1,minWidth:0}}>
 
@@ -4012,7 +3994,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       {/* Live tournament banner  -  visible to everyone during inprogress */}
       {tPhase==="inprogress"&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div style={{fontSize:22}}>⚡</div>
+          <div style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE  -  Game {tRound}/{tournamentState.totalGames||3}</div>
             <div style={{fontSize:12,color:"#C8D4E0"}}>{checkedInCount} players competing across {Math.ceil(checkedInCount/8)} lobbies</div>
@@ -4041,7 +4023,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
 
-                  <div style={{fontSize:18}}>{qc.status==="live"?"⚡":"🎮"}</div>
+                  <div style={{fontSize:18}}>{qc.status==="live"?"lightning-charge-fill":"controller"}</div>
 
                   <div style={{flex:1,minWidth:0}}>
 
@@ -4124,7 +4106,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           {/* Full-width hero for visitors */}
           <div style={{position:"relative",padding:"48px 32px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)",marginBottom:24,textAlign:"center"}}>
             <div style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:24}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
+              <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}/>
               <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Free to compete - No paywall, ever</span>
             </div>
             <h1 className="display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20,maxWidth:700,marginLeft:"auto",marginRight:"auto"}}>
@@ -4177,7 +4159,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
           <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:20}}>
 
-            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite"}}/>
+            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}/>
 
             <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 · Season Active · Weekly Clash</span>
 
@@ -4261,7 +4243,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
 
-                  <div style={{fontSize:20,flexShrink:0}}>🔒</div>
+                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-lock-fill"})}</div>
 
                   <div>
 
@@ -4295,7 +4277,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
                 <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
 
-                  <div style={{fontSize:20,flexShrink:0}}>⚠️</div>
+                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
 
                   <div>
 
@@ -4321,7 +4303,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               <div style={{background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
 
-                <div style={{fontSize:24,marginBottom:8}}>✅</div>
+                <div style={{fontSize:24,marginBottom:8}}>{React.createElement("i",{className:"bi bi-check-circle-fill",style:{color:"#52C47C"}})}</div>
 
                 <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:4}}>You're registered!</div>
 
@@ -4371,7 +4353,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
 
-                <div style={{fontSize:20,marginBottom:8}}>⚠️</div>
+                <div style={{fontSize:20,marginBottom:8}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</div>
 
                 <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Profile not linked to roster</div>
 
@@ -4448,7 +4430,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       {/* Guest sign-in nudge - after grid for visitors */}
       {!currentUser&&(
         <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginTop:16,marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div style={{fontSize:22}}>👤</div>
+          <div>{React.createElement("i",{className:"bi bi-person-fill",style:{fontSize:22}})}</div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
             <div style={{fontSize:12,color:"#C8D4E0"}}>Public profile URL - Career stats - Match history - Bio & social links</div>
@@ -4474,7 +4456,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
               <span key={i} style={{display:"inline-flex",alignItems:"center",padding:"8px 22px",fontSize:12,color:"#C8D4E0",fontWeight:600,whiteSpace:"nowrap",borderRight:"1px solid rgba(155,114,207,.1)"}}>
 
-                {item}
+                {typeof item==="object"?React.createElement(React.Fragment,null,React.createElement("i",{className:"bi bi-"+item.icon,style:{fontSize:12,marginRight:6}}),item.text):item}
 
               </span>
 
@@ -4511,17 +4493,17 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                 return(
                   <div key={ev.id} onClick={function(){setScreen("tournament-"+ev.id);}}
                     style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+(isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)"),borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s ease",transform:"translateY(0)"}}
-                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,.3)";}}
-                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="none";}}>
+                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";e.currentTarget.style.transform="translateY(-2px)";}}
+                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";e.currentTarget.style.transform="translateY(0)";}}>
                     {isLive&&(
                       <div style={{background:"rgba(82,196,124,.07)",borderBottom:"1px solid rgba(82,196,124,.18)",padding:"7px 16px",display:"flex",alignItems:"center",gap:6}}>
-                        <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>
+                        <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>
                         <span style={{fontSize:10,fontWeight:700,color:"#6EE7B7"}}>LIVE NOW</span>
                       </div>
                     )}
                     <div style={{padding:"16px 18px"}}>
                       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||"🏆"}</div>
+                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||"trophy-fill"}</div>
                         <div style={{flex:1,minWidth:0}}>
                           <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>{ev.name}</div>
                           <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>{ev.host||"Community Event"}{ev.sponsor?" · "+ev.sponsor:""}</div>
@@ -4556,7 +4538,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       <div style={{background:"linear-gradient(90deg,rgba(88,101,242,.1),rgba(88,101,242,.05))",border:"1px solid rgba(88,101,242,.3)",borderRadius:12,padding:"14px 18px",marginTop:14,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-        <div style={{fontSize:24,flexShrink:0}}>💬</div>
+        <div style={{flexShrink:0}}>{React.createElement("i",{className:"bi bi-chat-fill",style:{fontSize:24}})}</div>
 
         <div style={{flex:1,minWidth:0}}>
 
@@ -4778,7 +4760,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                   <div style={{position:"relative",flexShrink:0}}>
 
-                    {homie&&<div style={{position:"absolute",top:-4,right:-4,fontSize:12}}>💜</div>}
+                    {homie&&<div style={{position:"absolute",top:-4,right:-4,fontSize:12}}>{React.createElement("i",{className:"bi bi-heart-fill",style:{color:"#9B72CF"}})}</div>}
 
                   </div>
 
@@ -4788,7 +4770,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                       <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
 
-                      {isHotStreak(p)&&<span style={{fontSize:12}}>🔥</span>}
+                      {isHotStreak(p)&&<span style={{fontSize:12}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
 
                     </div>
 
@@ -4884,7 +4866,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
         <div style={{textAlign:"center",padding:"60px 20px"}}>
 
-          <div style={{fontSize:40,marginBottom:12}}>🔍</div>
+          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"bi bi-search"})}</div>
 
           <div style={{color:"#BECBD9",fontSize:15}}>No players match your search.</div>
 
@@ -4934,7 +4916,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
       <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
 
-        <span style={{fontSize:16}}>📊</span> Live Standings  -  Game {round}/{totalGames}
+        <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</span> Live Standings  -  Game {round}/{totalGames}
 
         <span style={{fontSize:11,color:"#BECBD9",fontWeight:400,marginLeft:4}}>({lockedCount} of {lobbies.length} {lobbies.length===1?"lobby":"lobbies"} locked)</span>
 
@@ -5133,7 +5115,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
     const li=lobbies.findIndex(lobby=>lobby.some(p=>p.name.toLowerCase().includes(q)||p.riotId?.toLowerCase().includes(q)));
 
-    if(li>=0){setHighlightLobby(li);toast("Found in Lobby "+(li+1)+"! ✓","success");}
+    if(li>=0){setHighlightLobby(li);toast("Found in Lobby "+(li+1)+"!","success");}
 
     else toast("Not found in active lobbies","error");
 
@@ -5269,7 +5251,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       }
     }
 
-    toast("Lobby "+(li+1)+" results applied! ✓","success");
+    toast("Lobby "+(li+1)+" results applied!","success");
 
   }
 
@@ -5427,7 +5409,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1003,padding:16}}>
           <Panel glow style={{width:"100%",maxWidth:420,padding:"28px"}}>
             <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontSize:48,marginBottom:12}}>🏆</div>
+              <div style={{fontSize:48,marginBottom:12}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div>
               <h3 style={{color:"#F2EDE4",fontSize:20,marginBottom:8}}>Finalize This Clash?</h3>
               <p style={{color:"#BECBD9",fontSize:14,lineHeight:1.5,marginBottom:4}}>This will end the tournament and post final results. All {checkedIn.length} players will receive their season points.</p>
               <p style={{color:"#E8A838",fontSize:12,fontWeight:600}}>This action cannot be undone.</p>
@@ -5467,7 +5449,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg="  -  "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
 
-              {round>=(tournamentState.totalGames||3)?"Finalize Clash ✓":"Next Game →"}
+              {round>=(tournamentState.totalGames||3)?"Finalize Clash":"Next Game →"}
 
             </Btn>
 
@@ -5479,7 +5461,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
       {allLocked&&checkedIn.length>0&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
-          <span style={{fontSize:16}}>✅</span>
+          <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-check-circle-fill",style:{color:"#52C47C"}})}</span>
           <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked  -  {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
           {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)&&(
             <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
@@ -5491,7 +5473,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
         <div style={{textAlign:"center",padding:"60px 20px"}}>
 
-          <div style={{fontSize:48,marginBottom:16}}>{tournamentState&&tournamentState.phase==="complete"?"🏆":tournamentState&&tournamentState.phase==="inprogress"?"⚡":"🎮"}</div>
+          <div style={{fontSize:48,marginBottom:16}}>{tournamentState&&tournamentState.phase==="complete"?"trophy-fill":tournamentState&&tournamentState.phase==="inprogress"?"lightning-charge-fill":"controller"}</div>
 
           <h3 style={{color:"#F2EDE4",marginBottom:8}}>{tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}</h3>
 
@@ -5519,7 +5501,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
           <Panel style={{padding:"14px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
 
-            <span style={{fontSize:13,color:"#C8D4E0",flexShrink:0}}>🔍 Find your lobby:</span>
+            <span style={{fontSize:13,color:"#C8D4E0",flexShrink:0}}>{React.createElement("i",{className:"bi bi-search",style:{fontSize:13,marginRight:4}})}Find your lobby:</span>
 
             <Inp value={mySearch} onChange={setMySearch} placeholder="Your name or Riot ID" onKeyDown={e=>e.key==="Enter"&&findMyLobby()}/>
 
@@ -5545,7 +5527,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.4)",borderRadius:10,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
 
-              <span style={{fontSize:22}}>🏆</span>
+              <span style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</span>
 
               <div>
 
@@ -5573,7 +5555,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                 <div style={{fontSize:11,fontWeight:700,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF",letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>Round {r}</div>
 
-                <div style={{fontSize:11,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF"}}>{r<round?"Complete ✓":r===round?"In Progress":"Upcoming"}</div>
+                <div style={{fontSize:11,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF"}}>{r<round?"Complete":r===round?"In Progress":"Upcoming"}</div>
 
               </div>
 
@@ -5683,9 +5665,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
                               <span style={{fontWeight:isMe?700:600,fontSize:13,color:isMe?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
 
-                              {homie&&<span style={{fontSize:10}}>💜</span>}
+                              {homie&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-heart-fill",style:{color:"#9B72CF"}})}</span>}
 
-                              {isHotStreak(p)&&<span style={{fontSize:10}}>🔥</span>}
+                              {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
 
                             </div>
 
@@ -5805,7 +5787,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Panel style={{padding:"24px",marginTop:24,textAlign:"center"}}>
 
-              <div style={{fontSize:32,marginBottom:12}}>🏆</div>
+              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div>
 
               <h3 style={{color:"#E8A838",fontSize:20,marginBottom:8}}>Grand Finals</h3>
 
@@ -5843,11 +5825,11 @@ const styleHideMobile=`@media(max-width:767px){.hide-mobile{display:none!importa
 
 const WEEKLY_CHALLENGES=[
 
-  {id:"w1",icon:"🔥",name:"On A Roll",desc:"Win 2 lobbies this week",xp:120,type:"weekly",progress:1,goal:2},
+  {id:"w1",icon:"fire",name:"On A Roll",desc:"Win 2 lobbies this week",xp:120,type:"weekly",progress:1,goal:2},
 
-  {id:"w2",icon:"📊",name:"Consistency Check",desc:"Average top 3 across 3 games",xp:100,type:"weekly",progress:2,goal:3},
+  {id:"w2",icon:"bar-chart-line-fill",name:"Consistency Check",desc:"Average top 3 across 3 games",xp:100,type:"weekly",progress:2,goal:3},
 
-  {id:"w3",icon:"🏆",name:"Podium Finish",desc:"Top 3 in a clash event",xp:150,type:"weekly",progress:0,goal:1},
+  {id:"w3",icon:"trophy-fill",name:"Podium Finish",desc:"Top 3 in a clash event",xp:150,type:"weekly",progress:0,goal:1},
 
 ];
 
@@ -5855,11 +5837,11 @@ const WEEKLY_CHALLENGES=[
 
 const DAILY_CHALLENGES=[
 
-  {id:"d1",icon:"🎯",name:"Sharp Shooter",desc:"Finish in the top 2",xp:50,type:"daily",progress:0,goal:1},
+  {id:"d1",icon:"bullseye",name:"Sharp Shooter",desc:"Finish in the top 2",xp:50,type:"daily",progress:0,goal:1},
 
-  {id:"d2",icon:"⚡",name:"Speed Run",desc:"Complete a game in under 30 mins",xp:40,type:"daily",progress:0,goal:1},
+  {id:"d2",icon:"lightning-charge-fill",name:"Speed Run",desc:"Complete a game in under 30 mins",xp:40,type:"daily",progress:0,goal:1},
 
-  {id:"d3",icon:"🛡",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
+  {id:"d3",icon:"shield-fill",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
 
 ];
 
@@ -5999,12 +5981,12 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
         <Btn v="dark" s="sm" onClick={onBack}>← Back</Btn>
 
-        {setScreen&&<Btn v="ghost" s="sm" onClick={()=>setScreen("recap")}>🗓 Season Recap</Btn>}
+        {setScreen&&<Btn v="ghost" s="sm" onClick={()=>setScreen("recap")}>{React.createElement("i",{className:"bi bi-calendar3",style:{fontSize:12,marginRight:4}})}Season Recap</Btn>}
 
-        {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>⚡ Challenges</Btn>}
+        {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Challenges</Btn>}
 
-        <Btn v="teal" s="sm" onClick={downloadStatsCard}>📤 Download Card</Btn>
-        <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>📋 Copy</Btn>
+        <Btn v="teal" s="sm" onClick={downloadStatsCard}>{React.createElement("i",{className:"bi bi-download",style:{fontSize:12,marginRight:4}})}Download Card</Btn>
+        <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:4}})}Copy</Btn>
 
 
 
@@ -6016,9 +5998,9 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
       {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&(
 
-        <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))",border:"1px solid rgba(232,168,56,.5)",borderRadius:10,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",gap:12,animation:"pulse-gold 3s infinite"}}>
+        <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))",border:"1px solid rgba(232,168,56,.5)",borderRadius:10,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",gap:12,boxShadow:"0 0 0 0 rgba(232,168,56,.2)"}}>
 
-          <span style={{fontSize:22,animation:"crown-glow 2s infinite"}}>👑</span>
+          <span style={{fontSize:22,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</span>
 
           <div style={{flex:1}}>
 
@@ -6057,7 +6039,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
             display:"flex",alignItems:"center",justifyContent:"center",fontSize:pPic?0:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
 
-            {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>👑</span>}
+            {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</span>}
 
             {!pPic&&player.name.charAt(0)}
 
@@ -6069,11 +6051,11 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <h1 style={{fontSize:"clamp(20px,4vw,34px)",color:"#F2EDE4",lineHeight:1}}>{player.name}</h1>
 
-              {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">👑 {SEASON_CHAMPION.title}</Tag>}
+              {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{SEASON_CHAMPION.title}</Tag>}
 
-              {isHotStreak(player)&&<span style={{fontSize:18}}>🔥</span>}
+              {isHotStreak(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
 
-              {isOnTilt(player)&&<span style={{fontSize:18}}>💀</span>}
+              {isOnTilt(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-emoji-dizzy",style:{color:"#F87171"}})}</span>}
 
             </div>
 
@@ -6097,7 +6079,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                 <div key={a.id} title={a.desc} style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:6,padding:"3px 8px",display:"flex",alignItems:"center",gap:4,fontSize:12}}>
 
-                  <span>{a.icon}</span><span style={{color:"#E8A838",fontWeight:600,fontSize:11}}>{a.name}</span>
+                  {React.createElement("i",{className:"bi bi-"+a.icon,style:{fontSize:12}})}<span style={{color:"#E8A838",fontWeight:600,fontSize:11}}>{a.name}</span>
 
                 </div>
 
@@ -6176,9 +6158,9 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:12}}>
 
-                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>🔥 Hot Streak  -  {player.currentStreak} wins in a row</div>}
+                {(player.currentStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(232,168,56,.15)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})} Hot Streak  -  {player.currentStreak} wins in a row</div>}
 
-                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>🥶 Cold Streak  -  {player.tiltStreak} losses</div>}
+                {(player.tiltStreak||0)>=3&&<div style={{display:"inline-flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(96,165,250,.1)",border:"1px solid rgba(96,165,250,.35)",fontSize:12,fontWeight:700,color:"#93C5FD"}}>{React.createElement("i",{className:"bi bi-snow",style:{color:"#38BDF8"}})} Cold Streak  -  {player.tiltStreak} losses</div>}
 
               </div>
 
@@ -6246,7 +6228,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <div style={{marginTop:12,display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,background:"rgba(234,179,8,.08)",border:"1px solid rgba(234,179,8,.3)"}}>
 
-                <span style={{fontSize:16}}>👑</span>
+                <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</span>
 
                 <span style={{fontSize:13,color:"#EAB308",fontWeight:700}}>Best Streak: {player.bestStreak}</span>
 
@@ -6308,7 +6290,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                     <div key={r.id} style={{display:"flex",alignItems:"center",gap:7,padding:"7px 10px",background:unlocked?"rgba(232,168,56,.04)":"rgba(255,255,255,.02)",borderRadius:7,border:"1px solid "+(unlocked?r.color+"33":"rgba(242,237,228,.05)"),opacity:unlocked?1:.4}}>
 
-                      <span style={{fontSize:14}}>{r.icon}</span>
+                      {React.createElement("i",{className:"bi bi-"+r.icon,style:{fontSize:14,color:r.color}})}
 
                       <span style={{fontSize:11,fontWeight:600,color:unlocked?r.color:"#BECBD9"}}>{r.name}</span>
 
@@ -6442,7 +6424,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                       <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:2}}>
 
-                        {g.claimedClutch&&<Tag color="#9B72CF" size="sm">🎯 Clutch</Tag>}
+                        {g.claimedClutch&&<Tag color="#9B72CF" size="sm">{React.createElement("i",{className:"bi bi-bullseye",style:{fontSize:10,marginRight:3}})}Clutch</Tag>}
 
                         {isDropped&&<Tag color="#BECBD9" size="sm">Dropped</Tag>}
 
@@ -6460,7 +6442,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                       {(g.bonusPts||0)>0&&!isDropped&&<div className="mono" style={{fontSize:11,color:"#52C47C"}}>+{g.bonusPts} bonus</div>}
 
-                      <div className="cond" style={{fontSize:9,color:"#BECBD9",textTransform:"uppercase"}}>{(g.place||g.placement)===1?"🏆 Champion":(g.place||g.placement)<=4?"Top 4":"Bot 4"}</div>
+                      <div className="cond" style={{fontSize:9,color:"#BECBD9",textTransform:"uppercase"}}>{(g.place||g.placement)===1?"Champion":(g.place||g.placement)<=4?"Top 4":"Bot 4"}</div>
 
                     </div>
 
@@ -6500,7 +6482,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
             <div style={{textAlign:"center",padding:"40px 20px",background:"linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95))",borderRadius:12,border:"1px solid rgba(242,237,228,.09)",color:"#9AAABF"}}>
 
-              <div style={{fontSize:32,marginBottom:10}}>⚔️</div>
+              <div style={{marginBottom:10}}>{React.createElement("i",{className:"bi bi-diagram-3-fill",style:{fontSize:32}})}</div>
 
               <div style={{fontSize:14,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>No H2H data yet</div>
 
@@ -6604,7 +6586,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <Panel key={a.id} style={{padding:"16px",opacity:unlocked?1:.4,border:"1px solid "+(unlocked?"rgba(232,168,56,.3)":"rgba(242,237,228,.07)")}}>
 
-                <div style={{fontSize:26,marginBottom:6}}>{a.icon}</div>
+                <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"bi bi-"+a.icon})}</div>
 
                 <div style={{fontWeight:700,fontSize:14,color:unlocked?"#F2EDE4":"#BECBD9",marginBottom:4}}>{a.name}</div>
 
@@ -6646,7 +6628,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
   const [compareIds,setCompareIds]=useState([]);
 
-  const MEDALS=["🥇","🥈","🥉"];
+  const MEDALS=["award-fill","award-fill","award-fill"];
 
   const MCOLS=["#E8A838","#C0C0C0","#CD7F32"];
 
@@ -6727,7 +6709,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
               <Panel key={p.id} hover style={{padding:"18px 14px",textAlign:"center",border:"1px solid "+MCOLS[ri]+"44",marginTop:ri===0?0:14,cursor:"pointer"}} onClick={()=>open(p)}>
 
-                <div style={{fontSize:26,marginBottom:6}}>{MEDALS[ri]}</div>
+                <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"bi bi-"+MEDALS[ri],style:{color:MCOLS[ri]}})}</div>
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:16,fontWeight:700,color:"#F2EDE4",marginTop:8,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
 
@@ -6793,7 +6775,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       {tab==="season"&&sorted.length>0&&<MemoStandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
 
-      {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>🏆</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
+      {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
 
 
 
@@ -6821,7 +6803,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                       {p.plan==="pro"&&<span style={{fontSize:9,fontWeight:800,color:"#E8A838",background:"rgba(232,168,56,.15)",padding:"1px 4px",borderRadius:4,marginLeft:2}}>PRO</span>}
 
-                      {isHotStreak(p)&&"🔥"}{isOnTilt(p)&&"💀"}
+                      {isHotStreak(p)&&React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}{isOnTilt(p)&&React.createElement("i",{className:"bi bi-emoji-dizzy",style:{color:"#F87171"}})}
 
                     </div>
 
@@ -6965,11 +6947,11 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                 <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
 
-                  <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}{isHotStreak(p)?" 🔥":""}{isOnTilt(p)?" 💀":""}</span>
+                  <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}{isHotStreak(p)?" ":""}{isOnTilt(p)?" ":""}</span>
 
                 </div>
 
-                <span className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{p.bestStreak||0}🔥</span>
+                <span className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{p.bestStreak||0}{React.createElement("i",{className:"bi bi-fire",style:{fontSize:12,color:"#F97316",marginLeft:2}})}</span>
 
                 <span className="mono" style={{fontSize:13,color:p.currentStreak>=3?"#6EE7B7":p.tiltStreak>=3?"#F87171":"#C8BFB0"}}>
 
@@ -6993,7 +6975,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
       )}
 
-      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"⚔️"}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{"★"}</span>}</span>))}</div>);})}</div>}
+      {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{"diagram-3-fill"}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{"star-fill"}</span>}</span>))}</div>);})}</div>}
 
     </div>
 
@@ -7089,7 +7071,7 @@ function ClashReport({clashData,players}){
 
                       <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{p.name}</span>
 
-                      {p.name===mostImproved&&<Tag color="#52C47C" size="sm">📈 Improved</Tag>}
+                      {p.name===mostImproved&&<Tag color="#52C47C" size="sm">{React.createElement("i",{className:"bi bi-graph-up-arrow",style:{marginRight:3}})}Improved</Tag>}
 
                     </div>
 
@@ -7141,7 +7123,7 @@ function ClashReport({clashData,players}){
 
             <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-              <span style={{fontSize:22}}>📈</span>
+              <span style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-graph-up-arrow"})}</span>
 
               <div><div style={{fontWeight:700,fontSize:14,color:"#6EE7B7"}}>Most Improved</div>
 
@@ -7161,7 +7143,7 @@ function ClashReport({clashData,players}){
 
             <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-              <span style={{fontSize:22}}>🎯</span>
+              <span style={{fontSize:22}}>{React.createElement("i",{className:"bi bi-bullseye"})}</span>
 
               <div><div style={{fontWeight:700,fontSize:14,color:"#C4B5FD"}}>Biggest Upset</div>
 
@@ -7199,7 +7181,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
   const CLASH_DATE=tournamentState?.clashDate||"";
 
-  const MEDALS=["🥇","🥈","🥉"];
+  const MEDALS=["award-fill","award-fill","award-fill"];
 
   const PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
 
@@ -7211,7 +7193,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
   const top3=[sorted[1],sorted[0],sorted[2]].filter(Boolean);
 
-  const REWARDS=["👑 Clash Crown","🖼 Icon","🎨 Frame","📦 Loot Orb","📦 Loot Orb","","",""];
+  const REWARDS=["Clash Crown","Icon","Frame","Loot Orb","Loot Orb","","",""];
 
 
 
@@ -7219,7 +7201,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     const lines=[
 
-      "**🏆 TFT Clash S1  -  "+CLASH_NAME+" Results**",
+      "**TFT Clash S1  -  "+CLASH_NAME+" Results**",
 
       "```",
 
@@ -7227,11 +7209,11 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
       "```",
 
-      "👑 Champion: **"+champ.name+"**  🎉  "+champ.pts+"pts",
+      "Champion: **"+champ.name+"**    "+champ.pts+"pts",
 
     ];
 
-    navigator.clipboard?.writeText(lines.join("\n")).then(()=>toast("Copied for Discord ✓","success"));
+    navigator.clipboard?.writeText(lines.join("\n")).then(()=>toast("Copied for Discord","success"));
 
   }
 
@@ -7271,7 +7253,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     ctx.strokeStyle="rgba(232,168,56,0.4)";ctx.lineWidth=1;ctx.stroke();
 
-    ctx.font="bold 40px serif";ctx.fillStyle="#E8A838";ctx.fillText("👑",55,152);
+    ctx.font="bold 40px serif";ctx.fillStyle="#E8A838";ctx.fillText("W",55,152);
 
     ctx.font="bold 28px serif";ctx.fillStyle="#F2EDE4";ctx.fillText(champ.name,110,150);
 
@@ -7309,7 +7291,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
     const a=document.createElement("a");a.download="TFTClash-Results.png";a.href=canvas.toDataURL("image/png");a.click();
 
-    toast("Results card downloaded ✓","success");
+    toast("Results card downloaded","success");
 
   }
 
@@ -7339,14 +7321,14 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <Btn v="dark" s="sm" onClick={shareDiscord}>Discord</Btn>
 
-          <Btn v="ghost" s="sm" onClick={downloadCard}>⬇ PNG</Btn>
+          <Btn v="ghost" s="sm" onClick={downloadCard}>{React.createElement("i",{className:"bi bi-download",style:{fontSize:12,marginRight:3}})}PNG</Btn>
 
           <Btn v="dark" s="sm" onClick={function(){
             var text="TFT Clash Results\n"+CLASH_NAME+" \u2014 "+CLASH_DATE+"\n\n";
             sorted.slice(0,8).forEach(function(p,i){text+=(i+1)+". "+p.name+" \u2014 "+p.pts+"pts (avg: "+getStats(p).avgPlacement+")\n";});
             text+="\n#TFTClash tftclash.gg";
             navigator.clipboard.writeText(text).then(function(){toast("Results copied!","success");}).catch(function(){toast("Copy failed","error");});
-          }}>📋 Copy</Btn>
+          }}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:4}})}Copy</Btn>
 
         </div>
 
@@ -7364,13 +7346,13 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
         <div style={{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.06))",border:"2px solid rgba(232,168,56,.7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,flexShrink:0,boxShadow:"0 0 24px rgba(232,168,56,.35)"}}>
 
-          👑
+          {React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:40,color:"#E8A838"}})}
 
         </div>
 
         <div style={{flex:1,minWidth:0}}>
 
-          <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>👑 Clash Champion</div>
+          <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:11,color:"#E8A838",marginRight:3}})}Clash Champion</div>
 
           <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(26px,4vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1,marginBottom:6}}>{champ.name}</div>
 
@@ -7380,7 +7362,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
             <Tag color="#4ECDC4" size="sm">{champ.region}</Tag>
 
-            {isHotStreak(champ)&&<Tag color="#F97316" size="sm">🔥 {champ.currentStreak}-streak</Tag>}
+            {isHotStreak(champ)&&<Tag color="#F97316" size="sm">{React.createElement("i",{className:"bi bi-fire",style:{fontSize:11,color:"#F97316",marginRight:3}})}{champ.currentStreak}-streak</Tag>}
 
           </div>
 
@@ -7428,7 +7410,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                 style={{background:isGold?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(isGold?"rgba(232,168,56,.3)":"rgba(255,255,255,.07)"),borderRadius:14,padding:"20px 14px",textAlign:"center",cursor:"pointer",borderTop:"3px solid "+col,paddingTop:isGold?28:20}}>
 
-                <div style={{fontSize:28,marginBottom:8}}>{MEDALS[actualRank]}</div>
+                <div style={{fontSize:28,marginBottom:8}}>{React.createElement("i",{className:"bi bi-"+MEDALS[actualRank],style:{color:PODIUM_COLS[actualRank]}})}</div>
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:isGold?17:14,fontWeight:700,color:"#F2EDE4",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
 
@@ -7528,9 +7510,9 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                       {p.name}
 
-                      {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>💜</span>}
+                      {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-heart-fill",style:{color:"#9B72CF"}})}</span>}
 
-                      {isHotStreak(p)&&<span style={{fontSize:10}}>🔥</span>}
+                      {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
 
                     </div>
 
@@ -7590,7 +7572,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
           <div style={{marginTop:16,padding:"16px 20px",background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
 
-            <span style={{fontSize:24}}>🎁</span>
+            <span style={{fontSize:24}}>{React.createElement("i",{className:"bi bi-gift-fill"})}</span>
 
             <div style={{flex:1}}>
 
@@ -7707,17 +7689,17 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
     hofRecs=[
 
-      byPts[0]?{id:"pts",icon:"🏆",title:"Season Points Leader",value:byPts[0].pts+" pts",holder:byPts[0].name,rank:byPts[0].rank,runner:[byPts[1]&&byPts[1].name,byPts[2]&&byPts[2].name].filter(Boolean),history:[]}:null,
+      byPts[0]?{id:"pts",icon:"trophy-fill",title:"Season Points Leader",value:byPts[0].pts+" pts",holder:byPts[0].name,rank:byPts[0].rank,runner:[byPts[1]&&byPts[1].name,byPts[2]&&byPts[2].name].filter(Boolean),history:[]}:null,
 
-      byWins[0]&&(byWins[0].wins||0)>0?{id:"wins",icon:"⚡",title:"Win Machine",value:(byWins[0].wins||0)+" wins",holder:byWins[0].name,rank:byWins[0].rank,runner:[byWins[1]&&byWins[1].name,byWins[2]&&byWins[2].name].filter(Boolean),history:[]}:null,
+      byWins[0]&&(byWins[0].wins||0)>0?{id:"wins",icon:"lightning-charge-fill",title:"Win Machine",value:(byWins[0].wins||0)+" wins",holder:byWins[0].name,rank:byWins[0].rank,runner:[byWins[1]&&byWins[1].name,byWins[2]&&byWins[2].name].filter(Boolean),history:[]}:null,
 
-      byAvg[0]?{id:"avg",icon:"🎯",title:"Consistency King",value:"AVP "+byAvg[0].avg,holder:byAvg[0].name,rank:byAvg[0].rank,runner:[byAvg[1]&&byAvg[1].name,byAvg[2]&&byAvg[2].name].filter(Boolean),history:[]}:null,
+      byAvg[0]?{id:"avg",icon:"bullseye",title:"Consistency King",value:"AVP "+byAvg[0].avg,holder:byAvg[0].name,rank:byAvg[0].rank,runner:[byAvg[1]&&byAvg[1].name,byAvg[2]&&byAvg[2].name].filter(Boolean),history:[]}:null,
 
-      byStreak[0]&&(byStreak[0].bestStreak||0)>1?{id:"streak",icon:"🔥",title:"Hot Streak",value:(byStreak[0].bestStreak||0)+" consecutive top4s",holder:byStreak[0].name,rank:byStreak[0].rank,runner:[byStreak[1]&&byStreak[1].name,byStreak[2]&&byStreak[2].name].filter(Boolean),history:[]}:null,
+      byStreak[0]&&(byStreak[0].bestStreak||0)>1?{id:"streak",icon:"fire",title:"Hot Streak",value:(byStreak[0].bestStreak||0)+" consecutive top4s",holder:byStreak[0].name,rank:byStreak[0].rank,runner:[byStreak[1]&&byStreak[1].name,byStreak[2]&&byStreak[2].name].filter(Boolean),history:[]}:null,
 
-      byGames[0]?{id:"games",icon:"🎮",title:"Iron Presence",value:(byGames[0].games||0)+" games",holder:byGames[0].name,rank:byGames[0].rank,runner:[byGames[1]&&byGames[1].name,byGames[2]&&byGames[2].name].filter(Boolean),history:[]}:null,
+      byGames[0]?{id:"games",icon:"controller",title:"Iron Presence",value:(byGames[0].games||0)+" games",holder:byGames[0].name,rank:byGames[0].rank,runner:[byGames[1]&&byGames[1].name,byGames[2]&&byGames[2].name].filter(Boolean),history:[]}:null,
 
-      byTop4[0]&&(byTop4[0].games||0)>0?{id:"top4r",icon:"🌟",title:"Top4 Machine",value:Math.round((byTop4[0].top4||0)/byTop4[0].games*100)+"%",holder:byTop4[0].name,rank:byTop4[0].rank,runner:[byTop4[1]&&byTop4[1].name,byTop4[2]&&byTop4[2].name].filter(Boolean),history:[]}:null,
+      byTop4[0]&&(byTop4[0].games||0)>0?{id:"top4r",icon:"stars",title:"Top4 Machine",value:Math.round((byTop4[0].top4||0)/byTop4[0].games*100)+"%",holder:byTop4[0].name,rank:byTop4[0].rank,runner:[byTop4[1]&&byTop4[1].name,byTop4[2]&&byTop4[2].name].filter(Boolean),history:[]}:null,
 
     ].filter(Boolean);
 
@@ -7759,7 +7741,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
           onMouseEnter={function(e){e.currentTarget.style.opacity=".95";e.currentTarget.style.filter="drop-shadow(0 0 10px #E8A838)";}}
 
-          onMouseLeave={function(e){e.currentTarget.style.opacity=".07";e.currentTarget.style.filter="drop-shadow(0 0 0px #E8A838)";}}>🐪</div>
+          onMouseLeave={function(e){e.currentTarget.style.opacity=".07";e.currentTarget.style.filter="drop-shadow(0 0 0px #E8A838)";}}>C</div>
 
       </div>
 
@@ -7783,7 +7765,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
             <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
 
-              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 2.5s infinite"}}>👑</div>
+              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>
 
               <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Russo One',sans-serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
 
@@ -7931,7 +7913,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
           <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(155,114,207,.04))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
 
-            <div style={{fontSize:36,marginBottom:10}}>👑</div>
+            <div style={{fontSize:36,marginBottom:10}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>
 
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:17,fontWeight:700,color:"#E8A838",marginBottom:6}}>A champion yet to be crowned</div>
 
@@ -7977,7 +7959,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
                 </div>
 
-                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?"👑":"🏆"}</div>
+                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:"inherit",color:"#E8A838"}}):React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:"inherit"}})}</div>
 
                 <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,18px)",fontWeight:700,color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
 
@@ -8013,7 +7995,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
         {hofRecs.length===0&&(
           <div style={{textAlign:"center",padding:"64px 24px",color:"#6B7280"}}>
-            <div style={{fontSize:48,marginBottom:16}}>🏆</div>
+            <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</div>
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#9AAABF",marginBottom:8}}>Hall of Fame loading...</div>
             <div style={{fontSize:14,lineHeight:1.6}}>Season champions will be enshrined here.</div>
           </div>
@@ -8031,13 +8013,13 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
                 style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid "+(isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s,box-shadow .2s,transform .2s",boxShadow:isOpen?"0 0 40px rgba(232,168,56,.12)":"none",transform:"translateY(0)"}}
 
-                onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.4)";e.currentTarget.style.boxShadow="0 0 32px rgba(232,168,56,.14),0 4px 24px rgba(0,0,0,.4)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.4)";e.currentTarget.style.transform="translateY(-2px)";}}
 
-                onMouseLeave={e=>{e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)";e.currentTarget.style.boxShadow=isOpen?"0 0 40px rgba(232,168,56,.12)":"none";e.currentTarget.style.transform="translateY(0)";}}>
+                onMouseLeave={e=>{e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)";e.currentTarget.style.transform="translateY(0)";}}>
 
                 <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.08),rgba(232,168,56,.02))",padding:"16px 18px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid rgba(232,168,56,.1)"}}>
 
-                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{r.icon}</div>
+                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+r.icon,style:{color:r.color||"#E8A838"}})}</div>
 
                   <div style={{flex:1,minWidth:0}}>
 
@@ -8195,7 +8177,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
         <div style={{textAlign:"center",padding:"60px 20px",color:"#9AAABF"}}>
 
-          <div style={{fontSize:40,marginBottom:12}}>📭</div>
+          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"bi bi-inbox"})}</div>
 
           <div style={{fontSize:16,fontWeight:700,color:"#C8D4E0",marginBottom:6}}>No clashes archived yet</div>
 
@@ -8231,7 +8213,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
                 <div style={{display:"flex",alignItems:"center",gap:7}}>
 
-                  <span style={{fontSize:14}}>🏆</span><span style={{fontWeight:700,color:"#E8A838",fontSize:13}}>{c.champion}</span>
+                  <span style={{fontSize:14}}>{React.createElement("i",{className:"bi bi-trophy-fill"})}</span><span style={{fontWeight:700,color:"#E8A838",fontSize:13}}>{c.champion}</span>
 
                   <span style={{color:"#BECBD9",fontSize:14,marginLeft:6}}>{open===c.id?"▲":"▼"}</span>
 
@@ -8253,7 +8235,7 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
                         <div key={i} style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"8px 10px",textAlign:"center"}}>
 
-                          <div style={{fontSize:16,marginBottom:4}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":"🏅"}</div>
+                          <div style={{fontSize:16,marginBottom:4}}>{i===0?"award-fill":i===1?"award-fill":i===2?"award-fill":"award-fill"}</div>
 
                           <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{name}</div>
 
@@ -8271,9 +8253,9 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 
                     <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
 
-                      {c.report.mostImproved&&<div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#4ECDC4",fontWeight:700}}>📈 Most Improved:</span> <span style={{color:"#F2EDE4"}}>{c.report.mostImproved}</span></div>}
+                      {c.report.mostImproved&&<div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#4ECDC4",fontWeight:700}}>{React.createElement("i",{className:"bi bi-graph-up-arrow",style:{marginRight:3}})}Most Improved:</span> <span style={{color:"#F2EDE4"}}>{c.report.mostImproved}</span></div>}
 
-                      {c.report.biggestUpset&&<div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#F87171",fontWeight:700}}>⚡ Upset:</span> <span style={{color:"#F2EDE4"}}>{c.report.biggestUpset}</span></div>}
+                      {c.report.biggestUpset&&<div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#F87171",fontWeight:700}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Upset:</span> <span style={{color:"#F2EDE4"}}>{c.report.biggestUpset}</span></div>}
 
                     </div>
 
@@ -8560,36 +8542,36 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const TABS=[
 
-    {id:"dashboard",icon:"📊",label:"Dashboard"},
+    {id:"dashboard",icon:"speedometer2",label:"Dashboard"},
 
-    {id:"round",icon:"⚡",label:"Round"},
+    {id:"round",icon:"lightning-charge-fill",label:"Round"},
 
-    {id:"quickclash",icon:"🎲",label:"Quick Clash"},
+    {id:"quickclash",icon:"dice-5-fill",label:"Quick Clash"},
 
-    {id:"schedule",icon:"📅",label:"Schedule"},
+    {id:"schedule",icon:"calendar-event-fill",label:"Schedule"},
 
-    {id:"players",icon:"👥",label:"Players"},
+    {id:"players",icon:"people-fill",label:"Players"},
 
-    {id:"scores",icon:"✏️",label:"Scores"},
+    {id:"scores",icon:"pencil-fill",label:"Scores"},
 
-    {id:"broadcast",icon:"📢",label:"Broadcast"},
+    {id:"broadcast",icon:"megaphone-fill",label:"Broadcast"},
 
-    {id:"hosts",icon:"🎮",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
+    {id:"hosts",icon:"controller",label:"Hosts"+(pendingHosts>0?" ("+pendingHosts+")":"")},
 
-    {id:"season",icon:"🏆",label:"Season"},
+    {id:"season",icon:"trophy-fill",label:"Season"},
 
-    {id:"sponsorships",icon:"🏢",label:"Sponsors"},
+    {id:"sponsorships",icon:"building",label:"Sponsors"},
 
-    {id:"audit",icon:"📋",label:"Audit"},
+    {id:"audit",icon:"clipboard-data-fill",label:"Audit"},
 
-    {id:"friends",icon:"🎮",label:"Scrims Access"},
-    {id:"ticker",icon:"📡",label:"Ticker"},
+    {id:"friends",icon:"controller",label:"Scrims Access"},
+    {id:"ticker",icon:"broadcast-pin",label:"Ticker"},
 
-    {id:"settings",icon:"⚙️",label:"Settings"},
+    {id:"settings",icon:"gear-fill",label:"Settings"},
 
-    {id:"featured",icon:"🌟",label:"Featured"},
+    {id:"featured",icon:"stars",label:"Featured"},
 
-    {id:"flash",icon:"⚡",label:"Flash Tournaments"},
+    {id:"flash",icon:"lightning-charge-fill",label:"Flash Tournaments"},
 
   ];
 
@@ -8671,7 +8653,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:20,flexWrap:"wrap"}}>
 
-        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>⬡</div>
+        <div style={{width:46,height:46,background:"linear-gradient(135deg,rgba(232,168,56,.14),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.35)",borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"bi bi-hexagon-fill",style:{fontSize:22}})}</div>
 
         <div style={{flex:1,minWidth:0}}>
 
@@ -8713,7 +8695,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
           <button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",alignItems:"center",gap:5,padding:"7px 13px",background:tab===t.id?"rgba(155,114,207,.18)":"rgba(255,255,255,.03)",border:"1px solid "+(tab===t.id?"rgba(155,114,207,.5)":"rgba(242,237,228,.07)"),borderRadius:8,color:tab===t.id?"#C4B5FD":"#9AAABF",cursor:"pointer",fontSize:12,fontWeight:tab===t.id?700:400,whiteSpace:"nowrap",flexShrink:0,transition:"all .12s",fontFamily:"inherit"}}>
 
-            <span>{t.icon}</span><span>{t.label}</span>
+            <span>{React.createElement("i",{className:"bi bi-"+t.icon,style:{fontSize:13}})}</span><span>{t.label}</span>
 
           </button>
 
@@ -8727,7 +8709,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       <div style={{padding:"9px 14px",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:8,marginBottom:18,fontSize:12,color:"#9AAABF",lineHeight:1.5}}>
 
-        <span style={{color:"#C4B5FD",fontWeight:700,marginRight:6}}>ℹ</span>{TAB_INFO[tab]||""}
+        {React.createElement("i",{className:"bi bi-info-circle-fill",style:{color:"#C4B5FD",marginRight:6}})}{TAB_INFO[tab]||""}
 
       </div>
 
@@ -8743,19 +8725,19 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             {[
 
-              {label:"Players",value:players.length,color:"#E8A838",icon:"👥"},
+              {label:"Players",value:players.length,color:"#E8A838",icon:"people-fill"},
 
-              {label:"Checked In",value:players.filter(p=>p.checkedIn).length,color:"#52C47C",icon:"✓"},
+              {label:"Checked In",value:players.filter(p=>p.checkedIn).length,color:"#52C47C",icon:"check-circle-fill"},
 
-              {label:"Banned",value:players.filter(p=>p.banned).length,color:"#F87171",icon:"⛔"},
+              {label:"Banned",value:players.filter(p=>p.banned).length,color:"#F87171",icon:"slash-circle-fill"},
 
-              {label:"Scheduled",value:scheduledEvents.length,color:"#C4B5FD",icon:"📅"},
+              {label:"Scheduled",value:scheduledEvents.length,color:"#C4B5FD",icon:"calendar-event-fill"},
 
             ].map(c=>(
 
               <Panel key={c.label} style={{padding:"18px 12px",textAlign:"center"}}>
 
-                <div style={{fontSize:20,marginBottom:6}}>{c.icon}</div>
+                <div style={{fontSize:20,marginBottom:6}}>{React.createElement("i",{className:"bi bi-"+c.icon,style:{color:c.color}})}</div>
 
                 <div className="mono" style={{fontSize:26,fontWeight:800,color:c.color,lineHeight:1}}>{c.value}</div>
 
@@ -8779,9 +8761,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?"▶ Resume":"⏸ Pause"}</Btn>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>📢 Broadcast</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"bi bi-megaphone-fill",style:{marginRight:3}})}Broadcast</Btn>
 
-              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>⚡ Round Controls</Btn>
+              <Btn v="dark" s="sm" onClick={()=>setTab("round")}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Round Controls</Btn>
 
             </div>
 
@@ -8935,7 +8917,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                         {p.role!=="player"&&<Tag color="#9B72CF" size="sm">{p.role}</Tag>}
 
-                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"⛔ DQ":"BANNED"}</Tag>}
+                        {p.banned&&<Tag color="#F87171" size="sm">{(p.dnpCount||0)>=2?"DQ":"BANNED"}</Tag>}
 
                         {!p.banned&&(p.dnpCount||0)>0&&<Tag color="#F97316" size="sm">DNP {p.dnpCount}/2</Tag>}
 
@@ -8949,7 +8931,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       <div style={{fontSize:12,color:"#BECBD9"}}>{p.riotId} · {p.rank} · <span className="mono" style={{color:"#E8A838"}}>{p.pts}pts</span> · {p.games||0}G</div>
 
-                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>📌 {p.notes}</div>}
+                      {p.notes&&<div style={{fontSize:11,color:"#EAB308",marginTop:4}}>{React.createElement("i",{className:"bi bi-pin-fill",style:{fontSize:11,marginRight:3}})}{p.notes}</div>}
 
                     </div>
 
@@ -8957,7 +8939,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       <Btn s="sm" v="dark" onClick={()=>setEditP(p)}>Edit</Btn>
 
-                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">📌</Btn>
+                      <Btn s="sm" v="ghost" onClick={()=>{setNoteTarget(p);setNoteText(p.notes||"");}} title="Add internal note">{React.createElement("i",{className:"bi bi-pin-fill",style:{fontSize:12}})}</Btn>
 
                       {!p.banned&&<Btn s="sm" v="warning" onClick={()=>markDNP(p.id,p.name)} title="Mark no-show (2 DNPs = DQ)">DNP</Btn>}
 
@@ -8965,7 +8947,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       {p.banned?<Btn s="sm" v="success" onClick={()=>unban(p.id,p.name)}>Unban</Btn>:<Btn s="sm" v="danger" onClick={()=>ban(p.id,p.name)}>Ban</Btn>}
 
-                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">✕</Btn>
+                      <Btn s="sm" v="danger" onClick={()=>remove(p.id,p.name)} title="Remove permanently">{React.createElement("i",{className:"bi bi-x-lg",style:{fontSize:12}})}</Btn>
 
                     </div>
 
@@ -9113,7 +9095,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:10}}>
 
-              {[["random","🎲 Random","Fully shuffled, no weighting  -  great for casual events"],["rank-based","🏆 By Rank","Top players spread evenly across lobbies for fair games"],["snake","🐍 Snake Draft","Alternating pick order  -  balances skill across lobbies"]].map(function(item){
+              {[["random","Random","Fully shuffled, no weighting  -  great for casual events"],["rank-based","By Rank","Top players spread evenly across lobbies for fair games"],["snake","Snake Draft","Alternating pick order  -  balances skill across lobbies"]].map(function(item){
 
                 var v=item[0];var l=item[1];var d=item[2];
 
@@ -9157,7 +9139,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               borderRadius:8}}>
 
-              <span style={{fontSize:16}}>🚫</span>
+              <span style={{fontSize:16}}>{React.createElement("i",{className:"bi bi-x-circle-fill",style:{color:"#F87171"}})}</span>
 
               <span style={{fontSize:13,fontWeight:seedAlgo==="anti-stack"?700:500,color:seedAlgo==="anti-stack"?"#F87171":"#C8BFB0",flex:1}}>Anti-Stack</span>
 
@@ -9249,7 +9231,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
 
-                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>🎲</div>
+                <div style={{width:38,height:38,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}}>{React.createElement("i",{className:"bi bi-dice-5-fill"})}</div>
 
                 <div>
 
@@ -9277,7 +9259,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               </div>
 
-              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open  -  "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash ⚡</Btn>
+              <Btn v="primary" full onClick={()=>{if(!flashForm.name.trim())return;var ev={id:Date.now(),name:flashForm.name.trim(),cap:parseInt(flashForm.cap),rounds:parseInt(flashForm.rounds),format:flashForm.format,status:"open",players:[],startedAt:null,createdAt:new Date().toLocaleTimeString()};setQuickClashes&&setQuickClashes(function(qs){return [ev,...qs];});addAudit("ACTION","Quick Clash created: "+flashForm.name);toast(flashForm.name+" is open  -  "+flashForm.cap+" spots","success");setFlashForm({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});}}>Open Quick Clash</Btn>
 
             </div>
 
@@ -9291,7 +9273,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <Panel style={{padding:"36px",textAlign:"center"}}>
 
-                <div style={{fontSize:32,marginBottom:10}}>⚡</div>
+                <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
 
                 <div style={{color:"#9AAABF",fontSize:13}}>No quick clashes active</div>
 
@@ -9563,7 +9545,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
 
-              <span style={{fontSize:18}}>📅</span>
+              <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-calendar-event-fill"})}</span>
 
               <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Season Lifecycle</div>
 
@@ -9618,7 +9600,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
 
-                <span style={{fontSize:18}}>⚠</span>
+                <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</span>
 
                 <div style={{fontWeight:700,fontSize:14,color:"#F87171"}}>Danger Zone</div>
 
@@ -9728,7 +9710,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
             </div>
 
-            <button onClick={()=>setScreen("featured")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>🏆 Featured Events</button>
+            <button onClick={()=>setScreen("featured")} style={{background:"rgba(155,114,207,.14)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,padding:"8px 16px",fontSize:12,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:12,marginRight:4}})}Featured Events</button>
 
           </div>
 
@@ -9750,7 +9732,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                       {app.org&&<Tag color="#9B72CF" size="sm">{app.org}</Tag>}
 
-                      <Tag color={app.status==="pending"?"#E8A838":app.status==="approved"?"#6EE7B7":"#F87171"} size="sm">{app.status==="pending"?"⏳ Pending":app.status==="approved"?"✓ Approved":"✗ Rejected"}</Tag>
+                      <Tag color={app.status==="pending"?"#E8A838":app.status==="approved"?"#6EE7B7":"#F87171"} size="sm">{app.status==="pending"?"Pending":app.status==="approved"?"Approved":"Rejected"}</Tag>
 
                     </div>
 
@@ -9764,7 +9746,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
                     <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
 
-                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved",approvedAt:new Date().toLocaleDateString()}:a));setNotifications(ns=>[{id:Date.now(),icon:"🎮",title:"Host Application Approved",body:app.name+" has been approved as a Host. They can now access the Host Dashboard.",time:new Date().toLocaleTimeString(),read:false},...ns]);addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
+                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved",approvedAt:new Date().toLocaleDateString()}:a));setNotifications(ns=>[{id:Date.now(),icon:"controller",title:"Host Application Approved",body:app.name+" has been approved as a Host. They can now access the Host Dashboard.",time:new Date().toLocaleTimeString(),read:false},...ns]);addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
 
                       <Btn v="danger" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"rejected"}:a));addAudit("WARN","Host rejected: "+app.name);toast(app.name+" rejected","success");}}>Reject</Btn>
 
@@ -10013,7 +9995,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
               {evts.map(function(ev,idx){return(
                 <div key={ev.id||idx} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8}}>
-                  <div style={{fontSize:18,flexShrink:0}}>{ev.logo||"🏆"}</div>
+                  <div style={{fontSize:18,flexShrink:0}}>{ev.logo||"trophy-fill"}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
                     <div style={{fontSize:11,color:"#BECBD9"}}>{ev.host} · {ev.date} · <span style={{color:ev.status==="live"?"#52C47C":ev.status==="upcoming"?"#E8A838":"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{ev.status}</span></div>
@@ -10060,7 +10042,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
             <Btn v="primary" s="sm" onClick={function(){
               var nm=feAddName&&feAddName.value;var ho=feAddHost&&feAddHost.value;var dt=feAddDate&&feAddDate.value;
               if(!nm||!ho){toast("Name and host required","error");return;}
-              var newEv={id:"fe-"+Date.now(),name:nm,host:ho,date:dt||"TBD",status:(feAddStatus&&feAddStatus.value)||"upcoming",format:(feAddFormat&&feAddFormat.value)||"Swiss",size:parseInt((feAddSize&&feAddSize.value)||"16")||16,registered:0,logo:"🏆",tags:[],description:""};
+              var newEv={id:"fe-"+Date.now(),name:nm,host:ho,date:dt||"TBD",status:(feAddStatus&&feAddStatus.value)||"upcoming",format:(feAddFormat&&feAddFormat.value)||"Swiss",size:parseInt((feAddSize&&feAddSize.value)||"16")||16,registered:0,logo:"trophy-fill",tags:[],description:""};
               if(setFeaturedEvents)setFeaturedEvents(evts.concat([newEv]));
               if(feAddName)feAddName.value="";if(feAddHost)feAddHost.value="";if(feAddDate)feAddDate.value="";
               toast("Event added","success");
@@ -10159,7 +10141,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
               var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
               return(
                 <div key={ev.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,marginBottom:6}}>
-                  <div style={{fontSize:16,flexShrink:0}}>{"⚡"}</div>
+                  <div style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
                     <div style={{fontSize:11,color:"#BECBD9"}}>{ev.date?new Date(ev.date).toLocaleDateString():"TBD"} · <span style={{color:phaseColors[ev.phase]||"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{(ev.phase||"draft").replace("_"," ")}</span></div>
@@ -10371,23 +10353,23 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
     var ironButt=scrimStats.slice().sort(function(a,b){return b.eighths-a.eighths;})[0];
 
-    if(ironButt&&ironButt.eighths>0)awards.push({icon:"🪑",title:"Iron Butt",desc:"Most 8th places",player:ironButt.name,val:ironButt.eighths+"x 8th"});
+    if(ironButt&&ironButt.eighths>0)awards.push({icon:"person-arms-up",title:"Iron Butt",desc:"Most 8th places",player:ironButt.name,val:ironButt.eighths+"x 8th"});
 
     var consistent=scrimStats.filter(function(p){return p.games>=3;}).slice().sort(function(a,b){return a.variance-b.variance;})[0];
 
-    if(consistent)awards.push({icon:"🎯",title:"Consistent King",desc:"Lowest placement variance",player:consistent.name,val:"σ²="+consistent.variance.toFixed(1)});
+    if(consistent)awards.push({icon:"bullseye",title:"Consistent King",desc:"Lowest placement variance",player:consistent.name,val:"σ²="+consistent.variance.toFixed(1)});
 
     var streakKing=scrimStats.slice().sort(function(a,b){return b.streak-a.streak;})[0];
 
-    if(streakKing&&streakKing.streak>=2)awards.push({icon:"🔥",title:"Streak Lord",desc:"Current top-4 streak",player:streakKing.name,val:streakKing.streak+" games"});
+    if(streakKing&&streakKing.streak>=2)awards.push({icon:"fire",title:"Streak Lord",desc:"Current top-4 streak",player:streakKing.name,val:streakKing.streak+" games"});
 
     var winKing=scrimStats.slice().sort(function(a,b){return b.wins-a.wins;})[0];
 
-    if(winKing&&winKing.wins>0)awards.push({icon:"👑",title:"Clutch Player",desc:"Most first place finishes",player:winKing.name,val:winKing.wins+"x 1st"});
+    if(winKing&&winKing.wins>0)awards.push({icon:"trophy-fill",title:"Clutch Player",desc:"Most first place finishes",player:winKing.name,val:winKing.wins+"x 1st"});
 
     var glassCannon=scrimStats.filter(function(p){return p.games>=3&&p.wins>0&&p.eighths>0;}).slice().sort(function(a,b){return b.variance-a.variance;})[0];
 
-    if(glassCannon)awards.push({icon:"💥",title:"Glass Cannon",desc:"Highest highs and lowest lows",player:glassCannon.name,val:"±"+glassCannon.variance.toFixed(1)});
+    if(glassCannon)awards.push({icon:"fire",title:"Glass Cannon",desc:"Highest highs and lowest lows",player:glassCannon.name,val:"±"+glassCannon.variance.toFixed(1)});
 
   }
 
@@ -10445,7 +10427,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
     setScrimResults({});setGameNote("");setTimer(0);setTimerActive(false);
 
-    toast("Game locked ✓","success");
+    toast("Game locked","success");
 
   }
 
@@ -10483,7 +10465,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 
 
-  var TABS=[["dashboard","🏆 Dashboard"],["play","📋 Play"],["stats","📊 Stats"],["history","🕐 History"],["sessions","⚙ Sessions"]];
+  var TABS=[["dashboard","Dashboard"],["play","Play"],["stats","Stats"],["history","History"],["sessions","Sessions"]];
 
 
 
@@ -10603,7 +10585,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                             <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
 
-                            <div style={{fontSize:10,color:"#9AAABF"}}>{p.games}g &middot; avg {p.avg}{p.streak>=3?" 🔥"+p.streak:""}</div>
+                            <div style={{fontSize:10,color:"#9AAABF"}}>{p.games}g &middot; avg {p.avg}{p.streak>=3?" "+p.streak:""}</div>
 
                           </div>
 
@@ -10641,7 +10623,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                             <div style={{display:"flex",alignItems:"center",gap:10}}>
 
-                              <div style={{fontSize:22,flexShrink:0}}>{a.icon}</div>
+                              <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+a.icon,style:{color:a.color}})}</div>
 
                               <div style={{flex:1,minWidth:0}}>
 
@@ -11099,7 +11081,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                             <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
 
-                            <div style={{fontSize:10,color:"#9AAABF"}}>{p.games}g{p.streak>=3?" · 🔥"+p.streak:""}</div>
+                            <div style={{fontSize:10,color:"#9AAABF"}}>{p.games}g{p.streak>=3?" - "+p.streak:""}</div>
 
                           </div>
 
@@ -11478,7 +11460,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
       <div style={{textAlign:"center",padding:"80px 20px",maxWidth:560,margin:"0 auto"}}>
 
         <div style={{width:80,height:80,margin:"0 auto 24px",background:"rgba(232,168,56,.08)",border:"2px solid rgba(232,168,56,.25)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
-          ✨
+          {React.createElement("i",{className:"bi bi-stars",style:{fontSize:36,color:"#E8A838"}})}
         </div>
 
         <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Coming Soon</div>
@@ -11585,7 +11567,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
       <div style={{display:"flex",gap:6,marginBottom:20,background:"#111827",borderRadius:10,padding:4}}>
 
-        {[["achievements","🏅 Achievements"],["milestones","📈 Season Milestones"],["leaderboard","🏆 Achievement Leaders"]].map(([v,l])=>(
+        {[["achievements","Achievements"],["milestones","Season Milestones"],["leaderboard","Achievement Leaders"]].map(([v,l])=>(
 
           <button key={v} onClick={()=>setTab(v)}
 
@@ -11695,7 +11677,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
             {filteredAch.length===0&&(
               <div style={{gridColumn:"1/-1",textAlign:"center",padding:"40px 20px"}}>
-                <div style={{fontSize:32,marginBottom:12}}>🏅</div>
+                <div style={{marginBottom:12}}>{React.createElement("i",{className:"bi bi-award-fill",style:{fontSize:32}})}</div>
                 <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>No achievements match this filter</div>
                 <div style={{fontSize:12,color:"#9AAABF"}}>Try selecting a different tier or category.</div>
               </div>
@@ -11745,7 +11727,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                       animation:unlocked?"achievement-glow 2s ease-in-out infinite":"none"}}>
 
-                      {a.icon}
+                      {React.createElement("i",{className:"bi bi-"+a.icon})}
 
                     </div>
 
@@ -11817,7 +11799,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                     fontSize:26,flexShrink:0}}>
 
-                    {m.icon}
+                    {React.createElement("i",{className:"bi bi-"+m.icon})}
 
                   </div>
 
@@ -11855,7 +11837,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                     <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"4px 10px"}}>
 
-                      <span style={{fontSize:11}}>🎁</span>
+                      <span style={{fontSize:11}}>{React.createElement("i",{className:"bi bi-gift-fill"})}</span>
 
                       <span style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{m.reward}</span>
 
@@ -11921,9 +11903,9 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 
                   <div style={{display:"flex",gap:4}}>
 
-                    {legendary>0&&<span style={{fontSize:10,fontWeight:700,background:"rgba(155,114,207,.15)",color:"#9B72CF",padding:"2px 7px",borderRadius:8}}>{legendary}⚜️</span>}
+                    {legendary>0&&<span style={{fontSize:10,fontWeight:700,background:"rgba(155,114,207,.15)",color:"#9B72CF",padding:"2px 7px",borderRadius:8}}>{legendary}</span>}
 
-                    {gold>0&&<span style={{fontSize:10,fontWeight:700,background:"rgba(232,168,56,.12)",color:"#E8A838",padding:"2px 7px",borderRadius:8}}>{gold}🥇</span>}
+                    {gold>0&&<span style={{fontSize:10,fontWeight:700,background:"rgba(232,168,56,.12)",color:"#E8A838",padding:"2px 7px",borderRadius:8}}>{gold}</span>}
 
                   </div>
 
@@ -12053,7 +12035,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
         <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
 
-          <div style={{fontSize:36,animation:"crown-glow 3s infinite"}}>{rankInfo.rank.icon}</div>
+          <div style={{fontSize:36,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"bi bi-"+rankInfo.rank.icon,style:{color:rankInfo.rank.color}})}</div>
 
           <div style={{flex:1,minWidth:200}}>
 
@@ -12061,7 +12043,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
               <span style={{fontSize:16,fontWeight:700,color:rankInfo.rank.color}}>{rankInfo.rank.name}</span>
 
-              {rankInfo.next&&<span style={{fontSize:12,color:"#BECBD9"}}>→ {rankInfo.next.icon} {rankInfo.next.name}</span>}
+              {rankInfo.next&&<span style={{fontSize:12,color:"#BECBD9"}}>→ {React.createElement("i",{className:"bi bi-"+rankInfo.next.icon,style:{fontSize:12,color:rankInfo.next.color}})} {rankInfo.next.name}</span>}
 
             </div>
 
@@ -12119,7 +12101,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
 
-                  <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{c.icon}</div>
+                  <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+c.icon})}</div>
 
                   <div style={{flex:1,minWidth:0}}>
 
@@ -12177,7 +12159,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                   <div style={{display:"flex",alignItems:"center",gap:12}}>
 
-                    <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{done?"✅":c.icon}</div>
+                    <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+(done?"check-circle-fill":c.icon),style:{color:done?"#52C47C":undefined}})}</div>
 
                     <div style={{flex:1,minWidth:0}}>
 
@@ -12189,7 +12171,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                         <Bar val={c.progress} max={c.goal} color={done?"#6EE7B7":"#9B72CF"} h={4}/>
 
-                        <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{c.progress}/{c.goal} {done?"- Completed! 🎉":""}</div>
+                        <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{c.progress}/{c.goal} {done?"- Completed!":""}</div>
 
                       </div>
 
@@ -12223,12 +12205,12 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
         var done=dailyChallenges.concat(weeklyChallenges).filter(function(c){return c.progress>=c.goal;});
         return(
         <div style={{textAlign:"center",padding:"48px 20px",color:"#BECBD9"}}>
-          <div style={{fontSize:36,marginBottom:12}}>🎖️</div>
+          <div style={{marginBottom:12}}>{React.createElement("i",{className:"bi bi-patch-check-fill",style:{fontSize:36}})}</div>
           <div style={{fontSize:15,fontWeight:600,color:"#F2EDE4",marginBottom:6}}>{done.length} challenge{done.length!==1?"s":""} completed</div>
           {done.length>0&&<div style={{display:"flex",flexDirection:"column",gap:6,marginTop:16,textAlign:"left",maxWidth:360,margin:"16px auto 0"}}>
             {done.map(function(c){return(
               <div key={c.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.2)",borderRadius:8}}>
-                <span style={{fontSize:16}}>{c.icon}</span>
+                <span>{React.createElement("i",{className:"bi bi-"+c.icon,style:{fontSize:16}})}</span>
                 <span style={{flex:1,fontSize:13,color:"#6EE7B7",fontWeight:600}}>{c.name}</span>
                 <span className="mono" style={{fontSize:12,color:"#52C47C"}}>+{c.xp} XP</span>
               </div>
@@ -12249,23 +12231,23 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
           {[
 
-            {icon:"🏆",action:"Won Clash #13",xp:"+40 XP",time:"Mar 1 2026",c:"#E8A838"},
+            {icon:"trophy-fill",action:"Won Clash #13",xp:"+40 XP",time:"Mar 1 2026",c:"#E8A838"},
 
-            {icon:"🎯",action:"Weekly challenge: On A Roll",xp:"+120 XP",time:"Mar 1 2026",c:"#9B72CF"},
+            {icon:"bullseye",action:"Weekly challenge: On A Roll",xp:"+120 XP",time:"Mar 1 2026",c:"#9B72CF"},
 
-            {icon:"🥇",action:"1st place - Top 2 finish",xp:"+50 XP",time:"Feb 28 2026",c:"#E8A838"},
+            {icon:"award-fill",action:"1st place - Top 2 finish",xp:"+50 XP",time:"Feb 28 2026",c:"#E8A838"},
 
-            {icon:"🛡",action:"Survived top 4",xp:"+15 XP",time:"Feb 28 2026",c:"#4ECDC4"},
+            {icon:"shield-fill",action:"Survived top 4",xp:"+15 XP",time:"Feb 28 2026",c:"#4ECDC4"},
 
-            {icon:"⬆",action:"Ranked up: Silver → Gold",xp:"RANK UP",time:"Feb 22 2026",c:"#EAB308"},
+            {icon:"arrow-up-circle-fill",action:"Ranked up: Silver → Gold",xp:"RANK UP",time:"Feb 22 2026",c:"#EAB308"},
 
-            {icon:"🎮",action:"Completed a game",xp:"+25 XP",time:"Feb 22 2026",c:"#BECBD9"},
+            {icon:"controller",action:"Completed a game",xp:"+25 XP",time:"Feb 22 2026",c:"#BECBD9"},
 
           ].map((e,i)=>(
 
             <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<5?"1px solid rgba(242,237,228,.05)":"none"}}>
 
-              <div style={{width:32,height:32,background:"rgba(255,255,255,.04)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{e.icon}</div>
+              <div style={{width:32,height:32,background:"rgba(255,255,255,.04)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+e.icon,style:{fontSize:15,color:e.c}})}</div>
 
               <div style={{flex:1}}>
 
@@ -12409,7 +12391,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
     onSignUp({...data.user,username:username.trim(),riotId:riotId.trim(),region:region});
 
-    toast("Welcome to TFT Clash, "+username.trim()+"! 🎉","success");
+    toast("Welcome to TFT Clash, "+username.trim()+"!","success");
 
   }
 
@@ -12617,7 +12599,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
                 <div style={{display:"flex",flexDirection:"column",gap:8}}>
 
-                  {[["🟣 Twitch",twitch,setTwitch,"twitch.tv/yourname"],["🐦 Twitter",twitter,setTwitter,"@yourhandle"],["🔴 YouTube",youtube,setYoutube,"youtube.com/yourchannel"]].map(([label,val,setter,ph])=>(
+                  {[["Twitch",twitch,setTwitch,"twitch.tv/yourname"],["Twitter",twitter,setTwitter,"@yourhandle"],["YouTube",youtube,setYoutube,"youtube.com/yourchannel"]].map(([label,val,setter,ph])=>(
 
                     <div key={label} style={{display:"flex",alignItems:"center",gap:8}}>
 
@@ -12637,7 +12619,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
                 <Btn v="dark" onClick={()=>setStep(1)}>← Back</Btn>
 
-                <Btn v="primary" full onClick={submit} disabled={loading}>{loading?"Creating account...":"Create Account 🎉"}</Btn>
+                <Btn v="primary" full onClick={submit} disabled={loading}>{loading?"Creating account...":"Create Account"}</Btn>
 
               </div>
 
@@ -12703,7 +12685,7 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
     onLogin({...data.user,username:data.user.user_metadata?.username||data.user.email});
 
-    toast("Welcome back, "+(data.user.user_metadata?.username||"player")+"! 👋","success");
+    toast("Welcome back, "+(data.user.user_metadata?.username||"player")+"!","success");
 
   }
 
@@ -12993,7 +12975,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
       {!riotIdSet&&(
         <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:18}}>{"⚠"}</span>
+          <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})}</span>
           <div>
             <div style={{color:"#E8A838",fontWeight:600,fontSize:13}}>Set your Riot ID to join tournaments</div>
             <div style={{color:"#BECBD9",fontSize:12}}>You need a Riot ID to register for flash tournaments.</div>
@@ -13045,7 +13027,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               <div style={{position:"absolute",bottom:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"#E8A838",border:"2px solid #08080F",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>
 
-                {myMilestones[myMilestones.length-1].icon}
+                {React.createElement("i",{className:"bi bi-"+myMilestones[myMilestones.length-1].icon,style:{fontSize:11}})}
 
               </div>
 
@@ -13065,7 +13047,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               {linkedPlayer&&<ClashRankBadge rank={linkedPlayer.rank}/>}
 
-              {linkedPlayer&&isHotStreak(linkedPlayer)&&<span style={{fontSize:14}}>🔥</span>}
+              {linkedPlayer&&isHotStreak(linkedPlayer)&&<span style={{fontSize:14}}>{React.createElement("i",{className:"bi bi-fire",style:{color:"#F97316"}})}</span>}
 
             </div>
 
@@ -13078,7 +13060,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
             <div style={{marginBottom:10,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
               {subscription?(
                 <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",borderRadius:20,background:subscription.plan==="host"?"rgba(232,168,56,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(subscription.plan==="host"?"rgba(232,168,56,.4)":"rgba(155,114,207,.4)"),fontSize:12,fontWeight:700,color:subscription.plan==="host"?"#E8A838":"#C4B5FD"}}>
-                  {subscription.plan==="host"?"🏠 Host Plan":"⚡ Pro Plan"} · Active
+                  {subscription.plan==="host"?"Host Plan":"Pro Plan"} · Active
                 </div>
               ):(
                 <button onClick={()=>setScreen("pricing")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"transparent",border:"1px solid rgba(155,114,207,.35)",fontSize:12,color:"#9B72CF",cursor:"pointer",fontFamily:"inherit"}}>
@@ -13087,7 +13069,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
               )}
               {(isAdmin||(hostApps||[]).some(function(a){return a.status==="approved"&&(a.name===user.username||a.email===user.email);}))&&(
                 <button onClick={()=>setScreen("host-dashboard")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>
-                  🎮 Host Dashboard →
+                  {React.createElement("i",{className:"bi bi-controller",style:{marginRight:4}})}Host Dashboard →
                 </button>
               )}
             </div>
@@ -13108,9 +13090,9 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
               <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}}>
 
-                {user.twitch&&<a href={"https://twitch.tv/"+user.twitch} target="_blank" style={{fontSize:11,color:"#9147FF",background:"rgba(145,71,255,.1)",border:"1px solid rgba(145,71,255,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>📺 {user.twitch}</a>}
+                {user.twitch&&<a href={"https://twitch.tv/"+user.twitch} target="_blank" style={{fontSize:11,color:"#9147FF",background:"rgba(145,71,255,.1)",border:"1px solid rgba(145,71,255,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"bi bi-tv-fill",style:{fontSize:10,marginRight:3}})}{user.twitch}</a>}
 
-                {user.twitter&&<a href={"https://twitter.com/"+user.twitter} target="_blank" style={{fontSize:11,color:"#1DA1F2",background:"rgba(29,161,242,.1)",border:"1px solid rgba(29,161,242,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>🐦 {user.twitter}</a>}
+                {user.twitter&&<a href={"https://twitter.com/"+user.twitter} target="_blank" style={{fontSize:11,color:"#1DA1F2",background:"rgba(29,161,242,.1)",border:"1px solid rgba(29,161,242,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"bi bi-twitter-x",style:{fontSize:10,marginRight:3}})}{user.twitter}</a>}
 
               </div>
 
@@ -13146,7 +13128,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
       <div style={{display:"flex",gap:4,marginBottom:20,background:"#111827",borderRadius:10,padding:4}}>
 
-        {[["profile","👤 Profile"],["stats","📊 Stats"],["achievements","🏅 Achievements"],["history","📋 History"]].map(([v,l])=>(
+        {[["profile","Profile"],["stats","Stats"],["achievements","Achievements"],["history","History"]].map(([v,l])=>(
 
           <button key={v} onClick={()=>setTab(v)} style={{flex:1,padding:"8px 10px",borderRadius:7,border:"none",cursor:"pointer",
 
@@ -13176,7 +13158,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                 <h3 style={{color:"#F2EDE4",fontSize:15,margin:0}}>Profile Details</h3>
 
-                <Btn v="dark" s="sm" onClick={()=>setEdit(true)}>✏️ Edit</Btn>
+                <Btn v="dark" s="sm" onClick={()=>setEdit(true)}>{React.createElement("i",{className:"bi bi-pencil-fill",style:{fontSize:11,marginRight:3}})}Edit</Btn>
 
               </div>
 
@@ -13556,7 +13538,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                   {l:"Games Played",v:linkedPlayer.games,c:"#4ECDC4"},
 
-                  {l:"Best Streak",v:linkedPlayer.bestStreak+"🔥",c:"#F87171"},
+                  {l:"Best Streak",v:linkedPlayer.bestStreak+"fire",c:"#F87171"},
 
                   {l:"PPG",v:s.ppg,c:"#EAB308"},
 
@@ -13596,7 +13578,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
             <div style={{textAlign:"center",padding:"48px 20px"}}>
 
-              <div style={{fontSize:40,marginBottom:12}}>📊</div>
+              <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</div>
 
               <div style={{color:"#BECBD9",fontSize:14}}>No stats linked to your account yet.</div>
 
@@ -13658,7 +13640,7 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                       display:"flex",gap:10,alignItems:"center"}}>
 
-                      <div style={{fontSize:22,flexShrink:0}}>{a.icon}</div>
+                      <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"bi bi-"+a.icon})}</div>
 
                       <div>
 
@@ -13726,9 +13708,9 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 
                   <div style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>
 
-                    {(g.place||g.placement)===1?"🏆 Victory":(g.place||g.placement)<=4?"Top 4 Finish":"Outside Top 4"}
+                    {(g.place||g.placement)===1?"Victory":(g.place||g.placement)<=4?"Top 4 Finish":"Outside Top 4"}
 
-                    {g.clutch&&<span style={{marginLeft:6,fontSize:11,color:"#9B72CF",fontWeight:700}}>⚡ Clutch</span>}
+                    {g.clutch&&<span style={{marginLeft:6,fontSize:11,color:"#9B72CF",fontWeight:700}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill",style:{marginRight:3}})}Clutch</span>}
 
                   </div>
 
@@ -13924,7 +13906,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
     const a=document.createElement("a");a.download=player.name+"-S1-Recap.png";a.href=canvas.toDataURL("image/png");a.click();
 
-    toast("Season recap downloaded! 🎉","success");
+    toast("Season recap downloaded!","success");
 
   }
 
@@ -13932,9 +13914,9 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
   function shareTwitter(){
 
-    const text=`🏆 My TFT Clash Season 1 Recap\n\n📊 #${position} overall (${player.pts}pts)\n⚡ ${s.wins} wins · AVP ${s.avgPlacement}\n🔥 Best streak: ${player.bestStreak||0}\n${awards.length>0?"🎖 Awards: "+awards.map(a=>a.title).join(", ")+"\n":""}\n#TFTClash #TFT #Season1`;
+    const text=`My TFT Clash Season 1 Recap\n\n#${position} overall (${player.pts}pts)\n${s.wins} wins · AVP ${s.avgPlacement}\n Best streak: ${player.bestStreak||0}\n${awards.length>0?"Awards: "+awards.map(a=>a.title).join(", ")+"\n":""}\n#TFTClash #TFT #Season1`;
 
-    navigator.clipboard?.writeText(text).then(()=>toast("Copied for Twitter! 🐦","success"));
+    navigator.clipboard?.writeText(text).then(()=>toast("Copied for Twitter!","success"));
 
   }
 
@@ -13988,7 +13970,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
 
-          {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#C8D4E0"],["Best Streak",(player.bestStreak||0)+"🔥","#F97316"]].map(([l,v,c])=>(
+          {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#C8D4E0"],["Best Streak",(player.bestStreak||0)+"fire","#F97316"]].map(([l,v,c])=>(
 
             <div key={l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"12px 14px"}}>
 
@@ -14012,7 +13994,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
 
-              {awards.map(a=><Tag key={a.id} color={a.color} size="sm">{a.icon} {a.title}</Tag>)}
+              {awards.map(a=><Tag key={a.id} color={a.color} size="sm">{React.createElement("i",{className:"bi bi-"+a.icon,style:{fontSize:11,color:a.color}})} {a.title}</Tag>)}
 
             </div>
 
@@ -14038,7 +14020,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
       <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
 
-        <Btn v="primary" s="lg" onClick={downloadRecap}>⬇ Download PNG</Btn>
+        <Btn v="primary" s="lg" onClick={downloadRecap}>{React.createElement("i",{className:"bi bi-download",style:{fontSize:14,marginRight:4}})}Download PNG</Btn>
 
         <Btn v="dark" onClick={shareTwitter}>𝕏 Copy for Twitter</Btn>
 
@@ -14136,7 +14118,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
 
-        <div style={{fontSize:22}}>🎙️</div>
+        <div>{React.createElement("i",{className:"bi bi-mic-fill",style:{fontSize:22}})}</div>
 
         <div style={{flex:1}}>
 
@@ -14172,7 +14154,7 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 
           <div style={{marginTop:10,display:"flex",gap:8}}>
 
-            <Btn v="purple" s="sm" onClick={()=>navigator.clipboard?.writeText(commentary).then(()=>toast("Commentary copied!","success"))}>📋 Copy</Btn>
+            <Btn v="purple" s="sm" onClick={()=>navigator.clipboard?.writeText(commentary).then(()=>toast("Commentary copied!","success"))}>{React.createElement("i",{className:"bi bi-clipboard",style:{marginRight:4}})}Copy</Btn>
 
           </div>
 
@@ -14246,7 +14228,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
     <div className="page wrap" style={{maxWidth:560,margin:"0 auto",textAlign:"center",paddingTop:60}}>
 
-      <div style={{fontSize:48,marginBottom:16}}>🎮</div>
+      <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
 
       <h2 style={{color:"#F2EDE4",marginBottom:10}}>Application Submitted!</h2>
 
@@ -14270,7 +14252,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
       <div style={{marginBottom:28}}>
 
-        <div style={{fontSize:32,marginBottom:10}}>🎮</div>
+        <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
 
         <h2 style={{color:"#F2EDE4",fontSize:22,marginBottom:8}}>Apply to Host</h2>
 
@@ -14367,7 +14349,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
   var [tRules,setTRules]=useState("");
   var tournaments=hostTournaments||[];var setTournaments=setHostTournaments||function(){};
   var [brandName,setBrandName]=useState((hostBranding&&hostBranding.name)||(currentUser&&currentUser.username)||"My Org");
-  var [brandLogo,setBrandLogo]=useState((hostBranding&&hostBranding.logo)||"🎮");
+  var [brandLogo,setBrandLogo]=useState((hostBranding&&hostBranding.logo)||"controller");
   var [brandColor,setBrandColor]=useState((hostBranding&&hostBranding.color)||"#9B72CF");
 
   var [brandBio,setBrandBio]=useState((hostBranding&&hostBranding.bio)||"");
@@ -14500,10 +14482,10 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
             <span style={{fontSize:24}}>{brandLogo}</span>
             <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>{brandName}</h2>
-            <Tag color="#9B72CF">{"🎮"} Host</Tag>
+            <Tag color="#9B72CF">{React.createElement("i",{className:"bi bi-controller"})} Host</Tag>
             {liveTournaments.length>0&&(
               <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#6EE7B7"}}>
-                <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+                <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE
               </span>
             )}
           </div>
@@ -14552,7 +14534,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           </div>
           {tEntryFee&&(
             <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#E8A838"}}>
-              {"⚠"} Entry fee tournaments require admin approval before going live.
+              {React.createElement("i",{className:"bi bi-exclamation-triangle-fill",style:{color:"#E8A838"}})} Entry fee tournaments require admin approval before going live.
             </div>
           )}
           <Btn v="primary" onClick={createTournament}>Create Tournament</Btn>
@@ -14585,7 +14567,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
             <Panel style={{padding:"18px",marginBottom:16,border:"1px solid rgba(82,196,124,.2)"}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
                 <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 9px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
-                  <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+                  <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE
                 </span>
                 <span style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>Active Tournament</span>
               </div>
@@ -14594,7 +14576,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                   <div key={t.id} style={{display:"flex",alignItems:"center",gap:12}}>
                     <div style={{flex:1}}>
                       <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:4}}>{t.name}</div>
-                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{"📅"} {t.date} {"·"} {"👥"} {t.registered}/{t.size} players</div>
+                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{"calendar-event-fill"} {t.date} {"·"} {"people-fill"} {t.registered}/{t.size} players</div>
                       <Bar val={t.registered} max={t.size} color="#6EE7B7" h={4}/>
                     </div>
                     <Btn v="primary" s="sm" onClick={function(){setScreen("bracket");}}>Live Bracket {"→"}</Btn>
@@ -14607,10 +14589,10 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
             <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",marginBottom:12}}>Quick Actions</div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               <Btn v="ghost" s="sm" onClick={function(){setShowCreate(true);setTab("tournaments");}}>{"+"} New Tournament</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setTab("announce");}}>{"📢"} Announce</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setTab("branding");}}>{"🎨"} Edit Branding</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setScreen("bracket");}}>{"⚔"} View Bracket</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setScreen("featured");}}>{"⭐"} Featured Page</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setTab("announce");}}>{"megaphone-fill"} Announce</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setTab("branding");}}>{"palette-fill"} Edit Branding</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("bracket");}}>{"diagram-3-fill"} View Bracket</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("featured");}}>{"star-fill"} Featured Page</Btn>
             </div>
           </Panel>
         </div>
@@ -14621,7 +14603,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
           {tournaments.map(function(t){
             var statusColor=t.status==="live"?"#6EE7B7":t.status==="upcoming"?"#4ECDC4":t.status==="pending_approval"?"#E8A838":"#BECBD9";
-            var statusLabel=t.status==="live"?"🔴 Live":t.status==="upcoming"?"✓ Upcoming":t.status==="pending_approval"?"⏳ Pending":"Completed";
+            var statusLabel=t.status==="live"?"Live":t.status==="upcoming"?"Upcoming":t.status==="pending_approval"?"Pending":"Completed";
             return(
               <Panel key={t.id} style={{padding:"18px",border:t.status==="live"?"1px solid rgba(82,196,124,.25)":"1px solid rgba(242,237,228,.07)"}}>
                 <div style={{display:"flex",alignItems:"flex-start",gap:14,flexWrap:"wrap"}}>
@@ -14629,13 +14611,13 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,flexWrap:"wrap"}}>
                       <span style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{t.name}</span>
                       <Tag color={statusColor} size="sm">{statusLabel}</Tag>
-                      {t.invite&&<Tag color="#9B72CF" size="sm">{"🔒"} Invite Only</Tag>}
-                      {t.entryFee&&<Tag color="#EAB308" size="sm">{"💰"} {t.entryFee}</Tag>}
+                      {t.invite&&<Tag color="#9B72CF" size="sm">{"lock-fill"} Invite Only</Tag>}
+                      {t.entryFee&&<Tag color="#EAB308" size="sm">{"tag-fill"} {t.entryFee}</Tag>}
                     </div>
-                    <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{"📅"} {t.date} {"·"} {"👥"} {t.registered}/{t.size} registered</div>
+                    <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{"calendar-event-fill"} {t.date} {"·"} {"people-fill"} {t.registered}/{t.size} registered</div>
                     <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
                     <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{t.size-t.registered} spots remaining</div>
-                    {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{"📋"} {t.rules}</div>}
+                    {t.rules&&<div style={{fontSize:11,color:"#9AAABF",marginTop:6,fontStyle:"italic"}}>{React.createElement("i",{className:"bi bi-clipboard"})} {t.rules}</div>}
                   </div>
                   <div style={{display:"flex",gap:6,flexShrink:0,flexWrap:"wrap"}}>
                     {t.status==="upcoming"&&<Btn v="ghost" s="sm" onClick={function(){updateTournamentAndFeatured(t.id,{status:"live"});toast("Check-in opened! Tournament is now LIVE","success");}}>{"Open Check-In"}</Btn>}
@@ -14651,7 +14633,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           })}
           {tournaments.length===0&&(
             <div style={{textAlign:"center",padding:"48px",color:"#BECBD9"}}>
-              <div style={{fontSize:32,marginBottom:12}}>{"🎮"}</div>
+              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
               <div style={{fontSize:14}}>No tournaments yet. Create your first one above.</div>
             </div>
           )}
@@ -14793,7 +14775,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                 placeholder="e.g. Check-in is now open! Join the Discord for lobby codes..."
                 style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:90,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
             </div>
-            <Btn v="primary" onClick={sendAnnouncement}>{"📢"} Send Announcement</Btn>
+            <Btn v="primary" onClick={sendAnnouncement}>{"megaphone-fill"} Send Announcement</Btn>
           </Panel>
           <Panel style={{padding:"18px"}}>
             <h3 style={{fontSize:14,color:"#F2EDE4",marginBottom:14}}>Sent Announcements</h3>
@@ -14816,7 +14798,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       {/* Branding tab */}
       {tab==="branding"&&(
         <Panel style={{padding:"24px"}}>
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:18}}>{"🎨"} Host Branding</h3>
+          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:18}}>{"palette-fill"} Host Branding</h3>
           <div style={{display:"flex",gap:16,alignItems:"flex-start",flexWrap:"wrap",marginBottom:24}}>
             {/* Preview card */}
             <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+brandColor+"55",borderRadius:14,padding:"16px 20px",minWidth:220,flex:1}}>
@@ -14837,7 +14819,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Logo Emoji</div>
-              <Inp value={brandLogo} onChange={setBrandLogo} placeholder="e.g. 🎮 🏆 👑"/>
+              <Inp value={brandLogo} onChange={setBrandLogo} placeholder="e.g. icon names: controller, trophy-fill"/>
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:8}}>Brand Color</div>
@@ -14992,7 +14974,7 @@ function TournamentDetailScreen(props){
             </div>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-            {isLive&&<span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}><span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>{"LIVE"}</span>}
+            {isLive&&<span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}><span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>{"LIVE"}</span>}
             {isUpcoming&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#4ECDC4"}}>{"UPCOMING"}</span>}
             {isCompleted&&<span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#E8A838"}}>{"COMPLETED"}</span>}
           </div>
@@ -15265,7 +15247,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
 
       {!loading&&tournaments.length===0&&(
         <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-          <div style={{fontSize:28,marginBottom:12}}>{"⚡"}</div>
+          <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
           <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No Tournaments Yet</div>
           <div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Flash tournaments will appear here when admins create them.</div>
         </Panel>
@@ -15536,7 +15518,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     }).then(function(res){
       setActionLoading(false);
       if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
-      if(currentUser){createNotification(currentUser.id,"Registration Confirmed","You are registered for "+(tournament?tournament.name:"the tournament")+". Check in when the check-in window opens.","🎮");}
+      if(currentUser){createNotification(currentUser.id,"Registration Confirmed","You are registered for "+(tournament?tournament.name:"the tournament")+". Check in when the check-in window opens.","controller");}
       toast("Registered!","success");
       broadcastUpdate("registration");
       loadRegistrations();
@@ -15846,7 +15828,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   if(!tournament){
     return(
       <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
-        <div style={{fontSize:36,marginBottom:16}}>{"⚡"}</div>
+        <div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"bi bi-lightning-charge-fill"})}</div>
         <h2 style={{color:"#F2EDE4",marginBottom:10}}>Tournament Not Found</h2>
         <p style={{color:"#BECBD9"}}>This tournament may have been removed.</p>
         <Btn v="primary" onClick={function(){setScreen("tournaments");}}>Back to Tournaments</Btn>
@@ -16166,7 +16148,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           )}
           {lobbies.length===0&&(
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-              <div style={{fontSize:28,marginBottom:12}}>{"⚔"}</div>
+              <div style={{fontSize:28,marginBottom:12}}>{"diagram-3-fill"}</div>
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
               <div style={{fontSize:13,color:"#9AAABF"}}>Lobbies will appear once the admin generates them.</div>
             </Panel>
@@ -16317,8 +16299,8 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                   var displayOrder=orderMap[rankIdx];
                   return(
                     <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,order:displayOrder,flex:isFirst?"0 0 160px":"0 0 130px",background:cardBgs[rankIdx],border:"1px solid "+cardBorders[rankIdx],borderRadius:14,padding:cardPaddings[rankIdx],minWidth:isFirst?140:110,maxWidth:isFirst?180:150}}>
-                      {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{"👑"}</div>}
-                      {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{pos===2?"🥈":"🥉"}</div>}
+                      {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{color:"#E8A838"}})}</div>}
+                      {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{pos===2?"award-fill":"award-fill"}</div>}
                       <div style={{width:avatarSizes[rankIdx],height:avatarSizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"44,"+colors[rankIdx]+"11)",border:"2.5px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:isFirst?24:18,color:colors[rankIdx],boxShadow:isFirst?"0 0 18px "+colors[rankIdx]+"55":"none"}}>{"#"+pos}</div>
                       <div style={{fontWeight:700,fontSize:nameSizes[rankIdx],color:"#F2EDE4",textAlign:"center",marginTop:4,lineHeight:1.2}}>{entry.name}</div>
                       <div style={{fontSize:12,color:colors[rankIdx],fontWeight:700,background:colors[rankIdx]+"18",borderRadius:8,padding:"2px 10px"}}>{entry.totalPts+" pts"}</div>
@@ -16333,7 +16315,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           {/* Standings table */}
           {standings.length===0?(
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-              <div style={{fontSize:28,marginBottom:12}}>{"📊"}</div>
+              <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</div>
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
               <div style={{fontSize:13,color:"#9AAABF"}}>No results yet. Complete games to see standings.</div>
             </Panel>
@@ -16373,7 +16355,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                       return(
                         <tr key={entry.id} style={{background:bg,borderBottom:"1px solid rgba(242,237,228,.04)",outline:isMe?"1px solid rgba(232,168,56,.35)":"none",position:"relative"}}>
                           <td style={{padding:"10px 10px 10px 16px",fontWeight:700,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":"#8896A8",borderLeft:borderL,whiteSpace:"nowrap",position:"sticky",left:0,zIndex:2,background:"#0D1421"}}>
-                            {pos===1?"🥇":pos===2?"🥈":pos===3?"🥉":pos}
+                            {pos===1?"award-fill":pos===2?"award-fill":pos===3?"award-fill":pos}
                           </td>
                           <td style={{padding:"10px 10px",maxWidth:160,position:"sticky",left:40,zIndex:2,background:"#0D1421"}}>
                             <div style={{fontWeight:600,color:isMe?"#E8A838":"#F2EDE4",fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.name+(isMe?" (you)":"")}</div>
@@ -16518,7 +16500,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
           <h1 style={{color:"#F2EDE4",fontSize:24,fontWeight:700,margin:0}}>Featured Events</h1>
           {live.length>0&&(
             <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
-              <span style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>
+              <span style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>
               {live.length} LIVE NOW
             </span>
           )}
@@ -16540,7 +16522,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
 
       {allEvents.length===0&&(
         <div style={{textAlign:"center",padding:"60px 20px"}}>
-          <div style={{fontSize:48,marginBottom:16}}>🏟️</div>
+          <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"bi bi-building"})}</div>
           <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Featured Events Yet</h3>
           <p style={{color:"#BECBD9",fontSize:14,maxWidth:400,margin:"0 auto"}}>Featured tournaments and community events will appear here once they are created by event organizers.</p>
         </div>
@@ -16553,7 +16535,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
             onClick={function(){setScreen("tournament-"+hero.id);}}>
             <div style={{background:"rgba(232,168,56,.07)",borderBottom:"1px solid rgba(232,168,56,.18)",padding:"9px 18px",display:"flex",alignItems:"center",gap:8}}>
               <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.15)",border:"1px solid rgba(82,196,124,.35)",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
-                <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE NOW
+                <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE NOW
               </span>
               <span style={{color:"#E8A838",fontWeight:600,fontSize:12,marginLeft:4}}>Round in progress</span>
             </div>
@@ -16599,7 +16581,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
                     <div style={{flexShrink:0}}>
                       {isLive?(
                         <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#6EE7B7"}}>
-                          <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 1.5s infinite",display:"inline-block"}}/>LIVE
+                          <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE
                         </span>
                       ):(
                         <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#4ECDC4"}}>UPCOMING</span>
@@ -16641,7 +16623,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
 
       {shown.length===0&&(
         <div style={{textAlign:"center",padding:"48px 24px",color:"#BECBD9",marginBottom:24}}>
-          <div style={{fontSize:32,marginBottom:12}}>📅</div>
+          <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"bi bi-calendar-event-fill"})}</div>
           <div style={{fontSize:14}}>No events matching this filter right now.</div>
         </div>
       )}
@@ -16665,7 +16647,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
                   {ev.champion&&(
                     <div style={{textAlign:"right",flexShrink:0}}>
                       <div style={{fontSize:10,color:"#BECBD9",marginBottom:2}}>Champion</div>
-                      <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>🏆 {ev.champion}</div>
+                      <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"bi bi-trophy-fill",style:{fontSize:12,color:"#E8A838",marginRight:3}})}{ev.champion}</div>
                     </div>
                   )}
                   <span style={{fontSize:12,color:"#9B72CF",flexShrink:0}}>{"→"}</span>
@@ -16677,7 +16659,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
       )}
 
       <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.05))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",textAlign:"center"}}>
-        <div style={{fontSize:28,marginBottom:10}}>🎮</div>
+        <div style={{fontSize:28,marginBottom:10}}>{React.createElement("i",{className:"bi bi-controller"})}</div>
         <h3 style={{color:"#F2EDE4",fontSize:18,fontWeight:700,marginBottom:8}}>Run Your Own Tournament</h3>
         <p style={{fontSize:13,color:"#BECBD9",lineHeight:1.7,marginBottom:20,maxWidth:420,margin:"0 auto 20px"}}>
           Get featured here. Create and manage TFT tournaments with our full host suite.
@@ -16913,13 +16895,13 @@ function ReferralPanel(props){
 function GearScreen(props){
   var setScreen=props.setScreen;
   var items=[
-    {cat:"VPN",name:"NordVPN",desc:"Low-ping gaming VPN. Trusted by millions of gamers worldwide.",tag:"40-68% off",color:"#4687FF",icon:"\ud83d\udd12"},
-    {cat:"VPN",name:"Surfshark",desc:"Unlimited devices, great speeds. Budget-friendly VPN for gaming.",tag:"Up to 81% off",color:"#1CBFB0",icon:"\ud83c\udf0a"},
-    {cat:"Peripherals",name:"Razer DeathAdder V3",desc:"Ultra-lightweight ergonomic mouse. The go-to for competitive play.",tag:"Top Pick",color:"#44D62C",icon:"\ud83d\uddb1\ufe0f"},
-    {cat:"Peripherals",name:"Logitech G Pro X",desc:"Tournament-proven wireless mouse with HERO 25K sensor.",tag:"Pro Choice",color:"#00B8FC",icon:"\ud83d\uddb1\ufe0f"},
-    {cat:"Audio",name:"HyperX Cloud III",desc:"Comfortable, clear audio for long tournament sessions.",tag:"Best Value",color:"#E31937",icon:"\ud83c\udfa7"},
-    {cat:"Monitor",name:"ASUS VG27AQ1A",desc:"27\" 1440p 170Hz IPS. Smooth visuals for every round.",tag:"Editor Pick",color:"#D4AF37",icon:"\ud83d\udcfa"},
-    {cat:"Chair",name:"Secretlab TITAN Evo",desc:"Ergonomic gaming chair for marathon clash sessions.",tag:"Premium",color:"#9B72CF",icon:"\ud83e\ude91"}
+    {cat:"VPN",name:"NordVPN",desc:"Low-ping gaming VPN. Trusted by millions of gamers worldwide.",tag:"40-68% off",color:"#4687FF",icon:"lock-fill"},
+    {cat:"VPN",name:"Surfshark",desc:"Unlimited devices, great speeds. Budget-friendly VPN for gaming.",tag:"Up to 81% off",color:"#1CBFB0",icon:"water"},
+    {cat:"Peripherals",name:"Razer DeathAdder V3",desc:"Ultra-lightweight ergonomic mouse. The go-to for competitive play.",tag:"Top Pick",color:"#44D62C",icon:"mouse-fill"},
+    {cat:"Peripherals",name:"Logitech G Pro X",desc:"Tournament-proven wireless mouse with HERO 25K sensor.",tag:"Pro Choice",color:"#00B8FC",icon:"mouse-fill"},
+    {cat:"Audio",name:"HyperX Cloud III",desc:"Comfortable, clear audio for long tournament sessions.",tag:"Best Value",color:"#E31937",icon:"headphones"},
+    {cat:"Monitor",name:"ASUS VG27AQ1A",desc:"27\" 1440p 170Hz IPS. Smooth visuals for every round.",tag:"Editor Pick",color:"#D4AF37",icon:"tv-fill"},
+    {cat:"Chair",name:"Secretlab TITAN Evo",desc:"Ergonomic gaming chair for marathon clash sessions.",tag:"Premium",color:"#9B72CF",icon:"pc-display"}
   ];
   return(
     <div className="page wrap" style={{maxWidth:800,margin:"0 auto"}}>
@@ -16935,7 +16917,7 @@ function GearScreen(props){
               onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"66";}}
               onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.08)";}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                <span style={{fontSize:22}}>{item.icon}</span>
+                <span>{React.createElement("i",{className:"bi bi-"+item.icon,style:{fontSize:22,color:item.color}})}</span>
                 <div>
                   <div style={{fontSize:14,fontWeight:700,color:"#F2EDE4"}}>{item.name}</div>
                   <div style={{fontSize:10,color:item.color,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{item.cat}</div>
@@ -17051,7 +17033,7 @@ function ClashReminderBtn(props){
         border:"1px solid "+(enabled?"rgba(78,205,196,.4)":"rgba(155,114,207,.2)"),
         borderRadius:10,cursor:"pointer",color:enabled?"#5EEAD4":"#C4B5FD",fontSize:13,fontWeight:600,
         fontFamily:"'Chakra Petch',sans-serif",transition:"all .2s"}}>
-      <span style={{fontSize:16}}>{enabled?"🔔":"🔕"}</span>
+      {enabled?React.createElement("i",{className:"bi bi-bell-fill",style:{fontSize:16}}):React.createElement("i",{className:"bi bi-bell-slash-fill",style:{fontSize:16}})}
       {enabled?"Reminders On":"Enable Clash Reminders"}
     </button>
   );
@@ -17071,7 +17053,7 @@ function WeeklyRecapCard(props){
   return(
     <Panel style={{padding:20}}>
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-        <span style={{fontSize:18}}>{"📊"}</span>
+        <span style={{fontSize:18}}>{React.createElement("i",{className:"bi bi-bar-chart-line-fill"})}</span>
         <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>Weekly Recap</div>
         <Tag color="#9B72CF">This Week</Tag>
       </div>
@@ -17832,7 +17814,7 @@ function TFTClash(){
     var refParam=params.get("ref");
     if(refParam){try{var prev=localStorage.getItem("tft-referred-by");if(!prev){localStorage.setItem("tft-referred-by",refParam);var rc=parseInt(localStorage.getItem("tft-referral-count-"+refParam)||"0");localStorage.setItem("tft-referral-count-"+refParam,String(rc+1));}}catch(e){}}
     if(params.get("checkout")==="success"){
-      toast("Subscription activated! Welcome to Pro. ✨","success");
+      toast("Subscription activated! Welcome to Pro.","success");
       window.history.replaceState({},"",window.location.pathname+"#account");
     }
     var h=window.location.hash.slice(1);
@@ -17944,7 +17926,7 @@ function TFTClash(){
       }
     }
     if(!isRegistered&&currentUser){
-      createNotification(currentUser.id,"Registration Confirmed","You are registered for the next clash. Check in when the check-in window opens.","🎮");
+      createNotification(currentUser.id,"Registration Confirmed","You are registered for the next clash. Check in when the check-in window opens.","controller");
     }
     toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
   }
@@ -18192,7 +18174,7 @@ function TFTClash(){
 
         {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
-        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>🔒</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
+        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"bi bi-lock-fill"})}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
 
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications}/>}
@@ -18203,7 +18185,7 @@ function TFTClash(){
 
           <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
 
-            <div style={{fontSize:38,marginBottom:14}}>🔒</div>
+            <div style={{fontSize:38,marginBottom:14}}>{React.createElement("i",{className:"bi bi-lock-fill"})}</div>
 
             <h2 style={{color:"#F2EDE4",marginBottom:8}}>Admin Required</h2>
 
