@@ -10476,11 +10476,11 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
         </div>
 
-        <div className="lab-tabs" style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+        <div className="lab-tabs" style={{display:"flex",gap:6,overflowX:"auto",whiteSpace:"nowrap",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",scrollbarWidth:"none",flexWrap:"nowrap"}}>
 
           {TABS.map(function(pair){
 
-            return <Btn key={pair[0]} v={tab===pair[0]?"purple":"dark"} s="sm" onClick={function(){setTab(pair[0]);}}>{pair[1]}</Btn>;
+            return <Btn key={pair[0]} v={tab===pair[0]?"purple":"dark"} s="sm" onClick={function(){setTab(pair[0]);}} style={{flexShrink:0,whiteSpace:"nowrap"}}>{pair[1]}</Btn>;
 
           })}
 
@@ -14491,10 +14491,10 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       )}
 
       {/* Tabs */}
-      <div style={{display:"flex",gap:6,marginBottom:18,flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:6,marginBottom:18,overflowX:"auto",whiteSpace:"nowrap",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",scrollbarWidth:"none",flexWrap:"nowrap"}}>
         {TABS.map(function(arr){
           var t=arr[0],label=arr[1];
-          return <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={function(){setTab(t);}}>{label}</Btn>;
+          return <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={function(){setTab(t);}} style={{flexShrink:0,whiteSpace:"nowrap"}}>{label}</Btn>;
         })}
       </div>
 
@@ -15929,11 +15929,11 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       </Panel>
 
       {/* Tabs */}
-      <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"1px solid rgba(242,237,228,.06)",paddingBottom:2}}>
+      <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"1px solid rgba(242,237,228,.06)",paddingBottom:2,overflowX:"auto",whiteSpace:"nowrap",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",scrollbarWidth:"none"}}>
         {tabs.map(function(t){
           var active=activeTab===t.id;
           return(
-            <button key={t.id} onClick={function(){setActiveTab(t.id);}} style={{background:active?"rgba(155,114,207,.15)":"transparent",border:"none",borderBottom:active?"2px solid #9B72CF":"2px solid transparent",padding:"8px 16px",fontSize:13,fontWeight:active?700:500,color:active?"#F2EDE4":"#8896A8",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{t.label}</button>
+            <button key={t.id} onClick={function(){setActiveTab(t.id);}} style={{background:active?"rgba(155,114,207,.15)":"transparent",border:"none",borderBottom:active?"2px solid #9B72CF":"2px solid transparent",padding:"8px 16px",fontSize:13,fontWeight:active?700:500,color:active?"#F2EDE4":"#8896A8",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",flexShrink:0,whiteSpace:"nowrap"}}>{t.label}</button>
           );
         })}
       </div>
