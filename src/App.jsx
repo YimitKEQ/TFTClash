@@ -3143,7 +3143,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
           </div>
 
-          <div className="desktop-links" style={{display:"flex",alignItems:"center",gap:0,flex:1,minWidth:0}}>
+          <div className="desktop-links" style={{alignItems:"center",gap:0,flex:1,minWidth:0}}>
 
             {DESKTOP_PRIMARY.map(l=>(
 
