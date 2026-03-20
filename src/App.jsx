@@ -716,6 +716,38 @@ function buildLobbies(players,method,lobbySize){
   return res;
 }
 
+// Build lobbies for a flash tournament from checked-in players
+function buildFlashLobbies(checkedInPlayers,seedingMethod){
+  var N=checkedInPlayers.length;
+  if(N<2)return{lobbies:[],byes:checkedInPlayers};
+  var pool=[].concat(checkedInPlayers);
+  if(seedingMethod==="random"){
+    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;}
+  } else {
+    // snake or rank-based: sort by rank then pts
+    pool.sort(function(a,b){return(RANKS.indexOf(b.rank||"Iron")-RANKS.indexOf(a.rank||"Iron"))||((b.pts||0)-(a.pts||0));});
+  }
+  var k=Math.floor(N/8);
+  var remainder=N-(k*8);
+  if(remainder===0){
+    // perfect
+  } else if(remainder>=6){
+    k=k+1;
+  } else {
+    if(k>=1){k=k+1;}
+    else{k=1;}
+  }
+  if(k<1)k=1;
+  var lobbies=[];
+  for(var li=0;li<k;li++)lobbies.push([]);
+  pool.forEach(function(p,idx){
+    var row=Math.floor(idx/k);
+    var col=row%2===0?(idx%k):(k-1-(idx%k));
+    lobbies[col].push(p);
+  });
+  return{lobbies:lobbies,byes:[]};
+}
+
 // Cut line: determine which players advance after N games
 // Returns { advancing: [], eliminated: [] }
 function applyCutLine(playerStandings,cutLine,cutAfterGame){
@@ -15175,6 +15207,8 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
 function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setScreen,players,isAdmin}){
   var [tournament,setTournament]=useState(null);
   var [registrations,setRegistrations]=useState([]);
+  var [lobbies,setLobbies]=useState([]);
+  var [lobbyCodeInputs,setLobbyCodeInputs]=useState({});
   var [loading,setLoading]=useState(true);
   var [activeTab,setActiveTab]=useState("info");
   var [actionLoading,setActionLoading]=useState(false);
@@ -15193,9 +15227,70 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     });
   }
 
+  function loadLobbies(){
+    return supabase.from('lobbies').select('*').eq('tournament_id',tournamentId).order('lobby_number',{ascending:true}).then(function(res){
+      if(res.data)setLobbies(res.data);
+      return res;
+    });
+  }
+
   useEffect(function(){
-    Promise.all([loadTournament(),loadRegistrations()]).then(function(){setLoading(false);});
+    Promise.all([loadTournament(),loadRegistrations(),loadLobbies()]).then(function(){setLoading(false);});
   },[tournamentId]);
+
+  // Rank color map
+  var rankColors={Iron:"#5A6573",Bronze:"#CD7F32",Silver:"#C0C0C0",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#93B5F7",Master:"#9B72CF",Grandmaster:"#DC2626",Challenger:"#F59E0B"};
+
+  // Look up a player by id from the players prop
+  function getPlayerById(pid){
+    return players.find(function(p){return p.id===pid;})||{username:"Unknown",rank:"Iron"};
+  }
+
+  // Submit lobby code
+  function submitLobbyCode(lobbyId,code){
+    supabase.from('lobbies').update({lobby_code:code}).eq('id',lobbyId).then(function(res){
+      if(res.error){toast("Failed to save code","error");return;}
+      toast("Lobby code saved!","success");
+      loadLobbies();
+    });
+  }
+
+  // Admin: Generate lobbies
+  function generateLobbies(){
+    setActionLoading(true);
+    supabase.from('registrations').select('player_id, players(id, username, rank, riot_id, region)')
+      .eq('tournament_id',tournamentId)
+      .eq('status','checked_in')
+      .then(function(res){
+        if(res.error||!res.data){toast("Failed to load players","error");setActionLoading(false);return;}
+        var checkedIn=res.data.map(function(r){return r.players;}).filter(Boolean);
+        var result=buildFlashLobbies(checkedIn,tournament.seeding_method||"snake");
+        var lobbyRows=result.lobbies.map(function(lobbyPlayers,idx){
+          var host=lobbyPlayers.reduce(function(best,p){
+            return RANKS.indexOf(p.rank||"Iron")>RANKS.indexOf(best.rank||"Iron")?p:best;
+          },lobbyPlayers[0]);
+          return{
+            tournament_id:tournamentId,
+            round_number:1,
+            lobby_number:idx+1,
+            player_ids:lobbyPlayers.map(function(p){return p.id;}),
+            host_player_id:host?host.id:null,
+            status:'pending',
+            game_number:1
+          };
+        });
+        supabase.from('lobbies').insert(lobbyRows).select().then(function(lRes){
+          setActionLoading(false);
+          if(lRes.error){toast("Failed: "+lRes.error.message,"error");return;}
+          supabase.from('tournaments').update({phase:'in_progress',started_at:new Date().toISOString(),current_round:1})
+            .eq('id',tournamentId).then(function(){
+              setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
+            });
+          toast(result.lobbies.length+" lobbies generated!","success");
+          loadLobbies();
+        });
+      });
+  }
 
   // Derived state
   var myPlayer=currentUser?players.find(function(p){return p.authUserId===currentUser.id;}):null;
@@ -15366,8 +15461,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
 
   // Tabs based on phase
   var tabs=[{id:"info",label:"Info"},{id:"players",label:"Players ("+regCount+")"}];
+  if(phase==="in_progress"||phase==="completed"||(phase==="check_in"&&isAdmin)){
+    tabs.push({id:"bracket",label:"Lobbies"+(lobbies.length>0?" ("+lobbies.length+")":"")});
+  }
   if(phase==="in_progress"||phase==="completed"){
-    tabs.push({id:"bracket",label:"Lobbies"});
     tabs.push({id:"standings",label:"Standings"});
   }
 
@@ -15490,13 +15587,71 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         </Panel>
       )}
 
-      {/* Bracket tab placeholder */}
+      {/* Lobbies tab */}
       {activeTab==="bracket"&&(
-        <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-          <div style={{fontSize:28,marginBottom:12}}>{"⚔"}</div>
-          <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
-          <div style={{fontSize:13,color:"#9AAABF"}}>Lobby assignments will appear here once the tournament starts.</div>
-        </Panel>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {lobbies.length===0&&(
+            <Panel style={{padding:"48px 20px",textAlign:"center"}}>
+              <div style={{fontSize:28,marginBottom:12}}>{"⚔"}</div>
+              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
+              <div style={{fontSize:13,color:"#9AAABF"}}>Lobby assignments will appear here once lobbies are generated.</div>
+            </Panel>
+          )}
+          {lobbies.map(function(lobby,idx){
+            var lobbyPlayers=(lobby.player_ids||[]).map(function(pid){return getPlayerById(pid);});
+            var hostId=lobby.host_player_id;
+            var isMyLobby=myPlayer&&(lobby.player_ids||[]).indexOf(myPlayer.id)!==-1;
+            var iAmHost=myPlayer&&hostId===myPlayer.id;
+            var lobbyLetter=String.fromCharCode(65+idx);
+            var isLocked=lobby.status==="locked"||lobby.status==="completed";
+            var codeKey=lobby.id;
+            var codeInput=lobbyCodeInputs[codeKey]||"";
+            return(
+              <Panel key={lobby.id} style={{padding:"16px 18px",borderColor:isMyLobby?"rgba(155,114,207,.4)":"rgba(242,237,228,.08)",boxShadow:isMyLobby?"0 0 0 1px rgba(155,114,207,.2)":"none"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8,flexWrap:"wrap"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <div style={{width:36,height:36,borderRadius:10,background:isLocked?"rgba(82,196,124,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(isLocked?"rgba(82,196,124,.4)":"rgba(155,114,207,.3)"),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:18,color:isLocked?"#52C47C":"#C4B5FD",flexShrink:0}}>
+                      {lobbyLetter}
+                    </div>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{"Lobby "+lobbyLetter}</div>
+                      <div style={{fontSize:11,color:"#8896A8"}}>{lobbyPlayers.length+" players"+(isLocked?" · Locked":"")}</div>
+                    </div>
+                  </div>
+                  {lobby.lobby_code&&(
+                    <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px",fontFamily:"monospace",fontSize:15,fontWeight:700,color:"#E8A838",letterSpacing:2}}>
+                      {lobby.lobby_code}
+                    </div>
+                  )}
+                </div>
+                <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:iAmHost&&!lobby.lobby_code?12:0}}>
+                  {lobbyPlayers.map(function(p,pi){
+                    var isHost=p.id===hostId;
+                    var rc=rankColors[p.rank||"Iron"]||"#8896A8";
+                    return(
+                      <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
+                        <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
+                        <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.username||"Unknown"}</span>
+                        {isHost&&<span style={{fontSize:12,color:"#E8A838",fontWeight:700}} title="Lobby Host">{"\uD83D\uDC51 Host"}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+                {iAmHost&&!lobby.lobby_code&&(
+                  <div style={{display:"flex",gap:8,alignItems:"center",marginTop:8,paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)"}}>
+                    <input
+                      placeholder="Enter lobby code..."
+                      value={codeInput}
+                      onChange={function(e){var v=e.target.value;setLobbyCodeInputs(function(prev){var next=Object.assign({},prev);next[codeKey]=v;return next;});}}
+                      style={{flex:1,background:"rgba(255,255,255,.05)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"7px 12px",fontSize:13,color:"#F2EDE4",fontFamily:"monospace",outline:"none"}}
+                    />
+                    <Btn v="primary" s="sm" onClick={function(){submitLobbyCode(lobby.id,codeInput);}}>Save</Btn>
+                  </div>
+                )}
+              </Panel>
+            );
+          })}
+        </div>
       )}
 
       {/* Standings tab placeholder */}
@@ -15516,10 +15671,16 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             {phase==="draft"&&<Btn v="purple" s="sm" onClick={adminOpenRegistration}>Open Registration</Btn>}
             {phase==="registration"&&<Btn v="primary" s="sm" onClick={adminOpenCheckIn}>Open Check-In</Btn>}
             {phase==="check_in"&&<Btn v="primary" s="sm" onClick={adminCloseCheckIn}>Close Check-In</Btn>}
-            {(phase==="check_in"||phase==="registration")&&<Btn v="success" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
+            {phase==="check_in"&&checkedInCount>=2&&lobbies.length===0&&(
+              <Btn v="success" s="sm" onClick={generateLobbies} disabled={actionLoading}>{actionLoading?"Generating...":"Generate Lobbies"}</Btn>
+            )}
+            {phase==="check_in"&&lobbies.length>0&&(
+              <span style={{fontSize:12,color:"#52C47C",padding:"4px 10px",background:"rgba(82,196,124,.1)",borderRadius:6,border:"1px solid rgba(82,196,124,.2)",fontWeight:600}}>{"\u2713 "+lobbies.length+" lobbies ready"}</span>
+            )}
+            {(phase==="check_in"||phase==="registration")&&<Btn v="dark" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
           </div>
           <div style={{fontSize:11,color:"#8896A8",marginTop:10}}>
-            {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount}
+            {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount+(lobbies.length>0?" · "+lobbies.length+" lobbies":"")}
           </div>
         </Panel>
       )}
