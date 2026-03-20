@@ -15209,11 +15209,32 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
             var pct=Math.min(100,Math.round((regCount/maxP)*100));
             var dateStr=t.date?new Date(t.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
             var prizes=Array.isArray(t.prize_pool)?t.prize_pool:[];
+            // Status badge styles
+            var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(82,196,124,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(155,114,207,.15)",complete:"rgba(78,205,196,.15)",completed:"rgba(78,205,196,.15)"};
+            var phaseBadgeColor={draft:"#9AAABF",registration:"#52C47C",check_in:"#E8A838",in_progress:"#9B72CF",complete:"#4ECDC4",completed:"#4ECDC4"};
+            var badgeBg=phaseBadgeBg[t.phase]||"rgba(154,170,191,.1)";
+            var badgeColor=phaseBadgeColor[t.phase]||"#9AAABF";
+            // Countdown timer
+            var now=new Date();
+            var tDate=t.date?new Date(t.date):null;
+            var diff=tDate?(tDate-now):0;
+            var countdownStr="";
+            if(diff>0){
+              var days=Math.floor(diff/86400000);
+              var hours=Math.floor((diff%86400000)/3600000);
+              var mins=Math.floor((diff%3600000)/60000);
+              countdownStr=days>0?(days+"d "+hours+"h"):(hours>0?(hours+"h "+mins+"m"):(mins+"m"));
+            }
             return(
               <div key={t.id} onClick={function(){setScreen("flash-"+t.id);}} style={{background:"rgba(17,24,39,.85)",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"20px",cursor:"pointer",transition:"border-color .2s, transform .15s"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                  <span style={{fontSize:13,fontWeight:700,color:phaseColors[t.phase]||"#9AAABF",textTransform:"uppercase",letterSpacing:".5px"}}>{phaseLabels[t.phase]||t.phase}</span>
-                  <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,gap:8,flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,fontWeight:700,color:badgeColor,background:badgeBg,borderRadius:20,padding:"3px 10px",letterSpacing:".4px",textTransform:"uppercase"}}>{phaseLabels[t.phase]||t.phase}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    {countdownStr&&(
+                      <span style={{fontSize:11,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",borderRadius:12,padding:"2px 8px",border:"1px solid rgba(232,168,56,.2)"}}>{"\u23F0 "+countdownStr}</span>
+                    )}
+                    <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
+                  </div>
                 </div>
                 <div style={{fontWeight:700,fontSize:17,color:"#F2EDE4",marginBottom:8}}>{t.name}</div>
                 {prizes.length>0&&(
@@ -15232,7 +15253,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
                     <div style={{height:4,borderRadius:2,background:pct>=90?"#F87171":pct>=60?"#E8A838":"#9B72CF",width:pct+"%",transition:"width .3s"}}/>
                   </div>
                 </div>
-                <div style={{fontSize:12,color:"#8896A8"}}>{(t.round_count||3)+" games · "+(t.seeding_method||"snake")+" seeding"}</div>
+                <div style={{fontSize:12,color:"#8896A8"}}>{(t.round_count||3)+" games \u00B7 "+(t.seeding_method||"snake")+" seeding"}</div>
               </div>
             );
           })}
@@ -15916,7 +15937,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {activeTab==="players"&&(
         <Panel style={{padding:"16px"}}>
           <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:12}}>{"Registered Players ("+registrations.length+")"}</div>
-          {sortedRegs.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No registrations yet.</div>}
+          {sortedRegs.length===0&&<div style={{textAlign:"center",padding:"32px 20px",color:"#8896A8",fontSize:14}}>No players registered yet. Share the tournament link!</div>}
           <div style={{display:"flex",flexDirection:"column",gap:4}}>
             {sortedRegs.map(function(r,idx){
               var pData=r.players||{};
@@ -16022,7 +16043,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
               <div style={{fontSize:28,marginBottom:12}}>{"⚔"}</div>
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
-              <div style={{fontSize:13,color:"#9AAABF"}}>Lobby assignments will appear here once lobbies are generated.</div>
+              <div style={{fontSize:13,color:"#9AAABF"}}>Lobbies will appear once the admin generates them.</div>
             </Panel>
           )}
           {lobbies.map(function(lobby,idx){
@@ -16044,11 +16065,14 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             var hasDuplicate=Object.keys(placementCounts).some(function(k){return placementCounts[k]>1;});
             var lobbyDisputes=disputes.filter(function(d){return d.lobby_id===lobby.id&&d.status==='open';});
             var canLock=allReported&&!hasDuplicate&&!isLocked;
+            var letterColor=isLocked?"#52C47C":"#9B72CF";
+            var cardBorderColor=hasDuplicate?"rgba(248,113,113,.5)":isLocked?"rgba(82,196,124,.3)":isMyLobby?"rgba(155,114,207,.4)":"rgba(242,237,228,.08)";
+            var cardBorderLeft=isLocked?"4px solid #52C47C":hasDuplicate?"4px solid #F87171":"4px solid transparent";
             return(
-              <Panel key={lobby.id} style={{padding:"16px 18px",borderColor:isMyLobby?"rgba(155,114,207,.4)":"rgba(242,237,228,.08)",boxShadow:isMyLobby?"0 0 0 1px rgba(155,114,207,.2)":"none"}}>
+              <Panel key={lobby.id} style={{padding:"16px 18px",borderColor:cardBorderColor,boxShadow:isMyLobby&&!hasDuplicate?"0 0 0 1px rgba(155,114,207,.2)":"none",borderLeft:cardBorderLeft}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8,flexWrap:"wrap"}}>
                   <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    <div style={{width:36,height:36,borderRadius:10,background:isLocked?"rgba(82,196,124,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(isLocked?"rgba(82,196,124,.4)":"rgba(155,114,207,.3)"),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:18,color:isLocked?"#52C47C":"#C4B5FD",flexShrink:0}}>
+                    <div style={{width:36,height:36,borderRadius:10,background:isLocked?"rgba(82,196,124,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(isLocked?"rgba(82,196,124,.4)":"rgba(155,114,207,.3)"),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:18,color:letterColor,flexShrink:0}}>
                       {lobbyLetter}
                     </div>
                     <div>
@@ -16103,12 +16127,15 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                       var isHost=p.id===hostId;
                       var rc=rankColors[p.rank||"Iron"]||"#8896A8";
                       var playerReport=reports.find(function(r){return r.player_id===p.id&&r.lobby_id===lobby.id;});
+                      var hasReported=!!playerReport;
                       return(
                         <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
                           <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
-                          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.username||"Unknown"}</span>
+                          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{isHost&&<span style={{color:"#E8A838",marginRight:4}} title="Lobby Host">{"\u265B"}</span>}{p.username||"Unknown"}</span>
+                          {phase==="in_progress"&&(
+                            <span style={{fontSize:13,color:hasReported?"#52C47C":"rgba(136,150,168,.4)",fontWeight:700}} title={hasReported?"Reported":"Not yet reported"}>{hasReported?"\u2713":"\u25CB"}</span>
+                          )}
                           {playerReport&&<span style={{fontSize:12,fontWeight:700,color:"#52C47C"}}>{playerReport.reported_placement+(playerReport.reported_placement===1?"st":playerReport.reported_placement===2?"nd":playerReport.reported_placement===3?"rd":"th")}</span>}
-                          {isHost&&<span style={{fontSize:12,color:"#E8A838",fontWeight:700}} title="Lobby Host">{"\uD83D\uDC51 Host"}</span>}
                         </div>
                       );
                     })}
@@ -16142,27 +16169,32 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {activeTab==="standings"&&(
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
           {/* Podium — only when complete */}
-          {phase==="complete"&&standings.length>=3&&(
-            <Panel style={{padding:"24px 20px",background:"linear-gradient(135deg,rgba(232,168,56,.07),rgba(155,114,207,.07))"}}>
-              <div style={{textAlign:"center",fontWeight:700,fontSize:15,color:"#E8A838",marginBottom:20,letterSpacing:".5px"}}>{"FINAL RESULTS"}</div>
-              <div style={{display:"flex",gap:10,justifyContent:"center",alignItems:"flex-end",flexWrap:"wrap"}}>
+          {(phase==="complete"||phase==="completed")&&standings.length>=3&&(
+            <Panel style={{padding:"28px 20px 16px 20px",background:"linear-gradient(160deg,rgba(232,168,56,.09),rgba(155,114,207,.09),rgba(17,24,39,0))",border:"1px solid rgba(232,168,56,.18)"}}>
+              <div style={{textAlign:"center",fontWeight:800,fontSize:13,color:"#E8A838",marginBottom:24,letterSpacing:"2px",textTransform:"uppercase"}}>{"Final Results"}</div>
+              <div style={{display:"flex",gap:8,justifyContent:"center",alignItems:"flex-end",flexWrap:"wrap"}}>
                 {[1,0,2].map(function(rankIdx){
                   var entry=standings[rankIdx];
                   if(!entry)return null;
                   var pos=rankIdx+1;
                   var colors=["#E8A838","#C0C0C0","#CD7F32"];
-                  var sizes=[72,60,56];
-                  var heights=[120,100,90];
+                  var cardBgs=["linear-gradient(160deg,rgba(232,168,56,.18),rgba(232,168,56,.04))","linear-gradient(160deg,rgba(192,192,192,.12),rgba(192,192,192,.03))","linear-gradient(160deg,rgba(205,127,50,.12),rgba(205,127,50,.03))"];
+                  var cardBorders=["rgba(232,168,56,.45)","rgba(192,192,192,.3)","rgba(205,127,50,.3)"];
+                  var avatarSizes=[80,64,60];
+                  var nameSizes=[16,13,13];
+                  var cardPaddings=["20px 18px","16px 14px","16px 14px"];
                   var prizeEntry=prizes.find(function(pr){return pr.placement===pos;});
                   var isFirst=pos===1;
+                  var orderMap=[2,1,3];
+                  var displayOrder=orderMap[rankIdx];
                   return(
-                    <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,minWidth:100,maxWidth:160}}>
-                      {isFirst&&<div style={{fontSize:22}}>{"👑"}</div>}
-                      <div style={{width:sizes[rankIdx],height:sizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"33,"+colors[rankIdx]+"11)",border:"2px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:isFirst?20:16,color:colors[rankIdx]}}>{"#"+pos}</div>
-                      <div style={{fontWeight:700,fontSize:isFirst?15:13,color:"#F2EDE4",textAlign:"center"}}>{entry.name}</div>
-                      <div style={{fontSize:11,color:colors[rankIdx],fontWeight:700}}>{entry.totalPts+" pts"}</div>
-                      {prizeEntry&&<div style={{fontSize:12,fontWeight:700,color:colors[rankIdx],background:colors[rankIdx]+"18",border:"1px solid "+colors[rankIdx]+"44",borderRadius:6,padding:"3px 10px"}}>{prizeEntry.prize}</div>}
-                      <div style={{height:heights[rankIdx],background:"linear-gradient(to top,"+colors[rankIdx]+"33,transparent)",borderRadius:"8px 8px 0 0",border:"1px solid "+colors[rankIdx]+"33",borderBottom:"none",width:"100%",marginBottom:-16}}/>
+                    <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,order:displayOrder,flex:isFirst?"0 0 160px":"0 0 130px",background:cardBgs[rankIdx],border:"1px solid "+cardBorders[rankIdx],borderRadius:14,padding:cardPaddings[rankIdx],minWidth:isFirst?140:110,maxWidth:isFirst?180:150}}>
+                      {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{"👑"}</div>}
+                      {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{pos===2?"🥈":"🥉"}</div>}
+                      <div style={{width:avatarSizes[rankIdx],height:avatarSizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"44,"+colors[rankIdx]+"11)",border:"2.5px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:isFirst?24:18,color:colors[rankIdx],boxShadow:isFirst?"0 0 18px "+colors[rankIdx]+"55":"none"}}>{"#"+pos}</div>
+                      <div style={{fontWeight:700,fontSize:nameSizes[rankIdx],color:"#F2EDE4",textAlign:"center",marginTop:4,lineHeight:1.2}}>{entry.name}</div>
+                      <div style={{fontSize:12,color:colors[rankIdx],fontWeight:700,background:colors[rankIdx]+"18",borderRadius:8,padding:"2px 10px"}}>{entry.totalPts+" pts"}</div>
+                      {prizeEntry&&<div style={{fontSize:isFirst?14:12,fontWeight:800,color:colors[rankIdx],background:colors[rankIdx]+"22",border:"1px solid "+colors[rankIdx]+"55",borderRadius:8,padding:"4px 12px",marginTop:2}}>{prizeEntry.prize}</div>}
                     </div>
                   );
                 })}
@@ -16175,7 +16207,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
               <div style={{fontSize:28,marginBottom:12}}>{"📊"}</div>
               <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
-              <div style={{fontSize:13,color:"#9AAABF"}}>Standings will update as games are reported and locked.</div>
+              <div style={{fontSize:13,color:"#9AAABF"}}>No results yet. Complete games to see standings.</div>
             </Panel>
           ):(
             <Panel style={{padding:"16px 0 0 0",overflow:"hidden"}}>
