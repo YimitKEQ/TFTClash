@@ -2956,6 +2956,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   const DESKTOP_MORE=[
 
+    {id:"tournaments",label:"Tournaments"},
+
     {id:"featured",label:"Featured Events"},
 
     {id:"archive",label:"Archive"},
@@ -2981,6 +2983,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"hof",icon:"🏛",label:"Hall of Fame"},
 
     {id:"archive",icon:"📁",label:"Archive"},
+
+    {id:"tournaments",icon:"⚡",label:"Tournaments"},
 
     {id:"featured",icon:"⭐",label:"Featured Events"},
 
@@ -8354,7 +8358,7 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const [showAddPlayer,setShowAddPlayer]=useState(false);
 
-  const [flashForm,setFlashForm]=useState({name:"Flash Clash",cap:"8",rounds:"2",format:"Single Lobby"});
+  const [flashForm,setFlashForm]=useState({name:"Flash Tournament",date:"",maxPlayers:"128",gameCount:"3",formatPreset:"standard",seedingMethod:"snake",prizeRows:[{placement:"1",prize:""}]});
 
   const [qcPlacements,setQcPlacements]=useState({});
 
@@ -8367,6 +8371,13 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
   const [auditFilter,setAuditFilter]=useState("All");
 
 
+
+  // Load flash tournaments from DB on mount
+  useEffect(function(){
+    supabase.from('tournaments').select('*').eq('type','flash_tournament').order('date',{ascending:false}).then(function(res){
+      if(res.data)setFlashEvents(res.data);
+    });
+  },[]);
 
   function addAudit(type,msg){
     var entry={ts:Date.now(),type:type,msg:msg};
@@ -8490,6 +8501,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
     {id:"featured",icon:"🌟",label:"Featured"},
 
+    {id:"flash",icon:"⚡",label:"Flash Tournaments"},
+
   ];
 
 
@@ -8521,6 +8534,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     settings:"Role permission reference and admin quickstart guide.",
 
     featured:"Manage featured events shown on the Featured Events page. Add, edit, or remove community tournaments and partner events.",
+
+    flash:"Create and manage flash tournaments. Set up quick competitive events with registration, check-in, and automated lobby generation.",
 
   };
 
@@ -9966,6 +9981,126 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
         </div>
         );
       })()}
+
+      {tab==="flash"&&(
+        <div>
+          <Panel style={{padding:"20px",marginBottom:16}}>
+            <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:16}}>Create Flash Tournament</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
+              <div>
+                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Tournament Name</div>
+                <Inp value={flashForm.name} onChange={function(v){setFlashForm(Object.assign({},flashForm,{name:v}));}} placeholder="Flash Tournament #1"/>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Date & Time</div>
+                <input type="datetime-local" value={flashForm.date} onChange={function(e){setFlashForm(Object.assign({},flashForm,{date:e.target.value}));}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Max Players</div>
+                <Inp type="number" value={flashForm.maxPlayers} onChange={function(v){setFlashForm(Object.assign({},flashForm,{maxPlayers:v}));}} placeholder="128"/>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Game Count</div>
+                <Inp type="number" value={flashForm.gameCount} onChange={function(v){setFlashForm(Object.assign({},flashForm,{gameCount:v}));}} placeholder="3"/>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Format Preset</div>
+                <select value={flashForm.formatPreset} onChange={function(e){setFlashForm(Object.assign({},flashForm,{formatPreset:e.target.value}));}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}>
+                  <option value="casual">Casual</option>
+                  <option value="standard">Standard</option>
+                  <option value="competitive">Competitive (128p)</option>
+                </select>
+              </div>
+              <div>
+                <div style={{fontSize:11,color:"#BECBD9",marginBottom:4,fontWeight:600}}>Seeding Method</div>
+                <select value={flashForm.seedingMethod} onChange={function(e){setFlashForm(Object.assign({},flashForm,{seedingMethod:e.target.value}));}} style={{width:"100%",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"8px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}>
+                  <option value="snake">Snake Seeding</option>
+                  <option value="random">Random</option>
+                  <option value="rank-based">Rank-Based</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+                <div style={{fontSize:11,color:"#BECBD9",fontWeight:600}}>Prize Pool</div>
+                <button onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.concat([{placement:String(flashForm.prizeRows.length+1),prize:""}])}));}} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}}>+ Add Prize</button>
+              </div>
+              {flashForm.prizeRows.map(function(row,idx){
+                return(
+                  <div key={idx} style={{display:"flex",gap:8,marginBottom:6,alignItems:"center"}}>
+                    <div style={{fontSize:12,color:"#E8A838",fontWeight:700,width:30,textAlign:"center"}}>#{row.placement}</div>
+                    <input value={row.prize} onChange={function(e){var updated=flashForm.prizeRows.map(function(r,i){return i===idx?Object.assign({},r,{prize:e.target.value}):r;});setFlashForm(Object.assign({},flashForm,{prizeRows:updated}));}} placeholder="e.g. $50, RP, Skin code..." style={{flex:1,background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"7px 10px",color:"#F2EDE4",fontSize:13,outline:"none",boxSizing:"border-box",fontFamily:"inherit"}}/>
+                    {flashForm.prizeRows.length>1&&(
+                      <button onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.filter(function(_,i){return i!==idx;})}));}} style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)",borderRadius:6,padding:"4px 8px",fontSize:11,color:"#F87171",cursor:"pointer",fontFamily:"inherit"}}>X</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <Btn v="primary" onClick={function(){
+              if(!flashForm.name.trim()){toast("Tournament name required","error");return;}
+              if(!flashForm.date){toast("Date/time required","error");return;}
+              var preset=TOURNAMENT_FORMATS[flashForm.formatPreset]||TOURNAMENT_FORMATS.standard;
+              var prizePool=flashForm.prizeRows.filter(function(r){return r.prize.trim();}).map(function(r){return{placement:parseInt(r.placement),prize:r.prize.trim()};});
+              supabase.from('tournaments').insert({
+                name:flashForm.name.trim(),
+                date:flashForm.date,
+                phase:'draft',
+                type:'flash_tournament',
+                max_players:parseInt(flashForm.maxPlayers)||128,
+                round_count:parseInt(flashForm.gameCount)||3,
+                seeding_method:flashForm.seedingMethod||'snake',
+                prize_pool:prizePool.length>0?prizePool:null,
+                lobby_host_method:'random'
+              }).select().single().then(function(res){
+                if(res.error){toast("Failed to create: "+res.error.message,"error");return;}
+                toast("Flash tournament created!","success");
+                addAudit("ACTION","Flash tournament created: "+flashForm.name.trim());
+                setFlashEvents(flashEvents.concat([res.data]));
+                setFlashForm({name:"Flash Tournament",date:"",maxPlayers:"128",gameCount:"3",formatPreset:"standard",seedingMethod:"snake",prizeRows:[{placement:"1",prize:""}]});
+              });
+            }}>Create Tournament</Btn>
+          </Panel>
+
+          <Panel style={{padding:"20px"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Existing Flash Tournaments ({flashEvents.length})</div>
+            {flashEvents.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No flash tournaments yet. Create one above.</div>}
+            {flashEvents.map(function(ev){
+              var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
+              return(
+                <div key={ev.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,marginBottom:6}}>
+                  <div style={{fontSize:16,flexShrink:0}}>{"⚡"}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
+                    <div style={{fontSize:11,color:"#BECBD9"}}>{ev.date?new Date(ev.date).toLocaleDateString():"TBD"} · <span style={{color:phaseColors[ev.phase]||"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{(ev.phase||"draft").replace("_"," ")}</span></div>
+                  </div>
+                  <Btn v="ghost" s="sm" onClick={function(){
+                    if(ev.phase==="draft"){
+                      supabase.from('tournaments').update({phase:'registration',registration_open_at:new Date().toISOString()}).eq('id',ev.id).then(function(res){
+                        if(res.error){toast("Failed: "+res.error.message,"error");return;}
+                        setFlashEvents(flashEvents.map(function(e){return e.id===ev.id?Object.assign({},e,{phase:'registration'}):e;}));
+                        toast("Registration opened!","success");
+                        addAudit("ACTION","Flash tournament registration opened: "+ev.name);
+                      });
+                    }
+                  }}>{ev.phase==="draft"?"Open Registration":"View"}</Btn>
+                  <button onClick={function(){
+                    if(!confirm("Delete tournament '"+ev.name+"'?"))return;
+                    supabase.from('tournaments').delete().eq('id',ev.id).then(function(res){
+                      if(res.error){toast("Failed: "+res.error.message,"error");return;}
+                      setFlashEvents(flashEvents.filter(function(e){return e.id!==ev.id;}));
+                      toast("Tournament deleted","success");
+                      addAudit("DANGER","Flash tournament deleted: "+ev.name);
+                    });
+                  }} style={{background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.25)",borderRadius:6,padding:"5px 10px",fontSize:11,fontWeight:700,color:"#F87171",cursor:"pointer",fontFamily:"inherit",flexShrink:0}}>Delete</button>
+                </div>
+              );
+            })}
+          </Panel>
+        </div>
+      )}
 
     </div>
 
@@ -14947,6 +15082,452 @@ function TournamentDetailScreen(props){
 
 
 
+// ─── TOURNAMENTS LIST SCREEN ──────────────────────────────────────────
+
+function TournamentsListScreen({setScreen,currentUser,toast}){
+  var [tournaments,setTournaments]=useState([]);
+  var [loading,setLoading]=useState(true);
+
+  useEffect(function(){
+    supabase.from('tournaments').select('*').eq('type','flash_tournament').order('date',{ascending:false}).then(function(res){
+      if(res.data)setTournaments(res.data);
+      setLoading(false);
+    });
+  },[]);
+
+  // Count registrations per tournament
+  var [regCounts,setRegCounts]=useState({});
+  useEffect(function(){
+    if(tournaments.length===0)return;
+    var ids=tournaments.map(function(t){return t.id;});
+    supabase.from('registrations').select('tournament_id').in('tournament_id',ids).then(function(res){
+      if(!res.data)return;
+      var counts={};
+      res.data.forEach(function(r){counts[r.tournament_id]=(counts[r.tournament_id]||0)+1;});
+      setRegCounts(counts);
+    });
+  },[tournaments]);
+
+  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
+  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed"};
+
+  return(
+    <div className="page wrap">
+      <div style={{marginBottom:28}}>
+        <h1 style={{color:"#F2EDE4",fontSize:24,fontWeight:700,margin:0,marginBottom:6}}>Tournaments</h1>
+        <p style={{color:"#BECBD9",fontSize:13,margin:0}}>Flash tournaments, competitive events, and community clashes. Free to enter, play to win.</p>
+      </div>
+
+      {loading&&<div style={{textAlign:"center",padding:"60px 0",color:"#8896A8"}}>Loading tournaments...</div>}
+
+      {!loading&&tournaments.length===0&&(
+        <Panel style={{padding:"48px 20px",textAlign:"center"}}>
+          <div style={{fontSize:28,marginBottom:12}}>{"⚡"}</div>
+          <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No Tournaments Yet</div>
+          <div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Flash tournaments will appear here when admins create them.</div>
+        </Panel>
+      )}
+
+      {!loading&&tournaments.length>0&&(
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+          {tournaments.map(function(t){
+            var regCount=regCounts[t.id]||0;
+            var maxP=t.max_players||128;
+            var pct=Math.min(100,Math.round((regCount/maxP)*100));
+            var dateStr=t.date?new Date(t.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
+            var prizes=Array.isArray(t.prize_pool)?t.prize_pool:[];
+            return(
+              <div key={t.id} onClick={function(){setScreen("flash-"+t.id);}} style={{background:"rgba(17,24,39,.85)",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"20px",cursor:"pointer",transition:"border-color .2s, transform .15s"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                  <span style={{fontSize:13,fontWeight:700,color:phaseColors[t.phase]||"#9AAABF",textTransform:"uppercase",letterSpacing:".5px"}}>{phaseLabels[t.phase]||t.phase}</span>
+                  <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
+                </div>
+                <div style={{fontWeight:700,fontSize:17,color:"#F2EDE4",marginBottom:8}}>{t.name}</div>
+                {prizes.length>0&&(
+                  <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
+                    {prizes.slice(0,3).map(function(p,i){
+                      return <span key={i} style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"2px 8px",fontSize:11,color:"#E8A838",fontWeight:600}}>{"#"+p.placement+" "+p.prize}</span>;
+                    })}
+                  </div>
+                )}
+                <div style={{marginBottom:6}}>
+                  <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"#BECBD9",marginBottom:4}}>
+                    <span>{regCount+" / "+maxP+" players"}</span>
+                    <span>{pct+"%"}</span>
+                  </div>
+                  <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,.06)"}}>
+                    <div style={{height:4,borderRadius:2,background:pct>=90?"#F87171":pct>=60?"#E8A838":"#9B72CF",width:pct+"%",transition:"width .3s"}}/>
+                  </div>
+                </div>
+                <div style={{fontSize:12,color:"#8896A8"}}>{(t.round_count||3)+" games · "+(t.seeding_method||"snake")+" seeding"}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ─── FLASH TOURNAMENT SCREEN ──────────────────────────────────────────
+
+function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setScreen,players,isAdmin}){
+  var [tournament,setTournament]=useState(null);
+  var [registrations,setRegistrations]=useState([]);
+  var [loading,setLoading]=useState(true);
+  var [activeTab,setActiveTab]=useState("info");
+  var [actionLoading,setActionLoading]=useState(false);
+
+  function loadTournament(){
+    return supabase.from('tournaments').select('*').eq('id',tournamentId).single().then(function(res){
+      if(res.data)setTournament(res.data);
+      return res;
+    });
+  }
+
+  function loadRegistrations(){
+    return supabase.from('registrations').select('*, players(username, riot_id, rank, region)').eq('tournament_id',tournamentId).then(function(res){
+      if(res.data)setRegistrations(res.data);
+      return res;
+    });
+  }
+
+  useEffect(function(){
+    Promise.all([loadTournament(),loadRegistrations()]).then(function(){setLoading(false);});
+  },[tournamentId]);
+
+  // Derived state
+  var myPlayer=currentUser?players.find(function(p){return p.authUserId===currentUser.id;}):null;
+  var myReg=myPlayer?registrations.find(function(r){return r.player_id===myPlayer.id;}):null;
+  var regCount=registrations.filter(function(r){return r.status==='registered'||r.status==='checked_in';}).length;
+  var checkedInCount=registrations.filter(function(r){return r.status==='checked_in';}).length;
+  var maxP=tournament?tournament.max_players||128:128;
+  var phase=tournament?tournament.phase:"draft";
+  var prizes=tournament&&Array.isArray(tournament.prize_pool)?tournament.prize_pool:[];
+
+  // Registration handler
+  function handleRegister(){
+    if(!currentUser){onAuthClick("login");return;}
+    if(!myPlayer||!myPlayer.riotId){
+      toast("Set your Riot ID in your profile before registering","error");
+      return;
+    }
+    setActionLoading(true);
+    if(regCount>=maxP){
+      var waitPos=registrations.filter(function(r){return r.status==='waitlisted';}).length+1;
+      supabase.from('registrations').insert({
+        tournament_id:tournamentId,
+        player_id:myPlayer.id,
+        status:'waitlisted',
+        waitlist_position:waitPos
+      }).then(function(res){
+        setActionLoading(false);
+        if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
+        toast("Added to waitlist (position #"+waitPos+")!","info");
+        loadRegistrations();
+      });
+      return;
+    }
+    supabase.from('registrations').insert({
+      tournament_id:tournamentId,
+      player_id:myPlayer.id,
+      status:'registered'
+    }).then(function(res){
+      setActionLoading(false);
+      if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
+      toast("Registered!","success");
+      loadRegistrations();
+    });
+  }
+
+  // Unregister handler
+  function handleUnregister(){
+    if(!myReg)return;
+    if(!confirm("Are you sure you want to unregister?"))return;
+    setActionLoading(true);
+    supabase.from('registrations').delete().eq('id',myReg.id).then(function(res){
+      setActionLoading(false);
+      if(res.error){toast("Failed to unregister: "+res.error.message,"error");return;}
+      toast("Unregistered","success");
+      loadRegistrations();
+    });
+  }
+
+  // Check-in handler
+  function handleCheckIn(){
+    if(!myReg)return;
+    setActionLoading(true);
+    supabase.from('registrations').update({status:'checked_in',checked_in_at:new Date().toISOString()}).eq('id',myReg.id).then(function(res){
+      setActionLoading(false);
+      if(res.error){toast("Check-in failed: "+res.error.message,"error");return;}
+      toast("Checked in!","success");
+      loadRegistrations();
+    });
+  }
+
+  // Admin: Open check-in
+  function adminOpenCheckIn(){
+    supabase.from('tournaments').update({phase:'check_in',checkin_open_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
+      if(res.error){toast("Failed: "+res.error.message,"error");return;}
+      setTournament(Object.assign({},tournament,{phase:'check_in'}));
+      toast("Check-in opened!","success");
+    });
+  }
+
+  // Admin: Close check-in
+  function adminCloseCheckIn(){
+    // 1. Set close time
+    supabase.from('tournaments').update({checkin_close_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
+      if(res.error){toast("Failed: "+res.error.message,"error");return;}
+      // 2. Drop players who didn't check in
+      var notCheckedIn=registrations.filter(function(r){return r.status==='registered';});
+      var dropIds=notCheckedIn.map(function(r){return r.id;});
+      if(dropIds.length>0){
+        supabase.from('registrations').update({status:'dropped'}).in('id',dropIds).then(function(dropRes){
+          if(dropRes.error)console.error("Drop failed:",dropRes.error);
+          // 3. Promote waitlisted players if spots opened
+          var openSpots=maxP-checkedInCount;
+          var waitlisted=registrations.filter(function(r){return r.status==='waitlisted';}).sort(function(a,b){return(a.waitlist_position||999)-(b.waitlist_position||999);});
+          var toPromote=waitlisted.slice(0,Math.max(0,openSpots-checkedInCount));
+          if(toPromote.length>0){
+            var promoteIds=toPromote.map(function(r){return r.id;});
+            supabase.from('registrations').update({status:'checked_in',checked_in_at:new Date().toISOString()}).in('id',promoteIds).then(function(){loadRegistrations();});
+          } else {
+            loadRegistrations();
+          }
+        });
+      } else {
+        loadRegistrations();
+      }
+      toast("Check-in closed. "+notCheckedIn.length+" player(s) dropped.","success");
+    });
+  }
+
+  // Admin: Open registration
+  function adminOpenRegistration(){
+    supabase.from('tournaments').update({phase:'registration',registration_open_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
+      if(res.error){toast("Failed: "+res.error.message,"error");return;}
+      setTournament(Object.assign({},tournament,{phase:'registration'}));
+      toast("Registration opened!","success");
+    });
+  }
+
+  // Admin: Start tournament
+  function adminStartTournament(){
+    supabase.from('tournaments').update({phase:'in_progress',started_at:new Date().toISOString(),current_round:1}).eq('id',tournamentId).then(function(res){
+      if(res.error){toast("Failed: "+res.error.message,"error");return;}
+      setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
+      toast("Tournament started!","success");
+    });
+  }
+
+  if(loading){
+    return(
+      <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
+        <div style={{color:"#8896A8",fontSize:14}}>Loading tournament...</div>
+      </div>
+    );
+  }
+
+  if(!tournament){
+    return(
+      <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
+        <div style={{fontSize:36,marginBottom:16}}>{"⚡"}</div>
+        <h2 style={{color:"#F2EDE4",marginBottom:10}}>Tournament Not Found</h2>
+        <p style={{color:"#BECBD9"}}>This tournament may have been removed.</p>
+        <Btn v="primary" onClick={function(){setScreen("tournaments");}}>Back to Tournaments</Btn>
+      </div>
+    );
+  }
+
+  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",completed:"#4ECDC4"};
+  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed"};
+  var dateStr=tournament.date?new Date(tournament.date).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
+
+  // Registration button logic
+  var regBtnLabel="Register";
+  var regBtnVariant="primary";
+  var regBtnAction=handleRegister;
+  var regBtnDisabled=false;
+  if(myReg&&myReg.status==="registered"&&phase==="check_in"){
+    regBtnLabel="Check In";regBtnVariant="success";regBtnAction=handleCheckIn;
+  } else if(myReg&&myReg.status==="checked_in"){
+    regBtnLabel="Checked In";regBtnVariant="success";regBtnDisabled=true;
+  } else if(myReg&&myReg.status==="waitlisted"){
+    regBtnLabel="Waitlisted (#"+(myReg.waitlist_position||"?")+")";regBtnVariant="dark";regBtnDisabled=true;
+  } else if(myReg&&myReg.status==="registered"){
+    regBtnLabel="Registered";regBtnVariant="success";regBtnDisabled=true;
+  } else if(phase!=="registration"&&phase!=="check_in"){
+    regBtnLabel=phase==="draft"?"Registration Not Open":"Registration Closed";regBtnDisabled=true;regBtnVariant="dark";
+  }
+
+  var canUnregister=myReg&&(phase==="registration"||phase==="check_in")&&myReg.status!=="dropped";
+
+  // Tabs based on phase
+  var tabs=[{id:"info",label:"Info"},{id:"players",label:"Players ("+regCount+")"}];
+  if(phase==="in_progress"||phase==="completed"){
+    tabs.push({id:"bracket",label:"Lobbies"});
+    tabs.push({id:"standings",label:"Standings"});
+  }
+
+  // Sorted registered players
+  var sortedRegs=[].concat(registrations).sort(function(a,b){
+    var statusOrder={checked_in:0,registered:1,waitlisted:2,dropped:3};
+    return(statusOrder[a.status]||4)-(statusOrder[b.status]||4);
+  });
+
+  return(
+    <div className="page wrap">
+      {/* Back button */}
+      <button onClick={function(){setScreen("tournaments");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:"0 0 16px 0",fontFamily:"inherit",display:"flex",alignItems:"center",gap:4}}>
+        {"\u2190 Back to Tournaments"}
+      </button>
+
+      {/* Hero */}
+      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12),rgba(78,205,196,.08))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",marginBottom:20}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,flexWrap:"wrap"}}>
+          <span style={{fontSize:11,fontWeight:700,color:phaseColors[phase],textTransform:"uppercase",letterSpacing:".5px",background:"rgba(255,255,255,.06)",borderRadius:6,padding:"3px 10px"}}>{phaseLabels[phase]||phase}</span>
+          <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
+        </div>
+        <h1 style={{color:"#F2EDE4",fontSize:28,fontWeight:700,margin:"0 0 8px 0"}}>{tournament.name}</h1>
+        <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:13,color:"#BECBD9"}}>
+          <span>{(tournament.round_count||3)+" games"}</span>
+          <span>{(tournament.seeding_method||"snake")+" seeding"}</span>
+          <span>{maxP+" max players"}</span>
+        </div>
+      </div>
+
+      {/* Prize pool */}
+      {prizes.length>0&&(
+        <Panel style={{padding:"18px",marginBottom:16}}>
+          <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:12}}>{"Prize Pool"}</div>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+            {prizes.map(function(p,i){
+              var colors=["#E8A838","#C0C0C0","#CD7F32"];
+              var c=colors[i]||"#9B72CF";
+              return(
+                <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid "+c+"33",borderRadius:10,padding:"12px 18px",minWidth:80,textAlign:"center"}}>
+                  <div style={{fontSize:20,fontWeight:700,color:c,marginBottom:4}}>{"#"+p.placement}</div>
+                  <div style={{fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.prize}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
+
+      {/* Registration bar */}
+      <Panel style={{padding:"16px 20px",marginBottom:16}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+          <div>
+            <div style={{fontSize:22,fontWeight:700,color:"#F2EDE4"}}>{regCount+" / "+maxP}</div>
+            <div style={{fontSize:11,color:"#BECBD9"}}>{"players registered"+(phase==="check_in"?" · "+checkedInCount+" checked in":"")}</div>
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            <Btn v={regBtnVariant} onClick={regBtnAction} disabled={regBtnDisabled||actionLoading}>{actionLoading?"...":regBtnLabel}</Btn>
+            {canUnregister&&<Btn v="dark" s="sm" onClick={handleUnregister} disabled={actionLoading}>Unregister</Btn>}
+          </div>
+        </div>
+        <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,.06)",marginTop:10}}>
+          <div style={{height:4,borderRadius:2,background:"#9B72CF",width:Math.min(100,Math.round((regCount/maxP)*100))+"%",transition:"width .3s"}}/>
+        </div>
+      </Panel>
+
+      {/* Tabs */}
+      <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"1px solid rgba(242,237,228,.06)",paddingBottom:2}}>
+        {tabs.map(function(t){
+          var active=activeTab===t.id;
+          return(
+            <button key={t.id} onClick={function(){setActiveTab(t.id);}} style={{background:active?"rgba(155,114,207,.15)":"transparent",border:"none",borderBottom:active?"2px solid #9B72CF":"2px solid transparent",padding:"8px 16px",fontSize:13,fontWeight:active?700:500,color:active?"#F2EDE4":"#8896A8",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>{t.label}</button>
+          );
+        })}
+      </div>
+
+      {/* Info tab */}
+      {activeTab==="info"&&(
+        <div style={{display:"flex",flexDirection:"column",gap:14}}>
+          <Panel style={{padding:"18px"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:10}}>Tournament Details</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,fontSize:13}}>
+              <div><span style={{color:"#8896A8"}}>Format: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.seeding_method||"snake"}</span></div>
+              <div><span style={{color:"#8896A8"}}>Games: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.round_count||3}</span></div>
+              <div><span style={{color:"#8896A8"}}>Max Players: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{maxP}</span></div>
+              <div><span style={{color:"#8896A8"}}>Lobby Host: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.lobby_host_method||"random"}</span></div>
+            </div>
+          </Panel>
+          {tournament.announcement&&(
+            <Panel style={{padding:"16px",background:"rgba(232,168,56,.06)",borderColor:"rgba(232,168,56,.2)"}}>
+              <div style={{fontSize:12,fontWeight:700,color:"#E8A838",marginBottom:6}}>Announcement</div>
+              <div style={{fontSize:13,color:"#F2EDE4",lineHeight:1.6}}>{tournament.announcement}</div>
+            </Panel>
+          )}
+        </div>
+      )}
+
+      {/* Players tab */}
+      {activeTab==="players"&&(
+        <Panel style={{padding:"16px"}}>
+          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:12}}>{"Registered Players ("+registrations.length+")"}</div>
+          {sortedRegs.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No registrations yet.</div>}
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            {sortedRegs.map(function(r,idx){
+              var pData=r.players||{};
+              var statusColors={checked_in:"#52C47C",registered:"#9B72CF",waitlisted:"#E8A838",dropped:"#F87171"};
+              var statusIcons={checked_in:"\u2713",registered:"\u25CF",waitlisted:"\u25CB",dropped:"\u2717"};
+              return(
+                <div key={r.id||idx} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid rgba(242,237,228,.04)"}}>
+                  <span style={{color:statusColors[r.status]||"#8896A8",fontSize:14,width:18,textAlign:"center"}}>{statusIcons[r.status]||"?"}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{pData.username||"Player"}</div>
+                    <div style={{fontSize:11,color:"#8896A8"}}>{(pData.rank||"Unranked")+" · "+(pData.region||"")}</div>
+                  </div>
+                  <span style={{fontSize:11,fontWeight:700,color:statusColors[r.status]||"#8896A8",textTransform:"uppercase"}}>{r.status==="checked_in"?"Checked In":r.status}</span>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
+
+      {/* Bracket tab placeholder */}
+      {activeTab==="bracket"&&(
+        <Panel style={{padding:"48px 20px",textAlign:"center"}}>
+          <div style={{fontSize:28,marginBottom:12}}>{"⚔"}</div>
+          <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
+          <div style={{fontSize:13,color:"#9AAABF"}}>Lobby assignments will appear here once the tournament starts.</div>
+        </Panel>
+      )}
+
+      {/* Standings tab placeholder */}
+      {activeTab==="standings"&&(
+        <Panel style={{padding:"48px 20px",textAlign:"center"}}>
+          <div style={{fontSize:28,marginBottom:12}}>{"📊"}</div>
+          <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
+          <div style={{fontSize:13,color:"#9AAABF"}}>Standings will update as games are reported.</div>
+        </Panel>
+      )}
+
+      {/* Admin controls */}
+      {isAdmin&&(
+        <Panel style={{padding:"18px",marginTop:20,borderColor:"rgba(248,113,113,.15)"}}>
+          <div style={{fontWeight:700,fontSize:14,color:"#F87171",marginBottom:14}}>{"Admin Controls"}</div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {phase==="draft"&&<Btn v="purple" s="sm" onClick={adminOpenRegistration}>Open Registration</Btn>}
+            {phase==="registration"&&<Btn v="primary" s="sm" onClick={adminOpenCheckIn}>Open Check-In</Btn>}
+            {phase==="check_in"&&<Btn v="primary" s="sm" onClick={adminCloseCheckIn}>Close Check-In</Btn>}
+            {(phase==="check_in"||phase==="registration")&&<Btn v="success" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
+          </div>
+          <div style={{fontSize:11,color:"#8896A8",marginTop:10}}>
+            {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount}
+          </div>
+        </Panel>
+      )}
+    </div>
+  );
+}
+
+
 // ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
 
 
@@ -16528,6 +17109,10 @@ function TFTClash(){
         {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
+
+        {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
+
+        {screen.indexOf("flash-")===0&&FlashTournamentScreen({tournamentId:parseInt(screen.replace("flash-","")),currentUser:currentUser,onAuthClick:function(m){setAuthScreen(m);},toast:toast,setScreen:navTo,players:players,isAdmin:isAdmin})}
 
         {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
