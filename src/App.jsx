@@ -15430,6 +15430,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   var myLobby=lobbies.find(function(l){return l.player_ids&&l.player_ids.indexOf(myPlayer?myPlayer.id:null)!==-1;});
   var myReport=myPlayer?reports.find(function(r){return r.player_id===myPlayer.id;}):null;
   var openDisputeCount=disputes.filter(function(d){return d.status==='open';}).length;
+  var myDisputes=myPlayer?disputes.filter(function(d){return d.player_id===myPlayer.id;}):[];
   var checkedInCount=registrations.filter(function(r){return r.status==='checked_in';}).length;
   var maxP=tournament?tournament.max_players||128:128;
   var phase=tournament?tournament.phase:"draft";
@@ -16063,6 +16064,27 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                 </div>
               )}
             </Panel>
+          )}
+          {phase==="in_progress"&&myPlayer&&myDisputes.length>0&&(
+            <div style={{padding:"14px 18px",background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",flexDirection:"column",gap:10}}>
+              <div style={{fontWeight:700,fontSize:12,color:"#E8A838",letterSpacing:".05em",textTransform:"uppercase"}}>Your Disputes</div>
+              {myDisputes.map(function(d){
+                var isPending=d.status==="open";
+                var isAccepted=d.status==="resolved_accepted";
+                var statusColor=isPending?"#E8A838":isAccepted?"#52C47C":"#F87171";
+                var statusLabel=isPending?"Pending review":isAccepted?"Accepted - placement updated":"Rejected";
+                return(
+                  <div key={d.id} style={{background:"rgba(0,0,0,.25)",borderRadius:8,padding:"10px 12px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:d.resolution_note?6:0}}>
+                      <div style={{width:8,height:8,borderRadius:"50%",background:statusColor,flexShrink:0}}/>
+                      <div style={{fontSize:12,color:statusColor,fontWeight:600}}>{statusLabel}</div>
+                      {d.claimed_placement&&(<div style={{fontSize:11,color:"#9AAABF",marginLeft:"auto"}}>{"Claimed: "+d.claimed_placement+(d.claimed_placement===1?"st":d.claimed_placement===2?"nd":d.claimed_placement===3?"rd":"th")}</div>)}
+                    </div>
+                    {d.resolution_note&&(<div style={{fontSize:11,color:"#BECBD9",paddingLeft:16}}>{d.resolution_note}</div>)}
+                  </div>
+                );
+              })}
+            </div>
           )}
           {lobbies.length===0&&(
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
