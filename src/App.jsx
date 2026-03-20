@@ -15212,6 +15212,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   var [loading,setLoading]=useState(true);
   var [activeTab,setActiveTab]=useState("info");
   var [actionLoading,setActionLoading]=useState(false);
+  var [reports,setReports]=useState([]);
+  var [myPlacement,setMyPlacement]=useState(0);
+  var [disputeForm,setDisputeForm]=useState({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});
+  var [disputes,setDisputes]=useState([]);
 
   function loadTournament(){
     return supabase.from('tournaments').select('*').eq('id',tournamentId).single().then(function(res){
@@ -15234,9 +15238,30 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     });
   }
 
+  function loadReports(){
+    var gameNum=tournament?(tournament.current_round||1):1;
+    return supabase.from('player_reports').select('*').eq('tournament_id',tournamentId).eq('game_number',gameNum)
+      .then(function(res){
+        if(res.data)setReports(res.data);
+        return res;
+      });
+  }
+
+  function loadDisputes(){
+    return supabase.from('disputes').select('*, players(username)').eq('tournament_id',tournamentId)
+      .then(function(res){
+        if(res.data)setDisputes(res.data);
+        return res;
+      });
+  }
+
   useEffect(function(){
-    Promise.all([loadTournament(),loadRegistrations(),loadLobbies()]).then(function(){setLoading(false);});
+    Promise.all([loadTournament(),loadRegistrations(),loadLobbies(),loadDisputes()]).then(function(){setLoading(false);});
   },[tournamentId]);
+
+  useEffect(function(){
+    if(tournament)loadReports();
+  },[tournament&&tournament.current_round,tournament&&tournament.id]);
 
   // Rank color map
   var rankColors={Iron:"#5A6573",Bronze:"#CD7F32",Silver:"#C0C0C0",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#93B5F7",Master:"#9B72CF",Grandmaster:"#DC2626",Challenger:"#F59E0B"};
@@ -15296,6 +15321,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   var myPlayer=currentUser?players.find(function(p){return p.authUserId===currentUser.id;}):null;
   var myReg=myPlayer?registrations.find(function(r){return r.player_id===myPlayer.id;}):null;
   var regCount=registrations.filter(function(r){return r.status==='registered'||r.status==='checked_in';}).length;
+  var currentGameNumber=tournament?(tournament.current_round||1):1;
+  var myLobby=lobbies.find(function(l){return l.player_ids&&l.player_ids.indexOf(myPlayer?myPlayer.id:null)!==-1;});
+  var myReport=myPlayer?reports.find(function(r){return r.player_id===myPlayer.id;}):null;
+  var openDisputeCount=disputes.filter(function(d){return d.status==='open';}).length;
   var checkedInCount=registrations.filter(function(r){return r.status==='checked_in';}).length;
   var maxP=tournament?tournament.max_players||128:128;
   var phase=tournament?tournament.phase:"draft";
@@ -15414,6 +15443,115 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       if(res.error){toast("Failed: "+res.error.message,"error");return;}
       setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
       toast("Tournament started!","success");
+    });
+  }
+
+  // Submit placement report
+  function submitReport(placement){
+    if(!myPlayer||!myLobby)return;
+    supabase.from('player_reports').upsert({
+      tournament_id:tournamentId,
+      lobby_id:myLobby.id,
+      game_number:currentGameNumber,
+      player_id:myPlayer.id,
+      reported_placement:placement,
+      reported_at:new Date().toISOString()
+    },{onConflict:'lobby_id,game_number,player_id'})
+      .then(function(res){
+        if(res.error){toast("Failed to submit: "+res.error.message,"error");return;}
+        toast("Placement reported!","success");
+        setMyPlacement(0);
+        loadReports();
+      });
+  }
+
+  // Submit dispute
+  function submitDispute(){
+    if(!myPlayer)return;
+    supabase.from('disputes').insert({
+      tournament_id:tournamentId,
+      lobby_id:disputeForm.lobbyId,
+      game_number:currentGameNumber,
+      player_id:myPlayer.id,
+      claimed_placement:disputeForm.claimed,
+      reported_placement:myReport?myReport.reported_placement:null,
+      reason:disputeForm.reason,
+      screenshot_url:disputeForm.screenshotUrl||null,
+      status:'open'
+    }).then(function(res){
+      if(res.error){toast("Dispute failed: "+res.error.message,"error");return;}
+      toast("Dispute submitted","success");
+      setDisputeForm({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});
+      loadDisputes();
+    });
+  }
+
+  // Admin: Lock lobby
+  function lockLobby(lobbyId){
+    var lobbyReports=reports.filter(function(r){return r.lobby_id===lobbyId;});
+    var gameRows=lobbyReports.map(function(r){
+      return{
+        tournament_id:tournamentId,
+        lobby_id:lobbyId,
+        player_id:r.player_id,
+        placement:r.reported_placement,
+        points:PTS[r.reported_placement]||0,
+        round_number:currentGameNumber,
+        game_number:currentGameNumber
+      };
+    });
+    supabase.from('game_results').insert(gameRows).then(function(res){
+      if(res.error){toast("Failed to lock: "+res.error.message,"error");return;}
+      supabase.from('lobbies').update({status:'locked',reports_complete:true}).eq('id',lobbyId).then(function(){
+        toast("Lobby locked!","success");
+        loadLobbies();
+        loadReports();
+      });
+    });
+  }
+
+  // Admin: Override a player's placement
+  function adminOverridePlacement(lobbyId,playerId,placement){
+    supabase.from('player_reports').upsert({
+      tournament_id:tournamentId,
+      lobby_id:lobbyId,
+      game_number:currentGameNumber,
+      player_id:playerId,
+      reported_placement:placement,
+      reported_at:new Date().toISOString()
+    },{onConflict:'lobby_id,game_number,player_id'})
+      .then(function(res){
+        if(res.error){toast("Override failed: "+res.error.message,"error");return;}
+        toast("Placement overridden","success");
+        loadReports();
+      });
+  }
+
+  // Admin: Resolve dispute
+  function resolveDispute(disputeId,accept){
+    var d=disputes.find(function(x){return x.id===disputeId;});
+    if(!d)return;
+    var updates={
+      status:accept?'resolved_accepted':'resolved_rejected',
+      resolved_by:currentUser?currentUser.id:null,
+      resolved_at:new Date().toISOString()
+    };
+    supabase.from('disputes').update(updates).eq('id',disputeId).then(function(res){
+      if(res.error){toast("Failed: "+res.error.message,"error");return;}
+      if(accept&&d.claimed_placement){
+        supabase.from('player_reports').upsert({
+          tournament_id:tournamentId,
+          lobby_id:d.lobby_id,
+          game_number:d.game_number||currentGameNumber,
+          player_id:d.player_id,
+          reported_placement:d.claimed_placement,
+          reported_at:new Date().toISOString()
+        },{onConflict:'lobby_id,game_number,player_id'}).then(function(){
+          loadReports();
+        });
+      }
+      toast("Dispute "+(accept?"accepted":"rejected"),"success");
+      loadDisputes();
     });
   }
 
@@ -15590,6 +15728,84 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {/* Lobbies tab */}
       {activeTab==="bracket"&&(
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          {/* My Lobby — score self-report section */}
+          {phase==="in_progress"&&myPlayer&&myLobby&&(
+            <Panel style={{padding:"18px",borderColor:"rgba(155,114,207,.35)",background:"rgba(155,114,207,.05)"}}>
+              <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:12}}>{"Game "+currentGameNumber+" \u2014 Report Your Placement"}</div>
+              {myReport?(
+                <div>
+                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
+                    <span style={{fontSize:13,color:"#52C47C",fontWeight:600}}>{"\u2713 You reported: "+myReport.reported_placement+(myReport.reported_placement===1?"st":myReport.reported_placement===2?"nd":myReport.reported_placement===3?"rd":"th")+" place"}</span>
+                    <button onClick={function(){setMyPlacement(myReport.reported_placement);}}
+                      style={{background:"none",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"4px 10px",fontSize:11,color:"#9B72CF",cursor:"pointer",fontFamily:"inherit"}}>Update</button>
+                  </div>
+                  {myPlacement>0&&(
+                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
+                      <select value={myPlacement}
+                        onChange={function(e){setMyPlacement(parseInt(e.target.value)||0);}}
+                        style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"7px 10px",fontSize:13,color:"#F2EDE4",fontFamily:"inherit",outline:"none"}}>
+                        {(myLobby.player_ids||[]).map(function(_,i){
+                          return(<option key={i+1} value={i+1}>{i+1+(i===0?"st":i===1?"nd":i===2?"rd":"th")+" place"}</option>);
+                        })}
+                      </select>
+                      <Btn v="primary" s="sm" onClick={function(){submitReport(myPlacement);}}>Submit</Btn>
+                      <Btn v="dark" s="sm" onClick={function(){setMyPlacement(0);}}>Cancel</Btn>
+                    </div>
+                  )}
+                </div>
+              ):(
+                <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10,flexWrap:"wrap"}}>
+                  <select value={myPlacement}
+                    onChange={function(e){setMyPlacement(parseInt(e.target.value)||0);}}
+                    style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"7px 10px",fontSize:13,color:"#F2EDE4",fontFamily:"inherit",outline:"none"}}>
+                    <option value={0}>Select placement...</option>
+                    {(myLobby.player_ids||[]).map(function(_,i){
+                      return(<option key={i+1} value={i+1}>{i+1+(i===0?"st":i===1?"nd":i===2?"rd":"th")+" place"}</option>);
+                    })}
+                  </select>
+                  <Btn v="primary" s="sm" onClick={function(){if(myPlacement>0)submitReport(myPlacement);else toast("Select a placement first","error");}} disabled={myPlacement===0}>Submit</Btn>
+                </div>
+              )}
+              {/* Dispute section */}
+              {myReport&&!disputeForm.open&&(
+                <button onClick={function(){setDisputeForm({open:true,lobbyId:myLobby.id,claimed:myReport.reported_placement,reason:"",screenshotUrl:""}); }}
+                  style={{background:"none",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"5px 12px",fontSize:11,color:"#F87171",cursor:"pointer",fontFamily:"inherit",marginTop:4}}>
+                  {"Dispute this result"}
+                </button>
+              )}
+              {disputeForm.open&&disputeForm.lobbyId===myLobby.id&&(
+                <div style={{marginTop:12,padding:"14px",background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.2)",borderRadius:10}}>
+                  <div style={{fontWeight:700,fontSize:12,color:"#F87171",marginBottom:10}}>Submit Dispute</div>
+                  <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap",alignItems:"center"}}>
+                    <label style={{fontSize:12,color:"#BECBD9",minWidth:80}}>My actual placement:</label>
+                    <select value={disputeForm.claimed}
+                      onChange={function(e){setDisputeForm(Object.assign({},disputeForm,{claimed:parseInt(e.target.value)||0}));}}
+                      style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"6px 10px",fontSize:12,color:"#F2EDE4",fontFamily:"inherit",outline:"none"}}>
+                      <option value={0}>Select...</option>
+                      {(myLobby.player_ids||[]).map(function(_,i){
+                        return(<option key={i+1} value={i+1}>{i+1+(i===0?"st":i===1?"nd":i===2?"rd":"th")}</option>);
+                      })}
+                    </select>
+                  </div>
+                  <textarea placeholder="Reason for dispute..."
+                    value={disputeForm.reason}
+                    onChange={function(e){setDisputeForm(Object.assign({},disputeForm,{reason:e.target.value}));}}
+                    rows={2}
+                    style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(248,113,113,.2)",borderRadius:6,padding:"8px 10px",fontSize:12,color:"#F2EDE4",fontFamily:"inherit",outline:"none",resize:"vertical",boxSizing:"border-box",marginBottom:8}}
+                  />
+                  <input placeholder="Screenshot URL (optional)"
+                    value={disputeForm.screenshotUrl}
+                    onChange={function(e){setDisputeForm(Object.assign({},disputeForm,{screenshotUrl:e.target.value}));}}
+                    style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(248,113,113,.2)",borderRadius:6,padding:"7px 10px",fontSize:12,color:"#F2EDE4",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10}}
+                  />
+                  <div style={{display:"flex",gap:8}}>
+                    <Btn v="danger" s="sm" onClick={submitDispute} disabled={!disputeForm.claimed||!disputeForm.reason}>Submit Dispute</Btn>
+                    <Btn v="dark" s="sm" onClick={function(){setDisputeForm({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});}}>Cancel</Btn>
+                  </div>
+                </div>
+              )}
+            </Panel>
+          )}
           {lobbies.length===0&&(
             <Panel style={{padding:"48px 20px",textAlign:"center"}}>
               <div style={{fontSize:28,marginBottom:12}}>{"⚔"}</div>
@@ -15606,6 +15822,16 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
             var isLocked=lobby.status==="locked"||lobby.status==="completed";
             var codeKey=lobby.id;
             var codeInput=lobbyCodeInputs[codeKey]||"";
+            // Admin monitor vars
+            var lobbyReports=reports.filter(function(r){return r.lobby_id===lobby.id;});
+            var reportedCount=lobbyReports.length;
+            var totalCount=(lobby.player_ids||[]).length;
+            var allReported=reportedCount===totalCount&&totalCount>0;
+            var placementCounts={};
+            lobbyReports.forEach(function(r){placementCounts[r.reported_placement]=(placementCounts[r.reported_placement]||0)+1;});
+            var hasDuplicate=Object.keys(placementCounts).some(function(k){return placementCounts[k]>1;});
+            var lobbyDisputes=disputes.filter(function(d){return d.lobby_id===lobby.id&&d.status==='open';});
+            var canLock=allReported&&!hasDuplicate&&!isLocked;
             return(
               <Panel key={lobby.id} style={{padding:"16px 18px",borderColor:isMyLobby?"rgba(155,114,207,.4)":"rgba(242,237,228,.08)",boxShadow:isMyLobby?"0 0 0 1px rgba(155,114,207,.2)":"none"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8,flexWrap:"wrap"}}>
@@ -15618,25 +15844,71 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                       <div style={{fontSize:11,color:"#8896A8"}}>{lobbyPlayers.length+" players"+(isLocked?" · Locked":"")}</div>
                     </div>
                   </div>
-                  {lobby.lobby_code&&(
-                    <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px",fontFamily:"monospace",fontSize:15,fontWeight:700,color:"#E8A838",letterSpacing:2}}>
-                      {lobby.lobby_code}
-                    </div>
-                  )}
-                </div>
-                <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:iAmHost&&!lobby.lobby_code?12:0}}>
-                  {lobbyPlayers.map(function(p,pi){
-                    var isHost=p.id===hostId;
-                    var rc=rankColors[p.rank||"Iron"]||"#8896A8";
-                    return(
-                      <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
-                        <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
-                        <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.username||"Unknown"}</span>
-                        {isHost&&<span style={{fontSize:12,color:"#E8A838",fontWeight:700}} title="Lobby Host">{"\uD83D\uDC51 Host"}</span>}
+                  <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                    {isAdmin&&phase==="in_progress"&&(
+                      <span style={{fontSize:11,fontWeight:700,color:allReported?"#52C47C":"#E8A838",background:allReported?"rgba(82,196,124,.1)":"rgba(232,168,56,.1)",border:"1px solid "+(allReported?"rgba(82,196,124,.3)":"rgba(232,168,56,.3)"),borderRadius:6,padding:"3px 8px"}}>{reportedCount+"/"+totalCount+" reported"}</span>
+                    )}
+                    {isAdmin&&lobbyDisputes.length>0&&(
+                      <span style={{fontSize:11,fontWeight:700,color:"#F97316",background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.3)",borderRadius:6,padding:"3px 8px"}}>{lobbyDisputes.length+" dispute"+(lobbyDisputes.length===1?"":"s")}</span>
+                    )}
+                    {lobby.lobby_code&&(
+                      <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px",fontFamily:"monospace",fontSize:15,fontWeight:700,color:"#E8A838",letterSpacing:2}}>
+                        {lobby.lobby_code}
                       </div>
-                    );
-                  })}
+                    )}
+                  </div>
                 </div>
+                {/* Admin: per-player report rows */}
+                {isAdmin&&phase==="in_progress"?(
+                  <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+                    {lobbyPlayers.map(function(p,pi){
+                      var isHost=p.id===hostId;
+                      var rc=rankColors[p.rank||"Iron"]||"#8896A8";
+                      var playerReport=lobbyReports.find(function(r){return r.player_id===p.id;});
+                      var isDupe=playerReport&&placementCounts[playerReport.reported_placement]>1;
+                      return(
+                        <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isDupe?"rgba(248,113,113,.3)":isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
+                          <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
+                          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.username||"Unknown"}</span>
+                          {playerReport?(
+                            <span style={{fontSize:12,fontWeight:700,color:isDupe?"#F87171":"#52C47C",background:isDupe?"rgba(248,113,113,.1)":"rgba(82,196,124,.1)",borderRadius:4,padding:"2px 8px"}}>{playerReport.reported_placement+(playerReport.reported_placement===1?"st":playerReport.reported_placement===2?"nd":playerReport.reported_placement===3?"rd":"th")}</span>
+                          ):(
+                            <span style={{fontSize:11,color:"#E8A838",fontWeight:600}}>Not reported</span>
+                          )}
+                          <select defaultValue=""
+                            onChange={function(e){var v=parseInt(e.target.value)||0;if(v>0)adminOverridePlacement(lobby.id,p.id,v);e.target.value="";}}
+                            style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:4,padding:"3px 6px",fontSize:11,color:"#C4B5FD",fontFamily:"inherit",outline:"none",cursor:"pointer"}}>
+                            <option value="">Override</option>
+                            {(lobby.player_ids||[]).map(function(_,i){return(<option key={i+1} value={i+1}>{i+1}</option>);})}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ):(
+                  <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:iAmHost&&!lobby.lobby_code?12:0}}>
+                    {lobbyPlayers.map(function(p,pi){
+                      var isHost=p.id===hostId;
+                      var rc=rankColors[p.rank||"Iron"]||"#8896A8";
+                      var playerReport=reports.find(function(r){return r.player_id===p.id&&r.lobby_id===lobby.id;});
+                      return(
+                        <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
+                          <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
+                          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.username||"Unknown"}</span>
+                          {playerReport&&<span style={{fontSize:12,fontWeight:700,color:"#52C47C"}}>{playerReport.reported_placement+(playerReport.reported_placement===1?"st":playerReport.reported_placement===2?"nd":playerReport.reported_placement===3?"rd":"th")}</span>}
+                          {isHost&&<span style={{fontSize:12,color:"#E8A838",fontWeight:700}} title="Lobby Host">{"\uD83D\uDC51 Host"}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* Admin: Lock lobby button */}
+                {isAdmin&&phase==="in_progress"&&!isLocked&&(
+                  <div style={{display:"flex",gap:8,alignItems:"center",paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",flexWrap:"wrap"}}>
+                    {hasDuplicate&&<span style={{fontSize:11,color:"#F87171"}}>{"Duplicate placements — resolve before locking"}</span>}
+                    <Btn v="success" s="sm" onClick={function(){lockLobby(lobby.id);}} disabled={!canLock}>{isLocked?"Locked":canLock?"Lock Lobby":"Cannot Lock Yet"}</Btn>
+                  </div>
+                )}
                 {iAmHost&&!lobby.lobby_code&&(
                   <div style={{display:"flex",gap:8,alignItems:"center",marginTop:8,paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)"}}>
                     <input
@@ -15660,6 +15932,52 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           <div style={{fontSize:28,marginBottom:12}}>{"📊"}</div>
           <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
           <div style={{fontSize:13,color:"#9AAABF"}}>Standings will update as games are reported.</div>
+        </Panel>
+      )}
+
+      {/* Admin: Disputes panel */}
+      {isAdmin&&disputes.length>0&&(
+        <Panel style={{padding:"18px",marginTop:16,borderColor:"rgba(249,115,22,.2)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+            <div style={{fontWeight:700,fontSize:14,color:"#F97316"}}>{"Disputes"}</div>
+            {openDisputeCount>0&&(
+              <span style={{fontSize:11,fontWeight:700,color:"#F97316",background:"rgba(249,115,22,.15)",borderRadius:20,padding:"2px 9px",border:"1px solid rgba(249,115,22,.3)"}}>{openDisputeCount+" open"}</span>
+            )}
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {disputes.map(function(d){
+              var lobbyIdx=lobbies.findIndex(function(l){return l.id===d.lobby_id;});
+              var lobbyLabel=lobbyIdx>=0?"Lobby "+String.fromCharCode(65+lobbyIdx):"Unknown lobby";
+              var pData=d.players||{};
+              var isOpen=d.status==='open';
+              return(
+                <div key={d.id} style={{background:isOpen?"rgba(249,115,22,.05)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(249,115,22,.25)":"rgba(242,237,228,.06)"),borderRadius:8,padding:"12px 14px"}}>
+                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
+                        <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{pData.username||"Player"}</span>
+                        <span style={{fontSize:11,color:"#9B72CF"}}>{lobbyLabel}</span>
+                        <span style={{fontSize:11,fontWeight:600,color:isOpen?"#F97316":"#52C47C",background:isOpen?"rgba(249,115,22,.1)":"rgba(82,196,124,.1)",borderRadius:4,padding:"1px 6px"}}>{d.status==='open'?"Open":d.status==='resolved_accepted'?"Accepted":"Rejected"}</span>
+                      </div>
+                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:4}}>
+                        {"Claimed: "+(d.claimed_placement||"?")+(d.claimed_placement===1?"st":d.claimed_placement===2?"nd":d.claimed_placement===3?"rd":"th")+" · Reported: "+(d.reported_placement||"?")+(d.reported_placement===1?"st":d.reported_placement===2?"nd":d.reported_placement===3?"rd":"th")}
+                      </div>
+                      {d.reason&&<div style={{fontSize:12,color:"#9AAABF",fontStyle:"italic",marginBottom:4}}>{d.reason}</div>}
+                      {d.screenshot_url&&(
+                        <a href={d.screenshot_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#4ECDC4"}}>{"View screenshot"}</a>
+                      )}
+                    </div>
+                    {isOpen&&(
+                      <div style={{display:"flex",gap:6,flexShrink:0}}>
+                        <Btn v="success" s="sm" onClick={function(){resolveDispute(d.id,true);}}>Accept</Btn>
+                        <Btn v="danger" s="sm" onClick={function(){resolveDispute(d.id,false);}}>Reject</Btn>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </Panel>
       )}
 
