@@ -3721,7 +3721,7 @@ function StandingsScreen(props){
     {id:"hof",label:"Hall of Fame",icon:"ti-crown"},
     {id:"roster",label:"Player Directory",icon:"ti-users"},
   ];
-  return React.createElement("div",{className:"page"},
+  return React.createElement("div",{className:"page fade-up"},
     React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
       React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#F2EDE4",marginBottom:4,letterSpacing:".01em"}},"Standings"),
       React.createElement("p",{style:{fontSize:13,color:"#9AAABF",maxWidth:400,margin:"0 auto"}},"Season rankings, legends, and the full player roster")
@@ -3731,6 +3731,7 @@ function StandingsScreen(props){
         var active=tab===t.id;
         return React.createElement("button",{
           key:t.id,
+          className:"tab-btn",
           onClick:function(){props.setScreen("standings"+(t.id?"/"+t.id:""));},
           style:{
             display:"flex",alignItems:"center",gap:6,
@@ -3779,12 +3780,13 @@ function ProfileScreen(props){
       )
     );
   }
-  return React.createElement("div",{className:"page",style:{paddingTop:20}},
+  return React.createElement("div",{className:"page fade-up",style:{paddingTop:20}},
     React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
           key:t.id,
+          className:"tab-btn",
           onClick:function(){props.setScreen("profile"+(t.id?"/"+t.id:""));},
           style:{
             display:"flex",alignItems:"center",gap:6,
@@ -3942,7 +3944,7 @@ function ClashScreen(props){
   var recapData=phase==="complete"?generateRecap(props.tournamentState):null;
   var recapEl=recapData?React.createElement(ClashRecap,{recap:recapData,toast:props.toast}):null;
 
-  return React.createElement("div",{className:"page"},
+  return React.createElement("div",{className:"page fade-up"},
     React.createElement("div",{style:{
       position:"relative",overflow:"hidden",
       padding:"16px 20px",margin:"0 16px 20px",
@@ -3954,10 +3956,16 @@ function ClashScreen(props){
         position:"absolute",top:0,left:0,right:0,height:3,
         background:"linear-gradient(90deg,transparent,"+accentColor+",transparent)",
       }}),
+      phase==="live"?React.createElement("div",{style:{
+        position:"absolute",top:"-50%",left:"30%",width:"40%",height:"200%",
+        background:"radial-gradient(ellipse,rgba(232,168,56,.06) 0%,transparent 70%)",
+        pointerEvents:"none",
+      }}):null,
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
         React.createElement("div",{style:{
           width:8,height:8,borderRadius:"50%",background:accentColor,
           boxShadow:phase==="live"?"0 0 12px "+accentColor+", 0 0 24px "+accentColor:"none",
+          animation:phase==="live"?"live-dot 1.5s ease infinite":"none",
         }}),
         React.createElement("span",{style:{
           fontSize:11,textTransform:"uppercase",letterSpacing:".1em",
@@ -4002,12 +4010,13 @@ function EventsScreen(props){
     {id:"tournaments",label:"Tournaments",icon:"ti-tournament"},
     {id:"featured",label:"Featured",icon:"ti-star"},
   ];
-  return React.createElement("div",{className:"page",style:{paddingTop:20}},
+  return React.createElement("div",{className:"page fade-up",style:{paddingTop:20}},
     React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
           key:t.id,
+          className:"tab-btn",
           onClick:function(){props.setScreen("events"+(t.id?"/"+t.id:""));},
           style:{
             display:"flex",alignItems:"center",gap:6,
@@ -18584,6 +18593,15 @@ function TFTClash(){
         .ticker-scroll{display:flex;width:max-content;animation:ticker-scroll 32s linear infinite;will-change:transform;}
 
         .ticker-scroll:hover{animation-play-state:paused;}
+
+        @keyframes fade-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slide-in{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes pulse-glow{0%,100%{box-shadow:0 0 12px rgba(232,168,56,.3),0 0 24px rgba(232,168,56,.1)}50%{box-shadow:0 0 20px rgba(232,168,56,.5),0 0 40px rgba(232,168,56,.2)}}
+        @keyframes live-dot{0%,100%{opacity:1}50%{opacity:.4}}
+        .fade-up{animation:fade-up .4s ease both;}
+        .slide-in{animation:slide-in .35s ease both;}
+        .tab-btn{transition:all .2s ease;}
+        .tab-btn:hover{color:#F2EDE4 !important;background:rgba(155,114,207,.08) !important;border-color:rgba(155,114,207,.25) !important;}
 
       `}</style>
 
