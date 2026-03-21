@@ -2795,19 +2795,12 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   // Primary mobile tabs (5 max)
 
   const PRIMARY=[
-
-    {id:"home",icon:"house-fill",label:"Home"},
-
-    {id:"roster",icon:"people-fill",label:"Roster"},
-
-    {id:"bracket",icon:"diagram-3-fill",label:"Bracket"},
-
-    {id:"leaderboard",icon:"bar-chart-line-fill",label:"Board"},
-
-    {id:"results",icon:"clipboard-check-fill",label:"Results"},
-
-    {id:"more",icon:"three-dots",label:"More"},
-
+    {id:"home",icon:"home",label:"Home"},
+    {id:"clash",icon:"swords",label:"Clash"},
+    {id:"standings",icon:"chart-bar",label:"Standings"},
+    {id:"my-profile",icon:"user",label:"Profile"},
+    {id:"events",icon:"calendar-event",label:"Events"},
+    {id:"more",icon:"dots",label:"More"},
   ];
 
 
@@ -3064,7 +3057,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
             {currentUser?(
 
-              <button onClick={()=>setScreen("account")} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:20,padding:"5px 12px",cursor:"pointer",transition:"all .15s"}}
+              <button onClick={()=>setScreen("my-profile")} style={{display:"flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:20,padding:"5px 12px",cursor:"pointer",transition:"all .15s"}}
 
                 onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.6)"}
 
@@ -3759,267 +3752,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
 // ─── ROSTER SCREEN ────────────────────────────────────────────────────────────
 
-function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
-
-  const [search,setSearch]=useState("");
-
-  const [regionFilter,setRegionFilter]=useState("All");
-
-  const [rankFilter,setRankFilter]=useState("All");
-
-  const [sortBy,setSortBy]=useState("pts");
-
-
-  const regions=["All",...[...new Set(players.map(p=>p.region))].sort()];
-
-  const rankGroups=["All","Challenger","Grandmaster","Master","Diamond","Emerald"];
-
-
-  const filtered=players.filter(function(p){return(p.games||0)>0||p.checkedIn;})
-
-    .filter(p=>{
-
-      if(search&&!p.name.toLowerCase().includes(search.toLowerCase())&&!p.riotId.toLowerCase().includes(search.toLowerCase()))return false;
-
-      if(regionFilter!=="All"&&p.region!==regionFilter)return false;
-
-      if(rankFilter!=="All"&&p.rank!==rankFilter)return false;
-
-      return true;
-
-    })
-
-    .sort((a,b)=>sortBy==="pts"?b.pts-a.pts:sortBy==="name"?a.name.localeCompare(b.name):sortBy==="wins"?b.wins-a.wins:b.avg-a.avg);
-
-
-  const checkedIn=filtered.filter(p=>p.checkedIn);
-
-  const notChecked=filtered.filter(p=>!p.checkedIn);
-
-
-  const isHomie=(p)=>HOMIES_IDS.includes(p.id);
-
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>Player Roster</h2>
-
-        <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-
-          <span style={{fontSize:13,color:"#BECBD9"}}>{players.length} registered</span>
-
-          <span style={{fontSize:13,color:"#6EE7B7",fontWeight:600}}>{players.filter(p=>p.checkedIn).length} checked in</span>
-
-        </div>
-
-      </div>
-
-
-      {/* Search + Filters */}
-
-      <Panel style={{padding:"16px",marginBottom:16}}>
-
-        <div style={{display:"grid",gridTemplateColumns:"1fr auto auto auto",gap:10,alignItems:"center"}}>
-
-          <Inp value={search} onChange={setSearch} placeholder="Search by name or Riot ID…"/>
-
-          <Sel value={regionFilter} onChange={setRegionFilter}>
-
-            {regions.map(r=><option key={r} value={r}>{r==="All"?"All Regions":r}</option>)}
-
-          </Sel>
-
-          <Sel value={rankFilter} onChange={setRankFilter}>
-
-            {rankGroups.map(r=><option key={r} value={r}>{r==="All"?"All Ranks":r}</option>)}
-
-          </Sel>
-
-          <Sel value={sortBy} onChange={setSortBy}>
-
-            <option value="pts">Sort: Points</option>
-
-            <option value="wins">Sort: Wins</option>
-
-            <option value="name">Sort: Name</option>
-
-          </Sel>
-
-        </div>
-
-        {search&&<div style={{marginTop:10,fontSize:12,color:"#BECBD9"}}>{filtered.length} result{filtered.length!==1?"s":""} for "{search}"</div>}
-
-      </Panel>
-
-
-      {/* Checked In section */}
-
-      {checkedIn.length>0&&(
-
-        <div style={{marginBottom:20}}>
-
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-
-            <div style={{width:8,height:8,borderRadius:"50%",background:"#6EE7B7"}}/>
-
-            <span style={{fontSize:12,fontWeight:700,color:"#6EE7B7",letterSpacing:".08em",textTransform:"uppercase"}}>Checked In</span>
-
-            <span style={{fontSize:12,color:"#9AAABF"}}>({checkedIn.length})</span>
-
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:8}}>
-
-            {checkedIn.map((p,i)=>{
-
-              const rank=players.filter(pl=>pl.checkedIn).sort((a,b)=>b.pts-a.pts).indexOf(p)+1;
-
-              const homie=isHomie(p);
-
-              return(
-
-                <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
-
-                  style={{background:homie?"rgba(155,114,207,.06)":"#111827",
-
-                    border:"1px solid "+(homie?"rgba(155,114,207,.25)":"rgba(82,196,124,.2)"),
-
-                    borderRadius:10,padding:"12px 14px",cursor:"pointer",
-
-                    display:"flex",alignItems:"center",gap:12,transition:"border-color .15s"}}
-
-                  onMouseEnter={e=>e.currentTarget.style.borderColor=homie?"rgba(155,114,207,.5)":"rgba(82,196,124,.45)"}
-
-                  onMouseLeave={e=>e.currentTarget.style.borderColor=homie?"rgba(155,114,207,.25)":"rgba(82,196,124,.2)"}>
-
-                  <div style={{position:"relative",flexShrink:0}}>
-
-                    {homie&&<div style={{position:"absolute",top:-4,right:-4,fontSize:12}}>{React.createElement("i",{className:"ti ti-heart",style:{color:"#9B72CF"}})}</div>}
-
-                  </div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-
-                      <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
-
-                      {isHotStreak(p)&&<span style={{fontSize:12}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
-
-                    </div>
-
-                    <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-
-                      <ClashRankBadge rank={p.rank}/>
-
-                      <Tag color="#4ECDC4" size="sm">{p.region}</Tag>
-
-                    </div>
-
-                  </div>
-
-                  <div style={{textAlign:"right",flexShrink:0}}>
-
-                    <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
-
-                    <div style={{fontSize:10,color:"#BECBD9"}}>pts · #{rank}</div>
-
-                  </div>
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* Not checked in */}
-
-      {notChecked.length>0&&(
-
-        <div>
-
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-
-            <div style={{width:8,height:8,borderRadius:"50%",background:"#9AAABF"}}/>
-
-            <span style={{fontSize:12,fontWeight:700,color:"#9AAABF",letterSpacing:".08em",textTransform:"uppercase"}}>Not Yet Checked In</span>
-
-            <span style={{fontSize:12,color:"#9AAABF"}}>({notChecked.length})</span>
-
-          </div>
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:8}}>
-
-            {notChecked.map(p=>(
-
-              <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
-
-                style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"12px 14px",cursor:"pointer",display:"flex",alignItems:"center",gap:12,opacity:.7,transition:"opacity .15s"}}
-
-                onMouseEnter={e=>e.currentTarget.style.opacity="1"}
-
-                onMouseLeave={e=>e.currentTarget.style.opacity=".7"}>
-
-                <div style={{flex:1,minWidth:0}}>
-
-                  <div style={{fontWeight:700,fontSize:14,color:"#C8D4E0",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-
-                  <div style={{display:"flex",gap:6}}>
-
-                    <ClashRankBadge rank={p.rank}/>
-
-                    <Tag color="#4ECDC4" size="sm">{p.region}</Tag>
-
-                  </div>
-
-                </div>
-
-                <div className="mono" style={{fontSize:14,color:"#9AAABF"}}>{p.pts}pts</div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {filtered.length===0&&(
-
-        <div style={{textAlign:"center",padding:"60px 20px"}}>
-
-          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"ti ti-search"})}</div>
-
-          <div style={{color:"#BECBD9",fontSize:15}}>No players match your search.</div>
-
-          <div style={{color:"#9AAABF",fontSize:13,marginTop:6}}>Try a different name or clear the filters.</div>
-
-        </div>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
 
 function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
@@ -4495,833 +4227,6 @@ function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePla
 
 // ─── BRACKET SCREEN ───────────────────────────────────────────────────────────
 
-function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig}){
-
-  const checkedIn=useMemo(function(){return players.filter(p=>p.checkedIn);},[players]);
-
-  const lobbySize=8;
-
-  const round=tournamentState?tournamentState.round:1;
-
-  const lockedLobbies=tournamentState?tournamentState.lockedLobbies:[];
-
-  const currentClashId=tournamentState&&tournamentState.clashId?tournamentState.clashId:("c"+Date.now());
-
-  const [mySearch,setMySearch]=useState(currentUser?currentUser.username:"");
-
-  const [highlightLobby,setHighlightLobby]=useState(null);
-
-  // Per-lobby placement entry UI state: lobbyIdx -> {open:bool, placements:{playerId->place}}
-
-  const [placementEntry,setPlacementEntry]=useState({});
-
-  const [playerSubmissions,setPlayerSubmissions]=useState({});
-  // Shape: { lobbyIndex: { playerId: { placement: number, name: string, confirmed: boolean } } }
-
-  const [showFinalizeConfirm,setShowFinalizeConfirm]=useState(false);
-
-  const [autoAdvanceCountdown,setAutoAdvanceCountdown]=useState(null);
-  const autoAdvanceRef=useRef(null);
-
-
-  function computeLobbies(){
-
-    var algo=(tournamentState&&tournamentState.seedAlgo)||"rank-based";
-
-    var pool;
-
-    if(round===1){
-
-      if(algo==="random"){
-
-        pool=[...checkedIn].sort(()=>Math.random()-0.5);
-
-      } else if(algo==="snake"){
-
-        var sorted=[...checkedIn].sort((a,b)=>b.lp-a.lp);
-
-        pool=[];
-
-        sorted.forEach(function(p,i){if(Math.floor(i/lobbySize)%2===0)pool.push(p);else pool.unshift(p);});
-
-      } else if(algo==="anti-stack"){
-
-        var ranked=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
-
-        var lobbyCount=Math.ceil(ranked.length/lobbySize);
-
-        var buckets=Array.from({length:lobbyCount},function(){return[];});
-
-        ranked.forEach(function(p,i){
-
-          var row=Math.floor(i/lobbyCount);
-
-          var col=row%2===0?i%lobbyCount:(lobbyCount-1-(i%lobbyCount));
-
-          buckets[col].push(p);
-
-        });
-
-        pool=[].concat.apply([],buckets);
-
-      } else {
-
-        pool=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
-
-      }
-
-    } else {
-
-      // Swiss reseeding for round 2+: snake by current tournament pts for balanced lobbies
-      var byPts=[...checkedIn].sort((a,b)=>b.pts-a.pts||b.lp-a.lp);
-      var lCount=Math.ceil(byPts.length/lobbySize);
-      if(lCount<=1){
-        pool=byPts;
-      } else {
-        var swissBuckets=Array.from({length:lCount},function(){return[];});
-        byPts.forEach(function(p,i){
-          var row=Math.floor(i/lCount);
-          var col=row%2===0?i%lCount:(lCount-1-(i%lCount));
-          swissBuckets[col].push(p);
-        });
-        pool=[].concat.apply([],swissBuckets);
-      }
-
-    }
-
-    var result=[];
-
-    for(var i=0;i<pool.length;i+=lobbySize)result.push(pool.slice(i,i+lobbySize));
-
-    return result;
-
-  }
-
-  // Use persisted lobby IDs if available, otherwise compute fresh
-  var lobbies=useMemo(function(){
-    var saved=tournamentState&&tournamentState.savedLobbies;
-    if(saved&&saved.length>0&&saved[0]&&saved[0].length>0){
-      return saved.map(function(lobbyIds){
-        return lobbyIds.map(function(id){return checkedIn.find(function(p){return p.id===id;})||null;}).filter(Boolean);
-      }).filter(function(l){return l.length>0;});
-    }
-    return computeLobbies();
-  },[tournamentState&&tournamentState.savedLobbies,checkedIn,round]);
-
-  // Auto-persist lobby assignments so page refresh keeps them + sync to DB
-  useEffect(function(){
-    if(lobbies.length===0)return;
-    var saved=tournamentState&&tournamentState.savedLobbies;
-    var lobbyIds=lobbies.map(function(l){return l.map(function(p){return p.id;});});
-    // Only save if different from what's stored
-    if(saved&&JSON.stringify(saved)===JSON.stringify(lobbyIds))return;
-    setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:lobbyIds});});
-    // Persist lobbies to DB
-    if(supabase.from&&tournamentState.dbTournamentId){
-      lobbyIds.forEach(function(playerIds,idx){
-        supabase.from('lobbies').upsert({
-          tournament_id:tournamentState.dbTournamentId,
-          lobby_number:idx+1,
-          round_number:round,
-          player_ids:playerIds,
-          status:'pending'
-        },{onConflict:'tournament_id,lobby_number,round_number'})
-        .then(function(res){if(res.error)console.error("[TFT] Failed to persist lobby "+(idx+1)+":",res.error);});
-      });
-    }
-  },[lobbies]);
-
-  function findMyLobby(){
-
-    const q=mySearch.trim().toLowerCase();
-
-    if(!q)return;
-
-    const li=lobbies.findIndex(lobby=>lobby.some(p=>p.name.toLowerCase().includes(q)||p.riotId?.toLowerCase().includes(q)));
-
-    if(li>=0){setHighlightLobby(li);toast("Found in Lobby "+(li+1)+"!","success");}
-
-    else toast("Not found in active lobbies","error");
-
-  }
-
-
-  function openPlacementEntry(li){
-
-    var lobby=lobbies[li];
-
-    var init={};
-
-    var subs=(playerSubmissions||{})[li]||{};
-
-    lobby.forEach(function(p,i){
-      if(subs[p.id]&&subs[p.id].placement){
-        init[p.id]=String(subs[p.id].placement);
-      } else {
-        init[p.id]=String(i+1);
-      }
-    });
-
-    setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:{open:true,placements:init}});});
-
-  }
-
-
-  function setPlace(li,pid,val){
-
-    setPlacementEntry(pe=>({...pe,[li]:{...pe[li],placements:{...pe[li].placements,[pid]:val}}}));
-
-  }
-
-
-  function placementValid(li){
-
-    const lobby=lobbies[li];
-
-    if(!placementEntry[li])return false;
-
-    const vals=lobby.map(p=>parseInt(placementEntry[li].placements[p.id]||"0"));
-
-    const valid=vals.every(v=>v>=1&&v<=8);
-
-    const unique=new Set(vals).size===vals.length;
-
-    return valid&&unique;
-
-  }
-
-
-  function applyGameResults(li){
-
-    const lobby=lobbies[li];
-
-    if(!placementEntry[li])return;
-
-    const placements={};
-
-    lobby.forEach(p=>{placements[p.id]=parseInt(placementEntry[li].placements[p.id]||"0");});
-
-    var allClashIds=PAST_CLASHES.map(function(c){return "c"+c.id;});
-
-    setPlayers(prev=>prev.map(p=>{
-
-      const place=placements[p.id];
-
-      if(place===undefined)return p;
-
-      const earned=PTS[place]||0;
-
-      var bonuses=computeSeasonBonuses(p,currentClashId,allClashIds,seasonConfig);
-
-      var totalEarned=earned+(bonuses.bonusPts||0);
-
-      const newGames=(p.games||0)+1;
-
-      const newWins=(p.wins||0)+(place===1?1:0);
-
-      const newTop4=(p.top4||0)+(place<=4?1:0);
-
-      const newPts=(p.pts||0)+totalEarned;
-
-      const newAvg=(((parseFloat(p.avg)||0)*(p.games||0)+place)/newGames).toFixed(2);
-
-      const newHistory=[...(p.clashHistory||[]),{round,place,pts:earned,clashId:currentClashId,bonusPts:bonuses.bonusPts||0,comebackTriggered:bonuses.comebackTriggered,attendanceMilestone:bonuses.attendanceMilestone}];
-
-      const newSparkline=[...(p.sparkline||[p.pts]),newPts];
-
-      const newStreak=place<=4?(p.currentStreak||0)+1:0;
-
-      const bestStreak=Math.max(p.bestStreak||0,newStreak);
-
-      const newAttendanceStreak=getAttendanceStreak(p,allClashIds.concat([currentClashId]));
-
-      return {...p,pts:newPts,wins:newWins,top4:newTop4,games:newGames,avg:newAvg,
-
-        clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak,bestStreak,
-
-        lastClashId:currentClashId,attendanceStreak:newAttendanceStreak};
-
-    }));
-
-    setTournamentState(ts=>({...ts,lockedLobbies:[...(ts.lockedLobbies||[]),li],lockedPlacements:{...(ts.lockedPlacements||{}),[li]:placements}}));
-
-    setPlacementEntry(pe=>({...pe,[li]:{...pe[li],open:false}}));
-
-    // Update lobby status to locked in DB
-    if(supabase.from&&tournamentState.dbTournamentId){
-      supabase.from('lobbies').update({status:'locked'})
-        .eq('tournament_id',tournamentState.dbTournamentId)
-        .eq('lobby_number',li+1)
-        .eq('round_number',round)
-        .then(function(res){if(res.error)console.error("[TFT] Failed to lock lobby in DB:",res.error);});
-    }
-
-    // Persist per-game results to game_results table
-    if(supabase.from&&tournamentState.dbTournamentId){
-      var dbTid=tournamentState.dbTournamentId;
-      var gameRows=[];
-      lobby.forEach(function(p){
-        var place=parseInt(placementEntry[li].placements[p.id]||"0");
-        if(place>0)gameRows.push({tournament_id:dbTid,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false,game_number:round});
-      });
-      if(gameRows.length>0){
-        supabase.from('game_results').insert(gameRows).then(function(res){
-          if(res.error){console.error("[TFT] Failed to save game results:",res.error);toast("Failed to save game results","error");}
-        });
-      }
-    }
-
-    toast("Lobby "+(li+1)+" results applied!","success");
-
-  }
-
-  function submitMyPlacement(li,playerId,playerName,placement){
-    var p=parseInt(placement);
-    if(p<1||p>8){toast("Invalid placement","error");return;}
-    setPlayerSubmissions(function(ps){
-      var lobbySubmissions=Object.assign({},ps[li]||{});
-      lobbySubmissions[playerId]={placement:p,name:playerName,confirmed:false};
-      return Object.assign({},ps,{[li]:lobbySubmissions});
-    });
-    toast("Placement submitted  -  waiting for admin confirmation","success");
-  }
-
-
-  function unlockLobby(li){
-    if(!window.confirm("Unlock Lobby "+(li+1)+"? This will revert all results for this lobby in the current round."))return;
-    var savedPlacements=(tournamentState.lockedPlacements||{})[li];
-    if(savedPlacements){
-      setPlayers(function(prev){return prev.map(function(p){
-        var place=savedPlacements[p.id];
-        if(place===undefined)return p;
-        var earned=PTS[place]||0;
-        var newGames=Math.max((p.games||1)-1,0);
-        var newWins=Math.max((p.wins||0)-(place===1?1:0),0);
-        var newTop4=Math.max((p.top4||0)-(place<=4?1:0),0);
-        var newPts=Math.max((p.pts||0)-earned,0);
-        var newAvg=newGames>0?(((parseFloat(p.avg)||0)*(p.games||1)-place)/newGames).toFixed(2):"0.00";
-        var newHistory=(p.clashHistory||[]).filter(function(h){return !(h.round===round&&h.clashId===currentClashId);});
-        var newSparkline=(p.sparkline||[]).slice(0,-1);
-        var newStreak=place<=4?Math.max((p.currentStreak||0)-1,0):p.currentStreak;
-        return Object.assign({},p,{pts:newPts,wins:newWins,top4:newTop4,games:newGames,avg:newAvg,
-          clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak});
-      });});
-    }
-    setTournamentState(function(ts){
-      var newLocked=(ts.lockedLobbies||[]).filter(function(i){return i!==li;});
-      var newSavedPlacements=Object.assign({},ts.lockedPlacements||{});
-      delete newSavedPlacements[li];
-      return Object.assign({},ts,{lockedLobbies:newLocked,lockedPlacements:newSavedPlacements});
-    });
-    if(supabase.from&&tournamentState.dbTournamentId){
-      supabase.from('game_results').delete()
-        .eq('tournament_id',tournamentState.dbTournamentId)
-        .eq('round_number',round)
-        .then(function(res){if(res.error)console.error("[TFT] Failed to delete game results:",res.error);});
-      supabase.from('lobbies').update({status:'active'})
-        .eq('tournament_id',tournamentState.dbTournamentId)
-        .eq('lobby_number',li+1)
-        .eq('round_number',round)
-        .then(function(res){if(res.error)console.error("[TFT] Failed to unlock lobby in DB:",res.error);});
-    }
-    toast("Lobby "+(li+1)+" unlocked  -  results reverted","success");
-  }
-
-  const allLocked=lobbies.length>0&&lobbies.every((_,i)=>lockedLobbies.includes(i));
-
-  // Auto-advance countdown when all lobbies locked (admin only, not on final round)
-  useEffect(function(){
-    if(!isAdmin||!allLocked||round>=(tournamentState.totalGames||3)){
-      if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
-      setAutoAdvanceCountdown(null);
-      return;
-    }
-    setAutoAdvanceCountdown(15);
-    autoAdvanceRef.current=setInterval(function(){
-      setAutoAdvanceCountdown(function(c){
-        if(c===null)return null;
-        if(c<=1){
-          clearInterval(autoAdvanceRef.current);
-          autoAdvanceRef.current=null;
-          return 0;
-        }
-        return c-1;
-      });
-    },1000);
-    return function(){if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}};
-  },[allLocked,isAdmin,round,tournamentState.totalGames]);
-
-  // Trigger advance when countdown hits 0
-  useEffect(function(){
-    if(autoAdvanceCountdown!==0||!isAdmin||!allLocked)return;
-    var maxRounds=tournamentState.totalGames||3;
-    if(round<maxRounds){
-      var nextRound=round+1;
-      setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
-      toast("Auto-advanced to Game "+nextRound,"success");
-    }
-    setAutoAdvanceCountdown(null);
-  },[autoAdvanceCountdown]);
-
-  function cancelAutoAdvance(){
-    if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
-    setAutoAdvanceCountdown(null);
-    toast("Auto-advance cancelled","info");
-  }
-
-  function saveResultsToSupabase(allPlayers,clashId){
-    if(!supabase.from)return;
-    var clashName=(tournamentState&&tournamentState.clashName)?tournamentState.clashName:("Clash "+new Date().toLocaleDateString());
-    var doSave=function(tId){
-      // Mark tournament as complete
-      supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()}).eq('id',tId)
-        .then(function(r){if(r.error)console.error("Failed to update tournament phase:",r.error);});
-      // Aggregate results per player across all rounds
-      var playerTotals={};
-      allPlayers.forEach(function(p){
-        var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
-        if(entries.length===0)return;
-        var totalPts=entries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
-        var wins=entries.filter(function(h){return(h.place||h.placement)===1;}).length;
-        var top4=entries.filter(function(h){return(h.place||h.placement)<=4;}).length;
-        var bestPlace=Math.min.apply(null,entries.map(function(h){return h.place||h.placement;}));
-        playerTotals[p.id]={tournament_id:tId,player_id:p.id,final_placement:bestPlace,total_points:totalPts,wins:wins,top4_count:top4};
-      });
-      var rows=Object.values(playerTotals);
-      if(rows.length>0){
-        supabase.from('tournament_results').insert(rows).then(function(r){
-          if(r.error){console.error("Failed to save results:",r.error);toast("Failed to save player results","error");return;}
-          // Notify each player that results are finalized
-          allPlayers.forEach(function(p){
-            if(p.authUserId){createNotification(p.authUserId,"Results Finalized",clashName+" results are in! Check the Results screen to see your placement and points.","trophy");}
-          });
-        });
-      }
-    };
-    // Reuse existing dbTournamentId if available
-    var existingId=tournamentState.dbTournamentId;
-    if(existingId){
-      doSave(existingId);
-    }else{
-      supabase.from('tournaments').insert({name:clashName,date:new Date().toISOString().split('T')[0],phase:'complete'}).select('id').single().then(function(res){
-        if(res.error){console.error("Failed to save tournament:",res.error);toast("Failed to save results to database","error");return;}
-        if(res.data)doSave(res.data.id);
-      });
-    }
-  }
-
-
-  // auto-highlight if logged in
-
-  const myLobbyAuto=currentUser?lobbies.findIndex(lb=>lb.some(p=>p.name===currentUser.username)):-1;
-
-  const effectiveHighlight=highlightLobby!==null?highlightLobby:myLobbyAuto>=0?myLobbyAuto:null;
-
-
-  return(
-
-    <div className="page wrap">
-
-      {showFinalizeConfirm&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1003,padding:16}}>
-          <Panel glow style={{width:"100%",maxWidth:420,padding:"28px"}}>
-            <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontSize:48,marginBottom:12}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
-              <h3 style={{color:"#F2EDE4",fontSize:20,marginBottom:8}}>Finalize This Clash?</h3>
-              <p style={{color:"#BECBD9",fontSize:14,lineHeight:1.5,marginBottom:4}}>This will end the tournament and post final results. All {checkedIn.length} players will receive their season points.</p>
-              <p style={{color:"#E8A838",fontSize:12,fontWeight:600}}>This action cannot be undone.</p>
-            </div>
-            <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-              <Btn v="dark" onClick={()=>setShowFinalizeConfirm(false)}>Cancel</Btn>
-              <Btn v="primary" onClick={()=>{setShowFinalizeConfirm(false);saveResultsToSupabase(players,currentClashId);setTournamentState(ts=>({...ts,phase:"complete",lockedLobbies:[],savedLobbies:[]}));toast("Clash complete! View results →","success");}}>Finalize Clash</Btn>
-            </div>
-          </Panel>
-        </div>
-      )}
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-
-          <span>Game {round}/{tournamentState.totalGames||3}</span>
-
-          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:12,letterSpacing:".08em",textTransform:"uppercase",
-            background:tournamentState.phase==="inprogress"?"rgba(82,196,124,.12)":tournamentState.phase==="complete"?"rgba(78,205,196,.12)":"rgba(155,114,207,.12)",
-            color:tournamentState.phase==="inprogress"?"#6EE7B7":tournamentState.phase==="complete"?"#4ECDC4":"#C4B5FD",
-            border:"1px solid "+(tournamentState.phase==="inprogress"?"rgba(82,196,124,.3)":tournamentState.phase==="complete"?"rgba(78,205,196,.3)":"rgba(155,114,207,.3)")}}>
-            {tournamentState.phase==="inprogress"?"Live":tournamentState.phase==="complete"?"Complete":tournamentState.phase==="checkin"?"Check-in":"Setup"}
-          </span>
-
-          <span style={{fontSize:13,fontWeight:400,color:"#BECBD9"}}>{lobbies.length} {lobbies.length===1?"Lobby":"Lobbies"} · {checkedIn.length} players</span>
-
-        </h2>
-
-        {isAdmin&&(
-
-          <div style={{display:"flex",gap:8}}>
-
-            <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[],savedLobbies:[]}))}>← Round</Btn>
-
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg="  -  "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
-
-              {round>=(tournamentState.totalGames||3)?"Finalize Clash":"Next Game →"}
-
-            </Btn>
-
-          </div>
-
-        )}
-
-      </div>
-
-      {allLocked&&checkedIn.length>0&&(
-        <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
-          <span style={{fontSize:16}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</span>
-          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked  -  {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
-          {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)&&(
-            <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
-          )}
-        </div>
-      )}
-
-      {checkedIn.length===0&&(
-
-        <div style={{textAlign:"center",padding:"60px 20px"}}>
-
-          <div style={{fontSize:48,marginBottom:16}}>{tournamentState&&tournamentState.phase==="complete"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")}):tournamentState&&tournamentState.phase==="inprogress"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["lightning-charge-fill"]||"lightning-charge-fill")}):React.createElement("i",{className:"ti ti-"+(ICON_REMAP["controller"]||"controller")})}</div>
-
-          <h3 style={{color:"#F2EDE4",marginBottom:8}}>{tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}</h3>
-
-          <p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>{tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&tournamentState.phase==="inprogress"?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}</p>
-
-          <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-
-            <Btn v="primary" onClick={()=>setScreen("home")}>← Back to Home</Btn>
-
-            {tournamentState&&tournamentState.phase==="complete"&&<Btn v="dark" onClick={()=>setScreen("results")}>View Results</Btn>}
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {checkedIn.length>0&&(
-
-        <>
-
-          {/* Find my lobby */}
-
-          <Panel style={{padding:"14px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-
-            <span style={{fontSize:13,color:"#C8D4E0",flexShrink:0}}>{React.createElement("i",{className:"ti ti-search",style:{fontSize:13,marginRight:4}})}Find your lobby:</span>
-
-            <Inp value={mySearch} onChange={setMySearch} placeholder="Your name or Riot ID" onKeyDown={e=>e.key==="Enter"&&findMyLobby()}/>
-
-            <Btn v="purple" s="sm" onClick={findMyLobby}>Find Me</Btn>
-
-            {effectiveHighlight!==null&&<span style={{fontSize:12,color:"#6EE7B7",fontWeight:600}}>You are in Lobby {effectiveHighlight+1}</span>}
-
-          </Panel>
-
-          {/* Lobby lock progress */}
-          {lobbies.length>0&&tournamentState.phase==="inprogress"&&(
-            <div style={{marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
-              <div style={{flex:1,background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden"}}>
-                <div style={{height:"100%",borderRadius:8,background:allLocked?"linear-gradient(90deg,#52C47C,#6EE7B7)":"linear-gradient(90deg,#E8A838,#9B72CF)",width:Math.round(lockedLobbies.length/lobbies.length*100)+"%",transition:"width .5s ease"}}/>
-              </div>
-              <span style={{fontSize:11,fontWeight:700,color:allLocked?"#6EE7B7":"#E8A838",whiteSpace:"nowrap"}}>{lockedLobbies.length}/{lobbies.length} locked</span>
-            </div>
-          )}
-
-          {/* Round progress + complete banner */}
-
-          {tournamentState&&tournamentState.phase==="complete"&&(
-
-            <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.4)",borderRadius:10,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
-
-              <span style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-trophy"})}</span>
-
-              <div>
-
-                <div style={{fontWeight:700,color:"#E8A838",fontSize:15}}>Clash Complete!</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>All rounds locked. View final standings on the Leaderboard.</div>
-
-              </div>
-
-              <Btn v="primary" s="sm" style={{marginLeft:"auto"}} onClick={()=>setScreen("leaderboard")}>View Results →</Btn>
-
-            </div>
-
-          )}
-
-          <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
-
-            {[1,2,3].map(r=>(
-
-              <div key={r} style={{flex:1,minWidth:80,background:r<round?"rgba(82,196,124,.08)":r===round?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",
-
-                border:"1px solid "+(r<round?"rgba(82,196,124,.3)":r===round?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),
-
-                borderRadius:8,padding:"10px 14px",textAlign:"center"}}>
-
-                <div style={{fontSize:11,fontWeight:700,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF",letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>Round {r}</div>
-
-                <div style={{fontSize:11,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF"}}>{r<round?"Complete":r===round?"In Progress":"Upcoming"}</div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-
-          {/* Lobby grid */}
-
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(320px,100%),1fr))",gap:16}}>
-
-            {lobbies.map((lobby,li)=>{
-
-              const isMyLobby=effectiveHighlight===li;
-
-              const locked=lockedLobbies.includes(li);
-
-              return(
-
-                <div key={li} style={{
-
-                  background:isMyLobby?"rgba(155,114,207,.06)":"#111827",
-
-                  border:"2px solid "+(isMyLobby?"#9B72CF":locked?"rgba(82,196,124,.35)":"rgba(242,237,228,.1)"),
-
-                  borderRadius:14,overflow:"hidden",
-
-                  boxShadow:isMyLobby?"0 0 24px rgba(155,114,207,.15)":"none",
-
-                  transition:"box-shadow .2s"}}>
-
-                  {/* Lobby header */}
-
-                  <div style={{padding:"14px 16px",background:isMyLobby?"rgba(155,114,207,.1)":"rgba(255,255,255,.02)",
-
-                    borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-
-                      <div style={{width:32,height:32,borderRadius:8,
-
-                        background:isMyLobby?"rgba(155,114,207,.2)":locked?"rgba(82,196,124,.12)":"rgba(232,168,56,.08)",
-
-                        border:"1px solid "+(isMyLobby?"rgba(155,114,207,.5)":locked?"rgba(82,196,124,.3)":"rgba(232,168,56,.2)"),
-
-                        display:"flex",alignItems:"center",justifyContent:"center",
-
-                        fontSize:13,fontWeight:800,color:isMyLobby?"#9B72CF":locked?"#6EE7B7":"#E8A838"}}>
-
-                        {li+1}
-
-                      </div>
-
-                      <div>
-
-                        <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Lobby {li+1}</div>
-
-                        <div style={{fontSize:11,color:"#BECBD9"}}>{lobby.length} players{isMyLobby?" · Your Lobby":""}</div>
-
-                      </div>
-
-                    </div>
-
-                    {isMyLobby&&<div style={{fontSize:12,fontWeight:700,color:"#9B72CF",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"3px 10px"}}>YOU</div>}
-
-                    {locked&&!isMyLobby&&<div style={{fontSize:11,color:"#6EE7B7",fontWeight:700}}>✓ Locked</div>}
-
-                    {locked&&isAdmin&&<button onClick={function(e){e.stopPropagation();unlockLobby(li);}} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"3px 10px",marginLeft:6}}>Unlock</button>}
-
-                  </div>
-
-                  {/* Player list */}
-
-                  <div style={{padding:"10px 12px"}}>
-
-                    {lobby.sort((a,b)=>b.pts-a.pts).map((p,pi)=>{
-
-                      const isMe=currentUser&&p.name===currentUser.username;
-
-                      const homie=HOMIES_IDS.includes(p.id);
-
-                      return(
-
-                        <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
-
-                          style={{display:"flex",alignItems:"center",gap:10,padding:"8px 6px",
-
-                            borderBottom:pi<lobby.length-1?"1px solid rgba(242,237,228,.05)":"none",
-
-                            cursor:"pointer",borderRadius:6,
-
-                            background:isMe?"rgba(155,114,207,.08)":"transparent",
-
-                            transition:"background .15s"}}
-
-                          onMouseEnter={e=>e.currentTarget.style.background=isMe?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)"}
-
-                          onMouseLeave={e=>e.currentTarget.style.background=isMe?"rgba(155,114,207,.08)":"transparent"}>
-
-                          <div className="mono" style={{fontSize:12,fontWeight:800,color:pi===0?"#E8A838":pi===1?"#C0C0C0":pi===2?"#CD7F32":"#9AAABF",minWidth:18,textAlign:"center"}}>{pi+1}</div>
-
-                          <div style={{flex:1,minWidth:0}}>
-
-                            <div style={{display:"flex",alignItems:"center",gap:5}}>
-
-                              <span style={{fontWeight:isMe?700:600,fontSize:13,color:isMe?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
-
-                              {homie&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-heart",style:{color:"#9B72CF"}})}</span>}
-
-                              {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
-
-                            </div>
-
-                            <div style={{fontSize:10,color:"#BECBD9"}}>{p.rank} · {p.region}</div>
-
-                          </div>
-
-                          <div className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts}pts</div>
-
-                          {isMe&&!locked&&tournamentState.phase==="inprogress"&&(
-                            playerSubmissions[li]&&playerSubmissions[li][p.id]?(
-                              <div style={{fontSize:10,color:"#6EE7B7",fontWeight:700,flexShrink:0}}>#{playerSubmissions[li][p.id].placement} ✓</div>
-                            ):(
-                              <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}} style={{width:52,fontSize:11,flexShrink:0}}>
-                                <option value=""> - </option>
-                                {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
-                              </Sel>
-                            )
-                          )}
-
-                        </div>
-
-                      );
-
-                    })}
-
-                  </div>
-
-                  {/* Admin placement entry */}
-
-                  {isAdmin&&!locked&&(
-
-                    <div style={{borderTop:"1px solid rgba(242,237,228,.06)"}}>
-
-                      {(!placementEntry[li]||!placementEntry[li].open)?(
-
-                        <div style={{padding:"10px 12px",background:"rgba(255,255,255,.01)"}}>
-
-                          <Btn v="teal" s="sm" full onClick={function(){openPlacementEntry(li);}}>
-                            Enter Placements{playerSubmissions[li]?" ("+Object.keys(playerSubmissions[li]).length+" submitted)":""}
-                          </Btn>
-
-                        </div>
-
-                      ):(
-
-                        <div style={{padding:"12px",background:"rgba(78,205,196,.03)",borderTop:"1px solid rgba(78,205,196,.12)"}}>
-
-                          <div style={{fontSize:11,fontWeight:700,color:"#4ECDC4",marginBottom:10,textTransform:"uppercase",letterSpacing:".08em"}}>Enter Placements  -  Round {round}</div>
-
-                          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:10}}>
-
-                            {lobby.sort((a,b)=>b.pts-a.pts).map(p=>{
-
-                              const dup=lobby.filter(x=>placementEntry[li].placements[x.id]===placementEntry[li].placements[p.id]).length>1;
-
-                              const wasSelfSubmitted=((playerSubmissions||{})[li]||{})[p.id];
-
-                              return(
-
-                                <div key={p.id} style={{display:"flex",alignItems:"center",gap:8}}>
-
-                                  <span style={{fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}{wasSelfSubmitted&&<span style={{fontSize:9,color:"#4ECDC4",fontWeight:700,marginLeft:4}}>SELF</span>}</span>
-
-                                  <Sel value={placementEntry[li].placements[p.id]||"1"} onChange={v=>setPlace(li,p.id,v)} style={{width:60,border:dup?"1px solid #F87171":undefined}}>
-
-                                    {[1,2,3,4,5,6,7,8].map(n=><option key={n} value={n}>{n}</option>)}
-                                    <option value="0">DNP</option>
-
-                                  </Sel>
-
-                                </div>
-
-                              );
-
-                            })}
-
-                          </div>
-
-                          {!placementValid(li)&&<div style={{fontSize:11,color:"#F87171",marginBottom:8}}>Each placement must be unique (1-8)</div>}
-
-                          <div style={{display:"flex",gap:8}}>
-
-                            <Btn v="success" s="sm" full disabled={!placementValid(li)} onClick={()=>applyGameResults(li)}>Confirm & Lock ✓</Btn>
-
-                            <Btn v="dark" s="sm" onClick={()=>setPlacementEntry(pe=>({...pe,[li]:{...pe[li],open:false}}))}>Cancel</Btn>
-
-                          </div>
-
-                        </div>
-
-                      )}
-
-                    </div>
-
-                  )}
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-
-          {/* Live standings during inprogress */}
-
-          {tournamentState&&tournamentState.phase==="inprogress"&&lockedLobbies.length>0&&<LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>}
-
-
-          {/* Finals display */}
-
-          {round>3&&checkedIn.length>0&&(
-
-            <Panel style={{padding:"24px",marginTop:24,textAlign:"center"}}>
-
-              <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
-
-              <h3 style={{color:"#E8A838",fontSize:20,marginBottom:8}}>Grand Finals</h3>
-
-              <p style={{color:"#BECBD9",fontSize:14}}>All rounds complete. Finals results locked in.</p>
-
-            </Panel>
-
-          )}
-
-        </>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
-
-var MemoBracketScreen = memo(BracketScreen);
 
 const styleHideMobile=`@media(max-width:767px){.hide-mobile{display:none!important;}}`;
 
@@ -5484,7 +4389,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
         {setScreen&&<Btn v="ghost" s="sm" onClick={()=>setScreen("recap")}>{React.createElement("i",{className:"ti ti-calendar",style:{fontSize:12,marginRight:4}})}Season Recap</Btn>}
 
-        {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("challenges")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Challenges</Btn>}
+        {setScreen&&<Btn v="purple" s="sm" onClick={()=>setScreen("my-profile")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Challenges</Btn>}
 
         <Btn v="teal" s="sm" onClick={downloadStatsCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:4}})}Download Card</Btn>
         <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
@@ -5606,7 +4511,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         {/* Edit Profile link for own profile */}
         {isOwnProfile&&setScreen&&(
           <div style={{marginTop:10}}>
-            <Btn v="ghost" s="sm" onClick={function(){setScreen("account");}}>Edit Profile</Btn>
+            <Btn v="ghost" s="sm" onClick={function(){setScreen("my-profile");}}>Edit Profile</Btn>
           </div>
         )}
 
@@ -6105,6 +5010,504 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 var MemoPlayerProfileScreen=memo(PlayerProfileScreen);
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
+
+function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
+
+  const [expandRecord,setExpandRecord]=useState(null);
+
+  const allP=players.length>0?players:[];
+
+  const sorted=[...allP].sort((a,b)=>b.pts-a.pts);
+
+  const king=sorted[0];
+
+  const kingStats=king?getStats(king):null;
+
+  const challengers=sorted.slice(1,4);
+
+  const kingGap=challengers[0]?king.pts-challengers[0].pts:0;
+
+
+  function openProfile(name){
+
+    const p=allP.find(pl=>pl.name===name);
+
+    if(p){setProfilePlayer(p);setScreen("profile");}
+
+  }
+
+
+  // Season champs built from PAST_CLASHES + current leader
+
+  var pastChamps=(pastClashes||[]).map(function(c){return {season:c.season||("S"+(c.id||"?")),champion:c.champion||"Unknown",pts:c.pts||0,rank:c.rank||"",wins:c.wins||0,status:"past"};});
+  const SEASON_CHAMPS=king?pastChamps.concat([{season:"S1",champion:king.name,pts:king.pts,rank:king.rank,wins:king.wins,status:"active"}]):pastChamps;
+
+
+  // Computed HOF records from live player data
+
+  var wp=allP.filter(function(p){return (p.games||0)>0;});
+
+  var hofRecs=[];
+
+  if(wp.length>0){
+
+    var byPts=[...wp].sort(function(a,b){return b.pts-a.pts;});
+
+    var byWins=[...wp].sort(function(a,b){return (b.wins||0)-(a.wins||0);});
+
+    var byAvg=[...wp].filter(function(p){return p.avg;}).sort(function(a,b){return parseFloat(a.avg)-parseFloat(b.avg);});
+
+    var byStreak=[...wp].sort(function(a,b){return (b.bestStreak||0)-(a.bestStreak||0);});
+
+    var byGames=[...wp].sort(function(a,b){return (b.games||0)-(a.games||0);});
+
+    var byTop4=[...wp].sort(function(a,b){return ((b.top4||0)/b.games)-((a.top4||0)/a.games);});
+
+    hofRecs=[
+
+      byPts[0]?{id:"pts",icon:"trophy-fill",title:"Season Points Leader",value:byPts[0].pts+" pts",holder:byPts[0].name,rank:byPts[0].rank,runner:[byPts[1]&&byPts[1].name,byPts[2]&&byPts[2].name].filter(Boolean),history:[]}:null,
+
+      byWins[0]&&(byWins[0].wins||0)>0?{id:"wins",icon:"lightning-charge-fill",title:"Win Machine",value:(byWins[0].wins||0)+" wins",holder:byWins[0].name,rank:byWins[0].rank,runner:[byWins[1]&&byWins[1].name,byWins[2]&&byWins[2].name].filter(Boolean),history:[]}:null,
+
+      byAvg[0]?{id:"avg",icon:"bullseye",title:"Consistency King",value:"AVP "+byAvg[0].avg,holder:byAvg[0].name,rank:byAvg[0].rank,runner:[byAvg[1]&&byAvg[1].name,byAvg[2]&&byAvg[2].name].filter(Boolean),history:[]}:null,
+
+      byStreak[0]&&(byStreak[0].bestStreak||0)>1?{id:"streak",icon:"fire",title:"Hot Streak",value:(byStreak[0].bestStreak||0)+" consecutive top4s",holder:byStreak[0].name,rank:byStreak[0].rank,runner:[byStreak[1]&&byStreak[1].name,byStreak[2]&&byStreak[2].name].filter(Boolean),history:[]}:null,
+
+      byGames[0]?{id:"games",icon:"controller",title:"Iron Presence",value:(byGames[0].games||0)+" games",holder:byGames[0].name,rank:byGames[0].rank,runner:[byGames[1]&&byGames[1].name,byGames[2]&&byGames[2].name].filter(Boolean),history:[]}:null,
+
+      byTop4[0]&&(byTop4[0].games||0)>0?{id:"top4r",icon:"stars",title:"Top4 Machine",value:Math.round((byTop4[0].top4||0)/byTop4[0].games*100)+"%",holder:byTop4[0].name,rank:byTop4[0].rank,runner:[byTop4[1]&&byTop4[1].name,byTop4[2]&&byTop4[2].name].filter(Boolean),history:[]}:null,
+
+    ].filter(Boolean);
+
+  }
+
+
+  return(
+
+    <div className="page wrap">
+
+
+      {/* Page header */}
+
+      <div style={{textAlign:"center",position:"relative",overflow:"hidden",paddingBottom:28,marginBottom:28}}>
+
+        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,rgba(232,168,56,.06),transparent 70%)",pointerEvents:"none"}}/>
+
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".3em",textTransform:"uppercase",marginBottom:10}}>TFT Clash · Season 1</div>
+
+        <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(36px,7vw,72px)",fontWeight:900,color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:"-.02em"}}>
+
+          Hall of<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)"}}>Fame</span>
+
+        </h1>
+
+        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65,marginBottom:16}}>These records are permanent. Every name here earned their place.</p>
+
+        <div style={{display:"flex",justifyContent:"center"}}><ShareBar text={"Check out the TFT Clash Hall of Fame!"} toast={toast}/></div>
+
+        <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.35),transparent)",marginTop:24}}/>
+
+        <div
+
+          title="GOLDENGOD was here"
+
+          style={{position:"absolute",bottom:8,right:14,fontSize:15,opacity:.07,cursor:"default",userSelect:"none",transition:"opacity .35s,filter .35s",filter:"drop-shadow(0 0 0px #E8A838)"}}
+
+          onMouseEnter={function(e){e.currentTarget.style.opacity=".95";e.currentTarget.style.filter="drop-shadow(0 0 10px #E8A838)";}}
+
+          onMouseLeave={function(e){e.currentTarget.style.opacity=".07";e.currentTarget.style.filter="drop-shadow(0 0 0px #E8A838)";}}>C</div>
+
+      </div>
+
+
+      {/* Reigning champion hero */}
+
+      {king&&kingStats&&(
+
+        <div style={{position:"relative",overflow:"hidden",borderRadius:20,marginBottom:32,border:"1px solid rgba(232,168,56,.4)",background:"linear-gradient(135deg,#0E1018,#16100A,#08080F)",boxShadow:"0 0 80px rgba(232,168,56,.07)"}}>
+
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
+
+          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 60% 120% at 15% 50%,rgba(232,168,56,.07),transparent)",pointerEvents:"none"}}/>
+
+          <div style={{position:"relative",padding:"clamp(20px,4vw,36px) clamp(20px,4vw,40px)",display:"flex",alignItems:"flex-start",gap:"clamp(16px,3vw,40px)",flexWrap:"wrap"}}>
+
+
+            {/* Identity */}
+
+            <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
+
+              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
+
+              <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Russo One',sans-serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
+
+                {king.name.charAt(0)}
+
+              </div>
+
+              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 1 Leader</div>
+
+              <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(15px,2.5vw,22px)",fontWeight:900,color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
+
+              <div style={{display:"flex",gap:4,justifyContent:"center",flexWrap:"wrap",marginBottom:10}}>
+
+                <Tag color={rc(king.rank)}>{king.rank}</Tag>
+
+                <Tag color="#4ECDC4">{king.region}</Tag>
+
+              </div>
+
+              <Btn v="ghost" s="sm" onClick={()=>openProfile(king.name)}>Profile &rarr;</Btn>
+
+            </div>
+
+
+            {/* Stats */}
+
+            <div style={{flex:1,minWidth:200}}>
+
+              <div style={{marginBottom:14}}>
+
+                <div className="mono" style={{fontSize:"clamp(44px,8vw,80px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 48px rgba(232,168,56,.3)"}}>{king.pts}</div>
+
+                <div className="cond" style={{fontSize:11,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginTop:2}}>Season Points</div>
+
+              </div>
+
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+
+                {[["Avg",kingStats.avgPlacement,avgCol(kingStats.avgPlacement)],["Win Rate",kingStats.top1Rate+"%","#6EE7B7"],["Top 4",kingStats.top4Rate+"%","#C4B5FD"],["PPG",kingStats.ppg,"#EAB308"],["Streak",king.bestStreak+" W","#F97316"],["Clutch",kingStats.clutchRate+"%","#9B72CF"]].map(([l,v,c])=>(
+
+                  <div key={l} style={{background:"rgba(0,0,0,.3)",border:"1px solid rgba(232,168,56,.1)",borderRadius:9,padding:"10px 8px",textAlign:"center"}}>
+
+                    <div className="mono" style={{fontSize:"clamp(13px,2vw,17px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
+
+                    <div style={{fontSize:9,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
+
+                  </div>
+
+                ))}
+
+              </div>
+
+              <div style={{background:"rgba(0,0,0,.3)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,padding:"10px 14px"}}>
+
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+
+                  <span style={{fontSize:11,color:"#C8D4E0"}}>Lead over {challengers[0]?challengers[0].name:"2nd place"}</span>
+
+                  <span className="mono" style={{fontSize:14,fontWeight:700,color:kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"}}>+{kingGap} pts</span>
+
+                </div>
+
+                <Bar val={king.pts} max={king.pts+Math.max(kingGap,1)} color={kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"} h={4}/>
+
+              </div>
+
+            </div>
+
+
+            {/* Challengers */}
+
+            <div style={{flexShrink:0,minWidth:150}}>
+
+              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Challengers</div>
+
+              {challengers.map((p,i)=>{
+
+                const diff=king.pts-p.pts;
+
+                const medals=["Silver","Bronze","4th"];
+
+                const medalCols=["#C0C0C0","#CD7F32","#9AAABF"];
+
+                return(
+
+                  <div key={p.id} onClick={()=>openProfile(p.name)}
+
+                    style={{padding:"10px 12px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:10,marginBottom:8,cursor:"pointer",transition:"border-color .15s"}}
+
+                    onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
+
+                    onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.07)"}>
+
+                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
+
+                      <span className="mono" style={{fontSize:11,fontWeight:700,color:medalCols[i],flexShrink:0}}>{i+2}</span>
+
+                      <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
+
+                      <span className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts}</span>
+
+                    </div>
+
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+
+                      <span style={{fontSize:10,color:"#F87171",flexShrink:0,minWidth:32}}>-{diff}</span>
+
+                      <Bar val={p.pts} max={king.pts} color="#4ECDC4" h={3}/>
+
+                    </div>
+
+                  </div>
+
+                );
+
+              })}
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* Season Champions Wall */}
+
+      <div style={{marginBottom:32}}>
+
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+
+          <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
+
+          <h2 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Season Champions</h2>
+
+          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
+
+        </div>
+
+        {SEASON_CHAMPS.length===0&&(
+
+          <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(155,114,207,.04))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
+
+            <div style={{fontSize:36,marginBottom:10}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
+
+            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:17,fontWeight:700,color:"#E8A838",marginBottom:6}}>A champion yet to be crowned</div>
+
+            <div style={{fontSize:13,color:"#9AAABF",maxWidth:340,margin:"0 auto",lineHeight:1.6}}>The throne is empty. Compete in the first clash and write your name into history.</div>
+
+          </div>
+
+        )}
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12}}>
+
+          {SEASON_CHAMPS.map((s)=>{
+
+            const isActive=s.status==="active";
+
+            return(
+
+              <div key={s.season} onClick={()=>{if(!isActive)openProfile(s.champion);}}
+
+                style={{position:"relative",overflow:"hidden",borderRadius:14,
+
+                  background:isActive?"linear-gradient(135deg,#16100A,#0E0C06)":"linear-gradient(135deg,#0D1019,#080B12)",
+
+                  border:"1px solid "+(isActive?"rgba(232,168,56,.5)":"rgba(242,237,228,.09)"),
+
+                  padding:"20px 16px",cursor:isActive?"default":"pointer",transition:"transform .2s",
+
+                  boxShadow:isActive?"0 0 40px rgba(232,168,56,.09)":"none"}}
+
+                onMouseEnter={e=>{if(!isActive)e.currentTarget.style.transform="translateY(-3px)";}}
+
+                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";}}>
+
+                {isActive&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,transparent)"}}/>}
+
+                {!isActive&&<div style={{position:"absolute",top:10,right:10,fontSize:9,color:"#9AAABF",background:"rgba(255,255,255,.04)",borderRadius:4,padding:"2px 6px",fontWeight:600,letterSpacing:".05em"}}>RETIRED</div>}
+
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
+
+                  <div style={{background:isActive?"rgba(232,168,56,.15)":"rgba(255,255,255,.05)",border:"1px solid "+(isActive?"rgba(232,168,56,.35)":"rgba(242,237,228,.1)"),borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:700,color:isActive?"#E8A838":"#BECBD9",fontFamily:"'JetBrains Mono',monospace"}}>{s.season}</div>
+
+                  {isActive&&<div style={{background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:10,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".06em"}}>LIVE</div>}
+
+                </div>
+
+                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?React.createElement("i",{className:"ti ti-trophy",style:{fontSize:"inherit",color:"#E8A838"}}):React.createElement("i",{className:"ti ti-trophy",style:{fontSize:"inherit"}})}</div>
+
+                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,18px)",fontWeight:700,color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
+
+                <div className="mono" style={{fontSize:"clamp(16px,2.5vw,22px)",fontWeight:700,color:isActive?"#E8A838":"#C8BFB0",marginBottom:3}}>{s.pts}<span style={{fontSize:11,color:"#9AAABF",fontWeight:400}}> pts</span></div>
+
+                <div style={{fontSize:11,color:"#9AAABF"}}>{s.wins} wins</div>
+
+              </div>
+
+            );
+
+          })}
+
+        </div>
+
+      </div>
+
+
+      {/* Trophy Cabinet */}
+
+      <div style={{marginBottom:32}}>
+
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+
+          <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
+
+          <h2 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Trophy Cabinet</h2>
+
+          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
+
+        </div>
+
+        {hofRecs.length===0&&(
+          <div style={{textAlign:"center",padding:"64px 24px",color:"#6B7280"}}>
+            <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
+            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#9AAABF",marginBottom:8}}>Hall of Fame loading...</div>
+            <div style={{fontSize:14,lineHeight:1.6}}>Season champions will be enshrined here.</div>
+          </div>
+        )}
+
+        <div className="grid-2">
+
+          {hofRecs.map(r=>{
+
+            const isOpen=expandRecord===r.id;
+
+            return(
+
+              <div key={r.id} onClick={()=>setExpandRecord(isOpen?null:r.id)}
+
+                style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid "+(isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s,box-shadow .2s,transform .2s",boxShadow:isOpen?"0 0 40px rgba(232,168,56,.12)":"none",transform:"translateY(0)"}}
+
+                onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.4)";e.currentTarget.style.transform="translateY(-2px)";}}
+
+                onMouseLeave={e=>{e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)";e.currentTarget.style.transform="translateY(0)";}}>
+
+                <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.08),rgba(232,168,56,.02))",padding:"16px 18px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid rgba(232,168,56,.1)"}}>
+
+                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[r.icon]||r.icon),style:{color:r.color||"#E8A838"}})}</div>
+
+                  <div style={{flex:1,minWidth:0}}>
+
+                    <div style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>{r.title}</div>
+
+                    <div className="mono" style={{fontSize:"clamp(18px,3vw,28px)",fontWeight:700,color:"#E8A838",lineHeight:1}}>{r.value}</div>
+
+                  </div>
+
+                  <div style={{fontSize:11,color:"#9AAABF",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"none"}}>&#9660;</div>
+
+                </div>
+
+                <div style={{padding:"12px 18px"}}>
+
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:8}}>
+
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+
+                      <div style={{width:30,height:30,borderRadius:"50%",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{r.holder.charAt(0)}</div>
+
+                      <div>
+
+                        <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{r.holder}</div>
+
+                        <Tag color={rc(r.rank)} size="sm">{r.rank}</Tag>
+
+                      </div>
+
+                    </div>
+
+                    <button onClick={e=>{e.stopPropagation();openProfile(r.holder);}}
+
+                      style={{background:"none",border:"1px solid rgba(242,237,228,.1)",borderRadius:6,padding:"4px 10px",fontSize:11,color:"#C8BFB0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,flexShrink:0}}
+
+                      onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
+
+                      onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.1)"}>Profile</button>
+
+                  </div>
+
+                  {(r.runner||[]).map((ru,i)=>(
+
+                    <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#BECBD9",marginTop:4}}>
+
+                      <span style={{color:i===0?"#C0C0C0":"#CD7F32",fontWeight:700,minWidth:28}}>{i===0?"2nd":"3rd"}</span>
+
+                      <span>{ru}</span>
+
+                    </div>
+
+                  ))}
+
+                </div>
+
+                {isOpen&&r.history.length>0&&(
+
+                  <div style={{padding:"0 18px 14px",borderTop:"1px solid rgba(232,168,56,.12)"}}>
+
+                    <div style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8,marginTop:12}}>Previous Holders</div>
+
+                    {r.history.map((h,i)=>(
+
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"rgba(0,0,0,.3)",borderRadius:7,marginBottom:4}}>
+
+                        <span className="mono" style={{fontSize:10,color:"#9B72CF",minWidth:28}}>{h.season}</span>
+
+                        <span style={{fontWeight:600,fontSize:13,color:"#C8BFB0",flex:1}}>{h.holder}</span>
+
+                        <span className="mono" style={{fontSize:12,color:"#E8A838"}}>{h.value}</span>
+
+                      </div>
+
+                    ))}
+
+                  </div>
+
+                )}
+
+              </div>
+
+            );
+
+          })}
+
+        </div>
+
+      </div>
+
+
+      {/* Rivalries */}
+
+      {allP.length>=4&&(
+
+        <div>
+
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
+
+            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
+
+            <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
+
+          </div>
+
+          <div style={{background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"20px",textAlign:"center",color:"#9AAABF",fontSize:13}}>
+
+            Rivalries will emerge once players have competed in multiple clashes together. Check back after a few events.
+
+          </div>
+
+        </div>
+
+      )}
+
+
+    </div>
+
+  );
+
+}
 
 function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast}){
 
@@ -6647,442 +6050,6 @@ function ClashReport({clashData,players}){
 
 // ─── RESULTS SCREEN ───────────────────────────────────────────────────────────
 
-function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState}){
-
-  const sorted=[...players].sort((a,b)=>b.pts-a.pts);
-
-  const champ=sorted[0];
-
-  const [tab,setTab]=useState("results");
-
-  const awards=computeClashAwards(players.length>0?players:sorted);
-
-  const CLASH_NAME=tournamentState?.clashName||"Recent Clash";
-
-  const CLASH_DATE=tournamentState?.clashDate||"";
-
-  const MEDALS=["award-fill","award-fill","award-fill"];
-
-  const PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
-
-
-  if(!champ)return<div className="page wrap" style={{textAlign:"center",color:"#BECBD9",paddingTop:60}}>Complete a clash first!</div>;
-
-
-  const top3=[sorted[1],sorted[0],sorted[2]].filter(Boolean);
-
-  const REWARDS=["Clash Crown","Icon","Frame","Loot Orb","Loot Orb","","",""];
-
-
-  function shareDiscord(){
-
-    const lines=[
-
-      "**TFT Clash S1  -  "+CLASH_NAME+" Results**",
-
-      "```",
-
-      ...sorted.slice(0,8).map((p,i)=>"#"+(i+1)+" "+p.name.padEnd(16)+" "+String(p.pts).padStart(4)+"pts  avg "+getStats(p).avgPlacement),
-
-      "```",
-
-      "Champion: **"+champ.name+"**    "+champ.pts+"pts",
-
-    ];
-
-    navigator.clipboard?.writeText(lines.join("\n")).then(()=>toast("Copied for Discord","success"));
-
-  }
-
-
-  function downloadCard(){
-
-    const canvas=document.createElement("canvas");
-
-    canvas.width=900;canvas.height=520;
-
-    const ctx=canvas.getContext("2d");
-
-    const bg=ctx.createLinearGradient(0,0,900,520);
-
-    bg.addColorStop(0,"#0A0F1A");bg.addColorStop(1,"#08080F");
-
-    ctx.fillStyle=bg;ctx.fillRect(0,0,900,520);
-
-    const gold=ctx.createLinearGradient(0,0,900,0);
-
-    gold.addColorStop(0,"#E8A838");gold.addColorStop(0.5,"#FFD700");gold.addColorStop(1,"#E8A838");
-
-    ctx.fillStyle=gold;ctx.fillRect(0,0,900,3);
-
-    ctx.font="bold 13px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="4px";
-
-    ctx.fillText("TFT CLASH S1  -  FINAL RESULTS",40,44);ctx.letterSpacing="0px";
-
-    ctx.font="11px monospace";ctx.fillStyle="#BECBD9";
-
-    ctx.fillText(CLASH_DATE+"  ·  "+sorted.length+" players",40,64);
-
-    ctx.fillStyle="rgba(232,168,56,0.1)";
-
-    ctx.beginPath();ctx.roundRect(40,85,820,100,8);ctx.fill();
-
-    ctx.strokeStyle="rgba(232,168,56,0.4)";ctx.lineWidth=1;ctx.stroke();
-
-    ctx.font="bold 40px serif";ctx.fillStyle="#E8A838";ctx.fillText("W",55,152);
-
-    ctx.font="bold 28px serif";ctx.fillStyle="#F2EDE4";ctx.fillText(champ.name,110,150);
-
-    ctx.font="bold 22px monospace";ctx.fillStyle="#E8A838";ctx.fillText(champ.pts+" pts",110,174);
-
-    ctx.font="11px monospace";ctx.fillStyle="#BECBD9";ctx.fillText("Champion · AVP: "+getStats(champ).avgPlacement,110,194);
-
-    sorted.slice(0,8).forEach((p,i)=>{
-
-      const x=40+(i>3?440:0);const iy=i>3?i-4:i;
-
-      const c2=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#BECBD9";
-
-      ctx.font="bold 14px monospace";ctx.fillStyle=c2;ctx.fillText("#"+(i+1),x,210+iy*36);
-
-      ctx.font="14px sans-serif";ctx.fillStyle=i<3?"#F2EDE4":"#C8D4E0";ctx.fillText(p.name,x+36,210+iy*36);
-
-      ctx.font="bold 14px monospace";ctx.fillStyle="#E8A838";ctx.fillText(p.pts+"pts",x+200,210+iy*36);
-
-      const av=getStats(p).avgPlacement;
-
-      ctx.font="12px monospace";ctx.fillStyle=parseFloat(av)<3?"#4ade80":parseFloat(av)<5?"#facc15":"#f87171";
-
-      ctx.fillText("avg:"+av,x+280,210+iy*36);
-
-    });
-
-    ctx.fillStyle="rgba(232,168,56,0.15)";ctx.fillRect(0,488,900,32);
-
-    ctx.font="bold 11px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="2px";
-
-    ctx.fillText("TFT CLASH  ·  tftclash.gg",40,508);ctx.letterSpacing="0px";
-
-    ctx.font="11px monospace";ctx.fillStyle="#BECBD9";ctx.fillText("#TFTClash  #TFT",700,508);
-
-    const a=document.createElement("a");a.download="TFTClash-Results.png";a.href=canvas.toDataURL("image/png");a.click();
-
-    toast("Results card downloaded","success");
-
-  }
-
-
-  return(
-
-    <div className="page wrap">
-
-      {/* Header */}
-
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:28,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-        <div style={{flex:1,minWidth:0}}>
-
-          <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".18em",textTransform:"uppercase",marginBottom:2}}>Season 1</div>
-
-          <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,3.5vw,34px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{CLASH_NAME}  -  Final Results</h1>
-
-          <div style={{fontSize:12,color:"#BECBD9",marginTop:3}}>{CLASH_DATE} · {sorted.length} players · {Math.ceil(sorted.length/8)} lobbies</div>
-
-        </div>
-
-        <div style={{display:"flex",gap:8,flexShrink:0,flexWrap:"wrap"}}>
-
-          <Btn v="dark" s="sm" onClick={shareDiscord}>Discord</Btn>
-
-          <Btn v="ghost" s="sm" onClick={downloadCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:3}})}PNG</Btn>
-
-          <Btn v="dark" s="sm" onClick={function(){
-            var text="TFT Clash Results\n"+CLASH_NAME+" \u2014 "+CLASH_DATE+"\n\n";
-            sorted.slice(0,8).forEach(function(p,i){text+=(i+1)+". "+p.name+" \u2014 "+p.pts+"pts (avg: "+getStats(p).avgPlacement+")\n";});
-            text+="\n#TFTClash tftclash.gg";
-            navigator.clipboard.writeText(text).then(function(){toast("Results copied!","success");}).catch(function(){toast("Copy failed","error");});
-          }}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
-
-        </div>
-
-      </div>
-
-
-      {/* Champion banner */}
-
-      <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.22),rgba(155,114,207,.08),rgba(8,8,15,1))",border:"1px solid rgba(232,168,56,.55)",borderRadius:18,padding:"28px 32px",marginBottom:24,display:"flex",alignItems:"center",gap:24,flexWrap:"wrap",position:"relative",overflow:"hidden",boxShadow:"0 0 60px rgba(232,168,56,.18),inset 0 0 80px rgba(232,168,56,.04)"}}>
-
-        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
-
-        <div style={{position:"absolute",bottom:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.3),transparent)"}}/>
-
-        <div style={{width:80,height:80,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.06))",border:"2px solid rgba(232,168,56,.7)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,flexShrink:0,boxShadow:"0 0 24px rgba(232,168,56,.35)"}}>
-
-          {React.createElement("i",{className:"ti ti-trophy",style:{fontSize:40,color:"#E8A838"}})}
-
-        </div>
-
-        <div style={{flex:1,minWidth:0}}>
-
-          <div style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".16em",textTransform:"uppercase",marginBottom:4}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:11,color:"#E8A838",marginRight:3}})}Clash Champion</div>
-
-          <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(26px,4vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1,marginBottom:6}}>{champ.name}</div>
-
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-
-            <Tag color="#E8A838" size="sm">{champ.rank}</Tag>
-
-            <Tag color="#4ECDC4" size="sm">{champ.region}</Tag>
-
-            {isHotStreak(champ)&&<Tag color="#F97316" size="sm">{React.createElement("i",{className:"ti ti-flame",style:{fontSize:11,color:"#F97316",marginRight:3}})}{champ.currentStreak}-streak</Tag>}
-
-          </div>
-
-        </div>
-
-        <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
-
-          {[["Season Pts",champ.pts,"#E8A838"],["Wins",champ.wins,"#6EE7B7"],["Avg",getStats(champ).avgPlacement,avgCol(getStats(champ).avgPlacement)],["Top4%",getStats(champ).top4Rate+"%","#C4B5FD"]].map(([l,v,c])=>(
-
-            <div key={l} style={{textAlign:"center",padding:"10px 16px",background:"rgba(0,0,0,.3)",borderRadius:10,minWidth:64}}>
-
-              <div className="mono" style={{fontSize:20,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-              <div style={{fontSize:10,color:"#BECBD9",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em",marginTop:4}}>{l}</div>
-
-            </div>
-
-          ))}
-
-        </div>
-
-      </div>
-
-
-      {/* Podium  -  top 3 */}
-
-      {sorted.length>=3&&(
-
-        <div className="podium-grid" style={{display:"grid",gridTemplateColumns:"1fr 1.1fr 1fr",gap:10,marginBottom:24,alignItems:"end"}}>
-
-          {top3.map((p,idx)=>{
-
-            const actualRank=idx===0?1:idx===1?0:2;
-
-            const col=PODIUM_COLS[actualRank];
-
-            const isGold=actualRank===0;
-
-            const height=isGold?1:actualRank===0?0.88:0.76;
-
-            return(
-
-              <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
-
-                style={{background:isGold?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",border:"1px solid "+(isGold?"rgba(232,168,56,.3)":"rgba(255,255,255,.07)"),borderRadius:14,padding:"20px 14px",textAlign:"center",cursor:"pointer",borderTop:"3px solid "+col,paddingTop:isGold?28:20}}>
-
-                <div style={{fontSize:28,marginBottom:8}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[MEDALS[actualRank]]||MEDALS[actualRank]),style:{color:PODIUM_COLS[actualRank]}})}</div>
-
-                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:isGold?17:14,fontWeight:700,color:"#F2EDE4",marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-
-                <div style={{fontSize:11,color:"#BECBD9",marginBottom:10}}>{p.rank} · {p.region}</div>
-
-                <div className="mono" style={{fontSize:isGold?28:20,fontWeight:800,color:col,lineHeight:1}}>{p.pts}</div>
-
-                <div style={{fontSize:9,color:"#BECBD9",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginTop:3}}>Season Pts</div>
-
-                <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:10}}>
-
-                  {[["W",getStats(p).wins,"#6EE7B7"],["Avg",getStats(p).avgPlacement,avgCol(getStats(p).avgPlacement)]].map(([l,v,c])=>(
-
-                    <div key={l} style={{textAlign:"center"}}>
-
-                      <div className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
-
-                      <div style={{fontSize:9,color:"#9AAABF",textTransform:"uppercase"}}>{l}</div>
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-              </div>
-
-            );
-
-          })}
-
-        </div>
-
-      )}
-
-
-      {/* Tab nav */}
-
-      <div style={{display:"flex",gap:6,marginBottom:18,overflowX:"auto",paddingBottom:2}}>
-
-        {[["results","Full Standings"],["awards","Awards"],["report","Clash Report"]].map(([id,label])=>(
-
-          <Btn key={id} v={tab===id?"primary":"dark"} s="sm" onClick={()=>setTab(id)} style={{flexShrink:0}}>{label}</Btn>
-
-        ))}
-
-      </div>
-
-
-      {/* Full Standings */}
-
-      {tab==="results"&&(
-
-        <Panel style={{overflow:"hidden"}}>
-
-          <div style={{display:"grid",gridTemplateColumns:"36px 1fr 80px 80px 70px 80px 110px",padding:"10px 16px",background:"rgba(0,0,0,.3)",borderBottom:"1px solid rgba(242,237,228,.08)"}}>
-
-            {["#","Player","Pts","Avg","Wins","T4%","Reward"].map(h=>(
-
-              <span key={h} className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase"}}>{h}</span>
-
-            ))}
-
-          </div>
-
-          {sorted.map((p,i)=>{
-
-            const st=getStats(p);
-
-            const isTop3=i<3;
-
-            const col=i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#BECBD9";
-
-            return(
-
-              <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
-
-                style={{display:"grid",gridTemplateColumns:"36px 1fr 80px 80px 70px 80px 110px",padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",alignItems:"center",background:i===0?"rgba(232,168,56,.05)":i<3?"rgba(255,255,255,.015)":"transparent",cursor:"pointer",transition:"background .12s"}}
-
-                onMouseEnter={e=>e.currentTarget.style.background=i===0?"rgba(232,168,56,.09)":"rgba(255,255,255,.04)"}
-
-                onMouseLeave={e=>e.currentTarget.style.background=i===0?"rgba(232,168,56,.05)":i<3?"rgba(255,255,255,.015)":"transparent"}>
-
-                <div style={{display:"flex",alignItems:"center",gap:3}}>
-
-                  <span className="mono" style={{fontSize:13,fontWeight:800,color:col}}>{i+1}</span>
-
-                </div>
-
-                <div style={{display:"flex",alignItems:"center",gap:8,minWidth:0}}>
-
-                  <div style={{minWidth:0}}>
-
-                    <div style={{fontWeight:isTop3?700:600,fontSize:13,color:isTop3?"#F2EDE4":"#C8BFB0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:5}}>
-
-                      {p.name}
-
-                      {HOMIES_IDS.includes(p.id)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-heart",style:{color:"#9B72CF"}})}</span>}
-
-                      {isHotStreak(p)&&<span style={{fontSize:10}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
-
-                    </div>
-
-                    <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
-
-                      <span style={{fontSize:11,color:"#BECBD9"}}>{p.rank} · {p.region}</span>
-
-                      {(p.attendanceStreak||0)>=3&&<Tag color="#E8A838" size="sm">{p.attendanceStreak}-streak</Tag>}
-
-                      {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&<Tag color="#4ECDC4" size="sm">Comeback</Tag>}
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-                <div className="mono" style={{fontSize:15,fontWeight:700,color:isTop3?col:"#C8BFB0"}}>{p.pts}</div>
-
-                <AvgBadge avg={parseFloat(p.avg)||0}/>
-
-                <div className="mono" style={{fontSize:13,color:"#6EE7B7"}}>{st.wins}</div>
-
-                <div className="mono" style={{fontSize:13,color:"#4ECDC4"}}>{st.top4Rate}%</div>
-
-                <div style={{fontSize:12}}>{REWARDS[i]?<Tag color={col} size="sm">{REWARDS[i]}</Tag>:<span style={{color:"#9AAABF"}}> - </span>}</div>
-
-              </div>
-
-            );
-
-          })}
-
-        </Panel>
-
-      )}
-
-
-      {/* Awards */}
-
-      {tab==="awards"&&(
-
-        <div>
-
-          <div className="grid-2" style={{marginBottom:20}}>
-
-            {awards.filter(a=>a.winner).map(a=>(
-
-              <AwardCard key={a.id} award={a} onClick={()=>{if(setProfilePlayer&&a.winner){setProfilePlayer(a.winner);setScreen("profile");}}}/>
-
-            ))}
-
-          </div>
-
-          <AICommentaryPanel players={players} toast={toast}/>
-
-          <div style={{marginTop:16,padding:"16px 20px",background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-            <span style={{fontSize:24}}>{React.createElement("i",{className:"ti ti-gift"})}</span>
-
-            <div style={{flex:1}}>
-
-              <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:3}}>Milestone Rewards Unlocked</div>
-
-              <div style={{fontSize:13,color:"#C8D4E0"}}>Some players earned new milestones this clash.</div>
-
-            </div>
-
-            <Btn v="purple" s="sm" onClick={()=>setScreen("milestones")}>View →</Btn>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* Clash Report */}
-
-      {tab==="report"&&(
-
-        <Panel style={{padding:"20px"}}>
-
-          <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:16,color:"#F2EDE4",marginBottom:4}}>{CLASH_NAME}  -  Round by Round</h3>
-
-          <p style={{fontSize:13,color:"#BECBD9",marginBottom:20}}>{CLASH_DATE} · {sorted.length} players</p>
-
-          <ClashReport clashData={{id:"latest",name:CLASH_NAME,date:CLASH_DATE,season:"S1",champion:champ.name,top3:sorted.slice(0,3).map(p=>p.name),players:sorted.length,lobbies:Math.ceil(sorted.length/8),report:{mostImproved:sorted[3]?.name,biggestUpset:(sorted[4]?.name||"")+" beat "+(sorted[0]?.name||"")}}} players={players}/>
-
-        </Panel>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
 
 function AutoLogin({setAuthScreen}){
 
@@ -7093,662 +6060,10 @@ function AutoLogin({setAuthScreen}){
 }
 
 
-var MemoResultsScreen=memo(ResultsScreen);
-
 // ─── HALL OF FAME ─────────────────────────────────────────────────────────────
 
-function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
-
-  const [expandRecord,setExpandRecord]=useState(null);
-
-  const allP=players.length>0?players:[];
-
-  const sorted=[...allP].sort((a,b)=>b.pts-a.pts);
-
-  const king=sorted[0];
-
-  const kingStats=king?getStats(king):null;
-
-  const challengers=sorted.slice(1,4);
-
-  const kingGap=challengers[0]?king.pts-challengers[0].pts:0;
-
-
-  function openProfile(name){
-
-    const p=allP.find(pl=>pl.name===name);
-
-    if(p){setProfilePlayer(p);setScreen("profile");}
-
-  }
-
-
-  // Season champs built from PAST_CLASHES + current leader
-
-  var pastChamps=(pastClashes||[]).map(function(c){return {season:c.season||("S"+(c.id||"?")),champion:c.champion||"Unknown",pts:c.pts||0,rank:c.rank||"",wins:c.wins||0,status:"past"};});
-  const SEASON_CHAMPS=king?pastChamps.concat([{season:"S1",champion:king.name,pts:king.pts,rank:king.rank,wins:king.wins,status:"active"}]):pastChamps;
-
-
-  // Computed HOF records from live player data
-
-  var wp=allP.filter(function(p){return (p.games||0)>0;});
-
-  var hofRecs=[];
-
-  if(wp.length>0){
-
-    var byPts=[...wp].sort(function(a,b){return b.pts-a.pts;});
-
-    var byWins=[...wp].sort(function(a,b){return (b.wins||0)-(a.wins||0);});
-
-    var byAvg=[...wp].filter(function(p){return p.avg;}).sort(function(a,b){return parseFloat(a.avg)-parseFloat(b.avg);});
-
-    var byStreak=[...wp].sort(function(a,b){return (b.bestStreak||0)-(a.bestStreak||0);});
-
-    var byGames=[...wp].sort(function(a,b){return (b.games||0)-(a.games||0);});
-
-    var byTop4=[...wp].sort(function(a,b){return ((b.top4||0)/b.games)-((a.top4||0)/a.games);});
-
-    hofRecs=[
-
-      byPts[0]?{id:"pts",icon:"trophy-fill",title:"Season Points Leader",value:byPts[0].pts+" pts",holder:byPts[0].name,rank:byPts[0].rank,runner:[byPts[1]&&byPts[1].name,byPts[2]&&byPts[2].name].filter(Boolean),history:[]}:null,
-
-      byWins[0]&&(byWins[0].wins||0)>0?{id:"wins",icon:"lightning-charge-fill",title:"Win Machine",value:(byWins[0].wins||0)+" wins",holder:byWins[0].name,rank:byWins[0].rank,runner:[byWins[1]&&byWins[1].name,byWins[2]&&byWins[2].name].filter(Boolean),history:[]}:null,
-
-      byAvg[0]?{id:"avg",icon:"bullseye",title:"Consistency King",value:"AVP "+byAvg[0].avg,holder:byAvg[0].name,rank:byAvg[0].rank,runner:[byAvg[1]&&byAvg[1].name,byAvg[2]&&byAvg[2].name].filter(Boolean),history:[]}:null,
-
-      byStreak[0]&&(byStreak[0].bestStreak||0)>1?{id:"streak",icon:"fire",title:"Hot Streak",value:(byStreak[0].bestStreak||0)+" consecutive top4s",holder:byStreak[0].name,rank:byStreak[0].rank,runner:[byStreak[1]&&byStreak[1].name,byStreak[2]&&byStreak[2].name].filter(Boolean),history:[]}:null,
-
-      byGames[0]?{id:"games",icon:"controller",title:"Iron Presence",value:(byGames[0].games||0)+" games",holder:byGames[0].name,rank:byGames[0].rank,runner:[byGames[1]&&byGames[1].name,byGames[2]&&byGames[2].name].filter(Boolean),history:[]}:null,
-
-      byTop4[0]&&(byTop4[0].games||0)>0?{id:"top4r",icon:"stars",title:"Top4 Machine",value:Math.round((byTop4[0].top4||0)/byTop4[0].games*100)+"%",holder:byTop4[0].name,rank:byTop4[0].rank,runner:[byTop4[1]&&byTop4[1].name,byTop4[2]&&byTop4[2].name].filter(Boolean),history:[]}:null,
-
-    ].filter(Boolean);
-
-  }
-
-
-  return(
-
-    <div className="page wrap">
-
-
-      {/* Page header */}
-
-      <div style={{textAlign:"center",position:"relative",overflow:"hidden",paddingBottom:28,marginBottom:28}}>
-
-        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at center,rgba(232,168,56,.06),transparent 70%)",pointerEvents:"none"}}/>
-
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".3em",textTransform:"uppercase",marginBottom:10}}>TFT Clash · Season 1</div>
-
-        <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(36px,7vw,72px)",fontWeight:900,color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:"-.02em"}}>
-
-          Hall of<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)"}}>Fame</span>
-
-        </h1>
-
-        <p style={{fontSize:14,color:"#C8D4E0",maxWidth:440,margin:"0 auto",lineHeight:1.65,marginBottom:16}}>These records are permanent. Every name here earned their place.</p>
-
-        <div style={{display:"flex",justifyContent:"center"}}><ShareBar text={"Check out the TFT Clash Hall of Fame!"} toast={toast}/></div>
-
-        <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(232,168,56,.35),transparent)",marginTop:24}}/>
-
-        <div
-
-          title="GOLDENGOD was here"
-
-          style={{position:"absolute",bottom:8,right:14,fontSize:15,opacity:.07,cursor:"default",userSelect:"none",transition:"opacity .35s,filter .35s",filter:"drop-shadow(0 0 0px #E8A838)"}}
-
-          onMouseEnter={function(e){e.currentTarget.style.opacity=".95";e.currentTarget.style.filter="drop-shadow(0 0 10px #E8A838)";}}
-
-          onMouseLeave={function(e){e.currentTarget.style.opacity=".07";e.currentTarget.style.filter="drop-shadow(0 0 0px #E8A838)";}}>C</div>
-
-      </div>
-
-
-      {/* Reigning champion hero */}
-
-      {king&&kingStats&&(
-
-        <div style={{position:"relative",overflow:"hidden",borderRadius:20,marginBottom:32,border:"1px solid rgba(232,168,56,.4)",background:"linear-gradient(135deg,#0E1018,#16100A,#08080F)",boxShadow:"0 0 80px rgba(232,168,56,.07)"}}>
-
-          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
-
-          <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 60% 120% at 15% 50%,rgba(232,168,56,.07),transparent)",pointerEvents:"none"}}/>
-
-          <div style={{position:"relative",padding:"clamp(20px,4vw,36px) clamp(20px,4vw,40px)",display:"flex",alignItems:"flex-start",gap:"clamp(16px,3vw,40px)",flexWrap:"wrap"}}>
-
-
-            {/* Identity */}
-
-            <div style={{textAlign:"center",flexShrink:0,minWidth:120}}>
-
-              <div style={{fontSize:"clamp(32px,5vw,52px)",marginBottom:10,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
-
-              <div style={{width:"clamp(64px,9vw,88px)",height:"clamp(64px,9vw,88px)",borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.04))",border:"2px solid #E8A838",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"clamp(24px,4vw,36px)",fontWeight:900,fontFamily:"'Russo One',sans-serif",color:"#E8A838",margin:"0 auto 12px",boxShadow:"0 0 32px rgba(232,168,56,.25)"}}>
-
-                {king.name.charAt(0)}
-
-              </div>
-
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 1 Leader</div>
-
-              <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(15px,2.5vw,22px)",fontWeight:900,color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
-
-              <div style={{display:"flex",gap:4,justifyContent:"center",flexWrap:"wrap",marginBottom:10}}>
-
-                <Tag color={rc(king.rank)}>{king.rank}</Tag>
-
-                <Tag color="#4ECDC4">{king.region}</Tag>
-
-              </div>
-
-              <Btn v="ghost" s="sm" onClick={()=>openProfile(king.name)}>Profile &rarr;</Btn>
-
-            </div>
-
-
-            {/* Stats */}
-
-            <div style={{flex:1,minWidth:200}}>
-
-              <div style={{marginBottom:14}}>
-
-                <div className="mono" style={{fontSize:"clamp(44px,8vw,80px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 48px rgba(232,168,56,.3)"}}>{king.pts}</div>
-
-                <div className="cond" style={{fontSize:11,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginTop:2}}>Season Points</div>
-
-              </div>
-
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
-
-                {[["Avg",kingStats.avgPlacement,avgCol(kingStats.avgPlacement)],["Win Rate",kingStats.top1Rate+"%","#6EE7B7"],["Top 4",kingStats.top4Rate+"%","#C4B5FD"],["PPG",kingStats.ppg,"#EAB308"],["Streak",king.bestStreak+" W","#F97316"],["Clutch",kingStats.clutchRate+"%","#9B72CF"]].map(([l,v,c])=>(
-
-                  <div key={l} style={{background:"rgba(0,0,0,.3)",border:"1px solid rgba(232,168,56,.1)",borderRadius:9,padding:"10px 8px",textAlign:"center"}}>
-
-                    <div className="mono" style={{fontSize:"clamp(13px,2vw,17px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-                    <div style={{fontSize:9,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-              <div style={{background:"rgba(0,0,0,.3)",border:"1px solid rgba(242,237,228,.07)",borderRadius:8,padding:"10px 14px"}}>
-
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-
-                  <span style={{fontSize:11,color:"#C8D4E0"}}>Lead over {challengers[0]?challengers[0].name:"2nd place"}</span>
-
-                  <span className="mono" style={{fontSize:14,fontWeight:700,color:kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"}}>+{kingGap} pts</span>
-
-                </div>
-
-                <Bar val={king.pts} max={king.pts+Math.max(kingGap,1)} color={kingGap>50?"#6EE7B7":kingGap>20?"#EAB308":"#F87171"} h={4}/>
-
-              </div>
-
-            </div>
-
-
-            {/* Challengers */}
-
-            <div style={{flexShrink:0,minWidth:150}}>
-
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Challengers</div>
-
-              {challengers.map((p,i)=>{
-
-                const diff=king.pts-p.pts;
-
-                const medals=["Silver","Bronze","4th"];
-
-                const medalCols=["#C0C0C0","#CD7F32","#9AAABF"];
-
-                return(
-
-                  <div key={p.id} onClick={()=>openProfile(p.name)}
-
-                    style={{padding:"10px 12px",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.07)",borderRadius:10,marginBottom:8,cursor:"pointer",transition:"border-color .15s"}}
-
-                    onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
-
-                    onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.07)"}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:5}}>
-
-                      <span className="mono" style={{fontSize:11,fontWeight:700,color:medalCols[i],flexShrink:0}}>{i+2}</span>
-
-                      <span style={{fontWeight:600,fontSize:13,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
-
-                      <span className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts}</span>
-
-                    </div>
-
-                    <div style={{display:"flex",alignItems:"center",gap:6}}>
-
-                      <span style={{fontSize:10,color:"#F87171",flexShrink:0,minWidth:32}}>-{diff}</span>
-
-                      <Bar val={p.pts} max={king.pts} color="#4ECDC4" h={3}/>
-
-                    </div>
-
-                  </div>
-
-                );
-
-              })}
-
-            </div>
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {/* Season Champions Wall */}
-
-      <div style={{marginBottom:32}}>
-
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-
-          <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
-
-          <h2 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Season Champions</h2>
-
-          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
-
-        </div>
-
-        {SEASON_CHAMPS.length===0&&(
-
-          <div style={{background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(155,114,207,.04))",border:"1px solid rgba(232,168,56,.2)",borderRadius:14,padding:"28px 24px",textAlign:"center"}}>
-
-            <div style={{fontSize:36,marginBottom:10}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>
-
-            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:17,fontWeight:700,color:"#E8A838",marginBottom:6}}>A champion yet to be crowned</div>
-
-            <div style={{fontSize:13,color:"#9AAABF",maxWidth:340,margin:"0 auto",lineHeight:1.6}}>The throne is empty. Compete in the first clash and write your name into history.</div>
-
-          </div>
-
-        )}
-
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(170px,1fr))",gap:12}}>
-
-          {SEASON_CHAMPS.map((s)=>{
-
-            const isActive=s.status==="active";
-
-            return(
-
-              <div key={s.season} onClick={()=>{if(!isActive)openProfile(s.champion);}}
-
-                style={{position:"relative",overflow:"hidden",borderRadius:14,
-
-                  background:isActive?"linear-gradient(135deg,#16100A,#0E0C06)":"linear-gradient(135deg,#0D1019,#080B12)",
-
-                  border:"1px solid "+(isActive?"rgba(232,168,56,.5)":"rgba(242,237,228,.09)"),
-
-                  padding:"20px 16px",cursor:isActive?"default":"pointer",transition:"transform .2s",
-
-                  boxShadow:isActive?"0 0 40px rgba(232,168,56,.09)":"none"}}
-
-                onMouseEnter={e=>{if(!isActive)e.currentTarget.style.transform="translateY(-3px)";}}
-
-                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";}}>
-
-                {isActive&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,transparent)"}}/>}
-
-                {!isActive&&<div style={{position:"absolute",top:10,right:10,fontSize:9,color:"#9AAABF",background:"rgba(255,255,255,.04)",borderRadius:4,padding:"2px 6px",fontWeight:600,letterSpacing:".05em"}}>RETIRED</div>}
-
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
-
-                  <div style={{background:isActive?"rgba(232,168,56,.15)":"rgba(255,255,255,.05)",border:"1px solid "+(isActive?"rgba(232,168,56,.35)":"rgba(242,237,228,.1)"),borderRadius:6,padding:"3px 8px",fontSize:10,fontWeight:700,color:isActive?"#E8A838":"#BECBD9",fontFamily:"'JetBrains Mono',monospace"}}>{s.season}</div>
-
-                  {isActive&&<div style={{background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:10,padding:"2px 7px",fontSize:9,fontWeight:700,color:"#6EE7B7",letterSpacing:".06em"}}>LIVE</div>}
-
-                </div>
-
-                <div style={{fontSize:"clamp(22px,4vw,32px)",marginBottom:8}}>{isActive?React.createElement("i",{className:"ti ti-trophy",style:{fontSize:"inherit",color:"#E8A838"}}):React.createElement("i",{className:"ti ti-trophy",style:{fontSize:"inherit"}})}</div>
-
-                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,18px)",fontWeight:700,color:isActive?"#E8A838":"#F2EDE4",lineHeight:1.2,marginBottom:5}}>{s.champion}</div>
-
-                <div className="mono" style={{fontSize:"clamp(16px,2.5vw,22px)",fontWeight:700,color:isActive?"#E8A838":"#C8BFB0",marginBottom:3}}>{s.pts}<span style={{fontSize:11,color:"#9AAABF",fontWeight:400}}> pts</span></div>
-
-                <div style={{fontSize:11,color:"#9AAABF"}}>{s.wins} wins</div>
-
-              </div>
-
-            );
-
-          })}
-
-        </div>
-
-      </div>
-
-
-      {/* Trophy Cabinet */}
-
-      <div style={{marginBottom:32}}>
-
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
-
-          <div style={{width:24,height:2,background:"#E8A838",borderRadius:2,flexShrink:0}}/>
-
-          <h2 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(14px,2vw,20px)",color:"#F2EDE4",fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",whiteSpace:"nowrap"}}>Trophy Cabinet</h2>
-
-          <div style={{flex:1,height:1,background:"linear-gradient(90deg,rgba(232,168,56,.3),transparent)"}}/>
-
-        </div>
-
-        {hofRecs.length===0&&(
-          <div style={{textAlign:"center",padding:"64px 24px",color:"#6B7280"}}>
-            <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-trophy"})}</div>
-            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:18,color:"#9AAABF",marginBottom:8}}>Hall of Fame loading...</div>
-            <div style={{fontSize:14,lineHeight:1.6}}>Season champions will be enshrined here.</div>
-          </div>
-        )}
-
-        <div className="grid-2">
-
-          {hofRecs.map(r=>{
-
-            const isOpen=expandRecord===r.id;
-
-            return(
-
-              <div key={r.id} onClick={()=>setExpandRecord(isOpen?null:r.id)}
-
-                style={{background:"linear-gradient(135deg,#0D1321,#080B14)",border:"1px solid "+(isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s,box-shadow .2s,transform .2s",boxShadow:isOpen?"0 0 40px rgba(232,168,56,.12)":"none",transform:"translateY(0)"}}
-
-                onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(232,168,56,.4)";e.currentTarget.style.transform="translateY(-2px)";}}
-
-                onMouseLeave={e=>{e.currentTarget.style.borderColor=isOpen?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)";e.currentTarget.style.transform="translateY(0)";}}>
-
-                <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.08),rgba(232,168,56,.02))",padding:"16px 18px",display:"flex",alignItems:"center",gap:12,borderBottom:"1px solid rgba(232,168,56,.1)"}}>
-
-                  <div style={{width:46,height:46,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[r.icon]||r.icon),style:{color:r.color||"#E8A838"}})}</div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase",marginBottom:3}}>{r.title}</div>
-
-                    <div className="mono" style={{fontSize:"clamp(18px,3vw,28px)",fontWeight:700,color:"#E8A838",lineHeight:1}}>{r.value}</div>
-
-                  </div>
-
-                  <div style={{fontSize:11,color:"#9AAABF",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(180deg)":"none"}}>&#9660;</div>
-
-                </div>
-
-                <div style={{padding:"12px 18px"}}>
-
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:8}}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-
-                      <div style={{width:30,height:30,borderRadius:"50%",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.22)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{r.holder.charAt(0)}</div>
-
-                      <div>
-
-                        <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{r.holder}</div>
-
-                        <Tag color={rc(r.rank)} size="sm">{r.rank}</Tag>
-
-                      </div>
-
-                    </div>
-
-                    <button onClick={e=>{e.stopPropagation();openProfile(r.holder);}}
-
-                      style={{background:"none",border:"1px solid rgba(242,237,228,.1)",borderRadius:6,padding:"4px 10px",fontSize:11,color:"#C8BFB0",cursor:"pointer",fontFamily:"inherit",fontWeight:600,flexShrink:0}}
-
-                      onMouseEnter={e=>e.currentTarget.style.borderColor="rgba(232,168,56,.3)"}
-
-                      onMouseLeave={e=>e.currentTarget.style.borderColor="rgba(242,237,228,.1)"}>Profile</button>
-
-                  </div>
-
-                  {(r.runner||[]).map((ru,i)=>(
-
-                    <div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#BECBD9",marginTop:4}}>
-
-                      <span style={{color:i===0?"#C0C0C0":"#CD7F32",fontWeight:700,minWidth:28}}>{i===0?"2nd":"3rd"}</span>
-
-                      <span>{ru}</span>
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-                {isOpen&&r.history.length>0&&(
-
-                  <div style={{padding:"0 18px 14px",borderTop:"1px solid rgba(232,168,56,.12)"}}>
-
-                    <div style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8,marginTop:12}}>Previous Holders</div>
-
-                    {r.history.map((h,i)=>(
-
-                      <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"rgba(0,0,0,.3)",borderRadius:7,marginBottom:4}}>
-
-                        <span className="mono" style={{fontSize:10,color:"#9B72CF",minWidth:28}}>{h.season}</span>
-
-                        <span style={{fontWeight:600,fontSize:13,color:"#C8BFB0",flex:1}}>{h.holder}</span>
-
-                        <span className="mono" style={{fontSize:12,color:"#E8A838"}}>{h.value}</span>
-
-                      </div>
-
-                    ))}
-
-                  </div>
-
-                )}
-
-              </div>
-
-            );
-
-          })}
-
-        </div>
-
-      </div>
-
-
-      {/* Rivalries */}
-
-      {allP.length>=4&&(
-
-        <div>
-
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14}}>
-
-            <div style={{width:18,height:2,background:"#9B72CF",borderRadius:2,flexShrink:0}}/>
-
-            <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:15,color:"#F2EDE4",fontWeight:700,letterSpacing:".04em",textTransform:"uppercase"}}>Top Rivalries</h3>
-
-          </div>
-
-          <div style={{background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"20px",textAlign:"center",color:"#9AAABF",fontSize:13}}>
-
-            Rivalries will emerge once players have competed in multiple clashes together. Check back after a few events.
-
-          </div>
-
-        </div>
-
-      )}
-
-
-    </div>
-
-  );
-
-}
-
-var MemoHofScreen=memo(HofScreen);
 
 // ─── ARCHIVE ──────────────────────────────────────────────────────────────────
-
-function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
-
-  const [open,setOpen]=useState(null);
-
-  const all=[...(pastClashes||PAST_CLASHES)];
-
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-        <div style={{flex:1}}>
-
-          <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Archive</h2>
-
-          <p style={{color:"#BECBD9",fontSize:13}}>{all.length} event{all.length!==1?"s":""} recorded</p>
-
-        </div>
-
-      </div>
-
-      {all.length===0&&(
-
-        <div style={{textAlign:"center",padding:"60px 20px",color:"#9AAABF"}}>
-
-          <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"ti ti-inbox"})}</div>
-
-          <div style={{fontSize:16,fontWeight:700,color:"#C8D4E0",marginBottom:6}}>No clashes archived yet</div>
-
-          <div style={{fontSize:13}}>Completed clashes will appear here after the admin finalizes them.</div>
-
-        </div>
-
-      )}
-
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-
-        {all.map(c=>{
-
-          const myFinish=currentUser?(c.top3||[]).indexOf(currentUser.username):null;
-
-          const myPos=myFinish>=0?myFinish+1:null;
-
-          return(
-
-            <Panel key={c.id} style={{overflow:"hidden"}}>
-
-              <div style={{padding:"13px 16px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:"#0A0F1A"}} onClick={()=>setOpen(open===c.id?null:c.id)}>
-
-                <div style={{width:34,height:34,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#E8A838",flexShrink:0}}>#{c.id}</div>
-
-                <div style={{flex:1}}>
-
-                  <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{c.name}</div>
-
-                  <div className="cond" style={{fontSize:11,color:"#BECBD9",marginTop:2}}>{c.date} · {c.season} · {c.players}p · {c.lobbies} {c.lobbies===1?"lobby":"lobbies"}</div>
-
-                </div>
-
-                <div style={{display:"flex",alignItems:"center",gap:7}}>
-
-                  <span style={{fontSize:14}}>{React.createElement("i",{className:"ti ti-trophy"})}</span><span style={{fontWeight:700,color:"#E8A838",fontSize:13}}>{c.champion}</span>
-
-                  <span style={{color:"#BECBD9",fontSize:14,marginLeft:6}}>{open===c.id?"▲":"▼"}</span>
-
-                </div>
-
-              </div>
-
-              {open===c.id&&(
-
-                <div style={{padding:"14px 16px",background:"#0D121E",borderTop:"1px solid rgba(242,237,228,.07)"}}>
-
-                  <div style={{marginBottom:14}}>
-
-                    <div style={{fontSize:12,fontWeight:700,color:"#C8D4E0",marginBottom:8,textTransform:"uppercase",letterSpacing:".06em"}}>Top 8 Finishers</div>
-
-                    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:6}}>
-
-                      {c.top3.map((name,i)=>(
-
-                        <div key={i} style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"8px 10px",textAlign:"center"}}>
-
-                          <div style={{fontSize:16,marginBottom:4}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")})}</div>
-
-                          <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{name}</div>
-
-                          <div style={{fontSize:10,color:"#BECBD9",marginTop:2}}>#{i+1}</div>
-
-                        </div>
-
-                      ))}
-
-                    </div>
-
-                  </div>
-
-                  {c.report&&(
-
-                    <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:12}}>
-
-                      {c.report.mostImproved&&<div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#4ECDC4",fontWeight:700}}>{React.createElement("i",{className:"ti ti-trending-up",style:{marginRight:3}})}Most Improved:</span> <span style={{color:"#F2EDE4"}}>{c.report.mostImproved}</span></div>}
-
-                      {c.report.biggestUpset&&<div style={{background:"rgba(248,113,113,.06)",border:"1px solid rgba(248,113,113,.2)",borderRadius:8,padding:"8px 12px",fontSize:12}}><span style={{color:"#F87171",fontWeight:700}}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Upset:</span> <span style={{color:"#F2EDE4"}}>{c.report.biggestUpset}</span></div>}
-
-                    </div>
-
-                  )}
-
-                  {/* My position */}
-
-                  {myPos&&(
-
-                    <div style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 14px",display:"flex",alignItems:"center",gap:12}}>
-
-                      <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#9B72CF"}}>#{myPos}</div>
-
-                      <div>
-
-                        <div style={{fontWeight:700,fontSize:13,color:"#C4B5FD"}}>Your Position</div>
-
-                        <div style={{fontSize:12,color:"#C8D4E0"}}>{currentUser.username} finished #{myPos} in this event</div>
-
-                      </div>
-
-                    </div>
-
-                  )}
-
-                </div>
-
-              )}
-
-            </Panel>
-
-          );
-
-        })}
-
-      </div>
-
-    </div>
-
-  );
-
-}
 
 
 function ScrimAccessPanel({scrimAccess,setScrimAccess,toast,addAudit}){
@@ -9153,7 +7468,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             </div>
 
-            <Btn v="primary" s="sm" onClick={function(){setScreen("featured");}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,marginRight:4}})}Featured Events</Btn>
+            <Btn v="primary" s="sm" onClick={function(){setScreen("events");}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,marginRight:4}})}Featured Events</Btn>
 
           </div>
 
@@ -10799,415 +9114,6 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
 // ─── MILESTONES SCREEN ────────────────────────────────────────────────────────
 
-function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
-
-  const [filterTier,setFilterTier]=useState("all");
-
-  const [tab,setTab]=useState("achievements");
-
-
-  const myPlayer=currentUser?players.find(p=>p.name===currentUser.username):null;
-
-
-  const tierOrder=["bronze","silver","gold","legendary"];
-
-  const tierCols={bronze:"#CD7F32",silver:"#C0C0C0",gold:"#E8A838",legendary:"#9B72CF"};
-
-  const tierLabels={bronze:"Bronze",silver:"Silver",gold:"Gold",legendary:"Legendary"};
-
-
-  const filteredAch=ACHIEVEMENTS.filter(a=>filterTier==="all"||a.tier===filterTier);
-
-
-  const sorted=[...players].sort((a,b)=>b.pts-a.pts);
-
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-        <div style={{flex:1}}>
-
-          <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Achievements & Milestones</h2>
-
-          <p style={{color:"#BECBD9",fontSize:13,marginTop:4}}>Earn badges. Collect titles. Leave a mark.</p>
-
-        </div>
-
-      </div>
-
-
-      {/* Tab switcher */}
-
-      <div style={{display:"flex",gap:6,marginBottom:20,background:"#111827",borderRadius:10,padding:4}}>
-
-        {[["achievements","Achievements"],["milestones","Season Milestones"],["leaderboard","Achievement Leaders"]].map(([v,l])=>(
-
-          <button key={v} onClick={()=>setTab(v)}
-
-            style={{flex:1,padding:"8px 12px",borderRadius:7,border:"none",cursor:"pointer",fontWeight:700,fontSize:13,
-
-              background:tab===v?"#1E2A3A":"transparent",
-
-              color:tab===v?"#F2EDE4":"#BECBD9",transition:"all .15s"}}>
-
-            {l}
-
-          </button>
-
-        ))}
-
-      </div>
-
-
-      {tab==="achievements"&&(
-
-        <>
-
-          {/* My progress (if logged in) */}
-
-          {myPlayer&&(
-
-            <Panel style={{padding:"16px",marginBottom:20,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.2)"}}>
-
-              <div style={{display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-                <div style={{flex:1}}>
-
-                  <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:4}}>Your Progress</div>
-
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-
-                    {tierOrder.map(tier=>{
-
-                      const earned=ACHIEVEMENTS.filter(a=>a.tier===tier&&a.check(myPlayer)).length;
-
-                      const total=ACHIEVEMENTS.filter(a=>a.tier===tier).length;
-
-                      return(
-
-                        <div key={tier} style={{background:"rgba(255,255,255,.03)",borderRadius:8,padding:"6px 12px",textAlign:"center"}}>
-
-                          <div style={{fontSize:11,fontWeight:700,color:tierCols[tier]}}>{tierLabels[tier]}</div>
-
-                          <div style={{fontSize:16,fontWeight:800,color:"#F2EDE4",marginTop:2}}>{earned}<span style={{fontSize:12,color:"#BECBD9"}}>/{total}</span></div>
-
-                        </div>
-
-                      );
-
-                    })}
-
-                  </div>
-
-                </div>
-
-                <div style={{textAlign:"center"}}>
-
-                  <div className="mono" style={{fontSize:28,fontWeight:800,color:"#9B72CF"}}>{ACHIEVEMENTS.filter(a=>a.check(myPlayer)).length}</div>
-
-                  <div style={{fontSize:11,color:"#BECBD9"}}>of {ACHIEVEMENTS.length} unlocked</div>
-
-                </div>
-
-              </div>
-
-            </Panel>
-
-          )}
-
-
-          {/* Tier filter */}
-
-          <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
-
-            {[["all","All"],["bronze","Bronze"],["silver","Silver"],["gold","Gold"],["legendary","Legendary"]].map(([v,l])=>(
-
-              <button key={v} onClick={()=>setFilterTier(v)}
-
-                style={{padding:"6px 14px",borderRadius:20,border:"1px solid "+(filterTier===v?(v==="all"?"rgba(242,237,228,.4)":tierCols[v]+"88"):"rgba(242,237,228,.1)"),
-
-                  background:filterTier===v?(v==="all"?"rgba(242,237,228,.06)":tierCols[v]+"22"):"transparent",
-
-                  color:filterTier===v?(v==="all"?"#F2EDE4":tierCols[v]):"#BECBD9",
-
-                  fontSize:12,fontWeight:700,cursor:"pointer",transition:"all .15s"}}>
-
-                {l}
-
-              </button>
-
-            ))}
-
-          </div>
-
-
-          {/* Achievement grid */}
-
-          <div className="grid-2" style={{gap:10}}>
-
-            {filteredAch.length===0&&(
-              <div style={{gridColumn:"1/-1",textAlign:"center",padding:"40px 20px"}}>
-                <div style={{marginBottom:12}}>{React.createElement("i",{className:"ti ti-award",style:{fontSize:32}})}</div>
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>No achievements match this filter</div>
-                <div style={{fontSize:12,color:"#9AAABF"}}>Try selecting a different tier or category.</div>
-              </div>
-            )}
-
-            {filteredAch.map(a=>{
-
-              const unlocked=myPlayer?a.check(myPlayer):false;
-
-              const earnedBy=players.filter(p=>{try{return a.check(p);}catch{return false;}}).length;
-
-              const col=tierCols[a.tier];
-
-              return(
-
-                <div key={a.id} style={{
-
-                  background:unlocked?"rgba("+
-
-                    (a.tier==="legendary"?"155,114,207":a.tier==="gold"?"232,168,56":a.tier==="silver"?"192,192,192":"205,127,50")
-
-                    +",.06)":"rgba(255,255,255,.02)",
-
-                  border:"1px solid "+(unlocked?col+"44":"rgba(242,237,228,.07)"),
-
-                  borderRadius:12,padding:"16px",
-
-                  opacity:myPlayer&&!unlocked?.55:1,
-
-                  transition:"all .2s",
-
-                  animation:unlocked?"achievement-pop .4s ease-out both":"none"}}>
-
-                  <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
-
-                    <div style={{width:44,height:44,borderRadius:10,
-
-                      background:unlocked?col+"22":"rgba(255,255,255,.04)",
-
-                      border:"1px solid "+(unlocked?col+"55":"rgba(242,237,228,.08)"),
-
-                      display:"flex",alignItems:"center",justifyContent:"center",
-
-                      fontSize:22,flexShrink:0,
-
-                      boxShadow:unlocked?"0 0 12px "+col+"33":"none",
-
-                      animation:unlocked?"achievement-glow 2s ease-in-out infinite":"none"}}>
-
-                      {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon)})}
-
-                    </div>
-
-                    <div style={{flex:1,minWidth:0}}>
-
-                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
-
-                        <span style={{fontWeight:700,fontSize:14,color:unlocked?col:"#C8D4E0"}}>{a.name}</span>
-
-                        <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:10,
-
-                          background:col+"22",color:col,border:"1px solid "+col+"44"}}>
-
-                          {tierLabels[a.tier]}
-
-                        </span>
-
-                        {unlocked&&<span style={{fontSize:12,color:"#6EE7B7"}}>✓</span>}
-
-                      </div>
-
-                      <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5,marginBottom:6}}>{a.desc}</div>
-
-                      <div style={{fontSize:11,color:"#9AAABF"}}>{earnedBy} player{earnedBy!==1?"s":""} earned this</div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-        </>
-
-      )}
-
-
-      {tab==="milestones"&&(
-
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-
-          {MILESTONES.map(m=>{
-
-            const myUnlocked=myPlayer?m.check(myPlayer):false;
-
-            const earnedBy=players.filter(p=>{try{return m.check(p);}catch{return false;}}).length;
-
-            const pctProgress=m.pts&&myPlayer?Math.min(100,Math.round(myPlayer.pts/m.pts*100)):myUnlocked?100:0;
-
-            return(
-
-              <Panel key={m.id} style={{padding:"18px",border:"1px solid "+(myUnlocked?"rgba(232,168,56,.3)":"rgba(242,237,228,.08)")}}>
-
-                <div style={{display:"flex",gap:14,alignItems:"center"}}>
-
-                  <div style={{width:52,height:52,borderRadius:12,
-
-                    background:myUnlocked?"rgba(232,168,56,.12)":"rgba(255,255,255,.03)",
-
-                    border:"1px solid "+(myUnlocked?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),
-
-                    display:"flex",alignItems:"center",justifyContent:"center",
-
-                    fontSize:26,flexShrink:0}}>
-
-                    {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[m.icon]||m.icon)})}
-
-                  </div>
-
-                  <div style={{flex:1}}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
-
-                      <span style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{m.name}</span>
-
-                      {myUnlocked&&<span style={{fontSize:12,color:"#6EE7B7",fontWeight:700}}>✓ Unlocked</span>}
-
-                    </div>
-
-                    {m.pts&&(
-
-                      <div style={{marginBottom:6}}>
-
-                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-
-                          <span style={{fontSize:12,color:"#BECBD9"}}>{myPlayer?myPlayer.pts:0} / {m.pts} pts</span>
-
-                          <span style={{fontSize:12,color:"#E8A838",fontWeight:700}}>{pctProgress}%</span>
-
-                        </div>
-
-                        <div style={{height:4,background:"rgba(242,237,228,.08)",borderRadius:4}}>
-
-                          <div style={{width:pctProgress+"%",height:"100%",background:"linear-gradient(90deg,#E8A838,#C8882A)",borderRadius:4,transition:"width .3s"}}/>
-
-                        </div>
-
-                      </div>
-
-                    )}
-
-                    <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"4px 10px"}}>
-
-                      <span style={{fontSize:11}}>{React.createElement("i",{className:"ti ti-gift"})}</span>
-
-                      <span style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{m.reward}</span>
-
-                    </div>
-
-                    <div style={{fontSize:11,color:"#9AAABF",marginTop:6}}>{earnedBy} player{earnedBy!==1?"s":""} unlocked this</div>
-
-                  </div>
-
-                </div>
-
-              </Panel>
-
-            );
-
-          })}
-
-        </div>
-
-      )}
-
-
-      {tab==="leaderboard"&&(
-
-        <Panel style={{overflow:"hidden"}}>
-
-          <div style={{padding:"13px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-
-            <h3 style={{fontSize:15,color:"#F2EDE4",margin:0}}>Achievement Leaderboard</h3>
-
-            <p style={{fontSize:12,color:"#BECBD9",margin:"4px 0 0"}}>Most achievements earned this season</p>
-
-          </div>
-
-          {sorted.map((p,i)=>{
-
-            const earned=ACHIEVEMENTS.filter(a=>{try{return a.check(p);}catch{return false;}});
-
-            const legendary=earned.filter(a=>a.tier==="legendary").length;
-
-            const gold=earned.filter(a=>a.tier==="gold").length;
-
-            return(
-
-              <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}}
-
-                style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",
-
-                  borderBottom:"1px solid rgba(242,237,228,.05)",cursor:"pointer",
-
-                  background:i%2===0?"transparent":"rgba(255,255,255,.01)"}}
-
-                onMouseEnter={e=>e.currentTarget.style.background="rgba(232,168,56,.04)"}
-
-                onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"transparent":"rgba(255,255,255,.01)"}>
-
-                <div className="mono" style={{minWidth:24,fontSize:13,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF"}}>{i+1}</div>
-
-                <div style={{flex:1}}>
-
-                  <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{p.name}</div>
-
-                  <div style={{display:"flex",gap:4}}>
-
-                    {legendary>0&&<span style={{fontSize:10,fontWeight:700,background:"rgba(155,114,207,.15)",color:"#9B72CF",padding:"2px 7px",borderRadius:8}}>{legendary}</span>}
-
-                    {gold>0&&<span style={{fontSize:10,fontWeight:700,background:"rgba(232,168,56,.12)",color:"#E8A838",padding:"2px 7px",borderRadius:8}}>{gold}</span>}
-
-                  </div>
-
-                </div>
-
-                <div style={{textAlign:"right"}}>
-
-                  <div className="mono" style={{fontSize:18,fontWeight:800,color:"#9B72CF"}}>{earned.length}</div>
-
-                  <div style={{fontSize:10,color:"#BECBD9"}}>achievements</div>
-
-                </div>
-
-              </div>
-
-            );
-
-          })}
-
-        </Panel>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
 
 function getDailyReset(){
   var now=new Date();
@@ -11227,310 +9133,6 @@ function getWeeklyReset(){
   var d=Math.floor(diff/86400000);
   var h=Math.floor((diff%86400000)/3600000);
   return d+"d "+h+"h";
-}
-
-function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompletions}){
-
-  const [tab,setTab]=useState("active");
-
-  var dailyReset=getDailyReset();
-
-  var weeklyReset=getWeeklyReset();
-
-
-  // Find user's player if linked
-
-  const linked=players.find(function(p){return p.name===(currentUser&&currentUser.username);});
-
-  // Compute real challenge progress from player stats
-  var playerWins=linked?(linked.wins||0):0;
-  var playerTop4=linked?(linked.top4||0):0;
-  var playerGames=linked?(linked.games||0):0;
-  var completions=challengeCompletions||{};
-
-  var dailyChallenges=DAILY_CHALLENGES.map(function(c){
-    var prog=c.progress;
-    if(linked){
-      if(c.id==="d1")prog=Math.min(c.goal,playerWins>0?1:0);
-      if(c.id==="d2")prog=Math.min(c.goal,playerGames>0?1:0);
-      if(c.id==="d3")prog=Math.min(c.goal,playerTop4>0?1:0);
-    }
-    if(completions[c.id])prog=c.goal;
-    return Object.assign({},c,{progress:prog});
-  });
-
-  var weeklyChallenges=WEEKLY_CHALLENGES.map(function(c){
-    var prog=c.progress;
-    if(linked){
-      if(c.id==="w1")prog=Math.min(c.goal,playerWins);
-      if(c.id==="w2")prog=Math.min(c.goal,playerTop4);
-      if(c.id==="w3")prog=Math.min(c.goal,playerTop4>0?1:0);
-    }
-    if(completions[c.id])prog=c.goal;
-    return Object.assign({},c,{progress:prog});
-  });
-
-  const xp=linked?estimateXp(linked):0;
-
-  const rankInfo=getXpProgress(xp);
-
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-      </div>
-
-      <div style={{marginBottom:20}}>
-
-        <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:4}}>Challenges</h2>
-
-        <p style={{fontSize:13,color:"#BECBD9"}}>Complete challenges to earn XP and climb the platform ranks.</p>
-
-      </div>
-
-
-      {/* XP / Rank overview */}
-
-      <Panel style={{padding:"20px",marginBottom:20,background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(8,8,15,.98))"}}>
-
-        <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
-
-          <div style={{fontSize:36,animation:"crown-glow 3s ease 1"}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[rankInfo.rank.icon]||rankInfo.rank.icon),style:{color:rankInfo.rank.color}})}</div>
-
-          <div style={{flex:1,minWidth:200}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-
-              <span style={{fontSize:16,fontWeight:700,color:rankInfo.rank.color}}>{rankInfo.rank.name}</span>
-
-              {rankInfo.next&&<span style={{fontSize:12,color:"#BECBD9"}}>→ {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[rankInfo.next.icon]||rankInfo.next.icon),style:{fontSize:12,color:rankInfo.next.color}})} {rankInfo.next.name}</span>}
-
-            </div>
-
-            <Bar val={rankInfo.current} max={rankInfo.needed||1} color={rankInfo.rank.color} h={6}/>
-
-            <div style={{display:"flex",justifyContent:"space-between",marginTop:5}}>
-
-              <span className="mono" style={{fontSize:11,color:"#BECBD9"}}>{xp} total XP</span>
-
-              <span className="mono" style={{fontSize:11,color:rankInfo.rank.color}}>{rankInfo.pct}% to next rank</span>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </Panel>
-
-
-      {/* Tabs */}
-
-      <div style={{display:"flex",gap:6,marginBottom:18}}>
-
-        {["active","completed","xp-log"].map(t=>(
-
-          <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={()=>setTab(t)} style={{textTransform:"capitalize"}}>{t==="xp-log"?"XP Log":t}</Btn>
-
-        ))}
-
-      </div>
-
-
-      {tab==="active"&&(
-
-        <div>
-
-          {/* Daily */}
-
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-
-            <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".14em",textTransform:"uppercase"}}>Daily Challenges</div>
-
-            <div style={{fontSize:11,color:"#BECBD9"}}>Resets in <span style={{color:"#F87171",fontWeight:700}}>{dailyReset}</span></div>
-
-          </div>
-
-          <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:24}}>
-
-            {dailyChallenges.map(function(c){return(
-
-              <div key={c.id} className="task-card">
-
-                <div style={{display:"flex",alignItems:"center",gap:12}}>
-
-                  <div style={{width:44,height:44,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[c.icon]||c.icon)})}</div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{c.name}</div>
-
-                    <div style={{fontSize:12,color:"#C8D4E0"}}>{c.desc}</div>
-
-                    <div style={{marginTop:8}}>
-
-                      <Bar val={c.progress} max={c.goal} color="#E8A838" h={4}/>
-
-                      <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{c.progress}/{c.goal} completed</div>
-
-                    </div>
-
-                  </div>
-
-                  <div style={{textAlign:"center",flexShrink:0}}>
-
-                    <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>+{c.xp}</div>
-
-                    <div style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>XP</div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            );})}
-
-          </div>
-
-
-          {/* Weekly */}
-
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-
-            <div className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>Weekly Challenges</div>
-
-            <div style={{fontSize:11,color:"#BECBD9"}}>Resets in <span style={{color:"#9B72CF",fontWeight:700}}>{weeklyReset}</span></div>
-
-          </div>
-
-          <div style={{display:"flex",flexDirection:"column",gap:10}}>
-
-            {weeklyChallenges.map(function(c){
-
-              const done=c.progress>=c.goal;
-
-              return(
-
-                <div key={c.id} className={done?"weekly-card":"weekly-card"} style={{background:done?"rgba(82,196,124,.05)":undefined,border:done?"1px solid rgba(82,196,124,.3)":undefined}}>
-
-                  <div style={{display:"flex",alignItems:"center",gap:12}}>
-
-                    <div style={{width:44,height:44,background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[(done?"check-circle-fill":c.icon)]||(done?"check-circle-fill":c.icon)),style:{color:done?"#52C47C":undefined}})}</div>
-
-                    <div style={{flex:1,minWidth:0}}>
-
-                      <div style={{fontWeight:700,fontSize:14,color:done?"#6EE7B7":"#F2EDE4",marginBottom:2}}>{c.name}</div>
-
-                      <div style={{fontSize:12,color:"#C8D4E0"}}>{c.desc}</div>
-
-                      <div style={{marginTop:8}}>
-
-                        <Bar val={c.progress} max={c.goal} color={done?"#6EE7B7":"#9B72CF"} h={4}/>
-
-                        <div style={{fontSize:10,color:"#BECBD9",marginTop:3}}>{c.progress}/{c.goal} {done?"- Completed!":""}</div>
-
-                      </div>
-
-                    </div>
-
-                    <div style={{textAlign:"center",flexShrink:0}}>
-
-                      <div className="mono" style={{fontSize:16,fontWeight:700,color:done?"#6EE7B7":"#9B72CF"}}>+{c.xp}</div>
-
-                      <div style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>XP</div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-        </div>
-
-      )}
-
-
-      {tab==="complete"&&(function(){
-        var done=dailyChallenges.concat(weeklyChallenges).filter(function(c){return c.progress>=c.goal;});
-        return(
-        <div style={{textAlign:"center",padding:"48px 20px",color:"#BECBD9"}}>
-          <div style={{marginBottom:12}}>{React.createElement("i",{className:"ti ti-rosette-discount-check",style:{fontSize:36}})}</div>
-          <div style={{fontSize:15,fontWeight:600,color:"#F2EDE4",marginBottom:6}}>{done.length} challenge{done.length!==1?"s":""} completed</div>
-          {done.length>0&&<div style={{display:"flex",flexDirection:"column",gap:6,marginTop:16,textAlign:"left",maxWidth:360,margin:"16px auto 0"}}>
-            {done.map(function(c){return(
-              <div key={c.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.2)",borderRadius:8}}>
-                <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[c.icon]||c.icon),style:{fontSize:16}})}</span>
-                <span style={{flex:1,fontSize:13,color:"#6EE7B7",fontWeight:600}}>{c.name}</span>
-                <span className="mono" style={{fontSize:12,color:"#52C47C"}}>+{c.xp} XP</span>
-              </div>
-            );})}
-          </div>}
-          {done.length===0&&<div style={{fontSize:13}}>Keep playing to unlock more</div>}
-        </div>
-        );
-      })()}
-
-
-      {tab==="xp-log"&&(
-
-        <Panel style={{padding:"18px"}}>
-
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:14}}>XP History</h3>
-
-          {[
-
-            {icon:"trophy-fill",action:"Won Clash #13",xp:"+40 XP",time:"Mar 1 2026",c:"#E8A838"},
-
-            {icon:"bullseye",action:"Weekly challenge: On A Roll",xp:"+120 XP",time:"Mar 1 2026",c:"#9B72CF"},
-
-            {icon:"award-fill",action:"1st place - Top 2 finish",xp:"+50 XP",time:"Feb 28 2026",c:"#E8A838"},
-
-            {icon:"shield-fill",action:"Survived top 4",xp:"+15 XP",time:"Feb 28 2026",c:"#4ECDC4"},
-
-            {icon:"arrow-up-circle-fill",action:"Ranked up: Silver → Gold",xp:"RANK UP",time:"Feb 22 2026",c:"#EAB308"},
-
-            {icon:"controller",action:"Completed a game",xp:"+25 XP",time:"Feb 22 2026",c:"#BECBD9"},
-
-          ].map((e,i)=>(
-
-            <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:i<5?"1px solid rgba(242,237,228,.05)":"none"}}>
-
-              <div style={{width:32,height:32,background:"rgba(255,255,255,.04)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[e.icon]||e.icon),style:{fontSize:15,color:e.c}})}</div>
-
-              <div style={{flex:1}}>
-
-                <div style={{fontSize:13,color:"#F2EDE4"}}>{e.action}</div>
-
-                <div style={{fontSize:11,color:"#BECBD9"}}>{e.time}</div>
-
-              </div>
-
-              <div className="mono" style={{fontSize:13,fontWeight:700,color:e.c,flexShrink:0}}>{e.xp}</div>
-
-            </div>
-
-          ))}
-
-        </Panel>
-
-      )}
-
-    </div>
-
-  );
-
 }
 
 
@@ -12053,924 +9655,6 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
         </div>
 
       </div>
-
-    </div>
-
-  );
-
-}
-
-
-function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayers,setProfilePlayer,isAdmin,hostApps}){
-
-  const [tab,setTab]=useState("profile");
-
-  const [edit,setEdit]=useState(false);
-
-  const [bio,setBio]=useState(user.bio||"");
-
-  const [twitch,setTwitch]=useState(user.twitch||"");
-
-  const [twitter,setTwitter]=useState(user.twitter||"");
-
-  const [youtube,setYoutube]=useState(user.youtube||"");
-
-  const [usernameEdit,setUsernameEdit]=useState(user.username||"");
-
-  const [profilePic,setProfilePic]=useState(user.user_metadata?.profilePic||user.profilePic||"");
-  const [bannerUrl,setBannerUrl]=useState(user.user_metadata?.bannerUrl||user.bannerUrl||"");
-  const [profileAccent,setProfileAccent]=useState(user.user_metadata?.profileAccent||user.profileAccent||"");
-
-  const [riotId,setRiotId]=useState(user.user_metadata?.riotId||user.user_metadata?.riot_id||"");
-
-  const [riotRegion,setRiotRegion]=useState(user.user_metadata?.riotRegion||user.user_metadata?.riot_region||user.user_metadata?.region||"EUW");
-
-  const [secondRiotId,setSecondRiotId]=useState(user.user_metadata?.secondRiotId||user.secondRiotId||"");
-
-  const [secondRegion,setSecondRegion]=useState(user.user_metadata?.secondRegion||user.secondRegion||"EUW");
-
-
-  const usernameChanged=!!(user.user_metadata?.username_changed);
-
-  const riotIdSet=!!(user.user_metadata?.riotId||user.user_metadata?.riot_id);
-
-  const EU_NA=["EUW","EUNE","NA"];
-
-
-  const linkedPlayer=players.find(p=>(p.authUserId&&p.authUserId===user.id)||(p.id===user.linkedPlayerId)||(p.name===user.username));
-
-  const s=linkedPlayer?getStats(linkedPlayer):null;
-
-  const myAchievements=linkedPlayer?ACHIEVEMENTS.filter(a=>{try{return a.check(linkedPlayer);}catch{return false;}}):[];
-
-  const tierCols={bronze:"#CD7F32",silver:"#C0C0C0",gold:"#E8A838",legendary:"#9B72CF"};
-
-
-  async function save(){
-
-    const meta={
-
-      ...(user.user_metadata||{}),
-
-      bio,twitch,twitter,youtube,
-
-      secondRiotId,secondRegion,
-
-      profilePic,bannerUrl,profileAccent,
-
-    };
-
-    // Username: only set username_changed on first deliberate change
-
-    if(!usernameChanged&&usernameEdit.trim()&&usernameEdit.trim()!==user.username){
-
-      meta.username=usernameEdit.trim();
-
-      meta.username_changed=true;
-
-    }
-
-    // Riot ID: only set once
-
-    if(!riotIdSet&&riotId.trim()){
-
-      meta.riotId=riotId.trim();
-
-      meta.riotRegion=riotRegion;
-
-      meta.riotIdSet=true;
-
-    }
-
-    try{
-
-      await supabase.auth.updateUser({data:meta});
-
-    }catch(e){console.warn("Supabase update failed",e);toast("Failed to save profile  -  please try again","error");return;}
-
-    // Also update players table row linked to this auth user
-    var socialLinks={twitch:meta.twitch||"",twitter:meta.twitter||"",youtube:meta.youtube||""};
-    var playerUpdate={bio:meta.bio||"",region:riotRegion,social_links:socialLinks};
-    if(!riotIdSet&&meta.riotId){
-      playerUpdate.riot_id=meta.riotId;
-      playerUpdate.region=riotRegion;
-    }
-    supabase.from('players').update(playerUpdate).eq('auth_user_id',user.id).then(function(pRes){
-      if(pRes.error)console.error("[TFT] Players table update failed:",pRes.error);
-    });
-
-    onUpdate({...user,...meta,username:meta.username||user.username,user_metadata:meta,region:riotRegion,mainRegion:riotRegion,secondRiotId,secondRegion,profilePic,bannerUrl,profileAccent});
-
-    setEdit(false);
-
-    toast("Profile updated","success");
-
-  }
-
-
-  async function requestChange(field){
-
-    const pending=(user.user_metadata?.pending_changes||[]).concat([{field,requestedAt:new Date().toISOString()}]);
-
-    try{await supabase.auth.updateUser({data:{...(user.user_metadata||{}),pending_changes:pending}});}catch{}
-
-    toast("Change request submitted  -  an admin will review it","success");
-
-  }
-
-
-  const [subscription,setSubscription]=useState(null);
-
-  useEffect(function(){
-    if(!user?.id)return;
-    supabase.from('subscriptions').select('plan,status').eq('user_id',user.id).single()
-      .then(function(res){if(res.data?.status==='active')setSubscription(res.data);});
-  },[user]);
-
-  const isPro=!!(subscription&&(subscription.plan==="pro"||subscription.plan==="host"));
-  const rankColor=linkedPlayer?rc(linkedPlayer.rank):"#9B72CF";
-
-  const myMilestones=linkedPlayer?MILESTONES.filter(m=>{try{return m.check(linkedPlayer);}catch{return false;}}):[];
-
-  var acctProfileFields=[user.user_metadata&&user.user_metadata.riot_id,user.user_metadata&&user.user_metadata.bio,user.user_metadata&&user.user_metadata.region];
-  var acctProfileComplete=acctProfileFields.filter(Boolean).length;
-  var acctProfileTotal=acctProfileFields.length;
-  var acctMissingField=!(user.user_metadata&&user.user_metadata.riot_id)?"Riot ID":!(user.user_metadata&&user.user_metadata.bio)?"bio":"region";
-  var acctProgressMsg="Profile "+acctProfileComplete+"/"+acctProfileTotal+" complete"+(acctProfileComplete<acctProfileTotal?" - Add a "+acctMissingField+" to finish":"");
-
-
-  return(
-
-    <div className="page wrap">
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>My Account</h2>
-
-        <Btn v="dark" s="sm" onClick={onLogout}>Sign Out</Btn>
-
-      </div>
-
-      {!riotIdSet&&(
-        <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</span>
-          <div>
-            <div style={{color:"#E8A838",fontWeight:600,fontSize:13}}>Set your Riot ID to join tournaments</div>
-          </div>
-        </div>
-      )}
-
-      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
-        <span style={{width:6,height:6,borderRadius:"50%",background:acctProfileComplete===acctProfileTotal?"#52C47C":"#E8A838",display:"inline-block",flexShrink:0}}/>
-        <span style={{fontSize:12,color:acctProfileComplete===acctProfileTotal?"#52C47C":"#BECBD9",fontWeight:500}}>{acctProgressMsg}</span>
-      </div>
-
-      {/* Hero card - Twitter-style profile */}
-
-      <div style={{position:"relative",borderRadius:16,marginBottom:20,overflow:"hidden",border:"1px solid rgba(242,237,228,.12)"}}>
-
-        {/* Banner */}
-        <div style={{height:bannerUrl?140:90,background:bannerUrl?"url("+bannerUrl+") center/cover no-repeat":"linear-gradient(135deg,"+(profileAccent||rankColor)+"33,#08080F 80%)",position:"relative"}}>
-          <div style={{position:"absolute",inset:0,background:"linear-gradient(transparent 40%,#08080F)"}}/>
-        </div>
-
-        <div style={{padding:"0 24px 24px",marginTop:-44}}>
-
-        <div style={{display:"flex",gap:20,alignItems:"flex-end",flexWrap:"wrap"}}>
-
-          {/* Avatar */}
-
-          <div style={{position:"relative",flexShrink:0}}>
-
-            <div style={{width:88,height:88,borderRadius:"50%",
-
-              background:profilePic?"url("+profilePic+") center/cover no-repeat":"linear-gradient(135deg,"+rankColor+"44,"+rankColor+"11)",
-
-              border:"4px solid #08080F",boxShadow:"0 0 0 2px "+(profileAccent||rankColor)+"66",
-
-              display:"flex",alignItems:"center",justifyContent:"center",
-
-              fontSize:profilePic?0:34,fontWeight:800,color:rankColor}}>
-
-              {!profilePic&&user.username.charAt(0).toUpperCase()}
-
-            </div>
-
-            {isPro&&(
-              <div style={{position:"absolute",top:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",border:"2px solid #08080F",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#fff",fontWeight:900}}>{"\u2605"}</div>
-            )}
-
-            {myMilestones.length>0&&(
-
-              <div style={{position:"absolute",bottom:-2,right:-2,width:22,height:22,borderRadius:"50%",background:"#E8A838",border:"2px solid #08080F",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11}}>
-
-                {React.createElement("i",{className:"ti ti-"+(ICON_REMAP[myMilestones[myMilestones.length-1].icon]||myMilestones[myMilestones.length-1].icon),style:{fontSize:11}})}
-
-              </div>
-
-            )}
-
-          </div>
-
-          {/* Name + info */}
-
-          <div style={{flex:1,minWidth:200}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",marginBottom:6}}>
-
-              <h2 style={{fontSize:24,fontWeight:900,color:"#F2EDE4",margin:0}}>{user.username}</h2>
-
-              {isPro&&<span style={{background:"linear-gradient(90deg,#E8A838,#C8882A)",borderRadius:20,padding:"3px 10px",fontSize:10,fontWeight:800,color:"#08080F",letterSpacing:".04em"}}>{"PRO"}</span>}
-
-              {linkedPlayer&&<ClashRankBadge rank={linkedPlayer.rank}/>}
-
-              {linkedPlayer&&isHotStreak(linkedPlayer)&&<span style={{fontSize:14}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
-
-            </div>
-
-            {linkedPlayer&&(
-
-              <div style={{fontSize:13,color:"#BECBD9",marginBottom:8}}>{linkedPlayer.riotId} · {linkedPlayer.region}</div>
-
-            )}
-
-            <div style={{marginBottom:10,display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-              {subscription?(
-                <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 14px",borderRadius:20,background:subscription.plan==="host"?"rgba(232,168,56,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(subscription.plan==="host"?"rgba(232,168,56,.4)":"rgba(155,114,207,.4)"),fontSize:12,fontWeight:700,color:subscription.plan==="host"?"#E8A838":"#C4B5FD"}}>
-                  {subscription.plan==="host"?"Host Plan":"Pro Plan"} · Active
-                </div>
-              ):(
-                <button onClick={()=>setScreen("pricing")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"transparent",border:"1px solid rgba(155,114,207,.35)",fontSize:12,color:"#9B72CF",cursor:"pointer",fontFamily:"inherit"}}>
-                  Upgrade to Pro →
-                </button>
-              )}
-              {(isAdmin||(hostApps||[]).some(function(a){return a.status==="approved"&&(a.name===user.username||a.email===user.email);}))&&(
-                <button onClick={()=>setScreen("host-dashboard")} style={{display:"inline-flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:20,background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.4)",fontSize:12,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}}>
-                  {React.createElement("i",{className:"ti ti-device-gamepad-2",style:{marginRight:4}})}Host Dashboard →
-                </button>
-              )}
-            </div>
-
-            {user.bio?(
-
-              <p style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6,margin:0,maxWidth:480}}>{user.bio}</p>
-
-            ):(
-
-              <p style={{fontSize:13,color:"#9AAABF",fontStyle:"italic",margin:0}}>No bio yet - tell people who you are.</p>
-
-            )}
-
-            {/* Socials */}
-
-            {(user.twitch||user.twitter||user.youtube)&&(
-
-              <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}}>
-
-                {user.twitch&&<a href={"https://twitch.tv/"+user.twitch} target="_blank" style={{fontSize:11,color:"#9147FF",background:"rgba(145,71,255,.1)",border:"1px solid rgba(145,71,255,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"ti ti-device-tv",style:{fontSize:10,marginRight:3}})}{user.twitch}</a>}
-
-                {user.twitter&&<a href={"https://twitter.com/"+user.twitter} target="_blank" style={{fontSize:11,color:"#1DA1F2",background:"rgba(29,161,242,.1)",border:"1px solid rgba(29,161,242,.3)",borderRadius:6,padding:"3px 10px",textDecoration:"none",fontWeight:700}}>{React.createElement("i",{className:"ti ti-brand-x",style:{fontSize:10,marginRight:3}})}{user.twitter}</a>}
-
-              </div>
-
-            )}
-
-          </div>
-
-          {/* Quick pts */}
-
-          {linkedPlayer&&(
-
-            <div style={{textAlign:"center",flexShrink:0}}>
-
-              <div className="mono" style={{fontSize:40,fontWeight:900,color:"#E8A838",lineHeight:1}}>{linkedPlayer.pts}</div>
-
-              <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>Clash Points</div>
-
-              <div style={{fontSize:12,color:"#C8D4E0",marginTop:4}}>Season Rank #{[...players].sort((a,b)=>b.pts-a.pts).findIndex(p=>p.id===linkedPlayer.id)+1}</div>
-
-            </div>
-
-          )}
-
-        </div>
-
-        </div>
-
-      </div>
-
-
-      {/* Tabs */}
-
-      <div style={{display:"flex",gap:4,marginBottom:20,background:"#111827",borderRadius:10,padding:4}}>
-
-        {[["profile","Profile"],["stats","Stats"],["achievements","Achievements"],["history","History"]].map(([v,l])=>(
-
-          <button key={v} onClick={()=>setTab(v)} style={{flex:1,padding:"8px 10px",borderRadius:7,border:"none",cursor:"pointer",
-
-            fontWeight:700,fontSize:12,background:tab===v?"#1E2A3A":"transparent",
-
-            color:tab===v?"#F2EDE4":"#BECBD9",transition:"all .15s"}}>
-
-            {l}
-
-          </button>
-
-        ))}
-
-      </div>
-
-
-      {tab==="profile"&&(
-
-        <Panel style={{padding:"20px"}}>
-
-          {!edit?(
-
-            <>
-
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-
-                <h3 style={{color:"#F2EDE4",fontSize:15,margin:0}}>Profile Details</h3>
-
-                <Btn v="dark" s="sm" onClick={()=>setEdit(true)}>{React.createElement("i",{className:"ti ti-pencil",style:{fontSize:11,marginRight:3}})}Edit</Btn>
-
-              </div>
-
-              <div style={{display:"grid",gap:12}}>
-
-                {[
-
-                  ["Username",user.username,usernameChanged?"#9B72CF":"#F2EDE4"],
-
-                  ["Riot ID",(user.user_metadata?.riotId||user.user_metadata?.riot_id)?((user.user_metadata?.riotId||user.user_metadata?.riot_id)+" · "+(user.user_metadata?.riotRegion||user.user_metadata?.riot_region||user.user_metadata?.region||"EUW")):null,"#E8A838"],
-
-                  ["Secondary Riot ID",user.user_metadata?.secondRiotId?(user.user_metadata.secondRiotId+" · "+user.user_metadata.secondRegion):null,"#C4B5FD"],
-
-                  ["Bio",user.user_metadata?.bio||user.bio||null,"#C8D4E0"],
-
-                  ["Twitch",user.user_metadata?.twitch||user.twitch?("twitch.tv/"+(user.user_metadata?.twitch||user.twitch)):null,"#9147FF"],
-
-                  ["Twitter",user.user_metadata?.twitter||user.twitter?("@"+(user.user_metadata?.twitter||user.twitter)):null,"#1DA1F2"],
-
-                  ["Profile Picture",profilePic?"Custom avatar set":"Not set (default initial)",profilePic?"#6EE7B7":"#9AAABF"],
-
-                  ["Banner",bannerUrl?"Custom banner set":"Not set (rank gradient)",bannerUrl?"#6EE7B7":"#9AAABF"],
-
-                ].map(([label,val,col])=>(
-
-                  <div key={label} style={{display:"flex",justifyContent:"space-between",padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-
-                    <span style={{color:"#BECBD9",fontSize:13}}>{label}</span>
-
-                    <span style={{color:val?col:"#9AAABF",fontSize:13,fontWeight:val?600:400,maxWidth:280,textAlign:"right"}}>{val||" - "}</span>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-              {/* Discord connection */}
-
-              {(()=>{
-
-                const discordId=user.identities?.find(i=>i.provider==='discord')?.identity_data?.sub;
-
-                const discordName=user.identities?.find(i=>i.provider==='discord')?.identity_data?.global_name||user.identities?.find(i=>i.provider==='discord')?.identity_data?.full_name;
-
-                return(
-
-                  <div style={{marginTop:20,padding:"14px 16px",background:"rgba(88,101,242,.06)",border:"1px solid rgba(88,101,242,.25)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
-
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-
-                      <svg width="20" height="15" viewBox="0 0 71 55" fill="#5865F2" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/></svg>
-
-                      <div>
-
-                        <div style={{fontSize:13,fontWeight:700,color:discordId?"#6EE7B7":"#C8D4E0"}}>Discord {discordId?"Connected":"Not Connected"}</div>
-
-                        {discordId?<div style={{fontSize:11,color:"#9AAABF"}}>{discordName||"ID: "+discordId}</div>:<div style={{fontSize:11,color:"#9AAABF"}}>Link to auto-sync with our Discord bot</div>}
-
-                      </div>
-
-                    </div>
-
-                    {!discordId?(
-
-                      <button onClick={async()=>{await supabase.auth.linkIdentity({provider:'discord',options:{redirectTo:CANONICAL_ORIGIN+"#account"}});}}
-
-                        style={{padding:"7px 14px",background:"#5865F2",border:"none",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0,transition:"opacity .15s"}}
-
-                        onMouseEnter={e=>e.currentTarget.style.opacity=".85"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
-
-                        Connect Discord
-
-                      </button>
-
-                    ):(
-
-                      <button onClick={async()=>{
-
-                        if(!window.confirm("Disconnect Discord? You'll need a password to log in."))return;
-
-                        try{await supabase.auth.unlinkIdentity(user.identities.find(i=>i.provider==='discord'));toast("Discord disconnected","success");onLogout();}
-
-                        catch(e){toast("Could not disconnect: "+e.message,"error");}
-
-                      }} style={{padding:"7px 14px",background:"rgba(220,38,38,.12)",border:"1px solid rgba(220,38,38,.4)",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#F87171",flexShrink:0}}>
-
-                        Disconnect
-
-                      </button>
-
-                    )}
-
-                  </div>
-
-                );
-
-              })()}
-
-              {/* Danger zone */}
-
-              <div style={{marginTop:20,padding:"14px 16px",background:"rgba(220,38,38,.04)",border:"1px solid rgba(220,38,38,.2)",borderRadius:10}}>
-
-                <div style={{fontSize:13,fontWeight:700,color:"#F87171",marginBottom:6}}>Danger Zone</div>
-
-                <div style={{fontSize:12,color:"#9AAABF",marginBottom:10}}>Permanently delete your account and all data. This cannot be undone.</div>
-
-                <button onClick={async()=>{
-
-                  if(!window.confirm("Delete your account permanently? This cannot be undone."))return;
-
-                  try{
-                    // Remove player from DB and local state
-                    if(supabase.from){await supabase.from('players').delete().eq('auth_user_id',user.id).catch(function(){});}
-                    if(setPlayers){setPlayers(function(ps){return ps.filter(function(p){return p.authUserId!==user.id&&(p.name||"").toLowerCase()!==(user.username||"").toLowerCase();});});}
-                    await supabase.auth.admin?.deleteUser?.(user.id).catch(()=>{});await supabase.auth.signOut();onLogout();toast("Account deleted","success");
-                  }
-                  catch(e){await supabase.auth.signOut();onLogout();}
-
-                }} style={{padding:"7px 14px",background:"rgba(220,38,38,.15)",border:"1px solid rgba(220,38,38,.5)",borderRadius:7,cursor:"pointer",fontSize:12,fontWeight:700,color:"#F87171"}}>
-
-                  Delete Account
-
-                </button>
-
-              </div>
-
-            </>
-
-          ):(
-
-            <>
-
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-
-                <h3 style={{color:"#F2EDE4",fontSize:15,margin:0}}>Edit Profile</h3>
-
-                <div style={{display:"flex",gap:8}}>
-
-                  <Btn v="dark" s="sm" onClick={()=>setEdit(false)}>Cancel</Btn>
-
-                  <Btn v="primary" s="sm" onClick={save}>Save Changes</Btn>
-
-                </div>
-
-              </div>
-
-              <div style={{display:"grid",gap:16}}>
-
-                {/* Username  -  change once */}
-
-                <div>
-
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
-
-                    <div style={{fontSize:12,color:"#BECBD9"}}>Username {usernameChanged&&<span style={{color:"#9B72CF",fontSize:11}}>(locked  -  changed once)</span>}</div>
-
-                  </div>
-
-                  {usernameChanged?(
-
-                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
-
-                      <div style={{flex:1,background:"#0F1520",border:"1px solid rgba(242,237,228,.08)",borderRadius:8,padding:"9px 12px",color:"#9AAABF",fontSize:13}}>{user.username}</div>
-
-                      <Btn v="dark" s="sm" onClick={()=>requestChange("username")}>Request Change</Btn>
-
-                    </div>
-
-                  ):(
-
-                    <>
-
-                      <Inp value={usernameEdit} onChange={setUsernameEdit} placeholder="Your display name"/>
-
-                      <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>You can only change this once. After that, contact admin.</div>
-
-                    </>
-
-                  )}
-
-                </div>
-
-                {/* Main Riot ID  -  locked after set */}
-
-                <div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Main Riot ID {riotIdSet&&<span style={{color:"#E8A838",fontSize:11}}>(locked)</span>}</div>
-
-                  {riotIdSet?(
-
-                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
-
-                      <div style={{flex:1,background:"#0F1520",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"9px 12px",color:"#E8A838",fontSize:13,fontWeight:600}}>{user.user_metadata?.riotId||user.user_metadata?.riot_id} · {user.user_metadata?.riotRegion||user.user_metadata?.riot_region||user.user_metadata?.region||"EUW"}</div>
-
-                      <Btn v="dark" s="sm" onClick={()=>requestChange("riotId")}>Request Change</Btn>
-
-                    </div>
-
-                  ):(
-
-                    <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:8}}>
-
-                      <Inp value={riotId} onChange={setRiotId} placeholder="GameName#TAG"/>
-
-                      <Sel value={riotRegion} onChange={setRiotRegion}>
-
-                        {EU_NA.map(r=><option key={r} value={r}>{r}</option>)}
-
-                      </Sel>
-
-                    </div>
-
-                  )}
-
-                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>EU and NA accounts only. Cannot be changed without admin approval.</div>
-
-                </div>
-
-                {/* Secondary Riot ID */}
-
-                <div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Secondary Riot ID <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
-
-                  <div style={{display:"grid",gridTemplateColumns:"1fr 100px",gap:8}}>
-
-                    <Inp value={secondRiotId} onChange={setSecondRiotId} placeholder="SecondName#TAG"/>
-
-                    <Sel value={secondRegion} onChange={setSecondRegion}>
-
-                      {EU_NA.map(r=><option key={r} value={r}>{r}</option>)}
-
-                    </Sel>
-
-                  </div>
-
-                  <div style={{fontSize:11,color:"#9AAABF",marginTop:4}}>For players on both EU and NA. EU and NA only.</div>
-
-                </div>
-
-                {/* Bio */}
-
-                <div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Bio</div>
-
-                  <textarea value={bio} onChange={e=>setBio(e.target.value)} maxLength={160}
-
-                    placeholder="Tell people who you are..."
-
-                    style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.15)",borderRadius:8,
-
-                      padding:"10px 12px",color:"#F2EDE4",fontSize:13,resize:"none",height:72,fontFamily:"inherit",boxSizing:"border-box"}}/>
-
-                  <div style={{fontSize:11,color:"#9AAABF",marginTop:2,textAlign:"right"}}>{bio.length}/160</div>
-
-                </div>
-
-                {/* Appearance - Pro only */}
-
-                <div style={{borderTop:"1px solid rgba(242,237,228,.08)",paddingTop:16}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}>
-                    <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4"}}>{"Appearance"}</div>
-                    {isPro?<span style={{background:"linear-gradient(90deg,#E8A838,#C8882A)",borderRadius:20,padding:"2px 8px",fontSize:9,fontWeight:800,color:"#08080F"}}>{"PRO"}</span>:<span style={{fontSize:11,color:"#9AAABF"}}>{"(Pro feature)"}</span>}
-                  </div>
-
-                  {isPro?(
-                    <div style={{display:"grid",gap:14}}>
-                      <div>
-                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>{"Profile Picture"}</div>
-                        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
-                          <label style={{display:"inline-flex",alignItems:"center",gap:6,padding:"7px 12px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600,color:"#C4B5FD",flexShrink:0}}>
-                            {"Upload Photo"}
-                            {React.createElement("input",{
-                              type:"file",accept:"image/*",style:{display:"none"},
-                              onChange:function(e){
-                                var file=e.target.files[0];
-                                if(!file){return;}
-                                if(file.size>2*1024*1024){toast("Max 2MB","error");return;}
-                                supabase.storage.from("avatars").upload(user.id+"/avatar.png",file,{upsert:true})
-                                  .then(function(res){
-                                    if(res.error){toast("Upload failed","error");return;}
-                                    var url=supabase.storage.from("avatars").getPublicUrl(user.id+"/avatar.png").data.publicUrl;
-                                    setProfilePic(url);
-                                    supabase.from("players").update({profile_pic_url:url}).eq("auth_user_id",user.id);
-                                    toast("Avatar updated!","success");
-                                  });
-                              }
-                            })}
-                          </label>
-                          <span style={{fontSize:11,color:"#9AAABF"}}>{"or paste URL below"}</span>
-                        </div>
-                        <Inp value={profilePic} onChange={setProfilePic} placeholder="https://i.imgur.com/your-pic.png"/>
-                        <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{"Max 2MB. Square images work best."}</div>
-                        {profilePic&&<div style={{marginTop:8,display:"flex",alignItems:"center",gap:10}}><div style={{width:48,height:48,borderRadius:"50%",background:"url("+profilePic+") center/cover",border:"2px solid "+rankColor+"44"}}/>{"Preview"&&<span style={{fontSize:11,color:"#6EE7B7"}}>{"Preview"}</span>}</div>}
-                      </div>
-                      <div>
-                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>{"Banner Image URL"}</div>
-                        <Inp value={bannerUrl} onChange={setBannerUrl} placeholder="https://i.imgur.com/your-banner.png"/>
-                        <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{"Recommended: 1500x500 or similar wide aspect ratio."}</div>
-                        {bannerUrl&&<div style={{marginTop:8,height:60,borderRadius:8,background:"url("+bannerUrl+") center/cover",border:"1px solid rgba(242,237,228,.1)"}}/>}
-                      </div>
-                      <div>
-                        <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{"Profile Accent Color"}</div>
-                        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                          {["","#9B72CF","#E8A838","#4ECDC4","#F87171","#6EE7B7","#60A5FA","#FB923C","#EC4899","#8B5CF6"].map(function(clr){
-                            var isActive=profileAccent===clr;
-                            return(
-                              <div key={clr||"default"} onClick={function(){setProfileAccent(clr);}}
-                                style={{width:28,height:28,borderRadius:"50%",background:clr||"linear-gradient(135deg,"+rankColor+"44,"+rankColor+"11)",cursor:"pointer",border:isActive?"3px solid #fff":"3px solid transparent",transition:"border .15s",position:"relative"}}>
-                                {!clr&&<span style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#BECBD9"}}>{"Auto"}</span>}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  ):(
-                    <div style={{background:"rgba(232,168,56,.04)",border:"1px dashed rgba(232,168,56,.25)",borderRadius:10,padding:"16px",textAlign:"center"}}>
-                      <div style={{fontSize:13,color:"#E8A838",fontWeight:600,marginBottom:6}}>{"Unlock Profile Customization"}</div>
-                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:12}}>{"Set a custom avatar, banner image, and accent color. Make your profile stand out."}</div>
-                      <button onClick={function(){setScreen("pricing");setEdit(false);}} style={{background:"linear-gradient(90deg,#E8A838,#C8882A)",border:"none",borderRadius:8,padding:"8px 18px",fontSize:12,fontWeight:700,color:"#08080F",cursor:"pointer",fontFamily:"inherit"}}>{"Go Pro - \u20ac4.99/mo"}</button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Socials */}
-
-                <div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Twitch username</div>
-
-                  <Inp value={twitch} onChange={setTwitch} placeholder="your_twitch_name"/>
-
-                </div>
-
-                <div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",marginBottom:5}}>Twitter / X handle</div>
-
-                  <Inp value={twitter} onChange={setTwitter} placeholder="@yourhandle"/>
-
-                </div>
-
-              </div>
-
-            </>
-
-          )}
-
-        </Panel>
-
-      )}
-
-
-      {tab==="stats"&&(
-
-        <>
-
-          {linkedPlayer&&s?(
-
-            <>
-
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:10,marginBottom:16}}>
-
-                {[
-
-                  {l:"Clash Points",v:linkedPlayer.pts,c:"#E8A838"},
-
-                  {l:"Total Wins",v:linkedPlayer.wins,c:"#6EE7B7"},
-
-                  {l:"Top 4 Rate",v:s.top4Rate+"%",c:"#C4B5FD"},
-
-                  {l:"Avg Placement",v:s.avgPlacement,c:avgCol(s.avgPlacement)},
-
-                  {l:"Games Played",v:linkedPlayer.games,c:"#4ECDC4"},
-
-                  {l:"Best Streak",v:linkedPlayer.bestStreak,c:"#F87171"},
-
-                  {l:"PPG",v:s.ppg,c:"#EAB308"},
-
-                  {l:"Clutch Rate",v:s.clutchRate+"%",c:"#9B72CF"},
-
-                ].map(({l,v,c})=>(
-
-                  <div key={l} className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
-
-                    <div className="mono" style={{fontSize:20,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-                    <div style={{fontSize:10,color:"#BECBD9",marginTop:5,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
-              {/* Sparkline */}
-
-              {linkedPlayer.sparkline&&linkedPlayer.sparkline.length>0&&(
-
-                <Panel style={{padding:"16px"}}>
-
-                  <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:10}}>Points Trend</div>
-
-                  <Sparkline data={linkedPlayer.sparkline} color="#E8A838" height={60}/>
-
-                </Panel>
-
-              )}
-
-            </>
-
-          ):(
-
-            <div style={{textAlign:"center",padding:"48px 20px"}}>
-
-              <div style={{fontSize:40,marginBottom:12}}>{React.createElement("i",{className:"ti ti-chart-bar"})}</div>
-
-              <div style={{color:"#BECBD9",fontSize:14}}>No stats linked to your account yet.</div>
-
-              <div style={{color:"#9AAABF",fontSize:12,marginTop:6}}>Your account name must match a registered player.</div>
-
-            </div>
-
-          )}
-
-        </>
-
-      )}
-
-
-      {tab==="achievements"&&(
-
-        <div>
-
-          {linkedPlayer?(
-
-            <>
-
-              <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
-
-                <span style={{fontSize:14,fontWeight:700,color:"#F2EDE4"}}>{myAchievements.length} of {ACHIEVEMENTS.length} unlocked</span>
-
-                {["legendary","gold","silver","bronze"].map(tier=>{
-
-                  const n=myAchievements.filter(a=>a.tier===tier).length;
-
-                  return n>0?<span key={tier} style={{fontSize:12,fontWeight:700,padding:"3px 10px",borderRadius:10,
-
-                    background:tierCols[tier]+"22",color:tierCols[tier],border:"1px solid "+tierCols[tier]+"44"}}>
-
-                    {n} {tier}
-
-                  </span>:null;
-
-                })}
-
-              </div>
-
-              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:8}}>
-
-                {ACHIEVEMENTS.map(a=>{
-
-                  const unlocked=a.check(linkedPlayer);
-
-                  const col=tierCols[a.tier];
-
-                  return(
-
-                    <div key={a.id} style={{background:unlocked?col+"11":"rgba(255,255,255,.02)",
-
-                      border:"1px solid "+(unlocked?col+"44":"rgba(242,237,228,.06)"),
-
-                      borderRadius:10,padding:"12px",opacity:unlocked?1:.5,
-
-                      display:"flex",gap:10,alignItems:"center"}}>
-
-                      <div style={{fontSize:22,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[a.icon]||a.icon)})}</div>
-
-                      <div>
-
-                        <div style={{fontWeight:700,fontSize:13,color:unlocked?col:"#BECBD9"}}>{a.name}</div>
-
-                        <div style={{fontSize:11,color:"#9AAABF",marginTop:2}}>{a.desc}</div>
-
-                      </div>
-
-                      {unlocked&&<div style={{marginLeft:"auto",color:"#6EE7B7",fontSize:14,flexShrink:0}}>✓</div>}
-
-                    </div>
-
-                  );
-
-                })}
-
-              </div>
-
-            </>
-
-          ):(
-
-            <div style={{textAlign:"center",padding:"48px 20px",color:"#BECBD9"}}>No player data linked yet.</div>
-
-          )}
-
-        </div>
-
-      )}
-
-
-      {tab==="history"&&(
-
-        <Panel style={{overflow:"hidden"}}>
-
-          <div style={{padding:"13px 16px",background:"#0A0F1A",borderBottom:"1px solid rgba(242,237,228,.07)"}}>
-
-            <h3 style={{fontSize:15,color:"#F2EDE4",margin:0}}>Clash History</h3>
-
-          </div>
-
-          {linkedPlayer&&(linkedPlayer.clashHistory||[]).length>0?(
-
-            (linkedPlayer.clashHistory||[]).map((g,i)=>(
-
-              <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 16px",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
-
-                <div style={{width:36,height:36,borderRadius:8,
-
-                  background:(g.place||g.placement)===1?"rgba(232,168,56,.12)":(g.place||g.placement)<=4?"rgba(82,196,124,.08)":"rgba(255,255,255,.03)",
-
-                  border:"1px solid "+((g.place||g.placement)===1?"rgba(232,168,56,.4)":(g.place||g.placement)<=4?"rgba(82,196,124,.25)":"rgba(242,237,228,.08)"),
-
-                  display:"flex",alignItems:"center",justifyContent:"center",
-
-                  fontSize:13,fontWeight:800,
-
-                  color:(g.place||g.placement)===1?"#E8A838":(g.place||g.placement)<=4?"#6EE7B7":"#BECBD9",
-
-                  flexShrink:0}}>#{g.place||g.placement}</div>
-
-                <div style={{flex:1}}>
-
-                  <div style={{fontSize:13,fontWeight:600,color:"#F2EDE4"}}>
-
-                    {(g.place||g.placement)===1?"Victory":(g.place||g.placement)<=4?"Top 4 Finish":"Outside Top 4"}
-
-                    {g.clutch&&<span style={{marginLeft:6,fontSize:11,color:"#9B72CF",fontWeight:700}}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:3}})}Clutch</span>}
-
-                  </div>
-
-                  <div style={{fontSize:11,color:"#BECBD9",marginTop:2}}>
-
-                    R1: #{g.r1} · R2: #{g.r2} · R3: #{g.r3}
-
-                  </div>
-
-                </div>
-
-                <div className="mono" style={{fontSize:14,fontWeight:700,color:"#E8A838"}}>{g.pts||"-"}pts</div>
-
-              </div>
-
-            ))
-
-          ):(
-
-            <div style={{textAlign:"center",padding:"40px 20px",color:"#9AAABF"}}>No clash history yet.</div>
-
-          )}
-
-        </Panel>
-
-      )}
 
     </div>
 
@@ -13582,7 +10266,7 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
     <div className="page wrap" style={{maxWidth:600,margin:"0 auto"}}>
 
-      <Btn v="dark" s="sm" onClick={()=>setScreen("account")} style={{marginBottom:20}}>← Back</Btn>
+      <Btn v="dark" s="sm" onClick={()=>setScreen("my-profile")} style={{marginBottom:20}}>← Back</Btn>
 
       <div style={{marginBottom:28}}>
 
@@ -13824,7 +10508,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
           <p style={{fontSize:13,color:"#BECBD9",margin:0}}>Host Dashboard  -  manage tournaments, players, and branding.</p>
         </div>
         <div style={{display:"flex",gap:8}}>
-          <Btn v="dark" s="sm" onClick={function(){setScreen("featured");}}>{"← "} Featured</Btn>
+          <Btn v="dark" s="sm" onClick={function(){setScreen("events");}}>{"← "} Featured</Btn>
           <Btn v="primary" onClick={function(){setShowCreate(function(s){return !s;})}}>{showCreate?"Cancel":"+ New Tournament"}</Btn>
         </div>
       </div>
@@ -13911,7 +10595,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
                       <div style={{fontSize:12,color:"#BECBD9",marginBottom:8}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["calendar-event-fill"]||"calendar-event-fill")})} {t.date} · {React.createElement("i",{className:"ti ti-"+(ICON_REMAP["people-fill"]||"people-fill")})} {t.registered}/{t.size} players</div>
                       <Bar val={t.registered} max={t.size} color="#6EE7B7" h={4}/>
                     </div>
-                    <Btn v="primary" s="sm" onClick={function(){setScreen("bracket");}}>Live Bracket {"→"}</Btn>
+                    <Btn v="primary" s="sm" onClick={function(){setScreen("clash");}}>Live Bracket {"→"}</Btn>
                   </div>
                 );
               })}
@@ -13923,8 +10607,8 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
               <Btn v="ghost" s="sm" onClick={function(){setShowCreate(true);setTab("tournaments");}}>{"+"} New Tournament</Btn>
               <Btn v="ghost" s="sm" onClick={function(){setTab("announce");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["megaphone-fill"]||"megaphone-fill")})} Announce</Btn>
               <Btn v="ghost" s="sm" onClick={function(){setTab("branding");}}>{React.createElement("i",{className:"ti ti-palette"})} Edit Branding</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setScreen("bracket");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})} View Bracket</Btn>
-              <Btn v="ghost" s="sm" onClick={function(){setScreen("featured");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["star-fill"]||"star-fill")})} Featured Page</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("clash");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})} View Bracket</Btn>
+              <Btn v="ghost" s="sm" onClick={function(){setScreen("events");}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["star-fill"]||"star-fill")})} Featured Page</Btn>
             </div>
           </Panel>
         </div>
@@ -14288,7 +10972,7 @@ function TournamentDetailScreen(props){
   return(
     <div className="page wrap">
       <div style={{marginBottom:20}}>
-        <button onClick={function(){setScreen("featured");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:0,marginBottom:12,fontFamily:"inherit"}}>{"\u2190 Back to Featured Events"}</button>
+        <button onClick={function(){setScreen("events");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:0,marginBottom:12,fontFamily:"inherit"}}>{"\u2190 Back to Featured Events"}</button>
       </div>
 
       {/* Hero */}
@@ -14540,108 +11224,6 @@ function TournamentDetailScreen(props){
 
 // ─── TOURNAMENTS LIST SCREEN ──────────────────────────────────────────
 
-function TournamentsListScreen({setScreen,currentUser,toast}){
-  var [tournaments,setTournaments]=useState([]);
-  var [loading,setLoading]=useState(true);
-
-  useEffect(function(){
-  },[]);
-
-  // Count registrations per tournament
-  var [regCounts,setRegCounts]=useState({});
-  useEffect(function(){
-    if(tournaments.length===0)return;
-    var ids=tournaments.map(function(t){return t.id;});
-    supabase.from('registrations').select('tournament_id').in('tournament_id',ids).then(function(res){
-      if(!res.data)return;
-      var counts={};
-      res.data.forEach(function(r){counts[r.tournament_id]=(counts[r.tournament_id]||0)+1;});
-      setRegCounts(counts);
-    });
-  },[tournaments]);
-
-  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
-  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",complete:"Completed"};
-
-  return(
-    <div className="page wrap">
-      <div style={{marginBottom:28}}>
-        <h1 style={{color:"#F2EDE4",fontSize:24,fontWeight:700,margin:0,marginBottom:6}}>Tournaments</h1>
-        <p style={{color:"#BECBD9",fontSize:13,margin:0}}>Flash tournaments, competitive events, and community clashes. Free to enter, play to win.</p>
-      </div>
-
-      {loading&&<div style={{textAlign:"center",padding:"60px 0",color:"#8896A8"}}>Loading tournaments...</div>}
-
-      {!loading&&tournaments.length===0&&(
-        <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-          <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
-          <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No Tournaments Yet</div>
-          <div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Flash tournaments will appear here when admins create them.</div>
-        </Panel>
-      )}
-
-      {!loading&&tournaments.length>0&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
-          {tournaments.map(function(t){
-            var regCount=regCounts[t.id]||0;
-            var maxP=t.max_players||128;
-            var pct=Math.min(100,Math.round((regCount/maxP)*100));
-            var dateStr=t.date?new Date(t.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
-            var prizes=Array.isArray(t.prize_pool_json)?t.prize_pool_json:[];
-            // Status badge styles
-            var phaseBadgeBg={draft:"rgba(154,170,191,.1)",registration:"rgba(155,114,207,.15)",check_in:"rgba(232,168,56,.15)",in_progress:"rgba(82,196,124,.15)",complete:"rgba(78,205,196,.15)"};
-            var phaseBadgeColor={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
-            var badgeBg=phaseBadgeBg[t.phase]||"rgba(154,170,191,.1)";
-            var badgeColor=phaseBadgeColor[t.phase]||"#9AAABF";
-            // Countdown timer
-            var now=new Date();
-            var tDate=t.date?new Date(t.date):null;
-            var diff=tDate?(tDate-now):0;
-            var countdownStr="";
-            if(diff>0){
-              var days=Math.floor(diff/86400000);
-              var hours=Math.floor((diff%86400000)/3600000);
-              var mins=Math.floor((diff%3600000)/60000);
-              countdownStr=days>0?(days+"d "+hours+"h"):(hours>0?(hours+"h "+mins+"m"):(mins+"m"));
-            }
-            return(
-              <div key={t.id} onClick={function(){setScreen("flash-"+t.id);}} style={{background:"rgba(17,24,39,.85)",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"20px",cursor:"pointer",transition:"border-color .2s, transform .15s"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10,gap:8,flexWrap:"wrap"}}>
-                  <span style={{fontSize:11,fontWeight:700,color:badgeColor,background:badgeBg,borderRadius:20,padding:"3px 10px",letterSpacing:".4px",textTransform:"uppercase"}}>{phaseLabels[t.phase]||t.phase}</span>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    {countdownStr&&(
-                      <span style={{fontSize:11,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",borderRadius:12,padding:"2px 8px",border:"1px solid rgba(232,168,56,.2)"}}>{"\u23F0 "+countdownStr}</span>
-                    )}
-                    <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
-                  </div>
-                </div>
-                <div style={{fontWeight:700,fontSize:17,color:"#F2EDE4",marginBottom:8}}>{t.name}</div>
-                {prizes.length>0&&(
-                  <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
-                    {prizes.slice(0,3).map(function(p,i){
-                      return <span key={i} style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:6,padding:"2px 8px",fontSize:11,color:"#E8A838",fontWeight:600}}>{"#"+p.placement+" "+p.prize}</span>;
-                    })}
-                  </div>
-                )}
-                <div style={{marginBottom:6}}>
-                  <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:"#BECBD9",marginBottom:4}}>
-                    <span>{regCount+" / "+maxP+" players"}</span>
-                    <span>{pct+"%"}</span>
-                  </div>
-                  <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,.06)"}}>
-                    <div style={{height:4,borderRadius:2,background:pct>=90?"#F87171":pct>=60?"#E8A838":"#9B72CF",width:pct+"%",transition:"width .3s"}}/>
-                  </div>
-                </div>
-                <div style={{fontSize:12,color:"#8896A8"}}>{(t.round_count||3)+" games \u00B7 "+(t.seeding_method||"snake")+" seeding"}</div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 
 // ─── EMPTY STATE HELPER ────────────────────────────────────────────
 
@@ -14702,197 +11284,6 @@ function EventsScreen(props){
 
 // ─── FEATURED EVENTS SCREEN ────────────────────────────────────────────
 
-
-function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,setFeaturedEvents}){
-  var [filter,setFilter]=useState("all");
-  var allEvents=featuredEvents||[];
-  var live=allEvents.filter(function(e){return e.status==="live";});
-  var upcoming=allEvents.filter(function(e){return e.status==="upcoming";});
-  var past=allEvents.filter(function(e){return e.status==="complete";});
-  var active=live.concat(upcoming);
-  var shown=filter==="all"?active:filter==="live"?live:upcoming;
-
-  return(
-    <div className="page wrap">
-
-      <div style={{marginBottom:28}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:6,flexWrap:"wrap"}}>
-          <h1 style={{color:"#F2EDE4",fontSize:24,fontWeight:700,margin:0}}>Featured Events</h1>
-          {live.length>0&&(
-            <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"4px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
-              <span style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>
-              {live.length} LIVE NOW
-            </span>
-          )}
-        </div>
-        <p style={{color:"#BECBD9",fontSize:13,margin:0}}>Partner tournaments, community clashes and special events. Free to watch, free to enter.</p>
-      </div>
-
-      <div style={{display:"flex",gap:6,marginBottom:20}}>
-        {[["all","All Active"],["live","Live Now"],["upcoming","Upcoming"]].map(function(arr){
-          var f=arr[0],label=arr[1];
-          return(
-            <button key={f} onClick={function(){setFilter(f)}}
-              style={{background:filter===f?"rgba(155,114,207,.2)":"rgba(255,255,255,.04)",border:"1px solid "+(filter===f?"rgba(155,114,207,.5)":"rgba(242,237,228,.08)"),borderRadius:20,padding:"5px 14px",fontSize:12,fontWeight:600,color:filter===f?"#C4B5FD":"#BECBD9",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"}}>
-              {label}
-            </button>
-          );
-        })}
-      </div>
-
-      {allEvents.length===0&&(
-        <div style={{textAlign:"center",padding:"60px 20px"}}>
-          <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-building"})}</div>
-          <h3 style={{color:"#F2EDE4",marginBottom:8}}>No Featured Events Yet</h3>
-          <p style={{color:"#BECBD9",fontSize:14,maxWidth:400,margin:"0 auto"}}>Featured tournaments and community events will appear here once they are created by event organizers.</p>
-        </div>
-      )}
-
-      {live.length>0&&(function(){
-        var hero=live[0];
-        return(
-          <div style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,overflow:"hidden",marginBottom:20,cursor:"pointer"}}
-            onClick={function(){setScreen("tournament-"+hero.id);}}>
-            <div style={{background:"rgba(232,168,56,.07)",borderBottom:"1px solid rgba(232,168,56,.18)",padding:"9px 18px",display:"flex",alignItems:"center",gap:8}}>
-              <span style={{display:"flex",alignItems:"center",gap:5,background:"rgba(82,196,124,.15)",border:"1px solid rgba(82,196,124,.35)",borderRadius:20,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>
-                <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE NOW
-              </span>
-              <span style={{color:"#E8A838",fontWeight:600,fontSize:12,marginLeft:4}}>Round in progress</span>
-            </div>
-            <div style={{padding:"20px 22px"}}>
-              <div style={{display:"flex",gap:14,alignItems:"flex-start",flexWrap:"wrap"}}>
-                <div style={{width:52,height:52,borderRadius:14,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>{hero.logo}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontWeight:700,fontSize:18,color:"#F2EDE4",marginBottom:4}}>{hero.name}</div>
-                  <div style={{fontSize:12,color:"#9B72CF",fontWeight:600,marginBottom:10}}>Hosted by {hero.host}{hero.sponsor?" · Presented by "+hero.sponsor:""}</div>
-                  <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.5,marginBottom:14}}>{hero.description}</div>
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                    {(hero.tags||[]).map(function(t){return(
-                      <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{t}</span>
-                    );})
-                    }
-                    <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#E8A838"}}>{hero.registered}/{hero.size} players</span>
-                    {hero.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 9px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{hero.prizePool}</span>}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {shown.length>0&&(
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14,marginBottom:32}}>
-          {shown.map(function(ev){
-            var isLive=ev.status==="live";
-            return(
-              <div key={ev.id}
-                style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"border-color .2s"}}
-                onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.5)";}}
-                onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.2)";}}
-                onClick={function(){setScreen("tournament-"+ev.id);}}>
-                <div style={{padding:"16px 18px"}}>
-                  <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:10}}>
-                    <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo}</div>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",lineHeight:1.3,marginBottom:2}}>{ev.name}</div>
-                      <div style={{fontSize:11,color:"#9B72CF",fontWeight:600}}>{ev.host}</div>
-                    </div>
-                    <div style={{flexShrink:0}}>
-                      {isLive?(
-                        <span style={{display:"flex",alignItems:"center",gap:4,background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#6EE7B7"}}>
-                          <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE
-                        </span>
-                      ):(
-                        <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#4ECDC4"}}>UPCOMING</span>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:12}}>{ev.description}</div>
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
-                    <span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#BECBD9"}}>{ev.date}</span>
-                    {ev.time&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#BECBD9"}}>{ev.time}</span>}
-                    {ev.region&&<span style={{background:"rgba(255,255,255,.04)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#BECBD9"}}>{ev.region}</span>}
-                  </div>
-                  <div style={{marginBottom:10}}>
-                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
-                      <span style={{fontSize:10,color:"#BECBD9"}}>Registration</span>
-                      <span style={{fontSize:10,fontWeight:700,color:"#E8A838"}}>{ev.registered}/{ev.size}</span>
-                    </div>
-                    <Bar val={ev.registered} max={ev.size} color="#E8A838" h={4}/>
-                  </div>
-                  <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                    {ev.prizePool&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{ev.prizePool}</span>}
-                    {ev.sponsor&&<span style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:600,color:"#C4B5FD"}}>by {ev.sponsor}</span>}
-                    {(function(){
-                      var evRegIds=ev.registeredIds||[];
-                      var amRegistered=currentUser&&evRegIds.indexOf(currentUser.username)!==-1;
-                      var evFull=ev.registered>=ev.size;
-                      if(amRegistered)return <span style={{marginLeft:"auto",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>Registered {"\u2713"}</span>;
-                      if(evFull)return <span style={{marginLeft:"auto",background:"rgba(255,255,255,.04)",border:"1px solid rgba(242,237,228,.1)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#9AAABF"}}>Full</span>;
-                      if(!currentUser)return <button style={{marginLeft:"auto",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#E8A838",cursor:"pointer",fontFamily:"inherit"}} onClick={function(e){e.stopPropagation();onAuthClick("login");}}>Sign In</button>;
-                      return <button style={{marginLeft:"auto",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:7,padding:"5px 12px",fontSize:11,fontWeight:700,color:"#C4B5FD",cursor:"pointer",fontFamily:"inherit"}} onClick={function(e){e.stopPropagation();if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.map(function(evt){if(evt.id!==ev.id)return evt;return Object.assign({},evt,{registeredIds:(evt.registeredIds||[]).concat([currentUser.username]),registered:(evt.registered||0)+1});});});toast("Registered for "+ev.name+"!","success");}}}>Register</button>;
-                    })()}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {shown.length===0&&(
-        <div style={{textAlign:"center",padding:"48px 24px",color:"#BECBD9",marginBottom:24}}>
-          <div style={{fontSize:32,marginBottom:12}}>{React.createElement("i",{className:"ti ti-calendar-event"})}</div>
-          <div style={{fontSize:14}}>No events matching this filter right now.</div>
-        </div>
-      )}
-
-      {past.length>0&&(
-        <div style={{marginBottom:32}}>
-          <h3 style={{color:"#F2EDE4",fontSize:15,fontWeight:700,marginBottom:14}}>Past Events</h3>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {past.map(function(ev){
-              return(
-                <div key={ev.id}
-                  style={{background:"#111827",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"14px 18px",display:"flex",alignItems:"center",gap:14,cursor:"pointer",transition:"border-color .2s"}}
-                  onMouseEnter={function(e){e.currentTarget.style.borderColor="rgba(155,114,207,.3)";}}
-                  onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.06)";}}
-                  onClick={function(){setScreen("tournament-"+ev.id);}}>
-                  <div style={{fontSize:20,flexShrink:0}}>{ev.logo}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{ev.name}</div>
-                    <div style={{fontSize:11,color:"#BECBD9"}}>{ev.date} · {ev.registered} players · {ev.format}</div>
-                  </div>
-                  {ev.champion&&(
-                    <div style={{textAlign:"right",flexShrink:0}}>
-                      <div style={{fontSize:10,color:"#BECBD9",marginBottom:2}}>Champion</div>
-                      <div style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:12,color:"#E8A838",marginRight:3}})}{ev.champion}</div>
-                    </div>
-                  )}
-                  <span style={{fontSize:12,color:"#9B72CF",flexShrink:0}}>{"→"}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.05))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",textAlign:"center"}}>
-        <div style={{fontSize:28,marginBottom:10}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
-        <h3 style={{color:"#F2EDE4",fontSize:18,fontWeight:700,marginBottom:8}}>Run Your Own Tournament</h3>
-        <p style={{fontSize:13,color:"#BECBD9",lineHeight:1.7,marginBottom:20,maxWidth:420,margin:"0 auto 20px"}}>
-          Get featured here. Create and manage TFT tournaments with our full host suite.
-        </p>
-        <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-          <Btn v="primary" onClick={function(){currentUser?setScreen("host-apply"):onAuthClick("signup");}}>Apply to Host</Btn>
-          <Btn v="dark" onClick={function(){setScreen("pricing");}}>View Host Plans</Btn>
-        </div>
-      </div>
-
-    </div>
-  );
-}
 
 // ─── RULES SCREEN ─────────────────────────────────────────────────────────────
 
@@ -15294,8 +11685,8 @@ function WeeklyRecapCard(props){
 
 function Footer(props){
   var setScreen=props.setScreen;
-  var platformLinks=[["home","Home"],["roster","Roster"],["leaderboard","Leaderboard"],["hof","Hall of Fame"],["archive","Archive"]];
-  var communityLinks=[["featured","Featured Events"],["rules","Rules"],["faq","FAQ"],["gear","Gear"]];
+  var platformLinks=[["home","Home"],["clash","Clash"],["standings","Standings"],["my-profile","Profile"],["events","Events"]];
+  var communityLinks=[["rules","Rules"],["faq","FAQ"],["pricing","Pricing"]];
   var hostingLinks=[["pricing","Pricing"],["host-apply","Apply to Host"],["host-dashboard","Host Dashboard"]];
   return(
     <footer style={{background:"#06060C",borderTop:"1px solid rgba(155,114,207,.15)",padding:"40px 24px 24px",marginTop:40}}>
@@ -15558,7 +11949,7 @@ function TFTClash(){
     var ld=null;
     if(screen==="home")ld={"@context":"https://schema.org","@type":"WebApplication","name":"TFT Clash","url":"https://tft-clash.vercel.app","description":desc,"applicationCategory":"GameApplication","operatingSystem":"Any","offers":{"@type":"AggregateOffer","lowPrice":"0","highPrice":"19.99","priceCurrency":"EUR"}};
     if(screen.indexOf("tournament-")===0)ld={"@context":"https://schema.org","@type":"SportsEvent","name":"TFT Clash Tournament","location":{"@type":"VirtualLocation","url":"https://tft-clash.vercel.app/#"+screen},"organizer":{"@type":"Organization","name":"TFT Clash"}};
-    if(screen==="profile"||screen==="leaderboard")ld={"@context":"https://schema.org","@type":"SportsOrganization","name":"TFT Clash","sport":"Teamfight Tactics","url":"https://tft-clash.vercel.app"};
+    if(screen==="profile"||screen==="standings")ld={"@context":"https://schema.org","@type":"SportsOrganization","name":"TFT Clash","sport":"Teamfight Tactics","url":"https://tft-clash.vercel.app"};
     if(ld){var s2=document.createElement("script");s2.type="application/ld+json";s2.id="tft-jsonld";s2.textContent=JSON.stringify(ld);document.head.appendChild(s2);}
     window.scrollTo(0,0);
   },[screen]);
@@ -16011,9 +12402,9 @@ function TFTClash(){
   },[playersLoadedCount]);
 
   var navTo=useCallback(function(s){
-    if(s==="standings")s="leaderboard";
-    if(s==="hof")s="leaderboard";
-    if(s==="roster")s="leaderboard";
+    if(s==="leaderboard")s="standings";
+    if(s==="hof")s="standings";
+    if(s==="roster")s="standings";
     if(s==="bracket")s="clash";
     if(s==="results")s="clash";
     if(s==="account")s="my-profile";
@@ -16347,27 +12738,13 @@ function TFTClash(){
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents} seasonConfig={seasonConfig}/>}
 
-        {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
-
-        {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
         {screen==="clash"&&<ClashScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} quickClashes={quickClashes} onRegister={handleRegister} featuredEvents={featuredEvents}/>}
 
-        {screen==="leaderboard"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
-
         {screen==="standings"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
-        {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
+        {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("standings")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
-        {screen==="results"    &&<MemoResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
-
-        {screen==="hof"        &&<MemoHofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} pastClashes={pastClashes} toast={toast}/>}
-
-        {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
-
-        {screen==="milestones" &&<MilestonesScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
-
-        {screen==="challenges" &&<ChallengesScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} challengeCompletions={challengeCompletions}/>}
 
         {screen==="rules"      &&<RulesScreen setScreen={navTo}/>}
 
@@ -16385,19 +12762,13 @@ function TFTClash(){
 
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
 
-        {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
-
-        {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
         {screen==="my-profile"&&currentUser&&<ProfileScreen currentUser={currentUser} players={players} setPlayers={setPlayers} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps} challengeCompletions={challengeCompletions} onLogout={handleLogout} onUpdate={updateUser}/>}
         {screen==="my-profile"&&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
-        {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
-
 
         {screen==="events"&&<EventsScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
-        {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
         {screen.indexOf("tournament-")===0&&<TournamentDetailScreen event={featuredEvents.find(function(e){return e.id===screen.replace("tournament-","");})} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>}
 
