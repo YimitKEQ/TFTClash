@@ -3482,6 +3482,44 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 // Wrap heavy component in memo to prevent unnecessary re-renders
 var MemoStandingsTable = memo(StandingsTable);
 
+// ─── STANDINGS SCREEN (wrapper: Leaderboard + HoF + Roster tabs) ──────────────
+
+function StandingsScreen(props){
+  var tab=props.subRoute||"";
+  var tabs=[
+    {id:"",label:"Leaderboard"},
+    {id:"hof",label:"Hall of Fame"},
+    {id:"roster",label:"Player Directory"},
+  ];
+  return React.createElement("div",{className:"page"},
+    React.createElement("div",{style:{display:"flex",gap:4,padding:"0 16px",marginBottom:20,borderBottom:"1px solid rgba(242,237,228,.06)"}},
+      tabs.map(function(t){
+        var active=tab===t.id;
+        return React.createElement("button",{
+          key:t.id,
+          onClick:function(){props.setScreen("standings"+(t.id?"/"+t.id:""));},
+          style:{
+            padding:"10px 18px",
+            background:"none",
+            border:"none",
+            borderBottom:active?"2px solid #9B72CF":"2px solid transparent",
+            color:active?"#F2EDE4":"#9AAABF",
+            fontFamily:"'Barlow Condensed',sans-serif",
+            fontSize:14,
+            fontWeight:active?700:500,
+            cursor:"pointer",
+            letterSpacing:".02em",
+            transition:"all .2s",
+          }
+        },t.label);
+      })
+    ),
+    tab===""?React.createElement(MemoLeaderboardScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser,toast:props.toast}):null,
+    tab==="hof"?React.createElement(MemoHofScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,pastClashes:props.pastClashes,toast:props.toast}):null,
+    tab==="roster"?React.createElement(RosterScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser}):null
+  );
+}
+
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
@@ -17256,6 +17294,12 @@ function TFTClash(){
   var navSourceRef=useRef("user");
   useEffect(function(){function onPop(){navSourceRef.current="popstate";var h=window.location.hash.replace("#","");var parts=h.split("/");var base=parts[0]||"home";setScreen(base);setSubRoute(parts[1]||"");}window.addEventListener("popstate",onPop);return function(){window.removeEventListener("popstate",onPop);};},[]);
 
+  // ── Redirect legacy screens into StandingsScreen tabs ──
+  useEffect(function(){
+    var redirects={leaderboard:"standings",hof:"standings/hof",roster:"standings/roster"};
+    if(redirects[screen]){navTo(redirects[screen]);}
+  },[screen,navTo]);
+
   // ── Screen→hash sync: auto-updates URL, title, meta, scroll on any screen change ──
   useEffect(function(){
     if(navSourceRef.current==="popstate"){navSourceRef.current="user";}
@@ -18062,17 +18106,13 @@ function TFTClash(){
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents} seasonConfig={seasonConfig}/>}
 
-        {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
+        {screen==="standings"  &&<StandingsScreen subRoute={subRoute} players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast} pastClashes={pastClashes}/>}
 
         {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
-
-        {screen==="leaderboard"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
         {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
         {screen==="results"    &&<MemoResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
-
-        {screen==="hof"        &&<MemoHofScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} pastClashes={pastClashes} toast={toast}/>}
 
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
 
