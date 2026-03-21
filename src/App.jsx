@@ -3639,6 +3639,101 @@ function ProfileScreen(props){
   );
 }
 
+// ─── LIVE STANDINGS TABLE (animated, for live clash phase) ────────────────────
+
+function LiveStandingsTable(props){
+  var standings=props.standings||[];
+  if(standings.length===0) return null;
+  return React.createElement("div",{style:{
+    background:"rgba(8,8,15,.6)",border:"1px solid rgba(242,237,228,.06)",
+    borderRadius:12,overflow:"hidden",margin:"0 16px 20px",
+  }},
+    React.createElement("div",{style:{
+      display:"grid",gridTemplateColumns:"36px 1fr 60px 50px",
+      padding:"8px 14px",fontSize:10,color:"#9AAABF",
+      borderBottom:"1px solid rgba(242,237,228,.04)",
+      fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".06em",textTransform:"uppercase",
+    }},
+      React.createElement("span",null,"#"),
+      React.createElement("span",null,"Player"),
+      React.createElement("span",{style:{textAlign:"right"}},"Pts"),
+      React.createElement("span",{style:{textAlign:"right"}},"Delta")
+    ),
+    standings.map(function(p,i){
+      var isFirst=i===0;
+      var delta=p.delta||0;
+      var posChange=p.posChange||0;
+      return React.createElement("div",{
+        key:p.id||p.username||p.name||i,
+        className:"fade-up",
+        style:{
+          display:"grid",gridTemplateColumns:"36px 1fr 60px 50px",
+          padding:"10px 14px",fontSize:13,
+          background:isFirst?"rgba(232,168,56,.04)":"transparent",
+          borderLeft:isFirst?"3px solid #E8A838":"3px solid transparent",
+          animationDelay:(i*0.05)+"s",
+        }
+      },
+        React.createElement("span",{style:{
+          color:isFirst?"#E8A838":"#BECBD9",fontWeight:isFirst?700:400,
+        }},isFirst?"\ud83d\udc51":String(i+1)),
+        React.createElement("span",{style:{color:"#F2EDE4",fontWeight:isFirst?700:500,display:"flex",alignItems:"center",gap:6}},
+          p.username||p.name,
+          posChange!==0?React.createElement("span",{style:{
+            fontSize:10,
+            color:posChange>0?"#6EE7B7":"#F87171",
+          }},posChange>0?"\u25b2"+posChange:"\u25bc"+Math.abs(posChange)):null
+        ),
+        React.createElement("span",{style:{textAlign:"right",color:isFirst?"#E8A838":"#F2EDE4",fontWeight:700}},p.points||0),
+        React.createElement("span",{style:{
+          textAlign:"right",fontSize:12,
+          color:delta>0?"#6EE7B7":delta<0?"#F87171":"#9AAABF",
+        }},delta>0?"+"+delta:delta===0?"\u2014":String(delta))
+      );
+    })
+  );
+}
+
+// ─── YOUR FINISH CARD (results phase highlight for current user) ─────────────
+
+function YourFinishCard(props){
+  var currentUser=props.currentUser;
+  var finalStandings=props.finalStandings;
+  if(!currentUser||!finalStandings||finalStandings.length===0) return null;
+  var found=null;
+  for(var i=0;i<finalStandings.length;i++){
+    if(finalStandings[i].username===currentUser.username||finalStandings[i].name===currentUser.username){
+      found=finalStandings[i];
+      found.position=i+1;
+      break;
+    }
+  }
+  if(!found) return null;
+  var medals=["\ud83e\udd47","\ud83e\udd48","\ud83e\udd49"];
+  var posChange=found.posChange||0;
+  return React.createElement("div",{className:"fade-up",style:{
+    background:"rgba(155,114,207,.06)",
+    border:"1px solid rgba(155,114,207,.25)",
+    borderLeft:"4px solid #9B72CF",
+    borderRadius:12,padding:"16px 20px",margin:"0 16px 20px",
+    display:"flex",alignItems:"center",justifyContent:"space-between",
+  }},
+    React.createElement("div",null,
+      React.createElement("div",{style:{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".1em",marginBottom:4,fontFamily:"'Barlow Condensed',sans-serif"}},"Your Finish"),
+      React.createElement("div",{style:{fontSize:24,fontWeight:900,color:"#9B72CF",fontFamily:"'Playfair Display',serif"}},
+        found.position<=3?(medals[found.position-1]+" "):"",
+        "#"+found.position
+      )
+    ),
+    React.createElement("div",{style:{textAlign:"right"}},
+      React.createElement("div",{style:{fontSize:22,fontWeight:700,color:"#E8A838"}},(found.points||found.pts||0)+" pts"),
+      posChange!==0?React.createElement("div",{style:{fontSize:11,color:posChange>0?"#6EE7B7":"#F87171"}},
+        posChange>0?"\u25b2 "+posChange+" from last clash":"\u25bc "+Math.abs(posChange)+" from last clash"
+      ):null
+    )
+  );
+}
+
 // ─── CLASH SCREEN (phase-adaptive: registration / live / results) ─────────────
 
 function hexToRgb(hex){
@@ -3695,7 +3790,11 @@ function ClashScreen(props){
       )
     ),
     phase==="registration"||phase==="live"?React.createElement(MemoBracketScreen,{players:props.players,setPlayers:props.setPlayers,toast:props.toast,isAdmin:props.isAdmin,currentUser:props.currentUser,setProfilePlayer:props.setProfilePlayer,setScreen:props.setScreen,tournamentState:props.tournamentState,setTournamentState:props.setTournamentState,seasonConfig:props.seasonConfig}):null,
-    phase==="complete"?React.createElement(MemoResultsScreen,{players:props.players,toast:props.toast,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,tournamentState:props.tournamentState}):null
+    phase==="live"&&props.tournamentState.liveStandings?React.createElement(LiveStandingsTable,{standings:props.tournamentState.liveStandings}):null,
+    phase==="complete"?React.createElement(React.Fragment,null,
+      React.createElement(YourFinishCard,{currentUser:props.currentUser,finalStandings:props.tournamentState.finalStandings||[]}),
+      React.createElement(MemoResultsScreen,{players:props.players,toast:props.toast,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,tournamentState:props.tournamentState})
+    ):null
   );
 }
 
