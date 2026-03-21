@@ -3639,6 +3639,66 @@ function ProfileScreen(props){
   );
 }
 
+// ─── CLASH SCREEN (phase-adaptive: registration / live / results) ─────────────
+
+function hexToRgb(hex){
+  var r=parseInt(hex.slice(1,3),16);
+  var g=parseInt(hex.slice(3,5),16);
+  var b=parseInt(hex.slice(5,7),16);
+  return r+","+g+","+b;
+}
+
+function ClashScreen(props){
+  var phase=props.tournamentState&&props.tournamentState.phase;
+  var phaseColors={registration:"#9B72CF",live:"#E8A838",complete:"#4ECDC4"};
+  var phaseLabels={registration:"Registration Open",live:"Live \u2014 Game "+(props.tournamentState&&props.tournamentState.round||1)+" of "+(props.tournamentState&&props.tournamentState.totalGames||4),complete:"Results"};
+  var accentColor=phaseColors[phase]||"#9B72CF";
+
+  if(!phase){
+    return React.createElement("div",{className:"page",style:{textAlign:"center",padding:"80px 20px",color:"#9AAABF"}},
+      React.createElement("i",{className:"ti ti-swords",style:{fontSize:52,opacity:.25,display:"block",marginBottom:16}}),
+      React.createElement("h2",{style:{color:"#F2EDE4",marginBottom:8,fontFamily:"'Playfair Display',serif",fontSize:24}},"No Active Clash"),
+      React.createElement("p",{style:{fontSize:14,maxWidth:360,margin:"0 auto",lineHeight:1.5}},"Check back when registration opens for the next clash."),
+      React.createElement("div",{style:{marginTop:24}},
+        React.createElement(Btn,{v:"ghost",onClick:function(){props.setScreen("events");}},"Browse Past Events")
+      )
+    );
+  }
+
+  return React.createElement("div",{className:"page"},
+    React.createElement("div",{style:{
+      position:"relative",overflow:"hidden",
+      padding:"16px 20px",margin:"0 16px 20px",
+      borderRadius:14,
+      background:"rgba(17,24,39,.8)",
+      border:"1px solid rgba("+hexToRgb(accentColor)+",.2)",
+    }},
+      React.createElement("div",{style:{
+        position:"absolute",top:0,left:0,right:0,height:3,
+        background:"linear-gradient(90deg,transparent,"+accentColor+",transparent)",
+      }}),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+        React.createElement("div",{style:{
+          width:8,height:8,borderRadius:"50%",background:accentColor,
+          boxShadow:phase==="live"?"0 0 12px "+accentColor+", 0 0 24px "+accentColor:"none",
+        }}),
+        React.createElement("span",{style:{
+          fontSize:11,textTransform:"uppercase",letterSpacing:".1em",
+          color:accentColor,fontWeight:700,
+          fontFamily:"'Barlow Condensed',sans-serif",
+        }},phaseLabels[phase]||"Clash"),
+        phase==="live"?React.createElement("span",{style:{
+          marginLeft:"auto",fontSize:10,color:"#E8A838",
+          fontFamily:"'Barlow Condensed',sans-serif",
+          letterSpacing:".06em",opacity:.7,
+        }},"LIVE"):null
+      )
+    ),
+    phase==="registration"||phase==="live"?React.createElement(MemoBracketScreen,{players:props.players,setPlayers:props.setPlayers,toast:props.toast,isAdmin:props.isAdmin,currentUser:props.currentUser,setProfilePlayer:props.setProfilePlayer,setScreen:props.setScreen,tournamentState:props.tournamentState,setTournamentState:props.setTournamentState,seasonConfig:props.seasonConfig}):null,
+    phase==="complete"?React.createElement(MemoResultsScreen,{players:props.players,toast:props.toast,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,tournamentState:props.tournamentState}):null
+  );
+}
+
 // ─── EVENTS SCREEN (wrapper: Archive + Tournaments + Featured tabs) ───────────
 
 function EventsScreen(props){
@@ -17470,7 +17530,7 @@ function TFTClash(){
   useEffect(function(){
     if(navSourceRef.current==="popstate"){navSourceRef.current="user";}
     else{var fullHash=subRoute?screen+"/"+subRoute:screen;try{window.history.pushState({screen:screen,subRoute:subRoute},"","#"+fullHash);}catch(e){}}
-    var titles={home:"Home",standings:"Standings",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear"};
+    var titles={home:"Home",standings:"Standings",clash:"Clash",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear"};
     var t=titles[screen]||(screen.indexOf("tournament-")===0?"Tournament":"");
     document.title="TFT Clash"+(t?" \u2014 "+t:"");
     var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame \u2014 records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans \u2014 Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy \u2014 how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service \u2014 rules for using the platform."};
@@ -18291,6 +18351,8 @@ function TFTClash(){
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents} seasonConfig={seasonConfig}/>}
 
         {screen==="standings"  &&<StandingsScreen subRoute={subRoute} players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast} pastClashes={pastClashes}/>}
+
+        {screen==="clash"      &&<ClashScreen subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
         {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
