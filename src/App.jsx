@@ -2747,6 +2747,87 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
 
 
 
+// ─── TWO-CLICK RESULT CONFIRMATION MODALS ────────────────────────────────────
+
+function ordinal(n){return n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th";}
+
+function ResultSubmitModal(props){
+  var lobby=props.lobby;
+  var playerList=lobby.players||lobby.roster||[];
+  var initRankings=playerList.map(function(p,i){return {player:p,position:i+1};});
+  var _s=useState(initRankings);var rankings=_s[0];var setRankings=_s[1];
+
+  function handlePositionChange(playerIndex,newPosition){
+    setRankings(function(prev){return prev.map(function(r,i){
+      if(i===playerIndex)return Object.assign({},r,{position:parseInt(newPosition)});
+      return r;
+    });});
+  }
+
+  return React.createElement("div",{style:{
+    position:"fixed",inset:0,background:"rgba(8,8,15,.85)",zIndex:9995,
+    display:"flex",alignItems:"center",justifyContent:"center",
+    backdropFilter:"blur(8px)",
+  },onClick:props.onClose},
+    React.createElement("div",{style:{
+      background:"#111827",border:"1px solid rgba(155,114,207,.2)",
+      borderRadius:16,padding:24,maxWidth:420,width:"90%",
+      maxHeight:"80vh",overflowY:"auto",
+    },onClick:function(e){e.stopPropagation();}},
+      React.createElement("h3",{style:{color:"#F2EDE4",marginBottom:16,fontFamily:"'Playfair Display',serif"}},"Submit Results"),
+      rankings.map(function(r,i){
+        return React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},
+          React.createElement("span",{style:{fontSize:13,color:"#F2EDE4",flex:1}},r.player.username||r.player.name||r.player),
+          React.createElement("select",{
+            value:r.position,
+            onChange:function(e){handlePositionChange(i,e.target.value);},
+            style:{padding:"6px 10px",borderRadius:6,background:"#08080F",border:"1px solid rgba(242,237,228,.1)",color:"#F2EDE4",fontSize:13},
+          },
+            [1,2,3,4,5,6,7,8].map(function(pos){
+              return React.createElement("option",{key:pos,value:pos},ordinal(pos));
+            })
+          )
+        );
+      }),
+      React.createElement("div",{style:{display:"flex",gap:10,marginTop:16}},
+        React.createElement(Btn,{v:"primary",onClick:function(){props.onSubmit(rankings);}},"Submit"),
+        React.createElement(Btn,{v:"ghost",onClick:props.onClose},"Cancel")
+      )
+    )
+  );
+}
+
+function ConfirmResultsModal(props){
+  var submission=props.submission;
+  return React.createElement("div",{style:{
+    position:"fixed",inset:0,background:"rgba(8,8,15,.85)",zIndex:9995,
+    display:"flex",alignItems:"center",justifyContent:"center",
+    backdropFilter:"blur(8px)",
+  },onClick:props.onClose},
+    React.createElement("div",{style:{
+      background:"#111827",border:"1px solid rgba(78,205,196,.2)",
+      borderRadius:16,padding:24,maxWidth:420,width:"90%",
+    },onClick:function(e){e.stopPropagation();}},
+      React.createElement("h3",{style:{color:"#F2EDE4",marginBottom:4,fontFamily:"'Playfair Display',serif"}},"Confirm Results?"),
+      React.createElement("p",{style:{fontSize:12,color:"#9AAABF",marginBottom:16}},"Submitted by "+(submission.submittedBy||"unknown")),
+      (submission.rankings||[]).map(function(r,i){
+        return React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:"1px solid rgba(242,237,228,.04)"}},
+          React.createElement("span",{style:{width:28,fontSize:12,fontWeight:700,color:i<3?["#E8A838","#C0C0C0","#CD7F32"][i]:"#BECBD9"}},ordinal(r.position)),
+          React.createElement("span",{style:{fontSize:13,color:"#F2EDE4"}},r.player.username||r.player.name||r.player)
+        );
+      }),
+      React.createElement("div",{style:{display:"flex",gap:10,marginTop:16}},
+        React.createElement(Btn,{v:"primary",onClick:props.onConfirm},
+          React.createElement("i",{className:"ti ti-check",style:{marginRight:4}}),"Confirm"
+        ),
+        React.createElement(Btn,{v:"ghost",style:{borderColor:"rgba(248,113,113,.3)",color:"#F87171"},onClick:props.onDispute},
+          React.createElement("i",{className:"ti ti-flag",style:{marginRight:4}}),"Dispute"
+        )
+      )
+    )
+  );
+}
+
 // ─── LOBBY CARD ───────────────────────────────────────────────────────────────
 
 function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum}){
