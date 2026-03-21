@@ -8,7 +8,6 @@ var DATA_VERSION=2;
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
 
 
-
 // ─── DEBUG LOGGING ─────────────────────────────────────────────────────────────
 var TFT_DEBUG=typeof window!=="undefined"&&window.location.search.indexOf("debug=1")>-1;
 function dbg(){if(TFT_DEBUG)console.log.apply(console,arguments);}
@@ -83,7 +82,6 @@ class ScreenBoundary extends Component {
 }
 
 
-
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 const RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
@@ -119,14 +117,12 @@ const DEFAULT_SEASON_CONFIG = {
 const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#BECBD9"}];
 
 
-
 // ─── INPUT SANITIZATION ──────────────────────────────────────────────────────
 function sanitize(str){if(typeof str!=='string')return '';return str.replace(/<[^>]*>/g,'');}
 
 function rc(r){return RCOLS[r]||"#A8B2CC";}
 
 function tier(pts){return TIERS.find(t=>pts>=t.min)||TIERS[TIERS.length-1];}
-
 
 
 // Avg placement colour coding
@@ -144,7 +140,6 @@ function avgCol(avg){
   return"#f87171"; // red
 
 }
-
 
 
 // ─── PLATFORM RANKING SYSTEM ─────────────────────────────────────────────────
@@ -172,7 +167,6 @@ const CLASH_RANKS=[
 ];
 
 
-
 // XP rewards per action
 
 const XP_REWARDS={
@@ -196,7 +190,6 @@ const XP_REWARDS={
   season_pts_100:60,  // every 100 season pts
 
 };
-
 
 
 function getClashRank(xp){
@@ -228,7 +221,6 @@ function estimateXp(p){
 }
 
 
-
 // ─── STATS ENGINE ─────────────────────────────────────────────────────────────
 
 function computeStats(player){
@@ -252,7 +244,6 @@ function computeStats(player){
     :(parseFloat(player.avg)||0);
 
 
-
   // Per-round avgs (from roundPlacements field in history)
 
   const roundAvgs={r1:null,r2:null,r3:null,finals:null};
@@ -268,7 +259,6 @@ function computeStats(player){
   });
 
 
-
   // Comeback rate: placed 5-8 in r1 but finished top4 overall
 
   const comebacks=h.filter(g=>g.roundPlacements?.r1>=5&&(g.place||g.placement)<=4).length;
@@ -278,7 +268,6 @@ function computeStats(player){
   const comebackRate=comebackOpp>0?((comebacks/comebackOpp)*100).toFixed(0):0;
 
 
-
   // Clutch rate: won their lobby
 
   const clutches=h.filter(g=>g.claimedClutch).length;
@@ -286,11 +275,9 @@ function computeStats(player){
   const clutchRate=games>0?((clutches/games)*100).toFixed(0):0;
 
 
-
   // PPG
 
   const ppg=games>0?(player.pts/games).toFixed(1):0;
-
 
 
   // Per-clash AVP: average placement within each individual clash (same formula, but per event)
@@ -308,7 +295,6 @@ function computeStats(player){
       }).reduce((s,v,_,a)=>s+v/a.length,0).toFixed(2)
 
     :null;
-
 
 
   return{
@@ -391,7 +377,6 @@ function effectivePts(player, seasonConfig) {
 }
 
 
-
 function tiebreaker(a, b) {
 
   var aPts = a.pts || 0, bPts = b.pts || 0;
@@ -428,7 +413,6 @@ function tiebreaker(a, b) {
 }
 
 
-
 function isComebackEligible(player, allClashIds) {
 
   if (!allClashIds || !allClashIds.length) return false;
@@ -462,7 +446,6 @@ function isComebackEligible(player, allClashIds) {
 }
 
 
-
 function getAttendanceStreak(player, allClashIds) {
 
   if (!allClashIds || !allClashIds.length) return 0;
@@ -484,7 +467,6 @@ function getAttendanceStreak(player, allClashIds) {
   return streak;
 
 }
-
 
 
 function computeSeasonBonuses(player, currentClashId, allClashIds, seasonConfig) {
@@ -534,7 +516,6 @@ function computeSeasonBonuses(player, currentClashId, allClashIds, seasonConfig)
   return { bonusPts: bonusPts, comebackTriggered: comebackTriggered, attendanceMilestone: attendanceMilestone };
 
 }
-
 
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
@@ -600,7 +581,6 @@ const ACHIEVEMENTS=[
 ];
 
 
-
 const MILESTONES=[
 
   {id:"m1",icon:"shield-fill",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:p=>p.pts>=100},
@@ -622,12 +602,6 @@ const MILESTONES=[
 ];
 
 
-
-
-
-
-
-
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
 function getAchievements(p){return ACHIEVEMENTS.filter(a=>{try{return a.check(p);}catch{return false;}});}
@@ -644,9 +618,7 @@ function createNotification(userId,title,body,icon){
 function isHotStreak(p){return(p.currentStreak||0)>=3;}
 
 
-
 function isOnTilt(p){return(p.tiltStreak||0)>=3;}
-
 
 
 // ─── TOURNAMENT ENGINE ───────────────────────────────────────────────────────
@@ -722,38 +694,6 @@ function buildLobbies(players,method,lobbySize){
   return res;
 }
 
-// Build lobbies for a flash tournament from checked-in players
-function buildFlashLobbies(checkedInPlayers,seedingMethod){
-  var N=checkedInPlayers.length;
-  if(N<2)return{lobbies:[],byes:checkedInPlayers};
-  var pool=[].concat(checkedInPlayers);
-  if(seedingMethod==="random"){
-    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;}
-  } else {
-    // snake or rank-based: sort by rank then pts
-    pool.sort(function(a,b){return(RANKS.indexOf(b.rank||"Iron")-RANKS.indexOf(a.rank||"Iron"))||((b.pts||0)-(a.pts||0));});
-  }
-  var k=Math.floor(N/8);
-  var remainder=N-(k*8);
-  if(remainder===0){
-    // perfect
-  } else if(remainder>=6){
-    k=k+1;
-  } else {
-    if(k>=1){k=k+1;}
-    else{k=1;}
-  }
-  if(k<1)k=1;
-  var lobbies=[];
-  for(var li=0;li<k;li++)lobbies.push([]);
-  pool.forEach(function(p,idx){
-    var row=Math.floor(idx/k);
-    var col=row%2===0?(idx%k):(k-1-(idx%k));
-    lobbies[col].push(p);
-  });
-  return{lobbies:lobbies,byes:[]};
-}
-
 // Cut line: determine which players advance after N games
 // Returns { advancing: [], eliminated: [] }
 function applyCutLine(playerStandings,cutLine,cutAfterGame){
@@ -809,13 +749,11 @@ function computeTournamentStandings(players,gameResults,tournamentId){
 // ─── POST-CLASH AWARDS ENGINE ─────────────────────────────────────────────────
 
 
-
 function computeClashAwards(players){
 
   const eligible=players.filter(p=>p.games>0);
 
   if(eligible.length===0)return[];
-
 
 
   const byPts=[...eligible].sort((a,b)=>b.pts-a.pts);
@@ -825,11 +763,9 @@ function computeClashAwards(players){
   const byAvpWorst=[...eligible].filter(p=>p.games>=3).sort((a,b)=>parseFloat(b.avg||0)-parseFloat(a.avg||0));
 
 
-
   // Lobby Bully - most 1st place finishes
 
   const lobbyBully=byPts.reduce((best,p)=>(!best||p.wins>best.wins)?p:best,null);
-
 
 
   // The Choker - highest AVP but still in top half by pts (ironic)
@@ -839,11 +775,9 @@ function computeClashAwards(players){
   const choker=[...topHalf].filter(p=>p.games>=3).sort((a,b)=>parseFloat(b.avg||0)-parseFloat(a.avg||0))[0];
 
 
-
   // Highest single-clash score - best haul ever
 
   const singleMVP=eligible.reduce((best,p)=>(!best||(p.bestHaul||0)>(best.bestHaul||0))?p:best,null);
-
 
 
   // Most Improved - biggest improvement from first half to second half of games
@@ -880,11 +814,9 @@ function computeClashAwards(players){
   })();
 
 
-
   // On Fire - best 1st place streak
 
   const onFire=[...eligible].sort((a,b)=>(b.bestStreak||0)-(a.bestStreak||0))[0];
-
 
 
   return[
@@ -910,13 +842,7 @@ function computeClashAwards(players){
 }
 
 
-
-
-
-
-
 // ─── SEED DATA ────────────────────────────────────────────────────────────────
-
 
 
 const HOMIES_IDS=[];
@@ -926,18 +852,11 @@ const SEED=[];
 const PAST_CLASHES=[];
 
 
-
-
-
-
-
-
 // ─── AUTH / ACCOUNT SYSTEM ───────────────────────────────────────────────────
 
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
 let SEASON_CHAMPION=null; // computed from live standings  -  no hardcoded champion
-
 
 
 // ─── MILESTONE REWARDS ────────────────────────────────────────────────────────
@@ -987,9 +906,6 @@ const PREMIUM_TIERS=[
 ];
 
 
-
-
-
 const GCSS=`
 
 @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
@@ -1027,7 +943,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .mono{font-family:'JetBrains Mono',monospace!important;}
 
 .cond{font-family:'Chakra Petch',sans-serif!important;}
-
 
 
 /* ── animations ─────────────────────────────────────────────── */
@@ -1075,7 +990,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .au3{animation:fadeup .4s .13s ease both}
 
 
-
 /* ── layout helpers ──────────────────────────────────────────── */
 
 .wrap{max-width:1400px;margin:0 auto;padding:0 16px;}
@@ -1083,11 +997,9 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .page{padding:24px 16px 40px;animation:screen-enter .3s ease-out both;}
 
 
-
 /* ── mobile bottom nav ───────────────────────────────────────── */
 
 /* bottom-nav removed — hamburger menu replaces it */
-
 
 
 /* ── desktop top nav (hidden on mobile) ──────────────────────── */
@@ -1125,7 +1037,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 }
 
 
-
 /* ── placement buttons - mobile big tap targets ───────────────── */
 
 .place-btn{
@@ -1145,7 +1056,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
   .place-btn{padding:14px 2px;font-size:15px;}
 
 }
-
 
 
 /* ── grid helpers ────────────────────────────────────────────── */
@@ -1171,13 +1081,11 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 @media(max-width:900px){.grid-home{grid-template-columns:1fr;gap:24px;}}
 
 
-
 /* ── More drawer ─────────────────────────────────────────────── */
 
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:190;animation:fadeup .2s ease;}
 
 .drawer{position:fixed;left:0;top:0;bottom:0;width:280px;max-width:85vw;background:linear-gradient(180deg,#0E1826,#08101A);border-right:1px solid rgba(232,168,56,.2);z-index:195;animation:slide-drawer .22s ease;display:flex;flex-direction:column;padding:16px 0;box-shadow:4px 0 32px rgba(0,0,0,.6);overflow-y:auto;}
-
 
 
 /* ── esports glow enhancements ───────────────────────────────── */
@@ -1186,11 +1094,9 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 @keyframes border-glow{0%,100%{border-color:rgba(155,114,207,.3)}50%{border-color:rgba(155,114,207,.7);box-shadow:0 0 20px rgba(155,114,207,.2)}}
 
 
-
 /* Scanline overlay */
 
 .scanlines::after{content:"";position:fixed;inset:0;z-index:1;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.05) 3px,rgba(0,0,0,.05) 4px);}
-
 
 
 /* Logo hex glow */
@@ -1200,11 +1106,9 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .hex-logo:hover{filter:drop-shadow(0 0 14px rgba(232,168,56,.95)) drop-shadow(0 0 30px rgba(232,168,56,.4));}
 
 
-
 /* Gold shimmer text */
 
 .gold-shimmer{background:linear-gradient(135deg,#E8A838,#C8882A,#E8A838);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-
 
 
 /* Top nav enhancements */
@@ -1216,7 +1120,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .top-nav button[data-active="true"]{color:#E8A838!important;text-shadow:0 0 12px rgba(232,168,56,.5);}
 
 
-
 /* Bottom nav active glow */
 
 .bottom-nav button.active{color:#E8A838;text-shadow:0 0 10px rgba(232,168,56,.6);}
@@ -1224,7 +1127,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .bottom-nav button.active .icon{filter:drop-shadow(0 0 5px rgba(232,168,56,.7));}
 
 .bottom-nav button{transition:color .2s,text-shadow .2s;}
-
 
 
 /* Standings row hover */
@@ -1242,7 +1144,6 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .standings-row-3 .rank-num{text-shadow:0 0 8px rgba(205,127,50,.7);}
 
 
-
 /* Stat boxes glow on hover */
 
 .stat-box{background:linear-gradient(145deg,#131C2A,#0D1421);border:1px solid rgba(242,237,228,.1);border-radius:12px;padding:16px 14px;text-align:center;transition:border-color .2s,box-shadow .2s,transform .15s;cursor:default;}
@@ -1250,11 +1151,9 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 .stat-box:hover{border-color:rgba(232,168,56,.3);box-shadow:0 0 20px rgba(232,168,56,.08);transform:translateY(-2px);}
 
 
-
 /* Countdown neon digits */
 
 .countdown-digit{text-shadow:0 0 20px rgba(232,168,56,.7),0 0 40px rgba(232,168,56,.3)!important;}
-
 
 
 /* Input neon focus */
@@ -1262,11 +1161,9 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5),0 0 16px rgba(155,114,207,.12)!important;border-color:rgba(155,114,207,.6)!important;}
 
 
-
 /* Panel hover shimmer line */
 
 .panel-hover-shimmer{position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(232,168,56,.55),transparent);opacity:0;transition:opacity .3s;}
-
 
 
 /* Btn primary pulse */
@@ -1276,7 +1173,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5
 .btn-primary-glow:hover{box-shadow:0 6px 30px rgba(232,168,56,.5),0 0 60px rgba(232,168,56,.2)!important;transform:translateY(-1px)!important;}
 
 
-
 /* How-it-works step number neon */
 
 .step-num{box-shadow:0 0 12px rgba(155,114,207,.3);transition:box-shadow .2s,background .2s;}
@@ -1284,11 +1180,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5
 .step-num:hover{box-shadow:0 0 20px rgba(155,114,207,.5);background:rgba(155,114,207,.2)!important;}
 
 
-
 /* Points badge glow */
 
 .pts-glow{text-shadow:0 0 12px rgba(232,168,56,.6);}
-
 
 
 /* Live dot pulse enhanced */
@@ -1298,7 +1192,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5
 .live-dot-ring{animation:live-ping 1.8s cubic-bezier(0,.2,.8,1) infinite;}
 
 
-
 /* ── nav active underline ────────────────────────────────── */
 
 .top-nav button{position:relative;}
@@ -1306,11 +1199,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5
 .top-nav button[data-active="true"]::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);width:24px;height:2px;background:#E8A838;border-radius:2px;box-shadow:0 0 8px rgba(232,168,56,.8);}
 
 
-
 /* ── section divider ─────────────────────────────────────── */
 
 .section-div{height:1px;background:linear-gradient(90deg,rgba(232,168,56,.3),rgba(155,114,207,.15),transparent);margin:16px 0;}
-
 
 
 /* ── input focus bg ──────────────────────────────────────── */
@@ -1318,11 +1209,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 1px rgba(155,114,207,.5
 input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 
-
 /* ── row champion highlight ──────────────────────────────── */
 
 .row-champion{background:linear-gradient(90deg,rgba(232,168,56,.09),rgba(232,168,56,.03),transparent)!important;}
-
 
 
 /* ── deep card variant ───────────────────────────────────── */
@@ -1340,8 +1229,6 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 /* ── me row highlight ─────────────────────────────────────────────── */
 
 .standings-row-me{background:rgba(155,114,207,.1)!important;border-left:2px solid #9B72CF!important;}
-
-
 
 
 /* ── Phase 5: Arena redesign ──────────────────────────────────────────── */
@@ -1373,13 +1260,11 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .top-nav{border-top:2px solid #9B72CF!important;box-shadow:0 2px 0 rgba(155,114,207,.08),0 1px 0 rgba(232,168,56,.1),0 8px 40px rgba(0,0,0,.7)!important;}
 
 
-
 /* ═══════════════════════════════════════════════════════════
 
    ESPORTS OVERHAUL — Retro-Futurism Premium Layer
 
    ═══════════════════════════════════════════════════════════ */
-
 
 
 /* ── Rank number dramatic treatment ─────────────────────── */
@@ -1391,13 +1276,10 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .rank-3 .rank-num{color:#CD7F32!important;text-shadow:0 0 14px rgba(205,127,50,.7)!important;}
 
 
-
 /* ── New keyframes ───────────────────────────────────────── */
 
 
 @keyframes border-race{0%{background-position:0% 0%}100%{background-position:200% 0%}}
-
-
 
 
 /* ── Shimmer card effect ─────────────────────────────────── */
@@ -1405,12 +1287,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .shimmer-card{position:relative;overflow:hidden;}
 
 
-
-
 /* ── Elite panel variant ─────────────────────────────────── */
 
 .panel-elite{background:linear-gradient(145deg,rgba(18,28,48,.9) 0%,rgba(10,15,28,.95) 100%)!important;backdrop-filter:blur(24px)!important;-webkit-backdrop-filter:blur(24px)!important;border:1px solid rgba(255,255,255,.09)!important;box-shadow:0 8px 40px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.3)!important;}
-
 
 
 /* ── Gradient border on hero/featured elements ───────────── */
@@ -1420,11 +1299,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .border-neon-grad::before{content:"";position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(135deg,rgba(232,168,56,.5),rgba(155,114,207,.4),rgba(78,205,196,.3));-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:0;}
 
 
-
 /* ── Holographic champion row ────────────────────────────── */
 
 .row-champion{background:linear-gradient(270deg,rgba(232,168,56,.07),rgba(155,114,207,.06),rgba(78,205,196,.05))!important;background-size:300% 300%!important;animation:holo-shift 6s ease infinite!important;}
-
 
 
 /* ── Trophy glow ─────────────────────────────────────────── */
@@ -1432,10 +1309,7 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .trophy-glow{filter:drop-shadow(0 0 8px rgba(232,168,56,.6));}
 
 
-
 /* ── Moving retro scan line ──────────────────────────────── */
-
-
 
 
 /* ── Neon underline heading style ────────────────────────── */
@@ -1445,11 +1319,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .neon-underline::after{content:"";position:absolute;bottom:0;left:0;width:44px;height:2px;background:linear-gradient(90deg,#9B72CF,#4ECDC4);border-radius:2px;box-shadow:0 0 10px rgba(155,114,207,.7),0 0 20px rgba(155,114,207,.3);}
 
 
-
 /* ── Number/pts counter style ────────────────────────────── */
 
 .pts-counter{font-family:'JetBrains Mono',monospace!important;color:#E8A838!important;text-shadow:0 0 14px rgba(232,168,56,.6)!important;font-weight:800!important;}
-
 
 
 /* ── Player name hover ───────────────────────────────────── */
@@ -1459,11 +1331,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .player-name-hover:hover{color:#F2EDE4!important;text-shadow:0 0 12px rgba(155,114,207,.5)!important;}
 
 
-
 /* ── Tube-light top nav active ───────────────────────────── */
 
 .top-nav button[data-active="true"]::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:2px;background:#9B72CF;border-radius:0 0 4px 4px;box-shadow:0 0 12px rgba(155,114,207,.9),0 0 24px rgba(155,114,207,.5),0 4px 16px rgba(155,114,207,.3);}
-
 
 
 /* ── Bottom nav active glyph ─────────────────────────────── */
@@ -1473,11 +1343,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .bottom-nav button{position:relative;}
 
 
-
 /* ── Section separator ───────────────────────────────────── */
 
 .sep-gradient{height:1px;background:linear-gradient(90deg,transparent,rgba(155,114,207,.4),rgba(78,205,196,.2),transparent);margin:20px 0;}
-
 
 
 /* ── Stat value glow ─────────────────────────────────────── */
@@ -1485,11 +1353,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .stat-val-glow{color:#E8A838;text-shadow:0 0 16px rgba(232,168,56,.5);font-weight:800;font-family:'JetBrains Mono',monospace;}
 
 
-
 /* ── Countdown tile pulse border ─────────────────────────── */
 
 .countdown-tile{animation:neon-border-pulse 3s ease infinite!important;}
-
 
 
 /* ── Enhanced glass ──────────────────────────────────────── */
@@ -1497,11 +1363,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .glass{background:rgba(255,255,255,.035)!important;backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 4px 24px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)!important;}
 
 
-
 /* ── Hex pattern enhanced ────────────────────────────────── */
 
 .hex-pattern{opacity:.06!important;}
-
 
 
 /* ── Tag pill neon glow ───────────────────────────────────── */
@@ -1509,11 +1373,9 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 .tag-neon{box-shadow:0 0 10px currentColor;opacity:.9;}
 
 
-
 /* ── Input glow ring ─────────────────────────────────────── */
 
 input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:0 0 0 1px rgba(155,114,207,.6),0 0 20px rgba(155,114,207,.15)!important;border-color:rgba(155,114,207,.7)!important;}
-
 
 
 /* ── Winner placement badge ──────────────────────────────── */
@@ -1523,13 +1385,11 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 .place-top4{border-color:rgba(78,205,196,.4)!important;color:#4ECDC4!important;}
 
 
-
 /* ── CTA button premium ──────────────────────────────────── */
 
 .btn-cta{position:relative;overflow:hidden;}
 
 .btn-cta::after{content:"";position:absolute;top:-50%;left:-60%;width:30%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:skewX(-20deg);animation:shimmer-scan 3s ease infinite;}
-
 
 
 /* ── Inner mini-box (stat/info nested boxes) ─────────────── */
@@ -1539,7 +1399,6 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 .inner-box:hover{border-color:rgba(232,168,56,.14);}
 
 
-
 /* ── Task/challenge card ──────────────────────────────────── */
 
 .task-card{background:linear-gradient(160deg,rgba(14,22,40,.9),rgba(8,12,24,.95));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(242,237,228,.09);border-radius:12px;padding:16px;transition:border-color .25s,box-shadow .25s;}
@@ -1547,11 +1406,9 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 .task-card:hover{border-color:rgba(232,168,56,.22);box-shadow:0 6px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);}
 
 
-
 /* ── Announcement item row ───────────────────────────────── */
 
 .ann-item{background:linear-gradient(160deg,rgba(12,18,36,.9),rgba(7,11,22,.95));border:1px solid rgba(242,237,228,.08);border-radius:9px;padding:12px;}
-
 
 
 /* ── Weekly challenge card ───────────────────────────────── */
@@ -1559,7 +1416,6 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 .weekly-card{background:linear-gradient(135deg,rgba(155,114,207,.06),rgba(78,205,196,.02));border:1px solid rgba(155,114,207,.18);border-radius:12px;padding:16px;transition:border-color .2s;}
 
 .weekly-card:hover{border-color:rgba(155,114,207,.35);}
-
 
 
 /* ── Mobile responsiveness fixes ────────────────────────────── */
@@ -1705,9 +1561,6 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 `;
 
 
-
-
-
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
 
 function Hexbg(){
@@ -1747,7 +1600,6 @@ function Hexbg(){
   );
 
 }
-
 
 
 var ICON_REMAP={"exclamation-triangle-fill":"alert-triangle","exclamation-octagon-fill":"alert-octagon","info-circle-fill":"info-circle","check-circle-fill":"circle-check","x-circle-fill":"circle-x","slash-circle-fill":"ban","patch-check-fill":"rosette-discount-check","house-fill":"home","search":"search","three-dots":"dots","x-lg":"x","gear-fill":"settings","speedometer2":"gauge","download":"download","inbox":"inbox","clipboard":"clipboard","clipboard-check-fill":"clipboard-check","clipboard-data-fill":"clipboard-data","person-fill":"user","people-fill":"users","person-arms-up":"mood-happy","trophy-fill":"trophy","award-fill":"award","controller":"device-gamepad-2","dice-5-fill":"dice-5","bullseye":"target","crosshair":"crosshair","flag-fill":"flag","fire":"flame","snow":"snowflake","lightning-charge-fill":"bolt","sun-fill":"sun","moon-fill":"moon","water":"droplet-half-2","droplet":"droplet","droplet-fill":"droplet","hexagon-fill":"hexagon","diamond-half":"diamond","gem":"diamond","star-fill":"star","stars":"stars","heart-fill":"heart","shield-fill":"shield","shield-check":"shield-check","coin":"coin","bell-fill":"bell","bell-slash-fill":"bell-off","chat-fill":"message","megaphone-fill":"speakerphone","mic-fill":"microphone","broadcast-pin":"broadcast","calendar-event-fill":"calendar-event","calendar3":"calendar","calendar-check-fill":"calendar-check","bar-chart-line-fill":"chart-bar","graph-up-arrow":"trending-up","diagram-3-fill":"tournament","gift-fill":"gift","lock-fill":"lock","pin-fill":"pin","pencil-fill":"pencil","tag-fill":"tag","building":"building","tv-fill":"device-tv","pc-display":"device-desktop","mouse-fill":"mouse","headphones":"headphones","mortarboard-fill":"school","rocket-takeoff-fill":"rocket","journal-text":"notebook","question-circle-fill":"help-circle","eye-fill":"eye","emoji-dizzy":"mood-sad","pause-fill":"player-pause","archive-fill":"archive","arrow-up-circle-fill":"arrow-up-circle","twitter-x":"brand-x",};
@@ -1795,7 +1647,6 @@ function Panel({children,style,glow,accent,danger,color,hover,onClick,className}
   );
 
 }
-
 
 
 function Btn({children,onClick,v,s,disabled,full,style}){
@@ -1853,7 +1704,6 @@ function Btn({children,onClick,v,s,disabled,full,style}){
 }
 
 
-
 function Inp({value,onChange,placeholder,type,onKeyDown,style}){
 
   const [f,setF]=useState(false);
@@ -1879,7 +1729,6 @@ function Inp({value,onChange,placeholder,type,onKeyDown,style}){
   );
 
 }
-
 
 
 function Skeleton({width,height,radius,style}){
@@ -1936,9 +1785,6 @@ function Sel({value,onChange,children,style}){
 }
 
 
-
-
-
 function TierBadge({pts}){
 
   const t=tier(pts);
@@ -1956,7 +1802,6 @@ function TierBadge({pts}){
   );
 
 }
-
 
 
 function ClashRankBadge({xp,size,showProgress}){
@@ -2008,9 +1853,6 @@ function ClashRankBadge({xp,size,showProgress}){
 }
 
 
-
-
-
 function AvgBadge({avg}){
 
   const n=parseFloat(avg)||0;
@@ -2038,7 +1880,6 @@ function AvgBadge({avg}){
 }
 
 
-
 function Tag({children,color,size}){
 
   const c=color||"#E8A838";
@@ -2060,7 +1901,6 @@ function Tag({children,color,size}){
 }
 
 
-
 function Bar({val,max,color,h}){
 
   const pct=Math.min(100,(val/Math.max(max||1,1))*100);
@@ -2078,7 +1918,6 @@ function Bar({val,max,color,h}){
 }
 
 
-
 function Dot({color,size}){
 
   const c=color||"#52C47C";const s=size||7;
@@ -2086,7 +1925,6 @@ function Dot({color,size}){
   return <div style={{width:s,height:s,borderRadius:"50%",background:c,animation:"blink 2s infinite",flexShrink:0}}/>;
 
 }
-
 
 
 function Divider({label}){
@@ -2106,7 +1944,6 @@ function Divider({label}){
   );
 
 }
-
 
 
 function Toast({msg,type,onClose}){
@@ -2138,7 +1975,6 @@ function Toast({msg,type,onClose}){
 }
 
 
-
 function Confetti({active}){
 
   if(!active)return null;
@@ -2168,7 +2004,6 @@ function Confetti({active}){
   );
 
 }
-
 
 
 function Sparkline({data,color,w,h}){
@@ -2212,9 +2047,6 @@ function Sparkline({data,color,w,h}){
   );
 
 }
-
-
-
 
 
 // ─── SPONSOR BANNER ───────────────────────────────────────────────────────────
@@ -2290,7 +2122,6 @@ function SponsorBanner({sponsor,onNavigate}){
   );
 
 }
-
 
 
 // ─── CHAMPION HERO CARD (homepage) ────────────────────────────────────────────
@@ -2390,7 +2221,6 @@ function ChampionHeroCard({champion,onClick}){
 }
 
 
-
 // ─── MILESTONE CARD ────────────────────────────────────────────────────────────
 
 function MilestoneCard({milestone,unlocked}){
@@ -2436,7 +2266,6 @@ function MilestoneCard({milestone,unlocked}){
   );
 
 }
-
 
 
 // ─── AWARD CARD ───────────────────────────────────────────────────────────────
@@ -2494,7 +2323,6 @@ function AwardCard({award,onClick}){
 }
 
 
-
 // ─── DISPUTE SYSTEM ───────────────────────────────────────────────────────────
 
 function FileDisputeModal({targetPlayer,claimPlacement,onSubmit,onClose}){
@@ -2540,7 +2368,6 @@ function FileDisputeModal({targetPlayer,claimPlacement,onSubmit,onClose}){
   );
 
 }
-
 
 
 function DisputeBanner({disputes,onResolve,isAdmin}){
@@ -2598,7 +2425,6 @@ function DisputeBanner({disputes,onResolve,isAdmin}){
 }
 
 
-
 // ─── PLACEMENT BOARD - mobile-optimised ───────────────────────────────────────
 
 function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
@@ -2610,7 +2436,6 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
   const placed=Object.keys(results).length;
 
   const allSet=placed===roster.length;
-
 
 
   return(
@@ -2742,7 +2567,6 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
 }
 
 
-
 // ─── LOBBY CARD ───────────────────────────────────────────────────────────────
 
 function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum}){
@@ -2760,7 +2584,6 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
   const host=roster[0];
 
 
-
   function lockResults(){
 
     if(!allPlaced){toast("Assign all placements first","error");return;}
@@ -2776,9 +2599,7 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
   }
 
 
-
   const lbl=isFinals?"F":lobbyNum!==undefined?"L"+(lobbyNum+1):"R"+round;
-
 
 
   return(
@@ -2840,9 +2661,6 @@ function LobbyCard({roster,round,isFinals,onSubmit,toast,isAdmin,paused,lobbyNum
   );
 
 }
-
-
-
 
 
 // ─── NAVBAR (desktop top + mobile bottom) ────────────────────────────────────
@@ -2958,8 +2776,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   const canScrims=isAdmin||(currentUser&&(scrimAccess||[]).includes(currentUser.username));
 
 
-
-
   async function tryLogin(){
 
     const res=await fetch('/api/check-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw})});
@@ -2971,7 +2787,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     else toast("Wrong password","error");
 
   }
-
 
 
   // Primary mobile tabs (5 max)
@@ -2993,9 +2808,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   ];
 
 
-
   const [desktopMore,setDesktopMore]=useState(false);
-
 
 
   // Desktop nav
@@ -3047,7 +2860,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   var navProfileTotal=currentUser?3:3;
 
 
-
   const DRAWER_ITEMS=[
     {id:"home",icon:"house-fill",label:"Home",section:"main"},
     {id:"roster",icon:"people-fill",label:"Roster",section:"main"},
@@ -3068,7 +2880,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"account",icon:"person-fill",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up",section:"account"},
 
   ];
-
 
 
   return(
@@ -3104,7 +2915,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
         </div>
 
       )}
-
 
 
       {/* Drawer overlay */}
@@ -3160,14 +2970,13 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       )}
 
 
-
       {/* Desktop top nav  -  two-row layout */}
 
       <nav className="top-nav" style={{borderBottom:"2px solid transparent",borderImage:"linear-gradient(90deg,transparent,rgba(155,114,207,.3),rgba(232,168,56,.2),transparent) 1"}}>
 
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 16px",height:54,display:"flex",alignItems:"center",gap:0}}>
 
-          {/* Hamburger button — mobile only */}
+          {/* Hamburger button  -  mobile only */}
           <button className="mobile-hamburger" onClick={()=>setDrawer(d=>!d)}
             style={{background:"none",border:"none",padding:"8px",marginRight:8,cursor:"pointer",color:"#C8D4E0",fontSize:22,display:"flex",alignItems:"center",justifyContent:"center",WebkitTapHighlightColor:"transparent"}}>
             {React.createElement("i",{className:"ti ti-menu-2"})}
@@ -3325,15 +3134,11 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       </nav>
 
 
-
-
-
     </>
 
   );
 
 }
-
 
 
 // ─── STANDINGS TABLE ──────────────────────────────────────────────────────────
@@ -3492,10 +3297,6 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 }
 
 
-
-
-
-
 // Wrap heavy component in memo to prevent unnecessary re-renders
 var MemoStandingsTable = memo(StandingsTable);
 
@@ -3520,7 +3321,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const diff=Math.max(0,targetMs.current-now);
 
   const D=Math.floor(diff/86400000),H=Math.floor(diff%86400000/3600000),M=Math.floor(diff%3600000/60000),S=Math.floor(diff%60000/1000);
-
 
 
   // Guest self-registration removed  -  all registration goes through registerFromAccount()
@@ -3580,7 +3380,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   const myWaitlistPos=isMyWaitlisted?(tournamentState.waitlistIds||[]).indexOf(String(linkedPlayer.id))+1:0;
 
 
-
   function handleCheckIn(){
 
     if(!linkedPlayer)return;
@@ -3599,7 +3398,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     toast("You're checked in! Good luck, "+linkedPlayer.name+"","success");
 
   }
-
 
 
   function registerFromAccount(){
@@ -3689,7 +3487,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   }
 
 
-
   function phaseStatusText(){
 
     if(tPhase==="registration")return"Registration Open · "+registeredCount+"/"+(tournamentState.maxPlayers||24)+" registered"+((tournamentState.waitlistIds||[]).length>0?" · "+(tournamentState.waitlistIds||[]).length+" waitlisted":"");
@@ -3703,7 +3500,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     return"Registration Open";
 
   }
-
 
 
   function phaseStatusColor(){
@@ -3721,7 +3517,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   }
 
 
-
   const StatBox=({label,val,c})=>(
 
     <div className="stat-box shimmer-card" style={{background:"linear-gradient(145deg,rgba(18,28,48,.9),rgba(10,15,28,.95))",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:"16px 10px",textAlign:"center",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)"}}>
@@ -3733,7 +3528,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     </div>
 
   );
-
 
 
   // Community pulse ticker
@@ -3800,21 +3594,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       {currentUser&&SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
 
 
-
       <div style={{height:28}}/>
 
-      {upcomingTournament&&(
-        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.15),rgba(78,205,196,.1))",border:"1px solid rgba(155,114,207,.25)",borderRadius:14,padding:"20px 24px",marginBottom:24,cursor:"pointer"}} onClick={function(){setScreen("flash-"+upcomingTournament.id);}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-            <span style={{fontSize:11,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".5px",background:"rgba(155,114,207,.15)",borderRadius:6,padding:"2px 8px"}}>Flash Tournament</span>
-            <span style={{fontSize:11,color:"#E8A838"}}>{new Date(upcomingTournament.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
-          </div>
-          <div style={{fontSize:18,fontWeight:700,color:"#F2EDE4",marginBottom:4}}>{upcomingTournament.name}</div>
-          <div style={{fontSize:13,color:"#BECBD9",marginBottom:6}}>{(upcomingTournament.round_count||3)+" games \u00b7 "+(upcomingTournament.max_players||128)+" max players"}</div>
-          {countdownText&&<div style={{fontSize:12,fontWeight:700,color:countdownColor,marginBottom:10}}>{countdownText}</div>}
-          <Btn v="primary" s="sm">{"Register Now \u2192"}</Btn>
-        </div>
-      )}
 
       {/* Phase status pill with progress (logged-in only) */}
 
@@ -3864,7 +3645,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         )}
 
       </div>)}
-
 
 
       {/* Registration/check-in/live cards - hidden for logged-in (grid panel handles it) */}
@@ -3992,7 +3772,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           <Btn v="success" s="sm" onClick={()=>setScreen("bracket")}>Watch Live →</Btn>
         </div>
       )}
-
 
 
       {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
@@ -4212,7 +3991,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
 
 
-
         {/* Right: Register + Roster */}
 
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -4222,7 +4000,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join {clashName}</h3>
 
             <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>{clashDate||clashTime?(clashDate||"")+(clashDate&&clashTime?" · ":"")+(clashTime||""):"Upcoming"} · {seasonConfig&&seasonConfig.seasonName||"Season 1"}</div>
-
 
 
             {/* Not logged in */}
@@ -4258,7 +4035,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             )}
 
 
-
             {/* Logged in but Riot ID missing */}
 
             {currentUser&&!profileComplete&&(
@@ -4284,7 +4060,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               </div>
 
             )}
-
 
 
             {/* Already registered  -  show status + unregister */}
@@ -4358,7 +4133,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           </Panel>
 
 
-
           {/* How it works - hidden for logged-in (shown in visitor hero instead) */}
 
           {!currentUser&&(<Panel style={{padding:"18px"}}>
@@ -4394,7 +4168,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             ))}
 
           </Panel>)}
-
 
 
           {/* Roster CTA */}
@@ -4434,170 +4207,14 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
       <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
 
-      {/* Community Pulse Ticker */}
-
-      {tickerItems.length>0&&(
-
-        <div style={{overflow:"hidden",marginTop:20,borderRadius:10,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)"}}>
-
-          <div className="ticker-scroll">
-
-            {[...tickerItems,...tickerItems].map((item,i)=>(
-
-              <span key={i} style={{display:"inline-flex",alignItems:"center",padding:"8px 22px",fontSize:12,color:"#C8D4E0",fontWeight:600,whiteSpace:"nowrap",borderRight:"1px solid rgba(155,114,207,.1)"}}>
-
-                {typeof item==="object"?React.createElement(React.Fragment,null,React.createElement("i",{className:"ti ti-"+(ICON_REMAP[item.icon]||item.icon),style:{fontSize:12,marginRight:6}}),item.text):item}
-
-              </span>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      )}
-
-
-
       <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
 
-      {/* Featured Events */}
-
-      {(function(){
-        var evts=featuredEvents||[];
-        var activeEvts=evts.filter(function(e){return e.status==="live"||e.status==="upcoming";});
-        if(activeEvts.length===0)return null;
-        return(
-          <div style={{marginTop:20,marginBottom:4}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-              <div>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Partner Events</div>
-                <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",lineHeight:1}}>Featured Tournaments</h3>
-              </div>
-              <Btn v="dark" s="sm" onClick={function(){setScreen("featured");}}>View All →</Btn>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
-              {activeEvts.slice(0,3).map(function(ev){
-                var isLive=ev.status==="live";
-                return(
-                  <div key={ev.id} onClick={function(){setScreen("tournament-"+ev.id);}}
-                    style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+(isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)"),borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s ease",transform:"translateY(0)"}}
-                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";e.currentTarget.style.transform="translateY(-2px)";}}
-                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";e.currentTarget.style.transform="translateY(0)";}}>
-                    {isLive&&(
-                      <div style={{background:"rgba(82,196,124,.07)",borderBottom:"1px solid rgba(82,196,124,.18)",padding:"7px 16px",display:"flex",alignItems:"center",gap:6}}>
-                        <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>
-                        <span style={{fontSize:10,fontWeight:700,color:"#6EE7B7"}}>LIVE NOW</span>
-                      </div>
-                    )}
-                    <div style={{padding:"16px 18px"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")})}</div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>{ev.name}</div>
-                          <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>{ev.host||"Community Event"}{ev.sponsor?" · "+ev.sponsor:""}</div>
-                        </div>
-                      </div>
-                      {ev.description&&<div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{ev.description}</div>}
-                      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                        {(ev.tags||[]).map(function(t){return <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{t}</span>;})}
-                        <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#E8A838"}}>{ev.registered||0}/{ev.size||"?"} players</span>
-                        {ev.date&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{ev.date}</span>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Bottom row */}
-
-      <div style={{marginTop:20}}>
-
-        <SponsorBanner onNavigate={setScreen}/>
-
-      </div>
-
-
-
-      {/* Discord CTA */}
-
-      <div style={{background:"linear-gradient(90deg,rgba(88,101,242,.1),rgba(88,101,242,.05))",border:"1px solid rgba(88,101,242,.3)",borderRadius:12,padding:"14px 18px",marginTop:14,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-        <div style={{flexShrink:0}}>{React.createElement("i",{className:"ti ti-message",style:{fontSize:24}})}</div>
-
-        <div style={{flex:1,minWidth:0}}>
-
-          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Join the TFT Clash Discord</div>
-
-          <div style={{fontSize:12,color:"#C8D4E0",marginTop:2}}>Tournament alerts, results, tactics channels, and the community. Pro members get exclusive access.</div>
-
-        </div>
-
-        <Btn v="dark" s="sm" onClick={()=>toast("Discord link coming soon - server in setup!","success")} style={{background:"rgba(88,101,242,.15)",border:"1px solid rgba(88,101,242,.4)",color:"#818CF8",flexShrink:0}}>Join Discord →</Btn>
-
-      </div>
-
-
-
-      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
-
-      <Panel accent style={{padding:"18px",marginTop:0}}>
-
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-
-          <h3 style={{fontSize:17,color:"#F2EDE4",fontWeight:700,letterSpacing:"-.01em"}}>Season Standings</h3>
-
-          <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Full Leaderboard →</Btn>
-
-        </div>
-
-        {top5.map((p,i)=>(
-
-          <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 8px",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer",transition:"all .2s ease",borderRadius:8}}
-
-            onMouseEnter={function(e){e.currentTarget.style.transform="translateX(4px)";e.currentTarget.style.background="rgba(155,114,207,.06)";}}
-
-            onMouseLeave={function(e){e.currentTarget.style.transform="translateX(0)";e.currentTarget.style.background="transparent";}}>
-
-            <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF",minWidth:20,textAlign:"center"}}>{i+1}</div>
-
-            <div style={{flex:1,minWidth:0}}>
-
-              <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-
-              <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{p.rank} · {p.region}</div>
-
-            </div>
-
-            <div style={{textAlign:"right"}}>
-
-              <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
-
-              <div style={{fontSize:10,color:"#BECBD9"}}>pts</div>
-
-            </div>
-
-          </div>
-
-        ))}
-
-        {top5.length===0&&<div style={{color:"#9AAABF",fontSize:13,textAlign:"center",padding:24}}>No players yet</div>}
-
-      </Panel>
 
     </div>
 
   );
 
 }
-
-
-
 
 
 // ─── ROSTER SCREEN ────────────────────────────────────────────────────────────
@@ -4613,11 +4230,9 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
   const [sortBy,setSortBy]=useState("pts");
 
 
-
   const regions=["All",...[...new Set(players.map(p=>p.region))].sort()];
 
   const rankGroups=["All","Challenger","Grandmaster","Master","Diamond","Emerald"];
-
 
 
   const filtered=players.filter(function(p){return(p.games||0)>0||p.checkedIn;})
@@ -4637,15 +4252,12 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
     .sort((a,b)=>sortBy==="pts"?b.pts-a.pts:sortBy==="name"?a.name.localeCompare(b.name):sortBy==="wins"?b.wins-a.wins:b.avg-a.avg);
 
 
-
   const checkedIn=filtered.filter(p=>p.checkedIn);
 
   const notChecked=filtered.filter(p=>!p.checkedIn);
 
 
-
   const isHomie=(p)=>HOMIES_IDS.includes(p.id);
-
 
 
   return(
@@ -4667,7 +4279,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
         </div>
 
       </div>
-
 
 
       {/* Search + Filters */}
@@ -4705,7 +4316,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
         {search&&<div style={{marginTop:10,fontSize:12,color:"#BECBD9"}}>{filtered.length} result{filtered.length!==1?"s":""} for "{search}"</div>}
 
       </Panel>
-
 
 
       {/* Checked In section */}
@@ -4795,7 +4405,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
       )}
 
 
-
       {/* Not checked in */}
 
       {notChecked.length>0&&(
@@ -4851,7 +4460,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
       )}
 
 
-
       {filtered.length===0&&(
 
         <div style={{textAlign:"center",padding:"60px 20px"}}>
@@ -4871,13 +4479,6 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
   );
 
 }
-
-
-
-
-
-
-
 
 
 function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
@@ -4957,7 +4558,6 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 }
 
 
-
 // ─── BRACKET SCREEN ───────────────────────────────────────────────────────────
 
 function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig}){
@@ -4987,7 +4587,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   const [autoAdvanceCountdown,setAutoAdvanceCountdown]=useState(null);
   const autoAdvanceRef=useRef(null);
-
 
 
   function computeLobbies(){
@@ -5112,7 +4711,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
   }
 
 
-
   function openPlacementEntry(li){
 
     var lobby=lobbies[li];
@@ -5134,13 +4732,11 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
   }
 
 
-
   function setPlace(li,pid,val){
 
     setPlacementEntry(pe=>({...pe,[li]:{...pe[li],placements:{...pe[li].placements,[pid]:val}}}));
 
   }
-
 
 
   function placementValid(li){
@@ -5158,7 +4754,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     return valid&&unique;
 
   }
-
 
 
   function applyGameResults(li){
@@ -5255,7 +4850,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
     });
     toast("Placement submitted  -  waiting for admin confirmation","success");
   }
-
 
 
   function unlockLobby(li){
@@ -5382,13 +4976,11 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
   }
 
 
-
   // auto-highlight if logged in
 
   const myLobbyAuto=currentUser?lobbies.findIndex(lb=>lb.some(p=>p.name===currentUser.username)):-1;
 
   const effectiveHighlight=highlightLobby!==null?highlightLobby:myLobbyAuto>=0?myLobbyAuto:null;
-
 
 
   return(
@@ -5482,7 +5074,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       )}
 
 
-
       {checkedIn.length>0&&(
 
         <>
@@ -5552,7 +5143,6 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
             ))}
 
           </div>
-
 
 
           {/* Lobby grid */}
@@ -5764,11 +5354,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
           </div>
 
 
-
           {/* Live standings during inprogress */}
 
           {tournamentState&&tournamentState.phase==="inprogress"&&lockedLobbies.length>0&&<LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>}
-
 
 
           {/* Finals display */}
@@ -5798,17 +5386,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 }
 
 
-
-
-
-
-
 var MemoBracketScreen = memo(BracketScreen);
 
 const styleHideMobile=`@media(max-width:767px){.hide-mobile{display:none!important;}}`;
-
-
-
 
 
 // ─── PLAYER PROFILE SCREEN ────────────────────────────────────────────────────
@@ -5824,7 +5404,6 @@ const WEEKLY_CHALLENGES=[
 ];
 
 
-
 const DAILY_CHALLENGES=[
 
   {id:"d1",icon:"bullseye",name:"Sharp Shooter",desc:"Finish in the top 2",xp:50,type:"daily",progress:0,goal:1},
@@ -5834,7 +5413,6 @@ const DAILY_CHALLENGES=[
   {id:"d3",icon:"shield-fill",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
 
 ];
-
 
 
 function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig,allUsers}){
@@ -5858,7 +5436,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
   const s=getStats(player);
 
 
-
   const StatCard=({label,val,sub,c,big})=>(
 
     <div className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
@@ -5872,7 +5449,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
     </div>
 
   );
-
 
 
   function downloadStatsCard(){
@@ -5979,9 +5555,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
 
 
-
       </div>
-
 
 
       {/* Champion banner - shown if this player is the season champion */}
@@ -6005,7 +5579,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         </div>
 
       )}
-
 
 
       {/* Hero - Twitter-style with banner + pfp */}
@@ -6121,7 +5694,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
       </div>
 
 
-
       {/* Tabs */}
 
       <div style={{display:"flex",gap:6,marginBottom:16,overflowX:"auto",paddingBottom:2}}>
@@ -6133,7 +5705,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         ))}
 
       </div>
-
 
 
       {tab==="overview"&&(
@@ -6302,7 +5873,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
       )}
 
 
-
       {tab==="rounds"&&(
 
         <Panel style={{padding:"18px"}}>
@@ -6354,7 +5924,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         </Panel>
 
       )}
-
 
 
       {tab==="history"&&(
@@ -6448,7 +6017,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         </Panel>
 
       )}
-
 
 
       {tab==="h2h"&&(
@@ -6562,7 +6130,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
       )}
 
 
-
       {tab==="achievements"&&(
 
         <div className="grid-3">
@@ -6600,9 +6167,6 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 }
 
 
-
-
-
 var MemoPlayerProfileScreen=memo(PlayerProfileScreen);
 
 // ─── LEADERBOARD ──────────────────────────────────────────────────────────────
@@ -6622,7 +6186,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
   const MCOLS=["#E8A838","#C0C0C0","#CD7F32"];
 
 
-
   const sorted=useMemo(function(){
     var f=players.filter(function(p){
       var mn=p.name.toLowerCase().includes(search.toLowerCase());
@@ -6635,7 +6198,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
   const top3=sorted.slice(0,3);
 
   const myLbIdx=currentUser?sorted.findIndex(p=>p.name===currentUser.username):-1;
-
 
 
   function open(p){setProfilePlayer(p);setScreen("profile");}
@@ -6679,7 +6241,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
         </div>
 
       </div>
-
 
 
       {/* Podium */}
@@ -6747,7 +6308,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
       )}
 
 
-
       {/* Filters */}
 
       <div style={{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}}>
@@ -6761,11 +6321,9 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
       </div>
 
 
-
       {tab==="season"&&sorted.length>0&&<MemoStandingsTable rows={sorted} onRowClick={open} myName={currentUser?currentUser.username:null}/>}
 
       {tab==="season"&&sorted.length===0&&<Panel style={{padding:"48px 20px",textAlign:"center"}}><div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-trophy"})}</div><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>No standings yet</div><div style={{fontSize:13,color:"#9AAABF",lineHeight:1.5}}>Standings will appear once a clash has been played and results submitted.</div></Panel>}
-
 
 
       {tab==="cards"&&(
@@ -6847,7 +6405,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
       )}
 
 
-
       {tab==="stats"&&(
 
         <Panel style={{overflowX:"auto"}}>
@@ -6905,7 +6462,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
         </Panel>
 
       )}
-
 
 
       {tab==="streaks"&&(
@@ -6973,9 +6529,6 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 }
 
 
-
-
-
 var MemoLeaderboardScreen = memo(LeaderboardScreen);
 
 // ─── CLASH REPORT component ───────────────────────────────────────────────────
@@ -6985,7 +6538,6 @@ function ClashReport({clashData,players}){
   const allP=players.length>0?players:[];
 
   const report=clashData.report;
-
 
 
   // Build per-player round data from player clashHistory matching this clash
@@ -6999,7 +6551,6 @@ function ClashReport({clashData,players}){
   }).filter(p=>p.entry);
 
 
-
   const sorted=[...playerData].sort((a,b)=>(a.entry.place||a.entry.placement)-(b.entry.place||b.entry.placement));
 
   const mostImproved=report?.mostImproved||null;
@@ -7007,13 +6558,11 @@ function ClashReport({clashData,players}){
   const biggestUpset=report?.biggestUpset||null;
 
 
-
   if(sorted.length===0)return(
 
     <div style={{padding:"20px",color:"#BECBD9",fontSize:14,textAlign:"center"}}>No detailed data for this clash yet.</div>
 
   );
-
 
 
   return(
@@ -7101,7 +6650,6 @@ function ClashReport({clashData,players}){
       </div>
 
 
-
       {/* Awards row */}
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
@@ -7153,7 +6701,6 @@ function ClashReport({clashData,players}){
 }
 
 
-
 // ─── RESULTS SCREEN ───────────────────────────────────────────────────────────
 
 function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState}){
@@ -7175,15 +6722,12 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
   const PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
 
 
-
   if(!champ)return<div className="page wrap" style={{textAlign:"center",color:"#BECBD9",paddingTop:60}}>Complete a clash first!</div>;
-
 
 
   const top3=[sorted[1],sorted[0],sorted[2]].filter(Boolean);
 
   const REWARDS=["Clash Crown","Icon","Frame","Loot Orb","Loot Orb","","",""];
-
 
 
   function shareDiscord(){
@@ -7205,7 +6749,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
     navigator.clipboard?.writeText(lines.join("\n")).then(()=>toast("Copied for Discord","success"));
 
   }
-
 
 
   function downloadCard(){
@@ -7285,7 +6828,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
   }
 
 
-
   return(
 
     <div className="page wrap">
@@ -7322,7 +6864,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
         </div>
 
       </div>
-
 
 
       {/* Champion banner */}
@@ -7374,7 +6915,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
         </div>
 
       </div>
-
 
 
       {/* Podium  -  top 3 */}
@@ -7436,7 +6976,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
       )}
 
 
-
       {/* Tab nav */}
 
       <div style={{display:"flex",gap:6,marginBottom:18,overflowX:"auto",paddingBottom:2}}>
@@ -7448,7 +6987,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
         ))}
 
       </div>
-
 
 
       {/* Full Standings */}
@@ -7540,7 +7078,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
       )}
 
 
-
       {/* Awards */}
 
       {tab==="awards"&&(
@@ -7580,7 +7117,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
       )}
 
 
-
       {/* Clash Report */}
 
       {tab==="report"&&(
@@ -7604,9 +7140,6 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 }
 
 
-
-
-
 function AutoLogin({setAuthScreen}){
 
   useEffect(()=>{setAuthScreen("login");},[]);
@@ -7614,7 +7147,6 @@ function AutoLogin({setAuthScreen}){
   return null;
 
 }
-
 
 
 var MemoResultsScreen=memo(ResultsScreen);
@@ -7638,7 +7170,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
   const kingGap=challengers[0]?king.pts-challengers[0].pts:0;
 
 
-
   function openProfile(name){
 
     const p=allP.find(pl=>pl.name===name);
@@ -7648,12 +7179,10 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
   }
 
 
-
   // Season champs built from PAST_CLASHES + current leader
 
   var pastChamps=(pastClashes||[]).map(function(c){return {season:c.season||("S"+(c.id||"?")),champion:c.champion||"Unknown",pts:c.pts||0,rank:c.rank||"",wins:c.wins||0,status:"past"};});
   const SEASON_CHAMPS=king?pastChamps.concat([{season:"S1",champion:king.name,pts:king.pts,rank:king.rank,wins:king.wins,status:"active"}]):pastChamps;
-
 
 
   // Computed HOF records from live player data
@@ -7695,11 +7224,9 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
   }
 
 
-
   return(
 
     <div className="page wrap">
-
 
 
       {/* Page header */}
@@ -7735,7 +7262,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
       </div>
 
 
-
       {/* Reigning champion hero */}
 
       {king&&kingStats&&(
@@ -7747,7 +7273,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
           <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 60% 120% at 15% 50%,rgba(232,168,56,.07),transparent)",pointerEvents:"none"}}/>
 
           <div style={{position:"relative",padding:"clamp(20px,4vw,36px) clamp(20px,4vw,40px)",display:"flex",alignItems:"flex-start",gap:"clamp(16px,3vw,40px)",flexWrap:"wrap"}}>
-
 
 
             {/* Identity */}
@@ -7777,7 +7302,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
               <Btn v="ghost" s="sm" onClick={()=>openProfile(king.name)}>Profile &rarr;</Btn>
 
             </div>
-
 
 
             {/* Stats */}
@@ -7823,7 +7347,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
               </div>
 
             </div>
-
 
 
             {/* Challengers */}
@@ -7881,7 +7404,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
         </div>
 
       )}
-
 
 
       {/* Season Champions Wall */}
@@ -7965,7 +7487,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
         </div>
 
       </div>
-
 
 
       {/* Trophy Cabinet */}
@@ -8099,7 +7620,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
       </div>
 
 
-
       {/* Rivalries */}
 
       {allP.length>=4&&(
@@ -8125,7 +7645,6 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
       )}
 
 
-
     </div>
 
   );
@@ -8141,7 +7660,6 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
   const [open,setOpen]=useState(null);
 
   const all=[...(pastClashes||PAST_CLASHES)];
-
 
 
   return(
@@ -8289,11 +7807,6 @@ function ArchiveScreen({players,currentUser,setScreen,pastClashes}){
 }
 
 
-
-
-
-
-
 function ScrimAccessPanel({scrimAccess,setScrimAccess,toast,addAudit}){
   var [newUser,setNewUser]=useState("");
   function addUser(){
@@ -8417,27 +7930,17 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const [showAddPlayer,setShowAddPlayer]=useState(false);
 
-  const [flashForm,setFlashForm]=useState({name:"Flash Tournament",date:"",maxPlayers:"128",gameCount:"3",formatPreset:"standard",seedingMethod:"snake",prizeRows:[{placement:"1",prize:""}]});
 
   const [qcPlacements,setQcPlacements]=useState({});
 
   const [roundConfig,setRoundConfig]=useState({maxPlayers:"24",roundCount:"3",checkinWindowMins:"30",cutLine:"0",cutAfterGame:"0"});
 
-  const [flashEvents,setFlashEvents]=useState([]);
 
   const [spForm,setSpForm]=useState({name:"",logo:"",color:"",playerId:""});
 
   const [auditFilter,setAuditFilter]=useState("All");
   const [sidebarOpen,setSidebarOpen]=useState(true);
 
-
-
-  // Load flash tournaments from DB on mount
-  useEffect(function(){
-    supabase.from('tournaments').select('*').eq('type','flash_tournament').order('date',{ascending:false}).then(function(res){
-      if(res.data)setFlashEvents(res.data);
-    });
-  },[]);
 
   function addAudit(type,msg){
     var entry={ts:Date.now(),type:type,msg:msg};
@@ -8518,10 +8021,9 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
   }
 
 
-
   const AUDIT_COLS={INFO:"#4ECDC4",ACTION:"#52C47C",WARN:"#E8A838",RESULT:"#9B72CF",BROADCAST:"#E8A838",DANGER:"#F87171"};
 
-  const EVENT_COLS={SCHEDULED:"#E8A838",FLASH:"#F87171",INVITATIONAL:"#9B72CF",WEEKLY:"#4ECDC4"};
+  const EVENT_COLS={SCHEDULED:"#E8A838",INVITATIONAL:"#9B72CF",WEEKLY:"#4ECDC4"};
 
   const currentPhase=tournamentState?tournamentState.phase:"registration";
 
@@ -8532,13 +8034,11 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
   const pendingHosts=hostApps.filter(a=>a.status==="pending").length;
 
 
-
   const ADMIN_GROUPS=[
     {label:"TOURNAMENT",items:[
       {id:"dashboard",icon:"gauge",label:"Dashboard"},
       {id:"round",icon:"bolt",label:"Round Control"},
       {id:"quickclash",icon:"dice-5",label:"Quick Clash"},
-      {id:"flash",icon:"tournament",label:"Flash Tournaments"},
     ]},
     {label:"MANAGEMENT",items:[
       {id:"players",icon:"users",label:"Players"},
@@ -8559,7 +8059,6 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
       {id:"settings",icon:"settings",label:"Settings"},
     ]},
   ]
-
 
 
   const TAB_INFO={
@@ -8590,16 +8089,13 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
     featured:"Manage featured events shown on the Featured Events page. Add, edit, or remove community tournaments and partner events.",
 
-    flash:"Create and manage flash tournaments. Set up quick competitive events with registration, check-in, and automated lobby generation.",
 
   };
-
 
 
   return(
 
     <div className="page wrap">
-
 
 
       {/* NOTE MODAL */}
@@ -8633,8 +8129,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
       )}
 
 
-
-      {/* ADMIN LAYOUT — SIDEBAR + CONTENT */}
+      {/* ADMIN LAYOUT  -  SIDEBAR + CONTENT */}
       <div style={{display:"flex",gap:0,minHeight:"calc(100vh - 80px)",margin:"0 -16px -16px"}}>
 
         {/* SIDEBAR */}
@@ -8689,7 +8184,6 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
               <div style={{padding:"5px 13px",background:phaseColor[currentPhase]+"1A",border:"1px solid "+phaseColor[currentPhase]+"44",borderRadius:20,fontSize:12,fontWeight:700,color:phaseColor[currentPhase]}}>{phaseLabel[currentPhase]}</div>
             </div>
           </div>
-
 
 
       {/* ── DASHBOARD ── */}
@@ -8758,7 +8252,6 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
         </div>
 
       )}
-
 
 
       {/* ── PLAYERS ── */}
@@ -8891,7 +8384,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
                           {p.checkedIn&&React.createElement(Tag,{color:"#52C47C",size:"sm"},"✓ In")}
                           {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&React.createElement(Tag,{color:"#4ECDC4",size:"sm"},"Comeback")}
                           {(p.attendanceStreak||0)>=3&&React.createElement(Tag,{color:"#E8A838",size:"sm"},p.attendanceStreak+"-streak")}
-                          {!p.banned&&!p.checkedIn&&(p.dnpCount||0)===0&&React.createElement("span",{style:{color:"#4b5563",fontSize:11}},"—")}
+                          {!p.banned&&!p.checkedIn&&(p.dnpCount||0)===0&&React.createElement("span",{style:{color:"#4b5563",fontSize:11}}," - ")}
                         </div>
                       </td>
                       <td className="td-actions">
@@ -8918,7 +8411,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         </div>
 
       )}
-
 
 
       {/* ── SCORES ── */}
@@ -8978,7 +8470,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         </div>
 
       )}
-
 
 
       {/* ── ROUND ── */}
@@ -9182,7 +8673,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
       )}
 
 
-
       {/* ── QUICK CLASH ── */}
 
       {tab==="quickclash"&&(
@@ -9300,7 +8790,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
       )}
 
 
-
       {/* ── SCHEDULE ── */}
 
       {tab==="schedule"&&(
@@ -9319,7 +8808,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
                 <div className="grid-2">
 
-                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={newEvent.type} onChange={v=>setNewEvent(e=>({...e,type:v}))}>{["SCHEDULED","FLASH","INVITATIONAL","WEEKLY"].map(t=><option key={t}>{t}</option>)}</Sel></div>
+                  <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Type</label><Sel value={newEvent.type} onChange={v=>setNewEvent(e=>({...e,type:v}))}>{["SCHEDULED","INVITATIONAL","WEEKLY"].map(t=><option key={t}>{t}</option>)}</Sel></div>
 
                   <div><label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format</label><Sel value={newEvent.format} onChange={v=>setNewEvent(e=>({...e,format:v}))}>{["Swiss","Single Lobby","Round Robin","Finals Only"].map(f=><option key={f}>{f}</option>)}</Sel></div>
 
@@ -9384,7 +8873,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         </div>
 
       )}
-
 
 
       {/* ── SEASON ── */}
@@ -9545,7 +9033,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
                   var standingsData=sorted.map(function(p,idx){return{player_id:p.id,username:p.name||p.username,pts:p.pts||0,wins:p.wins||0,top4:p.top4||0,games:p.games||0,avg_placement:parseFloat(p.avg)||0,final_rank:idx+1};});
                   supabase.from('season_snapshots').insert({season_id:seasonConfig.seasonId,week_number:0,standings:standingsData,snapshot_date:new Date().toISOString().split('T')[0]}).then(function(r){if(r.error)console.error("[TFT] snapshot insert failed:",r.error);});
                   // Mark season complete
-                  supabase.from('seasons').update({status:'completed',end_date:new Date().toISOString().split('T')[0]}).eq('id',seasonConfig.seasonId)
+                  supabase.from('seasons').update({status:'complete',end_date:new Date().toISOString().split('T')[0]}).eq('id',seasonConfig.seasonId)
                     .then(function(r){if(r.error)console.error("[TFT] season end failed:",r.error);});
                   addAudit("ACTION","Season ended: "+(seasonName||"Season")+"  -  "+players.length+" players snapshotted");
                   toast("Season ended. Stats snapshotted.","success");
@@ -9589,7 +9077,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         </div>
 
       )}
-
 
 
       {/* ── BROADCAST ── */}
@@ -9655,7 +9142,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         </div>
 
       )}
-
 
 
       {/* ── HOSTS ── */}
@@ -9731,7 +9217,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
       )}
 
 
-
       {/* ── SPONSORSHIPS ── */}
 
       {tab==="sponsorships"&&(
@@ -9796,7 +9281,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         </div>
 
       )}
-
 
 
       {/* ── AUDIT ── */}
@@ -9866,7 +9350,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         <TickerAdminPanel tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} toast={toast} addAudit={addAudit}/>
 
       )}
-
 
 
       {/* ── SETTINGS ── */}
@@ -9946,7 +9429,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
       )}
 
 
-
       {tab==="featured"&&(function(){
         var evts=featuredEvents||[];
         var feAddName=null;var feAddHost=null;var feAddDate=null;var feAddStatus=null;var feAddFormat=null;var feAddSize=null;
@@ -10001,122 +9483,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
         );
       })()}
 
-      {tab==="flash"&&(
-        <div>
-          <Panel style={{padding:"20px",marginBottom:16}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
-              {React.createElement("i",{className:"ti ti-tournament",style:{fontSize:18,color:"#9B72CF"}})}
-              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4"}}>Create Flash Tournament</div>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:14}}>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Tournament Name</label>
-                <Inp value={flashForm.name} onChange={function(v){setFlashForm(Object.assign({},flashForm,{name:v}));}} placeholder="Flash Tournament #1"/>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Date & Time</label>
-                <Inp value={flashForm.date} onChange={function(v){setFlashForm(Object.assign({},flashForm,{date:v}));}} placeholder="2026-04-01T20:00" type="datetime-local"/>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Max Players</label>
-                <Inp type="number" value={flashForm.maxPlayers} onChange={function(v){setFlashForm(Object.assign({},flashForm,{maxPlayers:v}));}} placeholder="128"/>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Game Count</label>
-                <Inp type="number" value={flashForm.gameCount} onChange={function(v){setFlashForm(Object.assign({},flashForm,{gameCount:v}));}} placeholder="3"/>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Format Preset</label>
-                <Sel value={flashForm.formatPreset} onChange={function(v){setFlashForm(Object.assign({},flashForm,{formatPreset:v}));}}><option value="casual">Casual</option><option value="standard">Standard</option><option value="competitive">Competitive (128p)</option></Sel>
-              </div>
-              <div>
-                <label style={{display:"block",fontSize:11,color:"#C8D4E0",marginBottom:6,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Seeding Method</label>
-                <Sel value={flashForm.seedingMethod} onChange={function(v){setFlashForm(Object.assign({},flashForm,{seedingMethod:v}));}}><option value="snake">Snake Seeding</option><option value="random">Random</option><option value="rank-based">Rank-Based</option></Sel>
-              </div>
-            </div>
-
-            <div style={{marginBottom:14}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-                <label style={{fontSize:11,color:"#C8D4E0",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Prize Pool</label>
-                <Btn v="dark" s="sm" onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.concat([{placement:String(flashForm.prizeRows.length+1),prize:""}])}));}}>+ Add Prize</Btn>
-              </div>
-              {flashForm.prizeRows.map(function(row,idx){
-                return(
-                  <div key={idx} style={{display:"flex",gap:8,marginBottom:6,alignItems:"center"}}>
-                    <div style={{fontSize:12,color:"#E8A838",fontWeight:700,width:30,textAlign:"center"}}>#{row.placement}</div>
-                    <div style={{flex:1}}><Inp value={row.prize} onChange={function(v){var updated=flashForm.prizeRows.map(function(r,i){return i===idx?Object.assign({},r,{prize:v}):r;});setFlashForm(Object.assign({},flashForm,{prizeRows:updated}));}} placeholder="e.g. $50, RP, Skin code..."/></div>
-                    {flashForm.prizeRows.length>1&&(
-                      <Btn v="danger" s="sm" onClick={function(){setFlashForm(Object.assign({},flashForm,{prizeRows:flashForm.prizeRows.filter(function(_,i){return i!==idx;})}));}}>X</Btn>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <Btn v="primary" onClick={function(){
-              if(!flashForm.name.trim()){toast("Tournament name required","error");return;}
-              if(!flashForm.date){toast("Date/time required","error");return;}
-              var preset=TOURNAMENT_FORMATS[flashForm.formatPreset]||TOURNAMENT_FORMATS.standard;
-              var prizePool=flashForm.prizeRows.filter(function(r){return r.prize.trim();}).map(function(r){return{placement:parseInt(r.placement),prize:r.prize.trim()};});
-              supabase.from('tournaments').insert({
-                name:flashForm.name.trim(),
-                date:flashForm.date,
-                phase:'draft',
-                type:'flash_tournament',
-                max_players:parseInt(flashForm.maxPlayers)||128,
-                round_count:parseInt(flashForm.gameCount)||3,
-                seeding_method:flashForm.seedingMethod||'snake',
-                prize_pool_json:prizePool.length>0?prizePool:null,
-                lobby_host_method:'random'
-              }).select().single().then(function(res){
-                if(res.error){toast("Failed to create: "+res.error.message,"error");return;}
-                toast("Flash tournament created!","success");
-                addAudit("ACTION","Flash tournament created: "+flashForm.name.trim());
-                setFlashEvents(flashEvents.concat([res.data]));
-                setFlashForm({name:"Flash Tournament",date:"",maxPlayers:"128",gameCount:"3",formatPreset:"standard",seedingMethod:"snake",prizeRows:[{placement:"1",prize:""}]});
-              });
-            }}>Create Tournament</Btn>
-          </Panel>
-
-          <Panel style={{padding:"20px"}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Existing Flash Tournaments ({flashEvents.length})</div>
-            {flashEvents.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No flash tournaments yet. Create one above.</div>}
-            {flashEvents.map(function(ev){
-              var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
-              return(
-                <div key={ev.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",background:"rgba(255,255,255,.025)",border:"1px solid rgba(242,237,228,.06)",borderRadius:8,marginBottom:6}}>
-                  <div style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ev.name}</div>
-                    <div style={{fontSize:11,color:"#BECBD9"}}>{ev.date?new Date(ev.date).toLocaleDateString():"TBD"} · <span style={{color:phaseColors[ev.phase]||"#9AAABF",fontWeight:700,textTransform:"uppercase"}}>{(ev.phase||"draft").replace("_"," ")}</span></div>
-                  </div>
-                  <Btn v="ghost" s="sm" onClick={function(){
-                    if(ev.phase==="draft"){
-                      supabase.from('tournaments').update({phase:'registration',registration_open_at:new Date().toISOString()}).eq('id',ev.id).then(function(res){
-                        if(res.error){toast("Failed: "+res.error.message,"error");return;}
-                        setFlashEvents(flashEvents.map(function(e){return e.id===ev.id?Object.assign({},e,{phase:'registration'}):e;}));
-                        toast("Registration opened!","success");
-                        addAudit("ACTION","Flash tournament registration opened: "+ev.name);
-                      });
-                    } else {
-                      setScreen("flash-"+ev.id);
-                    }
-                  }}>{ev.phase==="draft"?"Open Registration":"View"}</Btn>
-                  <Btn v="danger" s="sm" onClick={function(){
-                    if(!confirm("Delete tournament '"+ev.name+"'?"))return;
-                    supabase.from('tournaments').delete().eq('id',ev.id).then(function(res){
-                      if(res.error){toast("Failed: "+res.error.message,"error");return;}
-                      setFlashEvents(flashEvents.filter(function(e){return e.id!==ev.id;}));
-                      toast("Tournament deleted","success");
-                      addAudit("DANGER","Flash tournament deleted: "+ev.name);
-                    });
-                  }}>Delete</Btn>
-                </div>
-              );
-            })}
-          </Panel>
-        </div>
-      )}
 
         </div>{/* main content */}
       </div>{/* flex layout */}
@@ -10125,9 +9491,6 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
   );
 
 }
-
-
-
 
 
 // ─── SCRIMS SCREEN ────────────────────────────────────────────────────────────
@@ -10180,7 +9543,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   var timerRef=useRef(null);
 
 
-
   useEffect(function(){
 
     if(timerActive){timerRef.current=setInterval(function(){setTimer(function(t){return t+1;});},1000);}
@@ -10192,7 +9554,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   },[timerActive]);
 
 
-
   var fmt=function(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");};
 
   var safeSessions=sessions||[];
@@ -10202,7 +9563,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   var allGames=safeSessions.flatMap(function(s){return s.games;});
 
   var allPlayers=[...players,...scrimRoster.filter(function(r){return !players.find(function(p){return p.id===r.id;});})];
-
 
 
   // ── Per-player stats ──────────────────────────────────────────────────────────
@@ -10244,7 +9604,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
       winRate:((wins/pGames.length)*100).toFixed(0)});
 
   }).filter(Boolean).sort(function(a,b){return parseFloat(a.avg)-parseFloat(b.avg);});
-
 
 
   // ── H2H matrix ──────────────────────────────────────────────────────────────────
@@ -10290,7 +9649,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   }
 
 
-
   // ── Awards ───────────────────────────────────────────────────────────────────────
 
   var awards=[];
@@ -10320,7 +9678,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   }
 
 
-
   function createSession(){
 
     if(!newName.trim()){toast("Name required","error");return;}
@@ -10342,7 +9699,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   }
 
 
-
   function addPlayer(){
 
     if(!customName.trim())return;
@@ -10360,7 +9716,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   }
 
 
-
   function lockGame(){
 
     if(!activeId){toast("Select or create a session first","error");return;}
@@ -10376,7 +9731,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
     toast("Game locked","success");
 
   }
-
 
 
   function stopSession(id){
@@ -10410,9 +9764,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
   }
 
 
-
   var TABS=[["dashboard","Dashboard"],["play","Play"],["stats","Stats"],["history","History"],["sessions","Sessions"]];
-
 
 
   return(
@@ -10452,7 +9804,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
         </div>
 
       </div>
-
 
 
       {/* ── DASHBOARD TAB ── */}
@@ -10694,7 +10045,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
         </div>
 
       )}
-
 
 
       {/* ── PLAY TAB ── */}
@@ -10944,7 +10294,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
       )}
 
 
-
       {/* ── STATS TAB ── */}
 
       {tab==="stats"&&(
@@ -11078,7 +10427,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
         </div>
 
       )}
-
 
 
       {/* ── HISTORY TAB ── */}
@@ -11276,7 +10624,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
       )}
 
 
-
       {/* ── SESSIONS TAB ── */}
 
       {tab==="sessions"&&(
@@ -11388,7 +10735,6 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 }
 
 
-
 // ─── PRICING SCREEN ───────────────────────────────────────────────────────────
 
 function PricingScreen({currentPlan,toast,currentUser,setScreen}){
@@ -11458,7 +10804,6 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 }
 
 
-
 // ─── MILESTONES SCREEN ────────────────────────────────────────────────────────
 
 function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
@@ -11468,9 +10813,7 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
   const [tab,setTab]=useState("achievements");
 
 
-
   const myPlayer=currentUser?players.find(p=>p.name===currentUser.username):null;
-
 
 
   const tierOrder=["bronze","silver","gold","legendary"];
@@ -11480,13 +10823,10 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
   const tierLabels={bronze:"Bronze",silver:"Silver",gold:"Gold",legendary:"Legendary"};
 
 
-
   const filteredAch=ACHIEVEMENTS.filter(a=>filterTier==="all"||a.tier===filterTier);
 
 
-
   const sorted=[...players].sort((a,b)=>b.pts-a.pts);
-
 
 
   return(
@@ -11506,7 +10846,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
         </div>
 
       </div>
-
 
 
       {/* Tab switcher */}
@@ -11530,7 +10869,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
         ))}
 
       </div>
-
 
 
       {tab==="achievements"&&(
@@ -11590,7 +10928,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
           )}
 
 
-
           {/* Tier filter */}
 
           <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
@@ -11614,7 +10951,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
             ))}
 
           </div>
-
 
 
           {/* Achievement grid */}
@@ -11716,7 +11052,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
       )}
 
 
-
       {tab==="milestones"&&(
 
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
@@ -11806,7 +11141,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
       )}
 
 
-
       {tab==="leaderboard"&&(
 
         <Panel style={{overflow:"hidden"}}>
@@ -11882,11 +11216,6 @@ function MilestonesScreen({players,setScreen,setProfilePlayer,currentUser}){
 }
 
 
-
-
-
-
-
 function getDailyReset(){
   var now=new Date();
   var utcMidnight=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1,0,0,0));
@@ -11914,7 +11243,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
   var dailyReset=getDailyReset();
 
   var weeklyReset=getWeeklyReset();
-
 
 
   // Find user's player if linked
@@ -11954,7 +11282,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
   const rankInfo=getXpProgress(xp);
 
 
-
   return(
 
     <div className="page wrap">
@@ -11972,7 +11299,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
         <p style={{fontSize:13,color:"#BECBD9"}}>Complete challenges to earn XP and climb the platform ranks.</p>
 
       </div>
-
 
 
       {/* XP / Rank overview */}
@@ -12010,7 +11336,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
       </Panel>
 
 
-
       {/* Tabs */}
 
       <div style={{display:"flex",gap:6,marginBottom:18}}>
@@ -12022,7 +11347,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
         ))}
 
       </div>
-
 
 
       {tab==="active"&&(
@@ -12080,7 +11404,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
             );})}
 
           </div>
-
 
 
           {/* Weekly */}
@@ -12146,8 +11469,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
       )}
 
 
-
-      {tab==="completed"&&(function(){
+      {tab==="complete"&&(function(){
         var done=dailyChallenges.concat(weeklyChallenges).filter(function(c){return c.progress>=c.goal;});
         return(
         <div style={{textAlign:"center",padding:"48px 20px",color:"#BECBD9"}}>
@@ -12166,7 +11488,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
         </div>
         );
       })()}
-
 
 
       {tab==="xp-log"&&(
@@ -12220,7 +11541,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 }
 
 
-
 // ─── AUTH SCREENS ─────────────────────────────────────────────────────────────
 
 function isValidRiotId(id) {
@@ -12269,7 +11589,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
   const [pw2Err,setPw2Err]=useState("");
 
 
-
   function nextStep(){
 
     var ok=true;
@@ -12289,7 +11608,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
     setStep(2);
 
   }
-
 
 
   async function submit(){
@@ -12342,7 +11660,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
   }
 
 
-
   return(
 
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
@@ -12378,7 +11695,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
           <div style={{fontSize:13,color:"#BECBD9",marginTop:4}}>Create your account</div>
 
         </div>
-
 
 
         {/* Step indicator */}
@@ -12422,7 +11738,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
           })}
 
         </div>
-
 
 
         <Panel style={{padding:"28px 24px"}}>
@@ -12502,7 +11817,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
           )}
 
 
-
           {step===2&&(
 
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -12576,7 +11890,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
         </Panel>
 
 
-
         <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"#BECBD9"}}>
 
           Already have an account?{" "}
@@ -12594,7 +11907,6 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 }
 
 
-
 function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
   const [email,setEmail]=useState("");
@@ -12606,7 +11918,6 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
   const [loginEmailErr,setLoginEmailErr]=useState("");
 
   const [loginPwErr,setLoginPwErr]=useState("");
-
 
 
   async function submit(){
@@ -12634,7 +11945,6 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
     toast("Welcome back, "+(data.user.user_metadata?.username||"player")+"!","success");
 
   }
-
 
 
   return(
@@ -12670,7 +11980,6 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
           <div style={{fontSize:13,color:"#BECBD9",marginTop:4}}>Sign in to your account</div>
 
         </div>
-
 
 
         <Panel style={{padding:"28px 24px"}}>
@@ -12734,7 +12043,6 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
         </Panel>
 
 
-
         <div style={{textAlign:"center",marginTop:16,fontSize:13,color:"#BECBD9"}}>
 
           No account?{" "}
@@ -12758,7 +12066,6 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
   );
 
 }
-
 
 
 function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayers,setProfilePlayer,isAdmin,hostApps}){
@@ -12790,13 +12097,11 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
   const [secondRegion,setSecondRegion]=useState(user.user_metadata?.secondRegion||user.secondRegion||"EUW");
 
 
-
   const usernameChanged=!!(user.user_metadata?.username_changed);
 
   const riotIdSet=!!(user.user_metadata?.riotId||user.user_metadata?.riot_id);
 
   const EU_NA=["EUW","EUNE","NA"];
-
 
 
   const linkedPlayer=players.find(p=>(p.authUserId&&p.authUserId===user.id)||(p.id===user.linkedPlayerId)||(p.name===user.username));
@@ -12806,7 +12111,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
   const myAchievements=linkedPlayer?ACHIEVEMENTS.filter(a=>{try{return a.check(linkedPlayer);}catch{return false;}}):[];
 
   const tierCols={bronze:"#CD7F32",silver:"#C0C0C0",gold:"#E8A838",legendary:"#9B72CF"};
-
 
 
   async function save(){
@@ -12871,7 +12175,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
   }
 
 
-
   async function requestChange(field){
 
     const pending=(user.user_metadata?.pending_changes||[]).concat([{field,requestedAt:new Date().toISOString()}]);
@@ -12881,7 +12184,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
     toast("Change request submitted  -  an admin will review it","success");
 
   }
-
 
 
   const [subscription,setSubscription]=useState(null);
@@ -12904,7 +12206,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
   var acctProgressMsg="Profile "+acctProfileComplete+"/"+acctProfileTotal+" complete"+(acctProfileComplete<acctProfileTotal?" - Add a "+acctMissingField+" to finish":"");
 
 
-
   return(
 
     <div className="page wrap">
@@ -12924,7 +12225,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
           <span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</span>
           <div>
             <div style={{color:"#E8A838",fontWeight:600,fontSize:13}}>Set your Riot ID to join tournaments</div>
-            <div style={{color:"#BECBD9",fontSize:12}}>You need a Riot ID to register for flash tournaments.</div>
           </div>
         </div>
       )}
@@ -13069,7 +12369,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
       </div>
 
 
-
       {/* Tabs */}
 
       <div style={{display:"flex",gap:4,marginBottom:20,background:"#111827",borderRadius:10,padding:4}}>
@@ -13089,7 +12388,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
         ))}
 
       </div>
-
 
 
       {tab==="profile"&&(
@@ -13461,7 +12759,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
       )}
 
 
-
       {tab==="stats"&&(
 
         <>
@@ -13537,7 +12834,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
         </>
 
       )}
-
 
 
       {tab==="achievements"&&(
@@ -13619,7 +12915,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
       )}
 
 
-
       {tab==="history"&&(
 
         <Panel style={{overflow:"hidden"}}>
@@ -13691,11 +12986,6 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 }
 
 
-
-
-
-
-
 function SeasonRecapScreen({player,players,toast,setScreen}){
 
   const s=getStats(player);
@@ -13709,7 +12999,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
   const position=sorted.findIndex(p=>p.id===player.id)+1;
 
 
-
   function downloadRecap(){
 
     const canvas=document.createElement("canvas");
@@ -13717,7 +13006,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     canvas.width=800;canvas.height=1000;
 
     const ctx=canvas.getContext("2d");
-
 
 
     // Background
@@ -13729,7 +13017,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.fillStyle=bg;ctx.fillRect(0,0,800,1000);
 
 
-
     // Top gold bar
 
     const gold=ctx.createLinearGradient(0,0,800,0);
@@ -13739,13 +13026,11 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.fillStyle=gold;ctx.fillRect(0,0,800,3);
 
 
-
     // Header
 
     ctx.font="bold 11px monospace";ctx.fillStyle="#E8A838";ctx.letterSpacing="4px";
 
     ctx.fillText("TFT CLASH - SEASON 16 RECAP",40,50);ctx.letterSpacing="0px";
-
 
 
     // Big name
@@ -13755,13 +13040,11 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.fillText(player.name,40,120);
 
 
-
     // Rank badge
 
     ctx.font="bold 14px monospace";ctx.fillStyle=rank.color;
 
     ctx.fillText(rank.icon+" "+rank.name.toUpperCase(),40,150);
-
 
 
     // Season position
@@ -13777,7 +13060,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.font="bold 14px sans-serif";ctx.fillStyle="#C8D4E0";
 
     ctx.fillText("of "+players.length+" players",40,315);
-
 
 
     // Stats grid
@@ -13801,7 +13083,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     });
 
 
-
     // Awards
 
     if(awards.length>0){
@@ -13821,7 +13102,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     }
 
 
-
     // Season statement
 
     const stmts=[`${player.name} dominated Season 1 with ${s.top1Rate}% win rate.`,`Consistent performer - AVP of ${s.avgPlacement} across ${s.games} games.`,`${player.name} showed up every week. ${s.wins} victories speak for themselves.`];
@@ -13831,7 +13111,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.font="italic 15px serif";ctx.fillStyle="#C8D4E0";
 
     ctx.fillText(stmt.length>60?stmt.slice(0,60)+"...":stmt,40,800);
-
 
 
     // Footer
@@ -13849,13 +13128,11 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     ctx.fillText("#TFTClash  #TFT  #Season1",500,975);
 
 
-
     const a=document.createElement("a");a.download=player.name+"-S1-Recap.png";a.href=canvas.toDataURL("image/png");a.click();
 
     toast("Season recap downloaded!","success");
 
   }
-
 
 
   function shareTwitter(){
@@ -13865,7 +13142,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
     navigator.clipboard?.writeText(text).then(()=>toast("Copied for Twitter!","success"));
 
   }
-
 
 
   return(
@@ -13881,13 +13157,11 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
       </div>
 
 
-
       {/* Preview card */}
 
       <div style={{background:"linear-gradient(135deg,rgba(10,15,26,1),rgba(13,18,37,1),rgba(8,8,15,1))",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,padding:"clamp(20px,4vw,40px)",marginBottom:24,maxWidth:700,position:"relative",overflow:"hidden"}}>
 
         <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
-
 
 
         <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:24,flexWrap:"wrap",gap:12}}>
@@ -13913,7 +13187,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         </div>
 
 
-
         <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
 
           {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#C8D4E0"],["Best Streak",(player.bestStreak||0),"#F97316"]].map(([l,v,c])=>(
@@ -13929,7 +13202,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
           ))}
 
         </div>
-
 
 
         {awards.length>0&&(
@@ -13949,7 +13221,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         )}
 
 
-
         <div style={{borderTop:"1px solid rgba(242,237,228,.06)",paddingTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
 
           <span style={{fontSize:10,color:"#9AAABF",fontFamily:"monospace"}}>tftclash.gg/p/{player.name.toLowerCase()}</span>
@@ -13959,7 +13230,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         </div>
 
       </div>
-
 
 
       {/* Share buttons */}
@@ -13981,7 +13251,6 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 }
 
 
-
 // ─── AI COMMENTARY (uses Claude API) ──────────────────────────────────────────
 
 function AICommentaryPanel({players,toast}){
@@ -13993,7 +13262,6 @@ function AICommentaryPanel({players,toast}){
   const [generated,setGenerated]=useState(false);
 
   const sorted=[...players].sort((a,b)=>b.pts-a.pts);
-
 
 
   async function generate(){
@@ -14011,7 +13279,6 @@ function AICommentaryPanel({players,toast}){
       const prompt=`You are a witty esports commentator for TFT Clash, a Teamfight Tactics tournament platform. Write a short, punchy post-clash write-up (3-4 sentences max) covering these results:
 
 
-
 Top 3: ${top3}
 
 Last place: ${bottom?.name||"unknown"} (${bottom?.pts||0}pts)
@@ -14021,9 +13288,7 @@ Total players: ${players.length}
 Champion wins this season: ${sorted[0]?.wins||0}
 
 
-
 Be entertaining, use TFT terminology, call out the champion, maybe roast the last place. Keep it under 80 words. No markdown.`;
-
 
 
       const res=await fetch("/api/ai-commentary",{
@@ -14055,7 +13320,6 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
     setLoading(false);
 
   }
-
 
 
   return(
@@ -14125,7 +13389,6 @@ Be entertaining, use TFT terminology, call out the champion, maybe roast the las
 }
 
 
-
 // ─── HOST APPLICATION SCREEN ──────────────────────────────────────────────────
 
 function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
@@ -14139,7 +13402,6 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
   const [freq,setFreq]=useState("weekly");
 
   const [submitted,setSubmitted]=useState(false);
-
 
 
   function submit(){
@@ -14169,7 +13431,6 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
   }
 
 
-
   if(submitted) return(
 
     <div className="page wrap" style={{maxWidth:560,margin:"0 auto",textAlign:"center",paddingTop:60}}>
@@ -14189,7 +13450,6 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
   );
 
 
-
   return(
 
     <div className="page wrap" style={{maxWidth:600,margin:"0 auto"}}>
@@ -14205,7 +13465,6 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
         <p style={{fontSize:14,color:"#C8D4E0",lineHeight:1.6}}>Host status gives you your own tournament dashboard to create and run TFT Clash events. All hosts are manually reviewed and approved by our admin team.</p>
 
       </div>
-
 
 
       <Panel style={{padding:"24px"}}>
@@ -14279,7 +13538,6 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
   );
 
 }
-
 
 
 // ─── HOST DASHBOARD ───────────────────────────────────────────────────────────
@@ -15152,7 +14410,6 @@ function TournamentDetailScreen(props){
 }
 
 
-
 // ─── TOURNAMENTS LIST SCREEN ──────────────────────────────────────────
 
 function TournamentsListScreen({setScreen,currentUser,toast}){
@@ -15160,10 +14417,6 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
   var [loading,setLoading]=useState(true);
 
   useEffect(function(){
-    supabase.from('tournaments').select('*').eq('type','flash_tournament').order('date',{ascending:false}).then(function(res){
-      if(res.data)setTournaments(res.data);
-      setLoading(false);
-    });
   },[]);
 
   // Count registrations per tournament
@@ -15256,1170 +14509,6 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
             );
           })}
         </div>
-      )}
-    </div>
-  );
-}
-
-
-// ─── FLASH TOURNAMENT SCREEN ──────────────────────────────────────────
-
-function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setScreen,players,isAdmin}){
-  var [tournament,setTournament]=useState(null);
-  var [registrations,setRegistrations]=useState([]);
-  var [lobbies,setLobbies]=useState([]);
-  var [lobbyCodeInputs,setLobbyCodeInputs]=useState({});
-  var [loading,setLoading]=useState(true);
-  var [activeTab,setActiveTab]=useState("info");
-  var [actionLoading,setActionLoading]=useState(false);
-  var [reports,setReports]=useState([]);
-  var [myPlacement,setMyPlacement]=useState(0);
-  var [disputeForm,setDisputeForm]=useState({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});
-  var [disputes,setDisputes]=useState([]);
-  var [gameResults,setGameResults]=useState([]);
-  var channelRef=useRef(null);
-
-  function loadTournament(){
-    return supabase.from('tournaments').select('*').eq('id',tournamentId).single().then(function(res){
-      if(res.data)setTournament(res.data);
-      return res;
-    });
-  }
-
-  function loadRegistrations(){
-    return supabase.from('registrations').select('*, players(username, riot_id, rank, region)').eq('tournament_id',tournamentId).then(function(res){
-      if(res.data)setRegistrations(res.data);
-      return res;
-    });
-  }
-
-  function loadLobbies(){
-    return supabase.from('lobbies').select('*').eq('tournament_id',tournamentId).order('lobby_number',{ascending:true}).then(function(res){
-      if(res.data)setLobbies(res.data);
-      return res;
-    });
-  }
-
-  function loadReports(){
-    var gameNum=tournament?(tournament.current_round||1):1;
-    return supabase.from('player_reports').select('*').eq('tournament_id',tournamentId).eq('game_number',gameNum)
-      .then(function(res){
-        if(res.data)setReports(res.data);
-        return res;
-      });
-  }
-
-  function loadDisputes(){
-    return supabase.from('disputes').select('*, players(username)').eq('tournament_id',tournamentId)
-      .then(function(res){
-        if(res.data)setDisputes(res.data);
-        return res;
-      });
-  }
-
-  function loadResults(){
-    return supabase.from('game_results')
-      .select('player_id, placement, points, game_number, players(username, rank, riot_id)')
-      .eq('tournament_id',tournamentId)
-      .order('game_number')
-      .then(function(res){
-        if(res.data)setGameResults(res.data);
-        return res;
-      });
-  }
-
-  useEffect(function(){
-    Promise.all([loadTournament(),loadRegistrations(),loadLobbies(),loadDisputes(),loadResults()]).then(function(){setLoading(false);}).catch(function(e){console.error("[Flash] Initial load failed:",e);setLoading(false);});
-  },[tournamentId]);
-
-  useEffect(function(){
-    if(tournament)loadReports();
-  },[tournament&&tournament.current_round,tournament&&tournament.id]);
-
-  useEffect(function(){
-    if(!tournamentId)return;
-    var channel=supabase.channel("tournament-"+tournamentId);
-    channelRef.current=channel;
-    channel.on("broadcast",{event:"update"},function(payload){
-      var type=payload.payload?payload.payload.type:"";
-      if(type==="phase_change")loadTournament();
-      if(type==="registration")loadRegistrations();
-      if(type==="lobbies_generated")loadLobbies();
-      if(type==="report_submitted")loadReports();
-      if(type==="lobby_locked"){loadLobbies();loadResults();}
-      if(type==="next_game"){loadTournament();loadLobbies();loadReports();}
-      if(type==="finalized"){loadTournament();loadResults();}
-    });
-    channel.subscribe();
-    return function(){supabase.removeChannel(channel);channelRef.current=null;};
-  },[tournamentId]);
-
-  function broadcastUpdate(type){
-    if(channelRef.current){
-      channelRef.current.send({type:"broadcast",event:"update",payload:{type:type}});
-    }
-  }
-
-  // Rank color map
-  var rankColors={Iron:"#5A6573",Bronze:"#CD7F32",Silver:"#C0C0C0",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#93B5F7",Master:"#9B72CF",Grandmaster:"#DC2626",Challenger:"#F59E0B"};
-
-  // Look up a player by id from the players prop
-  function getPlayerById(pid){
-    return players.find(function(p){return p.id===pid;})||{username:"Unknown",rank:"Iron"};
-  }
-
-  // Submit lobby code
-  function submitLobbyCode(lobbyId,code){
-    supabase.from('lobbies').update({lobby_code:code}).eq('id',lobbyId).then(function(res){
-      if(res.error){toast("Failed to save code","error");return;}
-      toast("Lobby code saved!","success");
-      loadLobbies();
-    });
-  }
-
-  // Admin: Generate lobbies
-  function generateLobbies(){
-    setActionLoading(true);
-    supabase.from('registrations').select('player_id, players(id, username, rank, riot_id, region)')
-      .eq('tournament_id',tournamentId)
-      .eq('status','checked_in')
-      .then(function(res){
-        if(res.error||!res.data){toast("Failed to load players","error");setActionLoading(false);return;}
-        var checkedIn=res.data.map(function(r){return r.players;}).filter(Boolean);
-        var result=buildFlashLobbies(checkedIn,tournament.seeding_method||"snake");
-        var lobbyRows=result.lobbies.map(function(lobbyPlayers,idx){
-          var host=lobbyPlayers.reduce(function(best,p){
-            return RANKS.indexOf(p.rank||"Iron")>RANKS.indexOf(best.rank||"Iron")?p:best;
-          },lobbyPlayers[0]);
-          return{
-            tournament_id:tournamentId,
-            round_number:1,
-            lobby_number:idx+1,
-            player_ids:lobbyPlayers.map(function(p){return p.id;}),
-            host_player_id:host?host.id:null,
-            status:'pending',
-            game_number:1
-          };
-        });
-        supabase.from('lobbies').insert(lobbyRows).select().then(function(lRes){
-          setActionLoading(false);
-          if(lRes.error){toast("Failed: "+lRes.error.message,"error");return;}
-          supabase.from('tournaments').update({phase:'in_progress',started_at:new Date().toISOString(),current_round:1})
-            .eq('id',tournamentId).then(function(){
-              setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
-            });
-          toast(result.lobbies.length+" lobbies generated!","success");
-          broadcastUpdate("lobbies_generated");
-          loadLobbies();
-          // Notify each checked-in player of their lobby assignment
-          supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).eq('status','checked_in').then(function(rRes){
-            if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Lobby Assigned","Your lobby has been assigned for "+(tournament?tournament.name:"the tournament")+". Check your lobby now!","trophy");}});}
-          });
-        });
-      });
-  }
-
-  // Derived state
-  var myPlayer=currentUser?players.find(function(p){return p.authUserId===currentUser.id;}):null;
-  var myReg=myPlayer?registrations.find(function(r){return r.player_id===myPlayer.id;}):null;
-  var regCount=registrations.filter(function(r){return r.status==='registered'||r.status==='checked_in';}).length;
-  var currentGameNumber=tournament?(tournament.current_round||1):1;
-  var myLobby=lobbies.find(function(l){return l.player_ids&&l.player_ids.indexOf(myPlayer?myPlayer.id:null)!==-1;});
-  var myReport=myPlayer?reports.find(function(r){return r.player_id===myPlayer.id;}):null;
-  var openDisputeCount=disputes.filter(function(d){return d.status==='open';}).length;
-  var myDisputes=myPlayer?disputes.filter(function(d){return d.player_id===myPlayer.id;}):[];
-  var checkedInCount=registrations.filter(function(r){return r.status==='checked_in';}).length;
-  var maxP=tournament?tournament.max_players||128:128;
-  var phase=tournament?tournament.phase:"draft";
-  var prizes=tournament&&Array.isArray(tournament.prize_pool_json)?tournament.prize_pool_json:[];
-
-  // Registration handler
-  function handleRegister(){
-    if(!currentUser){onAuthClick("login");return;}
-    if(!myPlayer||!myPlayer.riotId){
-      toast("Set your Riot ID in your profile before registering","error");
-      return;
-    }
-    setActionLoading(true);
-    if(regCount>=maxP){
-      var waitPos=registrations.filter(function(r){return r.status==='waitlisted';}).length+1;
-      supabase.from('registrations').insert({
-        tournament_id:tournamentId,
-        player_id:myPlayer.id,
-        status:'waitlisted',
-        waitlist_position:waitPos
-      }).then(function(res){
-        setActionLoading(false);
-        if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
-        toast("Added to waitlist (position #"+waitPos+")!","info");
-        broadcastUpdate("registration");
-        loadRegistrations();
-      });
-      return;
-    }
-    supabase.from('registrations').insert({
-      tournament_id:tournamentId,
-      player_id:myPlayer.id,
-      status:'registered'
-    }).then(function(res){
-      setActionLoading(false);
-      if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
-      if(currentUser){createNotification(currentUser.id,"Registration Confirmed","You are registered for "+(tournament?tournament.name:"the tournament")+". Check in when the check-in window opens.","controller");}
-      toast("Registered!","success");
-      broadcastUpdate("registration");
-      loadRegistrations();
-    });
-  }
-
-  // Unregister handler
-  function handleUnregister(){
-    if(!myReg)return;
-    if(!confirm("Are you sure you want to unregister?"))return;
-    setActionLoading(true);
-    supabase.from('registrations').delete().eq('id',myReg.id).then(function(res){
-      setActionLoading(false);
-      if(res.error){toast("Failed to unregister: "+res.error.message,"error");return;}
-      toast("Unregistered","success");
-      broadcastUpdate("registration");
-      loadRegistrations();
-    });
-  }
-
-  // Check-in handler
-  function handleCheckIn(){
-    if(!myReg)return;
-    setActionLoading(true);
-    supabase.from('registrations').update({status:'checked_in',checked_in_at:new Date().toISOString()}).eq('id',myReg.id).then(function(res){
-      setActionLoading(false);
-      if(res.error){toast("Check-in failed: "+res.error.message,"error");return;}
-      toast("Checked in!","success");
-      broadcastUpdate("registration");
-      loadRegistrations();
-    });
-  }
-
-  // Admin: Open check-in
-  function adminOpenCheckIn(){
-    supabase.from('tournaments').update({phase:'check_in',checkin_open_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
-      if(res.error){toast("Failed: "+res.error.message,"error");return;}
-      setTournament(Object.assign({},tournament,{phase:'check_in'}));
-      toast("Check-in opened!","success");
-      broadcastUpdate("phase_change");
-      // Notify all registered players
-      supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).eq('status','registered').then(function(rRes){
-        if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Check-in is Open","Check in now to secure your spot in "+(tournament?tournament.name:"the tournament")+"!","checkmark");}});}
-      });
-    });
-  }
-
-  // Admin: Close check-in
-  function adminCloseCheckIn(){
-    var unchecked = registrations.filter(function(r) { return r.status === "registered"; }).length;
-    if (unchecked > 0) {
-      if (!window.confirm("This will drop " + unchecked + " player" + (unchecked !== 1 ? "s" : "") + " who haven't checked in. Continue?")) return;
-    }
-    // 1. Set close time
-    supabase.from('tournaments').update({checkin_close_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
-      if(res.error){toast("Failed: "+res.error.message,"error");return;}
-      // 2. Drop players who didn't check in
-      var notCheckedIn=registrations.filter(function(r){return r.status==='registered';});
-      var dropIds=notCheckedIn.map(function(r){return r.id;});
-      if(dropIds.length>0){
-        supabase.from('registrations').update({status:'dropped'}).in('id',dropIds).then(function(dropRes){
-          if(dropRes.error)console.error("Drop failed:",dropRes.error);
-          // 3. Promote waitlisted players if spots opened
-          var openSpots=maxP-checkedInCount;
-          var waitlisted=registrations.filter(function(r){return r.status==='waitlisted';}).sort(function(a,b){return(a.waitlist_position||999)-(b.waitlist_position||999);});
-          var toPromote=waitlisted.slice(0,Math.max(0,openSpots));
-          if(toPromote.length>0){
-            var promoteIds=toPromote.map(function(r){return r.id;});
-            supabase.from('registrations').update({status:'checked_in',checked_in_at:new Date().toISOString()}).in('id',promoteIds).then(function(){loadRegistrations();});
-          } else {
-            loadRegistrations();
-          }
-        });
-      } else {
-        loadRegistrations();
-      }
-      toast("Check-in closed. "+notCheckedIn.length+" player(s) dropped.","success");
-      broadcastUpdate("phase_change");
-    });
-  }
-
-  // Admin: Open registration
-  function adminOpenRegistration(){
-    supabase.from('tournaments').update({phase:'registration',registration_open_at:new Date().toISOString()}).eq('id',tournamentId).then(function(res){
-      if(res.error){toast("Failed: "+res.error.message,"error");return;}
-      setTournament(Object.assign({},tournament,{phase:'registration'}));
-      toast("Registration opened!","success");
-      broadcastUpdate("phase_change");
-    });
-  }
-
-  // Admin: Start tournament
-  function adminStartTournament(){
-    supabase.from('tournaments').update({phase:'in_progress',started_at:new Date().toISOString(),current_round:1}).eq('id',tournamentId).then(function(res){
-      if(res.error){toast("Failed: "+res.error.message,"error");return;}
-      setTournament(Object.assign({},tournament,{phase:'in_progress',current_round:1}));
-      toast("Tournament started!","success");
-      broadcastUpdate("phase_change");
-    });
-  }
-
-  // Submit placement report
-  function submitReport(placement){
-    if(!myPlayer||!myLobby)return;
-    supabase.from('player_reports').upsert({
-      tournament_id:tournamentId,
-      lobby_id:myLobby.id,
-      game_number:currentGameNumber,
-      player_id:myPlayer.id,
-      reported_placement:placement,
-      reported_at:new Date().toISOString()
-    },{onConflict:'lobby_id,game_number,player_id'})
-      .then(function(res){
-        if(res.error){toast("Failed to submit: "+res.error.message,"error");return;}
-        toast("Placement reported!","success");
-        broadcastUpdate("report_submitted");
-        setMyPlacement(0);
-        loadReports();
-      });
-  }
-
-  // Submit dispute
-  function submitDispute(){
-    if(!myPlayer)return;
-    supabase.from('disputes').insert({
-      tournament_id:tournamentId,
-      lobby_id:disputeForm.lobbyId,
-      game_number:currentGameNumber,
-      player_id:myPlayer.id,
-      claimed_placement:disputeForm.claimed,
-      reported_placement:myReport?myReport.reported_placement:null,
-      reason:disputeForm.reason,
-      screenshot_url:disputeForm.screenshotUrl||null,
-      status:'open'
-    }).then(function(res){
-      if(res.error){toast("Dispute failed: "+res.error.message,"error");return;}
-      toast("Dispute submitted","success");
-      setDisputeForm({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});
-      loadDisputes();
-    });
-  }
-
-  // Admin: Lock lobby
-  function lockLobby(lobbyId){
-    var lobbyReports=reports.filter(function(r){return r.lobby_id===lobbyId;});
-    var gameRows=lobbyReports.map(function(r){
-      return{
-        tournament_id:tournamentId,
-        lobby_id:lobbyId,
-        player_id:r.player_id,
-        placement:r.reported_placement,
-        points:PTS[r.reported_placement]||0,
-        round_number:currentGameNumber,
-        game_number:currentGameNumber
-      };
-    });
-    supabase.from('game_results').insert(gameRows).then(function(res){
-      if(res.error){toast("Failed to lock: "+res.error.message,"error");return;}
-      supabase.from('lobbies').update({status:'locked',reports_complete:true}).eq('id',lobbyId).then(function(){
-        toast("Lobby locked!","success");
-        broadcastUpdate("lobby_locked");
-        loadLobbies();
-        loadReports();
-        loadResults();
-      });
-    });
-  }
-
-  // Admin: Override a player's placement
-  function adminOverridePlacement(lobbyId,playerId,placement){
-    supabase.from('player_reports').upsert({
-      tournament_id:tournamentId,
-      lobby_id:lobbyId,
-      game_number:currentGameNumber,
-      player_id:playerId,
-      reported_placement:placement,
-      reported_at:new Date().toISOString()
-    },{onConflict:'lobby_id,game_number,player_id'})
-      .then(function(res){
-        if(res.error){toast("Override failed: "+res.error.message,"error");return;}
-        toast("Placement overridden","success");
-        loadReports();
-      });
-  }
-
-  // URL safety check for screenshot links
-  function isSafeUrl(url){return url&&(url.indexOf("https://")===0||url.indexOf("http://")===0);}
-
-  // Admin: Resolve dispute
-  function resolveDispute(disputeId,accept){
-    var d=disputes.find(function(x){return x.id===disputeId;});
-    if(!d)return;
-    var updates={
-      status:accept?'resolved_accepted':'resolved_rejected',
-      resolved_by:currentUser?currentUser.id:null,
-      resolved_at:new Date().toISOString()
-    };
-    supabase.from('disputes').update(updates).eq('id',disputeId).then(function(res){
-      if(res.error){toast("Failed: "+res.error.message,"error");return;}
-      if(accept&&d.claimed_placement){
-        supabase.from('player_reports').upsert({
-          tournament_id:tournamentId,
-          lobby_id:d.lobby_id,
-          game_number:d.game_number||currentGameNumber,
-          player_id:d.player_id,
-          reported_placement:d.claimed_placement,
-          reported_at:new Date().toISOString()
-        },{onConflict:'lobby_id,game_number,player_id'}).then(function(){
-          loadReports();
-        });
-      }
-      toast("Dispute "+(accept?"accepted":"rejected"),"success");
-      loadDisputes();
-      // Notify the disputing player
-      var disputingPlayer=players.find(function(p){return p.id===d.player_id;});
-      if(disputingPlayer&&disputingPlayer.authUserId){
-        createNotification(disputingPlayer.authUserId,"Dispute "+(accept?"Accepted":"Rejected"),"Your placement dispute has been "+(accept?"accepted. Your placement has been updated.":"rejected. The original result stands."),"bell");
-      }
-    });
-  }
-
-  // Start next game
-  function startNextGame(){
-    var nextGame=currentGameNumber+1;
-    supabase.from('tournaments').update({current_round:nextGame}).eq('id',tournamentId)
-      .then(function(res){
-        if(res.error){toast("Failed: "+res.error.message,"error");return;}
-        var seedMethod=tournament.seeding_method||"snake";
-        if(seedMethod==="snake"){
-          var checkedIn=registrations.filter(function(r){return r.status==='checked_in';});
-          var checkedInPlayers=checkedIn.map(function(r){return r.players||getPlayerById(r.player_id);}).filter(Boolean);
-          checkedInPlayers.sort(function(a,b){
-            var aStand=standings.find(function(s){return s.id===a.id;});
-            var bStand=standings.find(function(s){return s.id===b.id;});
-            return((bStand?bStand.totalPts:0)-(aStand?aStand.totalPts:0));
-          });
-          var result=buildFlashLobbies(checkedInPlayers,"snake");
-          var lobbyRows=result.lobbies.map(function(lobbyPlayers,idx){
-            var host=lobbyPlayers.reduce(function(best,p){
-              return RANKS.indexOf(p.rank||"Iron")>RANKS.indexOf(best.rank||"Iron")?p:best;
-            },lobbyPlayers[0]);
-            return{
-              tournament_id:tournamentId,
-              round_number:nextGame,
-              lobby_number:idx+1,
-              player_ids:lobbyPlayers.map(function(p){return p.id;}),
-              host_player_id:host?host.id:null,
-              status:'pending',
-              game_number:nextGame
-            };
-          });
-          supabase.from('lobbies').insert(lobbyRows).select().then(function(){
-            setTournament(Object.assign({},tournament,{current_round:nextGame}));
-            loadLobbies();
-            loadReports();
-            toast("Game "+nextGame+" started! New lobbies generated.","success");
-            broadcastUpdate("next_game");
-          });
-        } else {
-          var currentLobbies=lobbies.filter(function(l){return l.game_number===currentGameNumber;});
-          var newLobbies=currentLobbies.map(function(l){
-            return{
-              tournament_id:tournamentId,
-              round_number:nextGame,
-              lobby_number:l.lobby_number,
-              player_ids:l.player_ids,
-              host_player_id:l.host_player_id,
-              status:'pending',
-              game_number:nextGame
-            };
-          });
-          supabase.from('lobbies').insert(newLobbies).select().then(function(){
-            setTournament(Object.assign({},tournament,{current_round:nextGame}));
-            loadLobbies();
-            loadReports();
-            toast("Game "+nextGame+" started!","success");
-            broadcastUpdate("next_game");
-          });
-        }
-      });
-  }
-
-  // Finalize tournament
-  function finalizeTournament(){
-    if(!confirm("Finalize this tournament? This cannot be undone."))return;
-    supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()})
-      .eq('id',tournamentId).then(function(res){
-        if(res.error){toast("Failed: "+res.error.message,"error");return;}
-        setTournament(Object.assign({},tournament,{phase:'complete'}));
-        toast("Tournament finalized!","success");
-        broadcastUpdate("finalized");
-        // Notify all participants that results are final
-        supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).in('status',['checked_in','registered']).then(function(rRes){
-          if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Results Finalized",(tournament?tournament.name:"The tournament")+" has been finalized. Check the results screen for your placement and points.","trophy");}});}
-        });
-      });
-  }
-
-  if(loading){
-    return(
-      <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
-        <div style={{color:"#8896A8",fontSize:14}}>Loading tournament...</div>
-      </div>
-    );
-  }
-
-  if(!tournament){
-    return(
-      <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
-        <div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
-        <h2 style={{color:"#F2EDE4",marginBottom:10}}>Tournament Not Found</h2>
-        <p style={{color:"#BECBD9"}}>This tournament may have been removed.</p>
-        <Btn v="primary" onClick={function(){setScreen("tournaments");}}>Back to Tournaments</Btn>
-      </div>
-    );
-  }
-
-  var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
-  var phaseLabels={draft:"Draft",registration:"Registration Open",check_in:"Check-In Open",in_progress:"In Progress",completed:"Completed",complete:"Complete"};
-  var dateStr=tournament.date?new Date(tournament.date).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"TBD";
-
-  // Registration button logic
-  var regBtnLabel="Register";
-  var regBtnVariant="primary";
-  var regBtnAction=handleRegister;
-  var regBtnDisabled=false;
-  if(myReg&&myReg.status==="registered"&&phase==="check_in"){
-    regBtnLabel="Check In";regBtnVariant="success";regBtnAction=handleCheckIn;
-  } else if(myReg&&myReg.status==="checked_in"){
-    regBtnLabel="Checked In";regBtnVariant="success";regBtnDisabled=true;
-  } else if(myReg&&myReg.status==="waitlisted"){
-    regBtnLabel="Waitlisted (#"+(myReg.waitlist_position||"?")+")";regBtnVariant="dark";regBtnDisabled=true;
-  } else if(myReg&&myReg.status==="registered"){
-    regBtnLabel="Registered";regBtnVariant="success";regBtnDisabled=true;
-  } else if(phase!=="registration"&&phase!=="check_in"){
-    regBtnLabel=phase==="draft"?"Registration Not Open":"Registration Closed";regBtnDisabled=true;regBtnVariant="dark";
-  }
-
-  var canUnregister=myReg&&(phase==="registration"||phase==="check_in")&&myReg.status!=="dropped";
-
-  // Compute standings from gameResults
-  var standings=[];
-  if(gameResults.length>0){
-    var _playerMap={};
-    gameResults.forEach(function(g){
-      if(!_playerMap[g.player_id]){
-        var pi=g.players||getPlayerById(g.player_id);
-        _playerMap[g.player_id]={
-          id:g.player_id,
-          name:(pi&&(pi.username||pi.name))||"Unknown",
-          rank:(pi&&pi.rank)||"Iron",
-          riotId:(pi&&(pi.riot_id||pi.riotId))||"",
-          totalPts:0,wins:0,top4:0,games:0,avgPlace:0,placements:[],gameDetails:[]
-        };
-      }
-      var _p=_playerMap[g.player_id];
-      _p.totalPts+=(g.points||0);
-      _p.games+=1;
-      if(g.placement===1)_p.wins+=1;
-      if(g.placement<=4)_p.top4+=1;
-      _p.placements.push(g.placement);
-      _p.gameDetails.push({game:g.game_number,placement:g.placement,points:g.points});
-    });
-    standings=Object.keys(_playerMap).map(function(k){
-      var _p=_playerMap[k];
-      _p.avgPlace=_p.games>0?(_p.placements.reduce(function(s,v){return s+v;},0)/_p.games):0;
-      return _p;
-    });
-    standings.sort(function(a,b){
-      if(b.totalPts!==a.totalPts)return b.totalPts-a.totalPts;
-      var aScore=a.wins*2+a.top4;
-      var bScore=b.wins*2+b.top4;
-      if(bScore!==aScore)return bScore-aScore;
-      for(var _pl=1;_pl<=8;_pl++){
-        var aC=a.placements.filter(function(p){return p===_pl;}).length;
-        var bC=b.placements.filter(function(p){return p===_pl;}).length;
-        if(bC!==aC)return bC-aC;
-      }
-      return 0;
-    });
-  }
-
-  // Multi-game admin state
-  var currentGameLobbies=lobbies.filter(function(l){return l.game_number===currentGameNumber;});
-  var allLobbiesLocked=currentGameLobbies.length>0&&currentGameLobbies.every(function(l){return l.status==='locked';});
-  var isLastGame=currentGameNumber>=(tournament&&tournament.round_count?tournament.round_count:3);
-
-  // All unique game numbers played
-  var allGameNums=[];
-  gameResults.forEach(function(g){if(allGameNums.indexOf(g.game_number)===-1)allGameNums.push(g.game_number);});
-  allGameNums.sort(function(a,b){return a-b;});
-
-  // Tabs based on phase
-  var tabs=[{id:"info",label:"Info"},{id:"players",label:"Players ("+regCount+")"}];
-  if(phase==="in_progress"||phase==="complete"||(phase==="check_in"&&isAdmin)){
-    tabs.push({id:"bracket",label:"Lobbies"+(lobbies.length>0?" ("+lobbies.length+")":"")});
-  }
-  if(phase==="in_progress"||phase==="complete"){
-    tabs.push({id:"standings",label:phase==="complete"?"Final Results":"Standings"});
-  }
-
-  // Sorted registered players
-  var sortedRegs=[].concat(registrations).sort(function(a,b){
-    var statusOrder={checked_in:0,registered:1,waitlisted:2,dropped:3};
-    return(statusOrder[a.status]||4)-(statusOrder[b.status]||4);
-  });
-
-  return(
-    <div className="page wrap">
-      {/* Back button */}
-      <button onClick={function(){setScreen("tournaments");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:13,fontWeight:600,cursor:"pointer",padding:"0 0 16px 0",fontFamily:"inherit",display:"flex",alignItems:"center",gap:4}}>
-        {"\u2190 Back to Tournaments"}
-      </button>
-
-      {/* Hero */}
-      <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12),rgba(78,205,196,.08))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",marginBottom:20}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,flexWrap:"wrap"}}>
-          <span style={{fontSize:11,fontWeight:700,color:phaseColors[phase],textTransform:"uppercase",letterSpacing:".5px",background:"rgba(255,255,255,.06)",borderRadius:6,padding:"3px 10px"}}>{phaseLabels[phase]||phase}</span>
-          <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
-        </div>
-        <h1 style={{color:"#F2EDE4",fontSize:28,fontWeight:700,margin:"0 0 8px 0"}}>{tournament.name}</h1>
-        <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:13,color:"#BECBD9"}}>
-          <span>{(tournament.round_count||3)+" games"}</span>
-          <span>{(tournament.seeding_method||"snake")+" seeding"}</span>
-          <span>{maxP+" max players"}</span>
-        </div>
-      </div>
-
-      {/* Prize pool */}
-      {prizes.length>0&&(
-        <Panel className="flash-panel" style={{padding:"18px",marginBottom:16}}>
-          <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:12}}>{"Prize Pool"}</div>
-          <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-            {prizes.map(function(p,i){
-              var colors=["#E8A838","#C0C0C0","#CD7F32"];
-              var c=colors[i]||"#9B72CF";
-              return(
-                <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid "+c+"33",borderRadius:10,padding:"12px 18px",minWidth:80,textAlign:"center"}}>
-                  <div style={{fontSize:20,fontWeight:700,color:c,marginBottom:4}}>{"#"+p.placement}</div>
-                  <div style={{fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.prize}</div>
-                </div>
-              );
-            })}
-          </div>
-        </Panel>
-      )}
-
-      {/* Registration bar */}
-      <Panel className="flash-panel" style={{padding:"16px 20px",marginBottom:16}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
-          <div>
-            <div style={{fontSize:22,fontWeight:700,color:"#F2EDE4"}}>{regCount+" / "+maxP}</div>
-            <div style={{fontSize:11,color:"#BECBD9"}}>{"players registered"+(phase==="check_in"?" · "+checkedInCount+" checked in":"")}</div>
-          </div>
-          <div style={{display:"flex",gap:8,alignItems:"center"}}>
-            <Btn v={regBtnVariant} onClick={regBtnAction} disabled={regBtnDisabled||actionLoading}>{actionLoading?"...":regBtnLabel}</Btn>
-            {canUnregister&&<Btn v="dark" s="sm" onClick={handleUnregister} disabled={actionLoading}>Unregister</Btn>}
-          </div>
-        </div>
-        <div style={{height:4,borderRadius:2,background:"rgba(255,255,255,.06)",marginTop:10}}>
-          <div style={{height:4,borderRadius:2,background:"#9B72CF",width:Math.min(100,Math.round((regCount/maxP)*100))+"%",transition:"width .3s"}}/>
-        </div>
-      </Panel>
-
-      {/* Tabs */}
-      <div style={{display:"flex",gap:4,marginBottom:16,borderBottom:"1px solid rgba(242,237,228,.06)",paddingBottom:2,overflowX:"auto",whiteSpace:"nowrap",WebkitOverflowScrolling:"touch",msOverflowStyle:"none",scrollbarWidth:"none"}}>
-        {tabs.map(function(t){
-          var active=activeTab===t.id;
-          return(
-            <button key={t.id} onClick={function(){setActiveTab(t.id);}} style={{background:active?"rgba(155,114,207,.15)":"transparent",border:"none",borderBottom:active?"2px solid #9B72CF":"2px solid transparent",padding:"8px 16px",fontSize:13,fontWeight:active?700:500,color:active?"#F2EDE4":"#8896A8",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",flexShrink:0,whiteSpace:"nowrap"}}>{t.label}</button>
-          );
-        })}
-      </div>
-
-      {/* Info tab */}
-      {activeTab==="info"&&(
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-          <Panel style={{padding:"18px"}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:10}}>Tournament Details</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,fontSize:13}}>
-              <div><span style={{color:"#8896A8"}}>Format: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.seeding_method||"snake"}</span></div>
-              <div><span style={{color:"#8896A8"}}>Games: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.round_count||3}</span></div>
-              <div><span style={{color:"#8896A8"}}>Max Players: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{maxP}</span></div>
-              <div><span style={{color:"#8896A8"}}>Lobby Host: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.lobby_host_method||"random"}</span></div>
-            </div>
-          </Panel>
-          {tournament.announcement&&(
-            <Panel style={{padding:"16px",background:"rgba(232,168,56,.06)",borderColor:"rgba(232,168,56,.2)"}}>
-              <div style={{fontSize:12,fontWeight:700,color:"#E8A838",marginBottom:6}}>Announcement</div>
-              <div style={{fontSize:13,color:"#F2EDE4",lineHeight:1.6}}>{tournament.announcement}</div>
-            </Panel>
-          )}
-        </div>
-      )}
-
-      {/* Players tab */}
-      {activeTab==="players"&&(
-        <Panel style={{padding:"16px"}}>
-          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:12}}>{"Registered Players ("+registrations.length+")"}</div>
-          {sortedRegs.length===0&&<div style={{textAlign:"center",padding:"32px 20px",color:"#8896A8",fontSize:14}}>No players registered yet. Share the tournament link!</div>}
-          <div style={{display:"flex",flexDirection:"column",gap:4}}>
-            {sortedRegs.map(function(r,idx){
-              var pData=r.players||{};
-              var statusColors={checked_in:"#52C47C",registered:"#9B72CF",waitlisted:"#E8A838",dropped:"#F87171"};
-              var statusIcons={checked_in:"\u2713",registered:"\u25CF",waitlisted:"\u25CB",dropped:"\u2717"};
-              return(
-                <div key={r.id||idx} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid rgba(242,237,228,.04)"}}>
-                  <span style={{color:statusColors[r.status]||"#8896A8",fontSize:14,width:18,textAlign:"center"}}>{statusIcons[r.status]||"?"}</span>
-                  <div style={{flex:1,minWidth:0}}>
-                    <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{pData.username||"Player"}</div>
-                    <div style={{fontSize:11,color:"#8896A8"}}>{(pData.rank||"Unranked")+" · "+(pData.region||"")}</div>
-                  </div>
-                  <span style={{fontSize:11,fontWeight:700,color:statusColors[r.status]||"#8896A8",textTransform:"uppercase"}}>{r.status==="checked_in"?"Checked In":r.status}</span>
-                </div>
-              );
-            })}
-          </div>
-        </Panel>
-      )}
-
-      {/* Lobbies tab */}
-      {activeTab==="bracket"&&(
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {/* My Lobby  -  score self-report section */}
-          {phase==="in_progress"&&myPlayer&&myLobby&&(
-            <Panel style={{padding:"18px",borderColor:"rgba(155,114,207,.35)",background:"rgba(155,114,207,.05)"}}>
-              <div style={{fontWeight:700,fontSize:14,color:"#C4B5FD",marginBottom:12}}>{"Game "+currentGameNumber+" \u2014 Report Your Placement"}</div>
-              {myReport?(
-                <div>
-                  <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
-                    <span style={{fontSize:13,color:"#52C47C",fontWeight:600}}>{"\u2713 You reported: "+myReport.reported_placement+(myReport.reported_placement===1?"st":myReport.reported_placement===2?"nd":myReport.reported_placement===3?"rd":"th")+" place"}</span>
-                    <button onClick={function(){setMyPlacement(myReport.reported_placement);}}
-                      style={{background:"none",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"4px 10px",fontSize:11,color:"#9B72CF",cursor:"pointer",fontFamily:"inherit"}}>Update</button>
-                  </div>
-                  {myPlacement>0&&(
-                    <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10}}>
-                      <select value={myPlacement}
-                        onChange={function(e){setMyPlacement(parseInt(e.target.value)||0);}}
-                        style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"7px 10px",fontSize:13,color:"#F2EDE4",fontFamily:"inherit",outline:"none"}}>
-                        {(myLobby.player_ids||[]).map(function(_,i){
-                          return(<option key={i+1} value={i+1}>{i+1+(i===0?"st":i===1?"nd":i===2?"rd":"th")+" place"}</option>);
-                        })}
-                      </select>
-                      <Btn v="primary" s="sm" onClick={function(){submitReport(myPlacement);}}>Submit</Btn>
-                      <Btn v="dark" s="sm" onClick={function(){setMyPlacement(0);}}>Cancel</Btn>
-                    </div>
-                  )}
-                </div>
-              ):(
-                <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:10,flexWrap:"wrap"}}>
-                  <select value={myPlacement}
-                    onChange={function(e){setMyPlacement(parseInt(e.target.value)||0);}}
-                    style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"7px 10px",fontSize:13,color:"#F2EDE4",fontFamily:"inherit",outline:"none"}}>
-                    <option value={0}>Select placement...</option>
-                    {(myLobby.player_ids||[]).map(function(_,i){
-                      return(<option key={i+1} value={i+1}>{i+1+(i===0?"st":i===1?"nd":i===2?"rd":"th")+" place"}</option>);
-                    })}
-                  </select>
-                  <Btn v="primary" s="sm" onClick={function(){if(myPlacement>0)submitReport(myPlacement);else toast("Select a placement first","error");}} disabled={myPlacement===0}>Submit</Btn>
-                </div>
-              )}
-              {/* Dispute section */}
-              {myReport&&!disputeForm.open&&(
-                <button onClick={function(){setDisputeForm({open:true,lobbyId:myLobby.id,claimed:myReport.reported_placement,reason:"",screenshotUrl:""}); }}
-                  style={{background:"none",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"5px 12px",fontSize:11,color:"#F87171",cursor:"pointer",fontFamily:"inherit",marginTop:4}}>
-                  {"Dispute this result"}
-                </button>
-              )}
-              {disputeForm.open&&disputeForm.lobbyId===myLobby.id&&(
-                <div style={{marginTop:12,padding:"14px",background:"rgba(248,113,113,.05)",border:"1px solid rgba(248,113,113,.2)",borderRadius:10}}>
-                  <div style={{fontWeight:700,fontSize:12,color:"#F87171",marginBottom:10}}>Submit Dispute</div>
-                  <div style={{display:"flex",gap:8,marginBottom:8,flexWrap:"wrap",alignItems:"center"}}>
-                    <label style={{fontSize:12,color:"#BECBD9",minWidth:80}}>My actual placement:</label>
-                    <select value={disputeForm.claimed}
-                      onChange={function(e){setDisputeForm(Object.assign({},disputeForm,{claimed:parseInt(e.target.value)||0}));}}
-                      style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"6px 10px",fontSize:12,color:"#F2EDE4",fontFamily:"inherit",outline:"none"}}>
-                      <option value={0}>Select...</option>
-                      {(myLobby.player_ids||[]).map(function(_,i){
-                        return(<option key={i+1} value={i+1}>{i+1+(i===0?"st":i===1?"nd":i===2?"rd":"th")}</option>);
-                      })}
-                    </select>
-                  </div>
-                  <textarea placeholder="Reason for dispute..."
-                    value={disputeForm.reason}
-                    onChange={function(e){setDisputeForm(Object.assign({},disputeForm,{reason:e.target.value}));}}
-                    rows={2}
-                    style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(248,113,113,.2)",borderRadius:6,padding:"8px 10px",fontSize:12,color:"#F2EDE4",fontFamily:"inherit",outline:"none",resize:"vertical",boxSizing:"border-box",marginBottom:8}}
-                  />
-                  <input placeholder="Screenshot URL (optional)"
-                    value={disputeForm.screenshotUrl}
-                    onChange={function(e){setDisputeForm(Object.assign({},disputeForm,{screenshotUrl:e.target.value}));}}
-                    style={{width:"100%",background:"rgba(255,255,255,.05)",border:"1px solid rgba(248,113,113,.2)",borderRadius:6,padding:"7px 10px",fontSize:12,color:"#F2EDE4",fontFamily:"inherit",outline:"none",boxSizing:"border-box",marginBottom:10}}
-                  />
-                  <div style={{display:"flex",gap:8}}>
-                    <Btn v="danger" s="sm" onClick={submitDispute} disabled={!disputeForm.claimed||!disputeForm.reason}>Submit Dispute</Btn>
-                    <Btn v="dark" s="sm" onClick={function(){setDisputeForm({open:false,lobbyId:null,claimed:0,reason:"",screenshotUrl:""});}}>Cancel</Btn>
-                  </div>
-                </div>
-              )}
-            </Panel>
-          )}
-          {phase==="in_progress"&&myPlayer&&myLobby&&myLobby.status==="locked"&&myReport&&(
-            <div style={{marginTop:10,padding:"10px 14px",background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:10,fontSize:13,color:myReport.reported_placement===1?"#E8A838":myReport.reported_placement===2?"#C0C0C0":myReport.reported_placement===3?"#CD7F32":"#4ECDC4",fontWeight:600}}>
-              {"Your result: "+myReport.reported_placement+(myReport.reported_placement===1?"st":myReport.reported_placement===2?"nd":myReport.reported_placement===3?"rd":"th")+" place \u2014 "+(PTS[myReport.reported_placement]||0)+" points"}
-            </div>
-          )}
-          {phase==="in_progress"&&myPlayer&&myDisputes.length>0&&(
-            <div style={{padding:"14px 18px",background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:10,display:"flex",flexDirection:"column",gap:10}}>
-              <div style={{fontWeight:700,fontSize:12,color:"#E8A838",letterSpacing:".05em",textTransform:"uppercase"}}>Your Disputes</div>
-              {myDisputes.map(function(d){
-                var isPending=d.status==="open";
-                var isAccepted=d.status==="resolved_accepted";
-                var statusColor=isPending?"#E8A838":isAccepted?"#52C47C":"#F87171";
-                var statusLabel=isPending?"Pending review":isAccepted?"Accepted - placement updated":"Rejected";
-                return(
-                  <div key={d.id} style={{background:"rgba(0,0,0,.25)",borderRadius:8,padding:"10px 12px"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:d.resolution_note?6:0}}>
-                      <div style={{width:8,height:8,borderRadius:"50%",background:statusColor,flexShrink:0}}/>
-                      <div style={{fontSize:12,color:statusColor,fontWeight:600}}>{statusLabel}</div>
-                      {d.claimed_placement&&(<div style={{fontSize:11,color:"#9AAABF",marginLeft:"auto"}}>{"Claimed: "+d.claimed_placement+(d.claimed_placement===1?"st":d.claimed_placement===2?"nd":d.claimed_placement===3?"rd":"th")}</div>)}
-                    </div>
-                    {d.resolution_note&&(<div style={{fontSize:11,color:"#BECBD9",paddingLeft:16}}>{d.resolution_note}</div>)}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-          {lobbies.length===0&&(
-            <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-              <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})}</div>
-              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Lobbies</div>
-              <div style={{fontSize:13,color:"#9AAABF"}}>Lobbies will appear once the admin generates them.</div>
-            </Panel>
-          )}
-          {lobbies.map(function(lobby,idx){
-            var lobbyPlayers=(lobby.player_ids||[]).map(function(pid){return getPlayerById(pid);});
-            var hostId=lobby.host_player_id;
-            var isMyLobby=myPlayer&&(lobby.player_ids||[]).indexOf(myPlayer.id)!==-1;
-            var iAmHost=myPlayer&&hostId===myPlayer.id;
-            var lobbyLetter=String.fromCharCode(65+idx);
-            var isLocked=lobby.status==="locked"||lobby.status==="completed";
-            var codeKey=lobby.id;
-            var codeInput=lobbyCodeInputs[codeKey]||"";
-            // Admin monitor vars
-            var lobbyReports=reports.filter(function(r){return r.lobby_id===lobby.id;});
-            var reportedCount=lobbyReports.length;
-            var totalCount=(lobby.player_ids||[]).length;
-            var allReported=reportedCount===totalCount&&totalCount>0;
-            var placementCounts={};
-            lobbyReports.forEach(function(r){placementCounts[r.reported_placement]=(placementCounts[r.reported_placement]||0)+1;});
-            var hasDuplicate=Object.keys(placementCounts).some(function(k){return placementCounts[k]>1;});
-            var lobbyDisputes=disputes.filter(function(d){return d.lobby_id===lobby.id&&d.status==='open';});
-            var canLock=allReported&&!hasDuplicate&&!isLocked;
-            var letterColor=isLocked?"#52C47C":"#9B72CF";
-            var cardBorderColor=hasDuplicate?"rgba(248,113,113,.5)":isLocked?"rgba(82,196,124,.3)":isMyLobby?"rgba(155,114,207,.4)":"rgba(242,237,228,.08)";
-            var cardBorderLeft=isLocked?"4px solid #52C47C":hasDuplicate?"4px solid #F87171":"4px solid transparent";
-            return(
-              <Panel key={lobby.id} style={{padding:0,borderColor:cardBorderColor,boxShadow:isMyLobby&&!hasDuplicate?"0 0 0 1px rgba(155,114,207,.2)":"none",borderLeft:cardBorderLeft,background:isLocked?"rgba(82,196,124,.08)":undefined,borderRadius:"10px",overflow:"hidden"}}>
-                {isLocked&&React.createElement("div",{style:{background:"linear-gradient(90deg,#52C47C,#3DA867)",padding:"4px 12px",borderRadius:"10px 10px 0 0",fontSize:11,fontWeight:700,color:"#fff",textAlign:"center",letterSpacing:".04em"}},"\u2713 LOCKED")}
-                <div style={{padding:"16px 18px"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,gap:8,flexWrap:"wrap"}}>
-                  <div style={{display:"flex",alignItems:"center",gap:10}}>
-                    <div style={{width:36,height:36,borderRadius:10,background:isLocked?"rgba(82,196,124,.15)":"rgba(155,114,207,.15)",border:"1px solid "+(isLocked?"rgba(82,196,124,.4)":"rgba(155,114,207,.3)"),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:18,color:letterColor,flexShrink:0}}>
-                      {lobbyLetter}
-                    </div>
-                    <div>
-                      <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{"Lobby "+lobbyLetter}</div>
-                      <div style={{fontSize:11,color:"#8896A8"}}>{lobbyPlayers.length+" players"+(isLocked?" · Locked":"")}</div>
-                    </div>
-                  </div>
-                  <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-                    {isAdmin&&phase==="in_progress"&&(
-                      <span style={{fontSize:11,fontWeight:700,color:allReported?"#52C47C":"#E8A838",background:allReported?"rgba(82,196,124,.1)":"rgba(232,168,56,.1)",border:"1px solid "+(allReported?"rgba(82,196,124,.3)":"rgba(232,168,56,.3)"),borderRadius:6,padding:"3px 8px"}}>{reportedCount+"/"+totalCount+" reported"}</span>
-                    )}
-                    {isAdmin&&lobbyDisputes.length>0&&(
-                      <span style={{fontSize:11,fontWeight:700,color:"#F97316",background:"rgba(249,115,22,.1)",border:"1px solid rgba(249,115,22,.3)",borderRadius:6,padding:"3px 8px"}}>{lobbyDisputes.length+" dispute"+(lobbyDisputes.length===1?"":"s")}</span>
-                    )}
-                    {lobby.lobby_code&&(
-                      <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px",fontFamily:"monospace",fontSize:15,fontWeight:700,color:"#E8A838",letterSpacing:2}}>
-                        {lobby.lobby_code}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {/* Admin: per-player report rows */}
-                {isAdmin&&phase==="in_progress"?(
-                  <div className="lobby-players-list" style={{display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
-                    {lobbyPlayers.map(function(p,pi){
-                      var isHost=p.id===hostId;
-                      var rc=rankColors[p.rank||"Iron"]||"#8896A8";
-                      var playerReport=lobbyReports.find(function(r){return r.player_id===p.id;});
-                      var isDupe=playerReport&&placementCounts[playerReport.reported_placement]>1;
-                      return(
-                        <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isDupe?"rgba(248,113,113,.3)":isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
-                          <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
-                          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{p.username||"Unknown"}</span>
-                          {playerReport?(
-                            <span style={{fontSize:12,fontWeight:700,color:isDupe?"#F87171":"#52C47C",background:isDupe?"rgba(248,113,113,.1)":"rgba(82,196,124,.1)",borderRadius:4,padding:"2px 8px"}}>{playerReport.reported_placement+(playerReport.reported_placement===1?"st":playerReport.reported_placement===2?"nd":playerReport.reported_placement===3?"rd":"th")}</span>
-                          ):(
-                            <span style={{fontSize:11,color:"#E8A838",fontWeight:600}}>Not reported</span>
-                          )}
-                          <select defaultValue=""
-                            onChange={function(e){var v=parseInt(e.target.value)||0;if(v>0)adminOverridePlacement(lobby.id,p.id,v);e.target.value="";}}
-                            style={{background:"rgba(255,255,255,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:4,padding:"3px 6px",fontSize:11,color:"#C4B5FD",fontFamily:"inherit",outline:"none",cursor:"pointer"}}>
-                            <option value="">Override</option>
-                            {(lobby.player_ids||[]).map(function(_,i){return(<option key={i+1} value={i+1}>{i+1}</option>);})}
-                          </select>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ):(
-                  <div className="lobby-players-list" style={{display:"flex",flexDirection:"column",gap:4,marginBottom:iAmHost&&!lobby.lobby_code?12:0}}>
-                    {lobbyPlayers.map(function(p,pi){
-                      var isHost=p.id===hostId;
-                      var rc=rankColors[p.rank||"Iron"]||"#8896A8";
-                      var playerReport=reports.find(function(r){return r.player_id===p.id&&r.lobby_id===lobby.id;});
-                      var hasReported=!!playerReport;
-                      return(
-                        <div key={p.id||pi} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 8px",background:"rgba(255,255,255,.02)",borderRadius:6,border:"1px solid "+(isHost?"rgba(232,168,56,.15)":"rgba(242,237,228,.04)")}}>
-                          <span style={{fontSize:11,fontWeight:700,color:rc,background:rc+"18",borderRadius:4,padding:"2px 6px",minWidth:60,textAlign:"center"}}>{p.rank||"Iron"}</span>
-                          <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:600}}>{isHost&&<span style={{color:"#E8A838",marginRight:4}} title="Lobby Host">{"\u265B"}</span>}{p.username||"Unknown"}</span>
-                          {phase==="in_progress"&&(
-                            <span style={{fontSize:13,color:hasReported?"#52C47C":"rgba(136,150,168,.4)",fontWeight:700}} title={hasReported?"Reported":"Not yet reported"}>{hasReported?"\u2713":"\u25CB"}</span>
-                          )}
-                          {playerReport&&<span style={{fontSize:12,fontWeight:700,color:"#52C47C"}}>{playerReport.reported_placement+(playerReport.reported_placement===1?"st":playerReport.reported_placement===2?"nd":playerReport.reported_placement===3?"rd":"th")}</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {/* Admin: Lock lobby button */}
-                {isAdmin&&phase==="in_progress"&&!isLocked&&(
-                  <div style={{display:"flex",gap:8,alignItems:"center",paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",flexWrap:"wrap",opacity:isLocked?0.7:1,pointerEvents:isLocked?"none":"auto"}}>
-                    {hasDuplicate&&<span style={{fontSize:11,color:"#F87171"}}>{"Duplicate placements  -  resolve before locking"}</span>}
-                    <Btn v="success" s="sm" onClick={function(){lockLobby(lobby.id);}} disabled={!canLock}>{isLocked?"Locked":canLock?"Lock Lobby":"Cannot Lock Yet"}</Btn>
-                  </div>
-                )}
-                {iAmHost&&!lobby.lobby_code&&(
-                  <div style={{display:"flex",gap:8,alignItems:"center",marginTop:8,paddingTop:10,borderTop:"1px solid rgba(242,237,228,.06)",opacity:isLocked?0.7:1,pointerEvents:isLocked?"none":"auto"}}>
-                    <input
-                      placeholder="Enter lobby code..."
-                      value={codeInput}
-                      onChange={function(e){var v=e.target.value;setLobbyCodeInputs(function(prev){var next=Object.assign({},prev);next[codeKey]=v;return next;});}}
-                      style={{flex:1,background:"rgba(255,255,255,.05)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"7px 12px",fontSize:13,color:"#F2EDE4",fontFamily:"monospace",outline:"none"}}
-                    />
-                    <Btn v="primary" s="sm" onClick={function(){submitLobbyCode(lobby.id,codeInput);}}>Save</Btn>
-                  </div>
-                )}
-                </div>
-              </Panel>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Standings tab */}
-      {activeTab==="standings"&&(
-        <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          {/* Podium  -  only when complete */}
-          {phase==="complete"&&standings.length>=3&&(
-            <Panel style={{padding:"28px 20px 16px 20px",background:"linear-gradient(160deg,rgba(232,168,56,.09),rgba(155,114,207,.09),rgba(17,24,39,0))",border:"1px solid rgba(232,168,56,.18)"}}>
-              <div style={{textAlign:"center",fontWeight:800,fontSize:13,color:"#E8A838",marginBottom:24,letterSpacing:"2px",textTransform:"uppercase"}}>{"Final Results"}</div>
-              <div style={{display:"flex",gap:8,justifyContent:"center",alignItems:"flex-end",flexWrap:"wrap"}}>
-                {[1,0,2].map(function(rankIdx){
-                  var entry=standings[rankIdx];
-                  if(!entry)return null;
-                  var pos=rankIdx+1;
-                  var colors=["#E8A838","#C0C0C0","#CD7F32"];
-                  var cardBgs=["linear-gradient(160deg,rgba(232,168,56,.18),rgba(232,168,56,.04))","linear-gradient(160deg,rgba(192,192,192,.12),rgba(192,192,192,.03))","linear-gradient(160deg,rgba(205,127,50,.12),rgba(205,127,50,.03))"];
-                  var cardBorders=["rgba(232,168,56,.45)","rgba(192,192,192,.3)","rgba(205,127,50,.3)"];
-                  var avatarSizes=[80,64,60];
-                  var nameSizes=[16,13,13];
-                  var cardPaddings=["20px 18px","16px 14px","16px 14px"];
-                  var prizeEntry=prizes.find(function(pr){return pr.placement===pos;});
-                  var isFirst=pos===1;
-                  var orderMap=[2,1,3];
-                  var displayOrder=orderMap[rankIdx];
-                  return(
-                    <div key={entry.id} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,order:displayOrder,flex:isFirst?"0 0 160px":"0 0 130px",background:cardBgs[rankIdx],border:"1px solid "+cardBorders[rankIdx],borderRadius:14,padding:cardPaddings[rankIdx],minWidth:isFirst?140:110,maxWidth:isFirst?180:150}}>
-                      {isFirst&&<div style={{fontSize:26,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</div>}
-                      {!isFirst&&<div style={{fontSize:20,lineHeight:1,marginBottom:2}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")})}</div>}
-                      <div style={{width:avatarSizes[rankIdx],height:avatarSizes[rankIdx],borderRadius:"50%",background:"linear-gradient(135deg,"+colors[rankIdx]+"44,"+colors[rankIdx]+"11)",border:"2.5px solid "+colors[rankIdx],display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:isFirst?24:18,color:colors[rankIdx],boxShadow:isFirst?"0 0 18px "+colors[rankIdx]+"55":"none"}}>{"#"+pos}</div>
-                      <div style={{fontWeight:700,fontSize:nameSizes[rankIdx],color:"#F2EDE4",textAlign:"center",marginTop:4,lineHeight:1.2}}>{entry.name}</div>
-                      <div style={{fontSize:12,color:colors[rankIdx],fontWeight:700,background:colors[rankIdx]+"18",borderRadius:8,padding:"2px 10px"}}>{entry.totalPts+" pts"}</div>
-                      {prizeEntry&&<div style={{fontSize:isFirst?14:12,fontWeight:800,color:colors[rankIdx],background:colors[rankIdx]+"22",border:"1px solid "+colors[rankIdx]+"55",borderRadius:8,padding:"4px 12px",marginTop:2}}>{prizeEntry.prize}</div>}
-                    </div>
-                  );
-                })}
-              </div>
-            </Panel>
-          )}
-
-          {/* Standings table */}
-          {standings.length===0?(
-            <Panel style={{padding:"48px 20px",textAlign:"center"}}>
-              <div style={{fontSize:28,marginBottom:12}}>{React.createElement("i",{className:"ti ti-chart-bar"})}</div>
-              <div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",marginBottom:6}}>Standings</div>
-              <div style={{fontSize:13,color:"#9AAABF"}}>No results yet. Complete games to see standings.</div>
-            </Panel>
-          ):(
-            <Panel style={{padding:"16px 0 0 0",overflow:"hidden"}}>
-              <div style={{padding:"0 18px 12px 18px",fontWeight:700,fontSize:14,color:"#F2EDE4"}}>
-                {"Standings  -  Game "+(allGameNums.length>0?allGameNums[allGameNums.length-1]:currentGameNumber)+" of "+(tournament.round_count||3)}
-              </div>
-              <div style={{overflowX:"auto"}}>
-                <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,tableLayout:"auto",minWidth:360}}>
-                  <thead>
-                    <tr style={{background:"rgba(255,255,255,.03)",borderBottom:"1px solid rgba(242,237,228,.08)"}}>
-                      <th style={{padding:"8px 10px 8px 18px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap",position:"sticky",left:0,zIndex:3,background:"#0D1421"}}>#</th>
-                      <th style={{padding:"8px 10px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap",position:"sticky",left:40,zIndex:3,background:"#0D1421"}}>Player</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#E8A838",whiteSpace:"nowrap"}}>Pts</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Avg</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Wins</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Top4</th>
-                      {allGameNums.map(function(gn){
-                        return(<th key={gn} style={{padding:"8px 8px",textAlign:"center",fontWeight:600,fontSize:11,color:"#9B72CF",whiteSpace:"nowrap"}}>{"G"+gn}</th>);
-                      })}
-                      {phase==="complete"&&prizes.length>0&&(
-                        <th style={{padding:"8px 10px 8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#52C47C",whiteSpace:"nowrap"}}>Prize</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {standings.map(function(entry,rankIdx){
-                      var pos=rankIdx+1;
-                      var isMe=myPlayer&&entry.id===myPlayer.id;
-                      var isCut=tournament.cut_line_pts&&entry.totalPts<tournament.cut_line_pts&&phase==="in_progress";
-                      var rowColors=["rgba(232,168,56,.08)","rgba(192,192,192,.05)","rgba(205,127,50,.05)"];
-                      var borderColors=["rgba(232,168,56,.3)","rgba(192,192,192,.15)","rgba(205,127,50,.15)"];
-                      var bg=pos<=3?rowColors[pos-1]:(isCut?"rgba(248,113,113,.04)":"transparent");
-                      var borderL=isMe?"3px solid #E8A838":(pos<=3?"3px solid "+borderColors[pos-1]:(isCut?"3px solid rgba(248,113,113,.3)":"3px solid transparent"));
-                      var prizeEntry=prizes.find(function(pr){return pr.placement===pos;});
-                      return(
-                        <tr key={entry.id} style={{background:bg,borderBottom:"1px solid rgba(242,237,228,.04)",outline:isMe?"1px solid rgba(232,168,56,.35)":"none",position:"relative"}}>
-                          <td style={{padding:"10px 10px 10px 16px",fontWeight:700,color:pos===1?"#E8A838":pos===2?"#C0C0C0":pos===3?"#CD7F32":"#8896A8",borderLeft:borderL,whiteSpace:"nowrap",position:"sticky",left:0,zIndex:2,background:"#0D1421"}}>
-                            {pos<=3?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill"),style:{color:pos===1?"#E8A838":pos===2?"#C0C0C0":"#CD7F32"}}):pos}
-                          </td>
-                          <td style={{padding:"10px 10px",maxWidth:160,position:"sticky",left:40,zIndex:2,background:"#0D1421"}}>
-                            <div style={{fontWeight:600,color:isMe?"#E8A838":"#F2EDE4",fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.name+(isMe?" (you)":"")}</div>
-                            <div style={{fontSize:10,color:"#8896A8"}}>{entry.rank}</div>
-                          </td>
-                          <td style={{padding:"10px 10px",textAlign:"center",fontWeight:700,color:"#E8A838",fontSize:14,whiteSpace:"nowrap"}}>{entry.totalPts}</td>
-                          <td style={{padding:"10px 10px",textAlign:"center",color:"#BECBD9",fontSize:12,whiteSpace:"nowrap"}}>{entry.avgPlace.toFixed(1)}</td>
-                          <td style={{padding:"10px 10px",textAlign:"center",color:"#F2EDE4",fontWeight:600,whiteSpace:"nowrap"}}>{entry.wins}</td>
-                          <td style={{padding:"10px 10px",textAlign:"center",color:"#F2EDE4",whiteSpace:"nowrap"}}>{entry.top4}</td>
-                          {allGameNums.map(function(gn){
-                            var detail=entry.gameDetails.find(function(d){return d.game===gn;});
-                            var plc=detail?detail.placement:null;
-                            var plcColor=plc===1?"#E8A838":plc===2?"#C0C0C0":plc===3?"#CD7F32":plc<=4?"#52C47C":"#8896A8";
-                            return(
-                              <td key={gn} style={{padding:"10px 8px",textAlign:"center",whiteSpace:"nowrap"}}>
-                                {plc?(
-                                  <span style={{fontSize:12,fontWeight:700,color:plcColor,background:plcColor+"18",borderRadius:4,padding:"2px 6px"}}>{plc}</span>
-                                ):(
-                                  <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}> - </span>
-                                )}
-                              </td>
-                            );
-                          })}
-                          {phase==="complete"&&prizes.length>0&&(
-                            <td style={{padding:"10px 10px 10px 10px",textAlign:"center",whiteSpace:"nowrap"}}>
-                              {prizeEntry?(
-                                <span style={{fontSize:12,fontWeight:700,color:"#52C47C",background:"rgba(82,196,124,.12)",borderRadius:4,padding:"2px 8px"}}>{prizeEntry.prize}</span>
-                              ):(
-                                <span style={{fontSize:11,color:"rgba(136,150,168,.4)"}}> - </span>
-                              )}
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              {tournament.cut_line_pts&&phase==="in_progress"&&(
-                <div style={{padding:"10px 18px",fontSize:11,color:"#F87171",borderTop:"1px solid rgba(248,113,113,.15)",background:"rgba(248,113,113,.03)"}}>
-                  {"Cut line: "+tournament.cut_line_pts+" pts  -  players below this threshold are at risk of elimination"}
-                </div>
-              )}
-            </Panel>
-          )}
-        </div>
-      )}
-
-      {/* Admin: Disputes panel */}
-      {isAdmin&&disputes.length>0&&(
-        <Panel style={{padding:"18px",marginTop:16,borderColor:"rgba(249,115,22,.2)"}}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,flexWrap:"wrap"}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#F97316"}}>{"Disputes"}</div>
-            {openDisputeCount>0&&(
-              <span style={{fontSize:11,fontWeight:700,color:"#F97316",background:"rgba(249,115,22,.15)",borderRadius:20,padding:"2px 9px",border:"1px solid rgba(249,115,22,.3)"}}>{openDisputeCount+" open"}</span>
-            )}
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-            {disputes.map(function(d){
-              var lobbyIdx=lobbies.findIndex(function(l){return l.id===d.lobby_id;});
-              var lobbyLabel=lobbyIdx>=0?"Lobby "+String.fromCharCode(65+lobbyIdx):"Unknown lobby";
-              var pData=d.players||{};
-              var isOpen=d.status==='open';
-              return(
-                <div key={d.id} style={{background:isOpen?"rgba(249,115,22,.05)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(249,115,22,.25)":"rgba(242,237,228,.06)"),borderRadius:8,padding:"12px 14px"}}>
-                  <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:8,flexWrap:"wrap"}}>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:4}}>
-                        <span style={{fontWeight:700,fontSize:13,color:"#F2EDE4"}}>{pData.username||"Player"}</span>
-                        <span style={{fontSize:11,color:"#9B72CF"}}>{lobbyLabel}</span>
-                        <span style={{fontSize:11,fontWeight:600,color:isOpen?"#F97316":"#52C47C",background:isOpen?"rgba(249,115,22,.1)":"rgba(82,196,124,.1)",borderRadius:4,padding:"1px 6px"}}>{d.status==='open'?"Open":d.status==='resolved_accepted'?"Accepted":"Rejected"}</span>
-                      </div>
-                      <div style={{fontSize:12,color:"#BECBD9",marginBottom:4}}>
-                        {"Claimed: "+(d.claimed_placement||"?")+(d.claimed_placement===1?"st":d.claimed_placement===2?"nd":d.claimed_placement===3?"rd":"th")+" · Reported: "+(d.reported_placement||"?")+(d.reported_placement===1?"st":d.reported_placement===2?"nd":d.reported_placement===3?"rd":"th")}
-                      </div>
-                      {d.reason&&<div style={{fontSize:12,color:"#9AAABF",fontStyle:"italic",marginBottom:4}}>{d.reason}</div>}
-                      {isSafeUrl(d.screenshot_url)&&<a href={d.screenshot_url} target="_blank" rel="noreferrer" style={{fontSize:11,color:"#4ECDC4"}}>{"View screenshot"}</a>}
-                    </div>
-                    {isOpen&&(
-                      <div style={{display:"flex",gap:6,flexShrink:0}}>
-                        <Btn v="success" s="sm" onClick={function(){resolveDispute(d.id,true);}}>Accept</Btn>
-                        <Btn v="danger" s="sm" onClick={function(){resolveDispute(d.id,false);}}>Reject</Btn>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Panel>
-      )}
-
-      {/* Admin controls */}
-      {isAdmin&&(
-        <Panel style={{padding:"18px",marginTop:20,borderColor:"rgba(248,113,113,.15)"}}>
-          <div style={{fontWeight:700,fontSize:14,color:"#F87171",marginBottom:14}}>{"Admin Controls"}</div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            {phase==="draft"&&<Btn v="purple" s="sm" onClick={adminOpenRegistration}>Open Registration</Btn>}
-            {phase==="registration"&&<Btn v="primary" s="sm" onClick={adminOpenCheckIn}>Open Check-In</Btn>}
-            {phase==="check_in"&&<Btn v="primary" s="sm" onClick={adminCloseCheckIn}>Close Check-In</Btn>}
-            {phase==="check_in"&&checkedInCount>=2&&lobbies.length===0&&(
-              <Btn v="success" s="sm" onClick={generateLobbies} disabled={actionLoading}>{actionLoading?"Generating...":"Generate Lobbies"}</Btn>
-            )}
-            {phase==="check_in"&&lobbies.length>0&&(
-              <span style={{fontSize:12,color:"#52C47C",padding:"4px 10px",background:"rgba(82,196,124,.1)",borderRadius:6,border:"1px solid rgba(82,196,124,.2)",fontWeight:600}}>{"\u2713 "+lobbies.length+" lobbies ready"}</span>
-            )}
-            {(phase==="check_in"||phase==="registration")&&<Btn v="dark" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
-            {phase==="in_progress"&&allLobbiesLocked&&!isLastGame&&(
-              <Btn v="primary" s="sm" onClick={startNextGame}>{"Start Game "+(currentGameNumber+1)}</Btn>
-            )}
-            {phase==="in_progress"&&allLobbiesLocked&&isLastGame&&(
-              <Btn v="success" s="sm" onClick={finalizeTournament}>Finalize Tournament</Btn>
-            )}
-          </div>
-          <div style={{fontSize:11,color:"#8896A8",marginTop:10}}>
-            {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount+(lobbies.length>0?" · "+lobbies.length+" lobbies":"")+(phase==="in_progress"?" · Game "+currentGameNumber+" of "+(tournament.round_count||3):"")}
-          </div>
-        </Panel>
       )}
     </div>
   );
@@ -16740,7 +14829,6 @@ function RulesScreen({setScreen}){
 }
 
 
-
 // ─── FAQ SCREEN ───────────────────────────────────────────────────────────────
 
 function FAQScreen({setScreen}){
@@ -16804,7 +14892,6 @@ function FAQScreen({setScreen}){
     </div>
   );
 }
-
 
 
 // ─── REFERRAL SYSTEM ─────────────────────────────────────────────────────────
@@ -17123,7 +15210,6 @@ function TFTClash(){
   const [featuredEvents,setFeaturedEvents]=useState(function(){try{var s=localStorage.getItem('tft-featured-events');return s?JSON.parse(s):[];}catch(e){return [];}});
 
 
-
   const [challengeCompletions,setChallengeCompletions]=useState(function(){try{var s=localStorage.getItem('tft-challenge-completions');return s?JSON.parse(s):{};}catch(e){return {};}});
 
   // Auth state
@@ -17139,7 +15225,6 @@ function TFTClash(){
   const newsletterEmailRef=useRef(null);
   const [newsletterSubmitted,setNewsletterSubmitted]=useState(function(){try{var subs=JSON.parse(localStorage.getItem("tft-newsletter-subs")||"[]");return subs.length>0;}catch(e){return false;}});
   const [clashRemindersOn,setClashRemindersOn]=useState(function(){try{return localStorage.getItem("tft-clash-reminders")==="1";}catch(e){return false;}});
-
 
 
   useEffect(function(){try{localStorage.setItem("tft-clash-reminders",clashRemindersOn?"1":"0");}catch(e){}},[clashRemindersOn]);
@@ -17320,7 +15405,6 @@ function TFTClash(){
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},300);return function(){clearTimeout(t);};},[scheduledEvents]);
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-host-apps",JSON.stringify(hostApps));}catch(e){}},300);return function(){clearTimeout(t);};},[hostApps]);
-
 
 
   // ── Load players from normalized players table (primary source of truth) ──
@@ -17594,7 +15678,6 @@ function TFTClash(){
   },[]);
 
 
-
   // save shared state to Supabase on every change (skip if change came from Supabase)
 
   useEffect(function(){
@@ -17704,7 +15787,6 @@ function TFTClash(){
     localStorage.setItem('tft-featured-events',JSON.stringify(featuredEvents));
     if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[featuredEvents]);
-
 
 
   useEffect(function(){
@@ -17892,7 +15974,6 @@ function TFTClash(){
   }
 
 
-
   // -- Compute SEASON_CHAMPION from live standings (derived state, not mutated) --
   var computedChampion=useMemo(function(){
     if(!players||players.length===0)return null;
@@ -17954,7 +16035,6 @@ function TFTClash(){
     </>
 
   );
-
 
 
   return(
@@ -18065,7 +16145,6 @@ function TFTClash(){
           currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead} scrimAccess={scrimAccess}/>
 
 
-
         <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
         {screen==="home"       &&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents} seasonConfig={seasonConfig}/>}
@@ -18110,11 +16189,10 @@ function TFTClash(){
 
         {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
 
-        {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={screen.replace("flash-","")} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
 
         {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
-        {screen.indexOf("tournament-")===0&&(function(){var evId=screen.replace("tournament-","");var ev=featuredEvents.find(function(e){return e.id===evId;});if(!ev)return <div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{"\U0001f50d"}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Event Not Found</h2><p style={{color:"#BECBD9"}}>This event may have been removed.</p><Btn v="primary" onClick={function(){navTo("featured");}}>Back to Featured</Btn></div>;return <TournamentDetailScreen event={ev} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>;})()}
+        {screen.indexOf("tournament-")===0&&<TournamentDetailScreen event={featuredEvents.find(function(e){return e.id===screen.replace("tournament-","");})} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>}
 
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
 
@@ -18146,7 +16224,6 @@ function TFTClash(){
         <Footer setScreen={navTo}/>
 
       </div>
-
 
 
       {/* Newsletter + Weekly Recap  -  before footer */}
