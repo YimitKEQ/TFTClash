@@ -3520,6 +3520,47 @@ function StandingsScreen(props){
   );
 }
 
+// ─── PROFILE SCREEN (wrapper: Account + Milestones + Challenges tabs) ─────────
+
+function ProfileScreen(props){
+  var tab=props.subRoute||"";
+  var tabs=[
+    {id:"",label:"Account"},
+    {id:"milestones",label:"Milestones"},
+    {id:"challenges",label:"Challenges"},
+  ];
+  if(!props.currentUser){
+    return React.createElement(AutoLogin,{setAuthScreen:props.setAuthScreen});
+  }
+  return React.createElement("div",{className:"page"},
+    React.createElement("div",{style:{display:"flex",gap:4,padding:"0 16px",marginBottom:20,borderBottom:"1px solid rgba(242,237,228,.06)"}},
+      tabs.map(function(t){
+        var active=tab===t.id;
+        return React.createElement("button",{
+          key:t.id,
+          onClick:function(){props.setScreen("profile"+(t.id?"/"+t.id:""));},
+          style:{
+            padding:"10px 18px",background:"none",border:"none",
+            borderBottom:active?"2px solid #9B72CF":"2px solid transparent",
+            color:active?"#F2EDE4":"#9AAABF",
+            fontFamily:"'Barlow Condensed',sans-serif",fontSize:14,
+            fontWeight:active?700:500,cursor:"pointer",
+            letterSpacing:".02em",transition:"all .2s",
+          }
+        },t.label);
+      })
+    ),
+    tab===""?React.createElement(React.Fragment,null,
+      React.createElement(AccountScreen,{user:props.currentUser,onUpdate:props.onUpdate,onLogout:props.onLogout,toast:props.toast,setScreen:props.setScreen,players:props.players,setPlayers:props.setPlayers,setProfilePlayer:props.setProfilePlayer,isAdmin:props.isAdmin,hostApps:props.hostApps}),
+      React.createElement("div",{className:"wrap",style:{maxWidth:600,margin:"0 auto",padding:"0 16px"}},
+        React.createElement(ReferralPanel,{currentUser:props.currentUser,toast:props.toast})
+      )
+    ):null,
+    tab==="milestones"?React.createElement(MilestonesScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser}):null,
+    tab==="challenges"?React.createElement(ChallengesScreen,{currentUser:props.currentUser,players:props.players,toast:props.toast,setScreen:props.setScreen,challengeCompletions:props.challengeCompletions}):null
+  );
+}
+
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
@@ -17296,7 +17337,7 @@ function TFTClash(){
 
   // ── Redirect legacy screens into StandingsScreen tabs ──
   useEffect(function(){
-    var redirects={leaderboard:"standings",hof:"standings/hof",roster:"standings/roster"};
+    var redirects={leaderboard:"standings",hof:"standings/hof",roster:"standings/roster",account:"profile",milestones:"profile/milestones",challenges:"profile/challenges"};
     if(redirects[screen]){navTo(redirects[screen]);}
   },[screen,navTo]);
 
@@ -17784,6 +17825,7 @@ function TFTClash(){
     if(base==="scrims"&&!canScrims){toast("Access restricted","error");return;}
     setScreen(base);
     setSubRoute(sr);
+    if(base==="profile"){setProfilePlayer(null);}
   },[isAdmin,currentUser,scrimAccess,toast]);
 
   useEffect(function(){
@@ -18112,13 +18154,11 @@ function TFTClash(){
 
         {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
+        {screen==="profile"    &&!profilePlayer&&<ProfileScreen subRoute={subRoute} currentUser={currentUser} setAuthScreen={setAuthScreen} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps} challengeCompletions={challengeCompletions}/>}
+
         {screen==="results"    &&<MemoResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
 
         {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
-
-        {screen==="milestones" &&<MilestonesScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
-
-        {screen==="challenges" &&<ChallengesScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} challengeCompletions={challengeCompletions}/>}
 
         {screen==="rules"      &&<RulesScreen setScreen={navTo}/>}
 
@@ -18135,10 +18175,6 @@ function TFTClash(){
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
 
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
-
-        {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
-
-        {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
         {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
 
