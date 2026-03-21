@@ -33,7 +33,7 @@ test.describe('Registration flow (logged-out)', () => {
 
   test('pricing section is accessible from home', async ({ page }) => {
     const app = new AppPage(page);
-    await app.clickMoreMenuItem('Pricing');
+    await app.clickNavLink('Pricing');
     await page.waitForTimeout(500);
     const body = await page.textContent('body');
     expect(body).toMatch(/pricing|Pro|Host|Free/i);
@@ -48,26 +48,23 @@ test.describe('Registration UI elements', () => {
   });
 
   test('register button is visible when registration is open', async ({ page }) => {
-    // The app starts in registration phase
-    // Logged-out: should see a sign-in CTA or "register" related text
     const body = await page.textContent('body');
     const hasRegisterFlow = /register|sign in|sign up|join/i.test(body || '');
     expect(hasRegisterFlow).toBe(true);
   });
 
-  test('navigation to bracket screen works', async ({ page }) => {
+  test('navigation to clash screen works', async ({ page }) => {
     const app = new AppPage(page);
-    await app.clickNavLink('Bracket');
+    await app.clickNavLink('Clash');
     await page.waitForTimeout(500);
     const body = await page.textContent('body');
-    // Bracket screen should mention lobbies or tournament
-    const hasBracket = /lobby|bracket|no lobbies|round/i.test(body || '');
-    expect(hasBracket, 'Bracket screen should be accessible').toBe(true);
+    const hasClash = /clash|lobby|bracket|no lobbies|round|tournament|register/i.test(body || '');
+    expect(hasClash, 'Clash screen should be accessible').toBe(true);
   });
 
-  test('empty bracket state is handled gracefully', async ({ page }) => {
+  test('empty clash state is handled gracefully', async ({ page }) => {
     const app = new AppPage(page);
-    await app.clickNavLink('Bracket');
+    await app.clickNavLink('Clash');
     await page.waitForTimeout(500);
     // Should not show error boundary or crash
     const errorBoundary = page.getByText('Something went wrong');

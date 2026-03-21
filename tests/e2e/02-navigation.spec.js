@@ -10,20 +10,16 @@ import { test, expect } from '@playwright/test';
 import { AppPage } from './pages/AppPage.js';
 
 const DESKTOP_PRIMARY_LINKS = [
-  { label: 'Roster', textOnPage: /roster|players|checked in/i },
-  { label: 'Bracket', textOnPage: /bracket|round|lobby/i },
-  { label: 'Leaderboard', textOnPage: /leaderboard|season points/i },
-  { label: 'Results', textOnPage: /results|placement|clash/i },
-  { label: 'Hall of Fame', textOnPage: /hall of fame|champion|trophy/i },
+  { label: 'Clash', textOnPage: /clash|tournament|register|lobby/i },
+  { label: 'Standings', textOnPage: /standings|leaderboard|season points/i },
+  { label: 'Events', textOnPage: /events|upcoming|past|featured/i },
+  { label: 'Pricing', textOnPage: /pricing|plans|free|pro|host/i },
 ];
 
 // Items inside the "More ▾" dropdown
 const MORE_MENU_LINKS = [
-  { label: 'Archive', textOnPage: /archive|past clashes/i },
-  { label: 'Milestones', textOnPage: /milestones|rewards/i },
-  { label: 'Rules', textOnPage: /rules|rulebook/i },
+  { label: 'Rules', textOnPage: /rules|rulebook|tournament|points/i },
   { label: 'FAQ', textOnPage: /faq|frequently|question/i },
-  { label: 'Pricing', textOnPage: /pricing|plans|free/i },
 ];
 
 test.describe('Desktop navigation — primary links', () => {
@@ -86,14 +82,14 @@ test.describe('Desktop navigation — More menu links', () => {
 });
 
 test.describe('Back to Home navigation', () => {
-  test('Leaderboard has a Back button that returns to home', async ({ page }) => {
+  test('Standings has a Back button that returns to home', async ({ page }) => {
     const app = new AppPage(page);
     await app.goto();
     await page.waitForTimeout(600);
 
-    // Navigate to Leaderboard
+    // Navigate to Standings
     const nav = page.locator('nav').first();
-    await nav.getByRole('button', { name: 'Leaderboard', exact: true }).click();
+    await nav.getByRole('button', { name: 'Standings', exact: true }).click();
     await page.waitForTimeout(600);
 
     // Find and click the Back button
@@ -102,8 +98,8 @@ test.describe('Back to Home navigation', () => {
     await backBtn.click();
     await page.waitForTimeout(600);
 
-    // Should be back on home — Season 16 text should appear
+    // Should be back on home
     const bodyText = await page.textContent('body');
-    expect(bodyText).toMatch(/Season 16|Next Clash|Levitate/i);
+    expect(bodyText).toMatch(/Season 16|Next Clash|Levitate|TFT Clash/i);
   });
 });

@@ -44,7 +44,7 @@ async function openPrimaryScreen(page, label) {
 
 // ── Pricing ────────────────────────────────────────────────────────────────────
 test('Pricing screen renders plan content', async ({ page }) => {
-  const bodyText = await openMoreScreen(page, 'Pricing');
+  const bodyText = await openPrimaryScreen(page, 'Pricing');
   expect(bodyText).toMatch(/pricing|plans|free|pro|host/i);
   await page.screenshot({ path: 'playwright-report/screenshots/pricing.png' });
 });
@@ -63,25 +63,18 @@ test('FAQ screen renders questions content', async ({ page }) => {
   await page.screenshot({ path: 'playwright-report/screenshots/faq.png' });
 });
 
-// ── Milestones ─────────────────────────────────────────────────────────────────
-test('Milestones screen renders content', async ({ page }) => {
-  const bodyText = await openMoreScreen(page, 'Milestones');
-  expect(bodyText).toMatch(/milestones|rewards|achievements/i);
-  await page.screenshot({ path: 'playwright-report/screenshots/milestones.png' });
+// ── Clash ──────────────────────────────────────────────────────────────────────
+test('Clash screen renders without crashing', async ({ page }) => {
+  const bodyText = await openPrimaryScreen(page, 'Clash');
+  expect(bodyText).toMatch(/clash|tournament|register|lobby|bracket|round/i);
+  await page.screenshot({ path: 'playwright-report/screenshots/clash-smoke.png' });
 });
 
-// ── Bracket ────────────────────────────────────────────────────────────────────
-test('Bracket screen renders without crashing', async ({ page }) => {
-  const bodyText = await openPrimaryScreen(page, 'Bracket');
-  expect(bodyText).toMatch(/bracket|round|lobby|draw|schedule/i);
-  await page.screenshot({ path: 'playwright-report/screenshots/bracket.png' });
-});
-
-// ── Roster ─────────────────────────────────────────────────────────────────────
-test('Roster screen renders without crashing', async ({ page }) => {
-  const bodyText = await openPrimaryScreen(page, 'Roster');
-  expect(bodyText).toMatch(/roster|players|checked in|registered|not yet/i);
-  await page.screenshot({ path: 'playwright-report/screenshots/roster.png' });
+// ── Events ─────────────────────────────────────────────────────────────────────
+test('Events screen renders without crashing', async ({ page }) => {
+  const bodyText = await openPrimaryScreen(page, 'Events');
+  expect(bodyText).toMatch(/events|upcoming|past|featured|tournament/i);
+  await page.screenshot({ path: 'playwright-report/screenshots/events-smoke.png' });
 });
 
 // ── Sign Up → Sign In navigation ───────────────────────────────────────────────
@@ -103,11 +96,4 @@ test('Sign Up screen has a link to Sign In', async ({ page }) => {
   // The sign-up screen should offer a path to sign in
   const bodyText = await page.textContent('body');
   expect(bodyText).toMatch(/sign in|log in|already have/i);
-});
-
-// ── Challenges ─────────────────────────────────────────────────────────────────
-test('Challenges screen renders content', async ({ page }) => {
-  const bodyText = await openMoreScreen(page, 'Challenges');
-  expect(bodyText).toMatch(/challenge|xp|daily|weekly/i);
-  await page.screenshot({ path: 'playwright-report/screenshots/challenges.png' });
 });
