@@ -943,6 +943,70 @@ function computeClashAwards(players){
 
 }
 
+// ─── AUTO-GENERATED CLASH RECAP ──────────────────────────────────────────────
+
+function generateRecap(clashData){
+  if(!clashData||!clashData.finalStandings||clashData.finalStandings.length===0)return null;
+  var lines=[];
+  var standings=clashData.finalStandings;
+  var winner=standings[0];
+  lines.push((winner.username||winner.name)+" claimed the crown with "+(winner.points||winner.pts||0)+" points.");
+
+  var biggestClimb=null;
+  standings.forEach(function(p,idx){
+    if(p.game1Pos){
+      var climb=p.game1Pos-(idx+1);
+      if(!biggestClimb||climb>biggestClimb.climb)biggestClimb={player:p.username||p.name,from:p.game1Pos,to:idx+1,climb:climb};
+    }
+  });
+  if(biggestClimb&&biggestClimb.climb>=3){
+    lines.push(biggestClimb.player+" pulled off an incredible comeback, climbing from "+ordinal(biggestClimb.from)+" after Game 1 to finish "+ordinal(biggestClimb.to)+".");
+  }
+
+  var consistent=standings.find(function(p){
+    return p.allPlacements&&p.allPlacements.every(function(pos){return pos<=4;});
+  });
+  if(consistent&&(consistent.username||consistent.name)!==(winner.username||winner.name)){
+    lines.push((consistent.username||consistent.name)+" earned the Consistency King award with all placements inside the top 4.");
+  }
+
+  if(standings.length>=2){
+    var diff=(standings[0].points||standings[0].pts||0)-(standings[1].points||standings[1].pts||0);
+    if(diff<=2){
+      lines.push("It came down to the wire \u2014 only "+diff+" point"+(diff===1?"":"s")+" separated "+(standings[0].username||standings[0].name)+" and "+(standings[1].username||standings[1].name)+".");
+    }
+  }
+
+  return {lines:lines,winner:winner.username||winner.name,clashName:clashData.name||clashData.clashName||"Clash"};
+}
+
+function ClashRecap(props){
+  var recap=props.recap;
+  if(!recap)return null;
+  return React.createElement("div",{style:{
+    background:"rgba(17,24,39,.8)",border:"1px solid rgba(52,211,153,.15)",
+    borderRadius:14,padding:20,margin:"0 16px 20px",position:"relative",overflow:"hidden",
+  }},
+    React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,#34D399,transparent)"}}),
+    React.createElement("div",{style:{fontSize:10,textTransform:"uppercase",letterSpacing:".12em",color:"#34D399",fontWeight:700,marginBottom:10,fontFamily:"'Barlow Condensed',sans-serif"}},recap.clashName+" Recap"),
+    React.createElement("div",{style:{fontSize:14,color:"#F2EDE4",lineHeight:1.8}},
+      recap.lines.map(function(line,i){
+        return React.createElement("p",{key:i,style:{marginBottom:8}},line);
+      })
+    ),
+    React.createElement("div",{style:{display:"flex",gap:8,marginTop:12}},
+      React.createElement(Btn,{v:"ghost",s:"sm",onClick:function(){
+        var text=recap.clashName+" Recap\n\n"+recap.lines.join("\n");
+        navigator.clipboard.writeText(text);
+        if(props.toast)props.toast("Copied to clipboard!","success");
+      }},React.createElement("i",{className:"ti ti-brand-discord",style:{marginRight:4}}),"Copy for Discord"),
+      React.createElement(Btn,{v:"ghost",s:"sm",onClick:function(){
+        if(props.toast)props.toast("Share card coming soon!","info");
+      }},React.createElement("i",{className:"ti ti-share",style:{marginRight:4}}),"Share Card")
+    )
+  );
+}
+
 
 
 
@@ -3875,6 +3939,9 @@ function ClashScreen(props){
     );
   }
 
+  var recapData=phase==="complete"?generateRecap(props.tournamentState):null;
+  var recapEl=recapData?React.createElement(ClashRecap,{recap:recapData,toast:props.toast}):null;
+
   return React.createElement("div",{className:"page"},
     React.createElement("div",{style:{
       position:"relative",overflow:"hidden",
@@ -3920,6 +3987,7 @@ function ClashScreen(props){
     phase==="live"&&props.tournamentState.liveStandings?React.createElement(LiveStandingsTable,{standings:props.tournamentState.liveStandings}):null,
     phase==="complete"?React.createElement(React.Fragment,null,
       React.createElement(YourFinishCard,{currentUser:props.currentUser,finalStandings:props.tournamentState.finalStandings||[]}),
+      recapEl,
       React.createElement(MemoResultsScreen,{players:props.players,toast:props.toast,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,tournamentState:props.tournamentState})
     ):null
   );
