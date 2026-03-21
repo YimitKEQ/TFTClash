@@ -1110,11 +1110,15 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 .top-nav .mobile-hamburger{display:flex;}
 
+.mobile-bottom-bar{display:flex;}
+
 @media(min-width:768px){
 
   .top-nav .desktop-links{display:flex;}
 
   .top-nav .mobile-hamburger{display:none;}
+
+  .mobile-bottom-bar{display:none!important;}
 
 }
 
@@ -3307,7 +3311,54 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
       </nav>
 
-
+      {React.createElement("nav",{className:"mobile-bottom-bar",style:{
+        position:"fixed",
+        bottom:0,
+        left:0,
+        right:0,
+        background:"rgba(8,8,15,.97)",
+        borderTop:"1px solid rgba(242,237,228,.08)",
+        display:"flex",
+        justifyContent:"space-around",
+        alignItems:"center",
+        padding:"8px 0 calc(8px + env(safe-area-inset-bottom))",
+        zIndex:9990,
+        backdropFilter:"blur(12px)",
+      }},
+        PRIMARY.map(function(item){
+          var isActive=screen===item.id||(item.id==="clash"&&(screen==="bracket"||screen==="clash-register"||screen==="clash-live"||screen==="clash-results"));
+          return React.createElement("button",{key:item.id,onClick:function(){setScreen(item.id);},
+            style:{
+              display:"flex",
+              flexDirection:"column",
+              alignItems:"center",
+              gap:2,
+              padding:"4px 12px",
+              cursor:"pointer",
+              color:isActive?"#F2EDE4":"#9AAABF",
+              position:"relative",
+              background:"none",
+              border:"none",
+              fontFamily:"'Barlow Condensed',sans-serif",
+            }},
+            item.glow?React.createElement("div",{style:{
+              position:"absolute",top:2,right:8,
+              width:6,height:6,borderRadius:"50%",
+              background:"#E8A838",
+              boxShadow:"0 0 8px #E8A838",
+            }}):null,
+            item.badge?React.createElement("span",{style:{
+              position:"absolute",top:0,right:2,
+              fontSize:7,fontWeight:700,
+              padding:"1px 4px",borderRadius:3,
+              background:item.badgeColor==="#E8A838"?"rgba(232,168,56,.2)":"rgba(78,205,196,.2)",
+              color:item.badgeColor||"#9AAABF",
+            }},item.badge):null,
+            React.createElement("i",{className:"ti "+(item.icon||"ti-circle"),style:{fontSize:20}}),
+            React.createElement("span",{style:{fontSize:9,letterSpacing:".04em"}},item.label)
+          );
+        })
+      )}
 
 
 
@@ -18186,7 +18237,7 @@ function TFTClash(){
         </div>
       )}
 
-      <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
+      <div style={{position:"relative",zIndex:1,minHeight:"100vh",paddingBottom:72}}>
 
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
 
