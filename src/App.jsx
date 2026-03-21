@@ -1576,8 +1576,17 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 .rank-glow{animation:rank-glow 3s ease-in-out infinite}
 .shimmer-bar{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 50%,transparent 100%);background-size:200% 100%;animation:shimmer-sweep 3s ease-in-out infinite}
 .live-pulse-ring{animation:live-ring 2s ease-in-out infinite}
-.war-stat{transition:transform .15s,box-shadow .15s}
-.war-stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 20px rgba(155,114,207,.15)}
+.war-stat{transition:transform .15s,box-shadow .15s;box-shadow:0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)}
+.war-stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 20px rgba(155,114,207,.15),inset 0 1px 0 rgba(255,255,255,.06)}
+
+/* ── Community Pulse Ticker ── */
+@keyframes ticker-scroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-track{display:flex;animation:ticker-scroll 30s linear infinite;will-change:transform}
+.ticker-track:hover{animation-play-state:paused}
+.ticker-item{flex-shrink:0;padding:0 24px;white-space:nowrap;font-size:12px;color:#C8D4E0;display:flex;align-items:center;gap:8px}
+.ticker-item .ticker-dot{width:4px;height:4px;border-radius:50%;background:#9B72CF;box-shadow:0 0 6px rgba(155,114,207,.5)}
+.ticker-item .ticker-val{color:#E8A838;font-weight:700;text-shadow:0 0 8px rgba(232,168,56,.4)}
+.ticker-item .ticker-accent{color:#4ECDC4;font-weight:600}
 
 /* ── Screen Soul Animations ── */
 @keyframes float-glow{0%,100%{filter:drop-shadow(0 0 8px rgba(155,114,207,.3))}50%{filter:drop-shadow(0 0 20px rgba(155,114,207,.5))}}
@@ -3303,6 +3312,50 @@ var MemoStandingsTable = memo(StandingsTable);
 
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
+
+// ─── COMMUNITY PULSE TICKER ──────────────────────────────────────────────────
+
+function CommunityPulseTicker({players,tickerOverrides,seasonConfig}){
+  var activePlayers=players.filter(function(p){return p.pts>0;});
+  var sorted=[].concat(players).sort(function(a,b){return b.pts-a.pts;});
+  var leader=sorted[0];
+  var totalGames=players.reduce(function(sum,p){return sum+(p.history||[]).length;},0);
+  var totalWins=players.reduce(function(sum,p){return sum+(p.wins||0);},0);
+  var bestStreak=0;
+  players.forEach(function(p){
+    var streak=0;
+    (p.history||[]).forEach(function(h){
+      if((h.place||h.placement||9)<=4){streak+=1;if(streak>bestStreak)bestStreak=streak;}else{streak=0;}
+    });
+  });
+
+  var autoStats=[];
+  if(leader)autoStats.push({label:"Season Leader",val:leader.name+" ("+leader.pts+" pts)",accent:true});
+  autoStats.push({label:"Active Competitors",val:activePlayers.length+"/"+players.length});
+  autoStats.push({label:"Total Games",val:""+totalGames});
+  autoStats.push({label:"Total Wins",val:""+totalWins});
+  if(bestStreak>1)autoStats.push({label:"Best Top4 Streak",val:""+bestStreak});
+  if(seasonConfig&&seasonConfig.totalClashes)autoStats.push({label:"Season Progress",val:(seasonConfig.currentClash||1)+"/"+seasonConfig.totalClashes+" clashes"});
+
+  var overrideItems=(tickerOverrides||[]).map(function(t){return{label:"Broadcast",val:t,accent:true};});
+  var allItems=overrideItems.concat(autoStats);
+
+  return React.createElement("div",{className:"war-entrance-d4",style:{borderTop:"1px solid rgba(242,237,228,.06)",marginTop:8,overflow:"hidden",position:"relative",height:32,display:"flex",alignItems:"center"}},
+    React.createElement("div",{style:{position:"absolute",left:0,top:0,bottom:0,width:32,background:"linear-gradient(90deg,#08080F,transparent)",zIndex:2,pointerEvents:"none"}}),
+    React.createElement("div",{style:{position:"absolute",right:0,top:0,bottom:0,width:32,background:"linear-gradient(270deg,#08080F,transparent)",zIndex:2,pointerEvents:"none"}}),
+    React.createElement("div",{className:"ticker-track"},
+      allItems.concat(allItems).map(function(item,i){
+        return React.createElement("div",{key:i,className:"ticker-item"},
+          React.createElement("span",{className:"ticker-dot"}),
+          React.createElement("span",{style:{color:"#9AAABF",fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}},item.label),
+          React.createElement("span",{className:item.accent?"ticker-accent":"ticker-val"},item.val)
+        );
+      })
+    )
+  );
+}
+
+
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
 
   // Dead state variables removed (name, riot, region)  -  registration now uses registerFromAccount()
@@ -3708,28 +3761,28 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           {/* ── Stats Grid (the soul) ── */}
           {linkedPlayer&&s2&&(
             <div className="war-entrance-d2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:10,marginBottom:16}}>
-              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(232,168,56,.1),rgba(10,15,28,.95))",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 12px",textAlign:"center",cursor:"pointer"}} onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>
+              <div className="war-stat shimmer-card" style={{background:"linear-gradient(145deg,rgba(232,168,56,.1),rgba(10,15,28,.95))",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 12px",textAlign:"center",cursor:"pointer"}} onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>
                 <div className="mono rank-glow" style={{fontSize:30,fontWeight:800,color:"#E8A838",lineHeight:1,textShadow:"0 0 18px rgba(232,168,56,.6)"}}>{"#"+myRank}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Rank</div>
               </div>
-              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+              <div className="war-stat shimmer-card" style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
                 <div className="mono" style={{fontSize:30,fontWeight:800,color:"#C4B5FD",lineHeight:1,textShadow:"0 0 16px rgba(196,181,253,.4)"}}>{linkedPlayer.pts}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Points</div>
               </div>
-              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+              <div className="war-stat shimmer-card" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
                 <div className="mono" style={{fontSize:30,fontWeight:800,color:"#6EE7B7",lineHeight:1,textShadow:"0 0 16px rgba(110,231,183,.4)"}}>{linkedPlayer.wins}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Wins</div>
               </div>
-              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+              <div className="war-stat shimmer-card" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
                 <div className="mono" style={{fontSize:30,fontWeight:800,color:"#4ECDC4",lineHeight:1,textShadow:"0 0 16px rgba(78,205,196,.4)"}}>{s2.avgPlacement}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Avg Place</div>
               </div>
-              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
-                <div className="mono" style={{fontSize:30,fontWeight:800,color:rankTrend>0?"#52C47C":rankTrend<0?"#F87171":"#9AAABF",lineHeight:1}}>{rankTrend>0?"+"+rankTrend:rankTrend<0?""+rankTrend:"--"}</div>
+              <div className="war-stat shimmer-card" style={{background:"linear-gradient(145deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:rankTrend>0?"#52C47C":rankTrend<0?"#F87171":"#9AAABF",lineHeight:1,textShadow:rankTrend!==0?"0 0 16px currentColor":"none"}}>{rankTrend>0?"+"+rankTrend:rankTrend<0?""+rankTrend:"--"}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Trend</div>
               </div>
-              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(155,114,207,.06),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
-                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#BECBD9",lineHeight:1}}>{s2.games}</div>
+              <div className="war-stat shimmer-card" style={{background:"linear-gradient(145deg,rgba(155,114,207,.06),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#BECBD9",lineHeight:1,textShadow:"0 0 12px rgba(190,203,217,.3)"}}>{s2.games}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Games</div>
               </div>
             </div>
@@ -3739,7 +3792,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           {linkedPlayer&&(abovePlayer||belowPlayer)&&(
             <div className="war-entrance-d2" style={{display:"grid",gridTemplateColumns:abovePlayer&&belowPlayer?"1fr 1fr":"1fr",gap:10,marginBottom:16}}>
               {abovePlayer&&(
-                <div style={{background:"linear-gradient(135deg,rgba(248,113,113,.06),rgba(10,15,28,.95))",border:"1px solid rgba(248,113,113,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={function(){setProfilePlayer(abovePlayer);setScreen("profile");}}>
+                <div className="shimmer-card" style={{background:"linear-gradient(135deg,rgba(248,113,113,.06),rgba(10,15,28,.95))",border:"1px solid rgba(248,113,113,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)"}} onClick={function(){setProfilePlayer(abovePlayer);setScreen("profile");}}>
                   <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#F87171",flexShrink:0}}>{abovePlayer.name.charAt(0)}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:12,fontWeight:700,color:"#F87171"}}>{(abovePlayer.pts-linkedPlayer.pts)+" pts behind"}</div>
@@ -3749,7 +3802,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                 </div>
               )}
               {belowPlayer&&(
-                <div style={{background:"linear-gradient(135deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={function(){setProfilePlayer(belowPlayer);setScreen("profile");}}>
+                <div className="shimmer-card" style={{background:"linear-gradient(135deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={function(){setProfilePlayer(belowPlayer);setScreen("profile");}}>
                   <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#52C47C",flexShrink:0}}>{belowPlayer.name.charAt(0)}</div>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontSize:12,fontWeight:700,color:"#52C47C"}}>{(linkedPlayer.pts-belowPlayer.pts)+" pts ahead"}</div>
@@ -3841,15 +3894,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             </div>
           )}
 
-          {/* ── Community Pulse ── */}
-          <div className="war-entrance-d4" style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderTop:"1px solid rgba(242,237,228,.06)",marginTop:8,fontSize:12,color:"#9AAABF"}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",boxShadow:"0 0 8px rgba(82,196,124,.5)"}}/>
-            <span>{players.length+" players in season · "+(players.filter(function(p){return p.pts>0;}).length)+" active competitors"}</span>
-            <div style={{marginLeft:"auto",display:"flex",gap:8}}>
-              <button onClick={function(){setScreen("standings");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Standings</button>
-              <button onClick={function(){setScreen("events");}} style={{background:"none",border:"none",color:"#4ECDC4",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Events</button>
-            </div>
-          </div>
+          {/* ── Community Pulse Ticker ── */}
+          <CommunityPulseTicker players={players} tickerOverrides={tickerOverrides} seasonConfig={seasonConfig}/>
 
         </div>
       )}
@@ -9906,7 +9952,7 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
           React.createElement("div",{style:{display:"flex",gap:20,flexWrap:"wrap"}},
             React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#E8A838",fontFamily:"'Russo One',sans-serif",textShadow:"0 0 20px rgba(232,168,56,.4)"}},linkedPlayer.pts),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Points")),
             React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#6EE7B7",fontFamily:"'Russo One',sans-serif",textShadow:"0 0 20px rgba(110,231,183,.4)"}},linkedPlayer.wins),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Wins")),
-            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#4ECDC4",fontFamily:"'Russo One',sans-serif"}},s.games),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Games"))
+            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#4ECDC4",fontFamily:"'Russo One',sans-serif",textShadow:"0 0 16px rgba(78,205,196,.4)"}},s.games),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Games"))
           )
         )
       ):null,
@@ -9916,17 +9962,17 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
       profileTab==="overview"&&React.createElement("div",null,
         linkedPlayer&&s?React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}},
           [{l:"Avg Placement",v:s.avgPlacement,c:"#F2EDE4"},{l:"Top 4 Rate",v:s.top4Rate+"%",c:"#4ECDC4"},{l:"Win Rate",v:s.top1Rate+"%",c:"#6EE7B7"},{l:"PPG",v:s.ppg,c:"#E8A838"},{l:"Best Streak",v:linkedPlayer.bestStreak||0,c:"#F87171"},{l:"Comeback Rate",v:s.comebackRate+"%",c:"#A78BFA"}].map(function(item){
-            return React.createElement("div",{key:item.l,style:{background:"linear-gradient(165deg,"+item.c+"08,#111827 50%)",borderRadius:12,padding:16,border:"1px solid "+item.c+"22",textAlign:"center",transition:"transform .15s,box-shadow .15s"},onMouseEnter:function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,.3)";},onMouseLeave:function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}},
-              React.createElement("div",{style:{fontSize:24,fontWeight:800,color:item.c,fontFamily:"'Russo One',sans-serif"}},item.v),
+            return React.createElement("div",{key:item.l,className:"shimmer-card",style:{background:"linear-gradient(165deg,"+item.c+"08,#111827 50%)",borderRadius:12,padding:16,border:"1px solid "+item.c+"22",textAlign:"center",transition:"transform .15s,box-shadow .15s",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)"},onMouseEnter:function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,.3)";},onMouseLeave:function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}},
+              React.createElement("div",{style:{fontSize:24,fontWeight:800,color:item.c,fontFamily:"'Russo One',sans-serif",textShadow:"0 0 16px currentColor"}},item.v),
               React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase",marginTop:4,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:1}},item.l));})
         ):React.createElement("div",{style:{textAlign:"center",padding:40,color:"#9AAABF"}},"Link your account to a player profile to see stats.")
       ),
       profileTab==="achievements"&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12}},
         profileAchievementsList.map(function(a){
           var earned=linkedPlayer?a.check(linkedPlayer):false;
-          return React.createElement("div",{key:a.id,style:{background:earned?"linear-gradient(135deg,rgba(26,26,46,.9),rgba(155,114,207,.12))":"#111827",borderRadius:12,padding:16,border:"1px solid "+(earned?"rgba(155,114,207,.35)":"#1E293B"),opacity:earned?1:0.5,transition:"transform .15s",cursor:earned?"pointer":"default"},onMouseEnter:earned?function(e){e.currentTarget.style.transform="translateY(-2px)";}:null,onMouseLeave:earned?function(e){e.currentTarget.style.transform="";}:null},
+          return React.createElement("div",{key:a.id,className:earned?"shimmer-card":"",style:{background:earned?"linear-gradient(135deg,rgba(26,26,46,.9),rgba(155,114,207,.12))":"#111827",borderRadius:12,padding:16,border:"1px solid "+(earned?"rgba(155,114,207,.35)":"#1E293B"),opacity:earned?1:0.5,transition:"transform .15s,box-shadow .15s",cursor:earned?"pointer":"default",boxShadow:earned?"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06),0 0 16px rgba(155,114,207,.08)":"none"},onMouseEnter:earned?function(e){e.currentTarget.style.transform="translateY(-2px)";}:null,onMouseLeave:earned?function(e){e.currentTarget.style.transform="";}:null},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},
-              React.createElement("i",{className:a.icon,style:{fontSize:22,color:earned?"#E8A838":"#4B5563"}}),
+              React.createElement("i",{className:a.icon,style:{fontSize:22,color:earned?"#E8A838":"#4B5563",filter:earned?"drop-shadow(0 0 8px rgba(232,168,56,.5))":"none"}}),
               React.createElement("div",{style:{fontWeight:700,fontSize:14,color:earned?"#F2EDE4":"#6B7280"}},a.label)),
             React.createElement("div",{style:{fontSize:12,color:earned?"#BECBD9":"#6B7280"}},a.desc),
             earned&&React.createElement("div",{style:{fontSize:11,color:"#E8A838",marginTop:6,fontWeight:600}},"UNLOCKED"));})
@@ -9935,7 +9981,7 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
         challengeList.map(function(ch){
           var pct=ch.target>0?Math.min(100,Math.round((ch.current/ch.target)*100)):0;
           var done=pct>=100;
-          return React.createElement("div",{key:ch.id,style:{background:done?"linear-gradient(135deg,rgba(17,24,39,.9),rgba(78,205,196,.08))":"linear-gradient(165deg,rgba(17,24,39,.95),rgba(10,15,28,.98))",borderRadius:12,padding:16,border:"1px solid "+(done?"rgba(78,205,196,.3)":"#1E293B"),transition:"transform .15s"},onMouseEnter:function(e){e.currentTarget.style.transform="translateY(-1px)";},onMouseLeave:function(e){e.currentTarget.style.transform="";}},
+          return React.createElement("div",{key:ch.id,style:{background:done?"linear-gradient(135deg,rgba(17,24,39,.9),rgba(78,205,196,.08))":"linear-gradient(165deg,rgba(17,24,39,.95),rgba(10,15,28,.98))",borderRadius:12,padding:16,border:"1px solid "+(done?"rgba(78,205,196,.3)":"#1E293B"),transition:"transform .15s,box-shadow .15s",boxShadow:done?"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06),0 0 12px rgba(78,205,196,.06)":"0 4px 12px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.03)"},onMouseEnter:function(e){e.currentTarget.style.transform="translateY(-1px)";},onMouseLeave:function(e){e.currentTarget.style.transform="";}},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},
               React.createElement("i",{className:ch.icon,style:{fontSize:20,color:done?"#4ECDC4":"#9AAABF"}}),
               React.createElement("div",{style:{flex:1}},
@@ -9943,19 +9989,19 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
                 React.createElement("div",{style:{fontSize:12,color:"#9AAABF"}},ch.current,"/",ch.target)),
               done&&React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#4ECDC4"}},"DONE")),
             React.createElement("div",{style:{width:"100%",height:6,borderRadius:3,background:"#1E293B",overflow:"hidden"}},
-              React.createElement("div",{style:{width:pct+"%",height:"100%",borderRadius:3,background:done?"#4ECDC4":"#9B72CF",transition:"width 0.3s"}})));})
+              React.createElement("div",{style:{width:pct+"%",height:"100%",borderRadius:3,background:done?"#4ECDC4":"#9B72CF",transition:"width 0.3s",boxShadow:pct>0?(done?"0 0 8px rgba(78,205,196,.5)":"0 0 8px rgba(155,114,207,.4)"):"none"}})));})
       ),
       profileTab==="history"&&React.createElement("div",null,
         linkedPlayer&&(linkedPlayer.clashHistory||[]).length>0?
           (linkedPlayer.clashHistory||[]).map(function(g,i){
             var place=g.place||g.placement||"?";
             var placeColor=place===1?"#E8A838":place<=4?"#4ECDC4":"#9AAABF";
-            return React.createElement("div",{key:i,style:{background:"#111827",borderRadius:12,padding:14,marginBottom:8,border:"1px solid #1E293B",display:"flex",alignItems:"center",gap:12}},
-              React.createElement("div",{style:{width:40,height:40,borderRadius:10,background:placeColor+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:placeColor,fontFamily:"'Russo One',sans-serif"}},"#"+place),
+            return React.createElement("div",{key:i,style:{background:"linear-gradient(165deg,rgba(17,24,39,.95),rgba(10,15,28,.98))",borderRadius:12,padding:14,marginBottom:8,border:"1px solid #1E293B",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.03)"}},
+              React.createElement("div",{style:{width:40,height:40,borderRadius:10,background:placeColor+"22",border:"1px solid "+placeColor+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:placeColor,fontFamily:"'Russo One',sans-serif",textShadow:place<=3?"0 0 12px currentColor":"none"}},"#"+place),
               React.createElement("div",{style:{flex:1}},
                 React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4"}},g.clashName||"Clash #"+(i+1)),
                 React.createElement("div",{style:{fontSize:12,color:"#9AAABF"}},g.date||"")),
-              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#E8A838"}},"+",g.pts||0," pts"));})
+              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#E8A838",textShadow:"0 0 10px rgba(232,168,56,.4)"}},"+",g.pts||0," pts"));})
         :React.createElement("div",{style:{textAlign:"center",padding:40,color:"#9AAABF"}},"No clash history yet. Compete in a clash to see your results here!")
       ),
       profileTab==="settings"&&React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16,maxWidth:500}},
@@ -11651,7 +11697,7 @@ function FAQScreen({setScreen}){
         {faqFiltered.map(function(faq){
           var isOpen=open===faq.q;
           return(
-            <div key={faq.q} className={isOpen?"screen-hero-d1":""} style={{background:isOpen?"linear-gradient(145deg,rgba(155,114,207,.08),rgba(10,15,28,.95))":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .25s",boxShadow:isOpen?"0 4px 20px rgba(0,0,0,.3),0 0 20px rgba(155,114,207,.06)":"none"}}>
+            <div key={faq.q} className={isOpen?"screen-hero-d1":""} style={{background:isOpen?"linear-gradient(145deg,rgba(155,114,207,.08),rgba(10,15,28,.95))":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.3)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .25s",boxShadow:isOpen?"0 4px 20px rgba(0,0,0,.3),0 0 20px rgba(155,114,207,.08),inset 0 1px 0 rgba(255,255,255,.06)":"inset 0 1px 0 rgba(255,255,255,.02)"}}>
               <button onClick={function(){setOpen(isOpen?null:faq.q);}} style={{width:"100%",padding:"16px 18px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,textAlign:"left"}}>
                 <span style={{fontSize:14,fontWeight:600,color:isOpen?"#C4B5FD":"#F2EDE4",lineHeight:1.4,fontFamily:isOpen?"'Russo One',sans-serif":"inherit"}}>{faq.q}</span>
                 <span style={{width:24,height:24,borderRadius:6,background:isOpen?"rgba(155,114,207,.2)":"rgba(255,255,255,.04)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,color:isOpen?"#C4B5FD":"#8896A8",flexShrink:0,transition:"all .2s",transform:isOpen?"rotate(45deg)":"rotate(0deg)"}}>+</span>
