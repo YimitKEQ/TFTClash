@@ -3573,7 +3573,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         <div>
           {/* Hero */}
           <div style={{position:"relative",padding:"56px 32px 48px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)",marginBottom:28,textAlign:"center"}}>
-            <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:42,color:"#E8A838",lineHeight:1,letterSpacing:".02em",marginBottom:16,textShadow:"0 0 60px rgba(232,168,56,.4)"}}>Where Champions Are Crowned</h1>
+            <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:42,color:"#E8A838",lineHeight:1,letterSpacing:".02em",marginBottom:16,textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2)"}}>Where Champions Are Crowned</h1>
             <p style={{fontSize:16,color:"#C8D4E0",lineHeight:1.65,marginBottom:8,maxWidth:540,marginLeft:"auto",marginRight:"auto"}}>
               Weekly tournaments. Season rankings. Bragging rights. The competitive TFT platform your Discord server deserves.
             </p>
@@ -3690,7 +3690,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                   <div style={{display:"flex",gap:8,marginTop:14}}>
                     {[[D,"d"],[H,"h"],[M,"m"],[S,"s"]].map(function(item){
                       return React.createElement("div",{key:item[1],style:{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.25)",borderRadius:8,padding:"6px 12px",textAlign:"center"}},
-                        React.createElement("span",{className:"mono",style:{fontSize:20,fontWeight:700,color:"#E8A838"}},String(item[0]).padStart(2,"0")),
+                        React.createElement("span",{className:"mono",style:{fontSize:20,fontWeight:700,color:"#E8A838",textShadow:"0 0 20px rgba(232,168,56,.5)"}},String(item[0]).padStart(2,"0")),
                         React.createElement("span",{style:{fontSize:10,color:"#9AAABF",marginLeft:2}},item[1])
                       );
                     })}
@@ -3709,19 +3709,19 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           {linkedPlayer&&s2&&(
             <div className="war-entrance-d2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:10,marginBottom:16}}>
               <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(232,168,56,.1),rgba(10,15,28,.95))",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 12px",textAlign:"center",cursor:"pointer"}} onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>
-                <div className="mono rank-glow" style={{fontSize:30,fontWeight:800,color:"#E8A838",lineHeight:1}}>{"#"+myRank}</div>
+                <div className="mono rank-glow" style={{fontSize:30,fontWeight:800,color:"#E8A838",lineHeight:1,textShadow:"0 0 18px rgba(232,168,56,.6)"}}>{"#"+myRank}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Rank</div>
               </div>
               <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
-                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#C4B5FD",lineHeight:1}}>{linkedPlayer.pts}</div>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#C4B5FD",lineHeight:1,textShadow:"0 0 16px rgba(196,181,253,.4)"}}>{linkedPlayer.pts}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Points</div>
               </div>
               <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
-                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#6EE7B7",lineHeight:1}}>{linkedPlayer.wins}</div>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#6EE7B7",lineHeight:1,textShadow:"0 0 16px rgba(110,231,183,.4)"}}>{linkedPlayer.wins}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Wins</div>
               </div>
               <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
-                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#4ECDC4",lineHeight:1}}>{s2.avgPlacement}</div>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#4ECDC4",lineHeight:1,textShadow:"0 0 16px rgba(78,205,196,.4)"}}>{s2.avgPlacement}</div>
                 <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Avg Place</div>
               </div>
               <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
@@ -4355,7 +4355,8 @@ function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePla
       <div style={{position:"absolute",top:-40,left:"50%",transform:"translateX(-50%)",width:500,height:300,background:"radial-gradient(ellipse,"+phCol+"12 0%,transparent 70%)",pointerEvents:"none",zIndex:0}}/>
       {/* ── Hero Banner ── */}
       <div className="war-entrance" style={{position:"relative",overflow:"hidden",borderRadius:16,padding:"28px 28px 24px",marginBottom:24,background:"linear-gradient(145deg,rgba("+parseInt(phCol.slice(1,3),16)+","+parseInt(phCol.slice(3,5),16)+","+parseInt(phCol.slice(5,7),16)+",.12),rgba(8,8,15,.97))",border:"1px solid rgba("+parseInt(phCol.slice(1,3),16)+","+parseInt(phCol.slice(3,5),16)+","+parseInt(phCol.slice(5,7),16)+",.3)",boxShadow:"0 8px 32px rgba(0,0,0,.4),0 0 60px rgba("+parseInt(phCol.slice(1,3),16)+","+parseInt(phCol.slice(3,5),16)+","+parseInt(phCol.slice(5,7),16)+",.08)"}}>
-        <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+phCol+",transparent)"}}/>
+        <div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,transparent,"+phCol+",transparent)"}}/>
+        <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 60% 120% at 15% 50%,"+phCol+"12,transparent)",pointerEvents:"none"}}/>
         {phase==="inprogress"&&React.createElement("div",{style:{position:"absolute",top:10,right:16,width:10,height:10,borderRadius:"50%",background:"#F87171",boxShadow:"0 0 12px rgba(248,113,113,.6)",animation:"pulse 2s infinite"}})}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
           <div>
@@ -4363,7 +4364,7 @@ function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePla
               <BI n={PHASE_ICONS[phase]||"swords"} size={18} color={phCol}/>
               <span className="cond" style={{fontSize:10,fontWeight:700,color:phCol,letterSpacing:".12em",textTransform:"uppercase"}}>{PHASE_LABELS[phase]||"Clash"}</span>
             </div>
-            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,4vw,30px)",color:"#F2EDE4",lineHeight:1.1,marginBottom:4}}>{ts.clashName||"TFT Clash"}</div>
+            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,4vw,30px)",color:"#F2EDE4",lineHeight:1.1,marginBottom:4,textShadow:"0 0 30px "+phCol+"44"}}>{ts.clashName||"TFT Clash"}</div>
             <div style={{fontSize:13,color:"#9AAABF"}}>{ts.clashDate||seasonConfig&&seasonConfig.seasonName||"Season 1"}</div>
           </div>
           <div style={{display:"flex",gap:10,alignItems:"center"}}>
@@ -4456,7 +4457,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
     <div className="inner-box" style={{padding:"14px 12px",textAlign:"center"}}>
 
-      <div className="mono" style={{fontSize:big?26:18,fontWeight:700,color:c||"#E8A838",lineHeight:1}}>{val}</div>
+      <div className="mono" style={{fontSize:big?26:18,fontWeight:700,color:c||"#E8A838",lineHeight:1,textShadow:"0 0 16px currentColor"}}>{val}</div>
 
       <div className="cond" style={{fontSize:10,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{label}</div>
 
@@ -5273,7 +5274,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
         <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(36px,7vw,72px)",fontWeight:900,color:"#F2EDE4",lineHeight:.88,marginBottom:14,letterSpacing:"-.02em"}}>
 
-          Hall of<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)"}}>Fame</span>
+          Hall of<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)",textShadow:"0 0 60px rgba(232,168,56,.45),0 0 120px rgba(232,168,56,.15)"}}>Fame</span>
 
         </h1>
 
@@ -5344,7 +5345,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
               <div style={{marginBottom:14}}>
 
-                <div className="mono" style={{fontSize:"clamp(44px,8vw,80px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 48px rgba(232,168,56,.3)"}}>{king.pts}</div>
+                <div className="mono" style={{fontSize:"clamp(44px,8vw,80px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 48px rgba(232,168,56,.3),0 0 96px rgba(232,168,56,.15)",textShadow:"0 0 48px rgba(232,168,56,.3)"}}>{king.pts}</div>
 
                 <div className="cond" style={{fontSize:11,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginTop:2}}>Season Points</div>
 
@@ -5794,7 +5795,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                 </div>
 
-                <div className="mono" style={{fontSize:26,fontWeight:700,color:MCOLS[ri],marginTop:8,lineHeight:1}}>{p.pts}</div>
+                <div className="mono" style={{fontSize:26,fontWeight:700,color:MCOLS[ri],marginTop:8,lineHeight:1,textShadow:"0 0 20px "+MCOLS[ri]+"66"}}>{p.pts}</div>
 
                 <div className="cond" style={{fontSize:9,color:"#BECBD9",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Season Points</div>
 
@@ -9903,8 +9904,8 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
             React.createElement("div",{style:{fontSize:13,color:rankColor,fontWeight:600,marginTop:2}},linkedPlayer.rank||"Unranked"," \u00b7 Season Rank #",seasonRank)
           ),
           React.createElement("div",{style:{display:"flex",gap:20,flexWrap:"wrap"}},
-            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#E8A838",fontFamily:"'Russo One',sans-serif"}},linkedPlayer.pts),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Points")),
-            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#6EE7B7",fontFamily:"'Russo One',sans-serif"}},linkedPlayer.wins),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Wins")),
+            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#E8A838",fontFamily:"'Russo One',sans-serif",textShadow:"0 0 20px rgba(232,168,56,.4)"}},linkedPlayer.pts),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Points")),
+            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#6EE7B7",fontFamily:"'Russo One',sans-serif",textShadow:"0 0 20px rgba(110,231,183,.4)"}},linkedPlayer.wins),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Wins")),
             React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#4ECDC4",fontFamily:"'Russo One',sans-serif"}},s.games),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Games"))
           )
         )
