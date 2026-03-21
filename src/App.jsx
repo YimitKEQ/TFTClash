@@ -2945,7 +2945,7 @@ function NotificationBell({notifications,onMarkAllRead}){
 
 }
 
-function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,currentUser,onAuthClick,notifications,onMarkAllRead,scrimAccess}){
+function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,currentUser,onAuthClick,notifications,onMarkAllRead,scrimAccess,tournamentState}){
 
   const [pwModal,setPwModal]=useState(false);
 
@@ -2976,21 +2976,19 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   // Primary mobile tabs (5 max)
 
-  const PRIMARY=[
+  var phase=tournamentState&&tournamentState.phase;
+  var clashItem=null;
+  if(phase==="registration") clashItem={id:"clash",icon:"ti-swords",label:"Clash",badge:"Register",badgeColor:"#E8A838"};
+  else if(phase==="live") clashItem={id:"clash",icon:"ti-swords",label:"LIVE",glow:true};
+  else if(phase==="complete") clashItem={id:"clash",icon:"ti-swords",label:"Clash",badge:"Results",badgeColor:"#4ECDC4"};
 
-    {id:"home",icon:"house-fill",label:"Home"},
-
-    {id:"roster",icon:"people-fill",label:"Roster"},
-
-    {id:"bracket",icon:"diagram-3-fill",label:"Bracket"},
-
-    {id:"leaderboard",icon:"bar-chart-line-fill",label:"Board"},
-
-    {id:"results",icon:"clipboard-check-fill",label:"Results"},
-
-    {id:"more",icon:"three-dots",label:"More"},
-
-  ];
+  var PRIMARY=[
+    {id:"home",icon:"ti-home",label:"Home"},
+    clashItem,
+    {id:"standings",icon:"ti-chart-bar",label:"Standings"},
+    {id:"profile",icon:"ti-user",label:"Profile"},
+    {id:"more",icon:"ti-dots",label:"More"},
+  ].filter(Boolean);
 
 
 
@@ -3000,45 +2998,24 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   // Desktop nav
 
-  const DESKTOP_PRIMARY=[
-
+  var DESKTOP_PRIMARY=[
     {id:"home",label:"Home"},
+    clashItem?{id:"clash",label:phase==="live"?"\u25cf LIVE CLASH":phase==="registration"?"Clash \xb7 Register":phase==="complete"?"Clash \xb7 Results":"Clash"}:null,
+    {id:"standings",label:"Standings"},
+    phase!=="live"?{id:"events",label:"Events"}:null,
+    {id:"profile",label:"Profile"},
+  ].filter(Boolean);
 
-    {id:"roster",label:"Roster"},
-
-    {id:"bracket",label:"Bracket"},
-
-    {id:"leaderboard",label:"Leaderboard"},
-
-    {id:"results",label:"Results"},
-
-    {id:"hof",label:"Hall of Fame"},
-
-    ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
-
-    ...(isAdmin?[{id:"admin",label:"Admin"}]:[]),
-
-  ];
-
-  const DESKTOP_MORE=[
-
-    {id:"tournaments",label:"Tournaments"},
-
-    {id:"featured",label:"Featured"},
-
-    {id:"archive",label:"Archive"},
-
-    {id:"milestones",label:"Milestones"},
-
-    {id:"challenges",label:"Challenges"},
-
-    {id:"rules",label:"Rules"},
-
-    {id:"faq",label:"FAQ"},
-
+  var DESKTOP_MORE=[
+    phase==="live"?{id:"events",label:"Events"}:null,
+    canScrims?{id:"scrims",label:"Scrims"}:null,
     {id:"pricing",label:"Pricing"},
-
-  ];
+    {id:"rules",label:"Rules"},
+    {id:"faq",label:"FAQ"},
+    {id:"host-apply",label:"Host"},
+    {id:"gear",label:"Gear"},
+    isAdmin?{id:"admin",label:"Admin"}:null,
+  ].filter(Boolean);
 
   const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
 
@@ -3194,25 +3171,31 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
           <div className="desktop-links" style={{alignItems:"center",gap:0,flex:1,minWidth:0}}>
 
-            {DESKTOP_PRIMARY.map(l=>(
-
-              <button key={l.id} onClick={()=>setScreen(l.id)}
-
-                data-active={screen===l.id?"true":"false"}
-
-                style={{background:screen===l.id?"rgba(232,168,56,.1)":"none",border:"none",padding:"6px 12px",fontSize:12.5,fontWeight:600,
-
-                  color:screen===l.id?"#E8A838":"#9AAABF",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
-
+            {DESKTOP_PRIMARY.map(function(l){
+              var isLiveClash=l.id==="clash"&&phase==="live";
+              var liveStyle=isLiveClash?{
+                background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(248,113,113,.15))",
+                color:"#E8A838",
+                fontWeight:700,
+                border:"1px solid rgba(232,168,56,.4)",
+                boxShadow:"0 0 12px rgba(232,168,56,.3),0 0 24px rgba(232,168,56,.1)",
+              }:{};
+              return React.createElement("button",{key:l.id,onClick:function(){setScreen(l.id);},
+                "data-active":screen===l.id?"true":"false",
+                style:Object.assign({},{background:screen===l.id&&!isLiveClash?"rgba(232,168,56,.1)":"none",border:"none",padding:"6px 12px",fontSize:12.5,fontWeight:600,
+                  color:screen===l.id&&!isLiveClash?"#E8A838":"#9AAABF",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0,
                   borderRadius:8,
-
-                  transition:"all .2s",letterSpacing:".02em",fontFamily:"'Chakra Petch',sans-serif"}}>
-
-                {l.label}
-
-              </button>
-
-            ))}
+                  transition:"all .2s",letterSpacing:".02em",fontFamily:"'Chakra Petch',sans-serif"},liveStyle)},
+                l.label,
+                l.badge?React.createElement("span",{style:{
+                  marginLeft:6,fontSize:10,fontWeight:700,
+                  padding:"2px 6px",borderRadius:4,
+                  background:l.badgeColor==="#E8A838"?"rgba(232,168,56,.15)":"rgba(78,205,196,.15)",
+                  color:l.badgeColor||"#9AAABF",
+                  border:"1px solid "+(l.badgeColor==="#E8A838"?"rgba(232,168,56,.3)":"rgba(78,205,196,.3)"),
+                }},l.badge):null
+              );
+            })}
 
             <div style={{position:"relative",flexShrink:0}}>
 
@@ -18071,7 +18054,7 @@ function TFTClash(){
 
         <Navbar screen={screen} setScreen={navTo} players={players} isAdmin={isAdmin} setIsAdmin={setIsAdmin} toast={toast} disputes={disputes}
 
-          currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead} scrimAccess={scrimAccess}/>
+          currentUser={currentUser} onAuthClick={(mode)=>setAuthScreen(mode)} notifications={notifications} onMarkAllRead={markAllRead} scrimAccess={scrimAccess} tournamentState={tournamentState}/>
 
 
 
