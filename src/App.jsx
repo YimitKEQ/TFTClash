@@ -2813,7 +2813,8 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
   const dispCount=(disputes||[]).length;
 
-  const canScrims=isAdmin||(currentUser&&(scrimAccess||[]).includes(currentUser.username));
+  const effectiveAdmin=isAdmin&&!!currentUser;
+  const canScrims=effectiveAdmin||(currentUser&&(scrimAccess||[]).includes(currentUser.username));
 
 
   async function tryLogin(){
@@ -2859,7 +2860,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"rules",label:"Rules"},
     {id:"faq",label:"FAQ"},
     ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
-    ...(isAdmin?[{id:"admin",label:"Admin Panel"}]:[]),
+    ...(effectiveAdmin?[{id:"admin",label:"Admin Panel"}]:[]),
   ];
 
   const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
@@ -2879,7 +2880,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     {id:"rules",icon:"book",label:"Rules",section:"info"},
     {id:"faq",icon:"help-circle",label:"FAQ",section:"info"},
     ...(canScrims?[{id:"scrims",icon:"device-gamepad-2",label:"Scrims",section:"private"}]:[]),
-    ...(isAdmin?[{id:"admin",icon:"settings",label:"Admin Panel",section:"private"}]:[]),
+    ...(effectiveAdmin?[{id:"admin",icon:"settings",label:"Admin Panel",section:"private"}]:[]),
   ];
 
 
@@ -5736,9 +5737,13 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
           <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
 
-          <h2 style={{color:"#F2EDE4",fontSize:20,marginBottom:3}}>Leaderboard</h2>
-
-          <p style={{color:"#BECBD9",fontSize:13}}>Season 1 · tap a player for full profile</p>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,rgba(232,168,56,.12),rgba(155,114,207,.08))",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-chart-bar",style:{fontSize:18,color:"#E8A838"}})}</div>
+            <div>
+              <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,fontFamily:"'Russo One',sans-serif"}}>Leaderboard</h2>
+              <p style={{color:"#BECBD9",fontSize:12,margin:0}}>Season 1 · tap a player for full profile</p>
+            </div>
+          </div>
 
         </div>
 
@@ -5771,7 +5776,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
             return(
 
-              <Panel key={p.id} hover style={{padding:"18px 14px",textAlign:"center",border:"1px solid "+MCOLS[ri]+"44",marginTop:ri===0?0:14,cursor:"pointer"}} onClick={()=>open(p)}>
+              <Panel key={p.id} hover style={{padding:"18px 14px",textAlign:"center",border:"1px solid "+MCOLS[ri]+"44",marginTop:ri===0?0:14,cursor:"pointer",background:"linear-gradient(165deg,"+MCOLS[ri]+"0A,#111827 50%)",boxShadow:ri===0?"0 0 32px "+MCOLS[ri]+"18":"none"}} onClick={()=>open(p)}>
 
                 <div style={{fontSize:26,marginBottom:6}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[MEDALS[ri]]||MEDALS[ri]),style:{color:MCOLS[ri]}})}</div>
 
@@ -12613,9 +12618,10 @@ function TFTClash(){
     if(s==="archive")s="events";
     if(s==="featured")s="events";
     if(s==="tournaments")s="events";
-    if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
-    var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
-    if(s==="scrims"&&!canScrims){toast("Access restricted","error");return;}
+    var effAdmin=isAdmin&&!!currentUser;
+    if(s==="admin"&&!effAdmin){toast("Admin access required","error");return;}
+    var canScr=effAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
+    if(s==="scrims"&&!canScr){toast("Access restricted","error");return;}
     setScreen(s);
   },[isAdmin,currentUser,scrimAccess,toast]);
 
