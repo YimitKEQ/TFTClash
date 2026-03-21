@@ -3666,7 +3666,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
   );
 
-  const cols=compact?"28px 1fr 60px 55px 50px":"28px 1fr 70px 70px 50px 55px";
+  const cols=compact?"28px 1fr 60px 55px 50px 50px":"28px 1fr 70px 70px 50px 55px 50px";
 
   return(
 
@@ -3681,6 +3681,8 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
         <H k="name" label="Player"/><H k="pts" label="Pts"/><H k="avg" label="Avg"/><H k="games" label="G"/>
 
         {!compact&&<H k="wins" label="W"/>}
+
+        <span className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}>Trend</span>
 
       </div>
 
@@ -3704,7 +3706,28 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
         const ptsCol=top3?"#E8A838":top8?"#B8A878":"#BECBD9";
 
-        return(
+        var tierLine=null;
+        for(var ti=0;ti<TIER_THRESHOLDS.length;ti++){
+          if(i===TIER_THRESHOLDS[ti].maxRank&&i>0){
+            var tColor=TIER_THRESHOLDS[ti].color;
+            var tName=TIER_THRESHOLDS[ti].name;
+            tierLine=React.createElement("div",{key:"tier-"+i,style:{display:"flex",alignItems:"center",gap:8,padding:"4px 14px",margin:"4px 0"}},
+              React.createElement("div",{style:{flex:1,height:1,background:tColor,opacity:0.4}}),
+              React.createElement("span",{className:"cond",style:{fontSize:8,fontWeight:700,color:tColor,letterSpacing:".1em",textTransform:"uppercase"}},tName),
+              React.createElement("div",{style:{flex:1,height:1,background:tColor,opacity:0.4}})
+            );
+            break;
+          }
+        }
+
+        var sparkData=(p.clashHistory||[]).slice(-5).map(function(c){return c.placement||4;});
+
+        var deltaNode=p.last_clash_rank?React.createElement("span",{style:{fontSize:10,fontWeight:700,color:p.last_clash_rank>(i+1)?"#6EE7B7":p.last_clash_rank<(i+1)?"#F87171":"#9AAABF",marginLeft:4}},
+          React.createElement("i",{className:"ti ti-"+(p.last_clash_rank>(i+1)?"arrow-up":"arrow-down"),style:{fontSize:9}}),
+          " "+Math.abs(p.last_clash_rank-(i+1))
+        ):null;
+
+        const rowEl=(
 
           <div key={p.id} id={isMe?"lb-me-row":undefined} onClick={onRowClick?()=>onRowClick(p):undefined}
 
@@ -3718,11 +3741,15 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
               alignItems:"center",cursor:onRowClick?"pointer":"default",opacity:i>=8?.55:1,
 
+              borderLeft:isMe?"3px solid #9B72CF":"3px solid transparent",
+
               boxShadow:i===0?"0 4px 20px rgba(232,168,56,.1),inset 0 1px 0 rgba(232,168,56,.08)":isMe?"0 2px 12px rgba(155,114,207,.08)":"none"}}>
 
-            <div className="mono rank-num" style={{fontSize:top3?18:13,fontWeight:900,color:rankCol,minWidth:24,textAlign:"center",textShadow:i===0?"0 0 18px rgba(232,168,56,.8)":i===1?"0 0 12px rgba(192,192,192,.6)":i===2?"0 0 12px rgba(205,127,50,.6)":"none"}}>
+            <div className="mono rank-num" style={{fontSize:top3?18:13,fontWeight:900,color:rankCol,minWidth:24,textAlign:"center",textShadow:i===0?"0 0 18px rgba(232,168,56,.8)":i===1?"0 0 12px rgba(192,192,192,.6)":i===2?"0 0 12px rgba(205,127,50,.6)":"none",display:"flex",alignItems:"center",justifyContent:"center"}}>
 
               {i<3?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")}):i+1}
+
+              {deltaNode}
 
             </div>
 
@@ -3765,9 +3792,15 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
             {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#6EE7B7":"#8896A8"}}>{p.wins||0}</div>}
 
+            <div style={{display:"flex",alignItems:"center"}}>
+              {sparkData.length>=2?React.createElement(Sparkline,{data:sparkData,w:50,h:16,color:"#9B72CF"}):null}
+            </div>
+
           </div>
 
         );
+
+        return React.createElement(React.Fragment,{key:"frag-"+i},tierLine,rowEl);
 
       })}
 
