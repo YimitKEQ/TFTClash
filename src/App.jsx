@@ -4300,7 +4300,7 @@ function ClashPhaseLive({players,setPlayers,tournamentState,setTournamentState,c
   );
 }
 
-function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setScreen}){
+function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setScreen,currentUser}){
   var ts=tournamentState||{};
   var sorted=[].concat(players).sort(function(a,b){return(b.pts||0)-(a.pts||0);});
   var champ=sorted[0];
@@ -4331,6 +4331,19 @@ function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setSc
       if(toast)toast("Copy failed","warning");
     }
   }
+
+  var myFinishCard=null;
+  if(currentUser){
+    var linkedP=sorted.find(function(p){return String(p.id)===String(currentUser.id)||p.name===currentUser.username;});
+    if(linkedP){
+      var myPlace=sorted.indexOf(linkedP)+1;
+      var myPts=linkedP.pts||0;
+      var mySuffix=myPlace===1?"st":myPlace===2?"nd":myPlace===3?"rd":"th";
+      myFinishCard={place:myPlace,pts:myPts,suffix:mySuffix,name:linkedP.name};
+    }
+  }
+
+  var clashAwards=typeof computeClashAwards==="function"?computeClashAwards(sorted):[];
 
   return(
     <div>
@@ -4365,6 +4378,18 @@ function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setSc
         })}
       </div>
 
+      {myFinishCard&&React.createElement(Panel,{style:{padding:"20px 24px",marginBottom:20,border:"1px solid rgba(155,114,207,.3)",background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(8,8,15,.97))"}},
+        React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#9B72CF,transparent)"}}),
+        React.createElement("div",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}},"Your Finish"),
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}},
+          React.createElement("div",{style:{fontFamily:"'Russo One',sans-serif",fontSize:40,color:myFinishCard.place<=1?"#E8A838":myFinishCard.place<=4?"#4ECDC4":"#BECBD9",textShadow:"0 0 20px currentColor"}},myFinishCard.place+myFinishCard.suffix),
+          React.createElement("div",{style:{flex:1}},
+            React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#F2EDE4"}},myFinishCard.name),
+            React.createElement("div",{style:{fontSize:13,color:"#E8A838",fontWeight:600}},"+"+myFinishCard.pts+" season points")
+          )
+        )
+      )}
+
       <Panel style={{padding:"20px 20px 12px",marginBottom:20}}>
         <div style={{fontSize:13,fontWeight:700,color:"#BECBD9",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
           <BI n="chart-bar" size={14}/> Full Results
@@ -4385,11 +4410,32 @@ function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setSc
         </div>
       </Panel>
 
-      <div style={{display:"flex",gap:10}}>
-        <Btn v="ghost" full onClick={shareResults}>
-          <BI n="clipboard" size={14}/> Share Results
-        </Btn>
-      </div>
+      {clashAwards&&clashAwards.length>0&&React.createElement(Panel,{style:{padding:"20px",marginBottom:20}},
+        React.createElement("div",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#E8A838",letterSpacing:".12em",textTransform:"uppercase",marginBottom:14}},"Clash Awards"),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:10}},
+          clashAwards.map(function(award,ai){
+            return React.createElement("div",{key:ai,style:{background:"linear-gradient(135deg,rgba(232,168,56,.06),rgba(10,15,28,.95))",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"14px 16px",textAlign:"center"}},
+              React.createElement("div",{style:{fontSize:16,color:"#E8A838",marginBottom:6}},React.createElement("i",{className:"ti ti-"+(award.icon||"trophy")})),
+              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:"#F2EDE4",marginBottom:2}},award.label||award.title),
+              React.createElement("div",{style:{fontSize:13,color:"#E8A838",fontWeight:600}},award.player||award.name)
+            );
+          })
+        )
+      )}
+
+      {React.createElement("div",{style:{display:"flex",gap:10,flexWrap:"wrap"}},
+        React.createElement(Btn,{v:"ghost",full:true,onClick:shareResults},React.createElement("i",{className:"ti ti-clipboard"})," Copy Results"),
+        React.createElement(Btn,{v:"ghost",full:true,onClick:function(){
+          var lines=["**"+clashName+" Results**",""];
+          sorted.slice(0,8).forEach(function(p,i){
+            var medal=i===0?":trophy:":i===1?":second_place:":i===2?":third_place:":"";
+            lines.push((medal||"#"+(i+1))+" "+p.name+" - "+(p.pts||0)+"pts");
+          });
+          lines.push("","tftclash.gg");
+          try{navigator.clipboard.writeText(lines.join("\n"));if(toast)toast("Discord format copied!","success");}catch(e){}
+        }},React.createElement("i",{className:"ti ti-brand-discord"})," Discord Format"),
+        React.createElement(Btn,{v:"purple",full:true,onClick:function(){setScreen("standings");}},React.createElement("i",{className:"ti ti-chart-bar"})," View Standings")
+      )}
     </div>
   );
 }
@@ -4449,7 +4495,7 @@ function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePla
 
       {phase==="inprogress"&&<ClashPhaseLive players={players} setPlayers={setPlayers} tournamentState={tournamentState} setTournamentState={setTournamentState} currentUser={currentUser} setProfilePlayer={setProfilePlayer} toast={toast} isAdmin={isAdmin} seasonConfig={seasonConfig}/>}
 
-      {phase==="complete"&&<ClashPhaseResults players={players} tournamentState={tournamentState} toast={toast} setProfilePlayer={setProfilePlayer} setScreen={setScreen}/>}
+      {phase==="complete"&&<ClashPhaseResults players={players} tournamentState={tournamentState} toast={toast} setProfilePlayer={setProfilePlayer} setScreen={setScreen} currentUser={currentUser}/>}
     </div>
   );
 }
