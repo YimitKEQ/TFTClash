@@ -12927,6 +12927,141 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
 }
 
 
+function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfilePlayer,isAdmin,hostApps,challengeCompletions,onLogout,onUpdate}){
+  var [profileTab,setProfileTab]=useState("overview");
+  var [bio,setBio]=useState(currentUser.bio||currentUser.user_metadata?.bio||"");
+  var [twitch,setTwitch]=useState(currentUser.twitch||currentUser.user_metadata?.twitch||"");
+  var [twitter,setTwitter]=useState(currentUser.twitter||currentUser.user_metadata?.twitter||"");
+  var [youtube,setYoutube]=useState(currentUser.youtube||currentUser.user_metadata?.youtube||"");
+  var [riotId,setRiotId]=useState(currentUser.user_metadata?.riotId||currentUser.user_metadata?.riot_id||"");
+  var [riotRegion,setRiotRegion]=useState(currentUser.user_metadata?.riotRegion||currentUser.user_metadata?.region||"EUW");
+  var linkedPlayer=players.find(function(p){return(p.authUserId&&p.authUserId===currentUser.id)||(p.id===currentUser.linkedPlayerId)||(p.name===currentUser.username);});
+  var s=linkedPlayer?getStats(linkedPlayer):null;
+  var rankColor=linkedPlayer?rc(linkedPlayer.rank):"#9B72CF";
+  var myAchievements=linkedPlayer?ACHIEVEMENTS.filter(function(a){try{return a.check(linkedPlayer);}catch(e){return false;}}):[];
+  var myMilestones=linkedPlayer?MILESTONES.filter(function(m){try{return m.check(linkedPlayer);}catch(e){return false;}}):[];
+  var seasonRank=linkedPlayer?[].concat(players).sort(function(a,b){return b.pts-a.pts;}).findIndex(function(p){return p.id===linkedPlayer.id;})+1:0;
+  var profileTabs=["overview","achievements","challenges","history","settings"];
+  var profileAchievementsList=[
+    {id:"first-win",label:"First Win",desc:"Win your first lobby",icon:"ti ti-trophy",check:function(p){return p.wins>=1;}},
+    {id:"top4-streak",label:"Top 4 Streak",desc:"Finish top 4 three times in a row",icon:"ti ti-flame",check:function(p){var h=p.clashHistory||[];var streak=0;for(var i=0;i<h.length;i++){if((h[i].place||h[i].placement)<=4)streak++;else streak=0;if(streak>=3)return true;}return false;}},
+    {id:"ten-games",label:"10 Games Played",desc:"Compete in 10 clashes",icon:"ti ti-device-gamepad-2",check:function(p){return(p.clashHistory||[]).length>=10||(p.games||0)>=10;}},
+    {id:"season-champ",label:"Season Champion",desc:"Finish #1 in the season standings",icon:"ti ti-crown",check:function(p){return p.name==="Levitate";}},
+    {id:"perfect-lobby",label:"Perfect Lobby",desc:"Win 1st place in a clash",icon:"ti ti-star",check:function(p){return(p.clashHistory||[]).some(function(g){return(g.place||g.placement)===1;});}},
+    {id:"twenty-games",label:"20 Games Played",desc:"Compete in 20 clashes",icon:"ti ti-shield-check",check:function(p){return(p.clashHistory||[]).length>=20||(p.games||0)>=20;}},
+    {id:"win-streak",label:"Win Streak",desc:"Win 2 lobbies in a row",icon:"ti ti-bolt",check:function(p){var h=p.clashHistory||[];var streak=0;for(var i=0;i<h.length;i++){if((h[i].place||h[i].placement)===1)streak++;else streak=0;if(streak>=2)return true;}return false;}},
+    {id:"consistent",label:"Consistent Player",desc:"Average placement under 4.0",icon:"ti ti-chart-line",check:function(p){var st=getStats(p);return st.avgPlacement!=="-"&&parseFloat(st.avgPlacement)<4;}}
+  ];
+  var challengeList=[
+    {id:"play2",label:"Play 2 games today",target:2,current:Math.min(2,(linkedPlayer&&linkedPlayer.games||0)%3),icon:"ti ti-device-gamepad-2"},
+    {id:"top4clash",label:"Finish top 4 in a clash",target:1,current:linkedPlayer&&s&&parseInt(s.top4Rate)>50?1:0,icon:"ti ti-target"},
+    {id:"winlobby",label:"Win a lobby this week",target:1,current:linkedPlayer&&linkedPlayer.wins>0?1:0,icon:"ti ti-trophy"}
+  ];
+  function saveSettings(){
+    var meta=Object.assign({},currentUser.user_metadata||{},{bio:bio,twitch:twitch,twitter:twitter,youtube:youtube,riotId:riotId,riotRegion:riotRegion});
+    onUpdate(Object.assign({},currentUser,meta,{user_metadata:meta,region:riotRegion}));
+    toast("Profile updated","success");
+  }
+  return(
+    React.createElement("div",{className:"page wrap"},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:20}},
+        React.createElement(Btn,{v:"dark",s:"sm",onClick:function(){setScreen("home");}},"\u2190 Back"),
+        React.createElement("h2",{style:{color:"#F2EDE4",fontSize:22,margin:0,flex:1,fontFamily:"'Playfair Display',serif"}},"My Profile")
+      ),
+      linkedPlayer&&s?React.createElement("div",{style:{background:"linear-gradient(135deg,#111827 60%,"+rankColor+"22 100%)",borderRadius:16,padding:24,marginBottom:24,border:"1px solid #1E293B"}},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}},
+          React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,"+rankColor+",#9B72CF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,fontWeight:900,color:"#08080F"}},linkedPlayer.name.charAt(0).toUpperCase()),
+          React.createElement("div",{style:{flex:1,minWidth:150}},
+            React.createElement("div",{style:{fontSize:22,fontWeight:800,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}},linkedPlayer.name),
+            React.createElement("div",{style:{fontSize:13,color:"#BECBD9"}},linkedPlayer.riotId||riotId," \u00b7 ",linkedPlayer.region||riotRegion),
+            React.createElement("div",{style:{fontSize:13,color:rankColor,fontWeight:600,marginTop:2}},linkedPlayer.rank||"Unranked"," \u00b7 Season Rank #",seasonRank)
+          ),
+          React.createElement("div",{style:{display:"flex",gap:20,flexWrap:"wrap"}},
+            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#E8A838",fontFamily:"'Russo One',sans-serif"}},linkedPlayer.pts),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Points")),
+            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#6EE7B7",fontFamily:"'Russo One',sans-serif"}},linkedPlayer.wins),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Wins")),
+            React.createElement("div",{style:{textAlign:"center"}},React.createElement("div",{style:{fontSize:28,fontWeight:900,color:"#4ECDC4",fontFamily:"'Russo One',sans-serif"}},s.games),React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}},"Games"))
+          )
+        )
+      ):null,
+      React.createElement("div",{style:{display:"flex",gap:6,marginBottom:20,overflowX:"auto",paddingBottom:4}},
+        profileTabs.map(function(t){return React.createElement("button",{key:t,onClick:function(){setProfileTab(t);},style:{padding:"8px 16px",borderRadius:8,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"'Barlow Condensed',sans-serif",textTransform:"uppercase",letterSpacing:1,background:profileTab===t?"#9B72CF":"#1E293B",color:profileTab===t?"#fff":"#9AAABF",transition:"all 0.2s"}},t);})
+      ),
+      profileTab==="overview"&&React.createElement("div",null,
+        linkedPlayer&&s?React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}},
+          [{l:"Avg Placement",v:s.avgPlacement,c:"#F2EDE4"},{l:"Top 4 Rate",v:s.top4Rate+"%",c:"#4ECDC4"},{l:"Win Rate",v:s.top1Rate+"%",c:"#6EE7B7"},{l:"PPG",v:s.ppg,c:"#E8A838"},{l:"Best Streak",v:linkedPlayer.bestStreak||0,c:"#F87171"},{l:"Comeback Rate",v:s.comebackRate+"%",c:"#A78BFA"}].map(function(item){
+            return React.createElement("div",{key:item.l,style:{background:"#111827",borderRadius:12,padding:16,border:"1px solid #1E293B",textAlign:"center"}},
+              React.createElement("div",{style:{fontSize:24,fontWeight:800,color:item.c,fontFamily:"'Russo One',sans-serif"}},item.v),
+              React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase",marginTop:4,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:1}},item.l));})
+        ):React.createElement("div",{style:{textAlign:"center",padding:40,color:"#9AAABF"}},"Link your account to a player profile to see stats.")
+      ),
+      profileTab==="achievements"&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12}},
+        profileAchievementsList.map(function(a){
+          var earned=linkedPlayer?a.check(linkedPlayer):false;
+          return React.createElement("div",{key:a.id,style:{background:earned?"linear-gradient(135deg,#1a1a2e,#9B72CF22)":"#111827",borderRadius:12,padding:16,border:"1px solid "+(earned?"#9B72CF44":"#1E293B"),opacity:earned?1:0.5}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},
+              React.createElement("i",{className:a.icon,style:{fontSize:22,color:earned?"#E8A838":"#4B5563"}}),
+              React.createElement("div",{style:{fontWeight:700,fontSize:14,color:earned?"#F2EDE4":"#6B7280"}},a.label)),
+            React.createElement("div",{style:{fontSize:12,color:earned?"#BECBD9":"#6B7280"}},a.desc),
+            earned&&React.createElement("div",{style:{fontSize:11,color:"#E8A838",marginTop:6,fontWeight:600}},"UNLOCKED"));})
+      ),
+      profileTab==="challenges"&&React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
+        challengeList.map(function(ch){
+          var pct=ch.target>0?Math.min(100,Math.round((ch.current/ch.target)*100)):0;
+          var done=pct>=100;
+          return React.createElement("div",{key:ch.id,style:{background:done?"linear-gradient(135deg,#111827,#4ECDC422)":"#111827",borderRadius:12,padding:16,border:"1px solid "+(done?"#4ECDC444":"#1E293B")}},
+            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},
+              React.createElement("i",{className:ch.icon,style:{fontSize:20,color:done?"#4ECDC4":"#9AAABF"}}),
+              React.createElement("div",{style:{flex:1}},
+                React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4"}},ch.label),
+                React.createElement("div",{style:{fontSize:12,color:"#9AAABF"}},ch.current,"/",ch.target)),
+              done&&React.createElement("span",{style:{fontSize:12,fontWeight:700,color:"#4ECDC4"}},"DONE")),
+            React.createElement("div",{style:{width:"100%",height:6,borderRadius:3,background:"#1E293B",overflow:"hidden"}},
+              React.createElement("div",{style:{width:pct+"%",height:"100%",borderRadius:3,background:done?"#4ECDC4":"#9B72CF",transition:"width 0.3s"}})));})
+      ),
+      profileTab==="history"&&React.createElement("div",null,
+        linkedPlayer&&(linkedPlayer.clashHistory||[]).length>0?
+          (linkedPlayer.clashHistory||[]).map(function(g,i){
+            var place=g.place||g.placement||"?";
+            var placeColor=place===1?"#E8A838":place<=4?"#4ECDC4":"#9AAABF";
+            return React.createElement("div",{key:i,style:{background:"#111827",borderRadius:12,padding:14,marginBottom:8,border:"1px solid #1E293B",display:"flex",alignItems:"center",gap:12}},
+              React.createElement("div",{style:{width:40,height:40,borderRadius:10,background:placeColor+"22",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:placeColor,fontFamily:"'Russo One',sans-serif"}},"#"+place),
+              React.createElement("div",{style:{flex:1}},
+                React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4"}},g.clashName||"Clash #"+(i+1)),
+                React.createElement("div",{style:{fontSize:12,color:"#9AAABF"}},g.date||"")),
+              React.createElement("div",{style:{fontSize:14,fontWeight:700,color:"#E8A838"}},"+",g.pts||0," pts"));})
+        :React.createElement("div",{style:{textAlign:"center",padding:40,color:"#9AAABF"}},"No clash history yet. Compete in a clash to see your results here!")
+      ),
+      profileTab==="settings"&&React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16,maxWidth:500}},
+        React.createElement("div",null,
+          React.createElement("label",{style:{fontSize:12,color:"#9AAABF",textTransform:"uppercase",letterSpacing:1,marginBottom:4,display:"block",fontFamily:"'Barlow Condensed',sans-serif"}},"Bio"),
+          React.createElement("textarea",{value:bio,onChange:function(e){setBio(e.target.value);},rows:3,style:{width:"100%",background:"#0D1117",border:"1px solid #1E293B",borderRadius:8,padding:10,color:"#F2EDE4",fontSize:14,resize:"vertical"},placeholder:"Tell us about yourself..."})),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}},
+          React.createElement("div",null,
+            React.createElement("label",{style:{fontSize:12,color:"#9AAABF",textTransform:"uppercase",letterSpacing:1,marginBottom:4,display:"block",fontFamily:"'Barlow Condensed',sans-serif"}},"Riot ID"),
+            React.createElement("input",{type:"text",value:riotId,onChange:function(e){setRiotId(e.target.value);},style:{width:"100%",background:"#0D1117",border:"1px solid #1E293B",borderRadius:8,padding:"8px 10px",color:"#F2EDE4",fontSize:14},placeholder:"Name#TAG"})),
+          React.createElement("div",null,
+            React.createElement("label",{style:{fontSize:12,color:"#9AAABF",textTransform:"uppercase",letterSpacing:1,marginBottom:4,display:"block",fontFamily:"'Barlow Condensed',sans-serif"}},"Region"),
+            React.createElement("select",{value:riotRegion,onChange:function(e){setRiotRegion(e.target.value);},style:{width:"100%",background:"#0D1117",border:"1px solid #1E293B",borderRadius:8,padding:"8px 10px",color:"#F2EDE4",fontSize:14}},
+              ["EUW","EUNE","NA","KR","JP","OCE","BR","LAN","LAS","TR","RU","PH","SG","TH","TW","VN"].map(function(r){return React.createElement("option",{key:r,value:r},r);})))),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}},
+          React.createElement("div",null,
+            React.createElement("label",{style:{fontSize:12,color:"#9AAABF",textTransform:"uppercase",letterSpacing:1,marginBottom:4,display:"block",fontFamily:"'Barlow Condensed',sans-serif"}},"Twitch"),
+            React.createElement("input",{type:"text",value:twitch,onChange:function(e){setTwitch(e.target.value);},style:{width:"100%",background:"#0D1117",border:"1px solid #1E293B",borderRadius:8,padding:"8px 10px",color:"#F2EDE4",fontSize:14},placeholder:"username"})),
+          React.createElement("div",null,
+            React.createElement("label",{style:{fontSize:12,color:"#9AAABF",textTransform:"uppercase",letterSpacing:1,marginBottom:4,display:"block",fontFamily:"'Barlow Condensed',sans-serif"}},"Twitter"),
+            React.createElement("input",{type:"text",value:twitter,onChange:function(e){setTwitter(e.target.value);},style:{width:"100%",background:"#0D1117",border:"1px solid #1E293B",borderRadius:8,padding:"8px 10px",color:"#F2EDE4",fontSize:14},placeholder:"@handle"}))),
+        React.createElement("div",null,
+          React.createElement("label",{style:{fontSize:12,color:"#9AAABF",textTransform:"uppercase",letterSpacing:1,marginBottom:4,display:"block",fontFamily:"'Barlow Condensed',sans-serif"}},"YouTube"),
+          React.createElement("input",{type:"text",value:youtube,onChange:function(e){setYoutube(e.target.value);},style:{width:"100%",background:"#0D1117",border:"1px solid #1E293B",borderRadius:8,padding:"8px 10px",color:"#F2EDE4",fontSize:14},placeholder:"channel URL"})),
+        React.createElement(Btn,{v:"gold",s:"md",onClick:saveSettings,style:{marginTop:8}},"Save Profile"),
+        isAdmin&&React.createElement(Btn,{v:"dark",s:"sm",onClick:function(){setScreen("admin");},style:{marginTop:8}},"Admin Panel \u2192"),
+        React.createElement("div",{style:{borderTop:"1px solid #1E293B",paddingTop:16,marginTop:8}},
+          React.createElement(Btn,{v:"dark",s:"sm",onClick:onLogout,style:{color:"#F87171"}},"Sign Out")))
+    )
+  );
+}
+
+
 function SeasonRecapScreen({player,players,toast,setScreen}){
 
   const s=getStats(player);
@@ -15772,6 +15907,9 @@ function TFTClash(){
     if(s==="roster")s="leaderboard";
     if(s==="bracket")s="clash";
     if(s==="results")s="clash";
+    if(s==="account")s="my-profile";
+    if(s==="milestones")s="my-profile";
+    if(s==="challenges")s="my-profile";
     if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
     var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
     if(s==="scrims"&&!canScrims){toast("Access restricted","error");return;}
@@ -15793,7 +15931,7 @@ function TFTClash(){
     var h=window.location.hash.slice(1);
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
-    var safeScreens=["home","standings","bracket","clash","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear"];
+    var safeScreens=["home","standings","bracket","clash","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","my-profile","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear"];
     var isSafe=safeScreens.includes(h)||h.indexOf("tournament-")===0;
     var dest=isSafe?h:"home";
     if(dest==="bracket"||dest==="results")dest="clash";
@@ -16137,6 +16275,9 @@ function TFTClash(){
         {screen==="account"    &&currentUser&&<><AccountScreen user={currentUser} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps}/><div className="wrap" style={{maxWidth:600,margin:"0 auto",padding:"0 16px"}}><ReferralPanel currentUser={currentUser} toast={toast}/></div></>}
 
         {screen==="account"    &&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
+
+        {screen==="my-profile"&&currentUser&&<ProfileScreen currentUser={currentUser} players={players} setPlayers={setPlayers} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps} challengeCompletions={challengeCompletions} onLogout={handleLogout} onUpdate={updateUser}/>}
+        {screen==="my-profile"&&!currentUser&&<AutoLogin setAuthScreen={setAuthScreen}/>}
 
         {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
 
