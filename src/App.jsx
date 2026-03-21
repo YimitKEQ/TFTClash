@@ -1304,6 +1304,7 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── Holographic champion row ────────────────────────────── */
 
+@keyframes holo-shift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .row-champion{background:linear-gradient(270deg,rgba(232,168,56,.07),rgba(155,114,207,.06),rgba(78,205,196,.05))!important;background-size:300% 300%!important;animation:holo-shift 6s ease infinite!important;}
 
 
@@ -1314,6 +1315,8 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── Moving retro scan line ──────────────────────────────── */
 
+@keyframes scanline-move{0%{top:-100%}100%{top:200%}}
+.retro-scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(155,114,207,.08),rgba(78,205,196,.06),transparent);animation:scanline-move 8s linear infinite;pointer-events:none;z-index:1;}
 
 /* ── Neon underline heading style ────────────────────────── */
 
@@ -1358,6 +1361,7 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ── Countdown tile pulse border ─────────────────────────── */
 
+@keyframes neon-border-pulse{0%,100%{box-shadow:0 0 8px rgba(155,114,207,.15),inset 0 1px 0 rgba(255,255,255,.04)}50%{box-shadow:0 0 20px rgba(155,114,207,.3),0 0 40px rgba(155,114,207,.1),inset 0 1px 0 rgba(255,255,255,.06)}}
 .countdown-tile{animation:neon-border-pulse 3s ease infinite!important;}
 
 
@@ -1392,6 +1396,7 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 
 .btn-cta{position:relative;overflow:hidden;}
 
+@keyframes shimmer-scan{0%{left:-60%}100%{left:130%}}
 .btn-cta::after{content:"";position:absolute;top:-50%;left:-60%;width:30%;height:200%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:skewX(-20deg);animation:shimmer-scan 3s ease infinite;}
 
 
@@ -5789,7 +5794,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
           <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
 
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,rgba(232,168,56,.12),rgba(155,114,207,.08))",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-chart-bar",style:{fontSize:18,color:"#E8A838"}})}</div>
+            <div style={{width:38,height:38,borderRadius:10,background:"linear-gradient(135deg,rgba(232,168,56,.12),rgba(155,114,207,.08))",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-chart-bar",style:{fontSize:18,color:"#E8A838",filter:"drop-shadow(0 0 6px rgba(232,168,56,.4))"}})}</div>
             <div>
               <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,fontFamily:"'Russo One',sans-serif"}}>Leaderboard</h2>
               <p style={{color:"#BECBD9",fontSize:12,margin:0}}>Season 1 · tap a player for full profile</p>
@@ -9314,7 +9319,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
           return React.createElement("div",{key:tier.name,className:"tier-card",style:{
             background:isHighlighted?"linear-gradient(165deg,rgba(232,168,56,.08) 0%,rgba(18,28,48,.95) 40%,rgba(10,15,28,.98) 100%)":"linear-gradient(165deg,rgba(255,255,255,.03),rgba(10,15,28,.98))",
             border:isHighlighted?"2px solid rgba(232,168,56,.4)":"1px solid rgba(255,255,255,.08)",
-            borderRadius:16,padding:0,position:"relative",overflow:"hidden"}},
+            borderRadius:16,padding:0,position:"relative",overflow:"hidden",boxShadow:isHighlighted?"0 8px 32px rgba(0,0,0,.4),0 0 24px rgba(232,168,56,.06),inset 0 1px 0 rgba(255,255,255,.08)":"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)"}},
             isHighlighted&&React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#E8A838,#9B72CF,#E8A838)"}}),
             React.createElement("div",{style:{padding:"28px 24px 24px"}},
               React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}},
@@ -9324,7 +9329,7 @@ function PricingScreen({currentPlan,toast,currentUser,setScreen}){
                   React.createElement("div",{style:{fontSize:20,fontWeight:800,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}},tier.name)),
                 React.createElement("span",{className:"cond",style:{fontSize:10,fontWeight:700,color:tier.color,background:tier.color+"18",padding:"3px 10px",borderRadius:6,letterSpacing:".08em"}},tier.badge)),
               React.createElement("div",{style:{marginBottom:20}},
-                React.createElement("span",{style:{fontSize:36,fontWeight:900,color:tier.color,fontFamily:"'Russo One',sans-serif"}},tier.price),
+                React.createElement("span",{style:{fontSize:36,fontWeight:900,color:tier.color,fontFamily:"'Russo One',sans-serif",textShadow:"0 0 20px currentColor"}},tier.price),
                 React.createElement("span",{style:{fontSize:14,color:"#9AAABF",marginLeft:4}},tier.period)),
               React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
                 tier.features.map(function(f,fi){return React.createElement("div",{key:fi,style:{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#C8D4E0"}},
@@ -9493,9 +9498,11 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
   return(
 
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",position:"relative"}}>
 
-      <div style={{width:"100%",maxWidth:480}}>
+      <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:500,height:400,background:"radial-gradient(ellipse,rgba(155,114,207,.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
+
+      <div className="screen-hero" style={{width:"100%",maxWidth:480}}>
 
         {/* Back button */}
 
@@ -9780,9 +9787,11 @@ function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
 
   return(
 
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px",position:"relative"}}>
 
-      <div style={{width:"100%",maxWidth:420}}>
+      <div style={{position:"absolute",top:"20%",left:"50%",transform:"translateX(-50%)",width:500,height:400,background:"radial-gradient(ellipse,rgba(155,114,207,.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
+
+      <div className="screen-hero" style={{width:"100%",maxWidth:420}}>
 
         {/* Back button */}
 
@@ -10197,18 +10206,18 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
     <div className="page wrap">
 
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
+      <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
 
         <Btn v="dark" s="sm" onClick={()=>setScreen("profile")}>← Back</Btn>
 
-        <h2 style={{color:"#F2EDE4",fontSize:20,flex:1}}>Season 1 Recap</h2>
+        <h2 style={{color:"#F2EDE4",fontSize:20,flex:1,fontFamily:"'Russo One',sans-serif"}}>Season 1 Recap</h2>
 
       </div>
 
 
       {/* Preview card */}
 
-      <div style={{background:"linear-gradient(135deg,rgba(10,15,26,1),rgba(13,18,37,1),rgba(8,8,15,1))",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,padding:"clamp(20px,4vw,40px)",marginBottom:24,maxWidth:700,position:"relative",overflow:"hidden"}}>
+      <div className="screen-hero-d1" style={{background:"linear-gradient(135deg,rgba(10,15,26,1),rgba(13,18,37,1),rgba(8,8,15,1))",border:"1px solid rgba(232,168,56,.3)",borderRadius:16,padding:"clamp(20px,4vw,40px)",marginBottom:24,maxWidth:700,position:"relative",overflow:"hidden",boxShadow:"0 8px 40px rgba(0,0,0,.5),0 0 30px rgba(232,168,56,.06),inset 0 1px 0 rgba(255,255,255,.06)"}}>
 
         <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
 
@@ -10227,7 +10236,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
           <div style={{textAlign:"right"}}>
 
-            <div className="mono" style={{fontSize:"clamp(32px,6vw,60px)",fontWeight:700,color:"#E8A838",lineHeight:1}}>#{position}</div>
+            <div className="mono" style={{fontSize:"clamp(32px,6vw,60px)",fontWeight:700,color:"#E8A838",lineHeight:1,textShadow:"0 0 24px rgba(232,168,56,.5)"}}>#{position}</div>
 
             <div style={{fontSize:12,color:"#BECBD9"}}>of {players.length} players</div>
 
@@ -10240,9 +10249,9 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
           {[["Season Pts",player.pts,"#E8A838"],["Wins",s.wins,"#6EE7B7"],["AVP",s.avgPlacement,avgCol(s.avgPlacement)],["Top 4",s.top4,"#C4B5FD"],["Games",s.games,"#C8D4E0"],["Best Streak",(player.bestStreak||0),"#F97316"]].map(([l,v,c])=>(
 
-            <div key={l} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"12px 14px"}}>
+            <div key={l} style={{background:"linear-gradient(165deg,rgba(255,255,255,.04),rgba(10,15,28,.95))",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"12px 14px",boxShadow:"0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"}}>
 
-              <div className="mono" style={{fontSize:"clamp(18px,3vw,26px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
+              <div className="mono" style={{fontSize:"clamp(18px,3vw,26px)",fontWeight:700,color:c,lineHeight:1,textShadow:"0 0 14px currentColor"}}>{v}</div>
 
               <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:4,letterSpacing:".08em"}}>{l}</div>
 
@@ -11414,7 +11423,7 @@ function TournamentDetailScreen(props){
                   <tr>
                     <td style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#BECBD9",fontWeight:600,textAlign:"center"}}>Points</td>
                     {[8,7,6,5,4,3,2,1].map(function(p){return(
-                      <td key={p} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#F2EDE4",fontWeight:700,textAlign:"center",fontFamily:"monospace"}}>{p}</td>
+                      <td key={p} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:p>=7?"#E8A838":p>=5?"#4ECDC4":"#F2EDE4",fontWeight:700,textAlign:"center",fontFamily:"monospace",textShadow:p>=7?"0 0 12px rgba(232,168,56,.5)":p>=5?"0 0 10px rgba(78,205,196,.4)":"none"}}>{p}</td>
                     );})}
                   </tr>
                 </tbody>
@@ -11490,7 +11499,7 @@ function EventsScreen(props){
   var shown=tab==="upcoming"?upcoming:tab==="past"?past:allEvents;
   var PHASE_COLORS={registration:"#4ECDC4",live:"#E8A838",complete:"#6B7280",upcoming:"#9B72CF"};
   var tabs=["upcoming","past","all"];
-  return React.createElement("div",{className:"wrap",style:{maxWidth:900,margin:"0 auto",padding:"24px 16px"}},
+  return React.createElement("div",{className:"wrap",style:{maxWidth:900,margin:"0 auto",padding:"24px 16px",animation:"entrance-slide .4s ease-out both"}},
     React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}},
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
         React.createElement("div",{className:"float-icon",style:{width:40,height:40,borderRadius:12,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("i",{className:"ti ti-calendar-event",style:{fontSize:20,color:"#9B72CF"}})),
@@ -11504,7 +11513,7 @@ function EventsScreen(props){
       shown.map(function(ev){
         var statusColor=PHASE_COLORS[ev.status]||"#6B7280";
         var playerCount=ev.registered?ev.registered.length:0;
-        return React.createElement("div",{key:ev.id,className:"event-card",style:{background:"linear-gradient(165deg,"+statusColor+"08,#111827 40%)",borderRadius:RAD.md,border:"1px solid "+statusColor+"22",padding:20,display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden"}},
+        return React.createElement("div",{key:ev.id,className:"event-card shimmer-card",style:{background:"linear-gradient(165deg,"+statusColor+"08,#111827 40%)",borderRadius:RAD.md,border:"1px solid "+statusColor+"22",padding:20,display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)"}},
           React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+statusColor+"66,transparent)"}}),
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
             React.createElement("span",{style:{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:statusColor,background:"rgba(0,0,0,0.3)",padding:"3px 8px",borderRadius:4}},ev.status||"upcoming"),
@@ -11513,7 +11522,7 @@ function EventsScreen(props){
           React.createElement("div",{style:{fontSize:17,fontWeight:700,color:"#C8D4E0",fontFamily:"Playfair Display,serif"}},ev.name||"Untitled Event"),
           React.createElement("div",{style:{fontSize:12,color:"#6B7280"}},ev.date||"TBD"),
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:"auto"}},
-            React.createElement("span",{style:{fontSize:12,color:"#9AAABF"}},playerCount+"/"+(ev.cap||8)+" players"),
+            React.createElement("span",{style:{fontSize:12,color:"#9AAABF"}},React.createElement("span",{style:{color:statusColor,fontWeight:700,textShadow:"0 0 8px "+statusColor+"66"}},playerCount),"/",ev.cap||8," players"),
             React.createElement(Btn,{v:"ghost",s:"sm",onClick:function(){setScreen("tournament-"+ev.id);}},"View")
           )
         );
@@ -11529,8 +11538,9 @@ function EventsScreen(props){
 
 function RulesScreen({setScreen}){
   return(
-    <div className="page wrap">
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
+    <div className="page wrap" style={{position:"relative"}}>
+      <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:500,height:300,background:"radial-gradient(ellipse,rgba(232,168,56,.06) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
         <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>← Back</Btn>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:36,height:36,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-gavel",style:{fontSize:17,color:"#E8A838"}})}</div>
@@ -11554,7 +11564,7 @@ function RulesScreen({setScreen}){
               <tr>
                 <td style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#BECBD9",fontWeight:600,textAlign:"center"}}>Points</td>
                 {[8,7,6,5,4,3,2,1].map(function(p){return(
-                  <td key={p} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#F2EDE4",fontWeight:700,textAlign:"center",fontFamily:"monospace"}}>{p}</td>
+                  <td key={p} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:p>=7?"#E8A838":p>=5?"#4ECDC4":"#F2EDE4",fontWeight:700,textAlign:"center",fontFamily:"monospace",textShadow:p>=7?"0 0 12px rgba(232,168,56,.5)":p>=5?"0 0 10px rgba(78,205,196,.4)":"none"}}>{p}</td>
                 );})}
               </tr>
             </tbody>
@@ -11572,8 +11582,8 @@ function RulesScreen({setScreen}){
             {n:"3",title:"Most of Each Placement",desc:"Compare 1st place counts, then 2nd, then 3rd, and so on until the tie breaks."},
             {n:"4",title:"Most Recent Game Finish",desc:"The player who placed higher in the most recent game wins the tiebreaker."}
           ].map(function(tb){return(
-            <div key={tb.n} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"12px 14px"}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{tb.n}</div>
+            <div key={tb.n} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"12px 14px",boxShadow:"0 2px 8px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#C4B5FD",flexShrink:0,textShadow:"0 0 8px rgba(196,181,253,.4)"}}>{tb.n}</div>
               <div>
                 <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{tb.title}</div>
                 <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{tb.desc}</div>
@@ -11675,8 +11685,9 @@ function FAQScreen({setScreen}){
   var faqFiltered=faqQ?faqs.filter(function(faq){return faq.q.toLowerCase().indexOf(faqQ)!==-1||faq.a.toLowerCase().indexOf(faqQ)!==-1;}):faqs;
 
   return(
-    <div className="page wrap">
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
+    <div className="page wrap" style={{position:"relative"}}>
+      <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:500,height:300,background:"radial-gradient(ellipse,rgba(155,114,207,.08) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
         <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>← Back</Btn>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:36,height:36,borderRadius:10,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-help-hexagon",style:{fontSize:17,color:"#9B72CF"}})}</div>
@@ -11759,19 +11770,20 @@ function GearScreen(props){
     {cat:"Chair",name:"Secretlab TITAN Evo",desc:"Ergonomic gaming chair for marathon clash sessions.",tag:"Premium",color:"#9B72CF",icon:"pc-display"}
   ];
   return(
-    <div className="page wrap" style={{maxWidth:800,margin:"0 auto"}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:24,flexWrap:"wrap"}}>
+    <div className="page wrap" style={{maxWidth:800,margin:"0 auto",position:"relative"}}>
+      <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:500,height:300,background:"radial-gradient(ellipse,rgba(232,168,56,.06) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:10,marginBottom:24,flexWrap:"wrap"}}>
         <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"\u2190 Back"}</Btn>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div className="float-icon" style={{width:38,height:38,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-device-gamepad-2",style:{fontSize:18,color:"#E8A838"}})}</div>
           <h2 style={{color:"#F2EDE4",fontSize:22,margin:0,fontFamily:"'Russo One',sans-serif"}}>Recommended Gear</h2>
         </div>
       </div>
-      <p style={{color:"#BECBD9",fontSize:13,marginBottom:24,lineHeight:1.6}}>Gear we trust for competitive TFT sessions. Links may earn us a small commission at no extra cost to you \u2014 it helps keep TFT Clash free.</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
+      <p className="screen-hero-d1" style={{color:"#BECBD9",fontSize:13,marginBottom:24,lineHeight:1.6}}>Gear we trust for competitive TFT sessions. Links may earn us a small commission at no extra cost to you \u2014 it helps keep TFT Clash free.</p>
+      <div className="screen-hero-d2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
         {items.map(function(item,i){
           return(
-            <div key={i} className="gear-card" style={{background:"linear-gradient(165deg,"+item.color+"08,rgba(17,24,39,.95) 50%)",border:"1px solid "+item.color+"22",borderRadius:14,padding:20,cursor:"default",position:"relative",overflow:"hidden"}}
+            <div key={i} className="gear-card shimmer-card" style={{background:"linear-gradient(165deg,"+item.color+"08,rgba(17,24,39,.95) 50%)",border:"1px solid "+item.color+"22",borderRadius:14,padding:20,cursor:"default",position:"relative",overflow:"hidden",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)"}}
               onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"55";}}
               onMouseLeave={function(e){e.currentTarget.style.borderColor=item.color+"22";}}>
               <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+item.color+"44,transparent)",opacity:.6}}/>
@@ -11783,7 +11795,7 @@ function GearScreen(props){
                 </div>
               </div>
               <p style={{fontSize:12,color:"#BECBD9",lineHeight:1.5,marginBottom:10}}>{item.desc}</p>
-              <span style={{display:"inline-block",fontSize:10,fontWeight:700,color:item.color,background:item.color+"18",padding:"3px 8px",borderRadius:6}}>{item.tag}</span>
+              <span style={{display:"inline-block",fontSize:10,fontWeight:700,color:item.color,background:item.color+"18",padding:"3px 8px",borderRadius:6,textShadow:"0 0 8px currentColor"}}>{item.tag}</span>
             </div>
           );
         })}
@@ -11797,7 +11809,8 @@ function GearScreen(props){
 function PrivacyScreen(props){
   var setScreen=props.setScreen;
   return(
-    <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
+    <div className="page wrap" style={{maxWidth:720,margin:"0 auto",position:"relative"}}>
+      <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:400,height:250,background:"radial-gradient(ellipse,rgba(78,205,196,.06) 0%,transparent 70%)",pointerEvents:"none"}}/>
       <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
       <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:14,marginTop:16,marginBottom:24}}>
         <div style={{width:44,height:44,borderRadius:12,background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-shield-lock",style:{fontSize:22,color:"#4ECDC4"}})}</div>
@@ -11828,7 +11841,8 @@ function PrivacyScreen(props){
 function TermsScreen(props){
   var setScreen=props.setScreen;
   return(
-    <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
+    <div className="page wrap" style={{maxWidth:720,margin:"0 auto",position:"relative"}}>
+      <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:400,height:250,background:"radial-gradient(ellipse,rgba(78,205,196,.06) 0%,transparent 70%)",pointerEvents:"none"}}/>
       <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
       <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:14,marginTop:16,marginBottom:24}}>
         <div style={{width:44,height:44,borderRadius:12,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-file-text",style:{fontSize:22,color:"#E8A838"}})}</div>
@@ -13029,7 +13043,7 @@ function TFTClash(){
         {screen==="events"&&<EventsScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
 
-        {screen.indexOf("tournament-")===0&&<TournamentDetailScreen event={featuredEvents.find(function(e){return e.id===screen.replace("tournament-","");})} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>}
+        {screen.indexOf("tournament-")===0&&<TournamentDetailScreen event={featuredEvents.find(function(e){return e.id===screen.replace("tournament-","")||e.id===screen.replace("tournament-host-","");})} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>}
 
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
 
