@@ -3590,7 +3590,15 @@ function ProfileScreen(props){
     {id:"challenges",label:"Challenges",icon:"ti-flame"},
   ];
   if(!props.currentUser){
-    return React.createElement(AutoLogin,{setAuthScreen:props.setAuthScreen});
+    return React.createElement("div",{className:"page",style:{textAlign:"center",paddingTop:80}},
+      React.createElement("i",{className:"ti ti-lock",style:{fontSize:48,color:"#9B72CF",opacity:.4,display:"block",marginBottom:16}}),
+      React.createElement("h2",{style:{color:"#F2EDE4",fontFamily:"'Playfair Display',serif",marginBottom:8}},"Sign in to view your profile"),
+      React.createElement("p",{style:{fontSize:13,color:"#9AAABF",marginBottom:20}},"Your account, milestones, and challenges live here."),
+      React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"center"}},
+        React.createElement(Btn,{v:"primary",onClick:function(){props.setAuthScreen("login");}},"Sign In"),
+        React.createElement(Btn,{v:"ghost",onClick:function(){props.setScreen("home");}},"Back to Home")
+      )
+    );
   }
   return React.createElement("div",{className:"page",style:{paddingTop:20}},
     React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
@@ -17308,7 +17316,7 @@ function TFTClash(){
 
   // Auth state
 
-  const [currentUser,setCurrentUser]=useState(null); // null = guest; hydrated by Supabase auth
+  const [currentUser,setCurrentUser]=useState({id:1,username:"Levitate",email:"levitate@tftclash.gg",riot_id:"Levitate#EUW",is_admin:true}); // DEV: mock user for preview — revert to null for prod
   const [isAuthLoading,setIsAuthLoading]=useState(true);
   var [isOffline,setIsOffline]=useState(false);
 
