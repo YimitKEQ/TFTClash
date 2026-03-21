@@ -3286,17 +3286,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   // Guest self-registration removed  -  all registration goes through registerFromAccount()
 
-  const [upcomingTournament,setUpcomingTournament]=useState(null);
-  useEffect(function(){
-    supabase.from('tournaments').select('*')
-      .eq('type','flash_tournament')
-      .in('phase',['registration','check_in','upcoming'])
-      .order('date',{ascending:true})
-      .limit(1)
-      .then(function(res){
-        if(res.data&&res.data.length>0)setUpcomingTournament(res.data[0]);
-      });
-  },[]);
 
   const [tick,setTick]=useState(0);
   useEffect(function(){
@@ -3491,376 +3480,104 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   );
 
 
-  // Community pulse ticker
+  // Compute sorted players for standings
+  var sortedPlayers=[].concat(players).sort(function(a,b){return b.pts-a.pts;});
+  var myRank=linkedPlayer?sortedPlayers.findIndex(function(p){return p.id===linkedPlayer.id;})+1:0;
+  var abovePlayer=myRank>1?sortedPlayers[myRank-2]:null;
+  var belowPlayer=myRank>0&&myRank<sortedPlayers.length?sortedPlayers[myRank]:null;
+  var rankTrend=linkedPlayer&&linkedPlayer.previousRank?linkedPlayer.previousRank-myRank:0;
+  var totalClashes=parseInt((seasonConfig&&seasonConfig.totalClashes)||12);
+  var clashNumber=parseInt((seasonConfig&&seasonConfig.currentClash)||1);
+  var weeksLeft=Math.max(0,totalClashes-clashNumber);
 
-  const sortedPts=[...players].sort((a,b)=>b.pts-a.pts);
-
-  const sortedWins=[...players].sort((a,b)=>b.wins-a.wins);
-
-  const sortedStreak=[...players].sort((a,b)=>(b.currentStreak||0)-(a.currentStreak||0));
-
-  const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
-
-  var autoTickerItems=players.length>0?[
-    sortedPts[0]&&sortedPts[0].pts>0&&{icon:"trophy-fill",text:sortedPts[0].name+" leads "+(seasonConfig&&seasonConfig.seasonName||"the season")+" with "+sortedPts[0].pts+" pts"},
-    totalGames>0&&{icon:"controller",text:totalGames+" games played this season"},
-    sortedWins[0]&&sortedWins[0].wins>0&&{icon:"award-fill",text:sortedWins[0].name+" - "+sortedWins[0].wins+" tournament wins"},
-    sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&{icon:"fire",text:sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"},
-    players.filter(function(p){return p.checkedIn;}).length>0&&{icon:"lightning-charge-fill",text:players.filter(function(p){return p.checkedIn;}).length+" / "+players.length+" players checked in"},
-    {icon:"bar-chart-line-fill",text:(seasonConfig&&seasonConfig.seasonName||"Season")+" active  -  "+players.length+" registered"},
-  ].filter(Boolean):[];
-  const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
-
-  var countdownText="";
-  var countdownColor="#E8A838";
-  if(upcomingTournament){
-    var cdDiff=new Date(upcomingTournament.date).getTime()-Date.now();
-    if(cdDiff<=0){
-      countdownText="LIVE NOW";
-      countdownColor="#52C47C";
-    } else {
-      var cdD=Math.floor(cdDiff/86400000);
-      var cdH=Math.floor((cdDiff%86400000)/3600000);
-      var cdM=Math.floor((cdDiff%3600000)/60000);
-      countdownText="Starts in "+(cdD>0?cdD+"d ":"")+cdH+"h "+cdM+"m";
-    }
+  // Compute action card based on tournament phase
+  var phase=tPhase;
+  var actionCard=null;
+  if(phase==="registration"&&linkedPlayer&&!isMyRegistered){
+    actionCard={title:clashName,subtitle:"Registration open - "+registeredCount+"/"+(tournamentState.maxPlayers||24)+" registered",cta:"Register Now",ctaAction:registerFromAccount,countdown:true};
+  } else if(phase==="registration"&&isMyRegistered){
+    actionCard={title:"You're In",subtitle:"Check-in opens before the clash starts",cta:null,icon:"check",secondaryCta:"Unregister",secondaryAction:unregisterFromClash};
+  } else if(phase==="checkin"&&linkedPlayer&&!myCheckedIn){
+    actionCard={title:"CHECK IN NOW",subtitle:checkedInCount+" / "+registeredCount+" checked in",cta:"Check In",ctaAction:handleCheckIn,urgent:true};
+  } else if(phase==="checkin"&&myCheckedIn){
+    actionCard={title:"Checked In",subtitle:"Waiting for clash to start...",cta:null,icon:"check"};
+  } else if(phase==="inprogress"){
+    actionCard={title:"Clash is LIVE",subtitle:"Game "+tRound+"/"+(tournamentState.totalGames||3),cta:"View Bracket",ctaAction:function(){setScreen("clash");}};
+  } else if(phase==="complete"){
+    actionCard={title:"Results Are In",subtitle:clashName+" is complete",cta:"See Results",ctaAction:function(){setScreen("clash");}};
+  } else {
+    actionCard={title:"No Clash Scheduled",subtitle:"Check back soon or browse past events",cta:"View Events",ctaAction:function(){setScreen("events");}};
   }
 
   return(
-
     <div className="page wrap">
 
+      {/* Announcement banner */}
       {announcement&&(
-
         <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-
           <span style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"ti ti-speakerphone"})}</span>
-
           <span style={{color:"#E8A838",fontWeight:600,fontSize:14}}>{announcement}</span>
-
         </div>
-
       )}
 
       {hostAnnouncements&&hostAnnouncements.length>0&&(
         <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"10px 14px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:14,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["megaphone-fill"]||"megaphone-fill")})}</span>
+          <span style={{fontSize:14,flexShrink:0}}>{React.createElement("i",{className:"ti ti-speakerphone"})}</span>
           <span style={{color:"#C4B5FD",fontWeight:600,fontSize:13}}>{hostAnnouncements[0].msg}</span>
           <span style={{fontSize:10,color:"#9AAABF",marginLeft:"auto",flexShrink:0}}>{hostAnnouncements[0].sentAt}</span>
         </div>
       )}
 
-      {/* Champion hero card - shown all season (logged-in only) */}
-
-      {currentUser&&SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
-
-
-      <div style={{height:28}}/>
-
-
-      {/* Phase status pill with progress (logged-in only) */}
-
-      {currentUser&&(<div style={{marginBottom:16}}>
-
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:tPhase==="registration"||tPhase==="checkin"?8:0,flexWrap:"wrap"}}>
-
-          <div style={{background:"rgba(0,0,0,.3)",border:"1px solid "+phaseStatusColor(),borderRadius:20,padding:"6px 14px",fontSize:12,fontWeight:700,color:phaseStatusColor(),letterSpacing:".04em",cursor:tPhase==="complete"?"pointer":"default"}}
-
-            onClick={()=>tPhase==="complete"&&setScreen("leaderboard")}>
-
-            {tPhase==="inprogress"&&<span style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#52C47C",marginRight:7,verticalAlign:"middle",animation:"pulse 2s infinite"}}/>}
-
-            {phaseStatusText()}
-
-          </div>
-
-          {(tPhase==="registration"||tPhase==="checkin")&&(
-            <div style={{display:"flex",alignItems:"center",gap:0,fontSize:10,color:"#9AAABF",fontWeight:600}}>
-              {["registration","checkin","inprogress","complete"].map(function(phase,i){
-                var PHASES=["registration","checkin","inprogress","complete"];
-                var currentIdx=PHASES.indexOf(tPhase);
-                var isDone=i<currentIdx;
-                var isCurrent=i===currentIdx;
-                return(
-                  <div key={phase} style={{display:"flex",alignItems:"center",gap:0}}>
-                    {i>0&&<div style={{width:16,height:1,background:isDone||isCurrent?"rgba(232,168,56,.5)":"rgba(255,255,255,.1)"}}/>}
-                    <div style={{width:8,height:8,borderRadius:"50%",background:isCurrent?phaseStatusColor():isDone?"rgba(232,168,56,.4)":"rgba(255,255,255,.08)",border:isCurrent?"2px solid "+phaseStatusColor():"1px solid "+(isDone?"rgba(232,168,56,.3)":"rgba(255,255,255,.08)"),transition:"all .3s"}}/>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-        </div>
-
-        {tPhase==="registration"&&(
-          <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
-            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#9B72CF,#4ECDC4)",width:Math.min(100,Math.round(registeredCount/(tournamentState.maxPlayers||24)*100))+"%",transition:"width .5s ease"}}/>
-          </div>
-        )}
-
-        {tPhase==="checkin"&&(
-          <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
-            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#E8A838,#52C47C)",width:Math.min(100,registeredCount>0?Math.round(checkedInCount/registeredCount*100):0)+"%",transition:"width .5s ease"}}/>
-          </div>
-        )}
-
-      </div>)}
-
-
-      {/* Registration/check-in/live cards - hidden for logged-in (grid panel handles it) */}
-
-      {!currentUser&&tPhase==="registration"&&(
-
-        currentUser&&linkedPlayer&&isMyRegistered?(
-
-            <div style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registered for next clash!</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Your spot is reserved, {linkedPlayer.name}. Check-in opens soon.</div>
-
-              </div>
-
-              <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-                <div style={{fontSize:12,fontWeight:700,color:"#4ECDC4",background:"rgba(78,205,196,.12)",border:"1px solid rgba(78,205,196,.3)",borderRadius:8,padding:"6px 14px"}}>✓ Registered</div>
-
-                <Btn v="dark" s="sm" onClick={unregisterFromClash}>Unregister</Btn>
-
-              </div>
-
-            </div>
-
-        ):currentUser&&linkedPlayer&&isMyWaitlisted?(
-
-            <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-hourglass"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>On the Waitlist</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>You are #{myWaitlistPos} on the waitlist, {linkedPlayer.name}. You will be promoted if a spot opens.</div>
-
-              </div>
-
-              <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-                <div style={{fontSize:12,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px"}}>#{myWaitlistPos} Waitlisted</div>
-
-                <Btn v="dark" s="sm" onClick={removeFromWaitlist}>Leave Waitlist</Btn>
-
-              </div>
-
-            </div>
-
-        ):currentUser&&linkedPlayer&&!isMyRegistered&&!isMyWaitlisted?(
-
-            <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-clipboard"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Sign up for the next clash  -  free to compete!</div>
-
-              </div>
-
-              <Btn v="success" onClick={registerFromAccount}>Register for Clash</Btn>
-
-            </div>
-
-        ):currentUser&&!linkedPlayer?(
-
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-clipboard"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>{profileComplete?"Ready to register  -  your profile is linked":"Complete your profile to register"}</div>
-
-              </div>
-
-              {profileComplete?<Btn v="primary" s="sm" onClick={()=>setScreen("account")}>View account</Btn>:<Btn v="primary" s="sm" onClick={()=>setScreen("account")}>Complete profile</Btn>}
-
-            </div>
-
-        ):(
-
-          !currentUser&&(
-
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Log in to register for the next clash</div>
-
-              </div>
-
-              <Btn v="purple" s="sm" onClick={()=>onAuthClick("login")}>Log in to register</Btn>
-
-            </div>
-
-          )
-
-        )
-
-      )}
-
-      {/* Live tournament banner  -  visible to everyone during inprogress */}
-      {tPhase==="inprogress"&&(
-        <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE  -  Game {tRound}/{tournamentState.totalGames||3}</div>
-            <div style={{fontSize:12,color:"#C8D4E0"}}>{checkedInCount} players competing across {Math.ceil(checkedInCount/8)} lobbies</div>
-          </div>
-          <Btn v="success" s="sm" onClick={()=>setScreen("bracket")}>Watch Live →</Btn>
-        </div>
-      )}
-
-
-      {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
-
-        <div style={{marginBottom:16}}>
-
-          <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Quick Clashes</div>
-
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-
-            {quickClashes.filter(function(q){return q.status==="open"||q.status==="full"||q.status==="live";}).map(function(qc){
-
-              var linked=currentUser?players.find(function(p){return p.name===currentUser.username;}):null;
-
-              var alreadyJoined=linked&&qc.players&&qc.players.includes(linked.id);
-
-              return(
-
-                <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-
-                  <div style={{fontSize:18}}>{qc.status==="live"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["lightning-charge-fill"]||"lightning-charge-fill")}):React.createElement("i",{className:"ti ti-"+(ICON_REMAP["controller"]||"controller")})}</div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{qc.name}</div>
-
-                    <div style={{fontSize:11,color:"#BECBD9"}}>{qc.players?qc.players.length:0}/{qc.cap} players · {qc.rounds}R · {qc.format}</div>
-
-                  </div>
-
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
-
-                    {qc.status==="live"&&<span style={{fontSize:11,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 8px"}}>LIVE</span>}
-
-                    {qc.status==="open"&&!alreadyJoined&&onJoinQuickClash&&linked&&(
-
-                      <Btn v="purple" s="sm" onClick={function(){onJoinQuickClash(qc.id,linked.id);toast("Joined "+qc.name+"!","success");}}>Join</Btn>
-
-                    )}
-
-                    {alreadyJoined&&<span style={{fontSize:11,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:6,padding:"4px 8px"}}>Joined</span>}
-
-                    {qc.status==="full"&&!alreadyJoined&&<span style={{fontSize:11,color:"#E8A838"}}>Full</span>}
-
-                  </div>
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-        </div>
-
-      )}
-
-      {currentUser&&linkedPlayer&&s2&&(
-
-        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.04))",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"16px 18px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
-
-          <div style={{flex:1,minWidth:0}}>
-
-            <div style={{fontSize:13,fontWeight:600,color:"#6EE7B7",marginBottom:6}}>Welcome back, {currentUser.username}!</div>
-
-            <div style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Your Season Standing</div>
-
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-
-              {[["#"+myRankIdx,"Rank","#E8A838"],[linkedPlayer.pts,"Season Pts","#E8A838"],[linkedPlayer.wins,"Wins","#6EE7B7"],[s2.avgPlacement,"Avg","#4ECDC4"]].map(([v,l,c])=>(
-
-                <div key={l} style={{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",textAlign:"center",minWidth:60}}>
-
-                  <div className="mono" style={{fontSize:18,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-                  <div style={{fontSize:10,color:"#BECBD9",marginTop:4,fontWeight:600,textTransform:"uppercase"}}>{l}</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-          <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-            <Btn v="purple" s="sm" onClick={()=>{setProfilePlayer(linkedPlayer);setScreen("profile");}}>My Profile →</Btn>
-
-            <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Standings</Btn>
-
-          </div>
-
-        </div>
-
-      )}
-
+      {/* ═══════════════ LOGGED-OUT LANDING ═══════════════ */}
       {!currentUser&&(
-        <div style={{marginBottom:24}}>
-          {/* Full-width hero for visitors */}
-          <div style={{position:"relative",padding:"48px 32px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)",marginBottom:24,textAlign:"center"}}>
-            <div style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:24}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}/>
-              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Free to compete - No paywall, ever</span>
-            </div>
-            <h1 className="display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20,maxWidth:700,marginLeft:"auto",marginRight:"auto"}}>
-              The<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2)"}}>COMPETITIVE TFT</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>PLATFORM</span>
-            </h1>
-            <p style={{fontSize:16,color:"#C8D4E0",lineHeight:1.65,marginBottom:28,maxWidth:520,marginLeft:"auto",marginRight:"auto"}}>
-              Weekly Saturday tournaments, seasonal standings, and a permanent record of every champion crowned. Join {players.length} players competing this season.
+        <div>
+          {/* Hero */}
+          <div style={{position:"relative",padding:"56px 32px 48px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)",marginBottom:28,textAlign:"center"}}>
+            <h1 style={{fontFamily:"'Russo One',sans-serif",fontSize:42,color:"#E8A838",lineHeight:1,letterSpacing:".02em",marginBottom:16,textShadow:"0 0 60px rgba(232,168,56,.4)"}}>Where Champions Are Crowned</h1>
+            <p style={{fontSize:16,color:"#C8D4E0",lineHeight:1.65,marginBottom:8,maxWidth:540,marginLeft:"auto",marginRight:"auto"}}>
+              Weekly tournaments. Season rankings. Bragging rights. The competitive TFT platform your Discord server deserves.
             </p>
-            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
-              <Btn v="primary" s="lg" onClick={function(){onAuthClick("signup");}}>Create Free Account</Btn>
+            <div style={{fontSize:13,color:"#9B72CF",fontWeight:600,marginBottom:24}}>{players.length} players competing this season</div>
+            {diff>0&&(
+              <div style={{marginBottom:24}}>
+                <div style={{fontSize:11,color:"#9AAABF",fontWeight:700,textTransform:"uppercase",letterSpacing:".1em",marginBottom:8}}>Next clash in</div>
+                <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+                  {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(function(item){
+                    return React.createElement("div",{key:item[1],className:"countdown-tile"},
+                      React.createElement("div",{className:"digit"},String(item[0]).padStart(2,"0")),
+                      React.createElement("div",{className:"unit"},item[1])
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+              <Btn v="primary" s="lg" onClick={function(){onAuthClick("signup");}}>Join Free</Btn>
               <Btn v="ghost" s="lg" onClick={function(){onAuthClick("login");}}>Sign In</Btn>
             </div>
-            {/* Stats row */}
-            <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
-              {[[players.length,"Players","#E8A838"],[players.reduce(function(s,p){return s+(p.games||0);},0),"Games Played","#4ECDC4"],[players.reduce(function(s,p){return s+p.pts;},0),"Season Points","#9B72CF"]].map(function(item){
-                return React.createElement("div",{key:item[1],style:{textAlign:"center",minWidth:80}},
-                  React.createElement("div",{className:"mono",style:{fontSize:24,fontWeight:800,color:item[2],lineHeight:1}},item[0]),
-                  React.createElement("div",{style:{fontSize:10,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}},item[1])
-                );
-              })}
-            </div>
           </div>
 
-          {/* How It Works - for visitors */}
+          {/* Live leaderboard preview */}
+          {top5.length>0&&(
+            <Panel style={{padding:"20px",marginBottom:24}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#F2EDE4"}}>Season Leaderboard</div>
+                <div style={{fontSize:11,color:"#9AAABF"}}>Live standings</div>
+              </div>
+              {top5.map(function(p,i){
+                return React.createElement("div",{key:p.id,style:{display:"flex",alignItems:"center",gap:12,padding:"8px 6px",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none"}},
+                  React.createElement("div",{className:"mono",style:{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF",minWidth:20,textAlign:"center"}},i+1),
+                  React.createElement("div",{style:{flex:1,minWidth:0}},
+                    React.createElement("div",{style:{fontWeight:600,fontSize:13,color:"#F2EDE4"}},p.name),
+                    React.createElement("div",{style:{fontSize:11,color:"#BECBD9",marginTop:1}},p.rank+" - "+p.region)
+                  ),
+                  React.createElement("div",{className:"mono",style:{fontSize:15,fontWeight:700,color:"#E8A838"}},p.pts+" pts")
+                );
+              })}
+            </Panel>
+          )}
+
+          {/* How It Works */}
           <Panel style={{padding:"24px",marginBottom:24}}>
             <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",marginBottom:18,textAlign:"center"}}>How It Works</h3>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16}}>
@@ -3878,280 +3595,142 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               })}
             </div>
           </Panel>
+
+          {/* Footer links */}
+          <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap",padding:"12px 0",fontSize:13}}>
+            <a onClick={function(){setScreen("rules");}} style={{color:"#9AAABF",cursor:"pointer",textDecoration:"none"}}>Rules</a>
+            <a onClick={function(){setScreen("faq");}} style={{color:"#9AAABF",cursor:"pointer",textDecoration:"none"}}>FAQ</a>
+            <a onClick={function(){setScreen("pricing");}} style={{color:"#9AAABF",cursor:"pointer",textDecoration:"none"}}>Pricing</a>
+          </div>
         </div>
       )}
 
-      <div className="grid-home" style={{marginTop:8}}>
+      {/* ═══════════════ LOGGED-IN WAR ROOM ═══════════════ */}
+      {currentUser&&(
+        <div>
 
-        {/* Left: Hero */}
-
-        <div className="hero-panel border-neon-grad" style={{position:"relative",padding:"32px 28px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.15) 0%,rgba(78,205,196,.03) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)"}}>
-
-          <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:20}}>
-
-            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}/>
-
-            <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 · Season Active · Weekly Clash</span>
-
-          </div>
-
-          <h1 className="au1 display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20}}>
-
-            The<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2),0 0 200px rgba(232,168,56,.1)"}}>CONVERGENCE</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>AWAITS</span>
-
-          </h1>
-
-          <p className="au2" style={{fontSize:15,color:"#C8D4E0",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
-
-            The competitive TFT platform. Weekly Saturday tournaments, seasonal point standings, and a permanent record of every champion crowned.
-
-          </p>
-
-          <div className="grid-4" style={{marginBottom:22}}>
-
-            <StatBox label="Players" val={players.length}/>
-
-            <StatBox label="Checked In" val={checkedN} c="#6EE7B7"/>
-
-            <StatBox label="Season Pts" val={players.reduce((s,p)=>s+p.pts,0)}/>
-
-            <StatBox label="Games" val={players.reduce((s,p)=>s+(p.games||0),0)} c="#4ECDC4"/>
-
-          </div>
-
-          {/* Countdown */}
-
-          <div style={{background:"linear-gradient(145deg,rgba(155,114,207,.1),rgba(8,8,15,.7))",border:"1px solid rgba(155,114,207,.3)",borderRadius:16,padding:"20px 24px",boxShadow:"0 0 30px rgba(155,114,207,.06),inset 0 1px 0 rgba(255,255,255,.05)"}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
-
-              <div className="live-indicator" style={{width:7,height:7,borderRadius:"50%",background:"#52C47C"}}/>
-
-              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>{clashName} Starts In</span>
-
+          {/* Season Progress Bar */}
+          <div style={{display:"flex",alignItems:"center",gap:12,padding:"8px 16px",fontSize:12,color:"#9AAABF",borderBottom:"1px solid rgba(242,237,228,.06)",marginBottom:20}}>
+            <span style={{fontWeight:700,color:"#E8A838"}}>{seasonConfig&&seasonConfig.seasonName||"Season 1"}</span>
+            <span>Clash {clashNumber}/{totalClashes}</span>
+            <div style={{flex:1,height:3,background:"rgba(242,237,228,.08)",borderRadius:2}}>
+              <div style={{height:"100%",width:Math.min(100,Math.round(clashNumber/totalClashes*100))+"%",background:"linear-gradient(90deg,#E8A838,#9B72CF)",borderRadius:2}}/>
             </div>
-
-            <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-
-              {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
-
-                <div key={l} className="countdown-tile">
-
-                  <div className="digit">{String(v).padStart(2,"0")}</div>
-
-                  <div className="unit">{l}</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
+            <span>{weeksLeft} weeks left</span>
           </div>
 
-        </div>
-
-
-        {/* Right: Register + Roster */}
-
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          <Panel accent style={{padding:"20px"}}>
-
-            <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join {clashName}</h3>
-
-            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>{clashDate||clashTime?(clashDate||"")+(clashDate&&clashTime?" · ":"")+(clashTime||""):"Upcoming"} · {seasonConfig&&seasonConfig.seasonName||"Season 1"}</div>
-
-
-            {/* Not logged in */}
-
-            {!currentUser&&(
-
-              <div>
-
-                <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
-
-                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-lock"})}</div>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Account required to register</div>
-
-                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Create a free account with your Riot ID to join the clash. Takes 30 seconds  -  competing is always free.</div>
-
+          {/* Action Zone */}
+          <Panel glow={actionCard&&actionCard.urgent} style={{padding:"24px",marginBottom:20,border:actionCard&&actionCard.urgent?"2px solid rgba(232,168,56,.6)":"undefined",animation:actionCard&&actionCard.urgent?"pulse 2s infinite":"none"}}>
+            <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:actionCard&&actionCard.urgent?24:20,color:actionCard&&actionCard.urgent?"#E8A838":"#F2EDE4",marginBottom:6}}>{actionCard?actionCard.title:"Loading..."}</div>
+                <div style={{fontSize:13,color:"#C8D4E0"}}>{actionCard?actionCard.subtitle:""}</div>
+                {actionCard&&actionCard.countdown&&diff>0&&(
+                  <div style={{display:"flex",gap:8,marginTop:12}}>
+                    {[[D,"d"],[H,"h"],[M,"m"],[S,"s"]].map(function(item){
+                      return React.createElement("div",{key:item[1],style:{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 10px",textAlign:"center"}},
+                        React.createElement("span",{className:"mono",style:{fontSize:18,fontWeight:700,color:"#E8A838"}},String(item[0]).padStart(2,"0")),
+                        React.createElement("span",{style:{fontSize:10,color:"#9AAABF",marginLeft:2}},item[1])
+                      );
+                    })}
                   </div>
-
-                </div>
-
-                <div style={{display:"flex",gap:8}}>
-
-                  <Btn v="primary" full onClick={()=>onAuthClick("signup")}>Create Account →</Btn>
-
-                  <Btn v="dark" onClick={()=>onAuthClick("login")}>Sign In</Btn>
-
-                </div>
-
+                )}
               </div>
-
-            )}
-
-
-            {/* Logged in but Riot ID missing */}
-
-            {currentUser&&!profileComplete&&(
-
-              <div>
-
-                <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
-
-                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Complete your profile first</div>
-
-                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Add your Riot ID in your account settings to register for clashes.</div>
-
-                  </div>
-
-                </div>
-
-                <Btn v="primary" full onClick={()=>setScreen("account")}>Complete Profile →</Btn>
-
+              <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"center"}}>
+                {actionCard&&actionCard.icon==="check"&&React.createElement("i",{className:"ti ti-circle-check",style:{fontSize:36,color:"#52C47C"}})}
+                {actionCard&&actionCard.cta&&<Btn v={actionCard.urgent?"primary":"primary"} s="lg" onClick={actionCard.ctaAction}>{actionCard.cta}</Btn>}
+                {actionCard&&actionCard.secondaryCta&&<Btn v="ghost" s="sm" onClick={actionCard.secondaryAction}>{actionCard.secondaryCta}</Btn>}
               </div>
-
-            )}
-
-
-            {/* Already registered  -  show status + unregister */}
-
-            {currentUser&&profileComplete&&alreadyRegistered&&isMyRegistered&&(
-
-              <div style={{background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
-
-                <div style={{fontSize:24,marginBottom:8}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</div>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:4}}>You're registered!</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Playing as <span style={{color:"#F2EDE4",fontWeight:600}}>{currentUser.username}</span> · {currentUser.riotId}</div>
-
-                <div style={{fontSize:11,color:"#9AAABF",marginBottom:14}}>Check-in opens 60 min before start</div>
-
-                <Btn v="dark" s="sm" onClick={unregisterFromClash}>Unregister</Btn>
-
-              </div>
-
-            )}
-
-            {/* In roster but not yet registered for this clash */}
-
-            {currentUser&&profileComplete&&alreadyRegistered&&!isMyRegistered&&(
-
-              <div>
-
-                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.1)",borderRadius:10,padding:"12px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
-
-                  <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#08080F",flexShrink:0}}>
-
-                    {currentUser.username.charAt(0).toUpperCase()}
-
-                  </div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{currentUser.username}</div>
-
-                    <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{currentUser.riotId} · {currentUser.region||"EUW"}</div>
-
-                  </div>
-
-                </div>
-
-                <Btn v="primary" full onClick={registerFromAccount}>Register for {clashName} →</Btn>
-
-              </div>
-
-            )}
-
-            {/* Not in roster yet  -  direct them to complete setup */}
-
-            {currentUser&&profileComplete&&!alreadyRegistered&&(
-
-              <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
-
-                <div style={{fontSize:20,marginBottom:8}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
-
-                <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Profile not linked to roster</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Your account needs to be linked to the player roster. Try refreshing the page or contact an admin.</div>
-
-                <Btn v="dark" s="sm" onClick={()=>window.location.reload()}>Refresh</Btn>
-
-              </div>
-
-            )}
-
+            </div>
           </Panel>
 
-
-          {/* How it works - hidden for logged-in (shown in visitor hero instead) */}
-
-          {!currentUser&&(<Panel style={{padding:"18px"}}>
-
-            <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>How It Works</h3>
-
-            {[
-
-              {n:"01",t:"Sign Up",d:"Create a free account and link your Riot ID. Registration is always free."},
-
-              {n:"02",t:"Register & Check In",d:"Register for the next clash on the Home screen. Check in when the window opens to confirm your spot."},
-
-              {n:"03",t:"Play & Submit",d:"Play your lobby games. Submit your placement on the Bracket page. Admin locks results and points are awarded automatically."},
-
-              {n:"04",t:"Win the Crown",d:"Points accumulate across all clashes. The season leader is crowned Champion and enters the Hall of Fame."},
-
-            ].map(({n,t,d})=>(
-
-              <div key={n} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
-
-                <div className="step-num" style={{width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#C4B5FD",flexShrink:0,fontFamily:"'Russo One',sans-serif",letterSpacing:".04em"}}>{n}</div>
-
-                <div>
-
-                  <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{t}</div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{d}</div>
-
-                </div>
-
+          {/* Season Bar */}
+          {linkedPlayer&&s2&&(
+            <div style={{display:"flex",gap:24,alignItems:"center",padding:"16px 20px",background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,marginBottom:16,flexWrap:"wrap"}}>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em"}}>Rank</div>
+                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#F2EDE4"}}>{"#"+myRank}</div>
               </div>
-
-            ))}
-
-          </Panel>)}
-
-
-          {/* Roster CTA */}
-
-          <div style={{background:"rgba(78,205,196,.04)",border:"1px solid rgba(78,205,196,.2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
-
-            <div>
-
-              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{players.length} players registered</div>
-
-              <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>{checkedN} checked in for {clashName}</div>
-
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Points</div>
+                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#E8A838"}}>{linkedPlayer.pts}</div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Trend</div>
+                <div style={{fontSize:18,fontWeight:700,color:rankTrend>0?"#52C47C":rankTrend<0?"#F87171":"#9AAABF"}}>
+                  {rankTrend>0?"+"+rankTrend+" ↑":rankTrend<0?rankTrend+" ↓":"--"}
+                </div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Wins</div>
+                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#6EE7B7"}}>{linkedPlayer.wins}</div>
+              </div>
+              <div style={{textAlign:"center"}}>
+                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Avg</div>
+                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#4ECDC4"}}>{s2.avgPlacement}</div>
+              </div>
+              <div style={{marginLeft:"auto",display:"flex",gap:8}}>
+                <Btn v="ghost" s="sm" onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>Profile</Btn>
+                <Btn v="ghost" s="sm" onClick={function(){setScreen("standings");}}>Standings</Btn>
+              </div>
             </div>
+          )}
 
-            <Btn v="teal" s="sm" onClick={()=>setScreen("roster")}>View Roster →</Btn>
+          {/* Rivalry Bar */}
+          {linkedPlayer&&(abovePlayer||belowPlayer)&&(
+            <div style={{display:"flex",gap:12,padding:"12px 16px",background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.1)",borderRadius:12,fontSize:13,marginBottom:16,flexWrap:"wrap"}}>
+              {abovePlayer&&(
+                <div style={{flex:1,color:"#F87171"}}>
+                  {React.createElement("i",{className:"ti ti-arrow-up",style:{marginRight:4}})}
+                  {(abovePlayer.pts-linkedPlayer.pts)+" pts behind "+abovePlayer.name}
+                </div>
+              )}
+              {belowPlayer&&(
+                <div style={{flex:1,color:"#52C47C",textAlign:"right"}}>
+                  {(linkedPlayer.pts-belowPlayer.pts)+" pts ahead of "+belowPlayer.name}
+                  {React.createElement("i",{className:"ti ti-arrow-down",style:{marginLeft:4}})}
+                </div>
+              )}
+            </div>
+          )}
 
-          </div>
+          {/* Champion hero card */}
+          {SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={function(){var p=players.find(function(pl){return pl.name===SEASON_CHAMPION.name;});if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
+
+          {/* Quick clashes */}
+          {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
+            <div style={{marginBottom:16,marginTop:16}}>
+              <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Quick Clashes</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {quickClashes.filter(function(q){return q.status==="open"||q.status==="full"||q.status==="live";}).map(function(qc){
+                  var linked2=currentUser?players.find(function(p){return p.name===currentUser.username;}):null;
+                  var alreadyJoined2=linked2&&qc.players&&qc.players.includes(linked2.id);
+                  return(
+                    <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+                      <div style={{fontSize:18}}>{qc.status==="live"?React.createElement("i",{className:"ti ti-bolt"}):React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{qc.name}</div>
+                        <div style={{fontSize:11,color:"#BECBD9"}}>{qc.players?qc.players.length:0}/{qc.cap} players - {qc.rounds}R - {qc.format}</div>
+                      </div>
+                      <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                        {qc.status==="live"&&<span style={{fontSize:11,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 8px"}}>LIVE</span>}
+                        {qc.status==="open"&&!alreadyJoined2&&onJoinQuickClash&&linked2&&(
+                          <Btn v="purple" s="sm" onClick={function(){onJoinQuickClash(qc.id,linked2.id);toast("Joined "+qc.name+"!","success");}}>Join</Btn>
+                        )}
+                        {alreadyJoined2&&<span style={{fontSize:11,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:6,padding:"4px 8px"}}>Joined</span>}
+                        {qc.status==="full"&&!alreadyJoined2&&<span style={{fontSize:11,color:"#E8A838"}}>Full</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
         </div>
+      )}
 
-      </div>
-
-      {/* Guest sign-in nudge - after grid for visitors */}
+      {/* Guest sign-in nudge */}
       {!currentUser&&(
         <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginTop:16,marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
           <div>{React.createElement("i",{className:"ti ti-user",style:{fontSize:22}})}</div>
@@ -4166,15 +3745,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         </div>
       )}
 
-      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
-
-      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
-
-
     </div>
-
   );
-
 }
 
 
