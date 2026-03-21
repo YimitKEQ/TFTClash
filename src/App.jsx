@@ -1561,6 +1561,23 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .admin-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}
 }
 
+
+
+/* ── War Room Soul ── */
+@keyframes rank-glow{0%,100%{text-shadow:0 0 8px rgba(232,168,56,.3)}50%{text-shadow:0 0 24px rgba(232,168,56,.6),0 0 48px rgba(232,168,56,.2)}}
+@keyframes shimmer-sweep{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes entrance-slide{0%{opacity:0;transform:translateY(12px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes live-ring{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.4)}50%{box-shadow:0 0 0 8px rgba(248,113,113,0)}}
+.war-entrance{animation:entrance-slide .4s ease-out both}
+.war-entrance-d1{animation:entrance-slide .4s .08s ease-out both}
+.war-entrance-d2{animation:entrance-slide .4s .16s ease-out both}
+.war-entrance-d3{animation:entrance-slide .4s .24s ease-out both}
+.war-entrance-d4{animation:entrance-slide .4s .32s ease-out both}
+.rank-glow{animation:rank-glow 3s ease-in-out infinite}
+.shimmer-bar{background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 50%,transparent 100%);background-size:200% 100%;animation:shimmer-sweep 3s ease-in-out infinite}
+.live-pulse-ring{animation:live-ring 2s ease-in-out infinite}
+.war-stat{transition:transform .15s,box-shadow .15s}
+.war-stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 20px rgba(155,114,207,.15)}
 `;
 
 
@@ -3609,27 +3626,48 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       {currentUser&&(
         <div>
 
-          {/* Season Progress Bar */}
-          <div style={{display:"flex",alignItems:"center",gap:12,padding:"8px 16px",fontSize:12,color:"#9AAABF",borderBottom:"1px solid rgba(242,237,228,.06)",marginBottom:20}}>
-            <span style={{fontWeight:700,color:"#E8A838"}}>{seasonConfig&&seasonConfig.seasonName||"Season 1"}</span>
-            <span>Clash {clashNumber}/{totalClashes}</span>
-            <div style={{flex:1,height:3,background:"rgba(242,237,228,.08)",borderRadius:2}}>
-              <div style={{height:"100%",width:Math.min(100,Math.round(clashNumber/totalClashes*100))+"%",background:"linear-gradient(90deg,#E8A838,#9B72CF)",borderRadius:2}}/>
+          {/* ── Welcome Header ── */}
+          <div className="war-entrance" style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:20,flexWrap:"wrap",gap:12}}>
+            <div>
+              <div style={{fontSize:13,color:"#9AAABF",marginBottom:4}}>{(function(){var h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening";})()+(currentUser.username?", "+currentUser.username:"")}</div>
+              <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(20px,3.5vw,28px)",color:"#F2EDE4",lineHeight:1.1}}>{linkedPlayer&&myRank<=3?"The crown sits heavy":"Ready to compete?"}</div>
             </div>
-            <span>{weeksLeft} weeks left</span>
+            {linkedPlayer&&myRank>0&&(
+              <div style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,rgba(232,168,56,.12),rgba(232,168,56,.04))",border:"1px solid rgba(232,168,56,.3)",borderRadius:12,padding:"10px 16px"}}>
+                <div className="rank-glow" style={{fontFamily:"'Russo One',sans-serif",fontSize:28,color:"#E8A838",lineHeight:1}}>{"#"+myRank}</div>
+                <div>
+                  <div style={{fontSize:11,color:"#E8A838",fontWeight:700,textTransform:"uppercase",letterSpacing:".1em"}}>{linkedPlayer.rank||"Unranked"}</div>
+                  <div style={{fontSize:11,color:"#9AAABF"}}>{linkedPlayer.pts+" season pts"}</div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Action Zone */}
-          <Panel glow={actionCard&&actionCard.urgent} style={{padding:"24px",marginBottom:20,border:actionCard&&actionCard.urgent?"2px solid rgba(232,168,56,.6)":"undefined",animation:actionCard&&actionCard.urgent?"pulse 2s infinite":"none"}}>
+          {/* ── Season Progress ── */}
+          <div className="war-entrance-d1" style={{display:"flex",alignItems:"center",gap:12,padding:"10px 16px",fontSize:12,color:"#9AAABF",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.1)",borderRadius:10,marginBottom:16}}>
+            <span style={{fontWeight:700,color:"#E8A838"}}>{seasonConfig&&seasonConfig.seasonName||"Season 1"}</span>
+            <span style={{color:"#BECBD9"}}>{"Clash "+clashNumber+"/"+totalClashes}</span>
+            <div style={{flex:1,height:4,background:"rgba(242,237,228,.08)",borderRadius:3,overflow:"hidden"}}>
+              <div className="shimmer-bar" style={{height:"100%",width:Math.min(100,Math.round(clashNumber/totalClashes*100))+"%",background:"linear-gradient(90deg,#E8A838,#9B72CF)",borderRadius:3,transition:"width .6s ease"}}/>
+            </div>
+            <span style={{fontWeight:600,color:"#C4B5FD"}}>{weeksLeft+"w left"}</span>
+          </div>
+
+          {/* ── Action Zone (the big CTA) ── */}
+          <Panel glow={actionCard&&actionCard.urgent} className={"war-entrance-d1"+(tPhase==="inprogress"?" live-pulse-ring":"")} style={{padding:"24px 28px",marginBottom:20,border:actionCard&&actionCard.urgent?"2px solid rgba(232,168,56,.6)":tPhase==="inprogress"?"2px solid rgba(248,113,113,.4)":"undefined",background:tPhase==="inprogress"?"linear-gradient(135deg,rgba(248,113,113,.08),rgba(18,28,48,.95))":"undefined"}}>
             <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}}>
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:actionCard&&actionCard.urgent?24:20,color:actionCard&&actionCard.urgent?"#E8A838":"#F2EDE4",marginBottom:6}}>{actionCard?actionCard.title:"Loading..."}</div>
-                <div style={{fontSize:13,color:"#C8D4E0"}}>{actionCard?actionCard.subtitle:""}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:phaseStatusColor(),boxShadow:"0 0 8px "+phaseStatusColor()}}/>
+                  <div className="cond" style={{fontSize:10,fontWeight:700,color:phaseStatusColor(),letterSpacing:".12em",textTransform:"uppercase"}}>{phaseStatusText()}</div>
+                </div>
+                <div style={{fontFamily:"'Russo One',sans-serif",fontSize:actionCard&&actionCard.urgent?26:22,color:actionCard&&actionCard.urgent?"#E8A838":"#F2EDE4",marginBottom:6,lineHeight:1.1}}>{actionCard?actionCard.title:"Loading..."}</div>
+                <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.5}}>{actionCard?actionCard.subtitle:""}</div>
                 {actionCard&&actionCard.countdown&&diff>0&&(
-                  <div style={{display:"flex",gap:8,marginTop:12}}>
+                  <div style={{display:"flex",gap:8,marginTop:14}}>
                     {[[D,"d"],[H,"h"],[M,"m"],[S,"s"]].map(function(item){
-                      return React.createElement("div",{key:item[1],style:{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 10px",textAlign:"center"}},
-                        React.createElement("span",{className:"mono",style:{fontSize:18,fontWeight:700,color:"#E8A838"}},String(item[0]).padStart(2,"0")),
+                      return React.createElement("div",{key:item[1],style:{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.25)",borderRadius:8,padding:"6px 12px",textAlign:"center"}},
+                        React.createElement("span",{className:"mono",style:{fontSize:20,fontWeight:700,color:"#E8A838"}},String(item[0]).padStart(2,"0")),
                         React.createElement("span",{style:{fontSize:10,color:"#9AAABF",marginLeft:2}},item[1])
                       );
                     })}
@@ -3637,88 +3675,122 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                 )}
               </div>
               <div style={{display:"flex",gap:8,flexShrink:0,alignItems:"center"}}>
-                {actionCard&&actionCard.icon==="check"&&React.createElement("i",{className:"ti ti-circle-check",style:{fontSize:36,color:"#52C47C"}})}
+                {actionCard&&actionCard.icon==="check"&&React.createElement("i",{className:"ti ti-circle-check",style:{fontSize:40,color:"#52C47C",filter:"drop-shadow(0 0 12px rgba(82,196,124,.4))"}})}
                 {actionCard&&actionCard.cta&&<Btn v={actionCard.urgent?"primary":"primary"} s="lg" onClick={actionCard.ctaAction}>{actionCard.cta}</Btn>}
                 {actionCard&&actionCard.secondaryCta&&<Btn v="ghost" s="sm" onClick={actionCard.secondaryAction}>{actionCard.secondaryCta}</Btn>}
               </div>
             </div>
           </Panel>
 
-          {/* Season Bar */}
+          {/* ── Stats Grid (the soul) ── */}
           {linkedPlayer&&s2&&(
-            <div style={{display:"flex",gap:24,alignItems:"center",padding:"16px 20px",background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,marginBottom:16,flexWrap:"wrap"}}>
-              <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em"}}>Rank</div>
-                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#F2EDE4"}}>{"#"+myRank}</div>
+            <div className="war-entrance-d2" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(100px,1fr))",gap:10,marginBottom:16}}>
+              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(232,168,56,.1),rgba(10,15,28,.95))",border:"1px solid rgba(232,168,56,.2)",borderRadius:12,padding:"16px 12px",textAlign:"center",cursor:"pointer"}} onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>
+                <div className="mono rank-glow" style={{fontSize:30,fontWeight:800,color:"#E8A838",lineHeight:1}}>{"#"+myRank}</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Rank</div>
               </div>
-              <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Points</div>
-                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#E8A838"}}>{linkedPlayer.pts}</div>
+              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(155,114,207,.08),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#C4B5FD",lineHeight:1}}>{linkedPlayer.pts}</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Points</div>
               </div>
-              <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Trend</div>
-                <div style={{fontSize:18,fontWeight:700,color:rankTrend>0?"#52C47C":rankTrend<0?"#F87171":"#9AAABF"}}>
-                  {rankTrend>0?"+"+rankTrend+" ↑":rankTrend<0?rankTrend+" ↓":"--"}
-                </div>
+              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.15)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#6EE7B7",lineHeight:1}}>{linkedPlayer.wins}</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Wins</div>
               </div>
-              <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Wins</div>
-                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#6EE7B7"}}>{linkedPlayer.wins}</div>
+              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#4ECDC4",lineHeight:1}}>{s2.avgPlacement}</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Avg Place</div>
               </div>
-              <div style={{textAlign:"center"}}>
-                <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase"}}>Avg</div>
-                <div style={{fontSize:22,fontWeight:800,fontFamily:"'Russo One',sans-serif",color:"#4ECDC4"}}>{s2.avgPlacement}</div>
+              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.12)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:rankTrend>0?"#52C47C":rankTrend<0?"#F87171":"#9AAABF",lineHeight:1}}>{rankTrend>0?"+"+rankTrend:rankTrend<0?""+rankTrend:"--"}</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Trend</div>
               </div>
-              <div style={{marginLeft:"auto",display:"flex",gap:8}}>
-                <Btn v="ghost" s="sm" onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>Profile</Btn>
-                <Btn v="ghost" s="sm" onClick={function(){setScreen("standings");}}>Standings</Btn>
+              <div className="war-stat" style={{background:"linear-gradient(145deg,rgba(155,114,207,.06),rgba(10,15,28,.95))",border:"1px solid rgba(155,114,207,.1)",borderRadius:12,padding:"16px 12px",textAlign:"center"}}>
+                <div className="mono" style={{fontSize:30,fontWeight:800,color:"#BECBD9",lineHeight:1}}>{s2.games}</div>
+                <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>Games</div>
               </div>
             </div>
           )}
 
-          {/* Rivalry Bar */}
+          {/* ── Rivalry Tracker ── */}
           {linkedPlayer&&(abovePlayer||belowPlayer)&&(
-            <div style={{display:"flex",gap:12,padding:"12px 16px",background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.1)",borderRadius:12,fontSize:13,marginBottom:16,flexWrap:"wrap"}}>
+            <div className="war-entrance-d2" style={{display:"grid",gridTemplateColumns:abovePlayer&&belowPlayer?"1fr 1fr":"1fr",gap:10,marginBottom:16}}>
               {abovePlayer&&(
-                <div style={{flex:1,color:"#F87171"}}>
-                  {React.createElement("i",{className:"ti ti-arrow-up",style:{marginRight:4}})}
-                  {(abovePlayer.pts-linkedPlayer.pts)+" pts behind "+abovePlayer.name}
+                <div style={{background:"linear-gradient(135deg,rgba(248,113,113,.06),rgba(10,15,28,.95))",border:"1px solid rgba(248,113,113,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={function(){setProfilePlayer(abovePlayer);setScreen("profile");}}>
+                  <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#F87171",flexShrink:0}}>{abovePlayer.name.charAt(0)}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#F87171"}}>{(abovePlayer.pts-linkedPlayer.pts)+" pts behind"}</div>
+                    <div style={{fontSize:13,fontWeight:600,color:"#F2EDE4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{abovePlayer.name}</div>
+                  </div>
+                  {React.createElement("i",{className:"ti ti-chevron-up",style:{color:"#F87171",fontSize:18}})}
                 </div>
               )}
               {belowPlayer&&(
-                <div style={{flex:1,color:"#52C47C",textAlign:"right"}}>
-                  {(linkedPlayer.pts-belowPlayer.pts)+" pts ahead of "+belowPlayer.name}
-                  {React.createElement("i",{className:"ti ti-arrow-down",style:{marginLeft:4}})}
+                <div style={{background:"linear-gradient(135deg,rgba(82,196,124,.06),rgba(10,15,28,.95))",border:"1px solid rgba(82,196,124,.15)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={function(){setProfilePlayer(belowPlayer);setScreen("profile");}}>
+                  <div style={{width:36,height:36,borderRadius:"50%",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:700,color:"#52C47C",flexShrink:0}}>{belowPlayer.name.charAt(0)}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#52C47C"}}>{(linkedPlayer.pts-belowPlayer.pts)+" pts ahead"}</div>
+                    <div style={{fontSize:13,fontWeight:600,color:"#F2EDE4",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{belowPlayer.name}</div>
+                  </div>
+                  {React.createElement("i",{className:"ti ti-chevron-down",style:{color:"#52C47C",fontSize:18}})}
                 </div>
               )}
             </div>
           )}
 
-          {/* Champion hero card */}
-          {SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={function(){var p=players.find(function(pl){return pl.name===SEASON_CHAMPION.name;});if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
+          {/* ── Champion Hero Card ── */}
+          {SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<div className="war-entrance-d3"><ChampionHeroCard champion={SEASON_CHAMPION} onClick={function(){var p=players.find(function(pl){return pl.name===SEASON_CHAMPION.name;});if(p){setProfilePlayer(p);setScreen("profile");}}}/></div>}
 
-          {/* Quick clashes */}
+          {/* ── Last Clash Recap ── */}
+          {linkedPlayer&&linkedPlayer.placements&&linkedPlayer.placements.length>0&&(
+            <div className="war-entrance-d3" style={{marginTop:16}}>
+              <Panel style={{padding:"18px 20px",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#9B72CF,transparent)"}}/>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:10}}>
+                  <div>
+                    <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:4}}>Last Clash Result</div>
+                    <div style={{display:"flex",alignItems:"baseline",gap:8}}>
+                      <span style={{fontFamily:"'Russo One',sans-serif",fontSize:32,color:linkedPlayer.placements[linkedPlayer.placements.length-1]<=1?"#E8A838":linkedPlayer.placements[linkedPlayer.placements.length-1]<=4?"#52C47C":"#BECBD9",lineHeight:1}}>{linkedPlayer.placements[linkedPlayer.placements.length-1]}{linkedPlayer.placements[linkedPlayer.placements.length-1]===1?"st":linkedPlayer.placements[linkedPlayer.placements.length-1]===2?"nd":linkedPlayer.placements[linkedPlayer.placements.length-1]===3?"rd":"th"}</span>
+                      <span style={{fontSize:13,color:"#9AAABF"}}>{"place"}</span>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:4,alignItems:"flex-end",height:32}}>
+                    {linkedPlayer.placements.slice(-6).map(function(p,i){
+                      var h=Math.max(6,32-((p-1)*3.5));
+                      return React.createElement("div",{key:i,style:{width:8,height:h,borderRadius:3,background:p<=1?"#E8A838":p<=4?"rgba(82,196,124,.7)":"rgba(190,203,217,.3)",transition:"height .3s ease"}});
+                    })}
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <Btn v="ghost" s="sm" onClick={function(){if(linkedPlayer){setProfilePlayer(linkedPlayer);setScreen("profile");}}}>Full History</Btn>
+                    <Btn v="ghost" s="sm" onClick={function(){setScreen("standings");}}>Standings</Btn>
+                  </div>
+                </div>
+              </Panel>
+            </div>
+          )}
+
+          {/* ── Quick Clashes ── */}
           {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
-            <div style={{marginBottom:16,marginTop:16}}>
-              <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Quick Clashes</div>
+            <div className="war-entrance-d4" style={{marginBottom:16,marginTop:16}}>
+              <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Quick Clashes</div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {quickClashes.filter(function(q){return q.status==="open"||q.status==="full"||q.status==="live";}).map(function(qc){
                   var linked2=currentUser?players.find(function(p){return p.name===currentUser.username;}):null;
                   var alreadyJoined2=linked2&&qc.players&&qc.players.includes(linked2.id);
                   return(
-                    <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-                      <div style={{fontSize:18}}>{qc.status==="live"?React.createElement("i",{className:"ti ti-bolt"}):React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
+                    <div key={qc.id} style={{background:qc.status==="live"?"linear-gradient(135deg,rgba(248,113,113,.06),rgba(155,114,207,.04))":"rgba(155,114,207,.04)",border:qc.status==="live"?"1px solid rgba(248,113,113,.3)":"1px solid rgba(155,114,207,.2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",transition:"all .15s"}}>
+                      <div style={{width:36,height:36,borderRadius:10,background:qc.status==="live"?"rgba(248,113,113,.12)":"rgba(155,114,207,.1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,color:qc.status==="live"?"#F87171":"#C4B5FD"}}>{qc.status==="live"?React.createElement("i",{className:"ti ti-bolt"}):React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{qc.name}</div>
-                        <div style={{fontSize:11,color:"#BECBD9"}}>{qc.players?qc.players.length:0}/{qc.cap} players - {qc.rounds}R - {qc.format}</div>
+                        <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{qc.name}</div>
+                        <div style={{fontSize:12,color:"#BECBD9"}}>{(qc.players?qc.players.length:0)+"/"+qc.cap+" players · "+qc.rounds+"R · "+qc.format}</div>
                       </div>
                       <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                        {qc.status==="live"&&<span style={{fontSize:11,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 8px"}}>LIVE</span>}
+                        {qc.status==="live"&&<span className="live-pulse-ring" style={{fontSize:11,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:8,padding:"5px 10px"}}>LIVE</span>}
                         {qc.status==="open"&&!alreadyJoined2&&onJoinQuickClash&&linked2&&(
                           <Btn v="purple" s="sm" onClick={function(){onJoinQuickClash(qc.id,linked2.id);toast("Joined "+qc.name+"!","success");}}>Join</Btn>
                         )}
-                        {alreadyJoined2&&<span style={{fontSize:11,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:6,padding:"4px 8px"}}>Joined</span>}
-                        {qc.status==="full"&&!alreadyJoined2&&<span style={{fontSize:11,color:"#E8A838"}}>Full</span>}
+                        {alreadyJoined2&&<span style={{fontSize:11,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:8,padding:"5px 10px"}}>{React.createElement("i",{className:"ti ti-check",style:{marginRight:3}})}Joined</span>}
+                        {qc.status==="full"&&!alreadyJoined2&&<span style={{fontSize:11,color:"#E8A838",fontWeight:600}}>Full</span>}
                       </div>
                     </div>
                   );
@@ -3727,8 +3799,39 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             </div>
           )}
 
+          {/* ── Upcoming Events Preview ── */}
+          {featuredEvents&&featuredEvents.length>0&&(
+            <div className="war-entrance-d4" style={{marginTop:8,marginBottom:16}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#4ECDC4",letterSpacing:".12em",textTransform:"uppercase"}}>Upcoming Events</div>
+                <button onClick={function(){setScreen("events");}} style={{background:"none",border:"none",color:"#4ECDC4",fontSize:12,fontWeight:600,cursor:"pointer",padding:0,fontFamily:"inherit"}}>{"View all →"}</button>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:10}}>
+                {featuredEvents.slice(0,3).map(function(ev){
+                  return React.createElement("div",{key:ev.id||ev.name,onClick:function(){setScreen("events");},style:{background:"linear-gradient(145deg,rgba(78,205,196,.06),rgba(10,15,28,.95))",border:"1px solid rgba(78,205,196,.15)",borderRadius:12,padding:"14px 16px",cursor:"pointer",transition:"all .15s"}},
+                    React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}},ev.name||"Tournament"),
+                    React.createElement("div",{style:{fontSize:12,color:"#BECBD9"}},ev.date||"TBD"),
+                    ev.format&&React.createElement("div",{style:{fontSize:11,color:"#4ECDC4",marginTop:4,fontWeight:600}},ev.format)
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── Community Pulse ── */}
+          <div className="war-entrance-d4" style={{display:"flex",alignItems:"center",gap:10,padding:"12px 16px",borderTop:"1px solid rgba(242,237,228,.06)",marginTop:8,fontSize:12,color:"#9AAABF"}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",boxShadow:"0 0 8px rgba(82,196,124,.5)"}}/>
+            <span>{players.length+" players in season · "+(players.filter(function(p){return p.pts>0;}).length)+" active competitors"}</span>
+            <div style={{marginLeft:"auto",display:"flex",gap:8}}>
+              <button onClick={function(){setScreen("standings");}} style={{background:"none",border:"none",color:"#9B72CF",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Standings</button>
+              <button onClick={function(){setScreen("events");}} style={{background:"none",border:"none",color:"#4ECDC4",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Events</button>
+            </div>
+          </div>
+
         </div>
       )}
+
+
 
       {/* Guest sign-in nudge */}
       {!currentUser&&(
