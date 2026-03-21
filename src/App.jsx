@@ -6071,7 +6071,7 @@ function PlacementDistribution(props){
   );
 }
 
-function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig,allUsers}){
+function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig,allUsers,setComparePlayer}){
 
   const [tab,setTab]=useState("overview");
 
@@ -6211,6 +6211,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
         <Btn v="teal" s="sm" onClick={downloadStatsCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:4}})}Download Card</Btn>
         <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
+
+        {setComparePlayer&&!isOwnProfile&&<Btn v="purple" s="sm" onClick={function(){setComparePlayer(player);}}>{React.createElement("i",{className:"ti ti-arrows-diff",style:{marginRight:4}})}Compare</Btn>}
 
 
 
@@ -17353,6 +17355,60 @@ function Footer(props){
 }
 
 
+function PlayerComparisonModal(props) {
+  var me = props.playerA;
+  var them = props.playerB;
+  var players = props.players;
+  var onClose = props.onClose;
+  if (!me || !them) return null;
+
+  var meStats = getStats(me);
+  var themStats = getStats(them);
+  var h2h = computeH2H(me, them, props.pastClashes || []);
+  var meRank = players.filter(function(p){return p.pts > me.pts;}).length + 1;
+  var themRank = players.filter(function(p){return p.pts > them.pts;}).length + 1;
+
+  var rows = [
+    {label:"Rank",a:"#"+meRank,b:"#"+themRank,better:meRank < themRank ? "a" : meRank > themRank ? "b" : null},
+    {label:"Points",a:me.pts,b:them.pts,better:me.pts > them.pts ? "a" : me.pts < them.pts ? "b" : null},
+    {label:"Wins",a:me.wins,b:them.wins,better:me.wins > them.wins ? "a" : me.wins < them.wins ? "b" : null},
+    {label:"Avg Placement",a:meStats.avgPlacement ? meStats.avgPlacement.toFixed(1) : "-",b:themStats.avgPlacement ? themStats.avgPlacement.toFixed(1) : "-",better:meStats.avgPlacement < themStats.avgPlacement ? "a" : meStats.avgPlacement > themStats.avgPlacement ? "b" : null},
+    {label:"Win Rate",a:Math.round(meStats.winRate || 0)+"%",b:Math.round(themStats.winRate || 0)+"%",better:(meStats.winRate||0) > (themStats.winRate||0) ? "a" : (meStats.winRate||0) < (themStats.winRate||0) ? "b" : null},
+    {label:"Top 4 Rate",a:Math.round(meStats.top4Rate || 0)+"%",b:Math.round(themStats.top4Rate || 0)+"%",better:(meStats.top4Rate||0) > (themStats.top4Rate||0) ? "a" : (meStats.top4Rate||0) < (themStats.top4Rate||0) ? "b" : null}
+  ];
+
+  return React.createElement("div", {style:{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:9999},onClick:onClose},
+    React.createElement("div", {style:{background:"#111827",border:"1px solid rgba(155,114,207,.3)",borderRadius:16,padding:"24px",maxWidth:480,width:"90%",maxHeight:"80vh",overflowY:"auto"},onClick:function(e){e.stopPropagation();}},
+      h2h ? React.createElement("div", {style:{textAlign:"center",marginBottom:16}},
+        React.createElement("div", {style:{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:4}}, me.name + " vs " + them.name),
+        React.createElement("div", {style:{fontSize:11,color:"#9B72CF"}}, h2h.wins + "-" + h2h.losses + " in " + h2h.total + " shared lobbies")
+      ) : React.createElement("div", {style:{textAlign:"center",fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:16}}, me.name + " vs " + them.name),
+      rows.map(function(row) {
+        return React.createElement("div", {key:row.label,style:{display:"grid",gridTemplateColumns:"1fr auto 1fr",gap:8,padding:"8px 0",borderBottom:"1px solid rgba(255,255,255,.06)",alignItems:"center"}},
+          React.createElement("div", {style:{textAlign:"right",fontSize:15,fontWeight:700,color:row.better === "a" ? "#6EE7B7" : "#F2EDE4",background:row.better === "a" ? "rgba(110,231,183,.08)" : "transparent",borderRadius:6,padding:"4px 8px"}}, row.a),
+          React.createElement("div", {style:{fontSize:10,color:"#9AAABF",textTransform:"uppercase",fontWeight:600,textAlign:"center",minWidth:80}}, row.label),
+          React.createElement("div", {style:{textAlign:"left",fontSize:15,fontWeight:700,color:row.better === "b" ? "#6EE7B7" : "#F2EDE4",background:row.better === "b" ? "rgba(110,231,183,.08)" : "transparent",borderRadius:6,padding:"4px 8px"}}, row.b)
+        );
+      }),
+      React.createElement("div", {style:{position:"relative",height:40,marginTop:16,marginBottom:8}},
+        React.createElement("div", {style:{position:"absolute",inset:0}},
+          React.createElement(Sparkline, {data:(me.clashHistory||[]).slice(-8).map(function(c){return c.placement||4;}), width:200, height:40, color:"#9B72CF"})
+        ),
+        React.createElement("div", {style:{position:"absolute",inset:0}},
+          React.createElement(Sparkline, {data:(them.clashHistory||[]).slice(-8).map(function(c){return c.placement||4;}), width:200, height:40, color:"#4ECDC4"})
+        ),
+        React.createElement("div", {style:{display:"flex",gap:12,justifyContent:"center",marginTop:2}},
+          React.createElement("span", {style:{fontSize:9,color:"#9B72CF",fontWeight:600}}, me.name),
+          React.createElement("span", {style:{fontSize:9,color:"#4ECDC4",fontWeight:600}}, them.name)
+        )
+      ),
+      React.createElement("div", {style:{textAlign:"center",marginTop:16}},
+        React.createElement(Btn, {v:"dark",s:"sm",onClick:onClose}, "Close")
+      )
+    )
+  );
+}
+
 function TFTClash(){
 
   const [screen,setScreen]=useState(function(){var h=window.location.hash.replace("#","");var parts=h.split("/");return parts[0]||"home";});
@@ -17383,6 +17439,10 @@ function TFTClash(){
   const [announcement,setAnnouncement]=useState("");
 
   const [profilePlayer,setProfilePlayer]=useState(null);
+
+  var _cmp = useState(null);
+  var comparePlayer = _cmp[0];
+  var setComparePlayer = _cmp[1];
 
   const [tournamentState,setTournamentState]=useState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});
 
@@ -18427,7 +18487,7 @@ function TFTClash(){
 
         {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
-        {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
+        {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig} setComparePlayer={setComparePlayer}/>}
 
         {screen==="profile"    &&!profilePlayer&&<ProfileScreen subRoute={subRoute} currentUser={currentUser} setAuthScreen={setAuthScreen} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps} challengeCompletions={challengeCompletions}/>}
 
@@ -18518,6 +18578,14 @@ function TFTClash(){
         ))}
 
       </div>
+
+      {comparePlayer&&React.createElement(PlayerComparisonModal, {
+        playerA: currentUser ? players.find(function(p){return (p.authUserId&&p.authUserId===currentUser.id)||(p.name===currentUser.username);}) || null : null,
+        playerB: comparePlayer,
+        players: players,
+        pastClashes: pastClashes,
+        onClose: function(){setComparePlayer(null);}
+      })}
 
     </>
 
