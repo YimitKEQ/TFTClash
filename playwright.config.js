@@ -13,11 +13,10 @@ export default defineConfig({
     ['junit', { outputFile: 'playwright-report/results.xml' }],
   ],
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',
-    // Dark UI — give elements time to render
     actionTimeout: 10000,
     navigationTimeout: 15000,
   },
@@ -27,6 +26,10 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  // Dev server is expected to already be running
-  // Start it manually: npm run dev
+  webServer: {
+    command: 'npm run preview -- --port 4173',
+    port: 4173,
+    reuseExistingServer: !process.env.CI,
+    timeout: 30000,
+  },
 });
