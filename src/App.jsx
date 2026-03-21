@@ -3856,7 +3856,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:10}}>Quick Clashes</div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
                 {quickClashes.filter(function(q){return q.status==="open"||q.status==="full"||q.status==="live";}).map(function(qc){
-                  var linked2=currentUser?players.find(function(p){return p.name===currentUser.username;}):null;
+                  var linked2=currentUser?players.find(function(p){return(p.authUserId&&p.authUserId===currentUser.id)||(p.auth_user_id&&p.auth_user_id===currentUser.id)||p.name===currentUser.username;}):null;
                   var alreadyJoined2=linked2&&qc.players&&qc.players.includes(linked2.id);
                   return(
                     <div key={qc.id} style={{background:qc.status==="live"?"linear-gradient(135deg,rgba(248,113,113,.06),rgba(155,114,207,.04))":"rgba(155,114,207,.04)",border:qc.status==="live"?"1px solid rgba(248,113,113,.3)":"1px solid rgba(155,114,207,.2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap",transition:"all .15s"}}>
@@ -4499,7 +4499,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
   var pPic=player.profile_pic_url||userMeta&&userMeta.profilePic||player.profilePic||"";
   var pBanner=userMeta&&userMeta.bannerUrl||player.bannerUrl||"";
   var pAccent=userMeta&&userMeta.profileAccent||player.profileAccent||"";
-  var isOwnProfile=currentUser&&(currentUser.username===player.name||currentUser.id===player.auth_user_id);
+  var isOwnProfile=currentUser&&(currentUser.id===player.auth_user_id||currentUser.id===player.authUserId||currentUser.username===player.name);
 
   const achievements=getAchievements(player);
 
@@ -5770,7 +5770,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
   const top3=sorted.slice(0,3);
 
-  const myLbIdx=currentUser?sorted.findIndex(p=>p.name===currentUser.username):-1;
+  const myLbIdx=currentUser?sorted.findIndex(function(p){return(p.authUserId&&p.authUserId===currentUser.id)||(p.auth_user_id&&p.auth_user_id===currentUser.id)||p.name===currentUser.username;}):-1;
 
 
   function open(p){setProfilePlayer(p);setScreen("profile");}
