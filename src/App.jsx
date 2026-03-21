@@ -5855,7 +5855,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
 
-          {["season","cards","stats","streaks","legends"].map(t=>(
+          {["season","cards","stats","streaks","legends","players"].map(t=>(
 
             <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={()=>setTab(t)} style={{textTransform:"capitalize"}}>{t}</Btn>
 
@@ -6146,6 +6146,42 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
       )}
 
       {tab==="legends"&&<HofScreen players={players} setScreen={setScreen} setProfilePlayer={setProfilePlayer}/>}
+
+      {tab==="players"&&React.createElement("div",null,
+        React.createElement("div",{style:{display:"flex",gap:8,marginBottom:16,flexWrap:"wrap"}},
+          React.createElement(Inp,{value:search,onChange:function(e){setSearch(e.target.value);},placeholder:"Search by name or Riot ID...",style:{flex:1,minWidth:200}}),
+          React.createElement(Sel,{value:regionFilter,onChange:function(e){setRegionFilter(e.target.value);},style:{minWidth:100}},
+            React.createElement("option",{value:"All"},"All Regions"),
+            ["EUW","EUNE","NA","KR","JP","OCE","BR","TR"].map(function(r){return React.createElement("option",{key:r,value:r},r);})
+          )
+        ),
+        React.createElement("div",{style:{fontSize:12,color:"#9AAABF",marginBottom:12}},sorted.length+" players"),
+        React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:10}},
+          sorted.map(function(p,i){
+            var s2=getStats(p);
+            var rCol=rc(p.rank);
+            return React.createElement("div",{key:p.id,onClick:function(){open(p);},style:{background:"linear-gradient(145deg,rgba(17,24,39,.95),rgba(10,15,28,.98))",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:"14px 16px",cursor:"pointer",transition:"all .15s",display:"flex",alignItems:"center",gap:12},onMouseEnter:function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.borderColor="rgba(155,114,207,.3)";},onMouseLeave:function(e){e.currentTarget.style.transform="";e.currentTarget.style.borderColor="rgba(242,237,228,.08)";}},
+              React.createElement("div",{style:{width:40,height:40,borderRadius:"50%",background:"linear-gradient(135deg,"+rCol+",#9B72CF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,fontWeight:700,color:"#08080F",flexShrink:0}},p.name.charAt(0).toUpperCase()),
+              React.createElement("div",{style:{flex:1,minWidth:0}},
+                React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.name),
+                React.createElement("div",{style:{fontSize:12,color:"#BECBD9",marginTop:1}},(p.riotId||"No Riot ID")+" \xB7 "+(p.region||"?")),
+                React.createElement("div",{style:{fontSize:11,color:rCol,fontWeight:600,marginTop:1}},p.rank||"Unranked")
+              ),
+              React.createElement("div",{style:{display:"flex",gap:12,flexShrink:0}},
+                React.createElement("div",{style:{textAlign:"center"}},
+                  React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#E8A838"}},p.pts||0),
+                  React.createElement("div",{style:{fontSize:9,color:"#9AAABF",textTransform:"uppercase"}},"pts")),
+                React.createElement("div",{style:{textAlign:"center"}},
+                  React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#6EE7B7"}},p.wins||0),
+                  React.createElement("div",{style:{fontSize:9,color:"#9AAABF",textTransform:"uppercase"}},"wins")),
+                React.createElement("div",{style:{textAlign:"center"}},
+                  React.createElement("div",{style:{fontSize:16,fontWeight:700,color:"#BECBD9"}},p.games||s2.games||0),
+                  React.createElement("div",{style:{fontSize:9,color:"#9AAABF",textTransform:"uppercase"}},"games"))
+              )
+            );
+          })
+        )
+      )}
 
       {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["star-fill"]||"star-fill")})}</span>}</span>))}</div>);})}</div>}
 
