@@ -3559,7 +3559,7 @@ function StandingsScreen(props){
             background:active?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)",
             border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
             borderRadius:10,
-            color:active?"#F2EDE4":"#9AAABF",
+            color:"#F2EDE4",
             fontFamily:"'Barlow Condensed',sans-serif",
             fontSize:13,
             fontWeight:active?700:500,
@@ -3569,7 +3569,7 @@ function StandingsScreen(props){
             boxShadow:active?"0 0 12px rgba(155,114,207,.1)":"none",
           }
         },
-          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#9AAABF"}}),
+          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#BECBD9"}}),
           t.label
         );
       })
@@ -3592,19 +3592,7 @@ function ProfileScreen(props){
   if(!props.currentUser){
     return React.createElement(AutoLogin,{setAuthScreen:props.setAuthScreen});
   }
-  var username=props.currentUser.username||props.currentUser.name||"Player";
-  return React.createElement("div",{className:"page"},
-    React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
-      React.createElement("div",{style:{
-        width:56,height:56,borderRadius:"50%",margin:"0 auto 10px",
-        background:"linear-gradient(135deg,#9B72CF,#E8A838)",
-        display:"flex",alignItems:"center",justifyContent:"center",
-        fontSize:22,fontWeight:900,color:"#08080F",
-        boxShadow:"0 0 20px rgba(155,114,207,.2)",
-      }},username.charAt(0).toUpperCase()),
-      React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:900,color:"#F2EDE4",marginBottom:4}},username),
-      React.createElement("p",{style:{fontSize:12,color:"#9AAABF"}},"Your profile, achievements, and active challenges")
-    ),
+  return React.createElement("div",{className:"page",style:{paddingTop:20}},
     React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
@@ -3617,7 +3605,7 @@ function ProfileScreen(props){
             background:active?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)",
             border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
             borderRadius:10,
-            color:active?"#F2EDE4":"#9AAABF",
+            color:"#F2EDE4",
             fontFamily:"'Barlow Condensed',sans-serif",
             fontSize:13,
             fontWeight:active?700:500,
@@ -3627,7 +3615,7 @@ function ProfileScreen(props){
             boxShadow:active?"0 0 12px rgba(155,114,207,.1)":"none",
           }
         },
-          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#9AAABF"}}),
+          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#BECBD9"}}),
           t.label
         );
       })
@@ -3652,11 +3640,7 @@ function EventsScreen(props){
     {id:"tournaments",label:"Tournaments",icon:"ti-tournament"},
     {id:"featured",label:"Featured",icon:"ti-star"},
   ];
-  return React.createElement("div",{className:"page"},
-    React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
-      React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#F2EDE4",marginBottom:4}},"Events"),
-      React.createElement("p",{style:{fontSize:13,color:"#9AAABF",maxWidth:400,margin:"0 auto"}},"Past clashes, upcoming tournaments, and featured events")
-    ),
+  return React.createElement("div",{className:"page",style:{paddingTop:20}},
     React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
@@ -3669,7 +3653,7 @@ function EventsScreen(props){
             background:active?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)",
             border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
             borderRadius:10,
-            color:active?"#F2EDE4":"#9AAABF",
+            color:"#F2EDE4",
             fontFamily:"'Barlow Condensed',sans-serif",
             fontSize:13,
             fontWeight:active?700:500,
@@ -3679,7 +3663,7 @@ function EventsScreen(props){
             boxShadow:active?"0 0 12px rgba(155,114,207,.1)":"none",
           }
         },
-          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#9AAABF"}}),
+          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#BECBD9"}}),
           t.label
         );
       })
