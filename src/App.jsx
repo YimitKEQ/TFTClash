@@ -2814,43 +2814,19 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
   // Desktop nav
 
   const DESKTOP_PRIMARY=[
-
     {id:"home",label:"Home"},
-
-    {id:"roster",label:"Roster"},
-
-    {id:"bracket",label:"Bracket"},
-
-    {id:"leaderboard",label:"Leaderboard"},
-
-    {id:"results",label:"Results"},
-
-    {id:"hof",label:"Hall of Fame"},
-
-    ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
-
-    ...(isAdmin?[{id:"admin",label:"Admin"}]:[]),
-
+    {id:"clash",label:"Clash"},
+    {id:"standings",label:"Standings"},
+    {id:"my-profile",label:"Profile"},
+    {id:"events",label:"Events"},
+    {id:"pricing",label:"Pricing"},
   ];
 
   const DESKTOP_MORE=[
-
-    {id:"tournaments",label:"Tournaments"},
-
-    {id:"featured",label:"Featured"},
-
-    {id:"archive",label:"Archive"},
-
-    {id:"milestones",label:"Milestones"},
-
-    {id:"challenges",label:"Challenges"},
-
     {id:"rules",label:"Rules"},
-
     {id:"faq",label:"FAQ"},
-
-    {id:"pricing",label:"Pricing"},
-
+    ...(canScrims?[{id:"scrims",label:"Scrims"}]:[]),
+    ...(isAdmin?[{id:"admin",label:"Admin Panel"}]:[]),
   ];
 
   const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
@@ -2861,24 +2837,16 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
 
   const DRAWER_ITEMS=[
-    {id:"home",icon:"house-fill",label:"Home",section:"main"},
-    {id:"roster",icon:"people-fill",label:"Roster",section:"main"},
-    {id:"bracket",icon:"diagram-3-fill",label:"Bracket",section:"main"},
-    {id:"leaderboard",icon:"bar-chart-line-fill",label:"Leaderboard",section:"main"},
-    {id:"results",icon:"clipboard-check-fill",label:"Results",section:"main"},
-    {id:"hof",icon:"award-fill",label:"Hall of Fame",section:"explore"},
-    ...(canScrims?[{id:"scrims",icon:"controller",label:"Scrims",section:"main"}]:[]),
-    ...(isAdmin?[{id:"admin",icon:"hexagon-fill",label:"Admin Panel",section:"main"}]:[]),
-    {id:"archive",icon:"archive-fill",label:"Archive",section:"explore"},
-    {id:"tournaments",icon:"lightning-charge-fill",label:"Tournaments",section:"explore"},
-    {id:"featured",icon:"star-fill",label:"Featured Events",section:"explore"},
-    {id:"challenges",icon:"star-fill",label:"Challenges & XP",section:"community"},
-    {id:"milestones",icon:"gift-fill",label:"Milestones & Rewards",section:"community"},
-    {id:"rules",icon:"journal-text",label:"Tournament Rules",section:"info"},
-    {id:"faq",icon:"question-circle-fill",label:"FAQ",section:"info"},
-    {id:"pricing",icon:"tag-fill",label:"Pricing & Plans",section:"info"},
-    {id:"account",icon:"person-fill",label:currentUser?("My Account · "+currentUser.username):"Sign In / Sign Up",section:"account"},
-
+    {id:"home",icon:"home",label:"Home",section:"main"},
+    {id:"clash",icon:"swords",label:"Clash",section:"main"},
+    {id:"standings",icon:"chart-bar",label:"Standings",section:"main"},
+    {id:"my-profile",icon:"user",label:"Profile",section:"main"},
+    {id:"events",icon:"calendar-event",label:"Events",section:"main"},
+    {id:"pricing",icon:"diamond",label:"Pricing",section:"main"},
+    {id:"rules",icon:"book",label:"Rules",section:"info"},
+    {id:"faq",icon:"help-circle",label:"FAQ",section:"info"},
+    ...(canScrims?[{id:"scrims",icon:"device-gamepad-2",label:"Scrims",section:"private"}]:[]),
+    ...(isAdmin?[{id:"admin",icon:"settings",label:"Admin Panel",section:"private"}]:[]),
   ];
 
 
@@ -3119,13 +3087,6 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
             )}
 
-            {!isAdmin
-
-              ?<Btn v="ghost" s="sm" onClick={()=>setPwModal(true)}>Admin</Btn>
-
-              :<Btn v="crimson" s="sm" onClick={()=>{setIsAdmin(false);toast("Admin off","success");}}>● Admin</Btn>
-
-            }
 
           </div>
 
