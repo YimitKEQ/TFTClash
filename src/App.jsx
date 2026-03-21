@@ -6035,6 +6035,42 @@ const DAILY_CHALLENGES=[
 
 
 
+function PlacementDistribution(props){
+  var history=props.history||[];
+  if(history.length===0)return null;
+  var counts=[0,0,0,0,0,0,0,0];
+  history.forEach(function(h){
+    var games=h.games||[];
+    games.forEach(function(g){
+      if(g.placement>=1&&g.placement<=8)counts[g.placement-1]++;
+    });
+  });
+  var total=counts.reduce(function(s,c){return s+c;},0);
+  if(total===0)return null;
+  var colors=["#E8A838","#C0C0C0","#CD7F32","#9B72CF","#4ECDC4","#6B7B8F","#4A5568","#2D3748"];
+  return React.createElement("div",{style:{marginBottom:16}},
+    React.createElement("div",{className:"cond",style:{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}},"Placement Distribution"),
+    React.createElement("div",{style:{display:"flex",height:20,borderRadius:6,overflow:"hidden",background:"rgba(255,255,255,.04)"}},
+      counts.map(function(c,i){
+        var pct=total>0?(c/total*100):0;
+        if(pct===0)return null;
+        return React.createElement("div",{
+          key:i,
+          title:ordinal(i+1)+": "+c+" ("+Math.round(pct)+"%)",
+          style:{width:pct+"%",background:colors[i],transition:"width .5s ease"}
+        });
+      })
+    ),
+    React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginTop:4}},
+      counts.map(function(c,i){
+        return React.createElement("div",{key:i,style:{textAlign:"center",flex:1,fontSize:9,color:c>0?colors[i]:"#4A5568",fontWeight:600}},
+          ordinal(i+1)
+        );
+      })
+    )
+  );
+}
+
 function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,seasonConfig,allUsers}){
 
   const [tab,setTab]=useState("overview");
@@ -6336,6 +6372,36 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
       {tab==="overview"&&(
 
+        <div>
+
+        {(function(){
+          var ppTrend=[];
+          var ppCum=0;
+          (player.clashHistory||[]).forEach(function(c){ppCum=ppCum+(c.points||0);ppTrend.push(ppCum);});
+          return React.createElement("div",{style:{marginBottom:16}},
+            React.createElement(PlacementDistribution,{history:player.clashHistory||[]}),
+            ppTrend.length>1?React.createElement("div",{style:{marginBottom:16}},
+              React.createElement("div",{className:"cond",style:{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}},"Season Trajectory"),
+              React.createElement(Sparkline,{data:ppTrend,w:280,h:40,color:"#9B72CF"})
+            ):null,
+            React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:16}},
+              [
+                [player.pts,"Season Pts","#E8A838"],
+                [player.wins,"Wins","#6EE7B7"],
+                [s?s.avgPlacement:"-","Avg Place","#4ECDC4"],
+                [s?Math.round(s.top4Rate||0)+"%":"-","Top 4 Rate","#9B72CF"],
+                [player.games||0,"Games","#BECBD9"],
+                [s?s.ppg.toFixed(1):"-","Pts/Game","#E8A838"]
+              ].map(function(item){
+                return React.createElement("div",{key:item[1],style:{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"12px 10px",textAlign:"center"}},
+                  React.createElement("div",{className:"mono",style:{fontSize:20,fontWeight:700,color:item[2],lineHeight:1}},item[0]),
+                  React.createElement("div",{style:{fontSize:9,color:"#BECBD9",marginTop:4,fontWeight:600,textTransform:"uppercase"}},item[1])
+                );
+              })
+            )
+          );
+        })()}
+
         <div className="grid-2">
 
           <Panel style={{padding:"18px"}}>
@@ -6494,6 +6560,8 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
             </Panel>
 
           </div>
+
+        </div>
 
         </div>
 
@@ -13715,6 +13783,21 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
                 </Panel>
 
               )}
+
+              {/* Placement Distribution + Season Trajectory */}
+              {(function(){
+                var acctHistory=linkedPlayer.clashHistory||[];
+                var ppTrend2=[];
+                var ppCum2=0;
+                acctHistory.forEach(function(c){ppCum2=ppCum2+(c.points||0);ppTrend2.push(ppCum2);});
+                return React.createElement("div",{style:{marginTop:12}},
+                  React.createElement(PlacementDistribution,{history:acctHistory}),
+                  ppTrend2.length>1?React.createElement(Panel,{style:{padding:"16px",marginTop:10}},
+                    React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#F2EDE4",marginBottom:10}},"Season Trajectory"),
+                    React.createElement(Sparkline,{data:ppTrend2,w:280,h:40,color:"#9B72CF"})
+                  ):null
+                );
+              })()}
 
             </>
 
