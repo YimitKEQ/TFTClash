@@ -4122,6 +4122,49 @@ function EventsScreen(props){
   );
 }
 
+
+// ── Tier system helpers ──────────────────────────────────────────────────────
+
+var TIER_THRESHOLDS = [
+  {name: "Champion", minRank: 1, maxRank: 1, color: "#E8A838", icon: "crown"},
+  {name: "Challenger", minRank: 2, maxRank: 3, color: "#9B72CF", icon: "diamond"},
+  {name: "Contender", minRank: 4, maxRank: 8, color: "#4ECDC4", icon: "shield"}
+];
+
+function getPlayerTierInfo(rank, totalPlayers) {
+  for (var i = 0; i < TIER_THRESHOLDS.length; i++) {
+    if (rank >= TIER_THRESHOLDS[i].minRank && rank <= TIER_THRESHOLDS[i].maxRank) {
+      return TIER_THRESHOLDS[i];
+    }
+  }
+  return {name: "Competitor", minRank: 9, maxRank: totalPlayers, color: "#9AAABF", icon: "user"};
+}
+
+function getNextTierInfo(rank) {
+  for (var i = TIER_THRESHOLDS.length - 1; i >= 0; i--) {
+    if (rank > TIER_THRESHOLDS[i].maxRank) {
+      return TIER_THRESHOLDS[i];
+    }
+  }
+  return null;
+}
+
+function generateSeasonNarrative(players, sortedPts) {
+  if (!sortedPts || sortedPts.length < 2) return null;
+  var leader = sortedPts[0];
+  var second = sortedPts[1];
+  var gap = leader.pts - second.pts;
+  if (gap <= 5) return "The race for #1 is tight. Only " + gap + " pts separate " + leader.name + " and " + second.name + ".";
+  if (gap > 50) return leader.name + " leads the season with a commanding " + gap + "-point advantage.";
+  if (sortedPts.length >= 5) {
+    var thirdPts = sortedPts[2].pts;
+    var fifthPts = sortedPts[4].pts;
+    if (thirdPts - fifthPts <= 10) return "Positions 3 through 5 are separated by just " + (thirdPts - fifthPts) + " pts. Every clash matters.";
+  }
+  return leader.name + " leads the season with " + leader.pts + " pts.";
+}
+
+
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
@@ -4343,879 +4386,378 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
   }
 
+  // Activity feed state
+  var _af = useState([]);
+  var activityFeed = _af[0];
+  var setActivityFeed = _af[1];
 
+  useEffect(function() {
+    supabase.from("activity_feed").select("*")
+      .order("created_at", {ascending: false})
+      .limit(8)
+      .then(function(res) {
+        if (res.data) setActivityFeed(res.data);
+      });
+  }, [tick]);
 
-  const StatBox=({label,val,c})=>(
+  // Zone 1 data
+  var rankDelta = linkedPlayer && linkedPlayer.lastClashRank ? myRankIdx - linkedPlayer.lastClashRank : 0;
+  var currentTierInfo = getPlayerTierInfo(myRankIdx, players.length);
+  var nextTier = getNextTierInfo(myRankIdx);
+  var ptsToNextTier = null;
+  if (nextTier && myRankIdx > nextTier.maxRank) {
+    var tierBorderPlayer = sortedPts[nextTier.maxRank - 1];
+    if (tierBorderPlayer && linkedPlayer) ptsToNextTier = tierBorderPlayer.pts - linkedPlayer.pts;
+  }
 
-    <div className="stat-box shimmer-card" style={{background:"linear-gradient(145deg,rgba(18,28,48,.9),rgba(10,15,28,.95))",border:"1px solid rgba(255,255,255,.08)",borderRadius:12,padding:"16px 10px",textAlign:"center",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)"}}>
+  // Zone 2 data
+  var clashHistory = (linkedPlayer && linkedPlayer.clashHistory) || [];
+  var lastClash = clashHistory.length > 0 ? clashHistory[clashHistory.length - 1] : null;
+  var placementTrend = clashHistory.map(function(c) { return c.placement || 4; });
+  var pointsTrend = [];
+  var cumPts = 0;
+  clashHistory.forEach(function(c) {
+    cumPts = cumPts + (c.points || 0);
+    pointsTrend.push(cumPts);
+  });
 
-      <div className="mono" style={{fontSize:28,fontWeight:800,color:c||"#E8A838",lineHeight:1,textShadow:"0 0 16px currentColor"}}>{val}</div>
-
-      <div className="cond" style={{fontSize:9,fontWeight:700,color:"#8EA0B8",marginTop:6,letterSpacing:".1em",textTransform:"uppercase"}}>{label}</div>
-
-    </div>
-
-  );
-
-
-
-  // Community pulse ticker
-
-  const sortedPts=[...players].sort((a,b)=>b.pts-a.pts);
-
-  const sortedWins=[...players].sort((a,b)=>b.wins-a.wins);
-
-  const sortedStreak=[...players].sort((a,b)=>(b.currentStreak||0)-(a.currentStreak||0));
-
-  const totalGames=players.reduce((s,p)=>s+(p.games||0),0);
-
-  var autoTickerItems=players.length>0?[
-    sortedPts[0]&&sortedPts[0].pts>0&&{icon:"trophy-fill",text:sortedPts[0].name+" leads "+(seasonConfig&&seasonConfig.seasonName||"the season")+" with "+sortedPts[0].pts+" pts"},
-    totalGames>0&&{icon:"controller",text:totalGames+" games played this season"},
-    sortedWins[0]&&sortedWins[0].wins>0&&{icon:"award-fill",text:sortedWins[0].name+" - "+sortedWins[0].wins+" tournament wins"},
-    sortedStreak[0]&&(sortedStreak[0].currentStreak||0)>1&&{icon:"fire",text:sortedStreak[0].name+" on a "+(sortedStreak[0].currentStreak||0)+"-win streak"},
-    players.filter(function(p){return p.checkedIn;}).length>0&&{icon:"lightning-charge-fill",text:players.filter(function(p){return p.checkedIn;}).length+" / "+players.length+" players checked in"},
-    {icon:"bar-chart-line-fill",text:(seasonConfig&&seasonConfig.seasonName||"Season")+" active  -  "+players.length+" registered"},
-  ].filter(Boolean):[];
-  const tickerItems=(tickerOverrides&&tickerOverrides.length>0?tickerOverrides:[]).concat(autoTickerItems);
-
-  var countdownText="";
-  var countdownColor="#E8A838";
-  if(upcomingTournament){
-    var cdDiff=new Date(upcomingTournament.date).getTime()-Date.now();
-    if(cdDiff<=0){
-      countdownText="LIVE NOW";
-      countdownColor="#52C47C";
-    } else {
-      var cdD=Math.floor(cdDiff/86400000);
-      var cdH=Math.floor((cdDiff%86400000)/3600000);
-      var cdM=Math.floor((cdDiff%3600000)/60000);
-      countdownText="Starts in "+(cdD>0?cdD+"d ":"")+cdH+"h "+cdM+"m";
+  // Streak calculation
+  var currentStreak = 0;
+  var streakType = "";
+  for (var si = clashHistory.length - 1; si >= 0; si--) {
+    if (clashHistory[si].placement <= 4) {
+      currentStreak++;
+      streakType = "top-4";
+    } else break;
+  }
+  if (currentStreak === 0) {
+    for (var sj = clashHistory.length - 1; sj >= 0; sj--) {
+      if (clashHistory[sj].placement === 1) {
+        currentStreak++;
+        streakType = "win";
+      } else break;
     }
   }
 
-  return(
-
-    <div className="page wrap">
-
-      {announcement&&(
-
-        <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"12px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-
-          <span style={{fontSize:16,flexShrink:0}}>{React.createElement("i",{className:"ti ti-speakerphone"})}</span>
-
-          <span style={{color:"#E8A838",fontWeight:600,fontSize:14}}>{announcement}</span>
-
-        </div>
-
-      )}
-
-      {hostAnnouncements&&hostAnnouncements.length>0&&(
-        <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"10px 14px",marginBottom:16,display:"flex",alignItems:"center",gap:10}}>
-          <span style={{fontSize:14,flexShrink:0}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["megaphone-fill"]||"megaphone-fill")})}</span>
-          <span style={{color:"#C4B5FD",fontWeight:600,fontSize:13}}>{hostAnnouncements[0].msg}</span>
-          <span style={{fontSize:10,color:"#9AAABF",marginLeft:"auto",flexShrink:0}}>{hostAnnouncements[0].sentAt}</span>
-        </div>
-      )}
-
-      {/* Champion hero card - shown all season (logged-in only) */}
-
-      {currentUser&&SEASON_CHAMPION&&players.some(function(p){return p.wins>0;})&&<ChampionHeroCard champion={SEASON_CHAMPION} onClick={()=>{const p=players.find(pl=>pl.name===SEASON_CHAMPION.name);if(p){setProfilePlayer(p);setScreen("profile");}}}/>}
-
-
-
-      <div style={{height:28}}/>
-
-      {upcomingTournament&&(
-        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.15),rgba(78,205,196,.1))",border:"1px solid rgba(155,114,207,.25)",borderRadius:14,padding:"20px 24px",marginBottom:24,cursor:"pointer"}} onClick={function(){setScreen("flash-"+upcomingTournament.id);}}>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-            <span style={{fontSize:11,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".5px",background:"rgba(155,114,207,.15)",borderRadius:6,padding:"2px 8px"}}>Flash Tournament</span>
-            <span style={{fontSize:11,color:"#E8A838"}}>{new Date(upcomingTournament.date).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
-          </div>
-          <div style={{fontSize:18,fontWeight:700,color:"#F2EDE4",marginBottom:4}}>{upcomingTournament.name}</div>
-          <div style={{fontSize:13,color:"#BECBD9",marginBottom:6}}>{(upcomingTournament.round_count||3)+" games \u00b7 "+(upcomingTournament.max_players||128)+" max players"}</div>
-          {countdownText&&<div style={{fontSize:12,fontWeight:700,color:countdownColor,marginBottom:10}}>{countdownText}</div>}
-          <Btn v="primary" s="sm">{"Register Now \u2192"}</Btn>
-        </div>
-      )}
-
-      {/* Phase status pill with progress (logged-in only) */}
-
-      {currentUser&&(<div style={{marginBottom:16}}>
-
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:tPhase==="registration"||tPhase==="checkin"?8:0,flexWrap:"wrap"}}>
-
-          <div style={{background:"rgba(0,0,0,.3)",border:"1px solid "+phaseStatusColor(),borderRadius:20,padding:"6px 14px",fontSize:12,fontWeight:700,color:phaseStatusColor(),letterSpacing:".04em",cursor:tPhase==="complete"?"pointer":"default"}}
-
-            onClick={()=>tPhase==="complete"&&setScreen("leaderboard")}>
-
-            {tPhase==="inprogress"&&<span style={{display:"inline-block",width:7,height:7,borderRadius:"50%",background:"#52C47C",marginRight:7,verticalAlign:"middle",animation:"pulse 2s infinite"}}/>}
-
-            {phaseStatusText()}
-
-          </div>
-
-          {(tPhase==="registration"||tPhase==="checkin")&&(
-            <div style={{display:"flex",alignItems:"center",gap:0,fontSize:10,color:"#9AAABF",fontWeight:600}}>
-              {["registration","checkin","inprogress","complete"].map(function(phase,i){
-                var PHASES=["registration","checkin","inprogress","complete"];
-                var currentIdx=PHASES.indexOf(tPhase);
-                var isDone=i<currentIdx;
-                var isCurrent=i===currentIdx;
-                return(
-                  <div key={phase} style={{display:"flex",alignItems:"center",gap:0}}>
-                    {i>0&&<div style={{width:16,height:1,background:isDone||isCurrent?"rgba(232,168,56,.5)":"rgba(255,255,255,.1)"}}/>}
-                    <div style={{width:8,height:8,borderRadius:"50%",background:isCurrent?phaseStatusColor():isDone?"rgba(232,168,56,.4)":"rgba(255,255,255,.08)",border:isCurrent?"2px solid "+phaseStatusColor():"1px solid "+(isDone?"rgba(232,168,56,.3)":"rgba(255,255,255,.08)"),transition:"all .3s"}}/>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-        </div>
-
-        {tPhase==="registration"&&(
-          <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
-            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#9B72CF,#4ECDC4)",width:Math.min(100,Math.round(registeredCount/(tournamentState.maxPlayers||24)*100))+"%",transition:"width .5s ease"}}/>
-          </div>
-        )}
-
-        {tPhase==="checkin"&&(
-          <div style={{background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden",maxWidth:300}}>
-            <div style={{height:"100%",borderRadius:8,background:"linear-gradient(90deg,#E8A838,#52C47C)",width:Math.min(100,registeredCount>0?Math.round(checkedInCount/registeredCount*100):0)+"%",transition:"width .5s ease"}}/>
-          </div>
-        )}
-
-      </div>)}
-
-
-
-      {/* Registration/check-in/live cards - hidden for logged-in (grid panel handles it) */}
-
-      {!currentUser&&tPhase==="registration"&&(
-
-        currentUser&&linkedPlayer&&isMyRegistered?(
-
-            <div style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registered for next clash!</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Your spot is reserved, {linkedPlayer.name}. Check-in opens soon.</div>
-
-              </div>
-
-              <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-                <div style={{fontSize:12,fontWeight:700,color:"#4ECDC4",background:"rgba(78,205,196,.12)",border:"1px solid rgba(78,205,196,.3)",borderRadius:8,padding:"6px 14px"}}>✓ Registered</div>
-
-                <Btn v="dark" s="sm" onClick={unregisterFromClash}>Unregister</Btn>
-
-              </div>
-
-            </div>
-
-        ):currentUser&&linkedPlayer&&isMyWaitlisted?(
-
-            <div style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.4)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-hourglass"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>On the Waitlist</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>You are #{myWaitlistPos} on the waitlist, {linkedPlayer.name}. You will be promoted if a spot opens.</div>
-
-              </div>
-
-              <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-                <div style={{fontSize:12,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.12)",border:"1px solid rgba(232,168,56,.3)",borderRadius:8,padding:"6px 14px"}}>#{myWaitlistPos} Waitlisted</div>
-
-                <Btn v="dark" s="sm" onClick={removeFromWaitlist}>Leave Waitlist</Btn>
-
-              </div>
-
-            </div>
-
-        ):currentUser&&linkedPlayer&&!isMyRegistered&&!isMyWaitlisted?(
-
-            <div style={{background:"rgba(82,196,124,.06)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-clipboard"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Sign up for the next clash  -  free to compete!</div>
-
-              </div>
-
-              <Btn v="success" onClick={registerFromAccount}>Register for Clash</Btn>
-
-            </div>
-
-        ):currentUser&&!linkedPlayer?(
-
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-clipboard"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>{profileComplete?"Ready to register  -  your profile is linked":"Complete your profile to register"}</div>
-
-              </div>
-
-              {profileComplete?<Btn v="primary" s="sm" onClick={()=>setScreen("account")}>View account</Btn>:<Btn v="primary" s="sm" onClick={()=>setScreen("account")}>Complete profile</Btn>}
-
-            </div>
-
-        ):(
-
-          !currentUser&&(
-
-            <div style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-              <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
-
-              <div style={{flex:1,minWidth:0}}>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Registration is open</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0"}}>Log in to register for the next clash</div>
-
-              </div>
-
-              <Btn v="purple" s="sm" onClick={()=>onAuthClick("login")}>Log in to register</Btn>
-
-            </div>
-
-          )
-
+  // Season narrative
+  var seasonNarrative = generateSeasonNarrative(players, sortedPts);
+
+  // ── Guest HomeScreen ──────────────────────────────────────────────────────
+
+  if (!currentUser) {
+    return React.createElement("div", {className: "page fade-up"},
+      announcement ? React.createElement("div", {style: {background: "rgba(232,168,56,.08)", border: "1px solid rgba(232,168,56,.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10}},
+        React.createElement("i", {className: "ti ti-speakerphone", style: {fontSize: 16, flexShrink: 0}}),
+        React.createElement("span", {style: {color: "#E8A838", fontWeight: 600, fontSize: 14}}, announcement)
+      ) : null,
+
+      // Hero section
+      React.createElement("div", {style: {position: "relative", padding: "48px 32px", borderRadius: 20, background: "radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)", border: "1px solid rgba(155,114,207,.18)", marginBottom: 24, textAlign: "center"}},
+        React.createElement("div", {style: {display: "inline-flex", alignItems: "center", gap: 7, padding: "5px 14px", background: "rgba(155,114,207,.12)", border: "1px solid rgba(155,114,207,.35)", borderRadius: 20, marginBottom: 24}},
+          React.createElement("div", {style: {width: 6, height: 6, borderRadius: "50%", background: "#52C47C", animation: "pulse 2s infinite"}}),
+          React.createElement("span", {className: "cond", style: {fontSize: 11, fontWeight: 700, color: "#C4B5FD", letterSpacing: ".1em", textTransform: "uppercase"}}, "Free to compete - No paywall, ever")
+        ),
+        React.createElement("h1", {className: "display", style: {color: "#F2EDE4", lineHeight: 0.9, letterSpacing: ".01em", marginBottom: 20, maxWidth: 700, marginLeft: "auto", marginRight: "auto"}},
+          "The", React.createElement("br"),
+          React.createElement("span", {style: {color: "#E8A838", textShadow: "0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2)"}}, "COMPETITIVE TFT"),
+          React.createElement("br"),
+          React.createElement("span", {style: {background: "linear-gradient(135deg,#9B72CF,#4ECDC4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text"}}, "PLATFORM")
+        ),
+        React.createElement("p", {style: {fontSize: 16, color: "#C8D4E0", lineHeight: 1.65, marginBottom: 28, maxWidth: 520, marginLeft: "auto", marginRight: "auto"}},
+          "Weekly Saturday tournaments, seasonal standings, and a permanent record of every champion crowned. Join " + players.length + " players competing this season."
+        ),
+        React.createElement("div", {style: {display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 28}},
+          React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }}, "Create Free Account"),
+          React.createElement(Btn, {v: "ghost", s: "lg", onClick: function() { onAuthClick("login"); }}, "Sign In")
+        ),
+        // Social proof stats
+        React.createElement("div", {style: {display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap"}},
+          [
+            [players.length, "Players", "#E8A838"],
+            [players.reduce(function(s, p) { return s + (p.games || 0); }, 0), "Games Played", "#4ECDC4"],
+            [players.reduce(function(s, p) { return s + p.pts; }, 0), "Season Points", "#9B72CF"]
+          ].map(function(item) {
+            return React.createElement("div", {key: item[1], style: {textAlign: "center", minWidth: 80}},
+              React.createElement("div", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: item[2], lineHeight: 1}}, item[0]),
+              React.createElement("div", {style: {fontSize: 10, color: "#9AAABF", marginTop: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em"}}, item[1])
+            );
+          })
         )
-
-      )}
-
-      {/* Live tournament banner  -  visible to everyone during inprogress */}
-      {tPhase==="inprogress"&&(
-        <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:12,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div style={{fontSize:22}}>{React.createElement("i",{className:"ti ti-bolt"})}</div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:2}}>Clash is LIVE  -  Game {tRound}/{tournamentState.totalGames||3}</div>
-            <div style={{fontSize:12,color:"#C8D4E0"}}>{checkedInCount} players competing across {Math.ceil(checkedInCount/8)} lobbies</div>
-          </div>
-          <Btn v="success" s="sm" onClick={()=>setScreen("bracket")}>Watch Live →</Btn>
-        </div>
-      )}
-
-
-
-      {quickClashes&&quickClashes.filter(function(q){return q.status==='open'||q.status==='full'||q.status==='live';}).length>0&&(
-
-        <div style={{marginBottom:16}}>
-
-          <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:8}}>Quick Clashes</div>
-
-          <div style={{display:"flex",flexDirection:"column",gap:8}}>
-
-            {quickClashes.filter(function(q){return q.status==="open"||q.status==="full"||q.status==="live";}).map(function(qc){
-
-              var linked=currentUser?players.find(function(p){return p.name===currentUser.username;}):null;
-
-              var alreadyJoined=linked&&qc.players&&qc.players.includes(linked.id);
-
-              return(
-
-                <div key={qc.id} style={{background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
-
-                  <div style={{fontSize:18}}>{qc.status==="live"?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["lightning-charge-fill"]||"lightning-charge-fill")}):React.createElement("i",{className:"ti ti-"+(ICON_REMAP["controller"]||"controller")})}</div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{qc.name}</div>
-
-                    <div style={{fontSize:11,color:"#BECBD9"}}>{qc.players?qc.players.length:0}/{qc.cap} players · {qc.rounds}R · {qc.format}</div>
-
-                  </div>
-
-                  <div style={{display:"flex",gap:6,alignItems:"center"}}>
-
-                    {qc.status==="live"&&<span style={{fontSize:11,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 8px"}}>LIVE</span>}
-
-                    {qc.status==="open"&&!alreadyJoined&&onJoinQuickClash&&linked&&(
-
-                      <Btn v="purple" s="sm" onClick={function(){onJoinQuickClash(qc.id,linked.id);toast("Joined "+qc.name+"!","success");}}>Join</Btn>
-
-                    )}
-
-                    {alreadyJoined&&<span style={{fontSize:11,fontWeight:700,color:"#6EE7B7",background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:6,padding:"4px 8px"}}>Joined</span>}
-
-                    {qc.status==="full"&&!alreadyJoined&&<span style={{fontSize:11,color:"#E8A838"}}>Full</span>}
-
-                  </div>
-
-                </div>
-
-              );
-
-            })}
-
-          </div>
-
-        </div>
-
-      )}
-
-      {currentUser&&linkedPlayer&&s2&&(
-
-        <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.08),rgba(78,205,196,.04))",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"16px 18px",marginBottom:20,display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
-
-          <div style={{flex:1,minWidth:0}}>
-
-            <div style={{fontSize:13,fontWeight:600,color:"#6EE7B7",marginBottom:6}}>Welcome back, {currentUser.username}!</div>
-
-            <div style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}}>Your Season Standing</div>
-
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-
-              {[["#"+myRankIdx,"Rank","#E8A838"],[linkedPlayer.pts,"Season Pts","#E8A838"],[linkedPlayer.wins,"Wins","#6EE7B7"],[s2.avgPlacement,"Avg","#4ECDC4"]].map(([v,l,c])=>(
-
-                <div key={l} style={{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",textAlign:"center",minWidth:60}}>
-
-                  <div className="mono" style={{fontSize:18,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
-
-                  <div style={{fontSize:10,color:"#BECBD9",marginTop:4,fontWeight:600,textTransform:"uppercase"}}>{l}</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-          <div style={{display:"flex",gap:8,flexShrink:0}}>
-
-            <Btn v="purple" s="sm" onClick={()=>{setProfilePlayer(linkedPlayer);setScreen("profile");}}>My Profile →</Btn>
-
-            <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Standings</Btn>
-
-          </div>
-
-        </div>
-
-      )}
-
-      {!currentUser&&(
-        <div style={{marginBottom:24}}>
-          {/* Full-width hero for visitors */}
-          <div style={{position:"relative",padding:"48px 32px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.18) 0%,rgba(78,205,196,.05) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)",marginBottom:24,textAlign:"center"}}>
-            <div style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:24}}>
-              <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}/>
-              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Free to compete - No paywall, ever</span>
-            </div>
-            <h1 className="display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20,maxWidth:700,marginLeft:"auto",marginRight:"auto"}}>
-              The<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2)"}}>COMPETITIVE TFT</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>PLATFORM</span>
-            </h1>
-            <p style={{fontSize:16,color:"#C8D4E0",lineHeight:1.65,marginBottom:28,maxWidth:520,marginLeft:"auto",marginRight:"auto"}}>
-              Weekly Saturday tournaments, seasonal standings, and a permanent record of every champion crowned. Join {players.length} players competing this season.
-            </p>
-            <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap",marginBottom:28}}>
-              <Btn v="primary" s="lg" onClick={function(){onAuthClick("signup");}}>Create Free Account</Btn>
-              <Btn v="ghost" s="lg" onClick={function(){onAuthClick("login");}}>Sign In</Btn>
-            </div>
-            {/* Stats row */}
-            <div style={{display:"flex",gap:16,justifyContent:"center",flexWrap:"wrap"}}>
-              {[[players.length,"Players","#E8A838"],[players.reduce(function(s,p){return s+(p.games||0);},0),"Games Played","#4ECDC4"],[players.reduce(function(s,p){return s+p.pts;},0),"Season Points","#9B72CF"]].map(function(item){
-                return React.createElement("div",{key:item[1],style:{textAlign:"center",minWidth:80}},
-                  React.createElement("div",{className:"mono",style:{fontSize:24,fontWeight:800,color:item[2],lineHeight:1}},item[0]),
-                  React.createElement("div",{style:{fontSize:10,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}},item[1])
-                );
-              })}
-            </div>
-          </div>
-
-          {/* How It Works - for visitors */}
-          <Panel style={{padding:"24px",marginBottom:24}}>
-            <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",marginBottom:18,textAlign:"center"}}>How It Works</h3>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16}}>
-              {[
-                {n:"01",t:"Sign Up",d:"Create a free account and link your Riot ID."},
-                {n:"02",t:"Register & Check In",d:"Register for the next clash. Check in to confirm your spot."},
-                {n:"03",t:"Play & Submit",d:"Play your lobby games and submit your placement."},
-                {n:"04",t:"Win the Crown",d:"Season leader is crowned Champion and enters the Hall of Fame."}
-              ].map(function(step){
-                return React.createElement("div",{key:step.n,style:{textAlign:"center",padding:"16px 12px"}},
-                  React.createElement("div",{style:{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,color:"#C4B5FD",margin:"0 auto 10px",fontFamily:"'Russo One',sans-serif"}},step.n),
-                  React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}},step.t),
-                  React.createElement("div",{style:{fontSize:12,color:"#BECBD9",lineHeight:1.5}},step.d)
-                );
-              })}
-            </div>
-          </Panel>
-        </div>
-      )}
-
-      <div className="grid-home" style={{marginTop:8}}>
-
-        {/* Left: Hero */}
-
-        <div className="hero-panel border-neon-grad" style={{position:"relative",padding:"32px 28px",borderRadius:20,background:"radial-gradient(ellipse at 30% 15%,rgba(155,114,207,.15) 0%,rgba(78,205,196,.03) 50%,rgba(8,8,15,0) 70%)",border:"1px solid rgba(155,114,207,.18)"}}>
-
-          <div className="au" style={{display:"inline-flex",alignItems:"center",gap:7,padding:"5px 14px",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.35)",borderRadius:20,marginBottom:20}}>
-
-            <div style={{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}/>
-
-            <span className="cond" style={{fontSize:11,fontWeight:700,color:"#C4B5FD",letterSpacing:".1em",textTransform:"uppercase"}}>Set 16 · Season Active · Weekly Clash</span>
-
-          </div>
-
-          <h1 className="au1 display" style={{color:"#F2EDE4",lineHeight:.9,letterSpacing:".01em",marginBottom:20}}>
-
-            The<br/><span style={{color:"#E8A838",textShadow:"0 0 60px rgba(232,168,56,.5),0 0 120px rgba(232,168,56,.2),0 0 200px rgba(232,168,56,.1)"}}>CONVERGENCE</span><br/><span style={{background:"linear-gradient(135deg,#9B72CF,#4ECDC4)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",backgroundClip:"text"}}>AWAITS</span>
-
-          </h1>
-
-          <p className="au2" style={{fontSize:15,color:"#C8D4E0",lineHeight:1.65,marginBottom:20,maxWidth:400}}>
-
-            The competitive TFT platform. Weekly Saturday tournaments, seasonal point standings, and a permanent record of every champion crowned.
-
-          </p>
-
-          <div className="grid-4" style={{marginBottom:22}}>
-
-            <StatBox label="Players" val={players.length}/>
-
-            <StatBox label="Checked In" val={checkedN} c="#6EE7B7"/>
-
-            <StatBox label="Season Pts" val={players.reduce((s,p)=>s+p.pts,0)}/>
-
-            <StatBox label="Games" val={players.reduce((s,p)=>s+(p.games||0),0)} c="#4ECDC4"/>
-
-          </div>
-
-          {/* Countdown */}
-
-          <div style={{background:"linear-gradient(145deg,rgba(155,114,207,.1),rgba(8,8,15,.7))",border:"1px solid rgba(155,114,207,.3)",borderRadius:16,padding:"20px 24px",boxShadow:"0 0 30px rgba(155,114,207,.06),inset 0 1px 0 rgba(255,255,255,.05)"}}>
-
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16}}>
-
-              <div className="live-indicator" style={{width:7,height:7,borderRadius:"50%",background:"#52C47C"}}/>
-
-              <span className="cond" style={{fontSize:11,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase"}}>{clashName} Starts In</span>
-
-            </div>
-
-            <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-
-              {[[D,"Days"],[H,"Hrs"],[M,"Min"],[S,"Sec"]].map(([v,l])=>(
-
-                <div key={l} className="countdown-tile">
-
-                  <div className="digit">{String(v).padStart(2,"0")}</div>
-
-                  <div className="unit">{l}</div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-        </div>
-
-
-
-        {/* Right: Register + Roster */}
-
-        <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-          <Panel accent style={{padding:"20px"}}>
-
-            <h3 style={{fontSize:17,color:"#F2EDE4",marginBottom:4}}>Join {clashName}</h3>
-
-            <div style={{fontSize:12,color:"#BECBD9",marginBottom:16}}>{clashDate||clashTime?(clashDate||"")+(clashDate&&clashTime?" · ":"")+(clashTime||""):"Upcoming"} · {seasonConfig&&seasonConfig.seasonName||"Season 1"}</div>
-
-
-
-            {/* Not logged in */}
-
-            {!currentUser&&(
-
-              <div>
-
-                <div style={{background:"rgba(155,114,207,.07)",border:"1px solid rgba(155,114,207,.25)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
-
-                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-lock"})}</div>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Account required to register</div>
-
-                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Create a free account with your Riot ID to join the clash. Takes 30 seconds  -  competing is always free.</div>
-
-                  </div>
-
-                </div>
-
-                <div style={{display:"flex",gap:8}}>
-
-                  <Btn v="primary" full onClick={()=>onAuthClick("signup")}>Create Account →</Btn>
-
-                  <Btn v="dark" onClick={()=>onAuthClick("login")}>Sign In</Btn>
-
-                </div>
-
-              </div>
-
-            )}
-
-
-
-            {/* Logged in but Riot ID missing */}
-
-            {currentUser&&!profileComplete&&(
-
-              <div>
-
-                <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"14px 16px",marginBottom:14,display:"flex",gap:12,alignItems:"flex-start"}}>
-
-                  <div style={{fontSize:20,flexShrink:0}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
-
-                  <div>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Complete your profile first</div>
-
-                    <div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.6}}>Add your Riot ID in your account settings to register for clashes.</div>
-
-                  </div>
-
-                </div>
-
-                <Btn v="primary" full onClick={()=>setScreen("account")}>Complete Profile →</Btn>
-
-              </div>
-
-            )}
-
-
-
-            {/* Already registered  -  show status + unregister */}
-
-            {currentUser&&profileComplete&&alreadyRegistered&&isMyRegistered&&(
-
-              <div style={{background:"rgba(82,196,124,.07)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
-
-                <div style={{fontSize:24,marginBottom:8}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</div>
-
-                <div style={{fontWeight:700,fontSize:14,color:"#6EE7B7",marginBottom:4}}>You're registered!</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Playing as <span style={{color:"#F2EDE4",fontWeight:600}}>{currentUser.username}</span> · {currentUser.riotId}</div>
-
-                <div style={{fontSize:11,color:"#9AAABF",marginBottom:14}}>Check-in opens 60 min before start</div>
-
-                <Btn v="dark" s="sm" onClick={unregisterFromClash}>Unregister</Btn>
-
-              </div>
-
-            )}
-
-            {/* In roster but not yet registered for this clash */}
-
-            {currentUser&&profileComplete&&alreadyRegistered&&!isMyRegistered&&(
-
-              <div>
-
-                <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.1)",borderRadius:10,padding:"12px 14px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
-
-                  <div style={{width:32,height:32,borderRadius:"50%",background:"linear-gradient(135deg,#E8A838,#C8882A)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#08080F",flexShrink:0}}>
-
-                    {currentUser.username.charAt(0).toUpperCase()}
-
-                  </div>
-
-                  <div style={{flex:1,minWidth:0}}>
-
-                    <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{currentUser.username}</div>
-
-                    <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{currentUser.riotId} · {currentUser.region||"EUW"}</div>
-
-                  </div>
-
-                </div>
-
-                <Btn v="primary" full onClick={registerFromAccount}>Register for {clashName} →</Btn>
-
-              </div>
-
-            )}
-
-            {/* Not in roster yet  -  direct them to complete setup */}
-
-            {currentUser&&profileComplete&&!alreadyRegistered&&(
-
-              <div style={{background:"rgba(232,168,56,.07)",border:"1px solid rgba(232,168,56,.3)",borderRadius:10,padding:"16px",textAlign:"center"}}>
-
-                <div style={{fontSize:20,marginBottom:8}}>{React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})}</div>
-
-                <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:4}}>Profile not linked to roster</div>
-
-                <div style={{fontSize:12,color:"#C8D4E0",marginBottom:12}}>Your account needs to be linked to the player roster. Try refreshing the page or contact an admin.</div>
-
-                <Btn v="dark" s="sm" onClick={()=>window.location.reload()}>Refresh</Btn>
-
-              </div>
-
-            )}
-
-          </Panel>
-
-
-
-          {/* How it works - hidden for logged-in (shown in visitor hero instead) */}
-
-          {!currentUser&&(<Panel style={{padding:"18px"}}>
-
-            <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>How It Works</h3>
-
-            {[
-
-              {n:"01",t:"Sign Up",d:"Create a free account and link your Riot ID. Registration is always free."},
-
-              {n:"02",t:"Register & Check In",d:"Register for the next clash on the Home screen. Check in when the window opens to confirm your spot."},
-
-              {n:"03",t:"Play & Submit",d:"Play your lobby games. Submit your placement on the Bracket page. Admin locks results and points are awarded automatically."},
-
-              {n:"04",t:"Win the Crown",d:"Points accumulate across all clashes. The season leader is crowned Champion and enters the Hall of Fame."},
-
-            ].map(({n,t,d})=>(
-
-              <div key={n} style={{display:"flex",gap:12,marginBottom:12,alignItems:"flex-start"}}>
-
-                <div className="step-num" style={{width:30,height:30,borderRadius:8,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",border:"1px solid rgba(155,114,207,.4)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:800,color:"#C4B5FD",flexShrink:0,fontFamily:"'Russo One',sans-serif",letterSpacing:".04em"}}>{n}</div>
-
-                <div>
-
-                  <div style={{fontWeight:700,fontSize:13,color:"#F2EDE4",marginBottom:2}}>{t}</div>
-
-                  <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{d}</div>
-
-                </div>
-
-              </div>
-
-            ))}
-
-          </Panel>)}
-
-
-
-          {/* Roster CTA */}
-
-          <div style={{background:"rgba(78,205,196,.04)",border:"1px solid rgba(78,205,196,.2)",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
-
-            <div>
-
-              <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{players.length} players registered</div>
-
-              <div style={{fontSize:12,color:"#BECBD9",marginTop:2}}>{checkedN} checked in for {clashName}</div>
-
-            </div>
-
-            <Btn v="teal" s="sm" onClick={()=>setScreen("roster")}>View Roster →</Btn>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* Guest sign-in nudge - after grid for visitors */}
-      {!currentUser&&(
-        <div style={{background:"linear-gradient(90deg,rgba(155,114,207,.08),rgba(78,205,196,.06))",border:"1px solid rgba(155,114,207,.3)",borderRadius:12,padding:"14px 18px",marginTop:16,marginBottom:16,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-          <div>{React.createElement("i",{className:"ti ti-user",style:{fontSize:22}})}</div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>Create a free account to unlock your profile</div>
-            <div style={{fontSize:12,color:"#C8D4E0"}}>Public profile URL - Career stats - Match history - Bio & social links</div>
-          </div>
-          <div style={{display:"flex",gap:8,flexShrink:0}}>
-            <Btn v="purple" s="sm" onClick={function(){onAuthClick("signup");}}>Sign Up Free</Btn>
-            <Btn v="dark" s="sm" onClick={function(){onAuthClick("login");}}>Sign In</Btn>
-          </div>
-        </div>
-      )}
-
-      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
-
-      {/* Community Pulse Ticker */}
-
-      {tickerItems.length>0&&(
-
-        <div style={{overflow:"hidden",marginTop:20,borderRadius:10,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)"}}>
-
-          <div className="ticker-scroll">
-
-            {[...tickerItems,...tickerItems].map((item,i)=>(
-
-              <span key={i} style={{display:"inline-flex",alignItems:"center",padding:"8px 22px",fontSize:12,color:"#C8D4E0",fontWeight:600,whiteSpace:"nowrap",borderRight:"1px solid rgba(155,114,207,.1)"}}>
-
-                {typeof item==="object"?React.createElement(React.Fragment,null,React.createElement("i",{className:"ti ti-"+(ICON_REMAP[item.icon]||item.icon),style:{fontSize:12,marginRight:6}}),item.text):item}
-
-              </span>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      )}
-
-
-
-      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
-
-      {/* Featured Events */}
-
-      {(function(){
-        var evts=featuredEvents||[];
-        var activeEvts=evts.filter(function(e){return e.status==="live"||e.status==="upcoming";});
-        if(activeEvts.length===0)return null;
-        return(
-          <div style={{marginTop:20,marginBottom:4}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-              <div>
-                <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:3}}>Partner Events</div>
-                <h3 style={{fontSize:16,fontWeight:700,color:"#F2EDE4",lineHeight:1}}>Featured Tournaments</h3>
-              </div>
-              <Btn v="dark" s="sm" onClick={function(){setScreen("featured");}}>View All →</Btn>
-            </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
-              {activeEvts.slice(0,3).map(function(ev){
-                var isLive=ev.status==="live";
-                return(
-                  <div key={ev.id} onClick={function(){setScreen("tournament-"+ev.id);}}
-                    style={{background:"linear-gradient(145deg,#0D1520,#0f1827)",border:"1px solid "+(isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)"),borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s ease",transform:"translateY(0)"}}
-                    onMouseEnter={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.65)":"rgba(155,114,207,.65)";e.currentTarget.style.transform="translateY(-2px)";}}
-                    onMouseLeave={function(e){e.currentTarget.style.borderColor=isLive?"rgba(82,196,124,.35)":"rgba(155,114,207,.35)";e.currentTarget.style.transform="translateY(0)";}}>
-                    {isLive&&(
-                      <div style={{background:"rgba(82,196,124,.07)",borderBottom:"1px solid rgba(82,196,124,.18)",padding:"7px 16px",display:"flex",alignItems:"center",gap:6}}>
-                        <span style={{width:5,height:5,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>
-                        <span style={{fontSize:10,fontWeight:700,color:"#6EE7B7"}}>LIVE NOW</span>
-                      </div>
-                    )}
-                    <div style={{padding:"16px 18px"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-                        <div style={{width:38,height:38,borderRadius:10,background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{ev.logo||React.createElement("i",{className:"ti ti-"+(ICON_REMAP["trophy-fill"]||"trophy-fill")})}</div>
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",lineHeight:1.2}}>{ev.name}</div>
-                          <div style={{fontSize:11,color:"#9B72CF",fontWeight:600,marginTop:2}}>{ev.host||"Community Event"}{ev.sponsor?" · "+ev.sponsor:""}</div>
-                        </div>
-                      </div>
-                      {ev.description&&<div style={{fontSize:12,color:"#C8D4E0",lineHeight:1.5,marginBottom:10,display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>{ev.description}</div>}
-                      <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
-                        {(ev.tags||[]).map(function(t){return <span key={t} style={{background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{t}</span>;})}
-                        <span style={{background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#E8A838"}}>{ev.registered||0}/{ev.size||"?"} players</span>
-                        {ev.date&&<span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"2px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>{ev.date}</span>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      ),
+
+      // How It Works
+      React.createElement(Panel, {style: {padding: "24px", marginBottom: 24}},
+        React.createElement("h3", {style: {fontSize: 16, fontWeight: 700, color: "#F2EDE4", marginBottom: 18, textAlign: "center"}}, "How It Works"),
+        React.createElement("div", {style: {display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 16}},
+          [
+            {n: "01", t: "Sign Up", d: "Create a free account and link your Riot ID."},
+            {n: "02", t: "Register", d: "Register for the next clash. Check in to confirm your spot."},
+            {n: "03", t: "Compete", d: "Play your lobby games and submit your placement."},
+            {n: "04", t: "Win the Crown", d: "Season leader is crowned Champion and enters the Hall of Fame."}
+          ].map(function(step) {
+            return React.createElement("div", {key: step.n, style: {textAlign: "center", padding: "16px 12px"}},
+              React.createElement("div", {style: {width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))", border: "1px solid rgba(155,114,207,.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800, color: "#C4B5FD", margin: "0 auto 10px"}}, step.n),
+              React.createElement("div", {style: {fontWeight: 700, fontSize: 14, color: "#F2EDE4", marginBottom: 4}}, step.t),
+              React.createElement("div", {style: {fontSize: 12, color: "#BECBD9", lineHeight: 1.5}}, step.d)
+            );
+          })
+        )
+      ),
+
+      // Bottom CTAs
+      React.createElement("div", {style: {display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap", marginBottom: 24}},
+        React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }}, "Create Free Account"),
+        React.createElement(Btn, {v: "ghost", s: "lg", onClick: function() { onAuthClick("login"); }}, "Sign In")
+      ),
+
+      // Sponsor
+      React.createElement(SponsorBanner, {onNavigate: setScreen})
+    );
+  }
+
+  // ── Logged-in Dashboard ───────────────────────────────────────────────────
+
+  var phaseActionBtn = null;
+  if (tPhase === "registration") {
+    if (isMyRegistered) {
+      phaseActionBtn = React.createElement(Btn, {v: "dark", s: "sm", onClick: unregisterFromClash}, "Unregister");
+    } else if (isMyWaitlisted) {
+      phaseActionBtn = React.createElement(Btn, {v: "dark", s: "sm", onClick: removeFromWaitlist}, "Leave Waitlist");
+    } else if (linkedPlayer && profileComplete) {
+      phaseActionBtn = React.createElement(Btn, {v: "primary", s: "sm", onClick: registerFromAccount}, "Register");
+    } else if (!profileComplete) {
+      phaseActionBtn = React.createElement(Btn, {v: "primary", s: "sm", onClick: function() { setScreen("account"); }}, "Complete Profile");
+    }
+  } else if (tPhase === "checkin") {
+    if (!myCheckedIn && isMyRegistered) {
+      phaseActionBtn = React.createElement(Btn, {v: "primary", s: "sm", onClick: handleCheckIn}, "Check In Now");
+    } else if (myCheckedIn) {
+      phaseActionBtn = React.createElement("span", {style: {fontSize: 12, fontWeight: 700, color: "#6EE7B7"}}, "Checked In");
+    }
+  } else if (tPhase === "inprogress") {
+    phaseActionBtn = React.createElement(Btn, {v: "success", s: "sm", onClick: function() { setScreen("bracket"); }}, "Watch Live");
+  } else if (tPhase === "complete") {
+    phaseActionBtn = React.createElement(Btn, {v: "purple", s: "sm", onClick: function() { setScreen("results"); }}, "View Results");
+  }
+
+  return React.createElement("div", {className: "page fade-up"},
+
+    // Announcement banner
+    announcement ? React.createElement("div", {style: {background: "rgba(232,168,56,.08)", border: "1px solid rgba(232,168,56,.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10}},
+      React.createElement("i", {className: "ti ti-speakerphone", style: {fontSize: 16, flexShrink: 0}}),
+      React.createElement("span", {style: {color: "#E8A838", fontWeight: 600, fontSize: 14}}, announcement)
+    ) : null,
+
+    // Host announcements
+    hostAnnouncements && hostAnnouncements.length > 0 ? React.createElement("div", {style: {background: "rgba(155,114,207,.06)", border: "1px solid rgba(155,114,207,.2)", borderRadius: 10, padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10}},
+      React.createElement("i", {className: "ti ti-speakerphone", style: {fontSize: 14, flexShrink: 0}}),
+      React.createElement("span", {style: {color: "#C4B5FD", fontWeight: 600, fontSize: 13}}, hostAnnouncements[0].msg),
+      React.createElement("span", {style: {fontSize: 10, color: "#9AAABF", marginLeft: "auto", flexShrink: 0}}, hostAnnouncements[0].sentAt)
+    ) : null,
+
+    // Flash tournament banner
+    upcomingTournament ? React.createElement("div", {style: {background: "linear-gradient(135deg,rgba(155,114,207,.15),rgba(78,205,196,.1))", border: "1px solid rgba(155,114,207,.25)", borderRadius: 14, padding: "16px 20px", marginBottom: 20, cursor: "pointer"}, onClick: function() { setScreen("flash-" + upcomingTournament.id); }},
+      React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, marginBottom: 6}},
+        React.createElement("span", {style: {fontSize: 11, fontWeight: 700, color: "#9B72CF", textTransform: "uppercase", letterSpacing: ".5px", background: "rgba(155,114,207,.15)", borderRadius: 6, padding: "2px 8px"}}, "Flash Tournament"),
+        React.createElement("span", {style: {fontSize: 11, color: "#E8A838"}}, new Date(upcomingTournament.date).toLocaleDateString("en-GB", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}))
+      ),
+      React.createElement("div", {style: {fontSize: 16, fontWeight: 700, color: "#F2EDE4", marginBottom: 4}}, upcomingTournament.name),
+      countdownText ? React.createElement("div", {style: {fontSize: 12, fontWeight: 700, color: countdownColor}}, countdownText) : null,
+      React.createElement(Btn, {v: "primary", s: "sm"}, "Register Now")
+    ) : null,
+
+    // ── ZONE 1: THE PULSE ─────────────────────────────────────────────────
+
+    React.createElement("div", {style: {background: "linear-gradient(145deg,rgba(18,28,48,.95),rgba(10,15,28,.98))", border: "1px solid rgba(155,114,207,.2)", borderRadius: 16, padding: "18px 22px", marginBottom: 20, boxShadow: "0 4px 24px rgba(0,0,0,.4)"}},
+      React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12}},
+        // Left: Status + countdown
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap"}},
+          // Phase dot + label
+          React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8}},
+            React.createElement("div", {style: {width: 8, height: 8, borderRadius: "50%", background: phaseStatusColor(), boxShadow: "0 0 8px " + phaseStatusColor(), animation: tPhase === "inprogress" ? "pulse 2s infinite" : "none"}}),
+            React.createElement("span", {style: {fontSize: 13, fontWeight: 700, color: phaseStatusColor(), textTransform: "uppercase", letterSpacing: ".06em"}},
+              tPhase === "registration" ? "Registration Open" :
+              tPhase === "checkin" ? "Check-in Open" :
+              tPhase === "inprogress" ? "LIVE - Game " + tRound + "/" + (tournamentState.totalGames || 3) :
+              tPhase === "complete" ? "Results Posted" : "Next Clash"
+            )
+          ),
+          // Countdown
+          diff > 0 && tPhase === "registration" ? React.createElement("div", {className: "mono", style: {fontSize: 13, color: "#E8A838", fontWeight: 700}},
+            (D > 0 ? D + "d " : "") + H + "h " + M + "m " + S + "s"
+          ) : null,
+          // Registration count
+          tPhase === "registration" ? React.createElement("span", {style: {fontSize: 12, color: "#9AAABF"}}, registeredCount + "/" + (tournamentState.maxPlayers || 24) + " registered") : null,
+          tPhase === "checkin" ? React.createElement("span", {style: {fontSize: 12, color: "#9AAABF"}}, checkedInCount + " checked in") : null
+        ),
+        // Right: Rank + tier + action
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 14}},
+          linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8}},
+            React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 4}},
+              React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: currentTierInfo.color}}, "#" + myRankIdx),
+              rankDelta !== 0 ? React.createElement("span", {style: {fontSize: 11, fontWeight: 700, color: rankDelta < 0 ? "#6EE7B7" : "#F87171"}},
+                rankDelta < 0 ? "+" + Math.abs(rankDelta) : "-" + Math.abs(rankDelta)
+              ) : null
+            ),
+            React.createElement("div", {style: {fontSize: 11, color: currentTierInfo.color, fontWeight: 600}}, currentTierInfo.name),
+            ptsToNextTier && ptsToNextTier > 0 ? React.createElement("span", {style: {fontSize: 10, color: "#9AAABF", background: "rgba(255,255,255,.04)", borderRadius: 6, padding: "2px 8px"}}, ptsToNextTier + " pts to " + nextTier.name) : null
+          ) : null,
+          phaseActionBtn
+        )
+      ),
+      // Progress bar
+      tPhase === "registration" ? React.createElement("div", {style: {marginTop: 12, background: "rgba(255,255,255,.04)", borderRadius: 8, height: 4, overflow: "hidden"}},
+        React.createElement("div", {style: {height: "100%", borderRadius: 8, background: "linear-gradient(90deg,#9B72CF,#4ECDC4)", width: Math.min(100, Math.round(registeredCount / (tournamentState.maxPlayers || 24) * 100)) + "%", transition: "width .5s ease"}})
+      ) : null,
+      tPhase === "checkin" ? React.createElement("div", {style: {marginTop: 12, background: "rgba(255,255,255,.04)", borderRadius: 8, height: 4, overflow: "hidden"}},
+        React.createElement("div", {style: {height: "100%", borderRadius: 8, background: "linear-gradient(90deg,#E8A838,#52C47C)", width: Math.min(100, registeredCount > 0 ? Math.round(checkedInCount / registeredCount * 100) : 0) + "%", transition: "width .5s ease"}})
+      ) : null
+    ),
+
+    // ── ZONE 2: YOUR STORY ────────────────────────────────────────────────
+
+    linkedPlayer && s2 ? React.createElement("div", {style: {background: "linear-gradient(145deg,rgba(18,28,48,.9),rgba(10,15,28,.95))", border: "1px solid rgba(155,114,207,.15)", borderRadius: 16, padding: "20px 22px", marginBottom: 20}},
+      // Header row
+      React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8}},
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 10}},
+          React.createElement("div", {style: {width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg," + currentTierInfo.color + ",rgba(155,114,207,.3))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#08080F", flexShrink: 0}}, linkedPlayer.name.charAt(0).toUpperCase()),
+          React.createElement("div", null,
+            React.createElement("div", {style: {fontWeight: 700, fontSize: 15, color: "#F2EDE4"}}, "Welcome back, " + linkedPlayer.name),
+            React.createElement("div", {style: {fontSize: 11, color: "#9AAABF", marginTop: 1}}, linkedPlayer.rank + " - " + (linkedPlayer.region || "EUW"))
+          )
+        ),
+        React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setProfilePlayer(linkedPlayer); setScreen("profile"); }}, "My Profile")
+      ),
+      // Season trajectory sparkline
+      pointsTrend.length >= 2 ? React.createElement("div", {style: {marginBottom: 16, padding: "12px 16px", background: "rgba(155,114,207,.05)", borderRadius: 10, border: "1px solid rgba(155,114,207,.1)"}},
+        React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8}},
+          React.createElement("span", {style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em"}}, "Season Trajectory"),
+          React.createElement("span", {className: "mono", style: {fontSize: 12, fontWeight: 700, color: "#E8A838"}}, linkedPlayer.pts + " pts")
+        ),
+        React.createElement(Sparkline, {data: pointsTrend, color: "#9B72CF", w: 240, h: 32})
+      ) : null,
+      // Last clash result + streak row
+      React.createElement("div", {style: {display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap"}},
+        lastClash ? React.createElement("div", {style: {flex: 1, minWidth: 140, background: "rgba(232,168,56,.06)", border: "1px solid rgba(232,168,56,.15)", borderRadius: 10, padding: "12px 14px"}},
+          React.createElement("div", {style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Last Clash"),
+          React.createElement("div", {style: {display: "flex", alignItems: "baseline", gap: 6}},
+            React.createElement("span", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: lastClash.placement <= 4 ? "#E8A838" : "#9AAABF"}}, ordinal(lastClash.placement)),
+            React.createElement("span", {style: {fontSize: 12, color: "#BECBD9"}}, "+" + (lastClash.points || 0) + " pts")
+          )
+        ) : React.createElement("div", {style: {flex: 1, minWidth: 140, background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)", borderRadius: 10, padding: "12px 14px"}},
+          React.createElement("div", {style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Last Clash"),
+          React.createElement("div", {style: {fontSize: 13, color: "#9AAABF"}}, "No results yet")
+        ),
+        currentStreak > 1 ? React.createElement("div", {style: {flex: 1, minWidth: 140, background: "rgba(82,196,124,.06)", border: "1px solid rgba(82,196,124,.15)", borderRadius: 10, padding: "12px 14px"}},
+          React.createElement("div", {style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Active Streak"),
+          React.createElement("div", {style: {display: "flex", alignItems: "baseline", gap: 6}},
+            React.createElement("span", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: "#6EE7B7"}}, currentStreak),
+            React.createElement("span", {style: {fontSize: 12, color: "#BECBD9"}}, streakType === "win" ? "wins" : "top 4s")
+          )
+        ) : null
+      ),
+      // Quick stats row
+      React.createElement("div", {style: {display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10}},
+        [[linkedPlayer.pts, "Season Pts", "#E8A838"], [linkedPlayer.wins, "Wins", "#6EE7B7"], [s2.avgPlacement, "Avg Place", "#4ECDC4"], [s2.top4Rate ? s2.top4Rate + "%" : "0%", "Top 4 Rate", "#9B72CF"]].map(function(item) {
+          return React.createElement("div", {key: item[1], style: {background: "rgba(255,255,255,.03)", borderRadius: 10, padding: "10px 8px", textAlign: "center"}},
+            React.createElement("div", {className: "mono", style: {fontSize: 18, fontWeight: 700, color: item[2], lineHeight: 1}}, item[0]),
+            React.createElement("div", {style: {fontSize: 9, color: "#9AAABF", marginTop: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".08em"}}, item[1])
+          );
+        })
+      )
+    ) : null,
+
+    // ── ZONE 3: THE SCENE ─────────────────────────────────────────────────
+
+    React.createElement("div", {style: {marginBottom: 20}},
+      // Season narrative one-liner
+      seasonNarrative ? React.createElement("div", {style: {background: "rgba(155,114,207,.05)", border: "1px solid rgba(155,114,207,.12)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 8}},
+        React.createElement("i", {className: "ti ti-chart-line", style: {fontSize: 14, color: "#9B72CF"}}),
+        React.createElement("span", {style: {fontSize: 13, color: "#C8D4E0", fontWeight: 500}}, seasonNarrative)
+      ) : null,
+      // Activity feed
+      activityFeed.length > 0 ? React.createElement("div", {style: {marginBottom: 16}},
+        React.createElement("div", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9B72CF", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 10}}, "Recent Activity"),
+        activityFeed.slice(0, 5).map(function(item, idx) {
+          return React.createElement("div", {key: item.id || idx, style: {display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: idx < Math.min(activityFeed.length, 5) - 1 ? "1px solid rgba(242,237,228,.06)" : "none"}},
+            React.createElement("i", {className: "ti ti-" + (item.icon || "activity"), style: {fontSize: 14, color: item.color || "#9AAABF", flexShrink: 0}}),
+            React.createElement("span", {style: {fontSize: 13, color: "#C8D4E0", flex: 1}}, item.message || item.text || ""),
+            item.created_at ? React.createElement("span", {style: {fontSize: 10, color: "#6B7A8D", flexShrink: 0}}, new Date(item.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})) : null
+          );
+        })
+      ) : null,
+      // Quick action buttons
+      React.createElement("div", {style: {display: "flex", gap: 10, flexWrap: "wrap"}},
+        React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }},
+          React.createElement("i", {className: "ti ti-list-numbers", style: {fontSize: 14, marginRight: 4}}),
+          "Standings"
+        ),
+        linkedPlayer ? React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setProfilePlayer(linkedPlayer); setScreen("profile"); }},
+          React.createElement("i", {className: "ti ti-user", style: {fontSize: 14, marginRight: 4}}),
+          "My Profile"
+        ) : null,
+        upcomingTournament ? React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("flash-" + upcomingTournament.id); }},
+          React.createElement("i", {className: "ti ti-bolt", style: {fontSize: 14, marginRight: 4}}),
+          "Flash Tournament"
+        ) : null,
+        React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("events"); }},
+          React.createElement("i", {className: "ti ti-calendar-event", style: {fontSize: 14, marginRight: 4}}),
+          "Events"
+        )
+      )
+    ),
+
+    // Divider
+    React.createElement("div", {style: {height: 1, background: "linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)", margin: "12px 0 20px"}}),
+
+    // Season standings preview
+    React.createElement(Panel, {accent: true, style: {padding: "18px", marginBottom: 16}},
+      React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8}},
+        React.createElement("h3", {style: {fontSize: 17, color: "#F2EDE4", fontWeight: 700, letterSpacing: "-.01em"}}, "Season Standings"),
+        React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "Full Leaderboard")
+      ),
+      top5.map(function(p, i) {
+        return React.createElement("div", {key: p.id, onClick: function() { setProfilePlayer(p); setScreen("profile"); }, style: {display: "flex", alignItems: "center", gap: 12, padding: "10px 8px", borderBottom: i < top5.length - 1 ? "1px solid rgba(242,237,228,.06)" : "none", cursor: "pointer", transition: "all .2s ease", borderRadius: 8}, onMouseEnter: function(e) { e.currentTarget.style.transform = "translateX(4px)"; e.currentTarget.style.background = "rgba(155,114,207,.06)"; }, onMouseLeave: function(e) { e.currentTarget.style.transform = "translateX(0)"; e.currentTarget.style.background = "transparent"; }},
+          React.createElement("div", {className: "mono", style: {fontSize: 14, fontWeight: 800, color: i === 0 ? "#E8A838" : i === 1 ? "#C0C0C0" : i === 2 ? "#CD7F32" : "#9AAABF", minWidth: 20, textAlign: "center"}}, i + 1),
+          React.createElement("div", {style: {flex: 1, minWidth: 0}},
+            React.createElement("div", {style: {fontWeight: 600, fontSize: 14, color: "#F2EDE4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, p.name),
+            React.createElement("div", {style: {fontSize: 11, color: "#BECBD9", marginTop: 1}}, p.rank + " - " + p.region)
+          ),
+          React.createElement("div", {style: {textAlign: "right"}},
+            React.createElement("div", {className: "mono", style: {fontSize: 16, fontWeight: 700, color: "#E8A838"}}, p.pts),
+            React.createElement("div", {style: {fontSize: 10, color: "#BECBD9"}}, "pts")
+          )
         );
-      })()}
+      }),
+      top5.length === 0 ? React.createElement("div", {style: {color: "#9AAABF", fontSize: 13, textAlign: "center", padding: 24}}, "No players yet") : null
+    ),
 
-      {/* Bottom row */}
+    // Community ticker
+    tickerItems.length > 0 ? React.createElement("div", {style: {overflow: "hidden", borderRadius: 10, background: "rgba(155,114,207,.04)", border: "1px solid rgba(155,114,207,.12)", marginBottom: 16}},
+      React.createElement("div", {className: "ticker-scroll"},
+        [].concat(tickerItems, tickerItems).map(function(item, i) {
+          return React.createElement("span", {key: i, style: {display: "inline-flex", alignItems: "center", padding: "8px 22px", fontSize: 12, color: "#C8D4E0", fontWeight: 600, whiteSpace: "nowrap", borderRight: "1px solid rgba(155,114,207,.1)"}},
+            typeof item === "object" ? React.createElement(React.Fragment, null, React.createElement("i", {className: "ti ti-" + (ICON_REMAP[item.icon] || item.icon), style: {fontSize: 12, marginRight: 6}}), item.text) : item
+          );
+        })
+      )
+    ) : null,
 
-      <div style={{marginTop:20}}>
+    // Sponsor
+    React.createElement(SponsorBanner, {onNavigate: setScreen}),
 
-        <SponsorBanner onNavigate={setScreen}/>
-
-      </div>
-
-
-
-      {/* Discord CTA */}
-
-      <div style={{background:"linear-gradient(90deg,rgba(88,101,242,.1),rgba(88,101,242,.05))",border:"1px solid rgba(88,101,242,.3)",borderRadius:12,padding:"14px 18px",marginTop:14,display:"flex",alignItems:"center",gap:14,flexWrap:"wrap"}}>
-
-        <div style={{flexShrink:0}}>{React.createElement("i",{className:"ti ti-message",style:{fontSize:24}})}</div>
-
-        <div style={{flex:1,minWidth:0}}>
-
-          <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>Join the TFT Clash Discord</div>
-
-          <div style={{fontSize:12,color:"#C8D4E0",marginTop:2}}>Tournament alerts, results, tactics channels, and the community. Pro members get exclusive access.</div>
-
-        </div>
-
-        <Btn v="dark" s="sm" onClick={()=>toast("Discord link coming soon - server in setup!","success")} style={{background:"rgba(88,101,242,.15)",border:"1px solid rgba(88,101,242,.4)",color:"#818CF8",flexShrink:0}}>Join Discord →</Btn>
-
-      </div>
-
-
-
-      <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)",margin:"28px 0"}}/>
-
-      <Panel accent style={{padding:"18px",marginTop:0}}>
-
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14,flexWrap:"wrap",gap:8}}>
-
-          <h3 style={{fontSize:17,color:"#F2EDE4",fontWeight:700,letterSpacing:"-.01em"}}>Season Standings</h3>
-
-          <Btn v="dark" s="sm" onClick={()=>setScreen("leaderboard")}>Full Leaderboard →</Btn>
-
-        </div>
-
-        {top5.map((p,i)=>(
-
-          <div key={p.id} onClick={()=>{setProfilePlayer(p);setScreen("profile");}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 8px",borderBottom:i<top5.length-1?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer",transition:"all .2s ease",borderRadius:8}}
-
-            onMouseEnter={function(e){e.currentTarget.style.transform="translateX(4px)";e.currentTarget.style.background="rgba(155,114,207,.06)";}}
-
-            onMouseLeave={function(e){e.currentTarget.style.transform="translateX(0)";e.currentTarget.style.background="transparent";}}>
-
-            <div className="mono" style={{fontSize:14,fontWeight:800,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF",minWidth:20,textAlign:"center"}}>{i+1}</div>
-
-            <div style={{flex:1,minWidth:0}}>
-
-              <div style={{fontWeight:600,fontSize:14,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
-
-              <div style={{fontSize:11,color:"#BECBD9",marginTop:1}}>{p.rank} · {p.region}</div>
-
-            </div>
-
-            <div style={{textAlign:"right"}}>
-
-              <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>{p.pts}</div>
-
-              <div style={{fontSize:10,color:"#BECBD9"}}>pts</div>
-
-            </div>
-
-          </div>
-
-        ))}
-
-        {top5.length===0&&<div style={{color:"#9AAABF",fontSize:13,textAlign:"center",padding:24}}>No players yet</div>}
-
-      </Panel>
-
-    </div>
-
+    // Discord CTA
+    React.createElement("div", {style: {background: "linear-gradient(90deg,rgba(88,101,242,.1),rgba(88,101,242,.05))", border: "1px solid rgba(88,101,242,.3)", borderRadius: 12, padding: "14px 18px", marginTop: 14, display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap"}},
+      React.createElement("i", {className: "ti ti-message", style: {fontSize: 24, flexShrink: 0}}),
+      React.createElement("div", {style: {flex: 1, minWidth: 0}},
+        React.createElement("div", {style: {fontWeight: 700, fontSize: 14, color: "#F2EDE4"}}, "Join the TFT Clash Discord"),
+        React.createElement("div", {style: {fontSize: 12, color: "#C8D4E0", marginTop: 2}}, "Tournament alerts, results, tactics channels, and the community.")
+      ),
+      React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { toast("Discord link coming soon - server in setup!", "success"); }, style: {background: "rgba(88,101,242,.15)", border: "1px solid rgba(88,101,242,.4)", color: "#818CF8", flexShrink: 0}}, "Join Discord")
+    )
   );
+
+
 
 }
 
