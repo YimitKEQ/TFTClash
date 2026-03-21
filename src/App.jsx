@@ -3726,7 +3726,7 @@ function StandingsScreen(props){
       React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#F2EDE4",marginBottom:4,letterSpacing:".01em"}},"Standings"),
       React.createElement("p",{style:{fontSize:13,color:"#9AAABF",maxWidth:400,margin:"0 auto"}},"Season rankings, legends, and the full player roster")
     ),
-    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
+    React.createElement("div",{className:"tab-bar-wrap",style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24,overflowX:"auto"}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
@@ -3781,7 +3781,7 @@ function ProfileScreen(props){
     );
   }
   return React.createElement("div",{className:"page fade-up",style:{paddingTop:20}},
-    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
+    React.createElement("div",{className:"tab-bar-wrap",style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24,overflowX:"auto"}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
@@ -4011,7 +4011,7 @@ function EventsScreen(props){
     {id:"featured",label:"Featured",icon:"ti-star"},
   ];
   return React.createElement("div",{className:"page fade-up",style:{paddingTop:20}},
-    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
+    React.createElement("div",{className:"tab-bar-wrap",style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24,overflowX:"auto"}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
@@ -18602,6 +18602,13 @@ function TFTClash(){
         .slide-in{animation:slide-in .35s ease both;}
         .tab-btn{transition:all .2s ease;}
         .tab-btn:hover{color:#F2EDE4 !important;background:rgba(155,114,207,.08) !important;border-color:rgba(155,114,207,.25) !important;}
+
+        @media(max-width:768px){
+          .lobby-grid{grid-template-columns:1fr !important;}
+          .live-standings-grid{grid-template-columns:28px 1fr 48px 40px !important;font-size:12px !important;}
+          .tab-bar-wrap{gap:4px !important;}
+          .tab-btn{padding:8px 14px !important;font-size:12px !important;}
+        }
 
       `}</style>
 
