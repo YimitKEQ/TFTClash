@@ -3561,6 +3561,39 @@ function ProfileScreen(props){
   );
 }
 
+// ─── EVENTS SCREEN (wrapper: Archive + Tournaments + Featured tabs) ───────────
+
+function EventsScreen(props){
+  var tab=props.subRoute||"";
+  var tabs=[
+    {id:"",label:"Archive"},
+    {id:"tournaments",label:"Tournaments"},
+    {id:"featured",label:"Featured"},
+  ];
+  return React.createElement("div",{className:"page"},
+    React.createElement("div",{style:{display:"flex",gap:4,padding:"0 16px",marginBottom:20,borderBottom:"1px solid rgba(242,237,228,.06)"}},
+      tabs.map(function(t){
+        var active=tab===t.id;
+        return React.createElement("button",{
+          key:t.id,
+          onClick:function(){props.setScreen("events"+(t.id?"/"+t.id:""));},
+          style:{
+            padding:"10px 18px",background:"none",border:"none",
+            borderBottom:active?"2px solid #9B72CF":"2px solid transparent",
+            color:active?"#F2EDE4":"#9AAABF",
+            fontFamily:"'Barlow Condensed',sans-serif",fontSize:14,
+            fontWeight:active?700:500,cursor:"pointer",
+            letterSpacing:".02em",transition:"all .2s",
+          }
+        },t.label);
+      })
+    ),
+    tab===""?React.createElement(ArchiveScreen,{players:props.players,currentUser:props.currentUser,setScreen:props.setScreen,pastClashes:props.pastClashes}):null,
+    tab==="tournaments"?React.createElement(TournamentsListScreen,{setScreen:props.setScreen,currentUser:props.currentUser,toast:props.toast}):null,
+    tab==="featured"?React.createElement(FeaturedScreen,{setScreen:props.setScreen,currentUser:props.currentUser,onAuthClick:props.onAuthClick,toast:props.toast,featuredEvents:props.featuredEvents,setFeaturedEvents:props.setFeaturedEvents}):null
+  );
+}
+
 // ─── HOME SCREEN ──────────────────────────────────────────────────────────────
 
 function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfilePlayer,currentUser,onAuthClick,tournamentState,setTournamentState,quickClashes,onJoinQuickClash,onRegister,tickerOverrides,hostAnnouncements,featuredEvents,seasonConfig}){
@@ -17337,7 +17370,7 @@ function TFTClash(){
 
   // ── Redirect legacy screens into StandingsScreen tabs ──
   useEffect(function(){
-    var redirects={leaderboard:"standings",hof:"standings/hof",roster:"standings/roster",account:"profile",milestones:"profile/milestones",challenges:"profile/challenges"};
+    var redirects={leaderboard:"standings",hof:"standings/hof",roster:"standings/roster",account:"profile",milestones:"profile/milestones",challenges:"profile/challenges",archive:"events",tournaments:"events/tournaments",featured:"events/featured",bracket:"clash",results:"clash/results"};
     if(redirects[screen]){navTo(redirects[screen]);}
   },[screen,navTo]);
 
@@ -17983,6 +18016,23 @@ function TFTClash(){
   },[players,seasonConfig]);
   SEASON_CHAMPION=computedChampion;
 
+  // Pre-compute tournament detail content to avoid IIFE in JSX
+  var tournamentDetailContent=null;
+  if(screen.indexOf("tournament-")===0){
+    var evId=screen.replace("tournament-","");
+    var ev=featuredEvents.find(function(e){return e.id===evId;});
+    if(!ev){
+      tournamentDetailContent=React.createElement("div",{className:"page wrap",style:{textAlign:"center",paddingTop:80}},
+        React.createElement("div",{style:{fontSize:36,marginBottom:16}},"\ud83d\udd0d"),
+        React.createElement("h2",{style:{color:"#F2EDE4",marginBottom:10}},"Event Not Found"),
+        React.createElement("p",{style:{color:"#BECBD9"}},"This event may have been removed."),
+        React.createElement(Btn,{v:"primary",onClick:function(){navTo("events/featured");}},"Back to Featured")
+      );
+    }else{
+      tournamentDetailContent=React.createElement(TournamentDetailScreen,{event:ev,featuredEvents:featuredEvents,setFeaturedEvents:setFeaturedEvents,currentUser:currentUser,onAuthClick:function(m){setAuthScreen(m);},toast:toast,setScreen:navTo,players:players});
+    }
+  }
+
   // Show auth screens fullscreen
 
   if(authScreen==="login") return(
@@ -18158,7 +18208,7 @@ function TFTClash(){
 
         {screen==="results"    &&<MemoResultsScreen players={players} toast={toast} setScreen={navTo} setProfilePlayer={setProfilePlayer} tournamentState={tournamentState}/>}
 
-        {screen==="archive"    &&<ArchiveScreen players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes}/>}
+        {screen==="events"     &&<EventsScreen subRoute={subRoute} players={players} currentUser={currentUser} setScreen={navTo} pastClashes={pastClashes} toast={toast} onAuthClick={function(m){setAuthScreen(m);}} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
 
         {screen==="rules"      &&<RulesScreen setScreen={navTo}/>}
 
@@ -18176,13 +18226,9 @@ function TFTClash(){
 
         {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
 
-        {screen==="tournaments"&&<TournamentsListScreen setScreen={navTo} currentUser={currentUser} toast={toast}/>}
-
         {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={screen.replace("flash-","")} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
 
-        {screen==="featured"&&<FeaturedScreen setScreen={navTo} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
-
-        {screen.indexOf("tournament-")===0&&(function(){var evId=screen.replace("tournament-","");var ev=featuredEvents.find(function(e){return e.id===evId;});if(!ev)return <div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{"\U0001f50d"}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Event Not Found</h2><p style={{color:"#BECBD9"}}>This event may have been removed.</p><Btn v="primary" onClick={function(){navTo("featured");}}>Back to Featured</Btn></div>;return <TournamentDetailScreen event={ev} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players}/>;})()}
+        {screen.indexOf("tournament-")===0&&tournamentDetailContent}
 
         {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
 
