@@ -378,6 +378,83 @@ function getStats(player){
   return result;
 }
 
+var TIER_FEATURES = {
+  free: {
+    compete: true,
+    basicStats: true,
+    basicProfile: true,
+    viewResults: true,
+    currentSeasonHistory: true,
+    enhancedStats: false,
+    proBadge: false,
+    priorityRegistration: false,
+    extendedHistory: false,
+    customBanner: false,
+    comparisonTool: false,
+    emailDigest: false,
+    createTournaments: false,
+    brandedPages: false,
+    hostDashboard: false,
+    customRules: false,
+    apiAccess: false
+  },
+  pro: {
+    compete: true,
+    basicStats: true,
+    basicProfile: true,
+    viewResults: true,
+    currentSeasonHistory: true,
+    enhancedStats: true,
+    proBadge: true,
+    priorityRegistration: true,
+    extendedHistory: true,
+    customBanner: true,
+    comparisonTool: true,
+    emailDigest: true,
+    createTournaments: false,
+    brandedPages: false,
+    hostDashboard: false,
+    customRules: false,
+    apiAccess: false
+  },
+  host: {
+    compete: true,
+    basicStats: true,
+    basicProfile: true,
+    viewResults: true,
+    currentSeasonHistory: true,
+    enhancedStats: true,
+    proBadge: true,
+    priorityRegistration: true,
+    extendedHistory: true,
+    customBanner: true,
+    comparisonTool: true,
+    emailDigest: true,
+    createTournaments: true,
+    brandedPages: true,
+    hostDashboard: true,
+    customRules: true,
+    apiAccess: true
+  }
+};
+
+function getUserTier(subscriptions, userId) {
+  if (!subscriptions || !userId) return "free";
+  var sub = subscriptions[userId];
+  if (!sub) return "free";
+  if (sub.status !== "active") return "free";
+  if (sub.current_period_end) {
+    var grace = 3 * 24 * 60 * 60 * 1000;
+    if (new Date(sub.current_period_end).getTime() + grace < Date.now()) return "free";
+  }
+  return sub.tier || "free";
+}
+
+function hasFeature(tier, feature) {
+  var features = TIER_FEATURES[tier] || TIER_FEATURES.free;
+  return !!features[feature];
+}
+
 function effectivePts(player, seasonConfig) {
 
   if (!player.clashHistory || !player.clashHistory.length) return player.pts || 0;
@@ -17683,6 +17760,10 @@ function TFTClash(){
   const [isAuthLoading,setIsAuthLoading]=useState(true);
   var [isOffline,setIsOffline]=useState(false);
 
+  var _sub=useState({});
+  var subscriptions=_sub[0];
+  var setSubscriptions=_sub[1];
+
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
   const [cookieConsent,setCookieConsent]=useState(function(){try{return localStorage.getItem("tft-cookie-consent")==="1";}catch(e){return false;}});
 
@@ -17711,6 +17792,16 @@ function TFTClash(){
         }
       });
   },[currentUser]);
+
+  useEffect(function(){
+    supabase.from("user_subscriptions").select("*").then(function(res){
+      if(res.data){
+        var map={};
+        res.data.forEach(function(s){map[s.user_id]=s;});
+        setSubscriptions(map);
+      }
+    });
+  },[]);
 
   function markAllRead(){
     if(!currentUser)return;
@@ -18487,6 +18578,9 @@ function TFTClash(){
       tournamentDetailContent=React.createElement(TournamentDetailScreen,{event:ev,featuredEvents:featuredEvents,setFeaturedEvents:setFeaturedEvents,currentUser:currentUser,onAuthClick:function(m){setAuthScreen(m);},toast:toast,setScreen:navTo,players:players});
     }
   }
+
+  // Compute current user's tier for feature gating
+  var userTier=currentUser?getUserTier(subscriptions,currentUser.id):"free";
 
   // Show auth screens fullscreen
 
