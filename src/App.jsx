@@ -3142,17 +3142,19 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
   );
 
-  const cols=compact?"28px 1fr 60px 55px 50px":"28px 1fr 70px 70px 50px 55px";
+  const cols=compact?"28px 1fr 60px 55px 50px":"28px 42px 1fr 70px 70px 50px 55px";
 
   return(
 
     <Panel style={{overflowX:"auto"}}>
 
-      <div className="standings-table-wrap" style={{minWidth:compact?260:380}}>
+      <div className="standings-table-wrap" style={{minWidth:compact?260:420}}>
 
       <div style={{display:"grid",gridTemplateColumns:cols,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",background:"#0A0F1A"}}>
 
         <span className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}>#</span>
+
+        {!compact&&<span className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}></span>}
 
         <H k="name" label="Player"/><H k="pts" label="Pts"/><H k="avg" label="Avg"/><H k="games" label="G"/>
 
@@ -3201,6 +3203,8 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
               {i<3?React.createElement("i",{className:"ti ti-"+(ICON_REMAP["award-fill"]||"award-fill")}):i+1}
 
             </div>
+
+            {!compact&&React.createElement("div",{className:"mono",style:{fontSize:10,fontWeight:700,textAlign:"center",lineHeight:1}},p.previousRank!=null&&p.previousRank>0?p.previousRank>(i+1)?React.createElement("span",{style:{color:"#52C47C"}},"+"+String(p.previousRank-(i+1))+" \u2191"):p.previousRank<(i+1)?React.createElement("span",{style:{color:"#F87171"}},String((i+1)-p.previousRank)+" \u2193"):React.createElement("span",{style:{color:"#9AAABF"}},"--"):React.createElement("span",{style:{color:"#9AAABF"}},"--"))}
 
             <div style={{display:"flex",alignItems:"center",gap:9,minWidth:0}}>
 
@@ -6109,6 +6113,10 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
   const [compareIds,setCompareIds]=useState([]);
 
+  const [registeredOnly,setRegisteredOnly]=useState(false);
+
+  const [expandRecord,setExpandRecord]=useState(null);
+
   const MEDALS=["award-fill","award-fill","award-fill"];
 
   const MCOLS=["#E8A838","#C0C0C0","#CD7F32"];
@@ -6118,10 +6126,11 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
     var f=players.filter(function(p){
       var mn=p.name.toLowerCase().includes(search.toLowerCase());
       var mr=regionFilter==="All"||p.region===regionFilter;
-      return mn&&mr;
+      var reg=!registeredOnly||(p.games&&p.games>0);
+      return mn&&mr&&reg;
     });
     return[...f].sort(function(a,b){return b.pts-a.pts;});
-  },[players,search,regionFilter]);
+  },[players,search,regionFilter,registeredOnly]);
 
   const top3=sorted.slice(0,3);
 
@@ -6160,7 +6169,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
 
-          {["season","cards","stats","streaks"].map(t=>(
+          {["season","cards","stats","streaks","legends"].map(t=>(
 
             <Btn key={t} v={tab===t?"primary":"dark"} s="sm" onClick={()=>setTab(t)} style={{textTransform:"capitalize"}}>{t}</Btn>
 
@@ -6245,6 +6254,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
         <Sel value={regionFilter} onChange={setRegionFilter} style={{width:140}}><option value="All">All Regions</option>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel>
 
         {currentUser&&myLbIdx>=0&&<Btn v="purple" s="sm" onClick={()=>document.getElementById("lb-me-row")?.scrollIntoView({behavior:"smooth",block:"center"})}>My Position #{myLbIdx+1}</Btn>}
+
+        {tab==="season"&&<span onClick={function(){setRegisteredOnly(function(v){return !v;});}} style={{display:"inline-flex",alignItems:"center",gap:6,fontSize:12,color:registeredOnly?"#4ECDC4":"#9AAABF",cursor:"pointer",userSelect:"none",padding:"5px 10px",borderRadius:6,border:"1px solid "+(registeredOnly?"rgba(78,205,196,.4)":"rgba(242,237,228,.1)"),background:registeredOnly?"rgba(78,205,196,.1)":"transparent"}}><span style={{width:14,height:14,borderRadius:3,border:"1px solid "+(registeredOnly?"#4ECDC4":"#9AAABF"),display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:10,color:"#4ECDC4"}}>{registeredOnly?"✓":""}</span>Registered Only</span>}
 
       </div>
 
@@ -6447,6 +6458,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
         </Panel>
 
       )}
+
+      {tab==="legends"&&<HofScreen players={players} setScreen={setScreen} setProfilePlayer={setProfilePlayer}/>}
 
       {comparePlayers.length>=2&&<div style={{marginTop:20,background:"linear-gradient(145deg,rgba(14,22,40,.92),rgba(8,12,24,.96))",border:"1px solid rgba(155,114,207,.35)",borderRadius:14,padding:24,boxShadow:"0 8px 32px rgba(0,0,0,.4)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}><div style={{display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["diagram-3-fill"]||"diagram-3-fill")})}</span><div style={{fontWeight:700,fontSize:16,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>{comparePlayers.map(p=>p.name).join(" vs ")}</div></div><Btn v="dark" s="sm" onClick={()=>setCompareIds([])}>Clear</Btn></div><div style={{display:"grid",gridTemplateColumns:"repeat("+comparePlayers.length+",1fr)",gap:12,marginBottom:16}}>{comparePlayers.map(function(p){var cs=getStats(p);return <Panel key={p.id} style={{padding:14,textAlign:"center"}}><div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:4}}>{p.name}</div><div className="mono" style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{p.pts}</div><div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Season Pts</div></Panel>;})}</div>{[["Avg Placement",comparePlayers.map(p=>parseFloat(getStats(p).avgPlacement)||99),true],["Win Rate",comparePlayers.map(p=>parseFloat(getStats(p).top1Rate)||0),false],["Top 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).top4Rate)||0),false],["Wins",comparePlayers.map(p=>getStats(p).wins),false],["Games",comparePlayers.map(p=>getStats(p).games),false],["PPG",comparePlayers.map(p=>parseFloat(getStats(p).ppg)||0),false],["Bottom 4 Rate",comparePlayers.map(p=>parseFloat(getStats(p).bot4Rate)||0),true],["Best Streak",comparePlayers.map(p=>p.bestStreak||0),false],["Comeback Rate",comparePlayers.map(p=>parseFloat(getStats(p).comebackRate)||0),false]].map(([label,vals,lowerBetter])=>{const best=lowerBetter?Math.min(...vals):Math.max(...vals);return(<div key={label} style={{display:"grid",gridTemplateColumns:["2fr"].concat(comparePlayers.map(()=>"1fr")).join(" "),gap:8,padding:"10px 0",borderBottom:"1px solid rgba(242,237,228,.06)",alignItems:"center"}}><span style={{fontSize:12,color:"#C8D4E0",fontWeight:600}}>{label}</span>{vals.map((v,i)=>(<span key={i} className="mono" style={{fontSize:14,fontWeight:700,color:v===best?"#E8A838":"#BECBD9",textAlign:"center",position:"relative"}}>{label==="Avg Placement"?v===99?"-":v:label.includes("Rate")?v+"%":v}{v===best&&<span style={{display:"inline-block",marginLeft:4,fontSize:9,color:"#E8A838"}}>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP["star-fill"]||"star-fill")})}</span>}</span>))}</div>);})}</div>}
 
@@ -15755,6 +15768,8 @@ function TFTClash(){
 
   var navTo=useCallback(function(s){
     if(s==="standings")s="leaderboard";
+    if(s==="hof")s="leaderboard";
+    if(s==="roster")s="leaderboard";
     if(s==="bracket")s="clash";
     if(s==="results")s="clash";
     if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
@@ -15782,6 +15797,7 @@ function TFTClash(){
     var isSafe=safeScreens.includes(h)||h.indexOf("tournament-")===0;
     var dest=isSafe?h:"home";
     if(dest==="bracket"||dest==="results")dest="clash";
+    if(dest==="hof"||dest==="roster"||dest==="standings")dest="leaderboard";
     if(dest!=="home")setScreen(dest);
     window.history.replaceState({screen:dest},"","#"+dest);
   },[]);
@@ -16087,6 +16103,8 @@ function TFTClash(){
         {screen==="clash"&&<ClashScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} quickClashes={quickClashes} onRegister={handleRegister} featuredEvents={featuredEvents}/>}
 
         {screen==="leaderboard"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
+
+        {screen==="standings"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
         {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig}/>}
 
