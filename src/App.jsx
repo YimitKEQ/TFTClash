@@ -8655,6 +8655,15 @@ function TickerAdminPanel({tickerOverrides,setTickerOverrides,toast,addAudit}){
   );
 }
 
+function setPlayerTier(userId, tier) {
+  return supabase.from("user_subscriptions").upsert({
+    user_id: userId,
+    tier: tier,
+    provider: "manual",
+    status: "active"
+  }, {onConflict: "user_id"});
+}
+
 function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tournamentState,setTournamentState,seasonConfig,setSeasonConfig,quickClashes,setQuickClashes,orgSponsors,setOrgSponsors,scheduledEvents,setScheduledEvents,auditLog,setAuditLog,hostApps,setHostApps,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications,featuredEvents,setFeaturedEvents,currentUser}){
 
   const [tab,setTab]=useState("dashboard");
@@ -11659,70 +11668,96 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 // ─── PRICING SCREEN ───────────────────────────────────────────────────────────
 
-function PricingScreen({currentPlan,toast,currentUser,setScreen}){
+function PricingScreen(props) {
+  var currentUser = props.currentUser;
+  var userTier = props.userTier || "free";
+  var toast = props.toast;
 
-  return(
+  var tiers = [
+    {
+      id: "free", name: "Player", price: "Free", period: "forever",
+      color: "#F2EDE4", borderColor: "rgba(255,255,255,.1)",
+      features: [
+        "Compete in every clash",
+        "Full standings and leaderboard",
+        "Basic profile with stats",
+        "View all results and recaps",
+        "Current season history"
+      ]
+    },
+    {
+      id: "pro", name: "Pro", price: "$4.99", period: "/month",
+      color: "#9B72CF", borderColor: "rgba(155,114,207,.5)",
+      badge: "Recommended",
+      features: [
+        "Everything in Player, plus:",
+        "Enhanced stats and consistency grade",
+        "Pro badge on profile",
+        "Priority registration",
+        "Full career history (all seasons)",
+        "Custom profile banner",
+        "Player comparison tool",
+        "Weekly email digest"
+      ]
+    },
+    {
+      id: "host", name: "Host", price: "$19.99", period: "/month",
+      color: "#E8A838", borderColor: "rgba(232,168,56,.5)",
+      features: [
+        "Everything in Pro, plus:",
+        "Create custom tournaments",
+        "Branded tournament pages",
+        "Host analytics dashboard",
+        "Custom rules and formats",
+        "Player management tools",
+        "Priority support"
+      ]
+    }
+  ];
 
-    <div className="page wrap">
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
-
-      </div>
-
-      <div style={{textAlign:"center",padding:"80px 20px",maxWidth:560,margin:"0 auto"}}>
-
-        <div style={{width:80,height:80,margin:"0 auto 24px",background:"rgba(232,168,56,.08)",border:"2px solid rgba(232,168,56,.25)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
-          {React.createElement("i",{className:"ti ti-stars",style:{fontSize:36,color:"#E8A838"}})}
-        </div>
-
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Coming Soon</div>
-
-        <h1 style={{fontSize:"clamp(24px,4vw,40px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.15,marginBottom:16}}>
-
-          Subscriptions are on the way
-
-        </h1>
-
-        <p style={{fontSize:15,color:"#C8D4E0",lineHeight:1.7,marginBottom:12}}>
-
-          We are upgrading our payment system to give you a better experience. The tiers you know and love - Player, Pro, and Host - are staying, but the checkout flow is getting a full upgrade.
-
-        </p>
-
-        <p style={{fontSize:14,color:"#BECBD9",lineHeight:1.7,marginBottom:32}}>
-
-          Competing in TFT Clash will always be free. Pro and Host subscriptions will be back soon.
-
-        </p>
-
-        <div style={{display:"inline-flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
-
-          <Btn v="primary" onClick={()=>setScreen("home")}>Back to Home</Btn>
-
-          <Btn v="ghost" onClick={()=>setScreen("faq")}>Read the FAQ</Btn>
-
-        </div>
-
-        <div style={{marginTop:48,padding:"20px 24px",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12}}>
-
-          <div style={{fontSize:13,color:"#9B72CF",fontWeight:700,marginBottom:6}}>Quick reminder</div>
-
-          <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>
-            Free tier: Compete in every weekly clash, full leaderboard, profile, achievements, H2H rivalries.
-            <br/>Pro: Guaranteed check-in, deeper stats, season recap cards, pro badge.
-            <br/>Host: Run your own branded clash events on the platform.
-          </div>
-
-        </div>
-
-      </div>
-
-    </div>
-
+  return React.createElement("div", {className:"page wrap fade-up"},
+    React.createElement("h2", {className:"display",style:{textAlign:"center",marginBottom:8,color:"#F2EDE4"}}, "Choose Your Path"),
+    React.createElement("p", {style:{textAlign:"center",fontSize:14,color:"#BECBD9",marginBottom:32}}, "Competing is always free. Upgrade for enhanced features."),
+    React.createElement("div", {style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginBottom:32}},
+      tiers.map(function(tier) {
+        var isActive = userTier === tier.id;
+        return React.createElement("div", {key:tier.id,style:{
+          background: tier.id === "pro" ? "linear-gradient(145deg,rgba(155,114,207,.1),rgba(8,8,15,.8))" : "rgba(17,24,39,.8)",
+          border: "1px solid " + tier.borderColor,
+          borderRadius: 16,
+          padding: "24px 20px",
+          position: "relative",
+          boxShadow: tier.id === "pro" ? "0 0 30px rgba(155,114,207,.1)" : "none"
+        }},
+          tier.badge ? React.createElement("div", {style:{position:"absolute",top:-10,left:"50%",transform:"translateX(-50%)",background:"#9B72CF",color:"#fff",fontSize:10,fontWeight:700,padding:"3px 12px",borderRadius:10,letterSpacing:".05em"}}, tier.badge) : null,
+          React.createElement("div", {style:{textAlign:"center",marginBottom:16}},
+            React.createElement("div", {style:{fontSize:18,fontWeight:700,color:tier.color,marginBottom:4}}, tier.name),
+            React.createElement("div", {style:{display:"flex",alignItems:"baseline",justifyContent:"center",gap:2}},
+              React.createElement("span", {className:"mono",style:{fontSize:32,fontWeight:800,color:"#F2EDE4"}}, tier.price),
+              tier.period !== "forever" ? React.createElement("span", {style:{fontSize:12,color:"#9AAABF"}}, tier.period) : null
+            )
+          ),
+          React.createElement("div", {style:{display:"flex",flexDirection:"column",gap:8,marginBottom:20}},
+            tier.features.map(function(f, fi) {
+              return React.createElement("div", {key:fi,style:{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#BECBD9"}},
+                React.createElement("i", {className:"ti ti-check",style:{color:tier.color,fontSize:14}}),
+                React.createElement("span", null, f)
+              );
+            })
+          ),
+          isActive
+            ? React.createElement("div", {style:{textAlign:"center",padding:"8px 0",fontSize:13,fontWeight:700,color:"#6EE7B7"}}, "Current Plan")
+            : tier.id === "free"
+              ? null
+              : React.createElement("div", {style:{textAlign:"center",fontSize:12,color:"#9AAABF"}}, "Coming soon")
+        );
+      })
+    ),
+    React.createElement("div", {style:{textAlign:"center",padding:"16px",background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.2)",borderRadius:12}},
+      React.createElement("div", {style:{fontSize:14,fontWeight:700,color:"#4ECDC4"}}, "Free to compete, always."),
+      React.createElement("div", {style:{fontSize:12,color:"#BECBD9",marginTop:4}}, "Every player can enter every clash. Upgrades enhance your experience, never gate competition.")
+    )
   );
-
 }
 
 
@@ -18505,7 +18540,7 @@ function TFTClash(){
 
         {screen==="gear"       &&<GearScreen setScreen={navTo}/>}
 
-        {screen==="pricing"    &&<PricingScreen currentPlan={currentUser&&currentUser.plan||"free"} toast={toast} currentUser={currentUser} setScreen={navTo}/>}
+        {screen==="pricing"    &&<PricingScreen currentPlan={currentUser&&currentUser.plan||"free"} toast={toast} currentUser={currentUser} setScreen={navTo} userTier={userTier}/>}
 
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
 
