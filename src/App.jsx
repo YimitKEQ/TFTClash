@@ -3560,9 +3560,9 @@ function StandingsScreen(props){
             border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
             borderRadius:10,
             color:"#F2EDE4",
-            fontFamily:"'Barlow Condensed',sans-serif",
+            fontFamily:"Inter,system-ui,sans-serif",
             fontSize:13,
-            fontWeight:active?700:500,
+            fontWeight:active?600:400,
             cursor:"pointer",
             letterSpacing:".03em",
             transition:"all .25s ease",
@@ -3614,9 +3614,9 @@ function ProfileScreen(props){
             border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
             borderRadius:10,
             color:"#F2EDE4",
-            fontFamily:"'Barlow Condensed',sans-serif",
+            fontFamily:"Inter,system-ui,sans-serif",
             fontSize:13,
-            fontWeight:active?700:500,
+            fontWeight:active?600:400,
             cursor:"pointer",
             letterSpacing:".03em",
             transition:"all .25s ease",
@@ -3662,9 +3662,9 @@ function EventsScreen(props){
             border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
             borderRadius:10,
             color:"#F2EDE4",
-            fontFamily:"'Barlow Condensed',sans-serif",
+            fontFamily:"Inter,system-ui,sans-serif",
             fontSize:13,
-            fontWeight:active?700:500,
+            fontWeight:active?600:400,
             cursor:"pointer",
             letterSpacing:".03em",
             transition:"all .25s ease",
@@ -17385,6 +17385,10 @@ function TFTClash(){
       return{...u,username,riotId,region};
 
     }
+
+    // DEV: skip auth hydration when mock user is set
+    var DEV_MOCK=currentUser&&currentUser.email==="levitate@tftclash.gg";
+    if(DEV_MOCK){setIsAuthLoading(false);return function(){};}
 
     supabase.auth.getSession().then(({data:{session}})=>{setCurrentUser(mapUser(session?.user??null));setIsAuthLoading(false);}).catch(function(){setIsAuthLoading(false);});
 
