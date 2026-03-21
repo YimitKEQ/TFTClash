@@ -1578,6 +1578,26 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 .live-pulse-ring{animation:live-ring 2s ease-in-out infinite}
 .war-stat{transition:transform .15s,box-shadow .15s}
 .war-stat:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4),0 0 20px rgba(155,114,207,.15)}
+
+/* ── Screen Soul Animations ── */
+@keyframes float-glow{0%,100%{filter:drop-shadow(0 0 8px rgba(155,114,207,.3))}50%{filter:drop-shadow(0 0 20px rgba(155,114,207,.5))}}
+@keyframes tier-pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,168,56,.2)}50%{box-shadow:0 0 0 6px rgba(232,168,56,0)}}
+@keyframes card-hover-lift{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+.screen-hero{animation:entrance-slide .4s ease-out both}
+.screen-hero-d1{animation:entrance-slide .4s .06s ease-out both}
+.screen-hero-d2{animation:entrance-slide .4s .12s ease-out both}
+.screen-hero-d3{animation:entrance-slide .4s .18s ease-out both}
+.screen-hero-d4{animation:entrance-slide .4s .24s ease-out both}
+.screen-hero-d5{animation:entrance-slide .4s .30s ease-out both}
+.float-icon{animation:float-glow 3s ease-in-out infinite}
+.gear-card{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.gear-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.4)}
+.tier-card{transition:transform .25s ease,box-shadow .25s ease}
+.tier-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.event-card{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.event-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.legal-section{transition:border-color .2s ease}
+.legal-section:hover{border-color:rgba(155,114,207,.3)!important}
 `;
 
 
@@ -9198,62 +9218,71 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 function PricingScreen({currentPlan,toast,currentUser,setScreen}){
 
+  var tiers=[
+    {name:"Player",price:"Free",period:"forever",color:"#4ECDC4",icon:"shield-check",features:["Compete in every weekly clash","Full leaderboard access","Player profile & stats","Achievement tracking","H2H rivalry tracking"],badge:"FREE"},
+    {name:"Pro",price:"€4.99",period:"/month",color:"#E8A838",icon:"star",features:["Everything in Player","Guaranteed check-in slot","Deep stats & analytics","Season recap cards","Pro badge on profile","Priority support"],badge:"POPULAR",highlighted:true},
+    {name:"Host",price:"€19.99",period:"/month",color:"#9B72CF",icon:"trophy",features:["Everything in Pro","Create your own clashes","Custom tournament rules","Full branding & logo","Host dashboard","Entry fee events (admin approved)"],badge:"POWER"}
+  ];
+
   return(
 
-    <div className="page wrap">
+    <div className="page wrap" style={{maxWidth:960,margin:"0 auto"}}>
 
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
+      {/* Hero */}
+      <div className="screen-hero" style={{textAlign:"center",padding:"48px 20px 32px",position:"relative"}}>
 
-        <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
+        <div style={{position:"absolute",top:0,left:"50%",transform:"translateX(-50%)",width:400,height:200,background:"radial-gradient(ellipse,rgba(155,114,207,.12) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
-      </div>
-
-      <div style={{textAlign:"center",padding:"80px 20px",maxWidth:560,margin:"0 auto"}}>
-
-        <div style={{width:80,height:80,margin:"0 auto 24px",background:"rgba(232,168,56,.08)",border:"2px solid rgba(232,168,56,.25)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center",fontSize:36}}>
+        <div className="float-icon" style={{width:80,height:80,margin:"0 auto 20px",background:"linear-gradient(135deg,rgba(232,168,56,.15),rgba(155,114,207,.15))",border:"2px solid rgba(232,168,56,.3)",borderRadius:20,display:"flex",alignItems:"center",justifyContent:"center"}}>
           {React.createElement("i",{className:"ti ti-stars",style:{fontSize:36,color:"#E8A838"}})}
         </div>
 
-        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:16}}>Coming Soon</div>
+        <div className="cond" style={{fontSize:11,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:12}}>Subscriptions Coming Soon</div>
 
-        <h1 style={{fontSize:"clamp(24px,4vw,40px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.15,marginBottom:16}}>
-
-          Subscriptions are on the way
-
+        <h1 style={{fontSize:"clamp(26px,4.5vw,42px)",fontWeight:900,color:"#F2EDE4",lineHeight:1.15,marginBottom:12,fontFamily:"'Russo One',sans-serif"}}>
+          Choose Your Path
         </h1>
 
-        <p style={{fontSize:15,color:"#C8D4E0",lineHeight:1.7,marginBottom:12}}>
-
-          We are upgrading our payment system to give you a better experience. The tiers you know and love - Player, Pro, and Host - are staying, but the checkout flow is getting a full upgrade.
-
+        <p style={{fontSize:15,color:"#C8D4E0",lineHeight:1.7,maxWidth:500,margin:"0 auto 8px"}}>
+          We are upgrading our payment system. The tiers you know and love are staying — the checkout flow is getting a full upgrade.
         </p>
-
-        <p style={{fontSize:14,color:"#BECBD9",lineHeight:1.7,marginBottom:32}}>
-
-          Competing in TFT Clash will always be free. Pro and Host subscriptions will be back soon.
-
+        <p style={{fontSize:13,color:"#BECBD9",lineHeight:1.7}}>
+          Competing in TFT Clash will <strong style={{color:"#4ECDC4"}}>always be free</strong>.
         </p>
+      </div>
 
+      {/* Tier Cards */}
+      <div className="screen-hero-d1" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:16,marginBottom:32}}>
+        {tiers.map(function(tier){
+          var isHighlighted=tier.highlighted;
+          return React.createElement("div",{key:tier.name,className:"tier-card",style:{
+            background:isHighlighted?"linear-gradient(165deg,rgba(232,168,56,.08) 0%,rgba(18,28,48,.95) 40%,rgba(10,15,28,.98) 100%)":"linear-gradient(165deg,rgba(255,255,255,.03),rgba(10,15,28,.98))",
+            border:isHighlighted?"2px solid rgba(232,168,56,.4)":"1px solid rgba(255,255,255,.08)",
+            borderRadius:16,padding:0,position:"relative",overflow:"hidden"}},
+            isHighlighted&&React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#E8A838,#9B72CF,#E8A838)"}}),
+            React.createElement("div",{style:{padding:"28px 24px 24px"}},
+              React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}},
+                React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+                  React.createElement("div",{style:{width:40,height:40,borderRadius:12,background:tier.color+"18",border:"1px solid "+tier.color+"44",display:"flex",alignItems:"center",justifyContent:"center"}},
+                    React.createElement("i",{className:"ti ti-"+tier.icon,style:{fontSize:20,color:tier.color}})),
+                  React.createElement("div",{style:{fontSize:20,fontWeight:800,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}},tier.name)),
+                React.createElement("span",{className:"cond",style:{fontSize:10,fontWeight:700,color:tier.color,background:tier.color+"18",padding:"3px 10px",borderRadius:6,letterSpacing:".08em"}},tier.badge)),
+              React.createElement("div",{style:{marginBottom:20}},
+                React.createElement("span",{style:{fontSize:36,fontWeight:900,color:tier.color,fontFamily:"'Russo One',sans-serif"}},tier.price),
+                React.createElement("span",{style:{fontSize:14,color:"#9AAABF",marginLeft:4}},tier.period)),
+              React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:8}},
+                tier.features.map(function(f,fi){return React.createElement("div",{key:fi,style:{display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#C8D4E0"}},
+                  React.createElement("i",{className:"ti ti-check",style:{fontSize:14,color:tier.color,flexShrink:0}}),f);})),
+              isHighlighted&&React.createElement(Btn,{v:"primary",full:true,style:{marginTop:20,opacity:.6,cursor:"not-allowed"}},"Coming Soon")));
+        })}
+      </div>
+
+      {/* CTA */}
+      <div className="screen-hero-d2" style={{textAlign:"center",marginBottom:24}}>
         <div style={{display:"inline-flex",gap:12,flexWrap:"wrap",justifyContent:"center"}}>
-
-          <Btn v="primary" onClick={()=>setScreen("home")}>Back to Home</Btn>
-
-          <Btn v="ghost" onClick={()=>setScreen("faq")}>Read the FAQ</Btn>
-
+          <Btn v="primary" onClick={function(){setScreen("home");}}>Back to Home</Btn>
+          <Btn v="ghost" onClick={function(){setScreen("faq");}}>Read the FAQ</Btn>
         </div>
-
-        <div style={{marginTop:48,padding:"20px 24px",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.2)",borderRadius:12}}>
-
-          <div style={{fontSize:13,color:"#9B72CF",fontWeight:700,marginBottom:6}}>Quick reminder</div>
-
-          <div style={{fontSize:13,color:"#C8D4E0",lineHeight:1.6}}>
-            Free tier: Compete in every weekly clash, full leaderboard, profile, achievements, H2H rivalries.
-            <br/>Pro: Guaranteed check-in, deeper stats, season recap cards, pro badge.
-            <br/>Host: Run your own branded clash events on the platform.
-          </div>
-
-        </div>
-
       </div>
 
     </div>
@@ -9855,9 +9884,10 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
         React.createElement(Btn,{v:"dark",s:"sm",onClick:function(){setScreen("home");}},"\u2190 Back"),
         React.createElement("h2",{style:{color:"#F2EDE4",fontSize:22,margin:0,flex:1,fontFamily:"'Playfair Display',serif"}},"My Profile")
       ),
-      linkedPlayer&&s?React.createElement("div",{style:{background:"linear-gradient(135deg,#111827 60%,"+rankColor+"22 100%)",borderRadius:16,padding:24,marginBottom:24,border:"1px solid #1E293B"}},
+      linkedPlayer&&s?React.createElement("div",{className:"screen-hero",style:{background:"linear-gradient(135deg,#111827 60%,"+rankColor+"15 100%)",borderRadius:16,padding:24,marginBottom:24,border:"1px solid "+rankColor+"33",position:"relative",overflow:"hidden"}},
+        React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,"+rankColor+",#9B72CF,"+rankColor+")"}}),
         React.createElement("div",{style:{display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"}},
-          React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,"+rankColor+",#9B72CF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,fontWeight:900,color:"#08080F"}},linkedPlayer.name.charAt(0).toUpperCase()),
+          React.createElement("div",{style:{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,"+rankColor+",#9B72CF)",boxShadow:"0 0 24px "+rankColor+"44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,fontWeight:900,color:"#08080F"}},linkedPlayer.name.charAt(0).toUpperCase()),
           React.createElement("div",{style:{flex:1,minWidth:150}},
             React.createElement("div",{style:{fontSize:22,fontWeight:800,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}},linkedPlayer.name),
             React.createElement("div",{style:{fontSize:13,color:"#BECBD9"}},linkedPlayer.riotId||riotId," \u00b7 ",linkedPlayer.region||riotRegion),
@@ -10398,9 +10428,9 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
     <div className="page wrap" style={{maxWidth:560,margin:"0 auto",textAlign:"center",paddingTop:60}}>
 
-      <div style={{fontSize:48,marginBottom:16}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
+      <div style={{width:72,height:72,margin:"0 auto 16px",borderRadius:20,background:"linear-gradient(135deg,rgba(82,196,124,.12),rgba(78,205,196,.08))",border:"2px solid rgba(82,196,124,.3)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-circle-check",style:{fontSize:40,color:"#52C47C",filter:"drop-shadow(0 0 12px rgba(82,196,124,.4))"}})}</div>
 
-      <h2 style={{color:"#F2EDE4",marginBottom:10}}>Application Submitted!</h2>
+      <h2 style={{color:"#F2EDE4",marginBottom:10,fontFamily:"'Russo One',sans-serif"}}>Application Submitted!</h2>
 
       <p style={{fontSize:14,color:"#C8D4E0",marginBottom:8,lineHeight:1.7}}>We review all host applications within 48 hours. You'll be notified at <span style={{color:"#E8A838"}}>{currentUser?.email||"your email"}</span> once approved.</p>
 
@@ -10421,9 +10451,9 @@ function HostApplyScreen({currentUser,toast,setScreen,setHostApps}){
 
       <div style={{marginBottom:28}}>
 
-        <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
+        <div className="float-icon" style={{width:60,height:60,borderRadius:16,background:"linear-gradient(135deg,rgba(155,114,207,.12),rgba(232,168,56,.08))",border:"2px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}>{React.createElement("i",{className:"ti ti-device-gamepad-2",style:{fontSize:28,color:"#9B72CF"}})}</div>
 
-        <h2 style={{color:"#F2EDE4",fontSize:22,marginBottom:8}}>Apply to Host</h2>
+        <h2 style={{color:"#F2EDE4",fontSize:22,marginBottom:8,fontFamily:"'Russo One',sans-serif"}}>Apply to Host</h2>
 
         <p style={{fontSize:14,color:"#C8D4E0",lineHeight:1.6}}>Host status gives you your own tournament dashboard to create and run TFT Clash events. All hosts are manually reviewed and approved by our admin team.</p>
 
@@ -11406,7 +11436,9 @@ function EventsScreen(props){
   var tabs=["upcoming","past","all"];
   return React.createElement("div",{className:"wrap",style:{maxWidth:900,margin:"0 auto",padding:"24px 16px"}},
     React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}},
-      React.createElement("h2",{style:{fontFamily:"Playfair Display,serif",fontSize:28,color:"#C8D4E0",margin:0}},"Events"),
+      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:12}},
+        React.createElement("div",{className:"float-icon",style:{width:40,height:40,borderRadius:12,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",display:"flex",alignItems:"center",justifyContent:"center"}},React.createElement("i",{className:"ti ti-calendar-event",style:{fontSize:20,color:"#9B72CF"}})),
+        React.createElement("h2",{style:{fontFamily:"'Russo One',sans-serif",fontSize:26,color:"#F2EDE4",margin:0}},"Events")),
       React.createElement("div",{style:{display:"flex",gap:8}},
         tabs.map(function(t){return React.createElement("button",{key:t,onClick:function(){setTab(t);},style:{padding:"6px 16px",borderRadius:RAD.sm,border:tab===t?"1px solid #9B72CF":"1px solid #1E293B",background:tab===t?"rgba(155,114,207,0.15)":"transparent",color:tab===t?"#9B72CF":"#9AAABF",cursor:"pointer",fontSize:13,fontWeight:600,textTransform:"capitalize"}},t);})
       )
@@ -11416,7 +11448,8 @@ function EventsScreen(props){
       shown.map(function(ev){
         var statusColor=PHASE_COLORS[ev.status]||"#6B7280";
         var playerCount=ev.registered?ev.registered.length:0;
-        return React.createElement("div",{key:ev.id,style:{background:"#111827",borderRadius:RAD.md,border:"1px solid #1E293B",padding:20,display:"flex",flexDirection:"column",gap:12}},
+        return React.createElement("div",{key:ev.id,className:"event-card",style:{background:"linear-gradient(165deg,"+statusColor+"08,#111827 40%)",borderRadius:RAD.md,border:"1px solid "+statusColor+"22",padding:20,display:"flex",flexDirection:"column",gap:12,position:"relative",overflow:"hidden"}},
+          React.createElement("div",{style:{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+statusColor+"66,transparent)"}}),
           React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
             React.createElement("span",{style:{fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,color:statusColor,background:"rgba(0,0,0,0.3)",padding:"3px 8px",borderRadius:4}},ev.status||"upcoming"),
             ev.format&&React.createElement("span",{style:{fontSize:11,color:"#6B7280"}},ev.format)
@@ -11443,7 +11476,10 @@ function RulesScreen({setScreen}){
     <div className="page wrap">
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
         <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>← Back</Btn>
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Official Rules</h2>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{width:36,height:36,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-gavel",style:{fontSize:17,color:"#E8A838"}})}</div>
+          <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,fontFamily:"'Russo One',sans-serif"}}>Official Rules</h2>
+        </div>
       </div>
 
       <Panel style={{padding:"24px",marginBottom:16}}>
@@ -11586,7 +11622,10 @@ function FAQScreen({setScreen}){
     <div className="page wrap">
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
         <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>← Back</Btn>
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Frequently Asked Questions</h2>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{width:36,height:36,borderRadius:10,background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-help-hexagon",style:{fontSize:17,color:"#9B72CF"}})}</div>
+          <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,fontFamily:"'Russo One',sans-serif"}}>Frequently Asked Questions</h2>
+        </div>
       </div>
 
       <input
@@ -11667,15 +11706,19 @@ function GearScreen(props){
     <div className="page wrap" style={{maxWidth:800,margin:"0 auto"}}>
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:24,flexWrap:"wrap"}}>
         <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"\u2190 Back"}</Btn>
-        <h2 style={{color:"#F2EDE4",fontSize:22,margin:0,fontFamily:"'Playfair Display',serif"}}>Recommended Gear</h2>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div className="float-icon" style={{width:38,height:38,borderRadius:10,background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.25)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-device-gamepad-2",style:{fontSize:18,color:"#E8A838"}})}</div>
+          <h2 style={{color:"#F2EDE4",fontSize:22,margin:0,fontFamily:"'Russo One',sans-serif"}}>Recommended Gear</h2>
+        </div>
       </div>
       <p style={{color:"#BECBD9",fontSize:13,marginBottom:24,lineHeight:1.6}}>Gear we trust for competitive TFT sessions. Links may earn us a small commission at no extra cost to you \u2014 it helps keep TFT Clash free.</p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
         {items.map(function(item,i){
           return(
-            <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:18,transition:"border-color .2s",cursor:"default"}}
-              onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"66";}}
-              onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.08)";}}>
+            <div key={i} className="gear-card" style={{background:"linear-gradient(165deg,"+item.color+"08,rgba(17,24,39,.95) 50%)",border:"1px solid "+item.color+"22",borderRadius:14,padding:20,cursor:"default",position:"relative",overflow:"hidden"}}
+              onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"55";}}
+              onMouseLeave={function(e){e.currentTarget.style.borderColor=item.color+"22";}}>
+              <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+item.color+"44,transparent)",opacity:.6}}/>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
                 <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[item.icon]||item.icon),style:{fontSize:22,color:item.color}})}</span>
                 <div>
@@ -11700,11 +11743,14 @@ function PrivacyScreen(props){
   return(
     <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
       <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
-      <h1 style={{color:"#F2EDE4",fontSize:26,marginTop:16,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>Privacy Policy</h1>
+      <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:14,marginTop:16,marginBottom:24}}>
+        <div style={{width:44,height:44,borderRadius:12,background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-shield-lock",style:{fontSize:22,color:"#4ECDC4"}})}</div>
+        <h1 style={{color:"#F2EDE4",fontSize:26,margin:0,fontFamily:"'Russo One',sans-serif"}}>Privacy Policy</h1>
+      </div>
       <div style={{color:"#BECBD9",fontSize:14,lineHeight:1.8}}>
         <p style={{marginBottom:16}}><strong style={{color:"#F2EDE4"}}>Effective Date:</strong> March 2026</p>
         <p style={{marginBottom:16}}>TFT Clash ("we", "us") respects your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>1. Data We Collect</h3>
+        <h3 className="legal-section" style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24,paddingLeft:12,borderLeft:"3px solid rgba(196,181,253,.2)"}}>1. Data We Collect</h3>
         <p style={{marginBottom:16}}>When you create an account, we collect your email address, username, and optionally your Riot ID and Discord username. During tournaments, we record your game placements and points. We also store session cookies to keep you logged in.</p>
         <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>2. How We Use Your Data</h3>
         <p style={{marginBottom:16}}>Your data is used to operate the platform: displaying leaderboards, tracking tournament results, managing subscriptions, and sending you relevant notifications. We never sell your data to third parties.</p>
@@ -11728,11 +11774,14 @@ function TermsScreen(props){
   return(
     <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
       <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
-      <h1 style={{color:"#F2EDE4",fontSize:26,marginTop:16,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>Terms of Service</h1>
+      <div className="screen-hero" style={{display:"flex",alignItems:"center",gap:14,marginTop:16,marginBottom:24}}>
+        <div style={{width:44,height:44,borderRadius:12,background:"rgba(232,168,56,.08)",border:"1px solid rgba(232,168,56,.2)",display:"flex",alignItems:"center",justifyContent:"center"}}>{React.createElement("i",{className:"ti ti-file-text",style:{fontSize:22,color:"#E8A838"}})}</div>
+        <h1 style={{color:"#F2EDE4",fontSize:26,margin:0,fontFamily:"'Russo One',sans-serif"}}>Terms of Service</h1>
+      </div>
       <div style={{color:"#BECBD9",fontSize:14,lineHeight:1.8}}>
         <p style={{marginBottom:16}}><strong style={{color:"#F2EDE4"}}>Effective Date:</strong> March 2026</p>
         <p style={{marginBottom:16}}>By using TFT Clash, you agree to these terms. If you disagree, please do not use the platform.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>1. Eligibility</h3>
+        <h3 className="legal-section" style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24,paddingLeft:12,borderLeft:"3px solid rgba(196,181,253,.2)"}}>1. Eligibility</h3>
         <p style={{marginBottom:16}}>You must be at least 16 years old to create an account. By signing up, you confirm you meet this requirement.</p>
         <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>2. Fair Play</h3>
         <p style={{marginBottom:16}}>All participants must compete fairly. Cheating, match-fixing, account sharing, or exploiting bugs results in immediate disqualification and potential permanent ban. Decisions by tournament admins are final.</p>
