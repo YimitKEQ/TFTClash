@@ -4215,13 +4215,15 @@ function ClashPhaseCheckIn({players,tournamentState,setTournamentState,currentUs
   );
 }
 
-function ClashPhaseLive({players,tournamentState,currentUser,setProfilePlayer,toast}){
+function ClashPhaseLive({players,setPlayers,tournamentState,setTournamentState,currentUser,setProfilePlayer,toast,isAdmin,seasonConfig}){
   var ts=tournamentState||{};
   var round=ts.round||1;
   var totalGames=ts.totalGames||3;
   var lobbies=ts.lobbies||[];
   var myId=currentUser?String(currentUser.id):"";
   var myLobbyIdx=-1;
+  var [lobbySearch,setLobbySearch]=useState("");
+  var [showAllLobbies,setShowAllLobbies]=useState(false);
 
   lobbies.forEach(function(lobby,idx){
     if(lobby&&lobby.some(function(p){return String(p.id)===myId;}))myLobbyIdx=idx;
@@ -4445,7 +4447,7 @@ function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePla
 
       {phase==="checkin"&&<ClashPhaseCheckIn players={players} tournamentState={tournamentState} setTournamentState={setTournamentState} currentUser={currentUser} toast={toast}/>}
 
-      {phase==="inprogress"&&<ClashPhaseLive players={players} tournamentState={tournamentState} currentUser={currentUser} setProfilePlayer={setProfilePlayer} toast={toast}/>}
+      {phase==="inprogress"&&<ClashPhaseLive players={players} setPlayers={setPlayers} tournamentState={tournamentState} setTournamentState={setTournamentState} currentUser={currentUser} setProfilePlayer={setProfilePlayer} toast={toast} isAdmin={isAdmin} seasonConfig={seasonConfig}/>}
 
       {phase==="complete"&&<ClashPhaseResults players={players} tournamentState={tournamentState} toast={toast} setProfilePlayer={setProfilePlayer} setScreen={setScreen}/>}
     </div>
@@ -12688,7 +12690,18 @@ function TFTClash(){
     var canScr=effAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
     if(s==="scrims"&&!canScr){toast("Access restricted","error");return;}
     setScreen(s);
+    if(window.location.hash.replace("#","")!==s){window.location.hash=s;}
   },[isAdmin,currentUser,scrimAccess,toast]);
+
+  // URL hash routing — browser back/forward support
+  useEffect(function(){
+    function handleHash(){
+      var hash=window.location.hash.replace("#","");
+      if(hash){setScreen(function(prev){return hash!==prev?hash:prev;});}
+    }
+    window.addEventListener("hashchange",handleHash);
+    return function(){window.removeEventListener("hashchange",handleHash);};
+  },[]);
 
   useEffect(function(){
     var params=new URLSearchParams(window.location.search);
