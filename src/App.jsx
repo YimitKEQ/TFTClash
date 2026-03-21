@@ -4041,7 +4041,8 @@ function ClashPhaseRegistration({players,tournamentState,setTournamentState,curr
           <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
             {regPlayers.map(function(p){
               return(
-                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.15)",borderRadius:8,padding:"6px 12px",fontSize:13,color:"#C4B5FD",cursor:"pointer",transition:"all .15s",fontWeight:500}}>
+                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"6px 12px 6px 6px",fontSize:13,color:"#C4B5FD",cursor:"pointer",transition:"all .15s",fontWeight:500,display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{width:22,height:22,borderRadius:"50%",background:"rgba(155,114,207,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{p.name.charAt(0)}</div>
                   {p.name}
                 </div>
               );
@@ -4156,39 +4157,48 @@ function ClashPhaseLive({players,tournamentState,currentUser,setProfilePlayer,to
 
   return(
     <div>
-      <Panel style={{padding:"20px 24px",marginBottom:20}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+      <Panel className="live-pulse-ring" style={{padding:"24px 24px 20px",marginBottom:20,border:"1px solid rgba(82,196,124,.3)",boxShadow:"0 0 40px rgba(82,196,124,.08)"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:8}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <BI n="flame" size={20} color="#52C47C"/>
-            <span style={{fontSize:18,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif"}}>Clash Live</span>
+            <div style={{width:10,height:10,borderRadius:"50%",background:"#52C47C",boxShadow:"0 0 12px rgba(82,196,124,.6)",animation:"pulse 2s infinite"}}/>
+            <span style={{fontSize:20,fontWeight:700,color:"#F2EDE4",fontFamily:"'Russo One',sans-serif"}}>CLASH LIVE</span>
           </div>
-          <div style={{background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,padding:"5px 14px",fontSize:12,fontWeight:700,color:"#6EE7B7",fontFamily:"Barlow Condensed,sans-serif",letterSpacing:".04em"}}>
-            ROUND {round}/{totalGames}
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            {[].concat(Array(totalGames)).map(function(_,gi){return React.createElement("div",{key:gi,style:{width:gi+1===round?28:20,height:6,borderRadius:3,background:gi<round?"linear-gradient(90deg,#52C47C,#6EE7B7)":gi===round?"rgba(232,168,56,.5)":"rgba(242,237,228,.08)",transition:"all .3s"}});})}
+            <span style={{fontSize:12,fontWeight:700,color:"#6EE7B7",marginLeft:6,fontFamily:"Barlow Condensed,sans-serif"}}>{"R"+round+"/"+totalGames}</span>
           </div>
         </div>
 
-        <div style={{width:"100%",height:4,background:"rgba(242,237,228,.06)",borderRadius:2,overflow:"hidden",marginBottom:4}}>
-          <div style={{width:(round/totalGames*100)+"%",height:"100%",background:"linear-gradient(90deg,#52C47C,#6EE7B7)",borderRadius:2,transition:"width .4s"}}/>
+        <div style={{width:"100%",height:4,background:"rgba(242,237,228,.06)",borderRadius:2,overflow:"hidden"}}>
+          <div className="shimmer-bar" style={{width:(round/totalGames*100)+"%",height:"100%",background:"linear-gradient(90deg,#52C47C,#6EE7B7)",borderRadius:2,transition:"width .6s"}}/>
         </div>
       </Panel>
 
       {myLobbyIdx>=0&&lobbies[myLobbyIdx]&&(
-        <Panel style={{padding:"20px 20px 14px",marginBottom:20}} color="#52C47C">
-          <div style={{fontSize:13,fontWeight:700,color:"#6EE7B7",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
-            <BI n="star" size={14} color="#6EE7B7"/> Your Lobby (#{myLobbyIdx+1})
-          </div>
-          <div style={{display:"flex",flexDirection:"column",gap:4}}>
-            {lobbies[myLobbyIdx].map(function(p,pi){
-              var isMe=String(p.id)===myId;
-              return(
-                <div key={p.id||pi} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 12px",borderRadius:8,background:isMe?"rgba(82,196,124,.1)":"rgba(242,237,228,.02)",border:isMe?"1px solid rgba(82,196,124,.2)":"1px solid transparent"}}>
-                  <span style={{fontSize:13,color:isMe?"#6EE7B7":"#BECBD9",fontWeight:isMe?700:400}}>{p.name||"Player"}</span>
-                  <span style={{fontSize:11,color:"#9AAABF"}}>{p.pts||0} pts</span>
-                </div>
-              );
-            })}
-          </div>
-        </Panel>
+        <div style={{position:"relative",marginBottom:20}}>
+          <Panel style={{padding:"20px 20px 14px",border:"1px solid rgba(82,196,124,.35)",boxShadow:"0 0 30px rgba(82,196,124,.1),0 4px 16px rgba(0,0,0,.3)"}} color="#52C47C">
+            <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#6EE7B7,transparent)",borderRadius:"2px 2px 0 0"}}/>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <BI n="star-filled" size={16} color="#6EE7B7"/>
+                <span style={{fontSize:14,fontWeight:700,color:"#6EE7B7",textTransform:"uppercase",letterSpacing:".06em",fontFamily:"'Russo One',sans-serif"}}>Your Lobby</span>
+              </div>
+              <span style={{background:"rgba(82,196,124,.15)",border:"1px solid rgba(82,196,124,.3)",borderRadius:6,padding:"3px 10px",fontSize:11,fontWeight:700,color:"#6EE7B7"}}>{"#"+(myLobbyIdx+1)}</span>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:4}}>
+              {lobbies[myLobbyIdx].map(function(p,pi){
+                var isMe=String(p.id)===myId;
+                return(
+                  <div key={p.id||pi} onClick={function(){if(setProfilePlayer&&p.id)setProfilePlayer(p);}} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:10,background:isMe?"linear-gradient(135deg,rgba(82,196,124,.12),rgba(82,196,124,.04))":"rgba(242,237,228,.02)",border:isMe?"1px solid rgba(82,196,124,.25)":"1px solid rgba(242,237,228,.04)",cursor:"pointer",transition:"all .15s"}}>
+                    <div style={{width:28,height:28,borderRadius:"50%",background:isMe?"rgba(82,196,124,.2)":"rgba(155,114,207,.1)",border:isMe?"1px solid rgba(82,196,124,.4)":"1px solid rgba(155,114,207,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:isMe?"#6EE7B7":"#C4B5FD",flexShrink:0}}>{(p.name||"P").charAt(0)}</div>
+                    <span style={{flex:1,fontSize:13,color:isMe?"#6EE7B7":"#F2EDE4",fontWeight:isMe?700:500}}>{p.name||"Player"}{isMe?" (YOU)":""}</span>
+                    <span className="mono" style={{fontSize:12,fontWeight:600,color:"#BECBD9"}}>{p.pts||0}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+        </div>
       )}
 
       {sorted.length>0&&(
@@ -4200,10 +4210,10 @@ function ClashPhaseLive({players,tournamentState,currentUser,setProfilePlayer,to
             {sorted.slice(0,16).map(function(p,i){
               var isMe=String(p.id)===myId;
               return(
-                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 12px",borderRadius:8,background:isMe?"rgba(82,196,124,.08)":"transparent",cursor:"pointer",transition:"background .15s"}}>
-                  <span style={{width:22,fontSize:12,fontWeight:700,color:i===0?"#E8A838":i<3?"#C4B5FD":"#9AAABF",textAlign:"center"}}>{i+1}</span>
-                  <span style={{flex:1,fontSize:13,color:isMe?"#6EE7B7":"#F2EDE4",fontWeight:isMe?700:400}}>{p.name}</span>
-                  <span style={{fontSize:12,fontWeight:600,color:"#BECBD9"}}>{p.pts||0} pts</span>
+                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:10,background:isMe?"linear-gradient(135deg,rgba(82,196,124,.1),rgba(82,196,124,.03))":i<3?"rgba(232,168,56,.03)":"transparent",border:isMe?"1px solid rgba(82,196,124,.2)":"1px solid transparent",cursor:"pointer",transition:"all .15s"}}>
+                  <div style={{width:24,height:24,borderRadius:"50%",background:i===0?"rgba(232,168,56,.2)":i===1?"rgba(192,192,192,.15)":i===2?"rgba(205,127,50,.15)":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF"}}>{i<3?React.createElement("i",{className:"ti ti-award",style:{fontSize:14,color:i===0?"#E8A838":i===1?"#C0C0C0":"#CD7F32"}}):(i+1)}</div>
+                  <span style={{flex:1,fontSize:13,color:isMe?"#6EE7B7":"#F2EDE4",fontWeight:isMe?700:i<3?600:400}}>{p.name}{isMe?" (YOU)":""}</span>
+                  <span className="mono" style={{fontSize:13,fontWeight:700,color:i===0?"#E8A838":"#BECBD9"}}>{p.pts||0}</span>
                 </div>
               );
             })}
@@ -4248,14 +4258,19 @@ function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setSc
 
   return(
     <div>
-      <Panel style={{padding:"32px 24px 24px",marginBottom:20,textAlign:"center"}} glow>
-        <div style={{fontSize:11,fontWeight:700,color:"#E8A838",textTransform:"uppercase",letterSpacing:".1em",marginBottom:8,fontFamily:"Barlow Condensed,sans-serif"}}>
-          <BI n="trophy" size={14} color="#E8A838"/> Champion
-        </div>
-        <div style={{fontSize:28,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif",marginBottom:4}}>{champ.name}</div>
-        <div style={{fontSize:14,color:"#E8A838",fontWeight:600}}>{champ.pts||0} points</div>
-        <div style={{fontSize:12,color:"#9AAABF",marginTop:4}}>{clashName}{clashDate?" - "+clashDate:""}</div>
-      </Panel>
+      <div style={{position:"relative",marginBottom:20}}>
+        <Panel style={{padding:"36px 24px 28px",textAlign:"center",border:"1px solid rgba(232,168,56,.4)",boxShadow:"0 0 60px rgba(232,168,56,.12),0 8px 32px rgba(0,0,0,.4)"}} glow>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)"}}/>
+          {[0,1,2,3,4,5].map(function(si){return React.createElement("div",{key:si,style:{position:"absolute",width:2,height:2,borderRadius:"50%",background:"#E8A838",top:(8+si*14)+"%",right:(4+si*6)+"%",opacity:.35,animation:"blink "+(1.5+si*.3)+"s "+(si*.15)+"s infinite"}});})}
+          <div style={{fontSize:36,color:"#E8A838",marginBottom:10,filter:"drop-shadow(0 0 16px rgba(232,168,56,.4))"}}>
+            {React.createElement("i",{className:"ti ti-trophy"})}
+          </div>
+          <div className="cond" style={{fontSize:10,fontWeight:700,color:"#E8A838",textTransform:"uppercase",letterSpacing:".2em",marginBottom:8}}>Champion</div>
+          <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(26px,5vw,36px)",color:"#F2EDE4",marginBottom:6,textShadow:"0 0 24px rgba(232,168,56,.2)"}}>{champ.name}</div>
+          <div style={{fontSize:18,color:"#E8A838",fontWeight:700,fontFamily:"'Russo One',sans-serif"}}>{champ.pts||0} points</div>
+          <div style={{fontSize:12,color:"#9AAABF",marginTop:6}}>{clashName}{clashDate?" · "+clashDate:""}</div>
+        </Panel>
+      </div>
 
       <div style={{display:"flex",justifyContent:"center",alignItems:"flex-end",gap:12,marginBottom:24,padding:"0 12px"}}>
         {top3.map(function(p,ti){
@@ -4306,12 +4321,45 @@ function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setSc
 function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig,quickClashes,onRegister,featuredEvents}){
   var ts=tournamentState||{};
   var phase=ts.phase||"registration";
+  var phCol=PHASE_COLORS[phase]||"#9B72CF";
+  var regCount=(ts.registeredIds||[]).length;
+  var maxP=ts.maxPlayers||24;
+  var checkedCount=(ts.checkedInIds||[]).length;
 
   return(
-    <div className="page wrap" style={{maxWidth:700,margin:"0 auto",padding:"24px 16px 80px"}}>
-      <div style={{marginBottom:8}}>
-        <div style={{fontSize:24,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif"}}>{ts.clashName||"TFT Clash"}</div>
-        <div style={{fontSize:13,color:"#9AAABF",marginTop:2}}>{ts.clashDate||"Season 1"}</div>
+    <div className="page wrap" style={{maxWidth:720,margin:"0 auto",padding:"24px 16px 80px"}}>
+      {/* ── Hero Banner ── */}
+      <div className="war-entrance" style={{position:"relative",overflow:"hidden",borderRadius:16,padding:"28px 28px 24px",marginBottom:24,background:"linear-gradient(145deg,rgba("+parseInt(phCol.slice(1,3),16)+","+parseInt(phCol.slice(3,5),16)+","+parseInt(phCol.slice(5,7),16)+",.12),rgba(8,8,15,.97))",border:"1px solid rgba("+parseInt(phCol.slice(1,3),16)+","+parseInt(phCol.slice(3,5),16)+","+parseInt(phCol.slice(5,7),16)+",.3)",boxShadow:"0 8px 32px rgba(0,0,0,.4),0 0 60px rgba("+parseInt(phCol.slice(1,3),16)+","+parseInt(phCol.slice(3,5),16)+","+parseInt(phCol.slice(5,7),16)+",.08)"}}>
+        <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,"+phCol+",transparent)"}}/>
+        {phase==="inprogress"&&React.createElement("div",{style:{position:"absolute",top:10,right:16,width:10,height:10,borderRadius:"50%",background:"#F87171",boxShadow:"0 0 12px rgba(248,113,113,.6)",animation:"pulse 2s infinite"}})}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <BI n={PHASE_ICONS[phase]||"swords"} size={18} color={phCol}/>
+              <span className="cond" style={{fontSize:10,fontWeight:700,color:phCol,letterSpacing:".12em",textTransform:"uppercase"}}>{PHASE_LABELS[phase]||"Clash"}</span>
+            </div>
+            <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(22px,4vw,30px)",color:"#F2EDE4",lineHeight:1.1,marginBottom:4}}>{ts.clashName||"TFT Clash"}</div>
+            <div style={{fontSize:13,color:"#9AAABF"}}>{ts.clashDate||seasonConfig&&seasonConfig.seasonName||"Season 1"}</div>
+          </div>
+          <div style={{display:"flex",gap:10,alignItems:"center"}}>
+            {phase==="registration"&&React.createElement("div",{style:{textAlign:"center",background:"rgba(155,114,207,.1)",border:"1px solid rgba(155,114,207,.25)",borderRadius:12,padding:"10px 16px"}},
+              React.createElement("div",{className:"mono",style:{fontSize:24,fontWeight:700,color:"#C4B5FD"}},regCount+"/"+maxP),
+              React.createElement("div",{className:"cond",style:{fontSize:9,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",marginTop:2}},"registered")
+            )}
+            {phase==="checkin"&&React.createElement("div",{style:{textAlign:"center",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.25)",borderRadius:12,padding:"10px 16px"}},
+              React.createElement("div",{className:"mono",style:{fontSize:24,fontWeight:700,color:"#E8A838"}},checkedCount+"/"+regCount),
+              React.createElement("div",{className:"cond",style:{fontSize:9,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",marginTop:2}},"checked in")
+            )}
+            {phase==="inprogress"&&React.createElement("div",{style:{textAlign:"center",background:"rgba(82,196,124,.1)",border:"1px solid rgba(82,196,124,.25)",borderRadius:12,padding:"10px 16px"}},
+              React.createElement("div",{className:"mono",style:{fontSize:24,fontWeight:700,color:"#6EE7B7"}},"R"+(ts.round||1)+"/"+(ts.totalGames||3)),
+              React.createElement("div",{className:"cond",style:{fontSize:9,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",marginTop:2}},"round")
+            )}
+            {phase==="complete"&&React.createElement("div",{style:{textAlign:"center"}},
+              React.createElement("div",{style:{fontSize:28,color:"#E8A838",filter:"drop-shadow(0 0 12px rgba(232,168,56,.4))"}},React.createElement("i",{className:"ti ti-trophy"})),
+              React.createElement("div",{className:"cond",style:{fontSize:9,color:"#E8A838",textTransform:"uppercase",letterSpacing:".08em",marginTop:2}},"complete")
+            )}
+          </div>
+        </div>
       </div>
 
       <ClashPhaseBar phase={phase}/>
