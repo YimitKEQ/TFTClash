@@ -4091,6 +4091,401 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 }
 
 
+// ─── CLASH SCREEN (Phase-Adaptive Unified View) ─────────────────────────────
+
+var PHASE_COLORS={registration:"#9B72CF",checkin:"#E8A838",inprogress:"#52C47C",complete:"#4ECDC4"};
+var PHASE_LABELS={registration:"Registration",checkin:"Check-In",inprogress:"Live",complete:"Results"};
+var PHASE_ICONS={registration:"pencil",checkin:"circle-check",inprogress:"flame",complete:"trophy"};
+var PHASE_ORDER=["registration","checkin","inprogress","complete"];
+
+function ClashPhaseBar({phase}){
+  return(
+    <div style={{display:"flex",gap:0,marginBottom:28,background:"rgba(17,24,39,.6)",borderRadius:14,overflow:"hidden",border:"1px solid rgba(242,237,228,.06)"}}>
+      {PHASE_ORDER.map(function(p,i){
+        var active=p===phase;
+        var done=PHASE_ORDER.indexOf(phase)>i;
+        var col=PHASE_COLORS[p];
+        var bg=active?"rgba("+parseInt(col.slice(1,3),16)+","+parseInt(col.slice(3,5),16)+","+parseInt(col.slice(5,7),16)+",.18)":done?"rgba(255,255,255,.03)":"transparent";
+        var borderB=active?"2px solid "+col:"2px solid transparent";
+        return(
+          <div key={p} style={{flex:1,textAlign:"center",padding:"13px 8px 11px",borderBottom:borderB,background:bg,transition:"all .25s"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+              {done&&<BI n="circle-check" size={14} color="#52C47C"/>}
+              {active&&<BI n={PHASE_ICONS[p]} size={14} color={col}/>}
+              {!done&&!active&&<BI n={PHASE_ICONS[p]} size={14} color="#555"/>}
+              <span style={{fontSize:12,fontWeight:active?700:500,color:active?col:done?"#6EE7B7":"#9AAABF",letterSpacing:".04em",textTransform:"uppercase",fontFamily:"Barlow Condensed,sans-serif"}}>{PHASE_LABELS[p]}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ClashPhaseRegistration({players,tournamentState,setTournamentState,currentUser,toast,onRegister,setProfilePlayer}){
+  var ts=tournamentState||{};
+  var regIds=ts.registeredIds||[];
+  var maxP=ts.maxPlayers||24;
+  var waitIds=ts.waitlistIds||[];
+  var isFull=regIds.length>=maxP;
+  var myId=currentUser?String(currentUser.id):"";
+  var amRegistered=regIds.includes(myId);
+  var amWaitlisted=waitIds.includes(myId);
+  var regPlayers=players.filter(function(p){return regIds.includes(String(p.id));});
+  var clashName=ts.clashName||"Next Clash";
+  var clashDate=ts.clashDate||"TBD";
+
+  function handleReg(){
+    if(onRegister&&currentUser){onRegister(currentUser.id);}
+    else if(!currentUser&&toast){toast("Log in to register","warning");}
+  }
+
+  return(
+    <div>
+      <Panel style={{padding:"28px 24px",marginBottom:20}}>
+        <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:18}}>
+          <div style={{width:48,height:48,borderRadius:12,background:"linear-gradient(135deg,rgba(155,114,207,.25),rgba(155,114,207,.08))",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <BI n="tournament" size={24} color="#9B72CF"/>
+          </div>
+          <div>
+            <div style={{fontSize:20,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif"}}>{clashName}</div>
+            <div style={{fontSize:13,color:"#9AAABF",marginTop:2}}><BI n="calendar" size={13} color="#9AAABF"/> {clashDate}</div>
+          </div>
+        </div>
+
+        <div style={{display:"flex",gap:16,marginBottom:20,flexWrap:"wrap"}}>
+          <div style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"10px 18px",flex:"1 1 120px",textAlign:"center"}}>
+            <div style={{fontSize:22,fontWeight:700,color:"#C4B5FD"}}>{regIds.length}<span style={{fontSize:13,color:"#9AAABF",fontWeight:400}}>/{maxP}</span></div>
+            <div style={{fontSize:11,color:"#9AAABF",marginTop:2,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>Registered</div>
+          </div>
+          <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,padding:"10px 18px",flex:"1 1 120px",textAlign:"center"}}>
+            <div style={{fontSize:22,fontWeight:700,color:"#E8A838"}}>{waitIds.length}</div>
+            <div style={{fontSize:11,color:"#9AAABF",marginTop:2,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>Waitlist</div>
+          </div>
+          <div style={{background:"rgba(78,205,196,.06)",border:"1px solid rgba(78,205,196,.15)",borderRadius:10,padding:"10px 18px",flex:"1 1 120px",textAlign:"center"}}>
+            <div style={{fontSize:22,fontWeight:700,color:"#5EEAD4"}}>{ts.totalGames||3}</div>
+            <div style={{fontSize:11,color:"#9AAABF",marginTop:2,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>Games</div>
+          </div>
+        </div>
+
+        {currentUser?(
+          <div>
+            {amRegistered?(
+              <Btn v="success" full onClick={handleReg} style={{marginBottom:8}}>
+                <BI n="circle-check" size={15}/> Registered - Click to Unregister
+              </Btn>
+            ):amWaitlisted?(
+              <Btn v="warning" full disabled>
+                <BI n="clock" size={15}/> On Waitlist (#{waitIds.indexOf(myId)+1})
+              </Btn>
+            ):(
+              <Btn v="purple" full onClick={handleReg} style={{marginBottom:8}}>
+                <BI n="pencil" size={15}/> {isFull?"Join Waitlist":"Register Now"}
+              </Btn>
+            )}
+          </div>
+        ):(
+          <div style={{textAlign:"center",color:"#9AAABF",fontSize:13,padding:"12px 0"}}>
+            <BI n="lock" size={14}/> Log in to register
+          </div>
+        )}
+      </Panel>
+
+      {regPlayers.length>0&&(
+        <Panel style={{padding:"20px 20px 12px"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#BECBD9",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
+            <BI n="users" size={14}/> Registered Players
+          </div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+            {regPlayers.map(function(p){
+              return(
+                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{background:"rgba(155,114,207,.08)",border:"1px solid rgba(155,114,207,.15)",borderRadius:8,padding:"6px 12px",fontSize:13,color:"#C4B5FD",cursor:"pointer",transition:"all .15s",fontWeight:500}}>
+                  {p.name}
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
+    </div>
+  );
+}
+
+function ClashPhaseCheckIn({players,tournamentState,setTournamentState,currentUser,toast}){
+  var ts=tournamentState||{};
+  var checkedIds=ts.checkedInIds||[];
+  var regIds=ts.registeredIds||[];
+  var maxP=ts.maxPlayers||24;
+  var myId=currentUser?String(currentUser.id):"";
+  var amRegistered=regIds.includes(myId);
+  var amCheckedIn=checkedIds.includes(myId);
+  var regPlayers=players.filter(function(p){return regIds.includes(String(p.id));});
+
+  function handleCheckIn(){
+    if(!currentUser){if(toast)toast("Log in first","warning");return;}
+    if(!amRegistered){if(toast)toast("You must register first","warning");return;}
+    if(amCheckedIn){
+      setTournamentState(function(prev){return Object.assign({},prev,{checkedInIds:(prev.checkedInIds||[]).filter(function(id){return id!==myId;})});});
+      if(toast)toast("Checked out","info");
+    }else{
+      setTournamentState(function(prev){return Object.assign({},prev,{checkedInIds:[].concat(prev.checkedInIds||[],[myId])});});
+      if(toast)toast("Checked in!","success");
+    }
+  }
+
+  return(
+    <div>
+      <Panel style={{padding:"28px 24px",marginBottom:20}}>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{width:64,height:64,borderRadius:"50%",background:"linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.08))",display:"inline-flex",alignItems:"center",justifyContent:"center",marginBottom:12}}>
+            <BI n="circle-check" size={32} color="#E8A838"/>
+          </div>
+          <div style={{fontSize:20,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif"}}>Check-In Open</div>
+          <div style={{fontSize:13,color:"#9AAABF",marginTop:4}}>Confirm your attendance before the clash starts</div>
+        </div>
+
+        <div style={{display:"flex",justifyContent:"center",gap:24,marginBottom:24}}>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:32,fontWeight:700,color:"#E8A838"}}>{checkedIds.length}</div>
+            <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>Checked In</div>
+          </div>
+          <div style={{width:1,background:"rgba(242,237,228,.08)"}}/>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontSize:32,fontWeight:700,color:"#BECBD9"}}>{regIds.length}</div>
+            <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>Registered</div>
+          </div>
+        </div>
+
+        <div style={{width:"100%",height:6,background:"rgba(242,237,228,.06)",borderRadius:3,marginBottom:20,overflow:"hidden"}}>
+          <div style={{width:(checkedIds.length/(regIds.length||1)*100)+"%",height:"100%",background:"linear-gradient(90deg,#E8A838,#FFD060)",borderRadius:3,transition:"width .4s"}}/>
+        </div>
+
+        {amRegistered?(
+          amCheckedIn?(
+            <Btn v="success" full onClick={handleCheckIn}>
+              <BI n="circle-check" size={15}/> Checked In - Click to Undo
+            </Btn>
+          ):(
+            <Btn v="primary" full onClick={handleCheckIn}>
+              <BI n="circle-check" size={15}/> Check In Now
+            </Btn>
+          )
+        ):(
+          <div style={{textAlign:"center",color:"#9AAABF",fontSize:13,padding:"12px 0"}}>
+            You are not registered for this clash
+          </div>
+        )}
+      </Panel>
+
+      <Panel style={{padding:"20px 20px 12px"}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#BECBD9",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
+          <BI n="users" size={14}/> Player Status
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          {regPlayers.map(function(p){
+            var checked=checkedIds.includes(String(p.id));
+            return(
+              <div key={p.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",borderRadius:8,background:checked?"rgba(82,196,124,.06)":"rgba(242,237,228,.02)",border:checked?"1px solid rgba(82,196,124,.15)":"1px solid rgba(242,237,228,.04)"}}>
+                <span style={{fontSize:13,color:checked?"#6EE7B7":"#9AAABF",fontWeight:checked?600:400}}>{p.name}</span>
+                {checked&&<BI n="circle-check" size={15} color="#52C47C"/>}
+                {!checked&&<BI n="clock" size={15} color="#555"/>}
+              </div>
+            );
+          })}
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
+function ClashPhaseLive({players,tournamentState,currentUser,setProfilePlayer,toast}){
+  var ts=tournamentState||{};
+  var round=ts.round||1;
+  var totalGames=ts.totalGames||3;
+  var lobbies=ts.lobbies||[];
+  var myId=currentUser?String(currentUser.id):"";
+  var myLobbyIdx=-1;
+
+  lobbies.forEach(function(lobby,idx){
+    if(lobby&&lobby.some(function(p){return String(p.id)===myId;}))myLobbyIdx=idx;
+  });
+
+  var sorted=[].concat(players).filter(function(p){return (ts.checkedInIds||[]).includes(String(p.id));}).sort(function(a,b){return(b.pts||0)-(a.pts||0);});
+
+  return(
+    <div>
+      <Panel style={{padding:"20px 24px",marginBottom:20}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <BI n="flame" size={20} color="#52C47C"/>
+            <span style={{fontSize:18,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif"}}>Clash Live</span>
+          </div>
+          <div style={{background:"rgba(82,196,124,.12)",border:"1px solid rgba(82,196,124,.3)",borderRadius:8,padding:"5px 14px",fontSize:12,fontWeight:700,color:"#6EE7B7",fontFamily:"Barlow Condensed,sans-serif",letterSpacing:".04em"}}>
+            ROUND {round}/{totalGames}
+          </div>
+        </div>
+
+        <div style={{width:"100%",height:4,background:"rgba(242,237,228,.06)",borderRadius:2,overflow:"hidden",marginBottom:4}}>
+          <div style={{width:(round/totalGames*100)+"%",height:"100%",background:"linear-gradient(90deg,#52C47C,#6EE7B7)",borderRadius:2,transition:"width .4s"}}/>
+        </div>
+      </Panel>
+
+      {myLobbyIdx>=0&&lobbies[myLobbyIdx]&&(
+        <Panel style={{padding:"20px 20px 14px",marginBottom:20}} color="#52C47C">
+          <div style={{fontSize:13,fontWeight:700,color:"#6EE7B7",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
+            <BI n="star" size={14} color="#6EE7B7"/> Your Lobby (#{myLobbyIdx+1})
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:4}}>
+            {lobbies[myLobbyIdx].map(function(p,pi){
+              var isMe=String(p.id)===myId;
+              return(
+                <div key={p.id||pi} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 12px",borderRadius:8,background:isMe?"rgba(82,196,124,.1)":"rgba(242,237,228,.02)",border:isMe?"1px solid rgba(82,196,124,.2)":"1px solid transparent"}}>
+                  <span style={{fontSize:13,color:isMe?"#6EE7B7":"#BECBD9",fontWeight:isMe?700:400}}>{p.name||"Player"}</span>
+                  <span style={{fontSize:11,color:"#9AAABF"}}>{p.pts||0} pts</span>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
+
+      {sorted.length>0&&(
+        <Panel style={{padding:"20px 20px 12px"}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#BECBD9",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
+            <BI n="chart-bar" size={14}/> Live Standings
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:3}}>
+            {sorted.slice(0,16).map(function(p,i){
+              var isMe=String(p.id)===myId;
+              return(
+                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 12px",borderRadius:8,background:isMe?"rgba(82,196,124,.08)":"transparent",cursor:"pointer",transition:"background .15s"}}>
+                  <span style={{width:22,fontSize:12,fontWeight:700,color:i===0?"#E8A838":i<3?"#C4B5FD":"#9AAABF",textAlign:"center"}}>{i+1}</span>
+                  <span style={{flex:1,fontSize:13,color:isMe?"#6EE7B7":"#F2EDE4",fontWeight:isMe?700:400}}>{p.name}</span>
+                  <span style={{fontSize:12,fontWeight:600,color:"#BECBD9"}}>{p.pts||0} pts</span>
+                </div>
+              );
+            })}
+          </div>
+        </Panel>
+      )}
+    </div>
+  );
+}
+
+function ClashPhaseResults({players,tournamentState,toast,setProfilePlayer,setScreen}){
+  var ts=tournamentState||{};
+  var sorted=[].concat(players).sort(function(a,b){return(b.pts||0)-(a.pts||0);});
+  var champ=sorted[0];
+  var clashName=ts.clashName||"TFT Clash";
+  var clashDate=ts.clashDate||"";
+
+  if(!champ)return(
+    <Panel style={{padding:"40px 24px",textAlign:"center"}}>
+      <div style={{color:"#9AAABF",fontSize:14}}>No results yet</div>
+    </Panel>
+  );
+
+  var PODIUM_COLS=["#E8A838","#C0C0C0","#CD7F32"];
+  var top3=[sorted[1],sorted[0],sorted[2]].filter(Boolean);
+  var PODIUM_H=[80,110,60];
+
+  function shareResults(){
+    var lines=["TFT Clash - "+clashName+" Results",""];
+    sorted.slice(0,8).forEach(function(p,i){
+      lines.push("#"+(i+1)+" "+p.name+"  "+((p.pts||0))+"pts");
+    });
+    lines.push("");
+    lines.push("Champion: "+champ.name);
+    try{
+      navigator.clipboard.writeText(lines.join("\n"));
+      if(toast)toast("Results copied!","success");
+    }catch(e){
+      if(toast)toast("Copy failed","warning");
+    }
+  }
+
+  return(
+    <div>
+      <Panel style={{padding:"32px 24px 24px",marginBottom:20,textAlign:"center"}} glow>
+        <div style={{fontSize:11,fontWeight:700,color:"#E8A838",textTransform:"uppercase",letterSpacing:".1em",marginBottom:8,fontFamily:"Barlow Condensed,sans-serif"}}>
+          <BI n="trophy" size={14} color="#E8A838"/> Champion
+        </div>
+        <div style={{fontSize:28,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif",marginBottom:4}}>{champ.name}</div>
+        <div style={{fontSize:14,color:"#E8A838",fontWeight:600}}>{champ.pts||0} points</div>
+        <div style={{fontSize:12,color:"#9AAABF",marginTop:4}}>{clashName}{clashDate?" - "+clashDate:""}</div>
+      </Panel>
+
+      <div style={{display:"flex",justifyContent:"center",alignItems:"flex-end",gap:12,marginBottom:24,padding:"0 12px"}}>
+        {top3.map(function(p,ti){
+          var realIdx=ti===0?1:ti===1?0:2;
+          var col=PODIUM_COLS[realIdx];
+          var h=PODIUM_H[ti];
+          return(
+            <div key={p.id||ti} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{flex:1,textAlign:"center",cursor:"pointer"}}>
+              <div style={{fontSize:13,fontWeight:700,color:col,marginBottom:6}}>{p.name}</div>
+              <div style={{fontSize:11,color:"#9AAABF",marginBottom:6}}>{p.pts||0} pts</div>
+              <div style={{height:h,background:"linear-gradient(180deg,"+col+"33,"+col+"11)",borderRadius:"8px 8px 0 0",border:"1px solid "+col+"44",borderBottom:"none",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <span style={{fontSize:20,fontWeight:700,color:col}}>#{realIdx+1}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <Panel style={{padding:"20px 20px 12px",marginBottom:20}}>
+        <div style={{fontSize:13,fontWeight:700,color:"#BECBD9",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
+          <BI n="chart-bar" size={14}/> Full Results
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:3}}>
+          {sorted.map(function(p,i){
+            return(
+              <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:8,background:i<3?"rgba(232,168,56,.04)":"transparent",cursor:"pointer",transition:"background .15s"}}>
+                <span style={{width:24,fontSize:13,fontWeight:700,color:i===0?"#E8A838":i===1?"#C0C0C0":i===2?"#CD7F32":"#9AAABF",textAlign:"center"}}>
+                  {i<3?<BI n="award" size={15} color={PODIUM_COLS[i]}/>:(i+1)}
+                </span>
+                <span style={{flex:1,fontSize:13,color:"#F2EDE4",fontWeight:i<3?600:400}}>{p.name}</span>
+                <span style={{fontSize:12,fontWeight:600,color:"#BECBD9"}}>{p.pts||0} pts</span>
+                <span style={{fontSize:11,color:"#9AAABF"}}>{getStats(p).avgPlacement||"-"} avg</span>
+              </div>
+            );
+          })}
+        </div>
+      </Panel>
+
+      <div style={{display:"flex",gap:10}}>
+        <Btn v="ghost" full onClick={shareResults}>
+          <BI n="clipboard" size={14}/> Share Results
+        </Btn>
+      </div>
+    </div>
+  );
+}
+
+function ClashScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig,quickClashes,onRegister,featuredEvents}){
+  var ts=tournamentState||{};
+  var phase=ts.phase||"registration";
+
+  return(
+    <div className="page wrap" style={{maxWidth:700,margin:"0 auto",padding:"24px 16px 80px"}}>
+      <div style={{marginBottom:8}}>
+        <div style={{fontSize:24,fontWeight:700,color:"#F2EDE4",fontFamily:"Playfair Display,serif"}}>{ts.clashName||"TFT Clash"}</div>
+        <div style={{fontSize:13,color:"#9AAABF",marginTop:2}}>{ts.clashDate||"Season 1"}</div>
+      </div>
+
+      <ClashPhaseBar phase={phase}/>
+
+      {phase==="registration"&&<ClashPhaseRegistration players={players} tournamentState={tournamentState} setTournamentState={setTournamentState} currentUser={currentUser} toast={toast} onRegister={onRegister} setProfilePlayer={setProfilePlayer}/>}
+
+      {phase==="checkin"&&<ClashPhaseCheckIn players={players} tournamentState={tournamentState} setTournamentState={setTournamentState} currentUser={currentUser} toast={toast}/>}
+
+      {phase==="inprogress"&&<ClashPhaseLive players={players} tournamentState={tournamentState} currentUser={currentUser} setProfilePlayer={setProfilePlayer} toast={toast}/>}
+
+      {phase==="complete"&&<ClashPhaseResults players={players} tournamentState={tournamentState} toast={toast} setProfilePlayer={setProfilePlayer} setScreen={setScreen}/>}
+    </div>
+  );
+}
+
+
 // ─── BRACKET SCREEN ───────────────────────────────────────────────────────────
 
 function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfilePlayer,setScreen,tournamentState,setTournamentState,seasonConfig}){
@@ -15360,6 +15755,8 @@ function TFTClash(){
 
   var navTo=useCallback(function(s){
     if(s==="standings")s="leaderboard";
+    if(s==="bracket")s="clash";
+    if(s==="results")s="clash";
     if(s==="admin"&&!isAdmin){toast("Admin access required","error");return;}
     var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
     if(s==="scrims"&&!canScrims){toast("Access restricted","error");return;}
@@ -15381,9 +15778,10 @@ function TFTClash(){
     var h=window.location.hash.slice(1);
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
-    var safeScreens=["home","standings","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear"];
+    var safeScreens=["home","standings","bracket","clash","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear"];
     var isSafe=safeScreens.includes(h)||h.indexOf("tournament-")===0;
     var dest=isSafe?h:"home";
+    if(dest==="bracket"||dest==="results")dest="clash";
     if(dest!=="home")setScreen(dest);
     window.history.replaceState({screen:dest},"","#"+dest);
   },[]);
@@ -15685,6 +16083,8 @@ function TFTClash(){
         {screen==="roster"     &&<RosterScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser}/>}
 
         {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
+
+        {screen==="clash"&&<ClashScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} quickClashes={quickClashes} onRegister={handleRegister} featuredEvents={featuredEvents}/>}
 
         {screen==="leaderboard"&&<MemoLeaderboardScreen players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast}/>}
 
