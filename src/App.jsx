@@ -3538,31 +3538,40 @@ var MemoStandingsTable = memo(StandingsTable);
 function StandingsScreen(props){
   var tab=props.subRoute||"";
   var tabs=[
-    {id:"",label:"Leaderboard"},
-    {id:"hof",label:"Hall of Fame"},
-    {id:"roster",label:"Player Directory"},
+    {id:"",label:"Leaderboard",icon:"ti-trophy"},
+    {id:"hof",label:"Hall of Fame",icon:"ti-crown"},
+    {id:"roster",label:"Player Directory",icon:"ti-users"},
   ];
   return React.createElement("div",{className:"page"},
-    React.createElement("div",{style:{display:"flex",gap:4,padding:"0 16px",marginBottom:20,borderBottom:"1px solid rgba(242,237,228,.06)"}},
+    React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
+      React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#F2EDE4",marginBottom:4,letterSpacing:".01em"}},"Standings"),
+      React.createElement("p",{style:{fontSize:13,color:"#9AAABF",maxWidth:400,margin:"0 auto"}},"Season rankings, legends, and the full player roster")
+    ),
+    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
           key:t.id,
           onClick:function(){props.setScreen("standings"+(t.id?"/"+t.id:""));},
           style:{
-            padding:"10px 18px",
-            background:"none",
-            border:"none",
-            borderBottom:active?"2px solid #9B72CF":"2px solid transparent",
+            display:"flex",alignItems:"center",gap:6,
+            padding:"10px 20px",
+            background:active?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)",
+            border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
+            borderRadius:10,
             color:active?"#F2EDE4":"#9AAABF",
             fontFamily:"'Barlow Condensed',sans-serif",
-            fontSize:14,
+            fontSize:13,
             fontWeight:active?700:500,
             cursor:"pointer",
-            letterSpacing:".02em",
-            transition:"all .2s",
+            letterSpacing:".03em",
+            transition:"all .25s ease",
+            boxShadow:active?"0 0 12px rgba(155,114,207,.1)":"none",
           }
-        },t.label);
+        },
+          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#9AAABF"}}),
+          t.label
+        );
       })
     ),
     tab===""?React.createElement(MemoLeaderboardScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser,toast:props.toast}):null,
@@ -3576,29 +3585,51 @@ function StandingsScreen(props){
 function ProfileScreen(props){
   var tab=props.subRoute||"";
   var tabs=[
-    {id:"",label:"Account"},
-    {id:"milestones",label:"Milestones"},
-    {id:"challenges",label:"Challenges"},
+    {id:"",label:"Account",icon:"ti-user-circle"},
+    {id:"milestones",label:"Milestones",icon:"ti-award"},
+    {id:"challenges",label:"Challenges",icon:"ti-flame"},
   ];
   if(!props.currentUser){
     return React.createElement(AutoLogin,{setAuthScreen:props.setAuthScreen});
   }
+  var username=props.currentUser.username||props.currentUser.name||"Player";
   return React.createElement("div",{className:"page"},
-    React.createElement("div",{style:{display:"flex",gap:4,padding:"0 16px",marginBottom:20,borderBottom:"1px solid rgba(242,237,228,.06)"}},
+    React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
+      React.createElement("div",{style:{
+        width:56,height:56,borderRadius:"50%",margin:"0 auto 10px",
+        background:"linear-gradient(135deg,#9B72CF,#E8A838)",
+        display:"flex",alignItems:"center",justifyContent:"center",
+        fontSize:22,fontWeight:900,color:"#08080F",
+        boxShadow:"0 0 20px rgba(155,114,207,.2)",
+      }},username.charAt(0).toUpperCase()),
+      React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:900,color:"#F2EDE4",marginBottom:4}},username),
+      React.createElement("p",{style:{fontSize:12,color:"#9AAABF"}},"Your profile, achievements, and active challenges")
+    ),
+    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
           key:t.id,
           onClick:function(){props.setScreen("profile"+(t.id?"/"+t.id:""));},
           style:{
-            padding:"10px 18px",background:"none",border:"none",
-            borderBottom:active?"2px solid #9B72CF":"2px solid transparent",
+            display:"flex",alignItems:"center",gap:6,
+            padding:"10px 20px",
+            background:active?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)",
+            border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
+            borderRadius:10,
             color:active?"#F2EDE4":"#9AAABF",
-            fontFamily:"'Barlow Condensed',sans-serif",fontSize:14,
-            fontWeight:active?700:500,cursor:"pointer",
-            letterSpacing:".02em",transition:"all .2s",
+            fontFamily:"'Barlow Condensed',sans-serif",
+            fontSize:13,
+            fontWeight:active?700:500,
+            cursor:"pointer",
+            letterSpacing:".03em",
+            transition:"all .25s ease",
+            boxShadow:active?"0 0 12px rgba(155,114,207,.1)":"none",
           }
-        },t.label);
+        },
+          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#9AAABF"}}),
+          t.label
+        );
       })
     ),
     tab===""?React.createElement(React.Fragment,null,
@@ -3617,26 +3648,40 @@ function ProfileScreen(props){
 function EventsScreen(props){
   var tab=props.subRoute||"";
   var tabs=[
-    {id:"",label:"Archive"},
-    {id:"tournaments",label:"Tournaments"},
-    {id:"featured",label:"Featured"},
+    {id:"",label:"Archive",icon:"ti-archive"},
+    {id:"tournaments",label:"Tournaments",icon:"ti-tournament"},
+    {id:"featured",label:"Featured",icon:"ti-star"},
   ];
   return React.createElement("div",{className:"page"},
-    React.createElement("div",{style:{display:"flex",gap:4,padding:"0 16px",marginBottom:20,borderBottom:"1px solid rgba(242,237,228,.06)"}},
+    React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
+      React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#F2EDE4",marginBottom:4}},"Events"),
+      React.createElement("p",{style:{fontSize:13,color:"#9AAABF",maxWidth:400,margin:"0 auto"}},"Past clashes, upcoming tournaments, and featured events")
+    ),
+    React.createElement("div",{style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24}},
       tabs.map(function(t){
         var active=tab===t.id;
         return React.createElement("button",{
           key:t.id,
           onClick:function(){props.setScreen("events"+(t.id?"/"+t.id:""));},
           style:{
-            padding:"10px 18px",background:"none",border:"none",
-            borderBottom:active?"2px solid #9B72CF":"2px solid transparent",
+            display:"flex",alignItems:"center",gap:6,
+            padding:"10px 20px",
+            background:active?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)",
+            border:active?"1px solid rgba(155,114,207,.3)":"1px solid rgba(242,237,228,.06)",
+            borderRadius:10,
             color:active?"#F2EDE4":"#9AAABF",
-            fontFamily:"'Barlow Condensed',sans-serif",fontSize:14,
-            fontWeight:active?700:500,cursor:"pointer",
-            letterSpacing:".02em",transition:"all .2s",
+            fontFamily:"'Barlow Condensed',sans-serif",
+            fontSize:13,
+            fontWeight:active?700:500,
+            cursor:"pointer",
+            letterSpacing:".03em",
+            transition:"all .25s ease",
+            boxShadow:active?"0 0 12px rgba(155,114,207,.1)":"none",
           }
-        },t.label);
+        },
+          React.createElement("i",{className:t.icon,style:{fontSize:16,color:active?"#9B72CF":"#9AAABF"}}),
+          t.label
+        );
       })
     ),
     tab===""?React.createElement(ArchiveScreen,{players:props.players,currentUser:props.currentUser,setScreen:props.setScreen,pastClashes:props.pastClashes}):null,
