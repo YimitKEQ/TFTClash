@@ -3790,6 +3790,18 @@ function ClashScreen(props){
       )
     ),
     phase==="registration"||phase==="live"?React.createElement(MemoBracketScreen,{players:props.players,setPlayers:props.setPlayers,toast:props.toast,isAdmin:props.isAdmin,currentUser:props.currentUser,setProfilePlayer:props.setProfilePlayer,setScreen:props.setScreen,tournamentState:props.tournamentState,setTournamentState:props.setTournamentState,seasonConfig:props.seasonConfig}):null,
+    phase==="live"&&(props.tournamentState.seedAlgo==="swiss")&&props.tournamentState.round>1&&props.tournamentState.round%2===0?React.createElement("div",{style:{
+      display:"flex",alignItems:"center",justifyContent:"center",gap:8,
+      padding:"8px 16px",margin:"0 16px 12px",
+      background:"rgba(232,168,56,.04)",
+      border:"1px solid rgba(232,168,56,.12)",
+      borderRadius:8,maxHeight:48,
+      fontSize:11,color:"#E8A838",
+      fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".04em",
+    }},
+      React.createElement("i",{className:"ti ti-arrows-shuffle",style:{fontSize:16}}),
+      "Swiss Reseed \u2014 Lobbies reorganized by standings"
+    ):null,
     phase==="live"&&props.tournamentState.liveStandings?React.createElement(LiveStandingsTable,{standings:props.tournamentState.liveStandings}):null,
     phase==="complete"?React.createElement(React.Fragment,null,
       React.createElement(YourFinishCard,{currentUser:props.currentUser,finalStandings:props.tournamentState.finalStandings||[]}),
