@@ -331,6 +331,40 @@ function computeStats(player){
 
 }
 
+// ─── HEAD-TO-HEAD COMPUTATION ─────────────────────────────────────────────────
+
+function computeH2H(playerA,playerB,pastClashes){
+  var shared=[];
+  (pastClashes||[]).forEach(function(clash){
+    (clash.lobbies||[]).forEach(function(lobby){
+      var aResult=null,bResult=null;
+      (lobby.results||[]).forEach(function(r){
+        if(r.username===playerA)aResult=r;
+        if(r.username===playerB)bResult=r;
+      });
+      if(aResult&&bResult){
+        shared.push({clash:clash.name||clash.id,aPos:aResult.position,bPos:bResult.position});
+      }
+    });
+  });
+  var wins=0,losses=0,aAvg=0,bAvg=0;
+  shared.forEach(function(s){
+    if(s.aPos<s.bPos)wins++;
+    else if(s.aPos>s.bPos)losses++;
+    aAvg+=s.aPos;
+    bAvg+=s.bPos;
+  });
+  var count=shared.length;
+  return {
+    sharedLobbies:count,
+    wins:wins,losses:losses,
+    ties:count-wins-losses,
+    aAvg:count?+(aAvg/count).toFixed(1):0,
+    bAvg:count?+(bAvg/count).toFixed(1):0,
+    recent:shared.slice(-5),
+  };
+}
+
 // ─── STATS CACHE ─────────────────────────────────────────────────────────────
 // WeakMap keyed by player object  -  cache invalidates automatically when player
 // object identity changes (which happens on every immutable state update).
