@@ -4108,21 +4108,25 @@ function ClashPhaseRegistration({players,tournamentState,setTournamentState,curr
       </Panel>
 
       {regPlayers.length>0&&(
-        <Panel style={{padding:"20px 20px 12px"}}>
-          <div style={{fontSize:13,fontWeight:700,color:"#BECBD9",marginBottom:12,textTransform:"uppercase",letterSpacing:".06em",fontFamily:"Barlow Condensed,sans-serif"}}>
-            <BI n="users" size={14}/> Registered Players
-          </div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
-            {regPlayers.map(function(p){
-              return(
-                <div key={p.id} onClick={function(){if(setProfilePlayer)setProfilePlayer(p);}} style={{background:"linear-gradient(135deg,rgba(155,114,207,.1),rgba(155,114,207,.04))",border:"1px solid rgba(155,114,207,.2)",borderRadius:10,padding:"6px 12px 6px 6px",fontSize:13,color:"#C4B5FD",cursor:"pointer",transition:"all .15s",fontWeight:500,display:"flex",alignItems:"center",gap:6}}>
-                  <div style={{width:22,height:22,borderRadius:"50%",background:"rgba(155,114,207,.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"#C4B5FD"}}>{p.name.charAt(0)}</div>
-                  {p.name}
-                </div>
+        React.createElement(Panel,{style:{padding:"20px 20px 12px"}},
+          React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}},
+            React.createElement("span",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".12em",textTransform:"uppercase"}},
+              React.createElement(BI,{n:"users",size:14})," Registered Players"),
+            React.createElement("span",{style:{fontSize:12,color:"#9AAABF"}},regPlayers.length+"/"+maxP)
+          ),
+          React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
+            regPlayers.map(function(p){
+              return React.createElement("div",{key:p.id,onClick:function(){if(setProfilePlayer){setProfilePlayer(p);}},style:{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",borderRadius:10,background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",cursor:"pointer",transition:"all .15s"}},
+                React.createElement("div",{style:{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,"+rc(p.rank)+",#9B72CF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,color:"#08080F",flexShrink:0}},p.name.charAt(0).toUpperCase()),
+                React.createElement("div",{style:{flex:1,minWidth:0}},
+                  React.createElement("div",{style:{fontWeight:600,fontSize:13,color:"#F2EDE4"}},p.name),
+                  React.createElement("div",{style:{fontSize:11,color:"#BECBD9"}},(p.riotId||"No Riot ID")+" \xB7 "+(p.region||"?"))
+                ),
+                React.createElement("div",{style:{fontSize:12,color:rc(p.rank),fontWeight:600,flexShrink:0}},p.rank||"")
               );
-            })}
-          </div>
-        </Panel>
+            })
+          )
+        )
       )}
     </div>
   );
@@ -4275,6 +4279,35 @@ function ClashPhaseLive({players,setPlayers,tournamentState,setTournamentState,c
             </div>
           </Panel>
         </div>
+      )}
+
+      {React.createElement("div",{style:{display:"flex",gap:8,marginBottom:16,alignItems:"center"}},
+        React.createElement(Inp,{value:lobbySearch,onChange:function(e){setLobbySearch(e.target.value);},placeholder:"Search player...",style:{flex:1}}),
+        React.createElement(Btn,{v:"ghost",s:"sm",onClick:function(){setShowAllLobbies(!showAllLobbies);}},showAllLobbies?"Hide Lobbies":"Show All Lobbies")
+      )}
+
+      {showAllLobbies&&lobbies.length>0&&React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:16,marginBottom:20}},
+        lobbies.map(function(lobby,idx){
+          if(!lobby||!lobby.length)return null;
+          if(lobbySearch&&!lobby.some(function(p){return p.name.toLowerCase().includes(lobbySearch.toLowerCase());}))return null;
+          return React.createElement(LobbyCard,{
+            key:idx,
+            roster:lobby,
+            round:round,
+            isFinals:round===totalGames,
+            lobbyNum:idx,
+            toast:toast,
+            isAdmin:isAdmin,
+            paused:ts.paused||false,
+            onSubmit:function(results,lobbyIdx){
+              setTournamentState(function(prev){
+                var newResults=Object.assign({},prev.lobbyResults||{});
+                newResults["r"+round+"l"+lobbyIdx]=results;
+                return Object.assign({},prev,{lobbyResults:newResults});
+              });
+            }
+          });
+        })
       )}
 
       {sorted.length>0&&(
@@ -10049,6 +10082,7 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
           )
         )
       ):null,
+      bio?React.createElement("div",{style:{background:"rgba(17,24,39,.6)",border:"1px solid rgba(242,237,228,.06)",borderRadius:12,padding:"14px 18px",marginBottom:16,fontSize:13,color:"#BECBD9",lineHeight:1.6,fontStyle:"italic"}},'"'+bio+'"'):null,
       React.createElement("div",{style:{display:"flex",gap:6,marginBottom:20,overflowX:"auto",paddingBottom:4}},
         profileTabs.map(function(t){return React.createElement("button",{key:t,onClick:function(){setProfileTab(t);},style:{padding:"8px 16px",borderRadius:8,border:profileTab===t?"1px solid rgba(155,114,207,.4)":"1px solid transparent",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"'Barlow Condensed',sans-serif",textTransform:"uppercase",letterSpacing:1,background:profileTab===t?"rgba(155,114,207,.2)":"rgba(30,41,59,.5)",color:profileTab===t?"#C4B5FD":"#9AAABF",transition:"all 0.2s",boxShadow:profileTab===t?"0 0 12px rgba(155,114,207,.15)":"none"}},t);})
       ),
@@ -10058,17 +10092,30 @@ function ProfileScreen({currentUser,players,setPlayers,toast,setScreen,setProfil
             return React.createElement("div",{key:item.l,className:"shimmer-card",style:{background:"linear-gradient(165deg,"+item.c+"08,#111827 50%)",borderRadius:12,padding:16,border:"1px solid "+item.c+"22",textAlign:"center",transition:"transform .15s,box-shadow .15s",boxShadow:"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.04)"},onMouseEnter:function(e){e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(0,0,0,.3)";},onMouseLeave:function(e){e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="";}},
               React.createElement("div",{style:{fontSize:24,fontWeight:800,color:item.c,fontFamily:"'Russo One',sans-serif",textShadow:"0 0 16px currentColor"}},item.v),
               React.createElement("div",{style:{fontSize:11,color:"#9AAABF",textTransform:"uppercase",marginTop:4,fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:1}},item.l));})
-        ):React.createElement("div",{style:{textAlign:"center",padding:40,color:"#9AAABF"}},"Link your account to a player profile to see stats.")
+        ):React.createElement("div",{style:{textAlign:"center",padding:40,color:"#9AAABF"}},"Link your account to a player profile to see stats."),
+        (twitch||twitter||youtube)?React.createElement("div",{style:{display:"flex",gap:10,marginTop:16,flexWrap:"wrap"}},
+          twitch&&React.createElement("a",{href:"https://twitch.tv/"+twitch,target:"_blank",rel:"noopener",style:{display:"flex",alignItems:"center",gap:6,background:"rgba(145,70,255,.1)",border:"1px solid rgba(145,70,255,.3)",borderRadius:8,padding:"6px 12px",fontSize:12,color:"#B794F6",textDecoration:"none",cursor:"pointer"}},React.createElement("i",{className:"ti ti-brand-twitch"})," "+twitch),
+          twitter&&React.createElement("a",{href:"https://twitter.com/"+twitter,target:"_blank",rel:"noopener",style:{display:"flex",alignItems:"center",gap:6,background:"rgba(29,155,240,.1)",border:"1px solid rgba(29,155,240,.3)",borderRadius:8,padding:"6px 12px",fontSize:12,color:"#1DA1F2",textDecoration:"none",cursor:"pointer"}},React.createElement("i",{className:"ti ti-brand-twitter"})," "+twitter),
+          youtube&&React.createElement("a",{href:youtube.startsWith("http")?youtube:"https://youtube.com/"+youtube,target:"_blank",rel:"noopener",style:{display:"flex",alignItems:"center",gap:6,background:"rgba(255,0,0,.08)",border:"1px solid rgba(255,0,0,.2)",borderRadius:8,padding:"6px 12px",fontSize:12,color:"#FF4444",textDecoration:"none",cursor:"pointer"}},React.createElement("i",{className:"ti ti-brand-youtube"})," YouTube")
+        ):null,
+        linkedPlayer&&linkedPlayer.placements&&linkedPlayer.placements.length>0?React.createElement("div",{style:{marginTop:16}},
+          React.createElement("div",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:8}},"Recent Placements"),
+          React.createElement(Sparkline,{data:linkedPlayer.placements.slice(-12),color:"#9B72CF",w:280,h:40})
+        ):null
       ),
       profileTab==="achievements"&&React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12}},
         profileAchievementsList.map(function(a){
           var earned=linkedPlayer?a.check(linkedPlayer):false;
-          return React.createElement("div",{key:a.id,className:earned?"shimmer-card":"",style:{background:earned?"linear-gradient(135deg,rgba(26,26,46,.9),rgba(155,114,207,.12))":"#111827",borderRadius:12,padding:16,border:"1px solid "+(earned?"rgba(155,114,207,.35)":"#1E293B"),opacity:earned?1:0.5,transition:"transform .15s,box-shadow .15s",cursor:earned?"pointer":"default",boxShadow:earned?"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06),0 0 16px rgba(155,114,207,.08)":"none"},onMouseEnter:earned?function(e){e.currentTarget.style.transform="translateY(-2px)";}:null,onMouseLeave:earned?function(e){e.currentTarget.style.transform="";}:null},
+          var tier=a.id==="season-champ"||a.id==="win-streak"?"legendary":a.id==="twenty-games"||a.id==="consistent"?"gold":a.id==="ten-games"||a.id==="perfect-lobby"||a.id==="top4-streak"?"silver":"bronze";
+          var tierCol=tier==="legendary"?"155,114,207":tier==="gold"?"232,168,56":tier==="silver"?"192,192,192":"205,127,50";
+          return React.createElement("div",{key:a.id,className:earned?"shimmer-card":"",style:{background:earned?"linear-gradient(135deg,rgba(26,26,46,.9),rgba("+tierCol+",.12))":"#111827",borderRadius:12,padding:16,border:"1px solid "+(earned?"rgba("+tierCol+",.35)":"#1E293B"),opacity:earned?1:0.5,transition:"transform .15s,box-shadow .15s",cursor:earned?"pointer":"default",boxShadow:earned?"0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06),0 0 16px rgba("+tierCol+",.08)":"none"},onMouseEnter:earned?function(e){e.currentTarget.style.transform="translateY(-2px)";}:null,onMouseLeave:earned?function(e){e.currentTarget.style.transform="";}:null},
             React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10,marginBottom:8}},
-              React.createElement("i",{className:a.icon,style:{fontSize:22,color:earned?"#E8A838":"#4B5563",filter:earned?"drop-shadow(0 0 8px rgba(232,168,56,.5))":"none"}}),
-              React.createElement("div",{style:{fontWeight:700,fontSize:14,color:earned?"#F2EDE4":"#6B7280"}},a.label)),
+              React.createElement("i",{className:a.icon,style:{fontSize:22,color:earned?"rgb("+tierCol+")":"#4B5563",filter:earned?"drop-shadow(0 0 8px rgba("+tierCol+",.5))":"none"}}),
+              React.createElement("div",{style:{flex:1}},
+                React.createElement("div",{style:{fontWeight:700,fontSize:14,color:earned?"#F2EDE4":"#6B7280"}},a.label),
+                earned&&React.createElement("div",{style:{fontSize:10,color:"rgb("+tierCol+")",fontWeight:600,textTransform:"uppercase",letterSpacing:".08em"}},tier))),
             React.createElement("div",{style:{fontSize:12,color:earned?"#BECBD9":"#6B7280"}},a.desc),
-            earned&&React.createElement("div",{style:{fontSize:11,color:"#E8A838",marginTop:6,fontWeight:600}},"UNLOCKED"));})
+            earned&&React.createElement("div",{style:{fontSize:11,color:"rgb("+tierCol+")",marginTop:6,fontWeight:600}},"UNLOCKED"));})
       ),
       profileTab==="challenges"&&React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:12}},
         challengeList.map(function(ch){
