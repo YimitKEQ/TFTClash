@@ -1308,7 +1308,7 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 /* ── mobile bottom nav ───────────────────────────────────────── */
 
-/* bottom-nav removed — hamburger menu replaces it */
+/* bottom-nav removed - hamburger menu replaces it */
 
 
 
@@ -1602,7 +1602,7 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 /* ═══════════════════════════════════════════════════════════
 
-   ESPORTS OVERHAUL — Retro-Futurism Premium Layer
+   ESPORTS OVERHAUL - Retro-Futurism Premium Layer
 
    ═══════════════════════════════════════════════════════════ */
 
@@ -1821,7 +1821,7 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   /* Reduce grid gaps on small screens */
   .grid-home{gap:16px!important;}
 
-  /* Challenges grid — stack on small screens */
+  /* Challenges grid - stack on small screens */
   .challenges-grid{grid-template-columns:1fr 50px 50px 50px 50px 50px!important;}
 
   /* Standings table allow shrink */
@@ -3469,7 +3469,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 16px",height:54,display:"flex",alignItems:"center",gap:0}}>
 
-          {/* Hamburger button — mobile only */}
+          {/* Hamburger button - mobile only */}
           <button className="mobile-hamburger" onClick={()=>setDrawer(d=>!d)}
             style={{background:"none",border:"none",padding:"8px",marginRight:8,cursor:"pointer",color:"#C8D4E0",fontSize:22,display:"flex",alignItems:"center",justifyContent:"center",WebkitTapHighlightColor:"transparent"}}>
             {React.createElement("i",{className:"ti ti-menu-2"})}
@@ -3796,7 +3796,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
           <div key={p.id} id={isMe?"lb-me-row":undefined} onClick={onRowClick?()=>onRowClick(p):undefined}
 
-            className={"standings-row"+(i===0?" standings-row-1 shimmer-card row-champion":i===1?" standings-row-2":i===2?" standings-row-3":"")+(isMe?" standings-row-me":"")}
+            className={"standings-row stagger-row"+(i===0?" standings-row-1 shimmer-card row-champion":i===1?" standings-row-2":i===2?" standings-row-3":"")+(isMe?" standings-row-me":"")}
 
             style={{display:"grid",gridTemplateColumns:cols,
 
@@ -3807,6 +3807,8 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
               alignItems:"center",cursor:onRowClick?"pointer":"default",opacity:i>=8?.55:1,
 
               borderLeft:isMe?"3px solid #9B72CF":"3px solid transparent",
+
+              animationDelay:(i*0.03)+"s",
 
               boxShadow:i===0?"0 4px 20px rgba(232,168,56,.1),inset 0 1px 0 rgba(232,168,56,.08)":isMe?"0 2px 12px rgba(155,114,207,.08)":"none"}}>
 
@@ -3849,7 +3851,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
             </div>
 
-            <div className="mono pts-glow" style={{fontSize:top3?22:15,fontWeight:800,color:ptsCol,lineHeight:1,textShadow:top3?"0 0 14px currentColor":"none"}}>{useEffective?effectivePts(p,seasonConfig):p.pts}</div>
+            <div className="mono pts-glow count-up" style={{fontSize:top3?22:15,fontWeight:800,color:ptsCol,lineHeight:1,textShadow:top3?"0 0 14px currentColor":"none",animationDelay:(i*0.03+0.1)+"s"}}>{useEffective?effectivePts(p,seasonConfig):p.pts}</div>
 
             <AvgBadge avg={avg>0?avg:null}/>
 
@@ -9047,7 +9049,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
 
 
-      {/* ADMIN LAYOUT — SIDEBAR + CONTENT */}
+      {/* ADMIN LAYOUT - SIDEBAR + CONTENT */}
       <div style={{display:"flex",gap:0,minHeight:"calc(100vh - 80px)",margin:"0 -16px -16px"}}>
 
         {/* SIDEBAR */}
@@ -9304,7 +9306,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
                           {p.checkedIn&&React.createElement(Tag,{color:"#52C47C",size:"sm"},"✓ In")}
                           {isComebackEligible(p,PAST_CLASHES.map(function(c){return "c"+c.id;}))&&React.createElement(Tag,{color:"#4ECDC4",size:"sm"},"Comeback")}
                           {(p.attendanceStreak||0)>=3&&React.createElement(Tag,{color:"#E8A838",size:"sm"},p.attendanceStreak+"-streak")}
-                          {!p.banned&&!p.checkedIn&&(p.dnpCount||0)===0&&React.createElement("span",{style:{color:"#4b5563",fontSize:11}},"—")}
+                          {!p.banned&&!p.checkedIn&&(p.dnpCount||0)===0&&React.createElement("span",{style:{color:"#4b5563",fontSize:11}},"-")}
                         </div>
                       </td>
                       <td className="td-actions">
@@ -11165,7 +11167,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                                 {scrimStats.map(function(colP){
 
-                                  if(String(rowP.id)===String(colP.id))return <td key={colP.id} style={{background:"rgba(255,255,255,.03)",padding:"8px 10px",textAlign:"center",borderBottom:"1px solid rgba(242,237,228,.04)",color:"#7A8BA0",fontSize:12}}>&#8212;</td>;
+                                  if(String(rowP.id)===String(colP.id))return <td key={colP.id} style={{background:"rgba(255,255,255,.03)",padding:"8px 10px",textAlign:"center",borderBottom:"1px solid rgba(242,237,228,.04)",color:"#7A8BA0",fontSize:12}}>-</td>;
 
                                   var rowKey=String(rowP.id),colKey=String(colP.id);
 
@@ -17784,7 +17786,7 @@ function TFTClash(){
 
   // Auth state
 
-  const [currentUser,setCurrentUser]=useState({id:1,username:"Levitate",email:"levitate@tftclash.gg",riot_id:"Levitate#EUW",is_admin:true}); // DEV: mock user for preview — revert to null for prod
+  const [currentUser,setCurrentUser]=useState({id:1,username:"Levitate",email:"levitate@tftclash.gg",riot_id:"Levitate#EUW",is_admin:true}); // DEV: mock user for preview - revert to null for prod
   const [isAuthLoading,setIsAuthLoading]=useState(true);
   var [isOffline,setIsOffline]=useState(false);
 
@@ -18749,7 +18751,20 @@ function TFTClash(){
           .live-standings-grid{grid-template-columns:28px 1fr 48px 40px !important;font-size:12px !important;}
           .tab-bar-wrap{gap:4px !important;}
           .tab-btn{padding:8px 14px !important;font-size:12px !important;}
+          .page{padding:12px !important;}
+          .stats-grid{grid-template-columns:repeat(2,1fr) !important;}
         }
+
+        @media(max-width:480px){
+          .page{padding:8px !important;}
+          .stats-grid{grid-template-columns:1fr !important;}
+          .display{font-size:18px !important;}
+        }
+
+        @keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .count-up{animation:countUp 0.4s ease-out forwards;}
+        @keyframes staggerIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+        .stagger-row{animation:staggerIn 0.3s ease-out forwards;opacity:0;}
 
       `}</style>
 
