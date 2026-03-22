@@ -743,6 +743,53 @@ const MILESTONES=[
 
 function getAchievements(p){return ACHIEVEMENTS.filter(a=>{try{return a.check(p);}catch{return false;}});}
 
+function checkAchievements(player, rank) {
+  if (!player) return [];
+  var stats = getStats(player);
+  var earned = [];
+  ACHIEVEMENTS.forEach(function(a) {
+    var c = a.criteria;
+    if (c) {
+      if (c.type === "wins" && (player.wins || 0) >= c.value) earned.push(a.id);
+      else if (c.type === "games" && (player.games || 0) >= c.value) earned.push(a.id);
+      else if (c.type === "rank" && rank === c.value) earned.push(a.id);
+      else if (c.type === "avgPlacement" && stats.avgPlacement && parseFloat(stats.avgPlacement) <= c.value && (player.games || 0) >= (c.minGames || 0)) earned.push(a.id);
+      else if (c.type === "streak") {
+        var history = player.clashHistory || [];
+        var streak = 0;
+        for (var si = history.length - 1; si >= 0; si--) {
+          if (history[si].placement <= 4) streak++;
+          else break;
+        }
+        if (streak >= c.value) earned.push(a.id);
+      }
+    } else {
+      try { if (a.check(player)) earned.push(a.id); } catch(e) {}
+    }
+  });
+  return earned;
+}
+
+function syncAchievements(playerId, earnedIds) {
+  var rows = earnedIds.map(function(aid) {
+    return {player_id: playerId, achievement_id: aid};
+  });
+  if (rows.length > 0) {
+    supabase.from("player_achievements").upsert(rows, {onConflict: "player_id,achievement_id"})
+      .then(function(r) { if (r.error) console.error("[TFT] achievement sync:", r.error); });
+  }
+}
+
+function writeActivityEvent(type, playerId, text) {
+  supabase.from("activity_feed").insert({
+    type: type,
+    player_id: playerId,
+    detail_json: {text: text}
+  }).then(function(r) {
+    if (r.error) console.error("[TFT] activity_feed insert failed:", r.error);
+  });
+}
+
 // Module-level helper - usable in any component without prop-drilling
 function createNotification(userId,title,body,icon){
   if(!userId)return Promise.resolve();
@@ -4349,6 +4396,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       }
     }
     toast(currentUser.username+" registered for "+clashName+"!","success");
+    if (linkedPlayer) writeActivityEvent("registration", linkedPlayer.id, currentUser.username+" registered for "+clashName);
   }
 
   function unregisterFromClash(){
@@ -5564,6 +5612,30 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
           allPlayers.forEach(function(p){
             if(p.authUserId){createNotification(p.authUserId,"Results Finalized",clashName+" results are in! Check the Results screen to see your placement and points.","trophy");}
           });
+          // Write activity feed events for winner and all participants
+          var winnerRow = rows.reduce(function(best, row) { return row.final_placement < best.final_placement ? row : best; }, rows[0]);
+          if (winnerRow) {
+            var winnerPlayer = allPlayers.find(function(p) { return p.id === winnerRow.player_id; });
+            if (winnerPlayer) writeActivityEvent("result", winnerPlayer.id, winnerPlayer.name+" won "+clashName);
+          }
+          // Write rank change events - compute new standings rank for each player
+          var sortedByPts = allPlayers.slice().sort(function(a,b) { return (b.pts||0) - (a.pts||0); });
+          allPlayers.forEach(function(p) {
+            if (p.id) {
+              var newRank = sortedByPts.findIndex(function(q) { return q.id === p.id; }) + 1;
+              if (p.lastClashRank && p.lastClashRank !== newRank) {
+                writeActivityEvent("rank_change", p.id, p.name+" moved to #"+newRank);
+              }
+            }
+          });
+          // Sync achievements for all players after results are saved
+          allPlayers.forEach(function(p) {
+            if (p.id) {
+              var ppRankA = allPlayers.filter(function(q) { return q.pts > p.pts; }).length + 1;
+              var earnedA = checkAchievements(p, ppRankA);
+              if (earnedA.length > 0) syncAchievements(p.id, earnedA);
+            }
+          });
         });
       }
     };
@@ -6090,6 +6162,15 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
   const achievements=getAchievements(player);
 
   const s=getStats(player);
+
+  useEffect(function() {
+    if (player && player.id && isOwnProfile) {
+      var allPlayers2 = allPlayers || [];
+      var ppRank2 = allPlayers2.filter(function(p) { return p.pts > player.pts; }).length + 1;
+      var earnedIds = checkAchievements(player, ppRank2);
+      if (earnedIds.length > 0) syncAchievements(player.id, earnedIds);
+    }
+  }, [player && player.id]);
 
 
 
