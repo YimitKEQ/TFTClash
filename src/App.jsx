@@ -3342,6 +3342,16 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
     isAdmin?{id:"admin",label:"Admin"}:null,
   ].filter(Boolean);
 
+  var moreItems=[
+    {id:"scrims",label:"Scrims",icon:"swords",desc:"Practice lobbies",show:canScrims},
+    {id:"pricing",label:"Pricing",icon:"diamond",desc:"Plans and features",show:true},
+    {id:"rules",label:"Rules",icon:"book",desc:"Tournament rules",show:true},
+    {id:"faq",label:"FAQ",icon:"help-circle",desc:"Common questions",show:true},
+    {id:"host-apply",label:"Host",icon:"crown",desc:"Apply or manage",show:!!currentUser},
+    {id:"gear",label:"Gear",icon:"shopping-bag",desc:"Merch and gear",show:true},
+    {id:"admin",label:"Admin",icon:"shield",desc:"Control panel",show:isAdmin},
+  ].filter(function(item){return item.show;});
+
   const desktopMoreActive=DESKTOP_MORE.some(l=>l.id===screen);
 
   var navProfileFields=currentUser?[currentUser.user_metadata&&currentUser.user_metadata.riot_id,currentUser.user_metadata&&currentUser.user_metadata.bio,currentUser.user_metadata&&currentUser.user_metadata.region]:[];
@@ -3544,25 +3554,22 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
                   <div style={{position:"fixed",inset:0,zIndex:98}} onClick={()=>setDesktopMore(false)}/>
 
-                  <div style={{position:"absolute",left:0,top:"calc(100% + 4px)",minWidth:180,background:"linear-gradient(160deg,#0F1828,#0B1220)",
+                  <div style={{position:"absolute",left:0,top:"calc(100% + 4px)",minWidth:240,background:"linear-gradient(160deg,#0F1828,#0B1220)",
 
-                    border:"1px solid rgba(232,168,56,.2)",borderRadius:12,boxShadow:"0 16px 48px rgba(0,0,0,.7)",zIndex:99,overflow:"hidden"}}>
+                    border:"1px solid rgba(155,114,207,.2)",borderRadius:12,boxShadow:"0 16px 48px rgba(0,0,0,.7)",zIndex:99,padding:8}}>
 
-                    {DESKTOP_MORE.map(l=>(
-
-                      <button key={l.id} onClick={()=>{setScreen(l.id);setDesktopMore(false);}}
-
-                        style={{display:"block",width:"100%",textAlign:"left",background:screen===l.id?"rgba(232,168,56,.08)":"none",
-
-                          border:"none",padding:"11px 16px",fontSize:13,fontWeight:600,
-
-                          color:screen===l.id?"#E8A838":"#C8BFB0",cursor:"pointer",transition:"all .15s",borderBottom:"1px solid rgba(242,237,228,.05)"}}>
-
-                        {l.label}
-
-                      </button>
-
-                    ))}
+                    {moreItems.map(function(item){
+                      return React.createElement("button",{key:item.id,onClick:function(){setScreen(item.id);setDesktopMore(false);},
+                        style:{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:8,cursor:"pointer",
+                          width:"100%",textAlign:"left",background:screen===item.id?"rgba(155,114,207,.12)":"none",
+                          border:"none",transition:"background .15s"}},
+                        React.createElement("i",{className:"ti ti-"+item.icon,style:{fontSize:16,color:"#9B72CF",flexShrink:0}}),
+                        React.createElement("div",null,
+                          React.createElement("div",{style:{fontSize:13,fontWeight:600,color:screen===item.id?"#9B72CF":"#F2EDE4",lineHeight:1.2}},item.label),
+                          React.createElement("div",{style:{fontSize:10,color:"#9AAABF",marginTop:2}},item.desc)
+                        )
+                      );
+                    })}
 
                   </div>
 
@@ -3648,7 +3655,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
       }},
         PRIMARY.map(function(item){
           var isActive=screen===item.id||(item.id==="clash"&&(screen==="bracket"||screen==="clash-register"||screen==="clash-live"||screen==="clash-results"));
-          return React.createElement("button",{key:item.id,onClick:function(){setScreen(item.id);},
+          return React.createElement("button",{key:item.id,onClick:function(){if(item.id==="more"){setDrawer(true);}else{setScreen(item.id);}},
             style:{
               display:"flex",
               flexDirection:"column",
