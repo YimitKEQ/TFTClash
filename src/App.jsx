@@ -18037,7 +18037,41 @@ function BroadcastOverlay(props) {
   var bg = params.bg || "dark";
   var size = params.size || "compact";
 
-  var sorted = [].concat(players).sort(function(a,b){return b.pts - a.pts;});
+  var _liveData = useState(players);
+  var liveData = _liveData[0];
+  var setLiveData = _liveData[1];
+  var _lastUpdate = useState(new Date());
+  var lastUpdate = _lastUpdate[0];
+  var setLastUpdate = _lastUpdate[1];
+
+  useEffect(function() {
+    var interval = setInterval(function() {
+      supabase.from("players").select("*").order("pts", {ascending: false}).then(function(res) {
+        if (res.data) {
+          setLiveData(res.data);
+          setLastUpdate(new Date());
+        }
+      });
+    }, 10000);
+
+    var channel = supabase.channel("broadcast-live")
+      .on("postgres_changes", {event: "INSERT", schema: "public", table: "game_results"}, function() {
+        supabase.from("players").select("*").order("pts", {ascending: false}).then(function(res) {
+          if (res.data) {
+            setLiveData(res.data);
+            setLastUpdate(new Date());
+          }
+        });
+      })
+      .subscribe();
+
+    return function() {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  var sorted = [].concat(liveData).sort(function(a,b){return b.pts - a.pts;});
   var bgColor = bg === "transparent" ? "transparent" : "#08080F";
 
   if (type === "standings") {
@@ -18056,7 +18090,10 @@ function BroadcastOverlay(props) {
           React.createElement("span", {style:{fontSize:13,fontWeight:700,color:"#E8A838",fontFamily:"monospace"}}, p.pts)
         );
       }),
-      React.createElement("div", {style:{textAlign:"right",marginTop:8,fontSize:8,color:"rgba(155,114,207,.4)",letterSpacing:".1em"}}, "TFT CLASH")
+      React.createElement("div", {style:{textAlign:"right",marginTop:8,fontSize:8,color:"rgba(155,114,207,.4)",letterSpacing:".1em"}}, "TFT CLASH"),
+      React.createElement("div", {style:{fontSize:8,color:"rgba(255,255,255,.3)",marginTop:4}},
+        "Updated: " + lastUpdate.toLocaleTimeString()
+      )
     );
   }
 
@@ -18068,7 +18105,7 @@ function BroadcastOverlay(props) {
           return React.createElement("div", {key:li,style:{background:"rgba(255,255,255,.04)",borderRadius:8,padding:"8px 10px",border:"1px solid rgba(255,255,255,.08)"}},
             React.createElement("div", {style:{fontSize:10,fontWeight:700,color:"#9B72CF",marginBottom:4}}, lobby.name || "Lobby " + (li+1)),
             (lobby.players || []).map(function(pid) {
-              var p = players.find(function(pl){return String(pl.id) === String(pid);});
+              var p = liveData.find(function(pl){return String(pl.id) === String(pid);});
               return React.createElement("div", {key:pid,style:{fontSize:11,color:"#BECBD9",padding:"2px 0"}}, p ? p.name : "Player " + pid);
             })
           );
