@@ -4121,6 +4121,52 @@ function ClashScreen(props){
   var recapData=phase==="complete"?generateRecap(props.tournamentState):null;
   var recapEl=recapData?React.createElement(ClashRecap,{recap:recapData,toast:props.toast}):null;
 
+  // Awards computation for complete phase
+  var awardsEl=null;
+  if(phase==="complete"&&props.tournamentState&&props.tournamentState.finalStandings&&props.tournamentState.finalStandings.length>0){
+    var fs=props.tournamentState.finalStandings;
+    var mvpPlayer=fs.reduce(function(best,p){return((p.points||p.pts||0)>(best.points||best.pts||0))?p:best;},fs[0]);
+    var comebackPlayer=null;
+    var bestClimb=-Infinity;
+    fs.forEach(function(p,idx){
+      if(p.game1Pos){var climb=p.game1Pos-(idx+1);if(climb>bestClimb){bestClimb=climb;comebackPlayer=p;}}
+    });
+    var clutchPlayer=null;
+    var bestLastGame=Infinity;
+    fs.forEach(function(p){
+      var lp=p.lastGamePlace||p.lastPlace||null;
+      if(lp!==null&&lp<bestLastGame){bestLastGame=lp;clutchPlayer=p;}
+    });
+    var awardsList=[
+      {icon:"ti-trophy",label:"MVP",name:mvpPlayer?mvpPlayer.username||mvpPlayer.name:"",color:"#E8A838"},
+      comebackPlayer&&bestClimb>=2?{icon:"ti-trending-up",label:"Comeback King",name:comebackPlayer.username||comebackPlayer.name,color:"#6EE7B7"}:null,
+      clutchPlayer?{icon:"ti-bolt",label:"Clutch Player",name:clutchPlayer.username||clutchPlayer.name,color:"#C4B5FD"}:null,
+    ].filter(Boolean);
+    awardsEl=React.createElement("div",{style:{margin:"0 16px 20px"}},
+      React.createElement("div",{style:{fontSize:10,textTransform:"uppercase",letterSpacing:".12em",color:"#9AAABF",fontWeight:700,marginBottom:10,fontFamily:"'Barlow Condensed',sans-serif"}},"Awards"),
+      React.createElement("div",{style:{display:"flex",gap:8,flexWrap:"wrap"}},
+        awardsList.map(function(a,i){
+          return React.createElement("div",{key:i,style:{
+            display:"flex",alignItems:"center",gap:8,
+            padding:"8px 14px",borderRadius:10,
+            background:"rgba(17,24,39,.8)",
+            border:"1px solid rgba("+hexToRgb(a.color)+",.2)",
+            flex:"1 1 140px",minWidth:0,
+          }},
+            React.createElement("i",{className:"ti "+a.icon,style:{fontSize:18,color:a.color,flexShrink:0}}),
+            React.createElement("div",{style:{minWidth:0}},
+              React.createElement("div",{style:{fontSize:10,color:a.color,fontWeight:700,textTransform:"uppercase",letterSpacing:".08em",fontFamily:"'Barlow Condensed',sans-serif"}},a.label),
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},a.name)
+            )
+          );
+        })
+      )
+    );
+  }
+
+  // Registered players for scouting cards (registration phase)
+  var registeredPlayers=phase==="registration"?(props.players||[]).filter(function(p){return p.registered||p.checkedIn;}):[];
+
   return React.createElement("div",{className:"page fade-up"},
     React.createElement("div",{style:{
       position:"relative",overflow:"hidden",
@@ -4156,7 +4202,53 @@ function ClashScreen(props){
         }},"LIVE"):null
       )
     ),
+    phase==="registration"&&registeredPlayers.length>0?React.createElement("div",{style:{margin:"0 16px 20px"}},
+      React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}},
+        React.createElement("div",{style:{fontSize:10,textTransform:"uppercase",letterSpacing:".12em",color:"#9AAABF",fontWeight:700,fontFamily:"'Barlow Condensed',sans-serif"}},"Registered - "+registeredPlayers.length+" players"),
+        React.createElement("div",{style:{fontSize:10,color:"#9AAABF",fontFamily:"'Barlow Condensed',sans-serif"}},"\ud83d\udc41 Scout the field")
+      ),
+      React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
+        registeredPlayers.map(function(p,idx){
+          var sparkData=(p.clashHistory||[]).slice(-5).map(function(c){return c.placement||c.place||4;});
+          return React.createElement("div",{
+            key:p.id||p.username||idx,
+            style:{
+              display:"flex",alignItems:"center",gap:10,
+              padding:"10px 12px",
+              background:"rgba(255,255,255,.03)",
+              borderRadius:10,
+              border:"1px solid rgba(255,255,255,.06)",
+              cursor:"pointer",
+            },
+            onClick:function(){if(props.setProfilePlayer&&props.setScreen){props.setProfilePlayer(p);props.setScreen("profile");}}
+          },
+            React.createElement("div",{style:{
+              width:28,height:28,borderRadius:8,
+              background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",
+              display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:11,fontWeight:800,color:"#C4B5FD",flexShrink:0,
+            }},"#"+(idx+1)),
+            React.createElement("div",{style:{flex:1,minWidth:0}},
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.username||p.name||"Player"),
+              React.createElement("div",{style:{fontSize:10,color:"#9AAABF"}},(p.wins||0)+" wins, "+(p.games||0)+" games")
+            ),
+            sparkData.length>=2?React.createElement(Sparkline,{data:sparkData,w:40,h:14,color:"#9B72CF"}):React.createElement("div",{style:{width:40,height:14,opacity:.2,fontSize:9,color:"#9AAABF",display:"flex",alignItems:"center"}},"--")
+          );
+        })
+      )
+    ):null,
     phase==="registration"||phase==="live"?React.createElement(MemoBracketScreen,{players:props.players,setPlayers:props.setPlayers,toast:props.toast,isAdmin:props.isAdmin,currentUser:props.currentUser,setProfilePlayer:props.setProfilePlayer,setScreen:props.setScreen,tournamentState:props.tournamentState,setTournamentState:props.setTournamentState,seasonConfig:props.seasonConfig}):null,
+    phase==="live"?React.createElement("div",{style:{display:"flex",gap:4,marginBottom:16,justifyContent:"center",padding:"0 16px"}},
+      Array.from({length:props.tournamentState.totalGames||3},function(_,i){
+        var isComplete=i+1<(props.tournamentState.round||1);
+        var isCurrent=i+1===(props.tournamentState.round||1);
+        return React.createElement("div",{key:i,style:{
+          width:isCurrent?24:8,height:8,borderRadius:4,
+          background:isComplete?"#6EE7B7":isCurrent?"#E8A838":"rgba(255,255,255,.1)",
+          transition:"all .3s ease",
+        }});
+      })
+    ):null,
     phase==="live"&&(props.tournamentState.seedAlgo==="swiss")&&props.tournamentState.round>1&&props.tournamentState.round%2===0?React.createElement("div",{style:{
       display:"flex",alignItems:"center",justifyContent:"center",gap:8,
       padding:"8px 16px",margin:"0 16px 12px",
@@ -4172,6 +4264,7 @@ function ClashScreen(props){
     phase==="live"&&props.tournamentState.liveStandings?React.createElement(LiveStandingsTable,{standings:props.tournamentState.liveStandings}):null,
     phase==="complete"?React.createElement(React.Fragment,null,
       React.createElement(YourFinishCard,{currentUser:props.currentUser,finalStandings:props.tournamentState.finalStandings||[]}),
+      awardsEl,
       recapEl,
       React.createElement(MemoResultsScreen,{players:props.players,toast:props.toast,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,tournamentState:props.tournamentState})
     ):null
