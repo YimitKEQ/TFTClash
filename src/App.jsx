@@ -17631,46 +17631,59 @@ function ReferralPanel(props){
   );
 }
 
-// ─── GEAR / AFFILIATE LINKS ─────────────────────────────────────────────────
+// ─── GEAR / MERCHANDISE ──────────────────────────────────────────────────────
 
-function GearScreen(props){
-  var setScreen=props.setScreen;
-  var items=[
-    {cat:"VPN",name:"NordVPN",desc:"Low-ping gaming VPN. Trusted by millions of gamers worldwide.",tag:"40-68% off",color:"#4687FF",icon:"lock-fill"},
-    {cat:"VPN",name:"Surfshark",desc:"Unlimited devices, great speeds. Budget-friendly VPN for gaming.",tag:"Up to 81% off",color:"#1CBFB0",icon:"water"},
-    {cat:"Peripherals",name:"Razer DeathAdder V3",desc:"Ultra-lightweight ergonomic mouse. The go-to for competitive play.",tag:"Top Pick",color:"#44D62C",icon:"mouse-fill"},
-    {cat:"Peripherals",name:"Logitech G Pro X",desc:"Tournament-proven wireless mouse with HERO 25K sensor.",tag:"Pro Choice",color:"#00B8FC",icon:"mouse-fill"},
-    {cat:"Audio",name:"HyperX Cloud III",desc:"Comfortable, clear audio for long tournament sessions.",tag:"Best Value",color:"#E31937",icon:"headphones"},
-    {cat:"Monitor",name:"ASUS VG27AQ1A",desc:"27\" 1440p 170Hz IPS. Smooth visuals for every round.",tag:"Editor Pick",color:"#D4AF37",icon:"tv-fill"},
-    {cat:"Chair",name:"Secretlab TITAN Evo",desc:"Ergonomic gaming chair for marathon clash sessions.",tag:"Premium",color:"#9B72CF",icon:"pc-display"}
-  ];
-  return(
-    <div className="page wrap" style={{maxWidth:800,margin:"0 auto"}}>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:24,flexWrap:"wrap"}}>
-        <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"\u2190 Back"}</Btn>
-        <h2 style={{color:"#F2EDE4",fontSize:22,margin:0,fontFamily:"'Playfair Display',serif"}}>Recommended Gear</h2>
-      </div>
-      <p style={{color:"#BECBD9",fontSize:13,marginBottom:24,lineHeight:1.6}}>Gear we trust for competitive TFT sessions. Links may earn us a small commission at no extra cost to you \u2014 it helps keep TFT Clash free.</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:14}}>
-        {items.map(function(item,i){
-          return(
-            <div key={i} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:18,transition:"border-color .2s",cursor:"default"}}
-              onMouseEnter={function(e){e.currentTarget.style.borderColor=item.color+"66";}}
-              onMouseLeave={function(e){e.currentTarget.style.borderColor="rgba(242,237,228,.08)";}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                <span>{React.createElement("i",{className:"ti ti-"+(ICON_REMAP[item.icon]||item.icon),style:{fontSize:22,color:item.color}})}</span>
-                <div>
-                  <div style={{fontSize:14,fontWeight:700,color:"#F2EDE4"}}>{item.name}</div>
-                  <div style={{fontSize:10,color:item.color,fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>{item.cat}</div>
-                </div>
-              </div>
-              <p style={{fontSize:12,color:"#BECBD9",lineHeight:1.5,marginBottom:10}}>{item.desc}</p>
-              <span style={{display:"inline-block",fontSize:10,fontWeight:700,color:item.color,background:item.color+"18",padding:"3px 8px",borderRadius:6}}>{item.tag}</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+function GearScreen(props) {
+  var isAdmin = props.isAdmin;
+  var toast = props.toast;
+  var _items = useState([]);
+  var items = _items[0];
+  var setItems = _items[1];
+  var _loading = useState(true);
+  var loading = _loading[0];
+  var setLoading = _loading[1];
+
+  useEffect(function() {
+    supabase.from("gear_items").select("*").order("sort_order").then(function(res) {
+      if (res.data) setItems(res.data);
+      setLoading(false);
+    });
+  }, []);
+
+  var categories = [];
+  items.forEach(function(item) {
+    if (categories.indexOf(item.category) === -1) categories.push(item.category);
+  });
+
+  return React.createElement("div", {className: "page wrap fade-up"},
+    React.createElement("h2", {className:"display",style:{fontSize:22,color:"#F2EDE4",marginBottom:4}}, "Gear"),
+    React.createElement("div", {style:{fontSize:12,color:"#9AAABF",marginBottom:20}}, "Official TFT Clash merchandise and gear"),
+    loading ? React.createElement("div", {style:{color:"#9AAABF",textAlign:"center",padding:40}}, "Loading...") :
+    items.length === 0 ? React.createElement("div", {style:{color:"#9AAABF",textAlign:"center",padding:60}},
+      React.createElement("i", {className:"ti ti-shopping-bag",style:{fontSize:32,marginBottom:8,display:"block",opacity:.5}}),
+      "Coming soon. Check back for TFT Clash merch."
+    ) :
+    categories.map(function(cat) {
+      var catItems = items.filter(function(i){return i.category === cat;});
+      return React.createElement("div", {key:cat,style:{marginBottom:24}},
+        React.createElement("div", {className:"cond",style:{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}, cat),
+        React.createElement("div", {style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}},
+          catItems.map(function(item) {
+            return React.createElement(Panel, {key:item.id,style:{padding:0,overflow:"hidden"}},
+              item.image_url ? React.createElement("img", {src:item.image_url,alt:item.name,style:{width:"100%",height:140,objectFit:"cover"}}) : React.createElement("div", {style:{width:"100%",height:140,background:"linear-gradient(135deg,rgba(155,114,207,.15),rgba(155,114,207,.05))",display:"flex",alignItems:"center",justifyContent:"center"}}, React.createElement("i", {className:"ti ti-shopping-bag",style:{fontSize:28,color:"#9B72CF",opacity:.4}})),
+              React.createElement("div", {style:{padding:"12px 14px"}},
+                React.createElement("div", {style:{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:4}}, item.name),
+                React.createElement("div", {style:{fontSize:12,color:"#BECBD9",marginBottom:8,lineHeight:1.4}}, item.description || ""),
+                React.createElement("div", {style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+                  item.price ? React.createElement("span", {style:{fontSize:13,fontWeight:700,color:"#E8A838"}}, item.price) : null,
+                  item.external_url ? React.createElement("a", {href:item.external_url,target:"_blank",rel:"noopener noreferrer",style:{fontSize:12,color:"#9B72CF",textDecoration:"none",fontWeight:600}}, "View") : null
+                )
+              )
+            );
+          })
+        )
+      );
+    })
   );
 }
 
@@ -19201,7 +19214,7 @@ function TFTClash(){
 
         {screen==="terms"      &&<TermsScreen setScreen={navTo}/>}
 
-        {screen==="gear"       &&<GearScreen setScreen={navTo}/>}
+        {screen==="gear"       &&<GearScreen setScreen={navTo} isAdmin={isAdmin} toast={toast}/>}
 
         {screen==="pricing"    &&<PricingScreen currentPlan={currentUser&&currentUser.plan||"free"} toast={toast} currentUser={currentUser} setScreen={navTo} userTier={userTier}/>}
 
