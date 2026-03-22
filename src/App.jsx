@@ -2973,6 +2973,24 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
 
 function ordinal(n){return n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th";}
 
+function shareToTwitter(text) {
+  var encoded = encodeURIComponent(text);
+  window.open("https://twitter.com/intent/tweet?text=" + encoded, "_blank", "width=550,height=420");
+}
+
+function buildShareText(type, data) {
+  if (type === "result") {
+    return "Finished " + ordinal(data.placement) + " in " + data.clashName + " - " + data.points + " season pts on TFT Clash";
+  }
+  if (type === "profile") {
+    return data.name + " - Rank #" + data.rank + " with " + data.pts + " pts on TFT Clash";
+  }
+  if (type === "recap") {
+    return data.winner + " won " + data.clashName + "! Full recap on TFT Clash";
+  }
+  return "Competing on TFT Clash - the competitive TFT platform";
+}
+
 function ResultSubmitModal(props){
   var lobby=props.lobby;
   var playerList=lobby.players||lobby.roster||[];
@@ -4161,11 +4179,11 @@ function ClashScreen(props){
 // ─── EVENTS SCREEN (wrapper: Archive + Tournaments + Featured tabs) ───────────
 
 function EventsScreen(props){
-  var tab=props.subRoute||"";
+  var tab=props.subRoute||"featured";
   var tabs=[
-    {id:"",label:"Archive",icon:"ti-archive"},
-    {id:"tournaments",label:"Tournaments",icon:"ti-tournament"},
     {id:"featured",label:"Featured",icon:"ti-star"},
+    {id:"archive",label:"Archive",icon:"ti-archive"},
+    {id:"tournaments",label:"Tournaments",icon:"ti-tournament"},
   ];
   return React.createElement("div",{className:"page fade-up",style:{paddingTop:20}},
     React.createElement("div",{className:"tab-bar-wrap",style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24,overflowX:"auto"}},
@@ -4174,7 +4192,7 @@ function EventsScreen(props){
         return React.createElement("button",{
           key:t.id,
           className:"tab-btn",
-          onClick:function(){props.setScreen("events"+(t.id?"/"+t.id:""));},
+          onClick:function(){props.setScreen("events/"+t.id);},
           style:{
             display:"flex",alignItems:"center",gap:6,
             padding:"10px 20px",
@@ -4196,7 +4214,7 @@ function EventsScreen(props){
         );
       })
     ),
-    tab===""?React.createElement(ArchiveScreen,{players:props.players,currentUser:props.currentUser,setScreen:props.setScreen,pastClashes:props.pastClashes}):null,
+    tab==="archive"?React.createElement(ArchiveScreen,{players:props.players,currentUser:props.currentUser,setScreen:props.setScreen,pastClashes:props.pastClashes}):null,
     tab==="tournaments"?React.createElement(TournamentsListScreen,{setScreen:props.setScreen,currentUser:props.currentUser,toast:props.toast}):null,
     tab==="featured"?React.createElement(FeaturedScreen,{setScreen:props.setScreen,currentUser:props.currentUser,onAuthClick:props.onAuthClick,toast:props.toast,featuredEvents:props.featuredEvents,setFeaturedEvents:props.setFeaturedEvents}):null
   );
@@ -6293,6 +6311,11 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
         <Btn v="teal" s="sm" onClick={downloadStatsCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:4}})}Download Card</Btn>
         <Btn v="dark" s="sm" onClick={copyStatsToClipboard}>{React.createElement("i",{className:"ti ti-clipboard",style:{marginRight:4}})}Copy</Btn>
 
+        <Btn v="dark" s="sm" onClick={function(){
+          var ppRank=(allPlayers||[]).filter(function(p){return p.pts>player.pts;}).length+1;
+          shareToTwitter(buildShareText("profile",{name:player.name,rank:ppRank,pts:player.pts}));
+        }}>{React.createElement("i",{className:"ti ti-brand-x",style:{marginRight:4}})}Share</Btn>
+
         {setComparePlayer&&!isOwnProfile&&<Btn v="purple" s="sm" onClick={function(){setComparePlayer(player);}}>{React.createElement("i",{className:"ti ti-arrows-diff",style:{marginRight:4}})}Compare</Btn>}
 
 
@@ -7658,6 +7681,10 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
         <div style={{display:"flex",gap:8,flexShrink:0,flexWrap:"wrap"}}>
 
           <Btn v="dark" s="sm" onClick={shareDiscord}>Discord</Btn>
+
+          <Btn v="dark" s="sm" onClick={function(){
+            shareToTwitter(buildShareText("recap",{winner:champ.name,clashName:CLASH_NAME}));
+          }}>{React.createElement("i",{className:"ti ti-brand-x",style:{marginRight:4}})}Share</Btn>
 
           <Btn v="ghost" s="sm" onClick={downloadCard}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:12,marginRight:3}})}PNG</Btn>
 
@@ -13221,6 +13248,11 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
         <Btn v="dark" s="sm" onClick={()=>setScreen("home")}>← Back</Btn>
 
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1}}>My Account</h2>
+
+        {linkedPlayer&&<Btn v="dark" s="sm" onClick={function(){
+          var myRank=([...players].sort(function(a,b){return b.pts-a.pts;}).findIndex(function(p){return p.id===linkedPlayer.id;})+1);
+          shareToTwitter(buildShareText("profile",{name:user.username,rank:myRank,pts:linkedPlayer.pts}));
+        }}>{React.createElement("i",{className:"ti ti-brand-x",style:{marginRight:4}})}Share</Btn>}
 
         <Btn v="dark" s="sm" onClick={onLogout}>Sign Out</Btn>
 
