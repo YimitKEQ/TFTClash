@@ -2447,11 +2447,12 @@ function Sparkline({data,color,w,h}){
 
 function SponsorBanner({sponsor,onNavigate}){
 
-  const s=sponsor;
+  const s=sponsor||{name:"TFT Clash Pro",tagline:"Auto check-in, custom profile, pro badge and more",logo:React.createElement("i",{className:"ti ti-diamond",style:{fontSize:18,color:"#E8A838"}}),cta:"Learn More",isPromo:true,url:"#pricing"};
 
   if(!s)return null;
 
-  const isInternal=s.url==="#";
+  const isInternal=s.url==="#"||s.url==="#pricing";
+  var internalScreen=s.url==="#pricing"?"pricing":"fantasy";
 
   const inner=(
 
@@ -2505,7 +2506,7 @@ function SponsorBanner({sponsor,onNavigate}){
 
   if(isInternal) return(
 
-    <div onClick={()=>onNavigate&&onNavigate("fantasy")} style={{display:"block",textDecoration:"none",margin:"0 0 14px",cursor:"pointer"}}>{inner}</div>
+    <div onClick={()=>onNavigate&&onNavigate(internalScreen)} style={{display:"block",textDecoration:"none",margin:"0 0 14px",cursor:"pointer"}}>{inner}</div>
 
   );
 
@@ -3901,9 +3902,9 @@ var MemoStandingsTable = memo(StandingsTable);
 function StandingsScreen(props){
   var tab=props.subRoute||"";
   var tabs=[
-    {id:"",label:"Leaderboard",icon:"ti-trophy"},
-    {id:"hof",label:"Hall of Fame",icon:"ti-crown"},
-    {id:"roster",label:"Player Directory",icon:"ti-users"},
+    {id:"",label:"Leaderboard",icon:"ti ti-trophy"},
+    {id:"hof",label:"Hall of Fame",icon:"ti ti-crown"},
+    {id:"roster",label:"Player Directory",icon:"ti ti-users"},
   ];
   return React.createElement("div",{className:"page fade-up"},
     React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
@@ -3949,9 +3950,9 @@ function StandingsScreen(props){
 function ProfileScreen(props){
   var tab=props.subRoute||"";
   var tabs=[
-    {id:"",label:"Account",icon:"ti-user-circle"},
-    {id:"milestones",label:"Milestones",icon:"ti-award"},
-    {id:"challenges",label:"Challenges",icon:"ti-flame"},
+    {id:"",label:"Account",icon:"ti ti-user-circle"},
+    {id:"milestones",label:"Milestones",icon:"ti ti-award"},
+    {id:"challenges",label:"Challenges",icon:"ti ti-flame"},
   ];
   if(!props.currentUser){
     return React.createElement("div",{className:"page",style:{textAlign:"center",paddingTop:80}},
@@ -4111,15 +4112,34 @@ function hexToRgb(hex){
 function ClashScreen(props){
   var phase=props.tournamentState&&props.tournamentState.phase;
   var phaseColors={registration:"#9B72CF",live:"#E8A838",complete:"#4ECDC4"};
-  var phaseLabels={registration:"Registration Open",live:"Live \u2014 Game "+(props.tournamentState&&props.tournamentState.round||1)+" of "+(props.tournamentState&&props.tournamentState.totalGames||4),complete:"Results"};
+  var phaseLabels={registration:"Registration Open",live:"Live - Game "+(props.tournamentState&&props.tournamentState.round||1)+" of "+(props.tournamentState&&props.tournamentState.totalGames||4),complete:"Results"};
   var accentColor=phaseColors[phase]||"#9B72CF";
 
   if(!phase){
-    return React.createElement("div",{className:"page",style:{textAlign:"center",padding:"80px 20px",color:"#9AAABF"}},
-      React.createElement("i",{className:"ti ti-swords",style:{fontSize:52,opacity:.25,display:"block",marginBottom:16}}),
-      React.createElement("h2",{style:{color:"#F2EDE4",marginBottom:8,fontFamily:"'Playfair Display',serif",fontSize:24}},"No Active Clash"),
-      React.createElement("p",{style:{fontSize:14,maxWidth:360,margin:"0 auto",lineHeight:1.5}},"Check back when registration opens for the next clash."),
-      React.createElement("div",{style:{marginTop:24}},
+    var idlePlayers=props.players||[];
+    var idleTop5=[].concat(idlePlayers).sort(function(a,b){return(b.pts||0)-(a.pts||0);}).slice(0,5);
+    return React.createElement("div",{className:"page fade-up",style:{padding:"40px 20px",maxWidth:600,margin:"0 auto"}},
+      React.createElement("div",{style:{textAlign:"center",marginBottom:32}},
+        React.createElement("i",{className:"ti ti-swords",style:{fontSize:48,color:"#9B72CF",opacity:.35,display:"block",marginBottom:12}}),
+        React.createElement("h2",{style:{color:"#F2EDE4",marginBottom:6,fontFamily:"'Playfair Display',serif",fontSize:26}},"No Active Clash"),
+        React.createElement("p",{style:{fontSize:14,color:"#9AAABF",maxWidth:380,margin:"0 auto",lineHeight:1.6}},"Stay tuned for the next clash. Keep an eye on announcements and warm up in scrims!")
+      ),
+      idleTop5.length>0?React.createElement(Panel,{style:{padding:"16px 18px",marginBottom:20}},
+        React.createElement("div",{style:{display:"flex",alignItems:"center",gap:8,marginBottom:12}},
+          React.createElement("i",{className:"ti ti-trophy",style:{fontSize:16,color:"#E8A838"}}),
+          React.createElement("span",{style:{fontWeight:700,fontSize:13,color:"#F2EDE4",letterSpacing:".02em"}},"Season Standings")
+        ),
+        idleTop5.map(function(p,i){
+          return React.createElement("div",{key:p.id||i,onClick:function(){props.setProfilePlayer(p);props.setScreen("profile");},style:{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderTop:i>0?"1px solid rgba(242,237,228,.06)":"none",cursor:"pointer"}},
+            React.createElement("span",{className:"mono",style:{fontSize:12,fontWeight:700,color:i===0?"#E8A838":i<3?"#C4B5FD":"#BECBD9",width:20,textAlign:"center"}},"#"+(i+1)),
+            React.createElement("span",{style:{flex:1,fontWeight:600,fontSize:13,color:"#F2EDE4"}},p.name),
+            React.createElement("span",{className:"mono",style:{fontSize:13,fontWeight:700,color:"#E8A838"}},p.pts||0),
+            React.createElement("span",{style:{fontSize:10,color:"#9AAABF",marginLeft:2}},"pts")
+          );
+        })
+      ):null,
+      React.createElement("div",{style:{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}},
+        React.createElement(Btn,{v:"primary",onClick:function(){props.setScreen("standings");}},"View Standings"),
         React.createElement(Btn,{v:"ghost",onClick:function(){props.setScreen("events");}},"Browse Past Events")
       )
     );
@@ -4246,7 +4266,7 @@ function ClashScreen(props){
     ):null,
     phase==="registration"||phase==="live"?React.createElement(MemoBracketScreen,{players:props.players,setPlayers:props.setPlayers,toast:props.toast,isAdmin:props.isAdmin,currentUser:props.currentUser,setProfilePlayer:props.setProfilePlayer,setScreen:props.setScreen,tournamentState:props.tournamentState,setTournamentState:props.setTournamentState,seasonConfig:props.seasonConfig}):null,
     phase==="live"?React.createElement("div",{style:{display:"flex",gap:4,marginBottom:16,justifyContent:"center",padding:"0 16px"}},
-      Array.from({length:props.tournamentState.totalGames||3},function(_,i){
+      Array.from({length:props.tournamentState.totalGames||4},function(_,i){
         var isComplete=i+1<(props.tournamentState.round||1);
         var isCurrent=i+1===(props.tournamentState.round||1);
         return React.createElement("div",{key:i,style:{
@@ -4563,7 +4583,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
     if(tPhase==="checkin")return"Check-in Open · "+checkedInCount+" checked in · Closes soon";
 
-    if(tPhase==="inprogress")return"Clash is LIVE · Game "+tRound+"/"+(tournamentState.totalGames||3);
+    if(tPhase==="inprogress")return"Clash is LIVE · Game "+tRound+"/"+(tournamentState.totalGames||4);
 
     if(tPhase==="complete")return"Results Posted · View Final Standings";
 
@@ -4600,6 +4620,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         if (res.data) setActivityFeed(res.data);
       });
   }, [tick]);
+
+  // Sorted players for narrative and tier calculations
+  var sortedPts = [].concat(players).sort(function(a,b){return (b.pts||0) - (a.pts||0);});
 
   // Zone 1 data
   var rankDelta = linkedPlayer && linkedPlayer.lastClashRank ? myRankIdx - linkedPlayer.lastClashRank : 0;
@@ -4779,7 +4802,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             React.createElement("span", {style: {fontSize: 13, fontWeight: 700, color: phaseStatusColor(), textTransform: "uppercase", letterSpacing: ".06em"}},
               tPhase === "registration" ? "Registration Open" :
               tPhase === "checkin" ? "Check-in Open" :
-              tPhase === "inprogress" ? "LIVE - Game " + tRound + "/" + (tournamentState.totalGames || 3) :
+              tPhase === "inprogress" ? "LIVE - Game " + tRound + "/" + (tournamentState.totalGames || 4) :
               tPhase === "complete" ? "Results Posted" : "Next Clash"
             )
           ),
@@ -4986,9 +5009,7 @@ function RosterScreen({players,setScreen,setProfilePlayer,currentUser}){
 
 
 
-  const filtered=players.filter(function(p){return(p.games||0)>0||p.checkedIn;})
-
-    .filter(p=>{
+  const filtered=players.filter(p=>{
 
       if(search&&!p.name.toLowerCase().includes(search.toLowerCase())&&!p.riotId.toLowerCase().includes(search.toLowerCase()))return false;
 
@@ -5252,7 +5273,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
   var cutLine=tournamentState&&tournamentState.cutLine?tournamentState.cutLine:0;
   var cutAfterGame=tournamentState&&tournamentState.cutAfterGame?tournamentState.cutAfterGame:0;
   var showCutLine=cutLine>0&&cutAfterGame>0&&round>=cutAfterGame;
-  var totalGames=tournamentState&&tournamentState.totalGames?tournamentState.totalGames:3;
+  var totalGames=tournamentState&&tournamentState.totalGames?tournamentState.totalGames:4;
 
   var liveRows=checkedIn.map(function(p){
 
@@ -5668,7 +5689,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
   // Auto-advance countdown when all lobbies locked (admin only, not on final round)
   useEffect(function(){
-    if(!isAdmin||!allLocked||round>=(tournamentState.totalGames||3)){
+    if(!isAdmin||!allLocked||round>=(tournamentState.totalGames||4)){
       if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
       setAutoAdvanceCountdown(null);
       return;
@@ -5691,7 +5712,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
   // Trigger advance when countdown hits 0
   useEffect(function(){
     if(autoAdvanceCountdown!==0||!isAdmin||!allLocked)return;
-    var maxRounds=tournamentState.totalGames||3;
+    var maxRounds=tournamentState.totalGames||4;
     if(round<maxRounds){
       var nextRound=round+1;
       setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
@@ -5808,7 +5829,7 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
 
-          <span>Game {round}/{tournamentState.totalGames||3}</span>
+          <span>Game {round}/{tournamentState.totalGames||4}</span>
 
           <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:12,letterSpacing:".08em",textTransform:"uppercase",
             background:tournamentState.phase==="inprogress"?"rgba(82,196,124,.12)":tournamentState.phase==="complete"?"rgba(78,205,196,.12)":"rgba(155,114,207,.12)",
@@ -5827,9 +5848,9 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
 
             <Btn v="dark" s="sm" disabled={round<=1} onClick={()=>setTournamentState(ts=>({...ts,round:ts.round-1,lockedLobbies:[],savedLobbies:[]}))}>← Round</Btn>
 
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||3;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg="  -  "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
+            <Btn v="primary" s="sm" disabled={!allLocked} onClick={()=>{var maxRounds=tournamentState.totalGames||4;var cutL=tournamentState.cutLine||0;var cutG=tournamentState.cutAfterGame||0;if(round>=maxRounds){setShowFinalizeConfirm(true);}else{var nextRound=round+1;var cutMsg="";if(cutL>0&&round===cutG){var standings=computeTournamentStandings(checkedIn,[],null);var cutResult=applyCutLine(standings,cutL,cutG);var elimCount=cutResult.eliminated.length;if(elimCount>0){cutMsg="  -  "+elimCount+" players eliminated (below "+cutL+"pts)";cutResult.eliminated.forEach(function(ep){setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});});setTournamentState(function(ts){var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});return Object.assign({},ts,{checkedInIds:kept});});}}setTournamentState(ts=>({...ts,round:nextRound,lockedLobbies:[],savedLobbies:[]}));toast("Advanced to Game "+nextRound+cutMsg,"success");}}}>
 
-              {round>=(tournamentState.totalGames||3)?"Finalize Clash":"Next Game →"}
+              {round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game →"}
 
             </Btn>
 
@@ -5842,8 +5863,8 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       {allLocked&&checkedIn.length>0&&(
         <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
           <span style={{fontSize:16}}>{React.createElement("i",{className:"ti ti-circle-check",style:{color:"#52C47C"}})}</span>
-          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked  -  {round>=(tournamentState.totalGames||3)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
-          {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||3)&&(
+          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>All {lobbies.length} lobbies locked  -  {round>=(tournamentState.totalGames||4)?"ready to finalize!":"ready for next game!"}{isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||4)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}</span>
+          {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||4)&&(
             <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
           )}
         </div>
@@ -9558,7 +9579,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?<>{React.createElement("i",{className:"ti ti-player-play",style:{marginRight:4}})}Resume Round</>:<>{React.createElement("i",{className:"ti ti-player-pause",style:{marginRight:4}})}Pause Round</>}</Btn>
 
-              <Btn v="dark" full onClick={()=>{var nextRound=(tournamentState&&tournamentState.round||1)+1;var maxG=(tournamentState&&tournamentState.totalGames)||3;var willComplete=nextRound>maxG;setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;if(willComplete)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});if(supabase.from&&tournamentState&&tournamentState.dbTournamentId){supabase.from('tournaments').update({phase:willComplete?'complete':'in_progress'}).eq('id',tournamentState.dbTournamentId).then(function(r){if(r.error)console.error("[TFT] Force advance sync failed:",r.error);});}addAudit("ACTION","Force advance game"+(willComplete?" - tournament complete":""));toast("Force advancing","success");}}>Force Advance Game →</Btn>
+              <Btn v="dark" full onClick={()=>{var nextRound=(tournamentState&&tournamentState.round||1)+1;var maxG=(tournamentState&&tournamentState.totalGames)||4;var willComplete=nextRound>maxG;setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;if(willComplete)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});if(supabase.from&&tournamentState&&tournamentState.dbTournamentId){supabase.from('tournaments').update({phase:willComplete?'complete':'in_progress'}).eq('id',tournamentState.dbTournamentId).then(function(r){if(r.error)console.error("[TFT] Force advance sync failed:",r.error);});}addAudit("ACTION","Force advance game"+(willComplete?" - tournament complete":""));toast("Force advancing","success");}}>Force Advance Game →</Btn>
 
               <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],savedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
 
@@ -10953,7 +10974,8 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
     if(!newName.trim()){toast("Name required","error");return;}
     if(!currentUser){toast("Login required","error");return;}
     var tgt=parseInt(newTarget)||5;
-    createScrim(newName.trim(),currentUser.id,null,newNotes.trim(),tgt).then(function(res){
+    var creatorId=(typeof currentUser.id==="string"&&currentUser.id.length>8)?currentUser.id:null;
+    createScrim(newName.trim(),creatorId,null,newNotes.trim(),tgt).then(function(res){
       if(res.error){toast("Failed to create: "+res.error.message,"error");return;}
       var scrimId=res.data.id;
       var pids=scrimRoster.map(function(p){return typeof p.id==="number"?p.id:parseInt(p.id);}).filter(function(v){return !isNaN(v);});
@@ -14875,7 +14897,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
 
   // Wizard state
   var [wizStep,setWizStep]=useState(0);
-  var [wizData,setWizData]=useState({name:"",date:"",type:"swiss",totalGames:3,maxPlayers:32,accentColor:"#9B72CF",entryFee:"",inviteOnly:false,rules:""});
+  var [wizData,setWizData]=useState({name:"",date:"",type:"swiss",totalGames:4,maxPlayers:32,accentColor:"#9B72CF",entryFee:"",inviteOnly:false,rules:""});
   var [wizCreating,setWizCreating]=useState(false);
 
   var [brandBio,setBrandBio]=useState((hostBranding&&hostBranding.bio)||"");
@@ -14985,7 +15007,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     }
     setShowCreate(false);
     setWizStep(0);
-    setWizData({name:"",date:"",type:"swiss",totalGames:3,maxPlayers:32,accentColor:"#9B72CF",entryFee:"",inviteOnly:false,rules:""});
+    setWizData({name:"",date:"",type:"swiss",totalGames:4,maxPlayers:32,accentColor:"#9B72CF",entryFee:"",inviteOnly:false,rules:""});
     toast(wizData.entryFee?"Tournament created - pending admin approval":"Tournament created!","success");
   }
 
@@ -18146,7 +18168,7 @@ function BroadcastOverlay(props) {
         React.createElement("div", {style:{fontSize:11,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".1em"}}, tournamentState.clashName || "TFT Clash"),
         tournamentState.phase === "inprogress" ? React.createElement("div", {style:{display:"flex",alignItems:"center",gap:4}},
           React.createElement("div", {style:{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}),
-          React.createElement("span", {style:{fontSize:11,fontWeight:700,color:"#6EE7B7"}}, "LIVE - Game " + (tournamentState.round || 1) + "/" + (tournamentState.totalGames || 3))
+          React.createElement("span", {style:{fontSize:11,fontWeight:700,color:"#6EE7B7"}}, "LIVE - Game " + (tournamentState.round || 1) + "/" + (tournamentState.totalGames || 4))
         ) : null
       ),
       sorted.slice(0, 24).map(function(p, i) {
@@ -18900,7 +18922,7 @@ function TFTClash(){
     if(base==="scrims"&&!canScrims){toast("Access restricted","error");return;}
     setScreen(base);
     setSubRoute(sr);
-    if(base==="profile"){setProfilePlayer(null);}
+    // profilePlayer is set by the caller before navigating; do not clear it here
   },[isAdmin,currentUser,scrimAccess,toast]);
 
   useEffect(function(){
