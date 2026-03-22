@@ -8814,8 +8814,8 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
   const [auditFilter,setAuditFilter]=useState("All");
   const [sidebarOpen,setSidebarOpen]=useState(true);
-
-
+  const [dbAuditEntries,setDbAuditEntries]=useState([]);
+  const [auditSource,setAuditSource]=useState("session");
 
   // Load flash tournaments from DB on mount
   useEffect(function(){
@@ -8823,6 +8823,34 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
       if(res.data)setFlashEvents(res.data);
     });
   },[]);
+
+  // Load scheduled events from DB on mount
+  useEffect(function(){
+    supabase.from('scheduled_events').select('*').order('created_at',{ascending:false}).then(function(res){
+      if(res.data&&res.data.length>0){setScheduledEvents(res.data);}
+    });
+  },[]);
+
+  // Load host applications from DB on mount
+  useEffect(function(){
+    supabase.from('host_applications').select('*').order('created_at',{ascending:false}).then(function(res){
+      if(res.data&&res.data.length>0){setHostApps(res.data.map(function(a){return{id:a.id,userId:a.user_id,name:a.name,email:a.email,org:a.org||'',reason:a.reason||'',freq:a.freq||'',status:a.status||'pending',submittedAt:a.submitted_at?new Date(a.submitted_at).toLocaleDateString():'',approvedAt:a.approved_at?new Date(a.approved_at).toLocaleDateString():''};}));}
+    });
+  },[]);
+
+  // Load sponsorships from site_settings on mount
+  useEffect(function(){
+    supabase.from('site_settings').select('value').eq('key','org_sponsors').single().then(function(res){
+      if(res.data&&res.data.value){try{var parsed=JSON.parse(res.data.value);if(parsed&&typeof parsed==='object'){setOrgSponsors(parsed);}}catch(e){}}
+    });
+  },[]);
+
+  // Load DB audit log when switching to audit source "database"
+  function loadDbAudit(){
+    supabase.from('audit_log').select('*').order('created_at',{ascending:false}).limit(100).then(function(res){
+      if(res.data){setDbAuditEntries(res.data);}
+    });
+  }
 
   function addAudit(type,msg){
     var entry={ts:Date.now(),type:type,msg:msg};
@@ -8839,9 +8867,9 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
     }
   }
 
-  function ban(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,banned:true,checkedIn:false}:p));setTournamentState(function(ts){return{...ts,checkedInIds:(ts.checkedInIds||[]).filter(function(cid){return String(cid)!==String(id);})};});addAudit("WARN","Banned: "+name);toast(name+" banned","success");}
+  function ban(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,banned:true,checkedIn:false}:p));setTournamentState(function(ts){return{...ts,checkedInIds:(ts.checkedInIds||[]).filter(function(cid){return String(cid)!==String(id);})};});if(supabase.from&&id){supabase.from('players').update({banned:true,checked_in:false}).eq('id',id).then(function(r){if(r.error)console.error("[TFT] Ban sync failed:",r.error);});}addAudit("WARN","Banned: "+name);toast(name+" banned","success");}
 
-  function unban(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,banned:false,dnpCount:0}:p));addAudit("ACTION","Unbanned: "+name);toast(name+" unbanned","success");}
+  function unban(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,banned:false,dnpCount:0}:p));if(supabase.from&&id){supabase.from('players').update({banned:false,dnp_count:0}).eq('id',id).then(function(r){if(r.error)console.error("[TFT] Unban sync failed:",r.error);});}addAudit("ACTION","Unbanned: "+name);toast(name+" unbanned","success");}
 
   function markDNP(id,name){
 
@@ -8859,20 +8887,20 @@ function AdminPanel({players,setPlayers,toast,setAnnouncement,setScreen,tourname
 
       else toast(name+" marked DNP ("+newCount+"/2 before DQ)","success");
 
-      if(isDQ){setTournamentState(function(ts){return{...ts,checkedInIds:(ts.checkedInIds||[]).filter(function(cid){return String(cid)!==String(id);})};});} return{...p,dnpCount:newCount,banned:isDQ?true:p.banned,checkedIn:isDQ?false:p.checkedIn};
+      if(isDQ){setTournamentState(function(ts){return{...ts,checkedInIds:(ts.checkedInIds||[]).filter(function(cid){return String(cid)!==String(id);})};});}if(supabase.from&&id){supabase.from('players').update({dnp_count:newCount,banned:isDQ?true:p.banned,checked_in:isDQ?false:p.checkedIn}).eq('id',id).then(function(r){if(r.error)console.error("[TFT] DNP sync failed:",r.error);});} return{...p,dnpCount:newCount,banned:isDQ?true:p.banned,checkedIn:isDQ?false:p.checkedIn};
 
     }));
 
   }
 
-  function clearDNP(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,dnpCount:0}:p));addAudit("ACTION","DNP cleared: "+name);toast("DNP cleared for "+name,"success");}
+  function clearDNP(id,name){setPlayers(ps=>ps.map(p=>p.id===id?{...p,dnpCount:0}:p));if(supabase.from&&id){supabase.from('players').update({dnp_count:0}).eq('id',id).then(function(r){if(r.error)console.error("[TFT] Clear DNP sync failed:",r.error);});}addAudit("ACTION","DNP cleared: "+name);toast("DNP cleared for "+name,"success");}
 
   function remove(id,name){setPlayers(ps=>ps.filter(p=>p.id!==id));
 // Sync removal to DB
 if(supabase.from&&id){supabase.from('players').delete().eq('id',id).then(function(r){if(r.error)console.error("[TFT] Player delete failed:",r.error);});}
 addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
-  function saveNote(){setPlayers(ps=>ps.map(p=>p.id===noteTarget.id?{...p,notes:noteText}:p));addAudit("ACTION","Note updated: "+noteTarget.name);setNoteTarget(null);}
+  function saveNote(){setPlayers(ps=>ps.map(p=>p.id===noteTarget.id?{...p,notes:noteText}:p));if(supabase.from&&noteTarget.id){supabase.from('players').update({notes:noteText}).eq('id',noteTarget.id).then(function(r){if(r.error)console.error("[TFT] Note sync failed:",r.error);});}addAudit("ACTION","Note updated: "+noteTarget.name);setNoteTarget(null);}
 
   function addPlayer(){
 
@@ -9107,8 +9135,8 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
               <Tag color={phaseColor[currentPhase]} size="sm">{phaseLabel[currentPhase]}</Tag>
             </div>
             <div className="tbl-card-body" style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-              <Btn v="success" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:true})));setTournamentState(function(ts){return{...ts,checkedInIds:players.map(function(p){return String(p.id);})};});addAudit("ACTION","Check In All");toast("All players checked in","success");}}>{React.createElement("i",{className:"ti ti-circle-check",style:{marginRight:4}})}Check In All</Btn>
-              <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));setTournamentState(function(ts){return{...ts,checkedInIds:[]};});addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>{React.createElement("i",{className:"ti ti-circle-x",style:{marginRight:4}})}Clear Check-In</Btn>
+              <Btn v="success" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:true})));setTournamentState(function(ts){return{...ts,checkedInIds:players.map(function(p){return String(p.id);})};});if(supabase.from){supabase.from('players').update({checked_in:true}).neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Check-in all sync failed:",r.error);});}addAudit("ACTION","Check In All");toast("All players checked in","success");}}>{React.createElement("i",{className:"ti ti-circle-check",style:{marginRight:4}})}Check In All</Btn>
+              <Btn v="dark" s="sm" onClick={()=>{setPlayers(ps=>ps.map(p=>({...p,checkedIn:false})));setTournamentState(function(ts){return{...ts,checkedInIds:[]};});if(supabase.from){supabase.from('players').update({checked_in:false}).neq('id','00000000-0000-0000-0000-000000000000').then(function(r){if(r.error)console.error("[TFT] Check-out all sync failed:",r.error);});}addAudit("ACTION","Check Out All");toast("All players checked out","success");}}>{React.createElement("i",{className:"ti ti-circle-x",style:{marginRight:4}})}Clear Check-In</Btn>
               <Btn v={paused?"success":"warning"} s="sm" onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Round resumed":"Round paused");}}>{paused?<>{React.createElement("i",{className:"ti ti-player-play",style:{marginRight:4}})}Resume</>:<>{React.createElement("i",{className:"ti ti-player-pause",style:{marginRight:4}})}Pause</>}</Btn>
               <Btn v="dark" s="sm" onClick={()=>setTab("broadcast")}>{React.createElement("i",{className:"ti ti-speakerphone",style:{marginRight:4}})}Broadcast</Btn>
               <Btn v="dark" s="sm" onClick={()=>setTab("round")}>{React.createElement("i",{className:"ti ti-bolt",style:{marginRight:4}})}Round Controls</Btn>
@@ -9190,7 +9218,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
 
                   <Btn v="primary" onClick={()=>{setPlayers(ps=>ps.map(p=>p.id===editP.id?editP:p));
 // Sync edit to DB
-if(supabase.from&&editP.id){supabase.from('players').update({username:editP.name,riot_id:editP.riotId,region:editP.region,rank:editP.rank}).eq('id',editP.id).then(function(r){if(r.error)console.error("[TFT] Player edit sync failed:",r.error);});}
+if(supabase.from&&editP.id){supabase.from('players').update({username:editP.name,riot_id:editP.riotId,region:editP.region,rank:editP.rank,role:editP.role||'player'}).eq('id',editP.id).then(function(r){if(r.error)console.error("[TFT] Player edit sync failed:",r.error);});if(editP.auth_user_id&&editP.role){supabase.from('user_roles').upsert({user_id:editP.auth_user_id,role:editP.role}).then(function(r){if(r.error)console.error("[TFT] Role sync failed:",r.error);});}}
 addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success");}}>Save Changes</Btn>
 
                   <Btn v="dark" onClick={()=>setEditP(null)}>Cancel</Btn>
@@ -9410,7 +9438,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             <div style={{display:"flex",flexDirection:"column",gap:10}}>
 
-              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));addAudit("ACTION","Check-in opened  -  "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
+              <Btn v="primary" full disabled={currentPhase!=="registration"} onClick={()=>{setTournamentState(ts=>({...ts,phase:"checkin",checkedInIds:ts.registeredIds&&ts.registeredIds.length>0?[...ts.registeredIds]:ts.checkedInIds||[]}));if(supabase.from&&tournamentState&&tournamentState.dbTournamentId){supabase.from('tournaments').update({phase:'check_in'}).eq('id',tournamentState.dbTournamentId).then(function(r){if(r.error)console.error("[TFT] Check-in phase sync failed:",r.error);});}addAudit("ACTION","Check-in opened  -  "+((tournamentState.registeredIds||[]).length)+" pre-registered players carried over");toast("Check-in is now open!","success");}}>Open Check-in</Btn>
 
               <Btn v="success" full disabled={currentPhase!=="checkin"} onClick={()=>{var games=parseInt(roundConfig.roundCount)||3;var cutL=parseInt(roundConfig.cutLine)||0;var cutG=parseInt(roundConfig.cutAfterGame)||0;setTournamentState(ts=>({...ts,phase:"inprogress",round:1,totalGames:games,lockedLobbies:[],savedLobbies:[],clashId:"c"+Date.now(),seedAlgo:seedAlgo||"rank-based",cutLine:cutL,cutAfterGame:cutG,maxPlayers:parseInt(roundConfig.maxPlayers)||24}));if(supabase.from){var existingId=tournamentState.dbTournamentId;if(existingId){supabase.from('tournaments').update({phase:'upcoming',format:cutL>0?'two_stage':'single_stage',round_count:games,seeding_method:seedAlgo||'snake'}).eq('id',existingId).then(function(r){if(r.error)console.error("[TFT] Failed to update tournament:",r.error);});}else{supabase.from('tournaments').insert({name:(tournamentState&&tournamentState.clashName)||'Clash',date:new Date().toISOString().split('T')[0],phase:'upcoming',format:cutL>0?'two_stage':'single_stage',max_players:parseInt(roundConfig.maxPlayers)||24,seeding_method:seedAlgo||'snake',round_count:games}).select().single().then(function(res){if(!res.error&&res.data){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:res.data.id});});}else if(res.error){console.error("[TFT] Failed to create tournament in DB:",res.error);}});}}addAudit("ACTION","Tournament started  -  "+games+" games"+(cutL>0?", cut at "+cutL+"pts after game "+cutG:""));toast("Tournament started! Bracket ready.","success");}}>Start Tournament</Btn>
 
@@ -9428,7 +9456,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               <Btn v={paused?"success":"warning"} full onClick={()=>{setPaused(p=>!p);addAudit("ACTION",paused?"Resumed":"Paused");}}>{paused?<>{React.createElement("i",{className:"ti ti-player-play",style:{marginRight:4}})}Resume Round</>:<>{React.createElement("i",{className:"ti ti-player-pause",style:{marginRight:4}})}Pause Round</>}</Btn>
 
-              <Btn v="dark" full onClick={()=>{setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;var maxG=ts.totalGames||3;var next=ts.round+1;if(next>maxG)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:next,lockedLobbies:[],savedLobbies:[]});});addAudit("ACTION","Force advance game");toast("Force advancing","success");}}>Force Advance Game →</Btn>
+              <Btn v="dark" full onClick={()=>{var nextRound=(tournamentState&&tournamentState.round||1)+1;var maxG=(tournamentState&&tournamentState.totalGames)||3;var willComplete=nextRound>maxG;setTournamentState(function(ts){if(!ts||ts.phase!=="inprogress")return ts;if(willComplete)return Object.assign({},ts,{phase:"complete"});return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});if(supabase.from&&tournamentState&&tournamentState.dbTournamentId){supabase.from('tournaments').update({phase:willComplete?'complete':'in_progress'}).eq('id',tournamentState.dbTournamentId).then(function(r){if(r.error)console.error("[TFT] Force advance sync failed:",r.error);});}addAudit("ACTION","Force advance game"+(willComplete?" - tournament complete":""));toast("Force advancing","success");}}>Force Advance Game →</Btn>
 
               <Btn v="purple" full onClick={()=>{setTournamentState(function(ts){return Object.assign({},ts,{lockedLobbies:[],savedLobbies:[],seedAlgo:seedAlgo});});addAudit("ACTION","Reseeded - "+seedAlgo);toast("Lobbies reseeded","success");}}>Reseed Lobbies</Btn>
 
@@ -9722,7 +9750,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               </div>
 
-              <Btn v="primary" full onClick={()=>{if(!newEvent.name||!newEvent.date){toast("Name and date required","error");return;}setScheduledEvents(es=>[...es,{...newEvent,id:Date.now(),status:"upcoming",cap:parseInt(newEvent.cap)||8}]);addAudit("ACTION","Scheduled: "+newEvent.name);setNewEvent({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});toast("Event scheduled","success");}}>Schedule Event</Btn>
+              <Btn v="primary" full onClick={()=>{if(!newEvent.name||!newEvent.date){toast("Name and date required","error");return;}var evObj={...newEvent,id:Date.now(),status:"upcoming",cap:parseInt(newEvent.cap)||8};setScheduledEvents(es=>[...es,evObj]);if(supabase.from){supabase.from('scheduled_events').insert({name:newEvent.name,type:newEvent.type||'SCHEDULED',format:newEvent.format||'Swiss',date:newEvent.date,time:newEvent.time||'',cap:parseInt(newEvent.cap)||8,status:'upcoming',created_by:currentUser?currentUser.id:null}).select().single().then(function(r){if(r.error){console.error("[TFT] Schedule event insert failed:",r.error);}else if(r.data){setScheduledEvents(function(es){return es.map(function(e){return e.id===evObj.id?Object.assign({},e,{id:r.data.id}):e;});});}});}addAudit("ACTION","Scheduled: "+newEvent.name);setNewEvent({name:"",type:"SCHEDULED",date:"",time:"",cap:"8",format:"Swiss",notes:""});toast("Event scheduled","success");}}>Schedule Event</Btn>
 
             </div>
 
@@ -9756,7 +9784,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
                   </div>
 
-                  <Btn s="sm" v="danger" onClick={()=>{setScheduledEvents(es=>es.filter(e=>e.id!==ev.id));addAudit("ACTION","Cancelled: "+ev.name);}}>Cancel</Btn>
+                  <Btn s="sm" v="danger" onClick={()=>{setScheduledEvents(es=>es.filter(e=>e.id!==ev.id));if(supabase.from&&ev.id){supabase.from('scheduled_events').delete().eq('id',ev.id).then(function(r){if(r.error)console.error("[TFT] Event cancel sync failed:",r.error);});}addAudit("ACTION","Cancelled: "+ev.name);}}>Cancel</Btn>
 
                 </div>
 
@@ -9786,7 +9814,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             <Inp value={seasonName} onChange={setSeasonName} placeholder="e.g. Season 1" style={{marginBottom:14}}/>
 
-            <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season renamed: "+seasonName);toast("Season name saved","success");}}>Save Name</Btn>
+            <Btn v="primary" s="sm" onClick={()=>{if(supabase.from&&seasonConfig&&seasonConfig.seasonId){supabase.from('seasons').update({name:seasonName}).eq('id',seasonConfig.seasonId).then(function(r){if(r.error)console.error("[TFT] Season rename sync failed:",r.error);});}else if(supabase.from){supabase.from('site_settings').upsert({key:'season_name',value:JSON.stringify(seasonName),updated_at:new Date().toISOString()}).then(function(r){if(r.error)console.error("[TFT] Season name setting sync failed:",r.error);});}addAudit("ACTION","Season renamed: "+seasonName);toast("Season name saved","success");}}>Save Name</Btn>
 
             <Divider label="Stats"/>
 
@@ -9884,7 +9912,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               </div>
 
-              <Btn v="primary" s="sm" onClick={()=>{addAudit("ACTION","Season health rules updated");toast("Health rules saved","success");}}>Save Rules</Btn>
+              <Btn v="primary" s="sm" onClick={()=>{if(supabase.from){supabase.from('site_settings').upsert({key:'season_health_rules',value:JSON.stringify(seasonConfig||{}),updated_at:new Date().toISOString()}).then(function(r){if(r.error)console.error("[TFT] Health rules sync failed:",r.error);});}addAudit("ACTION","Season health rules updated");toast("Health rules saved","success");}}>Save Rules</Btn>
 
             </div>
 
@@ -10095,9 +10123,9 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
                     <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
 
-                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved",approvedAt:new Date().toLocaleDateString()}:a));setNotifications(ns=>[{id:Date.now(),icon:"controller",title:"Host Application Approved",body:app.name+" has been approved as a Host. They can now access the Host Dashboard.",time:new Date().toLocaleTimeString(),read:false},...ns]);addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
+                      <Btn v="success" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"approved",approvedAt:new Date().toLocaleDateString()}:a));if(supabase.from&&app.id){supabase.from('host_applications').update({status:'approved',approved_at:new Date().toISOString()}).eq('id',app.id).then(function(r){if(r.error)console.error("[TFT] Host approve sync failed:",r.error);});if(app.userId){supabase.from('user_roles').upsert({user_id:app.userId,role:'host'}).then(function(r){if(r.error)console.error("[TFT] Host role assign failed:",r.error);});}}setNotifications(ns=>[{id:Date.now(),icon:"controller",title:"Host Application Approved",body:app.name+" has been approved as a Host. They can now access the Host Dashboard.",time:new Date().toLocaleTimeString(),read:false},...ns]);addAudit("ACTION","Host approved: "+app.name);toast(app.name+" approved as host","success");}}>Approve</Btn>
 
-                      <Btn v="danger" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"rejected"}:a));addAudit("WARN","Host rejected: "+app.name);toast(app.name+" rejected","success");}}>Reject</Btn>
+                      <Btn v="danger" s="sm" onClick={()=>{setHostApps(apps=>apps.map(a=>a.id===app.id?{...a,status:"rejected"}:a));if(supabase.from&&app.id){supabase.from('host_applications').update({status:'rejected'}).eq('id',app.id).then(function(r){if(r.error)console.error("[TFT] Host reject sync failed:",r.error);});}addAudit("WARN","Host rejected: "+app.name);toast(app.name+" rejected","success");}}>Reject</Btn>
 
                     </div>
 
@@ -10146,7 +10174,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
 
 
-                    <Btn v="danger" s="sm" onClick={()=>{setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);delete n[pid];return n;});addAudit("ACTION","Sponsor removed: "+s.org);toast(s.org+" removed","success");}}>Remove</Btn>
+                    <Btn v="danger" s="sm" onClick={()=>{var updated=Object.assign({},orgSponsors);delete updated[pid];setOrgSponsors&&setOrgSponsors(function(){return updated;});if(supabase.from){supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(updated),updated_at:new Date().toISOString()}).then(function(r){if(r.error)console.error("[TFT] Sponsor remove sync failed:",r.error);});}addAudit("ACTION","Sponsor removed: "+s.org);toast(s.org+" removed","success");}}>Remove</Btn>
 
                   </div>
 
@@ -10174,7 +10202,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             </div>
 
-            <Btn v="primary" onClick={()=>{if(!spForm.name.trim()||!spForm.playerId){toast("Org name and player required","error");return;}setOrgSponsors&&setOrgSponsors(function(s){var n=Object.assign({},s);n[spForm.playerId]={org:spForm.name.trim(),logo:spForm.logo.trim()||spForm.name.trim().slice(0,2).toUpperCase(),color:spForm.color.trim()||"#9B72CF"};return n;});addAudit("ACTION","Sponsor added: "+spForm.name.trim());toast(spForm.name.trim()+" sponsorship added","success");setSpForm({name:"",logo:"",color:"",playerId:""});}}>Add Sponsorship</Btn>
+            <Btn v="primary" onClick={()=>{if(!spForm.name.trim()||!spForm.playerId){toast("Org name and player required","error");return;}var updated=Object.assign({},orgSponsors||{});updated[spForm.playerId]={org:spForm.name.trim(),logo:spForm.logo.trim()||spForm.name.trim().slice(0,2).toUpperCase(),color:spForm.color.trim()||"#9B72CF"};setOrgSponsors&&setOrgSponsors(function(){return updated;});if(supabase.from){supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(updated),updated_at:new Date().toISOString()}).then(function(r){if(r.error)console.error("[TFT] Sponsor add sync failed:",r.error);});}addAudit("ACTION","Sponsor added: "+spForm.name.trim());toast(spForm.name.trim()+" sponsorship added","success");setSpForm({name:"",logo:"",color:"",playerId:""});}}>Add Sponsorship</Btn>
 
           </Panel>
 
@@ -10196,6 +10224,12 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             <div style={{display:"flex",gap:5,flexWrap:"wrap",alignItems:"center"}}>
 
+              <div style={{display:"flex",gap:0,marginRight:8,borderRadius:6,overflow:"hidden",border:"1px solid rgba(242,237,228,.1)"}}>
+                {["session","database"].map(function(src){return(
+                  React.createElement("button",{key:src,onClick:function(){setAuditSource(src);if(src==="database")loadDbAudit();},style:{padding:"4px 12px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:auditSource===src?"rgba(155,114,207,.25)":"rgba(255,255,255,.03)",border:"none",color:auditSource===src?"#C4B5FD":"#7A8BA0",textTransform:"uppercase",letterSpacing:".04em"}},src==="session"?"Session":"Database")
+                );})}
+              </div>
+
               {["All","ACTION","DANGER","BROADCAST","WARN","INFO","RESULT"].map(function(ft){return(
 
                 <button key={ft} onClick={function(){setAuditFilter(ft);}} style={{padding:"3px 10px",borderRadius:5,fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit",background:auditFilter===ft?"rgba(155,114,207,.2)":"rgba(255,255,255,.04)",border:"1px solid "+(auditFilter===ft?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),color:auditFilter===ft?"#C4B5FD":"#9AAABF",transition:"all .12s"}}>{ft}</button>
@@ -10204,17 +10238,19 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               })}
 
-              <span className="mono" style={{fontSize:11,color:"#BECBD9",marginLeft:4}}>{(auditFilter==="All"?auditLog:auditLog.filter(function(l){return l.type===auditFilter;})).length} entries</span>
+              <span className="mono" style={{fontSize:11,color:"#BECBD9",marginLeft:4}}>{auditSource==="session"?(auditFilter==="All"?auditLog:auditLog.filter(function(l){return l.type===auditFilter;})).length+" entries":dbAuditEntries.length+" DB entries"}</span>
 
             </div>
 
           </div>
 
-          {auditLog.length===0&&<div style={{padding:"36px",textAlign:"center",color:"#9AAABF",fontSize:13}}>No audit entries yet.</div>}
+          {auditSource==="session"&&auditLog.length===0&&<div style={{padding:"36px",textAlign:"center",color:"#9AAABF",fontSize:13}}>No audit entries yet.</div>}
+
+          {auditSource==="database"&&dbAuditEntries.length===0&&<div style={{padding:"36px",textAlign:"center",color:"#9AAABF",fontSize:13}}>No database audit entries. Click "Database" to refresh.</div>}
 
           <div style={{maxHeight:540,overflowY:"auto"}}>
 
-            {(auditFilter==="All"?auditLog:auditLog.filter(function(l){return l.type===auditFilter;})).map(function(l,i){
+            {auditSource==="session"&&(auditFilter==="All"?auditLog:auditLog.filter(function(l){return l.type===auditFilter;})).map(function(l,i){
 
               var bc=l.type==="DANGER"?"#F87171":l.type==="BROADCAST"?"#9B72CF":l.type==="WARN"?"#E8A838":l.type==="INFO"?"#4ECDC4":"rgba(242,237,228,.08)";
 
@@ -10227,6 +10263,30 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
                   <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{l.msg}</span>
 
                   <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{new Date(l.ts).toLocaleString()}</span>
+
+                </div>
+
+              );
+
+            })}
+
+            {auditSource==="database"&&dbAuditEntries.map(function(entry,i){
+
+              var actionType=entry.action||"ACTION";
+              var bc=actionType==="DANGER"?"#F87171":actionType==="BROADCAST"?"#9B72CF":actionType==="WARN"?"#E8A838":actionType==="INFO"?"#4ECDC4":"rgba(242,237,228,.08)";
+              var msg=(entry.details&&entry.details.message)?entry.details.message:(entry.action+(entry.target_id?" on "+entry.target_id:""));
+
+              return(
+
+                <div key={entry.id||i} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 16px",borderBottom:"1px solid rgba(242,237,228,.04)",borderLeft:"3px solid "+bc}}>
+
+                  <Tag color={AUDIT_COLS[actionType]||"#E8A838"} size="sm">{actionType}</Tag>
+
+                  <span style={{fontSize:11,color:"#9B72CF",fontWeight:600,flexShrink:0}}>{entry.actor_name||"System"}</span>
+
+                  <span style={{flex:1,fontSize:13,color:"#C8BFB0"}}>{msg}</span>
+
+                  <span className="mono" style={{fontSize:10,color:"#9AAABF",whiteSpace:"nowrap",flexShrink:0}}>{entry.created_at?new Date(entry.created_at).toLocaleString():""}</span>
 
                 </div>
 
