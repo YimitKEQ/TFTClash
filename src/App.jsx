@@ -17137,29 +17137,44 @@ function RulesScreen({setScreen}){
 
 // ─── FAQ SCREEN ───────────────────────────────────────────────────────────────
 
+var FAQ_DATA = [
+  {cat:"Getting Started",icon:"rocket",items:[
+    {q:"How do I join a clash?",a:"Navigate to the Clash screen and click Register. Check-in opens 60 minutes before the clash starts."},
+    {q:"Is it free to play?",a:"Yes, competing is always free. Pro and Host tiers unlock extra features like advanced stats, broadcast mode, and tournament hosting."},
+    {q:"Do I need a Riot account?",a:"You need a TFT Clash account. Linking your Riot ID is optional but recommended for verification."}
+  ]},
+  {cat:"During a Clash",icon:"swords",items:[
+    {q:"How are lobbies assigned?",a:"Players are distributed into 8-player lobbies. With Swiss mode, lobbies reseed after every 2 games based on cumulative points."},
+    {q:"How do I submit results?",a:"After each game, any player in the lobby can submit placements. Another player must confirm them."},
+    {q:"What if results are wrong?",a:"Click Dispute on the result. An admin will review within 24 hours."}
+  ]},
+  {cat:"Scoring and Rankings",icon:"chart-bar",items:[
+    {q:"How does scoring work?",a:"Standard EMEA scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
+    {q:"How are tiebreakers resolved?",a:"Total points first, then wins + top 4s (wins count double), then most of each placement starting from 1st, then most recent finish."},
+    {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
+  ]},
+  {cat:"Pro and Host Tiers",icon:"crown",items:[
+    {q:"What does Pro unlock?",a:"Advanced stats, head-to-head comparisons, broadcast mode, custom profile banners, and priority support."},
+    {q:"What does Host unlock?",a:"Create and brand your own tournaments, custom landing pages, featured event placement, and full analytics dashboard."},
+    {q:"Can I cancel anytime?",a:"Yes. Your tier remains active until the end of the billing period."}
+  ]}
+];
+
 function FAQScreen({setScreen}){
-  var [open,setOpen]=useState(null);
+  var [openKey,setOpenKey]=useState(null);
   var [faqSearch,setFaqSearch]=useState("");
+  var [expandedCats,setExpandedCats]=useState({"Getting Started":true,"During a Clash":true,"Scoring and Rankings":true,"Pro and Host Tiers":true});
 
-  var faqs=[
-    {q:"How do I join a clash?",a:"Go to the Home screen and click Register. You need a free account with a Riot ID. Once registered, check in when the check-in window opens (usually 60 min before start) to confirm your spot."},
-    {q:"Is it free to play?",a:"Yes! TFT Clash is always free to compete. There is no paywall on tournament entry. Pro and Host tiers offer additional features but are never required to play."},
-    {q:"What if the clash is full?",a:"If registration hits the player cap (usually 24), you are automatically placed on a waitlist. If a registered player drops out, the first person on the waitlist is auto-promoted to a confirmed spot."},
-    {q:"How does the points system work?",a:"Points are awarded based on your final placement in each game: 1st = 8 pts, 2nd = 7, 3rd = 6, 4th = 5, 5th = 4, 6th = 3, 7th = 2, 8th = 1. These follow the official EMEA rulebook scoring."},
-    {q:"How do I submit my results?",a:"After each game, go to the Bracket screen and find your lobby. Use the placement dropdown next to your name to report your finish (1st-8th). The admin reviews all submissions, can adjust if needed, and locks the lobby to finalize results."},
-    {q:"What if the admin locks wrong results?",a:"Admins can unlock a lobby to revert results and re-enter placements. All stats (points, wins, averages) are automatically rolled back when a lobby is unlocked."},
-    {q:"How do tiebreakers work?",a:"Ties are broken in order: (1) total tournament points, (2) wins + top-4s (wins count twice), (3) most of each placement from 1st down, (4) most recent game finish."},
-    {q:"What is DNP?",a:"DNP means Did Not Play. If you miss a game during a clash, the admin marks you as DNP (0 points for that round). Two DNPs in a single clash result in automatic disqualification."},
-    {q:"How does the season work?",a:"Each season runs for a set number of weeks with weekly clashes. Points accumulate across all clashes. The player with the most points at the end is crowned Season Champion and enters the Hall of Fame."},
-    {q:"What are the different tournament formats?",a:"Standard (3 games, everyone plays all rounds), Competitive (5-6 games with a cut line that eliminates lower players mid-tournament), and Swiss (players are reseeded between rounds based on standings)."},
-    {q:"What are scrims?",a:"Scrims are practice lobbies that do not count toward official standings. They help you warm up and try new strategies. Contact an admin to request scrim access."},
-    {q:"What does Pro ($4.99/mo) include?",a:"Pro members get advanced stats and analytics, priority tournament registration, custom profile badges, detailed match history exports, and access to exclusive Pro-only clashes."},
-    {q:"Can I host my own tournament?",a:"Yes! Subscribe to the Host tier ($19.99/mo) and apply through the Host Application page. Once approved, you get a full Host Dashboard to create events, upload branding, manage registrations, and run brackets independently."},
-    {q:"What happens if I disconnect?",a:"Disconnects count as 8th place unless the lobby unanimously agrees to a remake. Make sure your connection is stable before joining."}
-  ];
+  var q=faqSearch.trim().toLowerCase();
 
-  var faqQ=faqSearch.trim().toLowerCase();
-  var faqFiltered=faqQ?faqs.filter(function(faq){return faq.q.toLowerCase().indexOf(faqQ)!==-1||faq.a.toLowerCase().indexOf(faqQ)!==-1;}):faqs;
+  var filteredData=FAQ_DATA.map(function(cat){
+    var items=q?cat.items.filter(function(item){
+      return item.q.toLowerCase().indexOf(q)!==-1||item.a.toLowerCase().indexOf(q)!==-1;
+    }):cat.items;
+    return Object.assign({},cat,{items:items});
+  }).filter(function(cat){return cat.items.length>0;});
+
+  var totalResults=filteredData.reduce(function(acc,cat){return acc+cat.items.length;},0);
 
   return(
     <div className="page wrap">
@@ -17172,29 +17187,67 @@ function FAQScreen({setScreen}){
         type="text"
         placeholder="Search FAQ..."
         value={faqSearch}
-        onChange={function(e){setFaqSearch(e.target.value);setOpen(null);}}
+        onChange={function(e){setFaqSearch(e.target.value);setOpenKey(null);}}
         style={{width:"100%",padding:"10px 14px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:10,color:"#F2EDE4",fontSize:14,marginBottom:16,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}
       />
 
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {faqFiltered.length===0&&React.createElement("div",{style:{textAlign:"center",padding:"32px 16px",color:"#8896A8",fontSize:14}},"No results found for \""+faqSearch+"\". Try a different search term.")}
-        {faqFiltered.map(function(faq){
-          var isOpen=open===faq.q;
+      {totalResults===0&&(
+        <div style={{textAlign:"center",padding:"32px 16px",color:"#8896A8",fontSize:14}}>{"No results for \""+faqSearch+"\". Try a different search term."}</div>
+      )}
+
+      <div style={{display:"flex",flexDirection:"column",gap:16}}>
+        {filteredData.map(function(cat){
+          var isCatOpen=expandedCats[cat.cat]!==false;
           return(
-            <div key={faq.q} style={{background:isOpen?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.25)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .2s"}}>
-              <button onClick={function(){setOpen(isOpen?null:faq.q);}} style={{width:"100%",padding:"16px 18px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,textAlign:"left"}}>
-                <span style={{fontSize:14,fontWeight:600,color:isOpen?"#C4B5FD":"#F2EDE4",lineHeight:1.4}}>{faq.q}</span>
-                <span style={{fontSize:18,color:isOpen?"#9B72CF":"#8896A8",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(45deg)":"rotate(0deg)"}}>+</span>
+            <div key={cat.cat}>
+              <button
+                onClick={function(){setExpandedCats(function(prev){var next=Object.assign({},prev);next[cat.cat]=!isCatOpen;return next;});}}
+                style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"10px 0",background:"none",border:"none",borderBottom:"1px solid rgba(242,237,228,.1)",cursor:"pointer",marginBottom:10,textAlign:"left"}}
+              >
+                <span style={{color:"#9B72CF",fontSize:16}}>{React.createElement("i",{className:"ti ti-"+cat.icon})}</span>
+                <span style={{fontSize:13,fontWeight:700,color:"#C4B5FD",textTransform:"uppercase",letterSpacing:".1em",fontFamily:"'Barlow Condensed',sans-serif",flex:1}}>{cat.cat}</span>
+                <span style={{fontSize:12,color:"#8896A8",fontWeight:600}}>{cat.items.length+" Q"}</span>
+                <span style={{fontSize:16,color:"#8896A8",transition:"transform .2s",transform:isCatOpen?"rotate(180deg)":"rotate(0deg)"}}>{React.createElement("i",{className:"ti ti-chevron-down"})}</span>
               </button>
-              {isOpen&&(
-                <div style={{padding:"0 18px 16px 18px"}}>
-                  <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.7}}>{faq.a}</div>
+              {isCatOpen&&(
+                <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                  {cat.items.map(function(item){
+                    var key=cat.cat+"|"+item.q;
+                    var isOpen=openKey===key;
+                    return(
+                      <div key={key} style={{background:isOpen?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.25)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .2s"}}>
+                        <button onClick={function(){setOpenKey(isOpen?null:key);}} style={{width:"100%",padding:"14px 16px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,textAlign:"left"}}>
+                          <span style={{fontSize:14,fontWeight:600,color:isOpen?"#C4B5FD":"#F2EDE4",lineHeight:1.4}}>{item.q}</span>
+                          <span style={{fontSize:18,color:isOpen?"#9B72CF":"#8896A8",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(45deg)":"rotate(0deg)"}}>+</span>
+                        </button>
+                        {isOpen&&(
+                          <div style={{padding:"0 16px 16px 16px"}}>
+                            <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.7}}>{item.a}</div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {totalResults>0&&(
+        <div style={{marginTop:32,background:"rgba(155,114,207,.06)",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"20px 24px",textAlign:"center"}}>
+          <div style={{fontSize:16,fontWeight:700,color:"#C4B5FD",marginBottom:6}}>Still have questions?</div>
+          <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.6,marginBottom:14}}>Join the community on Discord or reach out to an admin directly.</div>
+          <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+            <Btn v="primary" s="sm" onClick={function(){window.open("https://discord.gg/tftclash","_blank");}}>
+              {React.createElement("i",{className:"ti ti-brand-discord",style:{marginRight:5}})}
+              {"Join Discord"}
+            </Btn>
+            <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>Back to Home</Btn>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
