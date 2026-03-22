@@ -10507,7 +10507,57 @@ function ScrimSparkline({placements,w,h}){
   );
 }
 
-function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications}){
+function createScrim(name, createdBy, tag, notes, targetGames) {
+  return supabase.from("scrims").insert({
+    name: name, created_by: createdBy, tag: tag || null, notes: notes || null,
+    target_games: targetGames || 5, status: "active"
+  }).select().single();
+}
+
+function addScrimPlayers(scrimId, playerIds) {
+  var rows = playerIds.map(function(pid) {
+    return {scrim_id: scrimId, player_id: pid};
+  });
+  return supabase.from("scrim_players").insert(rows);
+}
+
+function submitScrimResult(scrimId, gameNumber, results, tag, note, duration) {
+  return supabase.from("scrim_games").insert({
+    scrim_id: scrimId, game_number: gameNumber, status: "completed",
+    tag: tag || "standard", note: note || null, duration: duration || 0
+  }).select().single().then(function(res) {
+    if (res.error) return res;
+    var gameId = res.data.id;
+    var rows = results.map(function(r) {
+      return {scrim_game_id: gameId, player_id: r.playerId, placement: r.placement, points: PTS[r.placement] || 0};
+    });
+    return supabase.from("scrim_results").insert(rows).then(function(insRes) {
+      if (insRes.error) return insRes;
+      return {data: Object.assign({}, res.data, {scrim_results: rows}), error: null};
+    });
+  });
+}
+
+function loadScrims() {
+  return supabase.from("scrims")
+    .select("*, scrim_players(player_id), scrim_games(*, scrim_results(*))")
+    .order("created_at", {ascending: false})
+    .limit(50);
+}
+
+function endScrimDb(scrimId) {
+  return supabase.from("scrims").update({status: "ended"}).eq("id", scrimId);
+}
+
+function deleteScrimGameDb(gameId) {
+  return supabase.from("scrim_games").delete().eq("id", gameId);
+}
+
+function deleteScrimDb(scrimId) {
+  return supabase.from("scrims").delete().eq("id", scrimId);
+}
+
+function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scrimAccess,setScrimAccess,tickerOverrides,setTickerOverrides,setNotifications,currentUser,linkedPlayer}){
 
   var [tab,setTab]=useState("dashboard");
 
@@ -10537,7 +10587,27 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
   var timerRef=useRef(null);
 
+  var [dbScrims,setDbScrims]=useState([]);
+  var [dbLoading,setDbLoading]=useState(true);
 
+  // Load scrims from DB on mount
+  useEffect(function(){
+    var cancelled=false;
+    setDbLoading(true);
+    loadScrims().then(function(res){
+      if(cancelled)return;
+      if(res.error){toast("Failed to load scrims: "+res.error.message,"error");setDbLoading(false);return;}
+      setDbScrims(res.data||[]);
+      setDbLoading(false);
+    });
+    return function(){cancelled=true;};
+  },[]);
+
+  function reloadScrims(){
+    loadScrims().then(function(res){
+      if(!res.error)setDbScrims(res.data||[]);
+    });
+  }
 
   useEffect(function(){
 
@@ -10549,11 +10619,22 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
   },[timerActive]);
 
-
-
   var fmt=function(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");};
 
-  var safeSessions=sessions||[];
+  // Convert DB scrims to the shape the UI expects (sessions with .games array)
+  var safeSessions=dbScrims.map(function(sc){
+    var games=(sc.scrim_games||[]).map(function(g){
+      var results={};
+      (g.scrim_results||[]).forEach(function(r){results[r.player_id]=r.placement;});
+      return {id:g.id,results:results,note:g.note||"",tag:g.tag||"standard",duration:g.duration||0,ts:new Date(g.created_at).getTime(),gameNumber:g.game_number};
+    }).sort(function(a,b){return a.gameNumber-b.gameNumber;});
+    return {
+      id:sc.id,name:sc.name,notes:sc.notes||"",targetGames:sc.target_games||5,
+      games:games,createdAt:new Date(sc.created_at).toLocaleDateString(),
+      active:sc.status==="active",tag:sc.tag,createdBy:sc.created_by,
+      playerIds:(sc.scrim_players||[]).map(function(sp){return sp.player_id;})
+    };
+  });
 
   var session=safeSessions.find(function(s){return s.id===activeId;});
 
@@ -10680,23 +10761,23 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 
   function createSession(){
-
     if(!newName.trim()){toast("Name required","error");return;}
-
-    var s={id:Date.now(),name:newName.trim(),notes:newNotes.trim(),
-
-      targetGames:parseInt(newTarget)||5,games:[],createdAt:new Date().toLocaleDateString(),active:true};
-
-    setSessions(function(ss){return [...(ss||[]),s];});
-
-    setActiveId(s.id);
-
-    setNewName("");setNewNotes("");setNewTarget("5");
-
-    toast("Session created - go to Play tab to record games","success");
-
-    setTab("play");
-
+    if(!currentUser){toast("Login required","error");return;}
+    var tgt=parseInt(newTarget)||5;
+    createScrim(newName.trim(),currentUser.id,null,newNotes.trim(),tgt).then(function(res){
+      if(res.error){toast("Failed to create: "+res.error.message,"error");return;}
+      var scrimId=res.data.id;
+      var pids=scrimRoster.map(function(p){return typeof p.id==="number"?p.id:parseInt(p.id);}).filter(function(v){return !isNaN(v);});
+      if(pids.length>0){
+        addScrimPlayers(scrimId,pids).then(function(){reloadScrims();});
+      }else{
+        reloadScrims();
+      }
+      setActiveId(scrimId);
+      setNewName("");setNewNotes("");setNewTarget("5");
+      toast("Session created, go to Play tab to record games","success");
+      setTab("play");
+    });
   }
 
 
@@ -10720,51 +10801,47 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
 
   function lockGame(){
-
     if(!activeId){toast("Select or create a session first","error");return;}
-
     if(Object.keys(scrimResults).length<scrimRoster.length){toast("All placements required","error");return;}
-
-    var game={id:Date.now(),results:Object.assign({},scrimResults),note:gameNote,tag:gameTag,duration:timer,ts:Date.now()};
-
-    setSessions(function(ss){return (ss||[]).map(function(s){return s.id===activeId?Object.assign({},s,{games:[...s.games,game]}):s;});});
-
-    setScrimResults({});setGameNote("");setTimer(0);setTimerActive(false);
-
-    toast("Game locked","success");
-
+    var gameNum=session?session.games.length+1:1;
+    var resultRows=Object.keys(scrimResults).map(function(pid){
+      return {playerId:parseInt(pid),placement:scrimResults[pid]};
+    });
+    submitScrimResult(activeId,gameNum,resultRows,gameTag,gameNote,timer).then(function(res){
+      if(res.error){toast("Failed to save game: "+res.error.message,"error");return;}
+      reloadScrims();
+      setScrimResults({});setGameNote("");setTimer(0);setTimerActive(false);
+      toast("Game locked","success");
+    });
   }
 
 
 
   function stopSession(id){
-
-    setSessions(function(ss){return (ss||[]).map(function(s){return s.id===id?Object.assign({},s,{active:false}):s;});});
-
-    toast("Session ended - results saved","success");
-
+    endScrimDb(id).then(function(res){
+      if(res.error){toast("Failed to end session: "+res.error.message,"error");return;}
+      reloadScrims();
+      toast("Session ended, results saved","success");
+    });
   }
 
   function deleteGame(sessionId,gameId){
-
-    setSessions(function(ss){return (ss||[]).map(function(s){return s.id===sessionId?Object.assign({},s,{games:s.games.filter(function(g){return g.id!==gameId;})}):s;});});
-
-    setConfirmDelete(null);
-
-    toast("Game deleted","success");
-
+    deleteScrimGameDb(gameId).then(function(res){
+      if(res.error){toast("Failed to delete game: "+res.error.message,"error");return;}
+      reloadScrims();
+      setConfirmDelete(null);
+      toast("Game deleted","success");
+    });
   }
 
   function deleteSession(sessionId){
-
-    setSessions(function(ss){return (ss||[]).filter(function(s){return s.id!==sessionId;});});
-
-    if(activeId===sessionId)setActiveId(null);
-
-    setConfirmDelete(null);
-
-    toast("Session deleted","success");
-
+    deleteScrimDb(sessionId).then(function(res){
+      if(res.error){toast("Failed to delete session: "+res.error.message,"error");return;}
+      reloadScrims();
+      if(activeId===sessionId)setActiveId(null);
+      setConfirmDelete(null);
+      toast("Session deleted","success");
+    });
   }
 
 
@@ -11069,7 +11146,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                 <div style={{fontSize:11,fontWeight:700,color:"#BECBD9",textTransform:"uppercase",letterSpacing:".08em",marginBottom:6}}>Active Session</div>
 
-                <Sel value={activeId||""} onChange={function(v){setActiveId(parseInt(v)||null);}} style={{width:"100%"}}>
+                <Sel value={activeId||""} onChange={function(v){setActiveId(v||null);}} style={{width:"100%"}}>
 
                   <option value="">- Select session -</option>
 
@@ -18592,7 +18669,7 @@ function TFTClash(){
         {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"ti ti-lock"})}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
 
-        {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications}/>}
+        {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreen players={players} toast={toast} setScreen={navTo} sessions={scrimSessions} setSessions={setScrimSessions} isAdmin={isAdmin} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications} currentUser={currentUser} linkedPlayer={linkedPlayer}/>}
 
         {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser}/>}
 
