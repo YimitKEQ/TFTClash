@@ -4286,7 +4286,7 @@ function ClashScreen(props){
       fontFamily:"'Barlow Condensed',sans-serif",letterSpacing:".04em",
     }},
       React.createElement("i",{className:"ti ti-arrows-shuffle",style:{fontSize:16}}),
-      "Swiss Reseed \u2014 Lobbies reorganized by standings"
+      "Swiss Reseed - Lobbies reorganized by standings"
     ):null,
     phase==="live"&&props.tournamentState.liveStandings?React.createElement(LiveStandingsTable,{standings:props.tournamentState.liveStandings}):null,
     phase==="complete"?React.createElement(React.Fragment,null,
@@ -4936,6 +4936,62 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
 
     // Divider
     React.createElement("div", {style: {height: 1, background: "linear-gradient(90deg,transparent,rgba(155,114,207,.2),rgba(78,205,196,.2),transparent)", margin: "12px 0 20px"}}),
+
+    // Featured Event Hero Card
+    (function() {
+      var fe = featuredEvents || [];
+      var liveEv = fe.filter(function(e) { return e.status === "live"; })[0];
+      var upEv = fe.filter(function(e) { return e.status === "upcoming"; })[0];
+      var heroEv = liveEv || upEv;
+      if (!heroEv) return null;
+      var isLive = heroEv.status === "live";
+      return React.createElement("div", {
+        style: {
+          position: "relative", overflow: "hidden", cursor: "pointer",
+          background: "linear-gradient(145deg,#0D1520,#0f1827)",
+          border: "1px solid " + (isLive ? "rgba(82,196,124,.35)" : "rgba(155,114,207,.25)"),
+          borderRadius: 16, marginBottom: 16,
+          transition: "border-color .2s, transform .2s",
+        },
+        onClick: function() { setScreen("events/featured"); },
+        onMouseEnter: function(e) { e.currentTarget.style.borderColor = isLive ? "rgba(82,196,124,.6)" : "rgba(155,114,207,.5)"; e.currentTarget.style.transform = "translateY(-1px)"; },
+        onMouseLeave: function(e) { e.currentTarget.style.borderColor = isLive ? "rgba(82,196,124,.35)" : "rgba(155,114,207,.25)"; e.currentTarget.style.transform = "translateY(0)"; },
+      },
+        // Top accent line
+        React.createElement("div", {style: {position: "absolute", top: 0, left: 0, right: 0, height: 3, background: isLive ? "linear-gradient(90deg,transparent,#52C47C,transparent)" : "linear-gradient(90deg,transparent,#9B72CF,transparent)"}}),
+        // Ambient glow
+        React.createElement("div", {style: {position: "absolute", top: "-40%", right: "-10%", width: "50%", height: "180%", background: isLive ? "radial-gradient(ellipse,rgba(82,196,124,.08) 0%,transparent 70%)" : "radial-gradient(ellipse,rgba(155,114,207,.06) 0%,transparent 70%)", pointerEvents: "none"}}),
+        // Header bar
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderBottom: "1px solid rgba(255,255,255,.04)", background: "rgba(255,255,255,.02)"}},
+          React.createElement("i", {className: "ti ti-tournament", style: {fontSize: 12, color: isLive ? "#6EE7B7" : "#C4B5FD"}}),
+          React.createElement("span", {style: {fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em", color: isLive ? "#6EE7B7" : "#C4B5FD", fontFamily: "'Barlow Condensed',sans-serif"}}, isLive ? "LIVE EVENT" : "UPCOMING EVENT"),
+          isLive ? React.createElement("span", {style: {display: "flex", alignItems: "center", gap: 4, marginLeft: "auto", fontSize: 10, color: "#6EE7B7", fontWeight: 700}},
+            React.createElement("span", {style: {width: 5, height: 5, borderRadius: "50%", background: "#52C47C", animation: "pulse 2s infinite", display: "inline-block"}}),
+            "LIVE NOW"
+          ) : React.createElement("span", {style: {marginLeft: "auto", fontSize: 10, color: "#BECBD9"}}, heroEv.date || ""),
+          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#5A6577", marginLeft: 4}})
+        ),
+        // Body
+        React.createElement("div", {style: {padding: "16px 18px", display: "flex", gap: 14, alignItems: "center"}},
+          React.createElement("div", {style: {width: 52, height: 52, borderRadius: 14, background: isLive ? "rgba(82,196,124,.1)" : "rgba(155,114,207,.1)", border: "1px solid " + (isLive ? "rgba(82,196,124,.25)" : "rgba(155,114,207,.25)"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0}}, heroEv.logo || React.createElement("i", {className: "ti ti-trophy", style: {fontSize: 22, color: isLive ? "#6EE7B7" : "#C4B5FD"}})),
+          React.createElement("div", {style: {flex: 1, minWidth: 0}},
+            React.createElement("div", {style: {fontWeight: 700, fontSize: 16, color: "#F2EDE4", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, heroEv.name),
+            React.createElement("div", {style: {fontSize: 12, color: "#9B72CF", fontWeight: 600, marginBottom: 6}}, "Hosted by " + (heroEv.host || "TFT Clash") + (heroEv.sponsor ? " - Presented by " + heroEv.sponsor : "")),
+            React.createElement("div", {style: {display: "flex", gap: 6, flexWrap: "wrap"}},
+              React.createElement("span", {style: {background: "rgba(232,168,56,.08)", border: "1px solid rgba(232,168,56,.2)", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#E8A838"}}, (heroEv.registered || 0) + "/" + (heroEv.size || 8) + " players"),
+              heroEv.prizePool ? React.createElement("span", {style: {background: "rgba(78,205,196,.08)", border: "1px solid rgba(78,205,196,.2)", borderRadius: 20, padding: "2px 8px", fontSize: 10, fontWeight: 700, color: "#4ECDC4"}}, heroEv.prizePool) : null,
+              heroEv.format ? React.createElement("span", {style: {background: "rgba(255,255,255,.04)", borderRadius: 20, padding: "2px 8px", fontSize: 10, color: "#BECBD9"}}, heroEv.format) : null
+            )
+          )
+        ),
+        // Broadcast mini bar
+        isLive && heroEv.broadcastUrl ? React.createElement("div", {style: {padding: "8px 18px", borderTop: "1px solid rgba(255,255,255,.04)", display: "flex", alignItems: "center", gap: 8, background: "rgba(82,196,124,.03)"}},
+          React.createElement("i", {className: "ti ti-broadcast", style: {fontSize: 14, color: "#6EE7B7"}}),
+          React.createElement("span", {style: {fontSize: 11, color: "#6EE7B7", fontWeight: 600}}, "Watch the broadcast"),
+          React.createElement("i", {className: "ti ti-external-link", style: {fontSize: 12, color: "#6EE7B7", marginLeft: "auto"}})
+        ) : null
+      );
+    })(),
 
     // Season standings preview
     React.createElement(Panel, {accent: true, style: {padding: "18px", marginBottom: 16}},
