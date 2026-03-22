@@ -14384,6 +14384,15 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
 
 
+  var history=player.clashHistory||[];
+  var bestMoment=null;
+  history.forEach(function(h){
+    var p=h.place||h.placement;
+    if(p&&(!bestMoment||p<(bestMoment.place||bestMoment.placement))){bestMoment=h;}
+  });
+  var bestPlace=bestMoment?(bestMoment.place||bestMoment.placement):null;
+  var top4Rate=s.games>0?Math.round(s.top4/s.games*100):0;
+
   return(
 
     <div className="page wrap">
@@ -14478,15 +14487,65 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
 
 
+      {/* Best Moment + Placement Distribution */}
+
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16,marginBottom:24,maxWidth:700}}>
+
+        {bestPlace&&React.createElement("div",{style:{background:"#111827",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"18px 20px"}},
+          React.createElement("div",{className:"cond",style:{fontSize:9,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:12}},"Best Finish"),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14}},
+            React.createElement("div",{className:"mono",style:{fontSize:48,fontWeight:800,lineHeight:1,color:bestPlace===1?"#E8A838":bestPlace<=3?"#C0C0C0":"#9B72CF"}},
+              ordinal(bestPlace)
+            ),
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:13,fontWeight:600,color:"#F2EDE4",marginBottom:4}},
+                bestPlace===1?"Champion":"Top Finish"
+              ),
+              bestMoment&&bestMoment.clashId&&React.createElement("div",{style:{fontSize:11,color:"#9AAABF"}},
+                "Clash "+bestMoment.clashId
+              ),
+              React.createElement("div",{style:{fontSize:11,color:"#9AAABF"}},
+                s.wins+" total win"+(s.wins!==1?"s":"")+" this season"
+              )
+            )
+          )
+        )}
+
+        <div style={{background:"#111827",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"18px 20px"}}>
+          <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:12}}>Stats Summary</div>
+          {[
+            ["Top 4 Rate",top4Rate+"%",top4Rate>=50?"#6EE7B7":"#E8A838"],
+            ["Win Rate",s.top1Rate+"%",parseFloat(s.top1Rate)>=20?"#6EE7B7":"#C4B5FD"],
+            ["Avg Placement",s.avgPlacement,avgCol(s.avgPlacement)],
+            ["Games Played",s.games,"#C8D4E0"],
+          ].map(function(row){
+            return React.createElement("div",{key:row[0],style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid rgba(242,237,228,.05)"}},
+              React.createElement("span",{style:{fontSize:12,color:"#9AAABF"}},row[0]),
+              React.createElement("span",{className:"mono",style:{fontSize:13,fontWeight:700,color:row[2]}},row[1])
+            );
+          })}
+        </div>
+
+      </div>
+
+      {history.length>0&&React.createElement("div",{style:{background:"#111827",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"18px 20px",marginBottom:24,maxWidth:700}},
+        React.createElement(PlacementDistribution,{history:history})
+      )}
+
       {/* Share buttons */}
 
       <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
 
         <Btn v="primary" s="lg" onClick={downloadRecap}>{React.createElement("i",{className:"ti ti-download",style:{fontSize:14,marginRight:4}})}Download PNG</Btn>
 
-        <Btn v="dark" onClick={shareTwitter}>𝕏 Copy for Twitter</Btn>
+        <Btn v="dark" onClick={function(){shareToTwitter(buildShareText("profile",{name:player.name,rank:position,pts:player.pts}));}}>
+          {React.createElement("i",{className:"ti ti-brand-x",style:{fontSize:14,marginRight:4}})}Share on X
+        </Btn>
 
-        <Btn v="purple" onClick={()=>toast("Discord format copied!","success")}>Discord Share</Btn>
+        <Btn v="purple" onClick={function(){
+          var text="[TFT Clash Season 1 Recap] "+player.name+" - #"+position+" overall ("+player.pts+" pts) | "+s.wins+" wins | AVP "+s.avgPlacement+" | "+awards.length+" awards | #TFTClash";
+          navigator.clipboard&&navigator.clipboard.writeText(text).then(function(){toast("Copied for Discord!","success");});
+        }}>Discord Share</Btn>
 
       </div>
 
