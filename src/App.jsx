@@ -4786,7 +4786,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("span", {style: {fontSize: 11, color: "#E8A838"}}, new Date(upcomingTournament.date).toLocaleDateString("en-GB", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}))
       ),
       React.createElement("div", {style: {fontSize: 16, fontWeight: 700, color: "#F2EDE4", marginBottom: 4}}, upcomingTournament.name),
-      countdownText ? React.createElement("div", {style: {fontSize: 12, fontWeight: 700, color: countdownColor}}, countdownText) : null,
+      null,
       React.createElement(Btn, {v: "primary", s: "sm"}, "Register Now")
     ) : null,
 
