@@ -17689,59 +17689,59 @@ function GearScreen(props) {
 
 // ─── PRIVACY POLICY ──────────────────────────────────────────────────────────
 
-function PrivacyScreen(props){
-  var setScreen=props.setScreen;
-  return(
-    <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
-      <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
-      <h1 style={{color:"#F2EDE4",fontSize:26,marginTop:16,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>Privacy Policy</h1>
-      <div style={{color:"#BECBD9",fontSize:14,lineHeight:1.8}}>
-        <p style={{marginBottom:16}}><strong style={{color:"#F2EDE4"}}>Effective Date:</strong> March 2026</p>
-        <p style={{marginBottom:16}}>TFT Clash ("we", "us") respects your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>1. Data We Collect</h3>
-        <p style={{marginBottom:16}}>When you create an account, we collect your email address, username, and optionally your Riot ID and Discord username. During tournaments, we record your game placements and points. We also store session cookies to keep you logged in.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>2. How We Use Your Data</h3>
-        <p style={{marginBottom:16}}>Your data is used to operate the platform: displaying leaderboards, tracking tournament results, managing subscriptions, and sending you relevant notifications. We never sell your data to third parties.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>3. Data Storage</h3>
-        <p style={{marginBottom:16}}>Data is stored in Supabase (EU West region) with row-level security. Passwords are handled by Supabase Auth and never stored in plaintext. Payment data is processed by Stripe and never touches our servers.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>4. Your Rights</h3>
-        <p style={{marginBottom:16}}>You can request deletion of your account and data at any time by contacting us. You can export your stats from your profile page. Under GDPR, you have the right to access, correct, and delete your personal data.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>5. Cookies</h3>
-        <p style={{marginBottom:16}}>We use essential cookies for authentication and session management. We do not use tracking cookies. Analytics (if enabled) use privacy-respecting, cookieless solutions.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>6. Contact</h3>
-        <p style={{marginBottom:16}}>For privacy questions or data requests, reach out via Discord or email at the address listed on our GitHub repository.</p>
-      </div>
-    </div>
+function PrivacyScreen() {
+  var sections = [
+    {id:"collect",title:"Information We Collect",body:"We collect information you provide directly: account credentials, Riot ID, region, and optional profile details (bio, social links). We also collect usage data including participation records, placement results, and platform interactions."},
+    {id:"use",title:"How We Use Your Information",body:"Your information powers your competitive profile, leaderboard standings, achievement tracking, and season statistics. We use aggregate data to improve the platform. We never sell personal data."},
+    {id:"share",title:"Information Sharing",body:"Your competitive results and profile are visible to other users. We do not share personal data with third parties except as required by law or to protect against fraud."},
+    {id:"security",title:"Data Security",body:"We use Supabase with row-level security policies. All data is encrypted in transit and at rest. Authentication is handled through industry-standard protocols."},
+    {id:"rights",title:"Your Rights",body:"You can update or delete your account at any time via Account Settings. Upon deletion, your personal data is removed. Anonymized competitive records may be retained for historical standings integrity."},
+    {id:"contact",title:"Contact",body:"Questions about privacy? Reach us via Discord."}
+  ];
+  return React.createElement("div", {className:"page wrap fade-up"},
+    React.createElement("h2", {className:"display",style:{fontSize:22,color:"#F2EDE4",marginBottom:4}}, "Privacy Policy"),
+    React.createElement("div", {style:{fontSize:11,color:"#9AAABF",marginBottom:20}}, "Last updated: March 2026"),
+    React.createElement("div", {style:{marginBottom:24,padding:"12px 16px",background:"rgba(255,255,255,.03)",borderRadius:10}},
+      sections.map(function(s) {
+        return React.createElement("a", {key:s.id,href:"#privacy-" + s.id,style:{display:"block",fontSize:12,color:"#9B72CF",textDecoration:"none",padding:"4px 0"}}, s.title);
+      })
+    ),
+    sections.map(function(s) {
+      return React.createElement("div", {key:s.id,id:"privacy-" + s.id,style:{marginBottom:20}},
+        React.createElement("h3", {style:{fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:8}}, s.title),
+        React.createElement("p", {style:{fontSize:13,color:"#BECBD9",lineHeight:1.6}}, s.body)
+      );
+    })
   );
 }
 
 // ─── TERMS OF SERVICE ────────────────────────────────────────────────────────
 
-function TermsScreen(props){
-  var setScreen=props.setScreen;
-  return(
-    <div className="page wrap" style={{maxWidth:720,margin:"0 auto"}}>
-      <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"← Back"}</Btn>
-      <h1 style={{color:"#F2EDE4",fontSize:26,marginTop:16,marginBottom:24,fontFamily:"'Playfair Display',serif"}}>Terms of Service</h1>
-      <div style={{color:"#BECBD9",fontSize:14,lineHeight:1.8}}>
-        <p style={{marginBottom:16}}><strong style={{color:"#F2EDE4"}}>Effective Date:</strong> March 2026</p>
-        <p style={{marginBottom:16}}>By using TFT Clash, you agree to these terms. If you disagree, please do not use the platform.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>1. Eligibility</h3>
-        <p style={{marginBottom:16}}>You must be at least 16 years old to create an account. By signing up, you confirm you meet this requirement.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>2. Fair Play</h3>
-        <p style={{marginBottom:16}}>All participants must compete fairly. Cheating, match-fixing, account sharing, or exploiting bugs results in immediate disqualification and potential permanent ban. Decisions by tournament admins are final.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>3. Accounts</h3>
-        <p style={{marginBottom:16}}>You are responsible for your account security. Do not share credentials. One account per person. We reserve the right to suspend or terminate accounts that violate these terms.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>4. Subscriptions</h3>
-        <p style={{marginBottom:16}}>Pro and Host subscriptions are billed monthly via Stripe. You can cancel anytime from your account page. Refunds are handled on a case-by-case basis. Free-to-compete access is never restricted by subscription status.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>5. Content</h3>
-        <p style={{marginBottom:16}}>Tournament results, leaderboards, and player stats are public. By participating, you agree to your username and results being displayed publicly. Offensive usernames or behavior will be moderated.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>6. Limitation of Liability</h3>
-        <p style={{marginBottom:16}}>TFT Clash is provided "as is". We are not liable for service interruptions, data loss, or tournament disputes. We make best efforts to maintain uptime and data integrity.</p>
-        <h3 style={{color:"#C4B5FD",fontSize:16,marginBottom:8,marginTop:24}}>7. Changes</h3>
-        <p style={{marginBottom:16}}>We may update these terms. Continued use after changes constitutes acceptance. Material changes will be announced on the platform.</p>
-      </div>
-    </div>
+function TermsScreen() {
+  var sections = [
+    {id:"acceptance",title:"Acceptance of Terms",body:"By creating an account or using TFT Clash, you agree to these terms. If you do not agree, please do not use the platform."},
+    {id:"accounts",title:"Accounts",body:"You must provide accurate information when creating an account. You are responsible for maintaining the security of your account credentials. One account per person."},
+    {id:"conduct",title:"Acceptable Use",body:"You agree not to: manipulate game results, use automated tools to interact with the platform, harass other users, impersonate others, or exploit bugs instead of reporting them."},
+    {id:"content",title:"User Content",body:"You retain ownership of content you create (profile info, messages). By posting, you grant TFT Clash a license to display it within the platform. We may remove content that violates these terms."},
+    {id:"subscriptions",title:"Subscriptions and Payments",body:"Paid tiers (Pro, Host) are billed monthly. You may cancel at any time. Refunds are handled case-by-case. Features are subject to change with notice."},
+    {id:"termination",title:"Termination",body:"We may suspend or terminate accounts that violate these terms. You may delete your account at any time via Account Settings."},
+    {id:"liability",title:"Limitation of Liability",body:"TFT Clash is provided as-is. We are not liable for competitive outcomes, data loss from service interruptions, or third-party actions. Use the platform at your own risk."},
+    {id:"changes",title:"Changes to Terms",body:"We may update these terms periodically. Continued use after changes constitutes acceptance. We will notify users of significant changes via the platform."}
+  ];
+  return React.createElement("div", {className:"page wrap fade-up"},
+    React.createElement("h2", {className:"display",style:{fontSize:22,color:"#F2EDE4",marginBottom:4}}, "Terms of Service"),
+    React.createElement("div", {style:{fontSize:11,color:"#9AAABF",marginBottom:20}}, "Last updated: March 2026"),
+    React.createElement("div", {style:{marginBottom:24,padding:"12px 16px",background:"rgba(255,255,255,.03)",borderRadius:10}},
+      sections.map(function(s) {
+        return React.createElement("a", {key:s.id,href:"#terms-" + s.id,style:{display:"block",fontSize:12,color:"#9B72CF",textDecoration:"none",padding:"4px 0"}}, s.title);
+      })
+    ),
+    sections.map(function(s) {
+      return React.createElement("div", {key:s.id,id:"terms-" + s.id,style:{marginBottom:20}},
+        React.createElement("h3", {style:{fontSize:15,fontWeight:700,color:"#F2EDE4",marginBottom:8}}, s.title),
+        React.createElement("p", {style:{fontSize:13,color:"#BECBD9",lineHeight:1.6}}, s.body)
+      );
+    })
   );
 }
 
