@@ -17036,7 +17036,28 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
 
 // ─── RULES SCREEN ─────────────────────────────────────────────────────────────
 
+var RULES_SECTIONS = [
+  {id:"format",title:"Tournament Format",icon:"tournament",content:"Weekly Saturday clashes with 3-5 games per session. 8 players per lobby. Standard EMEA scoring."},
+  {id:"points",title:"Points System",icon:"chart-bar",content:"1st: 8 pts, 2nd: 7 pts, 3rd: 6 pts, 4th: 5 pts, 5th: 4 pts, 6th: 3 pts, 7th: 2 pts, 8th: 1 pt",isPointsTable:true},
+  {id:"tiebreakers",title:"Tiebreakers",icon:"arrows-sort",content:"1. Total tournament points. 2. Wins + top 4s (wins count twice). 3. Most of each placement (1st, then 2nd, then 3rd...). 4. Most recent game finish."},
+  {id:"registration",title:"Registration and Check-in",icon:"clipboard-check",content:"Register anytime before the clash. Check-in opens 60 minutes before start and closes at start time. No-shows lose their spot to the next waitlisted player."},
+  {id:"results",title:"Result Submission",icon:"send",content:"Any player in a lobby can submit results. A different player must confirm. If disputed, an admin reviews. Admin can always override."},
+  {id:"swiss",title:"Swiss Reseeding",icon:"refresh",content:"When Swiss mode is enabled, lobbies are reseeded after every 2 games. Players are sorted by cumulative points and snake-seeded into new lobbies."},
+  {id:"conduct",title:"Code of Conduct",icon:"shield",content:"Respectful behavior is required. Intentional disconnects, collusion, or abusive communication may result in warnings, temporary bans, or permanent removal."},
+  {id:"disputes",title:"Disputes and Appeals",icon:"gavel",content:"Click Dispute on any result submission to flag it for admin review. Admins will review within 24 hours. Decisions are final."}
+];
+
 function RulesScreen({setScreen}){
+  var [expanded,setExpanded]=useState(null);
+  var [rulesSearch,setRulesSearch]=useState("");
+
+  var q=rulesSearch.trim().toLowerCase();
+  var filtered=q?RULES_SECTIONS.filter(function(s){
+    return s.title.toLowerCase().indexOf(q)!==-1||s.content.toLowerCase().indexOf(q)!==-1;
+  }):RULES_SECTIONS;
+
+  var ptColors=["#E8A838","#C4B5FD","#4ECDC4","#34D399","#9AAABF","#8896A8","#6B7280","#4B5563"];
+
   return(
     <div className="page wrap">
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
@@ -17044,111 +17065,70 @@ function RulesScreen({setScreen}){
         <h2 style={{color:"#F2EDE4",fontSize:20,margin:0}}>Official Rules</h2>
       </div>
 
-      <Panel style={{padding:"24px",marginBottom:16}}>
-        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#E8A838",marginBottom:14}}>Points System (EMEA Rulebook)</h3>
-        <p style={{fontSize:13,color:"#BECBD9",marginBottom:14,lineHeight:1.6}}>Points are awarded based on final placement in each game. The official EMEA scoring table:</p>
-        <div style={{overflowX:"auto"}}>
-          <table style={{width:"100%",borderCollapse:"collapse",fontSize:13}}>
-            <thead>
-              <tr>
-                {["Place","1st","2nd","3rd","4th","5th","6th","7th","8th"].map(function(h){return(
-                  <th key={h} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.12)",color:"#E8A838",fontWeight:700,textAlign:"center",whiteSpace:"nowrap"}}>{h}</th>
-                );})}
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#BECBD9",fontWeight:600,textAlign:"center"}}>Points</td>
-                {[8,7,6,5,4,3,2,1].map(function(p){return(
-                  <td key={p} style={{padding:"8px 12px",borderBottom:"1px solid rgba(242,237,228,.06)",color:"#F2EDE4",fontWeight:700,textAlign:"center",fontFamily:"monospace"}}>{p}</td>
-                );})}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </Panel>
-
-      <Panel style={{padding:"24px",marginBottom:16}}>
-        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#9B72CF",marginBottom:14}}>Tiebreaker Rules</h3>
-        <p style={{fontSize:13,color:"#BECBD9",marginBottom:12,lineHeight:1.6}}>When players are tied on total points, tiebreakers are resolved in order:</p>
-        <div style={{display:"flex",flexDirection:"column",gap:10}}>
-          {[
-            {n:"1",title:"Total Tournament Points",desc:"Sum of all placement points across games."},
-            {n:"2",title:"Wins + Top 4s",desc:"Wins count twice. A player with 3 wins and 5 top-4s scores 3*2+5 = 11."},
-            {n:"3",title:"Most of Each Placement",desc:"Compare 1st place counts, then 2nd, then 3rd, and so on until the tie breaks."},
-            {n:"4",title:"Most Recent Game Finish",desc:"The player who placed higher in the most recent game wins the tiebreaker."}
-          ].map(function(tb){return(
-            <div key={tb.n} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(155,114,207,.05)",border:"1px solid rgba(155,114,207,.15)",borderRadius:10,padding:"12px 14px"}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(155,114,207,.15)",border:"1px solid rgba(155,114,207,.3)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{tb.n}</div>
-              <div>
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{tb.title}</div>
-                <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{tb.desc}</div>
-              </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:20}}>
+        {[
+          {label:"1st Place",value:"8 pts",color:"#E8A838",icon:"trophy"},
+          {label:"Games per Clash",value:"3-5",color:"#9B72CF",icon:"cards"},
+          {label:"Check-in Opens",value:"60 min before",color:"#4ECDC4",icon:"clock"}
+        ].map(function(fact){
+          return(
+            <div key={fact.label} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:"14px 12px",textAlign:"center"}}>
+              <div style={{fontSize:20,marginBottom:6,color:fact.color}}>{React.createElement("i",{className:"ti ti-"+fact.icon})}</div>
+              <div style={{fontSize:16,fontWeight:800,color:fact.color,fontFamily:"'Barlow Condensed',sans-serif",marginBottom:2}}>{fact.value}</div>
+              <div style={{fontSize:11,color:"#8896A8",textTransform:"uppercase",letterSpacing:".08em"}}>{fact.label}</div>
             </div>
-          );})}
-        </div>
-      </Panel>
+          );
+        })}
+      </div>
 
-      <Panel style={{padding:"24px",marginBottom:16}}>
-        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#4ECDC4",marginBottom:14}}>How a Clash Works</h3>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {[
-            {icon:"1",title:"Register",desc:"Sign up on the Home screen when registration opens. If the clash is full (max 24 players), you are placed on a waitlist and auto-promoted when a spot opens."},
-            {icon:"2",title:"Check In",desc:"Check in when the check-in window opens (usually 60 minutes before start). If you do not check in, your spot is forfeited."},
-            {icon:"3",title:"Play",desc:"Checked-in players are assigned to 8-player lobbies. Seeding is configurable (random, rank-based, snake draft, or anti-stack). Multiple rounds are played."},
-            {icon:"4",title:"Submit Results",desc:"After each game, you can self-report your placement directly on the Bracket page. The admin reviews and locks lobby results. Points are applied automatically."},
-            {icon:"5",title:"Season Standings",desc:"Points accumulate across all clashes in the season. The player with the most points at season end is crowned Champion and enters the Hall of Fame."}
-          ].map(function(s){return(
-            <div key={s.icon} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(78,205,196,.04)",border:"1px solid rgba(78,205,196,.12)",borderRadius:10,padding:"12px 14px"}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(78,205,196,.12)",border:"1px solid rgba(78,205,196,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#4ECDC4",flexShrink:0}}>{s.icon}</div>
-              <div>
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{s.title}</div>
-                <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{s.desc}</div>
-              </div>
-            </div>
-          );})}
-        </div>
-      </Panel>
+      <input
+        type="text"
+        placeholder="Search rules..."
+        value={rulesSearch}
+        onChange={function(e){setRulesSearch(e.target.value);setExpanded(null);}}
+        style={{width:"100%",padding:"10px 14px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(242,237,228,.1)",borderRadius:10,color:"#F2EDE4",fontSize:14,marginBottom:16,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}
+      />
 
-      <Panel style={{padding:"24px",marginBottom:16}}>
-        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#E8A838",marginBottom:14}}>General Rules</h3>
-        <div style={{display:"flex",flexDirection:"column",gap:8}}>
-          {[
-            "All players must check in before the tournament start time. No-shows forfeit their spot.",
-            "2 DNPs (Did Not Play) in a single clash result in automatic disqualification.",
-            "Disconnects during a game count as 8th place unless the lobby unanimously agrees to a remake.",
-            "Intentional griefing, win-trading, or collusion will result in a ban.",
-            "Players can self-submit their placement after each game. Admin confirms and locks results.",
-            "Once a lobby is locked, results are final. Admins can unlock and re-enter if a mistake was made.",
-            "When all lobbies are locked, the next round auto-advances after 15 seconds (admin can cancel).",
-            "Free to compete  -  no entry fee required for standard clashes."
-          ].map(function(rule,i){return(
-            <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 0",borderBottom:i<7?"1px solid rgba(242,237,228,.05)":"none"}}>
-              <span style={{color:"#E8A838",fontWeight:700,fontSize:13,flexShrink:0}}>•</span>
-              <span style={{fontSize:13,color:"#BECBD9",lineHeight:1.5}}>{rule}</span>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        {filtered.length===0&&(
+          <div style={{textAlign:"center",padding:"32px 16px",color:"#8896A8",fontSize:14}}>{"No results for \""+rulesSearch+"\". Try a different term."}</div>
+        )}
+        {filtered.map(function(sec){
+          var isOpen=expanded===sec.id;
+          return(
+            <div key={sec.id} style={{background:isOpen?"rgba(155,114,207,.06)":"rgba(255,255,255,.02)",border:"1px solid "+(isOpen?"rgba(155,114,207,.25)":"rgba(242,237,228,.08)"),borderRadius:12,overflow:"hidden",transition:"all .2s"}}>
+              <button onClick={function(){setExpanded(isOpen?null:sec.id);}} style={{width:"100%",padding:"16px 18px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,textAlign:"left"}}>
+                <div style={{display:"flex",alignItems:"center",gap:10}}>
+                  <span style={{color:isOpen?"#9B72CF":"#8896A8",fontSize:18}}>{React.createElement("i",{className:"ti ti-"+sec.icon})}</span>
+                  <span style={{fontSize:14,fontWeight:600,color:isOpen?"#C4B5FD":"#F2EDE4"}}>{sec.title}</span>
+                </div>
+                <span style={{fontSize:18,color:isOpen?"#9B72CF":"#8896A8",flexShrink:0,transition:"transform .2s",transform:isOpen?"rotate(45deg)":"rotate(0deg)"}}>+</span>
+              </button>
+              {isOpen&&(
+                <div style={{padding:"0 18px 18px 18px"}}>
+                  {sec.isPointsTable?(
+                    <div style={{overflowX:"auto"}}>
+                      <div style={{display:"flex",gap:6,minWidth:360}}>
+                        {[1,2,3,4,5,6,7,8].map(function(place){
+                          return(
+                            <div key={place} style={{flex:1,textAlign:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:8,padding:"10px 4px"}}>
+                              <div style={{fontSize:11,color:"#8896A8",marginBottom:6,fontFamily:"'Barlow Condensed',sans-serif",textTransform:"uppercase",letterSpacing:".06em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
+                              <div style={{fontSize:20,fontWeight:800,color:ptColors[place-1],fontFamily:"'Barlow Condensed',sans-serif"}}>{9-place}</div>
+                              <div style={{fontSize:10,color:"#8896A8",marginTop:2}}>pts</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ):(
+                    <div style={{fontSize:13,color:"#BECBD9",lineHeight:1.7}}>{sec.content}</div>
+                  )}
+                </div>
+              )}
             </div>
-          );})}
-        </div>
-      </Panel>
-
-      <Panel style={{padding:"24px"}}>
-        <h3 style={{fontFamily:"'Russo One',sans-serif",fontSize:17,color:"#9B72CF",marginBottom:14}}>Tournament Formats</h3>
-        <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          {[
-            {icon:"3",title:"Standard (Default)",desc:"3 games, all players play every round. Seeded lobbies, total points determine final standings. Great for friend groups up to 24 players."},
-            {icon:"5",title:"Competitive",desc:"5-6 games with optional cut line. After a set number of games, players below the cut are eliminated. Remaining players compete for the title."},
-            {icon:"S",title:"Swiss",desc:"Players are reseeded between rounds based on current standings. Everyone plays all rounds. Final standings by cumulative points."}
-          ].map(function(s){return(
-            <div key={s.icon} style={{display:"flex",gap:12,alignItems:"flex-start",background:"rgba(155,114,207,.04)",border:"1px solid rgba(155,114,207,.12)",borderRadius:10,padding:"12px 14px"}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.25)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700,color:"#C4B5FD",flexShrink:0}}>{s.icon}</div>
-              <div>
-                <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:2}}>{s.title}</div>
-                <div style={{fontSize:12,color:"#BECBD9",lineHeight:1.5}}>{s.desc}</div>
-              </div>
-            </div>
-          );})}
-        </div>
-      </Panel>
+          );
+        })}
+      </div>
     </div>
   );
 }
