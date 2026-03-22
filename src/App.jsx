@@ -12614,8 +12614,6 @@ function isValidRiotId(id) {
 
 function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
-  const [step,setStep]=useState(1); // 1=credentials, 2=profile
-
   const [email,setEmail]=useState("");
 
   const [pw,setPw]=useState("");
@@ -12624,25 +12622,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
   const [username,setUsername]=useState("");
 
-  const [riotId,setRiotId]=useState("");
-
-  const [region,setRegion]=useState("EUW");
-
-  const [secondRiotId,setSecondRiotId]=useState("");
-
-  const [secondRegion,setSecondRegion]=useState("NA");
-
-  const [bio,setBio]=useState("");
-
-  const [twitch,setTwitch]=useState("");
-
-  const [twitter,setTwitter]=useState("");
-
-  const [youtube,setYoutube]=useState("");
-
   const [loading,setLoading]=useState(false);
-
-  const [riotIdErr,setRiotIdErr]=useState("");
 
   const [emailErr,setEmailErr]=useState("");
 
@@ -12652,9 +12632,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
   const [pw2Err,setPw2Err]=useState("");
 
-
-
-  function nextStep(){
+  async function submit(){
 
     var ok=true;
 
@@ -12670,27 +12648,13 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
     if(!ok)return;
 
-    setStep(2);
-
-  }
-
-
-
-  async function submit(){
-
-    if(!riotId.trim()){toast("Riot ID required","error");return;}
-
-    if(!isValidRiotId(riotId)){setRiotIdErr("Format: Name#TAG (e.g. Levitate#EUW)");return;}
-
-    setRiotIdErr("");
-
     setLoading(true);
 
     const {data,error}=await supabase.auth.signUp({
 
       email:email.trim(),password:pw,
 
-      options:{data:{username:username.trim(),riot_id:riotId.trim(),region,bio:bio.trim(),twitch:twitch.trim(),twitter:twitter.trim(),youtube:youtube.trim()}}
+      options:{data:{username:username.trim()}}
 
     });
 
@@ -12700,7 +12664,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
     // Insert into DB players table with auth_user_id link
     var authUserId=data.user?data.user.id:null;
-    var dbInsert=await supabase.from('players').insert({username:username.trim(),riot_id:riotId.trim(),region,rank:'Iron',auth_user_id:authUserId}).select().single();
+    var dbInsert=await supabase.from('players').insert({username:username.trim(),rank:'Iron',auth_user_id:authUserId}).select().single();
     if(dbInsert.error&&dbInsert.error.code!=='23505'){
       console.error("[TFT] Failed to create player row:",dbInsert.error);
     }
@@ -12709,8 +12673,8 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
     var newPlayer={
       id:dbInsert.data?dbInsert.data.id:(Date.now()%100000),
       name:username.trim(),username:username.trim(),
-      riotId:riotId.trim(),rank:'Iron',region:region||'EUW',
-      bio:bio.trim(),authUserId:authUserId,
+      riotId:'',rank:'Iron',region:'EUW',
+      bio:'',authUserId:authUserId,
       pts:0,wins:0,top4:0,games:0,avg:"0",
       banned:false,dnpCount:0,notes:'',checkedIn:false,
       clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
@@ -12719,7 +12683,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
     };
     if(setPlayers)setPlayers(function(ps){return ps.concat([newPlayer]);});
 
-    onSignUp({...data.user,username:username.trim(),riotId:riotId.trim(),region:region});
+    onSignUp({...data.user,username:username.trim()});
 
     toast("Welcome to TFT Clash, "+username.trim()+"!","success");
 
@@ -12737,7 +12701,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
         <div style={{marginBottom:16}}>
 
-          <button onClick={step===2?()=>setStep(1):onBack}
+          <button onClick={onBack}
 
             style={{background:"none",border:"none",cursor:"pointer",color:"#9AAABF",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:6,padding:"4px 0",transition:"color .15s"}}
 
@@ -12745,7 +12709,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
             onMouseLeave={e=>e.currentTarget.style.color="#9AAABF"}>
 
-            ← {step===2?"Back":"Back to home"}
+            Back to home
 
           </button>
 
@@ -12765,53 +12729,9 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
 
 
-        {/* Step indicator */}
-
-        <div style={{display:"flex",alignItems:"center",gap:0,marginBottom:28,justifyContent:"center"}}>
-
-          {["Credentials","Your Profile"].map((label,i)=>{
-
-            const active=step===i+1,done=step>i+1;
-
-            return(
-
-              <div key={i} style={{display:"contents"}}>
-
-                <div style={{display:"flex",alignItems:"center",gap:8}}>
-
-                  <div style={{width:28,height:28,borderRadius:"50%",
-
-                    background:active?"#E8A838":done?"rgba(82,196,124,.2)":"rgba(255,255,255,.05)",
-
-                    border:"1px solid "+(active?"#E8A838":done?"rgba(82,196,124,.5)":"rgba(242,237,228,.12)"),
-
-                    display:"flex",alignItems:"center",justifyContent:"center",
-
-                    fontSize:12,fontWeight:700,color:active?"#08080F":done?"#6EE7B7":"#9AAABF"}}>
-
-                    {done?"✓":i+1}
-
-                  </div>
-
-                  <span style={{fontSize:12,fontWeight:600,color:active?"#E8A838":done?"#6EE7B7":"#9AAABF"}}>{label}</span>
-
-                </div>
-
-                {i===0&&<div style={{width:40,height:1,background:"rgba(242,237,228,.12)",margin:"0 10px"}}/>}
-
-              </div>
-
-            );
-
-          })}
-
-        </div>
-
 
 
         <Panel style={{padding:"28px 24px"}}>
-
-          {step===1&&(
 
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
 
@@ -12873,89 +12793,15 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
                 <div style={{fontSize:12,fontWeight:600,color:pw2Err?"#F87171":"#C8D4E0",marginBottom:6}}>Confirm Password</div>
 
-                <Inp value={pw2} onChange={v=>{setPw2(v);if(pw2Err)setPw2Err("");}} placeholder="Repeat password" type="password" onKeyDown={e=>e.key==="Enter"&&nextStep()} style={pw2Err?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
+                <Inp value={pw2} onChange={v=>{setPw2(v);if(pw2Err)setPw2Err("");}} placeholder="Repeat password" type="password" onKeyDown={e=>e.key==="Enter"&&submit()} style={pw2Err?{borderColor:"rgba(248,113,113,.5)"}:{}}/>
 
                 {pw2Err&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{pw2Err}</div>}
 
               </div>
 
-              <Btn v="primary" full onClick={nextStep} style={{marginTop:4}}>Continue →</Btn>
+              <Btn v="primary" full onClick={submit} disabled={loading} style={{marginTop:4}}>{loading?"Creating account...":"Create Account"}</Btn>
 
             </div>
-
-          )}
-
-
-
-          {step===2&&(
-
-            <div style={{display:"flex",flexDirection:"column",gap:14}}>
-
-              <div>
-
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Riot ID <span style={{color:"#F87171"}}>*</span></div>
-
-                <Inp value={riotId} onChange={v=>{setRiotId(v);if(riotIdErr)setRiotIdErr("");}} placeholder="Name#TAG"/>
-
-                {riotIdErr&&<div style={{color:"#F87171",fontSize:12,marginTop:4}}>{riotIdErr}</div>}
-
-              </div>
-
-              <div>
-
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Main Region</div>
-
-                <Sel value={region} onChange={setRegion}>{REGIONS.map(r=><option key={r} value={r}>{r}</option>)}</Sel>
-
-              </div>
-
-              <div>
-
-                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Bio <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
-
-                <textarea value={bio} onChange={e=>setBio(e.target.value)} placeholder="Tell the lobby who you are..."
-
-                  style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,
-
-                    padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:72,
-
-                    outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
-
-              </div>
-
-              <div style={{background:"rgba(232,168,56,.04)",border:"1px solid rgba(232,168,56,.15)",borderRadius:10,padding:"14px"}}>
-
-                <div style={{fontSize:12,fontWeight:700,color:"#E8A838",marginBottom:10}}>Social Links <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
-
-                <div style={{display:"flex",flexDirection:"column",gap:8}}>
-
-                  {[["Twitch",twitch,setTwitch,"twitch.tv/yourname"],["Twitter",twitter,setTwitter,"@yourhandle"],["YouTube",youtube,setYoutube,"youtube.com/yourchannel"]].map(([label,val,setter,ph])=>(
-
-                    <div key={label} style={{display:"flex",alignItems:"center",gap:8}}>
-
-                      <span style={{fontSize:13,minWidth:90,color:"#C8D4E0"}}>{label}</span>
-
-                      <Inp value={val} onChange={setter} placeholder={ph}/>
-
-                    </div>
-
-                  ))}
-
-                </div>
-
-              </div>
-
-              <div style={{display:"flex",gap:8,marginTop:4}}>
-
-                <Btn v="dark" onClick={()=>setStep(1)}>← Back</Btn>
-
-                <Btn v="primary" full onClick={submit} disabled={loading}>{loading?"Creating account...":"Create Account"}</Btn>
-
-              </div>
-
-            </div>
-
-          )}
 
         </Panel>
 
@@ -17525,6 +17371,101 @@ function PlayerComparisonModal(props) {
   );
 }
 
+
+function OnboardingFlow(props) {
+  var currentUser = props.currentUser;
+  var onComplete = props.onComplete;
+  var onRegister = props.onRegister;
+  var nextClash = props.nextClash;
+  var playerCount = props.playerCount || 0;
+
+  var _step = useState(1);
+  var step = _step[0];
+  var setStep = _step[1];
+  var _riotId = useState("");
+  var riotId = _riotId[0];
+  var setRiotId = _riotId[1];
+  var _region = useState("EUW");
+  var region = _region[0];
+  var setRegion = _region[1];
+  var _linking = useState(false);
+  var linking = _linking[0];
+  var setLinking = _linking[1];
+
+  // Screen 1: Welcome cinematic
+  if (step === 1) {
+    return React.createElement("div", {style:{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10000,textAlign:"center",padding:32}},
+      React.createElement("div", {style:{fontSize:14,color:"#E8A838",fontWeight:700,animation:"fadeIn 1s ease"}},
+        "Welcome, " + (currentUser ? currentUser.username : "Player") + "."
+      ),
+      React.createElement("div", {style:{fontSize:13,color:"#C8D4E0",marginTop:16,animation:"fadeIn 2s ease"}},
+        "Your story starts now."
+      ),
+      React.createElement("div", {style:{marginTop:32,animation:"fadeIn 3s ease"}},
+        React.createElement(Btn, {v:"primary",onClick:function(){setStep(2);}}, "Enter the Arena")
+      )
+    );
+  }
+
+  // Screen 2: Link Riot ID
+  if (step === 2) {
+    return React.createElement("div", {style:{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10000,padding:32}},
+      React.createElement("div", {style:{maxWidth:360,width:"100%",textAlign:"center"}},
+        React.createElement("h2", {className:"display",style:{color:"#F2EDE4",marginBottom:8}}, "Link Your Riot ID"),
+        React.createElement("p", {style:{fontSize:13,color:"#BECBD9",marginBottom:24}}, "So we can track your placements and build your legacy."),
+        React.createElement(Inp, {placeholder:"Name#TAG",value:riotId,onChange:function(e){setRiotId(e.target.value);},style:{marginBottom:12,textAlign:"center"}}),
+        React.createElement("select", {value:region,onChange:function(e){setRegion(e.target.value);},style:{width:"100%",padding:"10px 14px",borderRadius:10,background:"#1A2235",border:"1px solid rgba(255,255,255,.1)",color:"#F2EDE4",fontSize:13,marginBottom:16}},
+          REGIONS.map(function(r) { return React.createElement("option", {key:r,value:r}, r); })
+        ),
+        React.createElement(Btn, {v:"primary",full:true,disabled:linking,onClick:function(){
+          if (!riotId.includes("#")) return;
+          setLinking(true);
+          supabase.from("user_profiles").update({riot_id:riotId,region:region,onboarding_step:3}).eq("user_id",currentUser.id).then(function() {
+            setLinking(false);
+            setStep(3);
+          });
+        }}, linking ? "Linking..." : "Link Account"),
+        React.createElement("div", {style:{marginTop:12,fontSize:12,color:"#6B7B8F",cursor:"pointer"},onClick:function(){setStep(3);}}, "Skip for now")
+      )
+    );
+  }
+
+  // Screen 3: Your Player Card
+  if (step === 3) {
+    var displayName = riotId || (currentUser ? currentUser.username : "Player");
+    var displayRegion = region || "EUW";
+    return React.createElement("div", {style:{position:"fixed",inset:0,background:"#08080F",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:10000,padding:32}},
+      React.createElement("div", {style:{background:"#111827",border:"1px solid rgba(155,114,207,.3)",borderRadius:16,padding:"28px 24px",maxWidth:340,width:"100%",textAlign:"center"}},
+        React.createElement("div", {style:{width:48,height:48,borderRadius:12,background:"linear-gradient(135deg,rgba(155,114,207,.3),rgba(78,205,196,.15))",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 12px",border:"2px solid rgba(155,114,207,.4)"}},
+          React.createElement("i", {className:"ti ti-user",style:{fontSize:22,color:"#C4B5FD"}})
+        ),
+        React.createElement("div", {style:{fontSize:11,color:"#9AAABF",fontWeight:600,textTransform:"uppercase",letterSpacing:".1em",marginBottom:4}}, "Unranked"),
+        React.createElement("div", {style:{fontSize:20,fontWeight:700,color:"#F2EDE4",marginBottom:4}}, currentUser ? currentUser.username : "Player"),
+        React.createElement("div", {style:{fontSize:12,color:"#BECBD9",marginBottom:12}}, displayName + " - " + displayRegion),
+        React.createElement("div", {style:{fontSize:12,color:"#9AAABF",marginBottom:16}}, "0 pts - 0 clashes"),
+        React.createElement("div", {style:{borderTop:"1px solid rgba(255,255,255,.08)",paddingTop:12}},
+          React.createElement("div", {style:{fontSize:11,color:"#BECBD9",marginBottom:4}}, "Next Clash: " + (nextClash || "Saturday")),
+          React.createElement("div", {style:{fontSize:10,color:"#9AAABF"}}, "Status: Not yet registered")
+        ),
+        React.createElement("div", {style:{fontSize:12,fontStyle:"italic",color:"#9B72CF",marginTop:12}}, "Every champion started here.")
+      ),
+      React.createElement("div", {style:{display:"flex",gap:12,marginTop:24}},
+        React.createElement(Btn, {v:"dark",onClick:function(){
+          supabase.from("user_profiles").update({onboarding_complete:true,onboarding_step:4}).eq("user_id",currentUser.id);
+          if (onComplete) onComplete();
+        }}, "See the Leaderboard"),
+        React.createElement(Btn, {v:"primary",onClick:function(){
+          supabase.from("user_profiles").update({onboarding_complete:true,onboarding_step:4}).eq("user_id",currentUser.id);
+          if (onRegister) onRegister();
+          if (onComplete) onComplete();
+        }}, "Register for Clash")
+      )
+    );
+  }
+
+  return null;
+}
+
 function TFTClash(){
 
   const [screen,setScreen]=useState(function(){var h=window.location.hash.replace("#","");var parts=h.split("/");return parts[0]||"home";});
@@ -17600,6 +17541,10 @@ function TFTClash(){
 
   const [authScreen,setAuthScreen]=useState(null); // "login" | "signup" | null
   const [cookieConsent,setCookieConsent]=useState(function(){try{return localStorage.getItem("tft-cookie-consent")==="1";}catch(e){return false;}});
+
+  var _onb = useState(false);
+  var showOnboarding = _onb[0];
+  var setShowOnboarding = _onb[1];
 
   // Newsletter + push notification state
   const newsletterEmailRef=useRef(null);
@@ -18311,6 +18256,7 @@ function TFTClash(){
   function handleSignUp(user){
     setCurrentUser(user);
     setAuthScreen(null);
+    setShowOnboarding(true);
   }
 
   async function handleLogout(){
@@ -18584,6 +18530,14 @@ function TFTClash(){
           </div>
         </div>
       )}
+
+      {showOnboarding&&React.createElement(OnboardingFlow,{
+        currentUser:currentUser,
+        onComplete:function(){setShowOnboarding(false);},
+        onRegister:function(){setScreen("home");},
+        nextClash:(tournamentState&&tournamentState.clashDate)||"Saturday",
+        playerCount:players.length
+      })}
 
       <div style={{position:"relative",zIndex:1,minHeight:"100vh",paddingBottom:72}}>
 
