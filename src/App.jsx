@@ -4666,6 +4666,9 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
   // Season narrative
   var seasonNarrative = generateSeasonNarrative(players, sortedPts);
 
+  // Ticker items from overrides
+  var tickerItems = (tickerOverrides || []).filter(function(t) { return t && (typeof t === "string" ? t.trim() : t.text); });
+
   // ── Guest HomeScreen ──────────────────────────────────────────────────────
 
   if (!currentUser) {
