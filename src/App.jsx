@@ -14807,6 +14807,11 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
   var [brandLogo,setBrandLogo]=useState((hostBranding&&hostBranding.logo)||"controller");
   var [brandColor,setBrandColor]=useState((hostBranding&&hostBranding.color)||"#9B72CF");
 
+  // Wizard state
+  var [wizStep,setWizStep]=useState(0);
+  var [wizData,setWizData]=useState({name:"",date:"",type:"swiss",totalGames:3,maxPlayers:32,accentColor:"#9B72CF",entryFee:"",inviteOnly:false,rules:""});
+  var [wizCreating,setWizCreating]=useState(false);
+
   var [brandBio,setBrandBio]=useState((hostBranding&&hostBranding.bio)||"");
   var [brandLogoUrl,setBrandLogoUrl]=useState((hostBranding&&hostBranding.logoUrl)||"");
   var [brandBannerUrl,setBrandBannerUrl]=useState((hostBranding&&hostBranding.bannerUrl)||"");
@@ -14830,6 +14835,27 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     });
   },[currentUser]);
 
+  // Load host tournaments from DB for analytics
+  useEffect(function(){
+    if(!currentUser||!supabase.from)return;
+    supabase.from("tournaments").select("id, name, date, max_players, host_id")
+      .eq("host_id",currentUser.id)
+      .order("date",{ascending:false})
+      .then(function(res){
+        if(res.data&&setHostTournaments){
+          var merged=res.data.map(function(dbT){
+            var existing=(hostTournaments||[]).find(function(t){return t.dbId===dbT.id||t.name===dbT.name;});
+            return existing?Object.assign({},existing,{dbId:dbT.id,max_players:dbT.max_players}):Object.assign({},dbT,{dbId:dbT.id,status:"upcoming",registered:0,size:dbT.max_players||32});
+          });
+          setHostTournaments(function(prev){
+            var prevIds=(prev||[]).map(function(t){return t.dbId||t.id;});
+            var newFromDb=merged.filter(function(t){return prevIds.indexOf(t.dbId||t.id)===-1;});
+            return (prev||[]).concat(newFromDb);
+          });
+        }
+      });
+  },[currentUser&&currentUser.id]);
+
   function uploadImage(file,type){
     if(!file||!supabase.storage)return;
     var setUploading=type==="logo"?setUploadingLogo:setUploadingBanner;
@@ -14844,11 +14870,58 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
       toast((type==="logo"?"Logo":"Banner")+" uploaded!","success");
     });
   }
+  function handleLogoUpload(file){
+    if(!file||!supabase.storage)return;
+    var path="host-logos/"+(currentUser?currentUser.id:"anon")+"/"+file.name;
+    return supabase.storage.from("host-assets").upload(path,file,{upsert:true}).then(function(res){
+      if(!res.error){
+        var url=supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
+        setBrandLogoUrl(url);
+        return supabase.from("host_profiles").update({logo_url:url}).eq("user_id",currentUser?currentUser.id:"");
+      }else{
+        toast("Logo upload failed: "+res.error.message,"error");
+      }
+    });
+  }
+
   var [brandSaved,setBrandSaved]=useState(false);
   var [announceMsg,setAnnounceMsg]=useState("");
   var [announceTo,setAnnounceTo]=useState("all");
   var [announcements,setAnnouncements]=useState(hostAnnouncements||[]);
   var [selectedT,setSelectedT]=useState(null);
+
+  function submitWizard(){
+    if(!wizData.name.trim()||!wizData.date.trim()){toast("Name and date required","error");return;}
+    setWizCreating(true);
+    var newT={id:Date.now(),name:wizData.name,date:wizData.date,size:wizData.maxPlayers,invite:wizData.inviteOnly,entryFee:wizData.entryFee,rules:wizData.rules,status:wizData.entryFee?"pending_approval":"upcoming",registered:0,approved:!wizData.entryFee};
+    setTournaments(function(ts){return ts.concat([newT]);});
+    if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.concat([{id:"host-"+newT.id,name:wizData.name,host:brandName,sponsor:null,status:"upcoming",date:wizData.date,time:"TBD",format:wizData.type==="swiss"?"Swiss":"Standard",size:wizData.maxPlayers,registered:0,registeredIds:[],prizePool:null,region:"",description:wizData.rules||"Tournament hosted by "+brandName,tags:wizData.inviteOnly?["Invite Only"]:["Open"],logo:brandLogo,screen:"tournament-host-"+newT.id,hostTournamentId:newT.id}]);});}
+    if(supabase.from){
+      supabase.from("tournaments").insert({
+        name:wizData.name,
+        date:wizData.date,
+        type:wizData.type,
+        total_games:wizData.totalGames,
+        max_players:wizData.maxPlayers,
+        host_id:currentUser?currentUser.id:null,
+        branding_json:{accent_color:wizData.accentColor}
+      }).select().single().then(function(res){
+        setWizCreating(false);
+        if(res&&res.error){console.error("[TFT] wizard tournament create failed:",res.error);}
+        else if(res&&res.data){
+          var dbId=res.data.id;
+          setTournaments(function(ts){return ts.map(function(t){return t.name===wizData.name&&!t.dbId?Object.assign({},t,{dbId:dbId}):t;});});
+          if(setFeaturedEvents){setFeaturedEvents(function(evts){return evts.map(function(ev){return ev.name===wizData.name&&!ev.dbTournamentId?Object.assign({},ev,{dbTournamentId:dbId}):ev;});});}
+        }
+      });
+    }else{
+      setWizCreating(false);
+    }
+    setShowCreate(false);
+    setWizStep(0);
+    setWizData({name:"",date:"",type:"swiss",totalGames:3,maxPlayers:32,accentColor:"#9B72CF",entryFee:"",inviteOnly:false,rules:""});
+    toast(wizData.entryFee?"Tournament created - pending admin approval":"Tournament created!","success");
+  }
 
   function createTournament(){
     if(!tName.trim()||!tDate.trim()){toast("Name and date required","error");return;}
@@ -14926,7 +14999,7 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
     }
   }
 
-  var TABS=[["overview","Overview"],["tournaments","Tournaments"],["game-flow","Game Flow"],["registrations","Players"],["announce","Announce"],["branding","Branding"]];
+  var TABS=[["overview","Overview"],["tournaments","Tournaments"],["analytics","Analytics"],["game-flow","Game Flow"],["registrations","Players"],["announce","Announce"],["branding","Branding"]];
 
   return(
     <div className="page wrap">
@@ -14952,47 +15025,149 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
         </div>
       </div>
 
-      {/* Create form */}
+      {/* Tournament creation wizard */}
       {showCreate&&(
         <Panel style={{padding:"20px",marginBottom:20,border:"1px solid rgba(232,168,56,.25)"}}>
-          <h3 style={{fontSize:15,color:"#F2EDE4",marginBottom:16}}>Create Tournament</h3>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
-            <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Tournament Name</div>
-              <Inp value={tName} onChange={setTName} placeholder="e.g. Weekly Clash #15"/>
-            </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Date</div>
-              <Inp value={tDate} onChange={setTDate} placeholder="Mar 24 2026"/>
-            </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Max Players</div>
-              <Sel value={tSize} onChange={setTSize}>{[8,16,24,32,48,64,96,126,128].map(function(n){return <option key={n} value={n}>{n} players</option>;})}</Sel>
-            </div>
-            <div>
-              <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Entry Fee <span style={{color:"#9AAABF",fontWeight:400}}>(requires admin approval)</span></div>
-              <Inp value={tEntryFee} onChange={setTEntryFee} placeholder="Leave blank = free"/>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18}}>
+            <h3 style={{fontSize:15,color:"#F2EDE4",margin:0}}>New Tournament</h3>
+            <div style={{display:"flex",gap:4,marginLeft:"auto"}}>
+              {["Basics","Format","Branding","Review"].map(function(label,i){
+                return(
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:4}}>
+                    <div style={{width:22,height:22,borderRadius:"50%",background:wizStep===i?"#9B72CF":wizStep>i?"#4ECDC4":"rgba(255,255,255,.08)",border:"1px solid "+(wizStep===i?"rgba(155,114,207,.6)":wizStep>i?"rgba(78,205,196,.4)":"rgba(242,237,228,.1)"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:wizStep>=i?"#fff":"#9AAABF",transition:"all .2s"}}>{wizStep>i?"✓":(i+1)}</div>
+                    <span style={{fontSize:10,color:wizStep===i?"#C4B5FD":"#9AAABF",fontWeight:wizStep===i?700:400,display:wizStep===i?"inline":"none"}}>{label}</span>
+                    {i<3&&<div style={{width:16,height:1,background:wizStep>i?"rgba(78,205,196,.4)":"rgba(242,237,228,.08)"}}/>}
+                  </div>
+                );
+              })}
             </div>
           </div>
-          <div style={{marginBottom:12}}>
-            <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Custom Rules <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
-            <textarea value={tRules} onChange={function(e){setTRules(e.target.value);}} placeholder="Any special rules, format notes, or tiebreaker info..."
-              style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:72,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-            <div onClick={function(){setTInvite(function(v){return !v;});}} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
-              <div style={{width:36,height:20,borderRadius:99,background:tInvite?"rgba(155,114,207,.3)":"rgba(255,255,255,.08)",border:"1px solid "+(tInvite?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),position:"relative",transition:"all .2s"}}>
-                <div style={{width:14,height:14,borderRadius:"50%",background:tInvite?"#C4B5FD":"#9AAABF",position:"absolute",top:2,left:tInvite?18:2,transition:"left .2s"}}/>
+
+          {wizStep===0&&(
+            <div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Tournament Name</div>
+                  <Inp value={wizData.name} onChange={function(v){setWizData(function(d){return Object.assign({},d,{name:v});});}} placeholder="e.g. Weekly Clash #15"/>
+                </div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Date</div>
+                  <Inp value={wizData.date} onChange={function(v){setWizData(function(d){return Object.assign({},d,{date:v});});}} placeholder="Mar 24 2026"/>
+                </div>
               </div>
-              <span style={{fontSize:13,color:"#C8D4E0"}}>Invite-only registration</span>
-            </div>
-          </div>
-          {tEntryFee&&(
-            <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#E8A838"}}>
-              {React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})} Entry fee tournaments require admin approval before going live.
+              <div style={{display:"flex",gap:8}}>
+                <Btn v="dark" s="sm" onClick={function(){setShowCreate(false);setWizStep(0);}}>Cancel</Btn>
+                <Btn v="primary" s="sm" onClick={function(){if(!wizData.name.trim()||!wizData.date.trim()){toast("Name and date required","error");return;}setWizStep(1);}}>Next - Format</Btn>
+              </div>
             </div>
           )}
-          <Btn v="primary" onClick={createTournament}>Create Tournament</Btn>
+
+          {wizStep===1&&(
+            <div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:12}}>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Format</div>
+                  <Sel value={wizData.type} onChange={function(v){setWizData(function(d){return Object.assign({},d,{type:v});});}}>
+                    <option value="swiss">Swiss</option>
+                    <option value="standard">Standard</option>
+                  </Sel>
+                </div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Games per Player</div>
+                  <Sel value={String(wizData.totalGames)} onChange={function(v){setWizData(function(d){return Object.assign({},d,{totalGames:parseInt(v)});});}}>
+                    {[2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n+" games"}</option>;})}
+                  </Sel>
+                </div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Max Players</div>
+                  <Sel value={String(wizData.maxPlayers)} onChange={function(v){setWizData(function(d){return Object.assign({},d,{maxPlayers:parseInt(v)});});}}>
+                    {[8,16,24,32,48,64,96,126,128].map(function(n){return <option key={n} value={n}>{n+" players"}</option>;})}
+                  </Sel>
+                </div>
+                <div>
+                  <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Entry Fee <span style={{color:"#9AAABF",fontWeight:400}}>(admin approval)</span></div>
+                  <Inp value={wizData.entryFee} onChange={function(v){setWizData(function(d){return Object.assign({},d,{entryFee:v});});}} placeholder="Leave blank = free"/>
+                </div>
+              </div>
+              <div style={{marginBottom:12}}>
+                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:6}}>Custom Rules <span style={{color:"#9AAABF",fontWeight:400}}>(optional)</span></div>
+                <textarea value={wizData.rules} onChange={function(e){var v=e.target.value;setWizData(function(d){return Object.assign({},d,{rules:v});});}} placeholder="Any special rules or format notes..."
+                  style={{width:"100%",background:"#0F1520",border:"1px solid rgba(242,237,228,.12)",borderRadius:8,padding:"10px 12px",fontSize:13,color:"#F2EDE4",resize:"vertical",minHeight:60,outline:"none",fontFamily:"inherit",boxSizing:"border-box"}}/>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+                <div onClick={function(){setWizData(function(d){return Object.assign({},d,{inviteOnly:!d.inviteOnly});});}} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}}>
+                  <div style={{width:36,height:20,borderRadius:99,background:wizData.inviteOnly?"rgba(155,114,207,.3)":"rgba(255,255,255,.08)",border:"1px solid "+(wizData.inviteOnly?"rgba(155,114,207,.5)":"rgba(242,237,228,.1)"),position:"relative",transition:"all .2s"}}>
+                    <div style={{width:14,height:14,borderRadius:"50%",background:wizData.inviteOnly?"#C4B5FD":"#9AAABF",position:"absolute",top:2,left:wizData.inviteOnly?18:2,transition:"left .2s"}}/>
+                  </div>
+                  <span style={{fontSize:13,color:"#C8D4E0"}}>Invite-only registration</span>
+                </div>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <Btn v="dark" s="sm" onClick={function(){setWizStep(0);}}>Back</Btn>
+                <Btn v="primary" s="sm" onClick={function(){setWizStep(2);}}>Next - Branding</Btn>
+              </div>
+            </div>
+          )}
+
+          {wizStep===2&&(
+            <div>
+              <div style={{marginBottom:14}}>
+                <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:8}}>Tournament Accent Color</div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
+                  {["#9B72CF","#4ECDC4","#E8A838","#F87171","#6EE7B7","#60A5FA","#FB923C"].map(function(c){
+                    return(
+                      <div key={c} onClick={function(){setWizData(function(d){return Object.assign({},d,{accentColor:c});});}}
+                        style={{width:28,height:28,borderRadius:"50%",background:c,cursor:"pointer",border:wizData.accentColor===c?"3px solid #fff":"3px solid transparent",transition:"border .15s"}}/>
+                    );
+                  })}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <input type="color" value={wizData.accentColor} onChange={function(e){var v=e.target.value;setWizData(function(d){return Object.assign({},d,{accentColor:v});});}} style={{width:36,height:32,borderRadius:6,border:"1px solid rgba(242,237,228,.12)",background:"transparent",cursor:"pointer",padding:2}}/>
+                  <span style={{fontSize:12,color:"#9AAABF",fontFamily:"monospace"}}>{wizData.accentColor}</span>
+                </div>
+              </div>
+              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid "+wizData.accentColor+"44",borderRadius:10,padding:"14px 16px",marginBottom:16}}>
+                <div style={{fontSize:11,color:"#9AAABF",marginBottom:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".05em"}}>Preview</div>
+                <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4"}}>{wizData.name||"Tournament Name"}</div>
+                <div style={{fontSize:12,color:wizData.accentColor,fontWeight:600,marginTop:2}}>{wizData.type==="swiss"?"Swiss":"Standard"} - {wizData.maxPlayers} players</div>
+              </div>
+              <div style={{display:"flex",gap:8}}>
+                <Btn v="dark" s="sm" onClick={function(){setWizStep(1);}}>Back</Btn>
+                <Btn v="primary" s="sm" onClick={function(){setWizStep(3);}}>Review</Btn>
+              </div>
+            </div>
+          )}
+
+          {wizStep===3&&(
+            <div>
+              <div style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.08)",borderRadius:10,padding:"16px",marginBottom:16}}>
+                <div style={{fontWeight:700,fontSize:15,color:"#F2EDE4",marginBottom:12}}>{wizData.name}</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                  {[["Date",wizData.date],["Format",wizData.type==="swiss"?"Swiss":"Standard"],["Games",String(wizData.totalGames)+" per player"],["Max Players",String(wizData.maxPlayers)],["Entry Fee",wizData.entryFee||"Free"],["Invite Only",wizData.inviteOnly?"Yes":"No"]].map(function(arr){
+                    return(
+                      <div key={arr[0]} style={{background:"rgba(255,255,255,.02)",borderRadius:7,padding:"8px 10px"}}>
+                        <div style={{fontSize:10,color:"#9AAABF",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em",marginBottom:2}}>{arr[0]}</div>
+                        <div style={{fontSize:13,color:"#F2EDE4",fontWeight:600}}>{arr[1]}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10}}>
+                  <div style={{width:16,height:16,borderRadius:"50%",background:wizData.accentColor}}/>
+                  <span style={{fontSize:12,color:"#9AAABF",fontFamily:"monospace"}}>{wizData.accentColor}</span>
+                </div>
+              </div>
+              {wizData.entryFee&&(
+                <div style={{background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.2)",borderRadius:8,padding:"10px 14px",marginBottom:12,fontSize:12,color:"#E8A838"}}>
+                  {React.createElement("i",{className:"ti ti-alert-triangle",style:{color:"#E8A838"}})} Entry fee tournaments require admin approval before going live.
+                </div>
+              )}
+              <div style={{display:"flex",gap:8}}>
+                <Btn v="dark" s="sm" onClick={function(){setWizStep(2);}}>Back</Btn>
+                <Btn v="primary" onClick={submitWizard} disabled={wizCreating}>{wizCreating?"Creating...":"Create Tournament"}</Btn>
+              </div>
+            </div>
+          )}
         </Panel>
       )}
 
@@ -15092,6 +15267,80 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
               <div style={{fontSize:14}}>No tournaments yet. Create your first one above.</div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Analytics tab */}
+      {tab==="analytics"&&(
+        <div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:12,marginBottom:20}}>
+            {[["Total Hosted",""+totalHosted,"#E8A838"],["Players Hosted",""+totalPlayers,"#6EE7B7"],["Completed",""+completedTournaments.length,"#4ECDC4"],["Upcoming",""+upcomingTournaments.length,"#9B72CF"]].map(function(arr){
+              var l=arr[0],v=arr[1],c=arr[2];
+              return(
+                <Panel key={l} style={{padding:"18px",textAlign:"center"}}>
+                  <div className="mono" style={{fontSize:28,fontWeight:700,color:c,lineHeight:1}}>{v}</div>
+                  <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:6,letterSpacing:".06em"}}>{l}</div>
+                </Panel>
+              );
+            })}
+          </div>
+          <Panel style={{padding:"18px",marginBottom:16}}>
+            <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:14}}>{React.createElement("i",{className:"ti ti-chart-bar"})} Tournament History</h3>
+            {tournaments.length===0&&(
+              <div style={{textAlign:"center",padding:"32px",color:"#BECBD9"}}>
+                <div style={{fontSize:32,marginBottom:10}}>{React.createElement("i",{className:"ti ti-device-gamepad-2"})}</div>
+                <div style={{fontSize:13}}>No tournament data yet. Create your first tournament to see analytics here.</div>
+              </div>
+            )}
+            {tournaments.length>0&&(
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {tournaments.map(function(t){
+                  var fillPct=t.size>0?Math.round((t.registered/t.size)*100):0;
+                  var statusColor=t.status==="live"?"#6EE7B7":t.status==="complete"?"#E8A838":t.status==="pending_approval"?"#FB923C":"#4ECDC4";
+                  var statusLabel=t.status==="live"?"Live":t.status==="complete"?"Completed":t.status==="pending_approval"?"Pending":"Upcoming";
+                  return(
+                    <div key={t.id} style={{background:"rgba(255,255,255,.02)",border:"1px solid rgba(242,237,228,.06)",borderRadius:10,padding:"14px 16px"}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8,flexWrap:"wrap"}}>
+                        <span style={{fontWeight:700,fontSize:14,color:"#F2EDE4",flex:1}}>{t.name}</span>
+                        <Tag color={statusColor} size="sm">{statusLabel}</Tag>
+                        <span style={{fontSize:11,color:"#9AAABF"}}>{t.date}</span>
+                      </div>
+                      <div style={{display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+                        <div style={{flex:1,minWidth:100}}>
+                          <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                            <span style={{fontSize:10,color:"#BECBD9"}}>Fill rate</span>
+                            <span style={{fontSize:10,fontWeight:700,color:"#E8A838"}}>{t.registered+"/"+t.size+" ("+fillPct+"%)"}</span>
+                          </div>
+                          <Bar val={t.registered} max={t.size} color="#E8A838" h={4}/>
+                        </div>
+                        {t.status==="complete"&&t.champion&&(
+                          <div style={{display:"flex",alignItems:"center",gap:6,background:"rgba(232,168,56,.06)",border:"1px solid rgba(232,168,56,.15)",borderRadius:8,padding:"4px 10px"}}>
+                            {React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838",fontSize:13}})}
+                            <span style={{fontSize:12,fontWeight:700,color:"#E8A838"}}>{t.champion}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Panel>
+          <Panel style={{padding:"18px"}}>
+            <h3 style={{fontSize:14,fontWeight:700,color:"#F2EDE4",marginBottom:12}}>{React.createElement("i",{className:"ti ti-trending-up"})} Performance Summary</h3>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+              <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:10,color:"#9AAABF",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em",marginBottom:4}}>Avg Fill Rate</div>
+                <div className="mono" style={{fontSize:22,fontWeight:700,color:"#6EE7B7"}}>
+                  {tournaments.length===0?"--":Math.round(tournaments.reduce(function(s,t){return s+(t.size>0?(t.registered/t.size):0);},0)/tournaments.length*100)+"%"}
+                </div>
+              </div>
+              <div style={{background:"rgba(255,255,255,.02)",borderRadius:8,padding:"12px 14px"}}>
+                <div style={{fontSize:10,color:"#9AAABF",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em",marginBottom:4}}>Completed Events</div>
+                <div className="mono" style={{fontSize:22,fontWeight:700,color:"#4ECDC4"}}>{completedTournaments.length}</div>
+              </div>
+            </div>
+          </Panel>
         </div>
       )}
 
@@ -15278,13 +15527,17 @@ function HostDashboardScreen({currentUser,players,toast,setScreen,hostApps,hostT
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:"#C8D4E0",marginBottom:8}}>Brand Color</div>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:8}}>
                 {["#9B72CF","#4ECDC4","#E8A838","#F87171","#6EE7B7","#60A5FA","#FB923C"].map(function(c){
                   return(
                     <div key={c} onClick={function(){setBrandColor(c);}}
                       style={{width:28,height:28,borderRadius:"50%",background:c,cursor:"pointer",border:brandColor===c?"3px solid #fff":"3px solid transparent",transition:"border .15s"}}/>
                   );
                 })}
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                <input type="color" value={brandColor} onChange={function(e){setBrandColor(e.target.value);}} style={{width:36,height:32,borderRadius:6,border:"1px solid rgba(242,237,228,.12)",background:"transparent",cursor:"pointer",padding:2}}/>
+                <Inp value={brandColor} onChange={setBrandColor} placeholder="#9B72CF" style={{maxWidth:120,fontFamily:"monospace"}}/>
               </div>
             </div>
             <div>
