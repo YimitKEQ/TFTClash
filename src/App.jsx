@@ -17543,6 +17543,57 @@ function OnboardingFlow(props) {
   return null;
 }
 
+function BroadcastOverlay(props) {
+  var tournamentState = props.tournamentState;
+  var players = props.players;
+  var params = props.params || {};
+  var type = params.type || "standings";
+  var bg = params.bg || "dark";
+  var size = params.size || "compact";
+
+  var sorted = [].concat(players).sort(function(a,b){return b.pts - a.pts;});
+  var bgColor = bg === "transparent" ? "transparent" : "#08080F";
+
+  if (type === "standings") {
+    return React.createElement("div", {style:{background:bgColor,padding:size === "compact" ? 12 : 20,fontFamily:"Inter,system-ui,sans-serif",minHeight:"100vh"}},
+      React.createElement("div", {style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}},
+        React.createElement("div", {style:{fontSize:11,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".1em"}}, tournamentState.clashName || "TFT Clash"),
+        tournamentState.phase === "inprogress" ? React.createElement("div", {style:{display:"flex",alignItems:"center",gap:4}},
+          React.createElement("div", {style:{width:6,height:6,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite"}}),
+          React.createElement("span", {style:{fontSize:11,fontWeight:700,color:"#6EE7B7"}}, "LIVE - Game " + (tournamentState.round || 1) + "/" + (tournamentState.totalGames || 3))
+        ) : null
+      ),
+      sorted.slice(0, 24).map(function(p, i) {
+        return React.createElement("div", {key:p.id,style:{display:"flex",alignItems:"center",gap:8,padding:size === "compact" ? "4px 8px" : "8px 12px",borderBottom:"1px solid rgba(255,255,255,.06)",background:i < 3 ? "rgba(232,168,56,.04)" : "transparent"}},
+          React.createElement("span", {style:{width:24,textAlign:"right",fontSize:13,fontWeight:700,color:i === 0 ? "#E8A838" : i < 3 ? "#C0C0C0" : "#9AAABF"}}, i+1),
+          React.createElement("span", {style:{flex:1,fontSize:13,fontWeight:600,color:"#F2EDE4"}}, p.name),
+          React.createElement("span", {style:{fontSize:13,fontWeight:700,color:"#E8A838",fontFamily:"monospace"}}, p.pts)
+        );
+      }),
+      React.createElement("div", {style:{textAlign:"right",marginTop:8,fontSize:8,color:"rgba(155,114,207,.4)",letterSpacing:".1em"}}, "TFT CLASH")
+    );
+  }
+
+  if (type === "lobbies" && tournamentState.lobbies) {
+    return React.createElement("div", {style:{background:bgColor,padding:12,fontFamily:"Inter,system-ui,sans-serif"}},
+      React.createElement("div", {style:{fontSize:11,fontWeight:700,color:"#E8A838",textTransform:"uppercase",marginBottom:8}}, "Lobby Assignments"),
+      React.createElement("div", {style:{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:8}},
+        (tournamentState.lobbies || []).map(function(lobby, li) {
+          return React.createElement("div", {key:li,style:{background:"rgba(255,255,255,.04)",borderRadius:8,padding:"8px 10px",border:"1px solid rgba(255,255,255,.08)"}},
+            React.createElement("div", {style:{fontSize:10,fontWeight:700,color:"#9B72CF",marginBottom:4}}, lobby.name || "Lobby " + (li+1)),
+            (lobby.players || []).map(function(pid) {
+              var p = players.find(function(pl){return String(pl.id) === String(pid);});
+              return React.createElement("div", {key:pid,style:{fontSize:11,color:"#BECBD9",padding:"2px 0"}}, p ? p.name : "Player " + pid);
+            })
+          );
+        })
+      )
+    );
+  }
+
+  return React.createElement("div", {style:{background:bgColor,padding:20,color:"#9AAABF",fontSize:13}}, "No data available");
+}
+
 function TFTClash(){
 
   const [screen,setScreen]=useState(function(){var h=window.location.hash.replace("#","");var parts=h.split("/");return parts[0]||"home";});
@@ -18489,7 +18540,21 @@ function TFTClash(){
 
   );
 
-
+  if (screen === "broadcast") {
+    var bParams = {};
+    var hashParts = (window.location.hash || "").split("?");
+    if (hashParts[1]) {
+      hashParts[1].split("&").forEach(function(kv) {
+        var parts = kv.split("=");
+        bParams[parts[0]] = parts[1] || "";
+      });
+    }
+    return React.createElement(BroadcastOverlay, {
+      tournamentState: tournamentState,
+      players: players,
+      params: bParams
+    });
+  }
 
   return(
 
