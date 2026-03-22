@@ -10977,8 +10977,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
     if(!newName.trim()){toast("Name required","error");return;}
     if(!currentUser){toast("Login required","error");return;}
     var tgt=parseInt(newTarget)||5;
-    var creatorId=(typeof currentUser.id==="string"&&currentUser.id.length>8)?currentUser.id:null;
-    createScrim(newName.trim(),creatorId,null,newNotes.trim(),tgt).then(function(res){
+    createScrim(newName.trim(),currentUser.id,null,newNotes.trim(),tgt).then(function(res){
       if(res.error){toast("Failed to create: "+res.error.message,"error");return;}
       var scrimId=res.data.id;
       var pids=scrimRoster.map(function(p){return typeof p.id==="number"?p.id:parseInt(p.id);}).filter(function(v){return !isNaN(v);});
