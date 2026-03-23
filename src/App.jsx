@@ -14,6 +14,7 @@ import LoginScreenNew from './screens/LoginScreen';
 import SignUpScreenNew from './screens/SignUpScreen';
 import GuestHomeScreen from './screens/HomeScreen';
 import DashboardScreen from './screens/DashboardScreen';
+import LeaderboardScreenNew from './screens/LeaderboardScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -2948,7 +2949,7 @@ function StandingsScreen(props){
         );
       })
     ),
-    tab===""?React.createElement(MemoLeaderboardScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser,toast:props.toast}):null,
+    tab===""?React.createElement(LeaderboardScreenNew,{}):null,
     tab==="hof"?React.createElement(MemoHofScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,pastClashes:props.pastClashes,toast:props.toast}):null,
     tab==="roster"?React.createElement(RosterScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser}):null
   );
