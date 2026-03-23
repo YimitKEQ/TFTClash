@@ -25,6 +25,8 @@ import SeasonRecapScreenNew from './screens/SeasonRecapScreen';
 import ArchiveScreenNew from './screens/ArchiveScreen';
 import MilestonesScreenNew from './screens/MilestonesScreen';
 import ChallengesScreenNew from './screens/ChallengesScreen';
+import RulesScreenNew from './screens/RulesScreen';
+import FAQScreenNew from './screens/FAQScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18142,9 +18144,9 @@ function TFTClash(){
 
         {screen==="events"     &&<EventsScreenNew/>}
 
-        {screen==="rules"      &&<RulesScreen setScreen={navTo}/>}
+        {screen==="rules"      &&<RulesScreenNew/>}
 
-        {screen==="faq"        &&<FAQScreen setScreen={navTo}/>}
+        {screen==="faq"        &&<FAQScreenNew/>}
 
         {screen==="privacy"    &&<PrivacyScreen setScreen={navTo}/>}
 
