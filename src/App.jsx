@@ -8,6 +8,7 @@ import { computeStats, computeH2H, getStats, effectivePts, tiebreaker, isComebac
 import { T_PHASE, T_TRANSITIONS, canTransition, TOURNAMENT_FORMATS, snakeSeed, buildLobbies, buildFlashLobbies, applyCutLine, suggestedCutLine, computeTournamentStandings } from './lib/tournament.js';
 import { getUserTier, hasFeature } from './lib/tiers.js';
 import { writeActivityEvent, createNotification } from './lib/notifications.js';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext.jsx';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
@@ -17567,10 +17568,49 @@ function BroadcastOverlay(props) {
 
 function TFTClash(){
 
+  var navigate=useNavigate();
+  var location=useLocation();
   var ctx=useApp();
   var screen=ctx.screen, setScreen=ctx.setScreen;
   var subRoute=ctx.subRoute, setSubRoute=ctx.setSubRoute;
   var navSourceRef=ctx.navSourceRef;
+
+  // ── Route-to-screen backward compatibility sync ──
+  // Maps React Router pathname back to legacy screen/subRoute state
+  var ROUTE_TO_SCREEN={
+    "/":"home","/login":"login","/signup":"signup","/standings":"standings",
+    "/leaderboard":"leaderboard","/bracket":"bracket","/player":"profile",
+    "/results":"results","/events":"events","/scrims":"scrims","/pricing":"pricing",
+    "/milestones":"milestones","/challenges":"challenges","/hall-of-fame":"hof",
+    "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
+    "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
+    "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear"
+  };
+  useEffect(function(){
+    var path=location.pathname;
+    // Direct match
+    var mapped=ROUTE_TO_SCREEN[path];
+    if(mapped){
+      if(mapped!==screen){navSourceRef.current="router";setScreen(mapped);}
+      return;
+    }
+    // Dynamic segments: /player/:name, /bracket/:id, /results/:id, /flash/:id, /tournament/:id
+    var segs=path.replace(/^\//,"").split("/");
+    if(segs[0]==="player"&&segs[1]){navSourceRef.current="router";setScreen("profile");setSubRoute(segs[1]);return;}
+    if(segs[0]==="bracket"&&segs[1]){navSourceRef.current="router";setScreen("bracket");setSubRoute(segs[1]);return;}
+    if(segs[0]==="results"&&segs[1]){navSourceRef.current="router";setScreen("results");setSubRoute(segs[1]);return;}
+    if(segs[0]==="flash"&&segs[1]){navSourceRef.current="router";setScreen("flash-"+segs[1]);return;}
+    if(segs[0]==="tournament"&&segs[1]){navSourceRef.current="router";setScreen("tournament-"+segs[1]);return;}
+    if(segs[0]==="host"){
+      if(segs[1]==="apply"){navSourceRef.current="router";setScreen("host-apply");return;}
+      if(segs[1]==="dashboard"){navSourceRef.current="router";setScreen("host-dashboard");return;}
+    }
+    // Standings sub-routes
+    if(segs[0]==="standings"&&segs[1]){navSourceRef.current="router";setScreen("standings");setSubRoute(segs[1]);return;}
+    // Events sub-routes
+    if(segs[0]==="events"&&segs[1]){navSourceRef.current="router";setScreen("events");setSubRoute(segs[1]);return;}
+  },[location.pathname]);
   var players=ctx.players, setPlayers=ctx.setPlayers;
   var isLoadingData=ctx.isLoadingData;
   var isAdmin=ctx.isAdmin, setIsAdmin=ctx.setIsAdmin;
@@ -17618,26 +17658,26 @@ function TFTClash(){
     if(redirects[screen]){navTo(redirects[screen]);}
   },[screen,navTo]);
 
-  // ── Screen→hash sync: auto-updates URL, title, meta, scroll on any screen change ──
+  // ── Screen→title/meta sync: auto-updates title, meta, scroll on any screen change ──
+  // URL is now managed by React Router; no more hash pushState
   useEffect(function(){
-    if(navSourceRef.current==="popstate"){navSourceRef.current="user";}
-    else{var fullHash=subRoute?screen+"/"+subRoute:screen;try{window.history.pushState({screen:screen,subRoute:subRoute},"","#"+fullHash);}catch(e){}}
+    navSourceRef.current="user";
     var titles={home:"Home",standings:"Standings",clash:"Clash",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear"};
     var t=titles[screen]||(screen.indexOf("tournament-")===0?"Tournament":"");
-    document.title="TFT Clash"+(t?" \u2014 "+t:"");
-    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame \u2014 records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans \u2014 Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy \u2014 how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service \u2014 rules for using the platform."};
-    var desc=descs[screen]||"TFT Clash \u2014 weekly competitive TFT tournaments.";
+    document.title="TFT Clash"+(t?" - "+t:"");
+    var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame - records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans - Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy - how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service - rules for using the platform."};
+    var desc=descs[screen]||"TFT Clash - weekly competitive TFT tournaments.";
     var metaDesc=document.querySelector('meta[name="description"]');
     if(metaDesc)metaDesc.setAttribute("content",desc);
     var ogTitle=document.querySelector('meta[property="og:title"]');
-    if(ogTitle)ogTitle.setAttribute("content","TFT Clash"+(t?" \u2014 "+t:""));
+    if(ogTitle)ogTitle.setAttribute("content","TFT Clash"+(t?" - "+t:""));
     var ogDesc=document.querySelector('meta[property="og:description"]');
     if(ogDesc)ogDesc.setAttribute("content",desc);
     var existingLD=document.getElementById("tft-jsonld");
     if(existingLD)existingLD.remove();
     var ld=null;
     if(screen==="home")ld={"@context":"https://schema.org","@type":"WebApplication","name":"TFT Clash","url":"https://tft-clash.vercel.app","description":desc,"applicationCategory":"GameApplication","operatingSystem":"Any","offers":{"@type":"AggregateOffer","lowPrice":"0","highPrice":"19.99","priceCurrency":"EUR"}};
-    if(screen.indexOf("tournament-")===0)ld={"@context":"https://schema.org","@type":"SportsEvent","name":"TFT Clash Tournament","location":{"@type":"VirtualLocation","url":"https://tft-clash.vercel.app/#"+screen},"organizer":{"@type":"Organization","name":"TFT Clash"}};
+    if(screen.indexOf("tournament-")===0)ld={"@context":"https://schema.org","@type":"SportsEvent","name":"TFT Clash Tournament","location":{"@type":"VirtualLocation","url":"https://tft-clash.vercel.app/tournament/"+screen.replace("tournament-","")},"organizer":{"@type":"Organization","name":"TFT Clash"}};
     if(screen==="profile"||screen==="leaderboard")ld={"@context":"https://schema.org","@type":"SportsOrganization","name":"TFT Clash","sport":"Teamfight Tactics","url":"https://tft-clash.vercel.app"};
     if(ld){var s2=document.createElement("script");s2.type="application/ld+json";s2.id="tft-jsonld";s2.textContent=JSON.stringify(ld);document.head.appendChild(s2);}
     window.scrollTo(0,0);
@@ -17660,6 +17700,18 @@ function TFTClash(){
     })||null;
   },[players,currentUser]);
 
+  // Screen-to-route mapping for navigate()
+  var SCREEN_TO_ROUTE={
+    home:"/",login:"/login",signup:"/signup",standings:"/standings",
+    leaderboard:"/leaderboard",bracket:"/bracket",profile:"/player",
+    results:"/results",events:"/events",scrims:"/scrims",pricing:"/pricing",
+    milestones:"/milestones",challenges:"/challenges",hof:"/hall-of-fame",
+    archive:"/archive",recap:"/season-recap",rules:"/rules",faq:"/faq",
+    account:"/account","host-apply":"/host/apply","host-dashboard":"/host/dashboard",
+    admin:"/admin",privacy:"/privacy",terms:"/terms",clash:"/clash",
+    tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear"
+  };
+
   var navTo=useCallback(function(s,sub){
     var parts=s.split("/");
     var base=parts[0];
@@ -17669,8 +17721,20 @@ function TFTClash(){
     if(base==="scrims"&&!canScrims){toast("Access restricted","error");return;}
     setScreen(base);
     setSubRoute(sr);
+    // Navigate via React Router
+    var route=SCREEN_TO_ROUTE[base];
+    if(route){
+      var fullRoute=sr?route+"/"+sr:route;
+      navigate(fullRoute);
+    } else if(base.indexOf("flash-")===0){
+      navigate("/flash/"+base.replace("flash-",""));
+    } else if(base.indexOf("tournament-")===0){
+      navigate("/tournament/"+base.replace("tournament-",""));
+    } else {
+      navigate("/"+base+(sr?"/"+sr:""));
+    }
     // profilePlayer is set by the caller before navigating; do not clear it here
-  },[isAdmin,currentUser,scrimAccess,toast]);
+  },[isAdmin,currentUser,scrimAccess,toast,navigate]);
 
   useEffect(function(){
     var params=new URLSearchParams(window.location.search);
@@ -17682,17 +17746,23 @@ function TFTClash(){
     if(refParam){try{var prev=localStorage.getItem("tft-referred-by");if(!prev){localStorage.setItem("tft-referred-by",refParam);var rc=parseInt(localStorage.getItem("tft-referral-count-"+refParam)||"0");localStorage.setItem("tft-referral-count-"+refParam,String(rc+1));}}catch(e){}}
     if(params.get("checkout")==="success"){
       toast("Subscription activated! Welcome to Pro.","success");
-      window.history.replaceState({},"",window.location.pathname+"#account");
+      navigate("/account",{replace:true});
     }
+    // Hash migration: if user arrives with old hash URL, redirect to clean path
     var h=window.location.hash.slice(1);
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
-    var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login"];
-    var hParts=h.split("/");var hBase=hParts[0];var hSub=hParts[1]||"";
-    var isSafe=safeScreens.includes(hBase)||hBase.indexOf("tournament-")===0;
-    var dest=isSafe?hBase:"home";
-    if(dest!=="home"){setScreen(dest);setSubRoute(hSub);}
-    window.history.replaceState({screen:dest,subRoute:hSub},"","#"+(hSub?dest+"/"+hSub:dest));
+    if(h){
+      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login"];
+      var hParts=h.split("/");var hBase=hParts[0];var hSub=hParts[1]||"";
+      var isSafe=safeScreens.includes(hBase)||hBase.indexOf("tournament-")===0;
+      if(isSafe){
+        var route=SCREEN_TO_ROUTE[hBase];
+        if(route){navigate(hSub?route+"/"+hSub:route,{replace:true});}
+        else if(hBase.indexOf("tournament-")===0){navigate("/tournament/"+hBase.replace("tournament-",""),{replace:true});}
+        else if(hBase.indexOf("flash-")===0){navigate("/flash/"+hBase.replace("flash-",""),{replace:true});}
+      }
+    }
   },[]);
 
   function handleLogin(user){
@@ -17885,11 +17955,14 @@ function TFTClash(){
 
   if (screen === "broadcast") {
     var bParams = {};
+    var searchParams = new URLSearchParams(window.location.search);
+    searchParams.forEach(function(val, key) { bParams[key] = val; });
+    // Fallback: also check hash for legacy broadcast URLs
     var hashParts = (window.location.hash || "").split("?");
     if (hashParts[1]) {
       hashParts[1].split("&").forEach(function(kv) {
         var parts = kv.split("=");
-        bParams[parts[0]] = parts[1] || "";
+        if(!bParams[parts[0]]) bParams[parts[0]] = parts[1] || "";
       });
     }
     return React.createElement(BroadcastOverlay, {

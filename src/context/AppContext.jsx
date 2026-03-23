@@ -9,11 +9,26 @@ export function AppProvider(props) {
   var children = props.children;
 
   // ── Screen / routing state ──
-  var _screen = useState(function(){var h=window.location.hash.replace("#","");var parts=h.split("/");return parts[0]||"home";});
+  // Initialize from pathname (React Router) with hash fallback for migration
+  var _screen = useState(function(){
+    var p=window.location.pathname;
+    if(p&&p!=="/"&&p!=="/index.html"){
+      var seg=p.replace(/^\//,"").split("/")[0];
+      if(seg)return seg;
+    }
+    var h=window.location.hash.replace("#","");
+    var parts=h.split("/");
+    return parts[0]||"home";
+  });
   var screen = _screen[0];
   var setScreen = _screen[1];
 
   var _subRoute = useState(function(){
+    var p=window.location.pathname;
+    if(p&&p!=="/"&&p!=="/index.html"){
+      var seg=p.replace(/^\//,"").split("/");
+      return seg[1]||"";
+    }
     var h=window.location.hash.replace("#","");
     var parts=h.split("/");
     return parts[1]||"";
@@ -360,19 +375,7 @@ export function AppProvider(props) {
       });
   },[currentUser]);
 
-  // ── useEffect: hash routing - single popstate handler ──
-  useEffect(function(){
-    function onPop(){
-      navSourceRef.current="popstate";
-      var h=window.location.hash.replace("#","");
-      var parts=h.split("/");
-      var base=parts[0]||"home";
-      setScreen(base);
-      setSubRoute(parts[1]||"");
-    }
-    window.addEventListener("popstate",onPop);
-    return function(){window.removeEventListener("popstate",onPop);};
-  },[]);
+  // ── popstate handler removed: React Router handles navigation ──
 
   // ── useEffect: stamp checkedIn from tournamentState.checkedInIds onto players ──
   useEffect(function(){
