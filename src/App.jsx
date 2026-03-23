@@ -1302,7 +1302,7 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 /* ── layout helpers ──────────────────────────────────────────── */
 
-.wrap{max-width:1400px;margin:0 auto;padding:0 16px;}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px;}
 
 .page{padding:24px 16px 40px;animation:screen-enter .3s ease-out both;}
 
@@ -1350,6 +1350,13 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
   .page{padding:28px 24px 40px;}
 
+}
+
+.home-2col{display:grid;grid-template-columns:1fr;gap:16px;}
+.home-4col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(min-width:640px){
+  .home-2col{grid-template-columns:1fr 1fr;}
+  .home-4col{grid-template-columns:repeat(4,1fr);}
 }
 
 
@@ -1950,7 +1957,7 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
 
 /* Gold shimmer for featured cards */
 @keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
-.gold-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(232,168,56,.08) 25%,rgba(232,168,56,.15) 50%,rgba(232,168,56,.08) 75%,transparent 100%);background-size:200% 100%;animation:shimmer 4s linear infinite;}
+.card-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(232,168,56,.08) 25%,rgba(232,168,56,.15) 50%,rgba(232,168,56,.08) 75%,transparent 100%);background-size:200% 100%;animation:shimmer 4s linear infinite;}
 
 /* Rank badge glow */
 .rank-glow{border-radius:50%;transition:box-shadow .2s;}
@@ -3554,7 +3561,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
       {/* Desktop top nav  -  two-row layout */}
 
-      <nav className="top-nav" style={{borderBottom:"2px solid transparent",borderImage:"linear-gradient(90deg,transparent,rgba(155,114,207,.3),rgba(232,168,56,.2),transparent) 1"}}>
+      <nav className="top-nav" style={{borderBottom:"1px solid rgba(155,114,207,.15)"}}>
 
         <div style={{maxWidth:1400,margin:"0 auto",padding:"0 16px",height:54,display:"flex",alignItems:"center",gap:0}}>
 
@@ -3985,7 +3992,7 @@ function StandingsScreen(props){
     {id:"hof",label:"Hall of Fame",icon:"ti ti-crown"},
     {id:"roster",label:"Player Directory",icon:"ti ti-users"},
   ];
-  return React.createElement("div",{className:"page fade-up"},
+  return React.createElement("div",{className:"page fade-up",style:{maxWidth:920,margin:"0 auto"}},
     React.createElement("div",{style:{textAlign:"center",padding:"24px 16px 0",marginBottom:20}},
       React.createElement("h1",{style:{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#F2EDE4",marginBottom:4,letterSpacing:".01em"}},"Standings"),
       React.createElement("p",{style:{fontSize:13,color:"#9AAABF",maxWidth:400,margin:"0 auto"}},"Season rankings, legends, and the full player roster")
@@ -4044,7 +4051,7 @@ function ProfileScreen(props){
       )
     );
   }
-  return React.createElement("div",{className:"page fade-up",style:{paddingTop:20}},
+  return React.createElement("div",{className:"page fade-up",style:{paddingTop:20,maxWidth:920,margin:"0 auto"}},
     React.createElement("div",{className:"tab-bar-wrap",style:{display:"flex",justifyContent:"center",gap:6,padding:"0 16px",marginBottom:24,overflowX:"auto"}},
       tabs.map(function(t){
         var active=tab===t.id;
@@ -4819,7 +4826,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       );
     });
 
-    return React.createElement("div", {className: "page fade-up"},
+    return React.createElement("div", {className: "page fade-up", style: {maxWidth: 880, margin: "0 auto"}},
 
       // Announcement
       announcement ? React.createElement("div", {style: {background: "rgba(232,168,56,.06)", border: "1px solid rgba(232,168,56,.2)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10}},
@@ -4827,96 +4834,120 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("span", {style: {color: "#E8A838", fontWeight: 600, fontSize: 13}}, announcement)
       ) : null,
 
-      // Hero - clean text block, no heavy gradients
-      React.createElement("div", {style: {textAlign: "center", padding: "56px 24px 48px", marginBottom: 24, borderBottom: "1px solid rgba(242,237,228,.06)"}},
-        React.createElement("div", {style: {width: 60, height: 2, background: "#9B72CF", margin: "0 auto 32px", borderRadius: 1}}),
-        React.createElement("h1", {className: "display", style: {fontSize: "clamp(36px,8vw,64px)", color: "#F2EDE4", lineHeight: 0.9, letterSpacing: "-.02em", marginBottom: 14}},
-          React.createElement("span", {style: {color: "#F2EDE4"}}, "TFT "),
-          React.createElement("span", {style: {color: "#E8A838"}}, "CLASH")
-        ),
-        React.createElement("p", {style: {fontSize: 15, color: "#9AAABF", lineHeight: 1.6, marginBottom: 32, maxWidth: 480, marginLeft: "auto", marginRight: "auto"}}, "Weekly tournaments, seasonal rankings, and a permanent record of every champion crowned. The competitive TFT platform built for players who want more."),
-        React.createElement("div", {style: {display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap"}},
-          React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }, style: {boxShadow: "0 0 24px rgba(155,114,207,.35), 0 0 48px rgba(155,114,207,.15)", fontSize: 16, padding: "14px 36px"}}, "Create Free Account"),
-          React.createElement(Btn, {v: "ghost", s: "lg", onClick: function() { onAuthClick("login"); }}, "Sign In")
-        )
-      ),
+      // Hero + Next Clash - two-column on desktop
+      React.createElement("div", {style: {display: "grid", gridTemplateColumns: "1fr", gap: 0, marginBottom: 20}},
 
-      // Stats strip - 3 numbers in Panel
-      React.createElement(Panel, {style: {marginBottom: 24}},
-        React.createElement("div", {style: {display: "grid", gridTemplateColumns: "1fr 1fr 1fr", textAlign: "center"}},
-          [[players.length, "ACTIVE PLAYERS", "#E8A838"], [guestTotalGames, "GAMES PLAYED", "#4ECDC4"], [guestTotalPts, "SEASON POINTS", "#9B72CF"]].map(function(item) {
-            return React.createElement("div", {key: item[1], style: {padding: "18px 12px", borderRight: "1px solid rgba(242,237,228,.06)"}},
-              React.createElement("div", {className: "mono", style: {fontSize: 28, fontWeight: 800, color: item[2], lineHeight: 1}}, item[0]),
-              React.createElement("div", {className: "cond", style: {fontSize: 9, color: "#9AAABF", marginTop: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".1em"}}, item[1])
-            );
-          })
-        )
-      ),
-
-      // Next clash countdown
-      guestCountdown,
-
-      // Season champion
-      guestChampCard,
-
-      // Top 5 mini-leaderboard - StandingsTable row style
-      React.createElement(Panel, {style: {marginBottom: 24, overflow: "hidden"}},
-        React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid rgba(242,237,228,.07)", background: "#0A0F1A"}},
-          React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8}},
-            React.createElement("i", {className: "ti ti-trophy", style: {fontSize: 14, color: "#9B72CF"}}),
-            React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Season Standings")
+        // Hero block
+        React.createElement("div", {style: {padding: "40px 0 32px"}},
+          React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 10, marginBottom: 16}},
+            React.createElement("img", {src: "/icon-border.png", alt: "TFT Clash", style: {width: 36, height: 36, objectFit: "contain", filter: "drop-shadow(0 0 8px rgba(155,114,207,.4))"}}),
+            React.createElement("div", null,
+              React.createElement("h1", {className: "gold-shimmer", style: {fontFamily: "'Russo One',sans-serif", fontSize: 28, fontWeight: 700, lineHeight: 1, letterSpacing: ".04em", margin: 0}}, "TFT CLASH"),
+              React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase", marginTop: 2}}, "Season 1 - Free to Compete")
+            )
           ),
-          React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "View All")
-        ),
-        guestLbRows,
-        top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 32, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
+          React.createElement("p", {style: {fontSize: 14, color: "#9AAABF", lineHeight: 1.7, marginBottom: 20, maxWidth: 520}}, "Weekly tournaments, seasonal rankings, and a permanent record of every champion crowned. The competitive TFT platform built for players who want more than ranked."),
+          React.createElement("div", {style: {display: "flex", gap: 10, flexWrap: "wrap"}},
+            React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }, style: {boxShadow: "0 0 20px rgba(155,114,207,.3)"}}, "Create Free Account"),
+            React.createElement(Btn, {v: "ghost", s: "lg", onClick: function() { onAuthClick("login"); }}, "Sign In")
+          )
+        )
       ),
 
-      // Featured event card (moved above How It Works for visibility)
-      featuredEvents && featuredEvents.length > 0 ? React.createElement(Panel, {style: {marginBottom: 24, cursor: "pointer"}, hover: true, onClick: function() { setScreen("events"); }},
-        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
+      // Live stats bar
+      React.createElement("div", {style: {display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 1, marginBottom: 20, borderRadius: 10, overflow: "hidden", background: "rgba(242,237,228,.04)"}},
+        [[players.length, "Active Players", "#E8A838", "ti-users"], [guestTotalGames, "Games Played", "#4ECDC4", "ti-device-gamepad-2"], [guestTotalPts, "Season Points", "#9B72CF", "ti-star"]].map(function(item) {
+          return React.createElement("div", {key: item[1], style: {background: "#0D1117", padding: "14px 16px", textAlign: "center"}},
+            React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "center", gap: 6}},
+              React.createElement("i", {className: "ti " + item[3], style: {fontSize: 13, color: item[2], opacity: 0.7}}),
+              React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: item[2], lineHeight: 1}}, item[0])
+            ),
+            React.createElement("div", {className: "cond", style: {fontSize: 9, color: "#6B7A8D", marginTop: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em"}}, item[1])
+          );
+        })
+      ),
+
+      // Two-column: Countdown + Champion / Leaderboard
+      React.createElement("div", {className: "home-2col", style: {marginBottom: 20}},
+
+        // Left: Countdown + Champion
+        React.createElement("div", {style: {display: "flex", flexDirection: "column", gap: 16}},
+
+          // Next clash countdown
+          diff > 0 ? React.createElement(Panel, {color: "#E8A838", style: {padding: "16px 18px", flex: 1}},
+            React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6, marginBottom: 12}},
+              React.createElement("span", {style: {width: 6, height: 6, borderRadius: "50%", background: "#E8A838", display: "inline-block", animation: "pulse 2s infinite"}}),
+              React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#E8A838", letterSpacing: ".12em", textTransform: "uppercase"}}, "Next Clash")
+            ),
+            React.createElement("div", {style: {display: "flex", gap: 8, marginBottom: 10}},
+              [[D, "D"], [H, "H"], [M, "M"], [S, "S"]].map(function(seg) {
+                return React.createElement("div", {key: seg[1], style: {textAlign: "center", flex: 1}},
+                  React.createElement("div", {className: "inner-box", style: {padding: "8px 0", display: "flex", alignItems: "center", justifyContent: "center"}},
+                    React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: "#E8A838"}}, seg[0])
+                  ),
+                  React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", marginTop: 3, fontWeight: 700}}, seg[1])
+                );
+              })
+            ),
+            clashName ? React.createElement("div", {style: {fontSize: 12, color: "#BECBD9", fontWeight: 600}}, clashName + (clashDate ? " - " + clashDate : "")) : null
+          ) : null,
+
+          // Season champion
+          guestChampCard
+        ),
+
+        // Right: Leaderboard
+        React.createElement(Panel, {style: {overflow: "hidden"}},
+          React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid rgba(242,237,228,.07)", background: "#0A0F1A"}},
+            React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6}},
+              React.createElement("i", {className: "ti ti-trophy", style: {fontSize: 13, color: "#E8A838"}}),
+              React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Standings")
+            ),
+            React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "View All")
+          ),
+          guestLbRows,
+          top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 32, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
+        )
+      ),
+
+      // Featured event
+      featuredEvents && featuredEvents.length > 0 ? React.createElement(Panel, {style: {marginBottom: 20, cursor: "pointer"}, hover: true, onClick: function() { setScreen("events"); }},
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
           React.createElement("i", {className: "ti ti-calendar-event", style: {fontSize: 12, color: "#C4B5FD"}}),
           React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#C4B5FD", letterSpacing: ".12em", textTransform: "uppercase"}}, "Featured Event"),
           React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#5A6577", marginLeft: "auto"}})
         ),
-        React.createElement("div", {style: {padding: "14px 16px", display: "flex", alignItems: "center", gap: 12}},
+        React.createElement("div", {style: {padding: "12px 14px", display: "flex", alignItems: "center", gap: 12}},
           React.createElement("div", {style: {flex: 1, minWidth: 0}},
-            React.createElement("div", {style: {fontWeight: 700, fontSize: 15, color: "#F2EDE4", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, featuredEvents[0].name || "Upcoming Event"),
+            React.createElement("div", {style: {fontWeight: 700, fontSize: 14, color: "#F2EDE4", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, featuredEvents[0].name || "Upcoming Event"),
             React.createElement("div", {style: {fontSize: 12, color: "#9AAABF"}}, "Hosted by " + (featuredEvents[0].host || "TFT Clash") + (featuredEvents[0].date ? " - " + featuredEvents[0].date : ""))
           )
         )
       ) : null,
 
-      // How it works - numbered items in a grid
-      React.createElement(Panel, {style: {marginBottom: 24, padding: "28px 20px"}},
-        React.createElement("div", {style: {marginBottom: 20}},
-          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".15em", textTransform: "uppercase"}}, "How It Works")
-        ),
-        React.createElement("div", {style: {display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12}},
-          [
-            {n: "01", t: "Create Account", d: "Sign up free and link your Riot ID.", c: "#9B72CF"},
-            {n: "02", t: "Register", d: "Join the next Saturday clash. Check in to lock your spot.", c: "#4ECDC4"},
-            {n: "03", t: "Compete", d: "Play your lobby games. Placements tracked automatically.", c: "#E8A838"},
-            {n: "04", t: "Claim the Crown", d: "Top the seasonal standings. Enter the Hall of Fame.", c: "#6EE7B7"}
-          ].map(function(step) {
-            return React.createElement("div", {key: step.n, className: "inner-box", style: {padding: "16px 14px"}},
-              React.createElement("div", {style: {display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8}},
-                React.createElement("span", {className: "mono", style: {fontSize: 22, fontWeight: 800, color: step.c, lineHeight: 1, opacity: 0.7}}, step.n),
-                React.createElement("span", {style: {fontWeight: 700, fontSize: 13, color: "#F2EDE4"}}, step.t)
-              ),
-              React.createElement("div", {style: {fontSize: 12, color: "#9AAABF", lineHeight: 1.5}}, step.d)
-            );
-          })
-        )
+      // How it works - compact horizontal
+      React.createElement("div", {className: "home-4col", style: {marginBottom: 20}},
+        [
+          {n: "01", t: "Sign Up", d: "Free account, link Riot ID", c: "#9B72CF", ic: "ti-user-plus"},
+          {n: "02", t: "Register", d: "Join Saturday clash", c: "#4ECDC4", ic: "ti-clipboard-check"},
+          {n: "03", t: "Compete", d: "Play lobbies, earn points", c: "#E8A838", ic: "ti-swords"},
+          {n: "04", t: "Rise", d: "Climb the leaderboard", c: "#6EE7B7", ic: "ti-trending-up"}
+        ].map(function(step) {
+          return React.createElement(Panel, {key: step.n, style: {padding: "14px 12px", textAlign: "center"}},
+            React.createElement("i", {className: "ti " + step.ic, style: {fontSize: 18, color: step.c, marginBottom: 6, display: "block"}}),
+            React.createElement("div", {style: {fontWeight: 700, fontSize: 12, color: "#F2EDE4", marginBottom: 3}}, step.t),
+            React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", lineHeight: 1.4}}, step.d)
+          );
+        })
       ),
 
       // Bottom CTA
-      React.createElement("div", {style: {textAlign: "center", padding: "32px 20px", marginBottom: 24, borderTop: "1px solid rgba(242,237,228,.06)"}},
-        React.createElement("div", {style: {fontWeight: 700, fontSize: 18, color: "#F2EDE4", marginBottom: 8}}, "Ready to Compete?"),
-        React.createElement("p", {style: {fontSize: 13, color: "#9AAABF", marginBottom: 20, maxWidth: 400, marginLeft: "auto", marginRight: "auto"}}, "Join " + players.length + " players already competing this season. Always free."),
-        React.createElement("div", {style: {display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap"}},
-          React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }}, "Create Free Account"),
-          React.createElement(Btn, {v: "ghost", s: "lg", onClick: function() { onAuthClick("login"); }}, "Sign In")
+      React.createElement(Panel, {style: {padding: "24px 20px", textAlign: "center", marginBottom: 20, border: "1px solid rgba(155,114,207,.2)"}},
+        React.createElement("div", {style: {fontWeight: 700, fontSize: 16, color: "#F2EDE4", marginBottom: 6}}, "Ready to Compete?"),
+        React.createElement("p", {style: {fontSize: 13, color: "#9AAABF", marginBottom: 16, maxWidth: 380, marginLeft: "auto", marginRight: "auto"}}, "Join " + players.length + " players competing this season. Always free."),
+        React.createElement("div", {style: {display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap"}},
+          React.createElement(Btn, {v: "primary", onClick: function() { onAuthClick("signup"); }}, "Create Free Account"),
+          React.createElement(Btn, {v: "ghost", onClick: function() { onAuthClick("login"); }}, "Sign In")
         )
       ),
 
@@ -5092,7 +5123,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     );
   });
 
-  return React.createElement("div", {className: "page fade-up"},
+  return React.createElement("div", {className: "page fade-up", style: {maxWidth: 880, margin: "0 auto"}},
 
     // Announcements
     announcement ? React.createElement("div", {style: {background: "rgba(232,168,56,.06)", border: "1px solid rgba(232,168,56,.2)", borderRadius: 10, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10}},
@@ -5106,182 +5137,169 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       React.createElement("span", {style: {fontSize: 10, color: "#6B7A8D", flexShrink: 0}}, hostAnnouncements[0].sentAt)
     ) : null,
 
-    // Zone 1 - The Pulse (clash status)
-    React.createElement(Panel, {style: {marginBottom: 20, overflow: "hidden"}},
+    // Zone 1 - The Pulse (clash status) - compact header
+    React.createElement(Panel, {style: {marginBottom: 16, overflow: "hidden"}},
       // Phase status bar
-      React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 10, padding: "12px 18px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
-        React.createElement("div", {style: {width: 8, height: 8, borderRadius: "50%", background: pColor, boxShadow: "0 0 8px " + pColor, animation: tPhase === "inprogress" ? "pulse 2s infinite" : "none"}}),
-        React.createElement("span", {className: "cond", style: {fontSize: 11, fontWeight: 700, color: pColor, textTransform: "uppercase", letterSpacing: ".08em"}}, phaseLabel),
-        tPhase === "registration" ? React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginLeft: 6}}, registeredCount + "/" + (tournamentState.maxPlayers || 24)) : null,
-        tPhase === "checkin" ? React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginLeft: 6}}, checkedInCount + " checked in") : null,
-        isMyWaitlisted ? React.createElement("span", {className: "mono", style: {fontSize: 11, color: "#E8A838", marginLeft: "auto", fontWeight: 700}}, "Waitlist #" + myWaitlistPos) : null
-      ),
-
-      // Main content row
-      React.createElement("div", {style: {padding: "16px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14}},
-        // Left: welcome + rank info
-        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 12}},
-          linkedPlayer ? React.createElement("div", {style: {position: "relative"}},
-            React.createElement("div", {style: {width: 44, height: 44, borderRadius: "50%", background: "rgba(" + (currentTierInfo.color === "#E8A838" ? "232,168,56" : currentTierInfo.color === "#C0C0C0" ? "192,192,192" : "155,114,207") + ",.15)", border: "2px solid " + currentTierInfo.color + "50", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, color: currentTierInfo.color}}, linkedPlayer.name.charAt(0).toUpperCase())
-          ) : React.createElement("div", {style: {width: 44, height: 44, borderRadius: "50%", background: "rgba(155,114,207,.1)", border: "2px solid rgba(155,114,207,.25)", display: "flex", alignItems: "center", justifyContent: "center"}},
-            React.createElement("i", {className: "ti ti-user", style: {fontSize: 18, color: "#9B72CF"}})
-          ),
-          React.createElement("div", null,
-            React.createElement("div", {style: {fontWeight: 700, fontSize: 16, color: "#F2EDE4", lineHeight: 1.2}}, linkedPlayer ? linkedPlayer.name : (currentUser.username || "Summoner")),
-            linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6, marginTop: 3}},
-              React.createElement("span", {className: "cond", style: {fontSize: 10, color: currentTierInfo.color, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase"}}, currentTierInfo.name),
-              React.createElement("span", {style: {fontSize: 11, color: "#6B7A8D"}}, (linkedPlayer.rank || "Unranked"))
-            ) : React.createElement("div", {style: {fontSize: 12, color: "#6B7A8D", marginTop: 2}}, "Link your Riot ID to get started")
-          )
-        ),
-
-        // Center: Rank + points
-        linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 14}},
-          React.createElement("div", {style: {textAlign: "center"}},
-            React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 3, justifyContent: "center"}},
-              React.createElement("span", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: currentTierInfo.color, lineHeight: 1}}, "#" + myRankIdx),
-              rankDelta !== 0 ? React.createElement("span", {className: "mono", style: {fontSize: 10, fontWeight: 700, color: rankDelta < 0 ? "#6EE7B7" : "#F87171"}}, rankDelta < 0 ? "+" + Math.abs(rankDelta) : "-" + Math.abs(rankDelta)) : null
-            ),
-            React.createElement("div", {className: "cond", style: {fontSize: 9, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 2}}, "Rank")
-          ),
-          React.createElement("div", {style: {width: 1, height: 28, background: "rgba(242,237,228,.06)"}}),
-          React.createElement("div", {style: {textAlign: "center"}},
-            React.createElement("div", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: "#E8A838", lineHeight: 1}}, linkedPlayer.pts || 0),
-            React.createElement("div", {className: "cond", style: {fontSize: 9, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 2}}, "Points")
-          ),
-          ptsToNextTier && ptsToNextTier > 0 ? React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", background: "rgba(255,255,255,.03)", borderRadius: 6, padding: "3px 8px", border: "1px solid rgba(242,237,228,.06)"}}, ptsToNextTier + " to " + nextTier.name) : null
-        ) : null,
-
-        // Right: action button
-        React.createElement("div", {style: {display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6}},
-          phaseActionBtn,
-          !linkedPlayer && !profileComplete ? React.createElement(Btn, {v: "primary", s: "sm", onClick: function() { setScreen("account"); }}, "Complete Profile") : null
+      React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
+        React.createElement("div", {style: {width: 7, height: 7, borderRadius: "50%", background: pColor, boxShadow: "0 0 8px " + pColor, animation: tPhase === "inprogress" ? "pulse 2s infinite" : "none"}}),
+        React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: pColor, textTransform: "uppercase", letterSpacing: ".08em"}}, phaseLabel),
+        tPhase === "registration" ? React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginLeft: 4}}, registeredCount + "/" + (tournamentState.maxPlayers || 24)) : null,
+        tPhase === "checkin" ? React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginLeft: 4}}, checkedInCount + " checked in") : null,
+        React.createElement("div", {style: {marginLeft: "auto", display: "flex", alignItems: "center", gap: 8}},
+          isMyWaitlisted ? React.createElement("span", {className: "mono", style: {fontSize: 10, color: "#E8A838", fontWeight: 700}}, "Waitlist #" + myWaitlistPos) : null,
+          phaseActionBtn
         )
       ),
 
-      // Clash name + countdown
-      React.createElement("div", {style: {padding: "0 18px 14px"}},
-        clashName ? React.createElement("div", {style: {fontSize: 13, color: "#BECBD9", fontWeight: 600, marginBottom: 6, display: "flex", alignItems: "center", gap: 6}},
-          React.createElement("i", {className: "ti ti-calendar", style: {fontSize: 13, color: "#9AAABF"}}),
-          clashName + (clashDate ? " - " + clashDate : "") + (clashTime ? " at " + clashTime : "")
+      // Player info row
+      React.createElement("div", {style: {padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap"}},
+        // Avatar
+        linkedPlayer ? React.createElement("div", {style: {width: 40, height: 40, borderRadius: "50%", background: "rgba(" + (currentTierInfo.color === "#E8A838" ? "232,168,56" : currentTierInfo.color === "#C0C0C0" ? "192,192,192" : "155,114,207") + ",.15)", border: "2px solid " + currentTierInfo.color + "40", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: currentTierInfo.color, flexShrink: 0}}, linkedPlayer.name.charAt(0).toUpperCase()
+        ) : React.createElement("div", {style: {width: 40, height: 40, borderRadius: "50%", background: "rgba(155,114,207,.1)", border: "2px solid rgba(155,114,207,.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0}},
+          React.createElement("i", {className: "ti ti-user", style: {fontSize: 16, color: "#9B72CF"}})
+        ),
+        // Name + tier
+        React.createElement("div", {style: {flex: 1, minWidth: 0}},
+          React.createElement("div", {style: {fontWeight: 700, fontSize: 15, color: "#F2EDE4", lineHeight: 1.2}}, linkedPlayer ? linkedPlayer.name : (currentUser.username || "Summoner")),
+          linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6, marginTop: 2}},
+            React.createElement("span", {className: "cond", style: {fontSize: 10, color: currentTierInfo.color, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase"}}, currentTierInfo.name),
+            React.createElement("span", {style: {fontSize: 10, color: "#6B7A8D"}}, linkedPlayer.rank || "Unranked")
+          ) : React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", marginTop: 2}}, "Link your Riot ID to get started")
+        ),
+        // Rank + Points inline
+        linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 12, flexShrink: 0}},
+          React.createElement("div", {style: {textAlign: "center"}},
+            React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 2, justifyContent: "center"}},
+              React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: currentTierInfo.color, lineHeight: 1}}, "#" + myRankIdx),
+              rankDelta !== 0 ? React.createElement("span", {className: "mono", style: {fontSize: 9, fontWeight: 700, color: rankDelta < 0 ? "#6EE7B7" : "#F87171"}}, rankDelta < 0 ? "+" + Math.abs(rankDelta) : "-" + Math.abs(rankDelta)) : null
+            ),
+            React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".08em"}}, "Rank")
+          ),
+          React.createElement("div", {style: {width: 1, height: 24, background: "rgba(242,237,228,.06)"}}),
+          React.createElement("div", {style: {textAlign: "center"}},
+            React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: "#E8A838", lineHeight: 1}}, linkedPlayer.pts || 0),
+            React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".08em"}}, "Points")
+          ),
+          ptsToNextTier && ptsToNextTier > 0 ? React.createElement("span", {className: "cond", style: {fontSize: 9, color: "#9AAABF", background: "rgba(255,255,255,.03)", borderRadius: 5, padding: "2px 6px", border: "1px solid rgba(242,237,228,.06)"}}, ptsToNextTier + " to " + nextTier.name) : null
         ) : null,
-        dashCountdown
+        !linkedPlayer && !profileComplete ? React.createElement(Btn, {v: "primary", s: "sm", onClick: function() { setScreen("account"); }}, "Complete Profile") : null
       ),
+
+      // Countdown + clash info
+      diff > 0 && (tPhase === "registration" || tPhase === "checkin") ? React.createElement("div", {style: {padding: "0 16px 12px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap"}},
+        clashName ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 5}},
+          React.createElement("i", {className: "ti ti-calendar", style: {fontSize: 12, color: "#9AAABF"}}),
+          React.createElement("span", {style: {fontSize: 12, color: "#BECBD9", fontWeight: 600}}, clashName + (clashDate ? " - " + clashDate : "") + (clashTime ? " at " + clashTime : ""))
+        ) : null,
+        React.createElement("div", {style: {display: "flex", gap: 4, marginLeft: "auto"}},
+          [[D, "D"], [H, "H"], [M, "M"], [S, "S"]].map(function(seg) {
+            return React.createElement("div", {key: seg[1], className: "inner-box", style: {padding: "4px 8px", display: "flex", alignItems: "center", gap: 3}},
+              React.createElement("span", {className: "mono", style: {fontSize: 14, fontWeight: 800, color: "#E8A838"}}, seg[0]),
+              React.createElement("span", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", fontWeight: 700}}, seg[1])
+            );
+          })
+        )
+      ) : null,
 
       // Progress bar
       phaseProgressBar
     ),
 
     // Flash tournament banner
-    upcomingTournament ? React.createElement(Panel, {style: {marginBottom: 20, cursor: "pointer"}, hover: true, color: "#4ECDC4", onClick: function() { setScreen("flash-" + upcomingTournament.id); }},
-      React.createElement("div", {style: {padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10}},
-        React.createElement("div", null,
-          React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, marginBottom: 4}},
-            React.createElement("i", {className: "ti ti-bolt", style: {fontSize: 14, color: "#4ECDC4"}}),
-            React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#4ECDC4", letterSpacing: ".12em", textTransform: "uppercase"}}, "Flash Tournament"),
-            React.createElement("span", {style: {fontSize: 11, color: "#E8A838"}}, new Date(upcomingTournament.date).toLocaleDateString("en-GB", {weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}))
-          ),
-          React.createElement("div", {style: {fontSize: 15, fontWeight: 700, color: "#F2EDE4"}}, upcomingTournament.name)
+    upcomingTournament ? React.createElement(Panel, {style: {marginBottom: 16, cursor: "pointer"}, hover: true, color: "#4ECDC4", onClick: function() { setScreen("flash-" + upcomingTournament.id); }},
+      React.createElement("div", {style: {padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10}},
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 10}},
+          React.createElement("i", {className: "ti ti-bolt", style: {fontSize: 16, color: "#4ECDC4"}}),
+          React.createElement("div", null,
+            React.createElement("div", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#4ECDC4", letterSpacing: ".1em", textTransform: "uppercase"}}, "Flash Tournament"),
+            React.createElement("div", {style: {fontSize: 14, fontWeight: 700, color: "#F2EDE4"}}, upcomingTournament.name)
+          )
         ),
-        React.createElement(Btn, {v: "primary", s: "sm"}, "Register Now")
+        React.createElement(Btn, {v: "primary", s: "sm"}, "Register")
       )
     ) : null,
 
-    // Zone 2 - Your Stats
-    dashStats,
+    // Two-column: Stats + Standings
+    React.createElement("div", {className: "home-2col", style: {marginBottom: 16}},
 
-    // Zone 3 - The Scene
-
-    // Featured event
-    dashFeaturedEvent,
-
-    // Season standings - StandingsTable row style
-    React.createElement(Panel, {style: {marginBottom: 20, overflow: "hidden"}},
-      React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid rgba(242,237,228,.07)", background: "#0A0F1A"}},
-        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8}},
-          React.createElement("i", {className: "ti ti-trophy", style: {fontSize: 14, color: "#E8A838"}}),
-          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Season Standings"),
-          React.createElement("span", {style: {display: "flex", alignItems: "center", gap: 4, marginLeft: 8}},
-            React.createElement("span", {className: "live-dot", style: {width: 6, height: 6, borderRadius: "50%", background: "#52C47C", display: "inline-block"}}),
-            React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6EE7B7", letterSpacing: ".06em"}}, players.length + " players")
-          )
-        ),
-        React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "Full Leaderboard")
+      // Left column: Your Stats
+      React.createElement("div", {style: {display: "flex", flexDirection: "column", gap: 16}},
+        dashStats,
+        dashFeaturedEvent
       ),
-      dashLbRows,
-      top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 32, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
+
+      // Right column: Leaderboard + Activity
+      React.createElement("div", {style: {display: "flex", flexDirection: "column", gap: 16}},
+
+        // Season standings
+        React.createElement(Panel, {style: {overflow: "hidden"}},
+          React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid rgba(242,237,228,.07)", background: "#0A0F1A"}},
+            React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6}},
+              React.createElement("i", {className: "ti ti-trophy", style: {fontSize: 13, color: "#E8A838"}}),
+              React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Standings"),
+              React.createElement("span", {style: {display: "flex", alignItems: "center", gap: 3, marginLeft: 6}},
+                React.createElement("span", {className: "live-dot", style: {width: 5, height: 5, borderRadius: "50%", background: "#52C47C", display: "inline-block"}}),
+                React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6EE7B7"}}, players.length)
+              )
+            ),
+            React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "View All")
+          ),
+          dashLbRows,
+          top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 24, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
+        ),
+
+        // Activity feed
+        activityFeed.length > 0 ? React.createElement(Panel, {style: {overflow: "hidden"}},
+          React.createElement("div", {style: {padding: "10px 14px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A", display: "flex", alignItems: "center", gap: 6}},
+            React.createElement("i", {className: "ti ti-activity", style: {fontSize: 12, color: "#4ECDC4"}}),
+            React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#4ECDC4", letterSpacing: ".1em", textTransform: "uppercase"}}, "Activity")
+          ),
+          activityFeed.slice(0, 4).map(function(item, idx) {
+            return React.createElement("div", {key: item.id || idx, style: {display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: idx < 3 ? "1px solid rgba(242,237,228,.04)" : "none"}},
+              React.createElement("i", {className: "ti ti-" + (item.icon || "activity"), style: {fontSize: 12, color: item.color || "#9AAABF", flexShrink: 0}}),
+              React.createElement("span", {style: {fontSize: 12, color: "#C8D4E0", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, item.message || item.text || ""),
+              item.created_at ? React.createElement("span", {style: {fontSize: 9, color: "#5A6577", flexShrink: 0}}, new Date(item.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})) : null
+            );
+          })
+        ) : null
+      )
     ),
 
     // Season narrative
-    seasonNarrative ? React.createElement("div", {style: {background: "rgba(155,114,207,.04)", border: "1px solid rgba(155,114,207,.08)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10}},
-      React.createElement("i", {className: "ti ti-chart-line", style: {fontSize: 14, color: "#9B72CF"}}),
-      React.createElement("span", {style: {fontSize: 13, color: "#C8D4E0", fontWeight: 500}}, seasonNarrative)
+    seasonNarrative ? React.createElement("div", {style: {background: "rgba(155,114,207,.04)", border: "1px solid rgba(155,114,207,.08)", borderRadius: 10, padding: "10px 16px", marginBottom: 14, display: "flex", alignItems: "center", gap: 8}},
+      React.createElement("i", {className: "ti ti-chart-line", style: {fontSize: 13, color: "#9B72CF"}}),
+      React.createElement("span", {style: {fontSize: 12, color: "#C8D4E0", fontWeight: 500}}, seasonNarrative)
     ) : null,
 
-    // Activity feed
-    activityFeed.length > 0 ? React.createElement(Panel, {style: {marginBottom: 20, overflow: "hidden"}},
-      React.createElement("div", {style: {padding: "10px 14px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A", display: "flex", alignItems: "center", gap: 8}},
-        React.createElement("i", {className: "ti ti-activity", style: {fontSize: 13, color: "#4ECDC4"}}),
-        React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#4ECDC4", letterSpacing: ".12em", textTransform: "uppercase"}}, "Recent Activity")
-      ),
-      activityFeed.slice(0, 5).map(function(item, idx) {
-        return React.createElement("div", {key: item.id || idx, style: {display: "flex", alignItems: "center", gap: 10, padding: "9px 14px", borderBottom: idx < Math.min(activityFeed.length, 5) - 1 ? "1px solid rgba(242,237,228,.04)" : "none"}},
-          React.createElement("i", {className: "ti ti-" + (item.icon || "activity"), style: {fontSize: 13, color: item.color || "#9AAABF", flexShrink: 0}}),
-          React.createElement("span", {style: {fontSize: 13, color: "#C8D4E0", flex: 1}}, item.message || item.text || ""),
-          item.created_at ? React.createElement("span", {style: {fontSize: 10, color: "#5A6577", flexShrink: 0}}, new Date(item.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})) : null
-        );
-      })
-    ) : null,
-
-    // Quick actions
-    React.createElement("div", {style: {display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20}},
+    // Quick actions + Discord + Sponsor in one row
+    React.createElement("div", {style: {display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16, alignItems: "center"}},
       React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }},
-        React.createElement("i", {className: "ti ti-list-numbers", style: {fontSize: 14, marginRight: 5}}),
-        "Standings"
+        React.createElement("i", {className: "ti ti-list-numbers", style: {fontSize: 13, marginRight: 4}}), "Standings"
       ),
       linkedPlayer ? React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setProfilePlayer(linkedPlayer); setScreen("profile"); }},
-        React.createElement("i", {className: "ti ti-user", style: {fontSize: 14, marginRight: 5}}),
-        "My Profile"
+        React.createElement("i", {className: "ti ti-user", style: {fontSize: 13, marginRight: 4}}), "Profile"
       ) : null,
-      upcomingTournament ? React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("flash-" + upcomingTournament.id); }},
-        React.createElement("i", {className: "ti ti-bolt", style: {fontSize: 14, marginRight: 5}}),
-        "Flash Tournament"
-      ) : null,
-      React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("events"); }},
-        React.createElement("i", {className: "ti ti-calendar-event", style: {fontSize: 14, marginRight: 5}}),
-        "Events"
-      ),
       React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("hof"); }},
-        React.createElement("i", {className: "ti ti-crown", style: {fontSize: 14, marginRight: 5}}),
-        "Hall of Fame"
+        React.createElement("i", {className: "ti ti-crown", style: {fontSize: 13, marginRight: 4}}), "Hall of Fame"
+      ),
+      React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { window.open("https://discord.gg/tftclash","_blank"); }, style: {background: "rgba(88,101,242,.06)", border: "1px solid rgba(88,101,242,.2)", color: "#818CF8"}},
+        React.createElement("i", {className: "ti ti-brand-discord", style: {fontSize: 13, marginRight: 4}}), "Discord"
       )
     ),
 
     // Ticker
-    tickerItems.length > 0 ? React.createElement("div", {style: {overflow: "hidden", borderRadius: 10, background: "rgba(155,114,207,.03)", border: "1px solid rgba(155,114,207,.08)", marginBottom: 16}},
+    tickerItems.length > 0 ? React.createElement("div", {style: {overflow: "hidden", borderRadius: 10, background: "rgba(155,114,207,.03)", border: "1px solid rgba(155,114,207,.08)", marginBottom: 14}},
       React.createElement("div", {className: "ticker-scroll"},
         [].concat(tickerItems, tickerItems).map(function(item, i) {
-          return React.createElement("span", {key: i, style: {display: "inline-flex", alignItems: "center", padding: "9px 24px", fontSize: 12, color: "#C8D4E0", fontWeight: 600, whiteSpace: "nowrap", borderRight: "1px solid rgba(155,114,207,.08)"}},
-            typeof item === "object" ? React.createElement(React.Fragment, null, React.createElement("i", {className: "ti ti-" + (ICON_REMAP[item.icon] || item.icon), style: {fontSize: 12, marginRight: 6}}), item.text) : item
+          return React.createElement("span", {key: i, style: {display: "inline-flex", alignItems: "center", padding: "8px 20px", fontSize: 11, color: "#C8D4E0", fontWeight: 600, whiteSpace: "nowrap", borderRight: "1px solid rgba(155,114,207,.08)"}},
+            typeof item === "object" ? React.createElement(React.Fragment, null, React.createElement("i", {className: "ti ti-" + (ICON_REMAP[item.icon] || item.icon), style: {fontSize: 11, marginRight: 5}}), item.text) : item
           );
         })
       )
     ) : null,
 
     // Sponsor
-    React.createElement(SponsorBanner, {onNavigate: setScreen}),
-
-    // Discord CTA
-    React.createElement(Panel, {style: {marginTop: 14, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap"}, color: "#5865F2"},
-      React.createElement("div", {className: "inner-box", style: {width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0}},
-        React.createElement("i", {className: "ti ti-brand-discord", style: {fontSize: 20, color: "#818CF8"}})
-      ),
-      React.createElement("div", {style: {flex: 1, minWidth: 0}},
-        React.createElement("div", {style: {fontWeight: 700, fontSize: 14, color: "#F2EDE4", marginBottom: 2}}, "Join the Community"),
-        React.createElement("div", {style: {fontSize: 12, color: "#9AAABF"}}, "Tournament alerts, tactics channels, results, and more.")
-      ),
-      React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { window.open("https://discord.gg/tftclash","_blank"); }, style: {background: "rgba(88,101,242,.1)", border: "1px solid rgba(88,101,242,.3)", color: "#818CF8", flexShrink: 0}}, "Join Discord")
-    )
+    React.createElement(SponsorBanner, {onNavigate: setScreen})
   );
 
 
@@ -7542,7 +7560,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
   return(
 
-    <div className="page wrap">
+    <div className="page wrap" style={{maxWidth:920}}>
 
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:18,flexWrap:"wrap",gap:10}}>
 
