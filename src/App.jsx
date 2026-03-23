@@ -2,16 +2,15 @@ import React, { useState, useEffect, useRef, useMemo, useCallback, memo, Compone
 import * as Sentry from '@sentry/react';
 
 import { supabase, CANONICAL_ORIGIN } from './lib/supabase.js';
+import { DATA_VERSION, TFT_DEBUG, dbg, RANKS, RCOLS, REGIONS, PTS, DEFAULT_SEASON_CONFIG, TIERS, CLASH_RANKS, XP_REWARDS, TIER_FEATURES, HOMIES_IDS, SEED, PAST_CLASHES, getSeasonChampion, setSeasonChampion, PREMIUM_TIERS, RULES_SECTIONS, FAQ_DATA } from './lib/constants.js';
+import { sanitize, rc, tier, avgCol, ordinal, shareToTwitter, buildShareText, isValidRiotId } from './lib/utils.js';
+import { computeStats, computeH2H, getStats, effectivePts, tiebreaker, isComebackEligible, getAttendanceStreak, computeSeasonBonuses, ACHIEVEMENTS, MILESTONES, getAchievements, checkAchievements, syncAchievements, isHotStreak, isOnTilt, computeClashAwards, generateRecap, getClashRank, getXpProgress, estimateXp } from './lib/stats.js';
+import { T_PHASE, T_TRANSITIONS, canTransition, TOURNAMENT_FORMATS, snakeSeed, buildLobbies, buildFlashLobbies, applyCutLine, suggestedCutLine, computeTournamentStandings } from './lib/tournament.js';
+import { getUserTier, hasFeature } from './lib/tiers.js';
+import { writeActivityEvent, createNotification } from './lib/notifications.js';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
-var DATA_VERSION=2;
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
-
-
-
-// ─── DEBUG LOGGING ─────────────────────────────────────────────────────────────
-var TFT_DEBUG=typeof window!=="undefined"&&window.location.search.indexOf("debug=1")>-1;
-function dbg(){if(TFT_DEBUG)console.log.apply(console,arguments);}
 
 // ─── ERROR BOUNDARY ────────────────────────────────────────────────────────────
 
@@ -84,1025 +83,23 @@ class ScreenBoundary extends Component {
 
 
 
-// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+// ─── CONSTANTS & UTILS imported from lib/ ────────────────────────────────────
 
-const RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
 
-const RCOLS = {Iron:"#8C7B6B",Bronze:"#CD7F32",Silver:"#A8B2CC",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#6EA8E0",Master:"#9B72CF",Grandmaster:"#E85B5B",Challenger:"#FFD700"};
 
-const REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
 
-// Fixed scoring - not configurable
 
-const PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
 
-const DEFAULT_SEASON_CONFIG = {
 
-  dropWeeks: 0,
 
-  finalBoost: 1.0,
 
-  finaleClashes: 2,
 
-  attendanceBonus: false,
 
-  comebackBonus: false,
 
-  seasonName: "Season 1",
 
-  seasonTag: "S1",
 
-  defaultClashSize: 126,
 
-};
 
-const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#BECBD9"}];
-
-
-
-// ─── INPUT SANITIZATION ──────────────────────────────────────────────────────
-function sanitize(str){if(typeof str!=='string')return '';return str.replace(/<[^>]*>/g,'');}
-
-function rc(r){return RCOLS[r]||"#A8B2CC";}
-
-function tier(pts){return TIERS.find(t=>pts>=t.min)||TIERS[TIERS.length-1];}
-
-
-
-// Avg placement colour coding
-
-function avgCol(avg){
-
-  const n=parseFloat(avg)||0;
-
-  if(n===0)return"#BECBD9";
-
-  if(n<3.0)return"#4ade80"; // green
-
-  if(n<=5.0)return"#facc15"; // yellow
-
-  return"#f87171"; // red
-
-}
-
-
-
-// ─── PLATFORM RANKING SYSTEM ─────────────────────────────────────────────────
-
-const CLASH_RANKS=[
-
-  {id:"iron",       name:"Iron",        icon:"gear-fill",  color:"#BECBD9", minXp:0,    maxXp:200},
-
-  {id:"bronze",     name:"Bronze",      icon:"shield-fill",  color:"#CD7F32", minXp:200,  maxXp:500},
-
-  {id:"silver",     name:"Silver",      icon:"shield-fill",  color:"#C0C0C0", minXp:500,  maxXp:900},
-
-  {id:"gold",       name:"Gold",        icon:"shield-fill",  color:"#E8A838", minXp:900,  maxXp:1400},
-
-  {id:"platinum",   name:"Platinum",    icon:"diamond-half",  color:"#4ECDC4", minXp:1400, maxXp:2000},
-
-  {id:"diamond",    name:"Diamond",     icon:"gem",  color:"#9B72CF", minXp:2000, maxXp:2800},
-
-  {id:"master",     name:"Master",      icon:"stars",  color:"#EAB308", minXp:2800, maxXp:3800},
-
-  {id:"grandmaster",name:"Grandmaster", icon:"eye-fill",  color:"#F87171", minXp:3800, maxXp:5000},
-
-  {id:"challenger", name:"Clash Challenger",icon:"trophy-fill",color:"#E8A838",minXp:5000,maxXp:99999},
-
-];
-
-
-
-// XP rewards per action
-
-const XP_REWARDS={
-
-  play_game:25,       // just playing
-
-  top4:15,            // bonus for top 4
-
-  win:40,             // 1st place
-
-  top2:25,            // 2nd place bonus
-
-  clutch:20,          // clutch win
-
-  streak_3:30,        // 3-win streak
-
-  challenge_daily:50, // daily challenge
-
-  challenge_weekly:120,// weekly challenge
-
-  season_pts_100:60,  // every 100 season pts
-
-};
-
-
-
-function getClashRank(xp){
-
-  return CLASH_RANKS.slice().reverse().find(r=>xp>=r.minXp)||CLASH_RANKS[0];
-
-}
-
-function getXpProgress(xp){
-
-  const rank=getClashRank(xp);
-
-  const next=CLASH_RANKS[CLASH_RANKS.indexOf(rank)+1];
-
-  if(!next)return{rank,pct:100,current:xp,needed:0};
-
-  const pct=Math.min(100,Math.round((xp-rank.minXp)/(next.minXp-rank.minXp)*100));
-
-  return{rank,next,pct,current:xp-rank.minXp,needed:next.minXp-rank.minXp};
-
-}
-
-// Estimate XP from player stats (for demo data)
-
-function estimateXp(p){
-
-  return (p.games||0)*XP_REWARDS.play_game+(p.wins||0)*XP_REWARDS.win+(p.top4||0)*XP_REWARDS.top4+Math.floor((p.pts||0)/100)*XP_REWARDS.season_pts_100;
-
-}
-
-
-
-// ─── STATS ENGINE ─────────────────────────────────────────────────────────────
-
-function computeStats(player){
-
-  const h=player.clashHistory||[];
-
-  const games=h.length||player.games||0;
-
-  const wins=h.filter(g=>(g.place||g.placement)===1).length||player.wins||0;
-
-  const top4=h.filter(g=>(g.place||g.placement)<=4).length||player.top4||0;
-
-  const bot4=h.filter(g=>(g.place||g.placement)>4).length;
-
-  // AVP = sum of all placements / total games (lower = better)
-
-  const avgPlacement=h.length>0
-
-    ?(h.reduce((s,g)=>s+(g.place||g.placement||0),0)/h.length)
-
-    :(parseFloat(player.avg)||0);
-
-
-
-  // Per-round avgs (from roundPlacements field in history)
-
-  const roundAvgs={r1:null,r2:null,r3:null,finals:null};
-
-  const roundKeys=["r1","r2","r3","finals"];
-
-  roundKeys.forEach(rk=>{
-
-    const vals=h.map(g=>g.roundPlacements?.[rk]).filter(v=>v!=null);
-
-    if(vals.length>0)roundAvgs[rk]=(vals.reduce((s,v)=>s+v,0)/vals.length).toFixed(2);
-
-  });
-
-
-
-  // Comeback rate: placed 5-8 in r1 but finished top4 overall
-
-  const comebacks=h.filter(g=>g.roundPlacements?.r1>=5&&(g.place||g.placement)<=4).length;
-
-  const comebackOpp=h.filter(g=>g.roundPlacements?.r1>=5).length;
-
-  const comebackRate=comebackOpp>0?((comebacks/comebackOpp)*100).toFixed(0):0;
-
-
-
-  // Clutch rate: won their lobby
-
-  const clutches=h.filter(g=>g.claimedClutch).length;
-
-  const clutchRate=games>0?((clutches/games)*100).toFixed(0):0;
-
-
-
-  // PPG
-
-  const ppg=games>0?(player.pts/games).toFixed(1):0;
-
-
-
-  // Per-clash AVP: average placement within each individual clash (same formula, but per event)
-
-  const perClashAvp=h.length>0
-
-    ?h.map(g=>{
-
-        const rp=g.roundPlacements||{};
-
-        const rounds=Object.values(rp).filter(v=>v!=null);
-
-        return rounds.length>0?(rounds.reduce((s,v)=>s+v,0)/rounds.length):(g.place||g.placement);
-
-      }).reduce((s,v,_,a)=>s+v/a.length,0).toFixed(2)
-
-    :null;
-
-
-
-  return{
-
-    games,wins,top4,bot4,
-
-    top1Rate:games>0?((wins/games)*100).toFixed(1):"0.0",
-
-    top4Rate:games>0?((top4/games)*100).toFixed(1):"0.0",
-
-    bot4Rate:games>0?((bot4/games)*100).toFixed(1):"0.0",
-
-    avgPlacement:avgPlacement>0?avgPlacement.toFixed(2):"-",
-
-    perClashAvp,
-
-    roundAvgs,comebackRate,clutchRate,ppg,
-
-  };
-
-}
-
-// ─── HEAD-TO-HEAD COMPUTATION ─────────────────────────────────────────────────
-
-function computeH2H(playerA,playerB,pastClashes){
-  var shared=[];
-  (pastClashes||[]).forEach(function(clash){
-    (clash.lobbies||[]).forEach(function(lobby){
-      var aResult=null,bResult=null;
-      (lobby.results||[]).forEach(function(r){
-        if(r.username===playerA)aResult=r;
-        if(r.username===playerB)bResult=r;
-      });
-      if(aResult&&bResult){
-        shared.push({clash:clash.name||clash.id,aPos:aResult.position,bPos:bResult.position});
-      }
-    });
-  });
-  var wins=0,losses=0,aAvg=0,bAvg=0;
-  shared.forEach(function(s){
-    if(s.aPos<s.bPos)wins++;
-    else if(s.aPos>s.bPos)losses++;
-    aAvg+=s.aPos;
-    bAvg+=s.bPos;
-  });
-  var count=shared.length;
-  return {
-    sharedLobbies:count,
-    wins:wins,losses:losses,
-    ties:count-wins-losses,
-    aAvg:count?+(aAvg/count).toFixed(1):0,
-    bAvg:count?+(bAvg/count).toFixed(1):0,
-    recent:shared.slice(-5),
-  };
-}
-
-// ─── STATS CACHE ─────────────────────────────────────────────────────────────
-// WeakMap keyed by player object  -  cache invalidates automatically when player
-// object identity changes (which happens on every immutable state update).
-var _statsCache=new WeakMap();
-function getStats(player){
-  if(!player)return{games:0,wins:0,top4:0,bot4:0,top1Rate:"0.0",top4Rate:"0.0",bot4Rate:"0.0",avgPlacement:"-",perClashAvp:null,roundAvgs:{r1:null,r2:null,r3:null,finals:null},comebackRate:0,clutchRate:0,ppg:0};
-  var cached=_statsCache.get(player);
-  if(cached)return cached;
-  var result=computeStats(player);
-  _statsCache.set(player,result);
-  return result;
-}
-
-var TIER_FEATURES = {
-  free: {
-    compete: true,
-    basicStats: true,
-    basicProfile: true,
-    viewResults: true,
-    currentSeasonHistory: true,
-    enhancedStats: false,
-    proBadge: false,
-    priorityRegistration: false,
-    extendedHistory: false,
-    customBanner: false,
-    comparisonTool: false,
-    emailDigest: false,
-    createTournaments: false,
-    brandedPages: false,
-    hostDashboard: false,
-    customRules: false,
-    apiAccess: false
-  },
-  pro: {
-    compete: true,
-    basicStats: true,
-    basicProfile: true,
-    viewResults: true,
-    currentSeasonHistory: true,
-    enhancedStats: true,
-    proBadge: true,
-    priorityRegistration: true,
-    extendedHistory: true,
-    customBanner: true,
-    comparisonTool: true,
-    emailDigest: true,
-    createTournaments: false,
-    brandedPages: false,
-    hostDashboard: false,
-    customRules: false,
-    apiAccess: false
-  },
-  host: {
-    compete: true,
-    basicStats: true,
-    basicProfile: true,
-    viewResults: true,
-    currentSeasonHistory: true,
-    enhancedStats: true,
-    proBadge: true,
-    priorityRegistration: true,
-    extendedHistory: true,
-    customBanner: true,
-    comparisonTool: true,
-    emailDigest: true,
-    createTournaments: true,
-    brandedPages: true,
-    hostDashboard: true,
-    customRules: true,
-    apiAccess: true
-  }
-};
-
-function getUserTier(subscriptions, userId) {
-  if (!subscriptions || !userId) return "free";
-  var sub = subscriptions[userId];
-  if (!sub) return "free";
-  if (sub.status !== "active") return "free";
-  if (sub.current_period_end) {
-    var grace = 3 * 24 * 60 * 60 * 1000;
-    if (new Date(sub.current_period_end).getTime() + grace < Date.now()) return "free";
-  }
-  return sub.tier || "free";
-}
-
-function hasFeature(tier, feature) {
-  var features = TIER_FEATURES[tier] || TIER_FEATURES.free;
-  return !!features[feature];
-}
-
-function effectivePts(player, seasonConfig) {
-
-  if (!player.clashHistory || !player.clashHistory.length) return player.pts || 0;
-
-  var cfg = seasonConfig || DEFAULT_SEASON_CONFIG;
-
-  var clashMap = {};
-
-  player.clashHistory.forEach(function(h) {
-
-    var cid = h.clashId || "c0";
-
-    clashMap[cid] = (clashMap[cid] || 0) + (h.pts || 0);
-
-  });
-
-  var clashIds = Object.keys(clashMap);
-
-  var totals = clashIds.map(function(cid) { return clashMap[cid]; });
-
-  totals.sort(function(a, b) { return a - b; });
-
-  var drop = cfg.dropWeeks || 0;
-
-  if (drop > 0) totals = totals.slice(drop);
-
-  var boost = cfg.finalBoost || 1.0;
-
-  var finaleCount = cfg.finaleClashes || 2;
-
-  if (boost > 1.0 && totals.length > 0) {
-
-    var boostStart = Math.max(0, totals.length - finaleCount);
-
-    for (var i = boostStart; i < totals.length; i++) {
-
-      totals[i] = Math.round(totals[i] * boost);
-
-    }
-
-  }
-
-  return totals.reduce(function(acc, v) { return acc + v; }, 0);
-
-}
-
-
-
-function tiebreaker(a, b) {
-
-  var aPts = a.pts || 0, bPts = b.pts || 0;
-
-  if (bPts !== aPts) return bPts - aPts;
-
-  var aScore = (a.wins || 0) * 2 + (a.top4 || 0);
-
-  var bScore = (b.wins || 0) * 2 + (b.top4 || 0);
-
-  if (bScore !== aScore) return bScore - aScore;
-
-  var placements = [1, 2, 3, 4, 5, 6, 7, 8];
-
-  for (var i = 0; i < placements.length; i++) {
-
-    var p = placements[i];
-
-    var aC = (a.clashHistory || []).filter(function(h) { return (h.place||h.placement) === p; }).length;
-
-    var bC = (b.clashHistory || []).filter(function(h) { return (h.place||h.placement) === p; }).length;
-
-    if (bC !== aC) return bC - aC;
-
-  }
-
-  // Step 4: Most recent game finish  -  player who competed more recently wins
-  var aLastId = a.clashHistory && a.clashHistory.length ? (a.clashHistory[a.clashHistory.length - 1].clashId || a.clashHistory[a.clashHistory.length - 1].date || a.clashHistory.length) : 0;
-
-  var bLastId = b.clashHistory && b.clashHistory.length ? (b.clashHistory[b.clashHistory.length - 1].clashId || b.clashHistory[b.clashHistory.length - 1].date || b.clashHistory.length) : 0;
-
-  return bLastId - aLastId;
-
-}
-
-
-
-function isComebackEligible(player, allClashIds) {
-
-  if (!allClashIds || !allClashIds.length) return false;
-
-  var attended = {};
-
-  (player.clashHistory || []).forEach(function(h) { if (h.clashId) attended[h.clashId] = true; });
-
-  var lastIdx = -1;
-
-  for (var i = allClashIds.length - 1; i >= 0; i--) {
-
-    if (attended[allClashIds[i]]) { lastIdx = i; break; }
-
-  }
-
-  if (lastIdx === -1) return false;
-
-  var missed = 0;
-
-  for (var j = lastIdx + 1; j < allClashIds.length; j++) {
-
-    if (!attended[allClashIds[j]]) missed++;
-
-    else missed = 0;
-
-  }
-
-  return missed >= 2;
-
-}
-
-
-
-function getAttendanceStreak(player, allClashIds) {
-
-  if (!allClashIds || !allClashIds.length) return 0;
-
-  var attended = {};
-
-  (player.clashHistory || []).forEach(function(h) { if (h.clashId) attended[h.clashId] = true; });
-
-  var streak = 0;
-
-  for (var i = allClashIds.length - 1; i >= 0; i--) {
-
-    if (attended[allClashIds[i]]) streak++;
-
-    else break;
-
-  }
-
-  return streak;
-
-}
-
-
-
-function computeSeasonBonuses(player, currentClashId, allClashIds, seasonConfig) {
-
-  var cfg = seasonConfig || DEFAULT_SEASON_CONFIG;
-
-  var bonusPts = 0;
-
-  var comebackTriggered = false;
-
-  var attendanceMilestone = null;
-
-  var idsWithCurrent = allClashIds.indexOf(currentClashId) >= 0 ? allClashIds : allClashIds.concat([currentClashId]);
-
-  if (cfg.comebackBonus && isComebackEligible(player, allClashIds)) {
-
-    bonusPts += 2;
-
-    comebackTriggered = true;
-
-  }
-
-  if (cfg.attendanceBonus) {
-
-    var attended = {};
-
-    (player.clashHistory || []).forEach(function(h) { if (h.clashId) attended[h.clashId] = true; });
-
-    var streak = 0;
-
-    for (var i = idsWithCurrent.length - 1; i >= 0; i--) {
-
-      var cid = idsWithCurrent[i];
-
-      if (cid === currentClashId || attended[cid]) streak++;
-
-      else break;
-
-    }
-
-    if (streak === 5) { bonusPts += 5; attendanceMilestone = 5; }
-
-    else if (streak === 3) { bonusPts += 3; attendanceMilestone = 3; }
-
-  }
-
-  return { bonusPts: bonusPts, comebackTriggered: comebackTriggered, attendanceMilestone: attendanceMilestone };
-
-}
-
-
-
-// ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
-
-const ACHIEVEMENTS=[
-
-  // ── PLACEMENT MILESTONES ─────────────────────────────────
-
-  {id:"first_blood",    tier:"bronze",    icon:"droplet-fill",  name:"First Blood",       desc:"Win your first clash game",                            check:p=>p.wins>=1},
-
-  {id:"hat_trick",      tier:"bronze",    icon:"mortarboard-fill",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:p=>p.wins>=3},
-
-  {id:"top4_machine",   tier:"silver",    icon:"gear-fill",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:p=>p.top4>=10},
-
-  {id:"podium_hunter",  tier:"silver",    icon:"award-fill",  name:"Podium Hunter",      desc:"5 wins total",                                         check:p=>p.wins>=5},
-
-  {id:"clutch_god",     tier:"gold",      icon:"lightning-charge-fill",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
-
-  {id:"dynasty",        tier:"gold",      icon:"trophy-fill",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:p=>p.wins>=10},
-
-  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"Finish in top 4 every game in a single clash",         check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)<=4)&&p.top4>=p.games},
-
-  {id:"the_grind",      tier:"legendary", icon:"moon-fill",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:p=>p.games>=30},
-
-  // ── STREAK ACHIEVEMENTS ───────────────────────────────────
-
-  {id:"hot_start",      tier:"bronze",    icon:"fire",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:p=>p.wins>=1&&p.games<=8},
-
-  {id:"on_fire",        tier:"silver",    icon:"graph-up-arrow",  name:"On Fire",            desc:"3 win streak at any point",                            check:p=>p.bestStreak>=3},
-
-  {id:"cant_stop",      tier:"gold",      icon:"rocket-takeoff-fill",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:p=>p.bestStreak>=5},
-
-  {id:"goat_streak",    tier:"legendary", icon:"star-fill",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:p=>p.bestStreak>=7},
-
-  // ── POINTS ACHIEVEMENTS ────────────────────────────────────
-
-  {id:"point_getter",   tier:"bronze",    icon:"coin",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:p=>p.pts>=100},
-
-  {id:"century",        tier:"silver",    icon:"gem",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:p=>p.pts>=500},
-
-  {id:"big_dog",        tier:"gold",      icon:"trophy-fill",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:p=>p.pts>=800},
-
-  {id:"thousand_club",  tier:"legendary", icon:"sun-fill",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:p=>p.pts>=1000},
-
-  // ── SOCIAL / COMMUNITY ───────────────────────────────────
-
-  {id:"regular",        tier:"bronze",    icon:"calendar-check-fill",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:p=>p.games>=5},
-
-  {id:"veteran",        tier:"silver",    icon:"shield-check",  name:"Veteran",            desc:"20 total games across the season",                     check:p=>p.games>=20},
-
-  {id:"season_finisher",tier:"gold",      icon:"patch-check-fill",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:p=>p.games>=28},
-
-  {id:"champion",       tier:"legendary", icon:"award-fill",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>SEASON_CHAMPION&&p.name===SEASON_CHAMPION.name},
-
-  // ── RARE / EASTER EGG ────────────────────────────────────
-
-  {id:"dishsoap",       tier:"legendary", icon:"droplet",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:p=>p.name==="Dishsoap"||p.riotId?.toLowerCase().includes("dishsoap")},
-
-  {id:"perfect_lobby",  tier:"legendary", icon:"bullseye",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(v=>v<=3):true))},
-
-  {id:"silent_grinder", tier:"gold",      icon:"eye-fill",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:p=>p.pts>=400&&p.wins===0},
-
-];
-
-
-
-const MILESTONES=[
-
-  {id:"m1",icon:"shield-fill",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:p=>p.pts>=100},
-
-  {id:"m2",icon:"shield-fill",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:p=>p.pts>=300},
-
-  {id:"m3",icon:"shield-fill",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:p=>p.pts>=600},
-
-  {id:"m4",icon:"gem",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:p=>p.pts>=800},
-
-  {id:"m5",icon:"trophy-fill",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:p=>p.pts>=1000},
-
-  {id:"m6",icon:"fire",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:p=>isHotStreak(p)},
-
-  {id:"m7",icon:"trophy-fill",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:p=>p.wins>=1},
-
-  {id:"m8",icon:"lightning-charge-fill",name:"Clutch Player",   pts:null, reward:"Clutch tag on your stats",     check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
-
-];
-
-
-
-
-
-
-
-
-// ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
-
-function getAchievements(p){return ACHIEVEMENTS.filter(a=>{try{return a.check(p);}catch{return false;}});}
-
-function checkAchievements(player, rank) {
-  if (!player) return [];
-  var stats = getStats(player);
-  var earned = [];
-  ACHIEVEMENTS.forEach(function(a) {
-    var c = a.criteria;
-    if (c) {
-      if (c.type === "wins" && (player.wins || 0) >= c.value) earned.push(a.id);
-      else if (c.type === "games" && (player.games || 0) >= c.value) earned.push(a.id);
-      else if (c.type === "rank" && rank === c.value) earned.push(a.id);
-      else if (c.type === "avgPlacement" && stats.avgPlacement && parseFloat(stats.avgPlacement) <= c.value && (player.games || 0) >= (c.minGames || 0)) earned.push(a.id);
-      else if (c.type === "streak") {
-        var history = player.clashHistory || [];
-        var streak = 0;
-        for (var si = history.length - 1; si >= 0; si--) {
-          if (history[si].placement <= 4) streak++;
-          else break;
-        }
-        if (streak >= c.value) earned.push(a.id);
-      }
-    } else {
-      try { if (a.check(player)) earned.push(a.id); } catch(e) {}
-    }
-  });
-  return earned;
-}
-
-function syncAchievements(playerId, earnedIds) {
-  var rows = earnedIds.map(function(aid) {
-    return {player_id: playerId, achievement_id: aid};
-  });
-  if (rows.length > 0) {
-    supabase.from("player_achievements").upsert(rows, {onConflict: "player_id,achievement_id"})
-      .then(function(r) { if (r.error) console.error("[TFT] achievement sync:", r.error); });
-  }
-}
-
-function writeActivityEvent(type, playerId, text) {
-  supabase.from("activity_feed").insert({
-    type: type,
-    player_id: playerId,
-    detail_json: {text: text}
-  }).then(function(r) {
-    if (r.error) console.error("[TFT] activity_feed insert failed:", r.error);
-  });
-}
-
-// Module-level helper - usable in any component without prop-drilling
-function createNotification(userId,title,body,icon){
-  if(!userId)return Promise.resolve();
-  return supabase.from('notifications').insert({
-    user_id:userId,title:title,body:body,message:body,icon:icon||"bell",type:"info",
-    read:false,created_at:new Date().toISOString()
-  });
-}
-
-function isHotStreak(p){return(p.currentStreak||0)>=3;}
-
-
-
-function isOnTilt(p){return(p.tiltStreak||0)>=3;}
-
-
-
-// ─── TOURNAMENT ENGINE ───────────────────────────────────────────────────────
-
-// Tournament phases  -  strict state machine
-var T_PHASE={
-  DRAFT:"draft",
-  REGISTRATION:"registration",
-  CHECK_IN:"checkin",
-  LOBBY_SETUP:"lobby_setup",
-  IN_PROGRESS:"inprogress",
-  BETWEEN_ROUNDS:"between_rounds",
-  COMPLETE:"complete"
-};
-
-// Valid state transitions
-var T_TRANSITIONS={};
-T_TRANSITIONS[T_PHASE.DRAFT]=[T_PHASE.REGISTRATION];
-T_TRANSITIONS[T_PHASE.REGISTRATION]=[T_PHASE.CHECK_IN,T_PHASE.DRAFT];
-T_TRANSITIONS[T_PHASE.CHECK_IN]=[T_PHASE.LOBBY_SETUP,T_PHASE.REGISTRATION];
-T_TRANSITIONS[T_PHASE.LOBBY_SETUP]=[T_PHASE.IN_PROGRESS,T_PHASE.CHECK_IN];
-T_TRANSITIONS[T_PHASE.IN_PROGRESS]=[T_PHASE.BETWEEN_ROUNDS,T_PHASE.COMPLETE];
-T_TRANSITIONS[T_PHASE.BETWEEN_ROUNDS]=[T_PHASE.IN_PROGRESS,T_PHASE.COMPLETE];
-T_TRANSITIONS[T_PHASE.COMPLETE]=[];
-
-function canTransition(from,to){
-  return(T_TRANSITIONS[from]||[]).indexOf(to)!==-1;
-}
-
-// Format presets
-var TOURNAMENT_FORMATS={
-  casual:{name:"Casual Clash",description:"Single stage, 3 games, all players",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"random"},
-  standard:{name:"Standard Clash",description:"Single stage, 5 games, seeded lobbies",games:5,stages:1,maxPlayers:32,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"snake"},
-  competitive:{name:"Competitive (128p)",description:"6 games, cut after 4, snake seeded",games:6,stages:2,maxPlayers:128,cutEnabled:true,cutLine:13,cutAfterGame:4,seeding:"snake"},
-  weekly:{name:"Weekly Clash",description:"3 games, friend group format",games:3,stages:1,maxPlayers:24,cutEnabled:false,cutLine:0,cutAfterGame:0,seeding:"rank-based"}
-};
-
-// Snake seeding: distributes players across lobbies so each has a mix of skill levels
-// Input: sorted players array (best first), lobbyCount
-// Output: array of arrays (lobbies)
-function snakeSeed(sortedPlayers,lobbySize){
-  var lobbyCount=Math.ceil(sortedPlayers.length/lobbySize);
-  if(lobbyCount<=0)return[];
-  var lobbies=Array.from({length:lobbyCount},function(){return[];});
-  sortedPlayers.forEach(function(p,i){
-    var row=Math.floor(i/lobbyCount);
-    var col=row%2===0?(i%lobbyCount):(lobbyCount-1-(i%lobbyCount));
-    lobbies[col].push(p);
-  });
-  return lobbies;
-}
-
-// Calculate lobby assignments based on seeding method
-function buildLobbies(players,method,lobbySize){
-  lobbySize=lobbySize||8;
-  if(!players||players.length===0)return[];
-  var pool;
-  if(method==="random"){
-    pool=[].concat(players);
-    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;}
-    var result=[];
-    for(var k=0;k<pool.length;k+=lobbySize)result.push(pool.slice(k,k+lobbySize));
-    return result;
-  }
-  if(method==="snake"){
-    var sorted=[].concat(players).sort(function(a,b){return(b.pts||0)-(a.pts||0)||(b.wins||0)-(a.wins||0);});
-    return snakeSeed(sorted,lobbySize);
-  }
-  // Default: rank-based (top seeds together)
-  var ranked=[].concat(players).sort(function(a,b){return(b.pts||0)-(a.pts||0);});
-  var res=[];
-  for(var m=0;m<ranked.length;m+=lobbySize)res.push(ranked.slice(m,m+lobbySize));
-  return res;
-}
-
-// Build lobbies for a flash tournament from checked-in players
-function buildFlashLobbies(checkedInPlayers,seedingMethod){
-  var N=checkedInPlayers.length;
-  if(N<2)return{lobbies:[],byes:checkedInPlayers};
-  var pool=[].concat(checkedInPlayers);
-  if(seedingMethod==="random"){
-    for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=pool[i];pool[i]=pool[j];pool[j]=tmp;}
-  } else {
-    // snake or rank-based: sort by rank then pts
-    pool.sort(function(a,b){return(RANKS.indexOf(b.rank||"Iron")-RANKS.indexOf(a.rank||"Iron"))||((b.pts||0)-(a.pts||0));});
-  }
-  var k=Math.floor(N/8);
-  var remainder=N-(k*8);
-  if(remainder===0){
-    // perfect
-  } else if(remainder>=6){
-    k=k+1;
-  } else {
-    if(k>=1){k=k+1;}
-    else{k=1;}
-  }
-  if(k<1)k=1;
-  var lobbies=[];
-  for(var li=0;li<k;li++)lobbies.push([]);
-  pool.forEach(function(p,idx){
-    var row=Math.floor(idx/k);
-    var col=row%2===0?(idx%k):(k-1-(idx%k));
-    lobbies[col].push(p);
-  });
-  return{lobbies:lobbies,byes:[]};
-}
-
-// Cut line: determine which players advance after N games
-// Returns { advancing: [], eliminated: [] }
-function applyCutLine(playerStandings,cutLine,cutAfterGame){
-  if(!cutLine||cutLine<=0)return{advancing:playerStandings,eliminated:[]};
-  var advancing=[];
-  var eliminated=[];
-  playerStandings.forEach(function(p){
-    var gamesPlayed=p.gamesInTournament||0;
-    if(gamesPlayed<cutAfterGame){advancing.push(p);return;}
-    var pts=p.tournamentPts||0;
-    if(pts>cutLine){advancing.push(p);}
-    else{eliminated.push(p);}
-  });
-  return{advancing:advancing,eliminated:eliminated};
-}
-
-// Calculate suggested cut line for a given player count
-function suggestedCutLine(playerCount){
-  if(playerCount>=96)return{cutLine:13,cutAfterGame:4,reason:"128p format: avg 18pts after 4 games, cut at 13"};
-  if(playerCount>=48)return{cutLine:15,cutAfterGame:3,reason:"64p format: tighter field, cut after 3 games"};
-  if(playerCount>=24)return{cutLine:12,cutAfterGame:3,reason:"32p format: smaller field, lower cut"};
-  return{cutLine:0,cutAfterGame:0,reason:"Small event: no cut recommended"};
-}
-
-// Compute tournament standings from game_results
-function computeTournamentStandings(players,gameResults,tournamentId){
-  var standingsMap={};
-  gameResults.forEach(function(g){
-    if(tournamentId&&g.tournamentId!==tournamentId)return;
-    var pid=g.player_id||g.playerId;
-    if(!standingsMap[pid])standingsMap[pid]={playerId:pid,tournamentPts:0,gamesInTournament:0,placements:[],wins:0,top4:0};
-    var s=standingsMap[pid];
-    s.tournamentPts+=(g.points||PTS[g.placement]||0);
-    s.gamesInTournament+=1;
-    s.placements.push(g.placement);
-    if(g.placement===1)s.wins+=1;
-    if(g.placement<=4)s.top4+=1;
-  });
-  // Merge with player info
-  return players.map(function(p){
-    var s=standingsMap[p.id]||{tournamentPts:0,gamesInTournament:0,placements:[],wins:0,top4:0};
-    return Object.assign({},p,s);
-  }).filter(function(p){return p.gamesInTournament>0;})
-    .sort(function(a,b){
-      if(b.tournamentPts!==a.tournamentPts)return b.tournamentPts-a.tournamentPts;
-      var aScore=a.wins*2+a.top4;var bScore=b.wins*2+b.top4;
-      if(bScore!==aScore)return bScore-aScore;
-      return 0;
-    });
-}
-
-
-// ─── POST-CLASH AWARDS ENGINE ─────────────────────────────────────────────────
-
-
-
-function computeClashAwards(players){
-
-  const eligible=players.filter(p=>p.games>0);
-
-  if(eligible.length===0)return[];
-
-
-
-  const byPts=[...eligible].sort((a,b)=>b.pts-a.pts);
-
-  const byAvp=[...eligible].filter(p=>p.games>=3).sort((a,b)=>parseFloat(a.avg||9)-parseFloat(b.avg||9));
-
-  const byAvpWorst=[...eligible].filter(p=>p.games>=3).sort((a,b)=>parseFloat(b.avg||0)-parseFloat(a.avg||0));
-
-
-
-  // Lobby Bully - most 1st place finishes
-
-  const lobbyBully=byPts.reduce((best,p)=>(!best||p.wins>best.wins)?p:best,null);
-
-
-
-  // The Choker - highest AVP but still in top half by pts (ironic)
-
-  const topHalf=byPts.slice(0,Math.ceil(byPts.length/2));
-
-  const choker=[...topHalf].filter(p=>p.games>=3).sort((a,b)=>parseFloat(b.avg||0)-parseFloat(a.avg||0))[0];
-
-
-
-  // Highest single-clash score - best haul ever
-
-  const singleMVP=eligible.reduce((best,p)=>(!best||(p.bestHaul||0)>(best.bestHaul||0))?p:best,null);
-
-
-
-  // Most Improved - biggest improvement from first half to second half of games
-  const mostImproved=(function(){
-    var candidates=eligible.filter(function(p){return(p.clashHistory||[]).length>=4;});
-    if(!candidates.length)return byAvp[0]||null;
-    var best=null;var bestDelta=0;
-    candidates.forEach(function(p){
-      var h=p.clashHistory||[];var mid=Math.floor(h.length/2);
-      var firstHalf=h.slice(0,mid);var secondHalf=h.slice(mid);
-      var avgFirst=firstHalf.reduce(function(s,g){return s+(g.place||g.placement||5);},0)/firstHalf.length;
-      var avgSecond=secondHalf.reduce(function(s,g){return s+(g.place||g.placement||5);},0)/secondHalf.length;
-      var delta=avgFirst-avgSecond; // positive = improved (lower placement is better)
-      if(delta>bestDelta){bestDelta=delta;best=p;}
-    });
-    return best||byAvp[0]||null;
-  })();
-
-  // Ice Cold - longest streak without a top-4 finish (3+ games)
-  const iceCold=(function(){
-    var candidates=eligible.filter(function(p){return(p.clashHistory||[]).length>=3;});
-    if(!candidates.length)return null;
-    var worst=null;var worstStreak=0;
-    candidates.forEach(function(p){
-      var streak=0;var maxStreak=0;
-      (p.clashHistory||[]).forEach(function(g){
-        var pl=g.place||g.placement||5;
-        if(pl>4){streak++;}else{if(streak>maxStreak)maxStreak=streak;streak=0;}
-      });
-      if(streak>maxStreak)maxStreak=streak;
-      if(maxStreak>worstStreak){worstStreak=maxStreak;worst=p;}
-    });
-    return worst;
-  })();
-
-
-
-  // On Fire - best 1st place streak
-
-  const onFire=[...eligible].sort((a,b)=>(b.bestStreak||0)-(a.bestStreak||0))[0];
-
-
-
-  return[
-
-    lobbyBully&&{icon:"crosshair",id:"bully",title:"Lobby Bully",desc:"Most 1st place finishes",winner:lobbyBully,stat:lobbyBully.wins+" wins",color:"#E8A838"},
-
-    choker&&choker!==lobbyBully&&{icon:"emoji-dizzy",id:"choker",title:"The Choker",desc:"Highest AVP in the top half - ouch",winner:choker,stat:"AVP "+getStats(choker).avgPlacement,color:"#F87171"},
-
-    singleMVP&&{icon:"lightning-charge-fill",id:"single",title:"Single Clash MVP",desc:"Highest points in one event",winner:singleMVP,stat:(singleMVP.bestHaul||0)+" pts haul",color:"#EAB308"},
-
-    mostImproved&&{icon:"graph-up-arrow",id:"improved",title:"Most Improved",desc:"Biggest AVP improvement this season",winner:mostImproved,stat:"AVP "+getStats(mostImproved).avgPlacement,color:"#52C47C"},
-
-    iceCold&&iceCold!==mostImproved&&{icon:"snow",id:"cold",title:"Ice Cold",desc:"Longest streak outside top 4",winner:iceCold,stat:"AVP "+getStats(iceCold).avgPlacement,color:"#4ECDC4"},
-
-    onFire&&{icon:"fire",id:"streak",title:"On Fire",desc:"Best 1st place streak this season",winner:onFire,stat:(onFire.bestStreak||0)+" in a row",color:"#F97316"},
-
-    byPts[0]&&{icon:"trophy-fill",id:"mvp",title:"MVP",desc:"Highest season points",winner:byPts[0],stat:byPts[0].pts+" pts",color:"#E8A838"},
-
-    byPts[0]&&{icon:"clipboard-data-fill",id:"consistent2",title:"Most Consistent",desc:"Lowest AVP (3+ games)",winner:byAvp[0],stat:"AVP "+(byAvp[0]?getStats(byAvp[0]).avgPlacement:"-"),color:"#C4B5FD"},
-
-  ].filter(Boolean);
-
-}
-
-// ─── AUTO-GENERATED CLASH RECAP ──────────────────────────────────────────────
-
-function generateRecap(clashData){
-  if(!clashData||!clashData.finalStandings||clashData.finalStandings.length===0)return null;
-  var lines=[];
-  var standings=clashData.finalStandings;
-  var winner=standings[0];
-  lines.push((winner.username||winner.name)+" claimed the crown with "+(winner.points||winner.pts||0)+" points.");
-
-  var biggestClimb=null;
-  standings.forEach(function(p,idx){
-    if(p.game1Pos){
-      var climb=p.game1Pos-(idx+1);
-      if(!biggestClimb||climb>biggestClimb.climb)biggestClimb={player:p.username||p.name,from:p.game1Pos,to:idx+1,climb:climb};
-    }
-  });
-  if(biggestClimb&&biggestClimb.climb>=3){
-    lines.push(biggestClimb.player+" pulled off an incredible comeback, climbing from "+ordinal(biggestClimb.from)+" after Game 1 to finish "+ordinal(biggestClimb.to)+".");
-  }
-
-  var consistent=standings.find(function(p){
-    return p.allPlacements&&p.allPlacements.every(function(pos){return pos<=4;});
-  });
-  if(consistent&&(consistent.username||consistent.name)!==(winner.username||winner.name)){
-    lines.push((consistent.username||consistent.name)+" earned the Consistency King award with all placements inside the top 4.");
-  }
-
-  if(standings.length>=2){
-    var diff=(standings[0].points||standings[0].pts||0)-(standings[1].points||standings[1].pts||0);
-    if(diff<=2){
-      lines.push("It came down to the wire \u2014 only "+diff+" point"+(diff===1?"":"s")+" separated "+(standings[0].username||standings[0].name)+" and "+(standings[1].username||standings[1].name)+".");
-    }
-  }
-
-  return {lines:lines,winner:winner.username||winner.name,clashName:clashData.name||clashData.clashName||"Clash"};
-}
 
 function ClashRecap(props){
   var recap=props.recap;
@@ -1139,18 +136,6 @@ function ClashRecap(props){
 
 
 
-// ─── SEED DATA ────────────────────────────────────────────────────────────────
-
-
-
-const HOMIES_IDS=[];
-
-const SEED=[];
-
-const PAST_CLASHES=[];
-
-
-
 
 
 
@@ -1158,57 +143,8 @@ const PAST_CLASHES=[];
 
 // ─── AUTH / ACCOUNT SYSTEM ───────────────────────────────────────────────────
 
-// ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
-
-let SEASON_CHAMPION=null; // computed from live standings  -  no hardcoded champion
 
 
-
-// ─── MILESTONE REWARDS ────────────────────────────────────────────────────────
-
-// ─── SPONSOR / AD DATA ────────────────────────────────────────────────────────
-
-// ─── PREMIUM TIERS ────────────────────────────────────────────────────────────
-
-const PREMIUM_TIERS=[
-
-  {
-
-    id:"free", name:"Player", price:"€0", period:"forever", color:"#BECBD9",
-
-    desc:"Compete in every weekly clash. Always free.",
-
-    features:["Enter every TFT Clash event","Full season stats & leaderboard","Personal profile with career history","Achievements, milestones & XP ranks","Hall of Fame & rival tracking","Discord results sharing"],
-
-    cta:"You're In", ctaV:"dark",
-
-  },
-
-  {
-
-    id:"pro", name:"Pro", price:"€4.99", period:"/ month", color:"#E8A838", popular:true,
-
-    desc:"For players who take the season seriously.",
-
-    features:["Everything in Player","Auto check-in (never miss a clash)","Custom profile: avatar, banner & bio styling","Pro badge on profile & leaderboard","Season Recap card (shareable PNG)","Extended stat history - all seasons","Exclusive Discord channels (tactics, meta, pro-only)","Early access to new features"],
-
-    cta:"Go Pro", ctaV:"primary",
-
-  },
-
-  {
-
-    id:"org", name:"Host", price:"€24.99", period:"/ month", color:"#9B72CF",
-
-    desc:"Run your own TFT Clash circuit on our platform.",
-
-    features:["Everything in Pro","Create & manage your own clash events","Custom branding on tournament pages","Private / invite-only clashes","Advanced admin dashboard","CSV data export","Dedicated support"],
-
-    cta:"Apply to Host", ctaV:"purple",
-
-  },
-
-];
 
 
 
@@ -2609,7 +1545,7 @@ function SponsorBanner({sponsor,onNavigate}){
 
 function ChampionHeroCard({champion,onClick}){
 
-  const c=champion||SEASON_CHAMPION;
+  const c=champion||getSeasonChampion();
 
   if(!c)return null;
 
@@ -3057,25 +1993,6 @@ function PlacementBoard({roster,results,onPlace,locked,onFlag,isAdmin}){
 
 // ─── TWO-CLICK RESULT CONFIRMATION MODALS ────────────────────────────────────
 
-function ordinal(n){return n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th";}
-
-function shareToTwitter(text) {
-  var encoded = encodeURIComponent(text);
-  window.open("https://twitter.com/intent/tweet?text=" + encoded, "_blank", "width=550,height=420");
-}
-
-function buildShareText(type, data) {
-  if (type === "result") {
-    return "Finished " + ordinal(data.placement) + " in " + data.clashName + " - " + data.points + " season pts on TFT Clash";
-  }
-  if (type === "profile") {
-    return data.name + " - Rank #" + data.rank + " with " + data.pts + " pts on TFT Clash";
-  }
-  if (type === "recap") {
-    return data.winner + " won " + data.clashName + "! Full recap on TFT Clash";
-  }
-  return "Competing on TFT Clash - the competitive TFT platform";
-}
 
 function ResultSubmitModal(props){
   var lobby=props.lobby;
@@ -6862,7 +5779,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
       {/* Champion banner - shown if this player is the season champion */}
 
-      {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&(
+      {getSeasonChampion()&&player.name===getSeasonChampion().name&&(
 
         <div style={{background:"linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))",border:"1px solid rgba(232,168,56,.5)",borderRadius:10,padding:"10px 16px",marginBottom:12,display:"flex",alignItems:"center",gap:12,boxShadow:"0 0 0 0 rgba(232,168,56,.2)"}}>
 
@@ -6870,13 +5787,13 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
           <div style={{flex:1}}>
 
-            <div style={{fontWeight:800,fontSize:14,color:"#E8A838"}}>{SEASON_CHAMPION.title}</div>
+            <div style={{fontWeight:800,fontSize:14,color:"#E8A838"}}>{getSeasonChampion().title}</div>
 
-            <div style={{fontSize:11,color:"#C8D4E0"}}>Reigning champion since {SEASON_CHAMPION.since}</div>
+            <div style={{fontSize:11,color:"#C8D4E0"}}>Reigning champion since {getSeasonChampion().since}</div>
 
           </div>
 
-          <Tag color="#E8A838">Season {SEASON_CHAMPION.season}</Tag>
+          <Tag color="#E8A838">Season {getSeasonChampion().season}</Tag>
 
         </div>
 
@@ -6901,11 +5818,11 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
             background:pPic?"url("+pPic+") center/cover no-repeat":"linear-gradient(135deg,"+rc(player.rank)+"33,"+rc(player.rank)+"11)",
 
-            border:"4px solid #08080F",boxShadow:"0 0 0 2px "+(SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank)+"66"),
+            border:"4px solid #08080F",boxShadow:"0 0 0 2px "+(getSeasonChampion()&&player.name===getSeasonChampion().name?"#E8A838":rc(player.rank)+"66"),
 
-            display:"flex",alignItems:"center",justifyContent:"center",fontSize:pPic?0:30,fontWeight:700,color:SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
+            display:"flex",alignItems:"center",justifyContent:"center",fontSize:pPic?0:30,fontWeight:700,color:getSeasonChampion()&&player.name===getSeasonChampion().name?"#E8A838":rc(player.rank),fontFamily:"'Russo One',sans-serif",flexShrink:0}}>
 
-            {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</span>}
+            {getSeasonChampion()&&player.name===getSeasonChampion().name&&<span style={{position:"absolute",top:-8,right:-8,fontSize:16}}>{React.createElement("i",{className:"ti ti-trophy",style:{color:"#E8A838"}})}</span>}
 
             {!pPic&&player.name.charAt(0)}
 
@@ -6917,7 +5834,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
               <h1 style={{fontSize:"clamp(20px,4vw,34px)",color:"#F2EDE4",lineHeight:1}}>{player.name}</h1>
 
-              {SEASON_CHAMPION&&player.name===SEASON_CHAMPION.name&&<Tag color="#E8A838">{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{SEASON_CHAMPION.title}</Tag>}
+              {getSeasonChampion()&&player.name===getSeasonChampion().name&&<Tag color="#E8A838">{React.createElement("i",{className:"ti ti-trophy",style:{fontSize:11,color:"#E8A838",marginRight:3}})}{getSeasonChampion().title}</Tag>}
 
               {isHotStreak(player)&&<span style={{fontSize:18}}>{React.createElement("i",{className:"ti ti-flame",style:{color:"#F97316"}})}</span>}
 
@@ -13311,10 +12228,6 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
 // ─── AUTH SCREENS ─────────────────────────────────────────────────────────────
 
-function isValidRiotId(id) {
-  // Format: Name#TAG where Name is 3-16 chars, TAG is 3-5 alphanumeric chars
-  return /^.{3,16}#[A-Za-z0-9]{3,5}$/.test((id||'').trim());
-}
 
 function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
@@ -17939,16 +16852,6 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
 
 // ─── RULES SCREEN ─────────────────────────────────────────────────────────────
 
-var RULES_SECTIONS = [
-  {id:"format",title:"Tournament Format",icon:"tournament",content:"Weekly Saturday clashes with 3-5 games per session. 8 players per lobby. Standard EMEA scoring."},
-  {id:"points",title:"Points System",icon:"chart-bar",content:"1st: 8 pts, 2nd: 7 pts, 3rd: 6 pts, 4th: 5 pts, 5th: 4 pts, 6th: 3 pts, 7th: 2 pts, 8th: 1 pt",isPointsTable:true},
-  {id:"tiebreakers",title:"Tiebreakers",icon:"arrows-sort",content:"1. Total tournament points. 2. Wins + top 4s (wins count twice). 3. Most of each placement (1st, then 2nd, then 3rd...). 4. Most recent game finish."},
-  {id:"registration",title:"Registration and Check-in",icon:"clipboard-check",content:"Register anytime before the clash. Check-in opens 60 minutes before start and closes at start time. No-shows lose their spot to the next waitlisted player."},
-  {id:"results",title:"Result Submission",icon:"send",content:"Any player in a lobby can submit results. A different player must confirm. If disputed, an admin reviews. Admin can always override."},
-  {id:"swiss",title:"Swiss Reseeding",icon:"refresh",content:"When Swiss mode is enabled, lobbies are reseeded after every 2 games. Players are sorted by cumulative points and snake-seeded into new lobbies."},
-  {id:"conduct",title:"Code of Conduct",icon:"shield",content:"Respectful behavior is required. Intentional disconnects, collusion, or abusive communication may result in warnings, temporary bans, or permanent removal."},
-  {id:"disputes",title:"Disputes and Appeals",icon:"gavel",content:"Click Dispute on any result submission to flag it for admin review. Admins will review within 24 hours. Decisions are final."}
-];
 
 function RulesScreen({setScreen}){
   var [expanded,setExpanded]=useState(null);
@@ -18040,28 +16943,6 @@ function RulesScreen({setScreen}){
 
 // ─── FAQ SCREEN ───────────────────────────────────────────────────────────────
 
-var FAQ_DATA = [
-  {cat:"Getting Started",icon:"rocket",items:[
-    {q:"How do I join a clash?",a:"Navigate to the Clash screen and click Register. Check-in opens 60 minutes before the clash starts."},
-    {q:"Is it free to play?",a:"Yes, competing is always free. Pro and Host tiers unlock extra features like advanced stats, broadcast mode, and tournament hosting."},
-    {q:"Do I need a Riot account?",a:"You need a TFT Clash account. Linking your Riot ID is optional but recommended for verification."}
-  ]},
-  {cat:"During a Clash",icon:"swords",items:[
-    {q:"How are lobbies assigned?",a:"Players are distributed into 8-player lobbies. With Swiss mode, lobbies reseed after every 2 games based on cumulative points."},
-    {q:"How do I submit results?",a:"After each game, any player in the lobby can submit placements. Another player must confirm them."},
-    {q:"What if results are wrong?",a:"Click Dispute on the result. An admin will review within 24 hours."}
-  ]},
-  {cat:"Scoring and Rankings",icon:"chart-bar",items:[
-    {q:"How does scoring work?",a:"Standard EMEA scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
-    {q:"How are tiebreakers resolved?",a:"Total points first, then wins + top 4s (wins count double), then most of each placement starting from 1st, then most recent finish."},
-    {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
-  ]},
-  {cat:"Pro and Host Tiers",icon:"crown",items:[
-    {q:"What does Pro unlock?",a:"Advanced stats, head-to-head comparisons, broadcast mode, custom profile banners, and priority support."},
-    {q:"What does Host unlock?",a:"Create and brand your own tournaments, custom landing pages, featured event placement, and full analytics dashboard."},
-    {q:"Can I cancel anytime?",a:"Yes. Your tier remains active until the end of the billing period."}
-  ]}
-];
 
 function FAQScreen({setScreen}){
   var [openKey,setOpenKey]=useState(null);
@@ -19551,7 +18432,7 @@ function TFTClash(){
 
 
 
-  // -- Compute SEASON_CHAMPION from live standings (derived state, not mutated) --
+  // -- Compute getSeasonChampion() from live standings (derived state, not mutated) --
   var computedChampion=useMemo(function(){
     if(!players||players.length===0)return null;
     var scSorted=players.slice().sort(function(a,b){return(b.pts||0)-(a.pts||0);});
@@ -19561,7 +18442,7 @@ function TFTClash(){
     }
     return null;
   },[players,seasonConfig]);
-  SEASON_CHAMPION=computedChampion;
+  setSeasonChampion(computedChampion);
 
   // Pre-compute tournament detail content to avoid IIFE in JSX
   var tournamentDetailContent=null;
