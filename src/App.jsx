@@ -21,6 +21,10 @@ import BracketScreenNew from './screens/BracketScreen';
 import PricingScreenNew from './screens/PricingScreen';
 import EventsScreenNew from './screens/EventsScreen';
 import ResultsScreenNew from './screens/ResultsScreen';
+import SeasonRecapScreenNew from './screens/SeasonRecapScreen';
+import ArchiveScreenNew from './screens/ArchiveScreen';
+import MilestonesScreenNew from './screens/MilestonesScreen';
+import ChallengesScreenNew from './screens/ChallengesScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -3016,8 +3020,8 @@ function ProfileScreen(props){
         React.createElement(ReferralPanel,{currentUser:props.currentUser,toast:props.toast})
       )
     ):null,
-    tab==="milestones"?React.createElement(MilestonesScreen,{players:props.players,setScreen:props.setScreen,setProfilePlayer:props.setProfilePlayer,currentUser:props.currentUser}):null,
-    tab==="challenges"?React.createElement(ChallengesScreen,{currentUser:props.currentUser,players:props.players,toast:props.toast,setScreen:props.setScreen,challengeCompletions:props.challengeCompletions}):null
+    tab==="milestones"?React.createElement(MilestonesScreenNew,{}):null,
+    tab==="challenges"?React.createElement(ChallengesScreenNew,{}):null
   );
 }
 
@@ -18150,9 +18154,7 @@ function TFTClash(){
 
         {screen==="pricing"    &&<PricingScreenNew />}
 
-        {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
-
-        {screen==="recap"      &&!profilePlayer&&<SeasonRecapScreen player={players[0]||null} players={players} toast={toast} setScreen={navTo}/>}
+        {screen==="recap"      &&<SeasonRecapScreenNew />}
 
         {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={screen.replace("flash-","")} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
 
