@@ -28,6 +28,8 @@ import ChallengesScreenNew from './screens/ChallengesScreen';
 import RulesScreenNew from './screens/RulesScreen';
 import FAQScreenNew from './screens/FAQScreen';
 import AccountScreenNew from './screens/AccountScreen';
+import PrivacyScreenNew from './screens/PrivacyScreen';
+import TermsScreenNew from './screens/TermsScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18149,9 +18151,9 @@ function TFTClash(){
 
         {screen==="faq"        &&<FAQScreenNew/>}
 
-        {screen==="privacy"    &&<PrivacyScreen setScreen={navTo}/>}
+        {screen==="privacy"    &&<PrivacyScreenNew/>}
 
-        {screen==="terms"      &&<TermsScreen setScreen={navTo}/>}
+        {screen==="terms"      &&<TermsScreenNew/>}
 
         {screen==="gear"       &&<GearScreen setScreen={navTo} isAdmin={isAdmin} toast={toast}/>}
 
