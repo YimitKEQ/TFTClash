@@ -33,6 +33,9 @@ import TermsScreenNew from './screens/TermsScreen';
 import ScrimsScreenNew from './screens/ScrimsScreen';
 import HostApplyScreenNew from './screens/HostApplyScreen';
 import HostDashboardScreenNew from './screens/HostDashboardScreen';
+import FlashTournamentScreenNew from './screens/FlashTournamentScreen';
+import TournamentDetailScreenNew from './screens/TournamentDetailScreen';
+import TournamentsListScreenNew from './screens/TournamentsListScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18166,9 +18169,9 @@ function TFTClash(){
 
         {screen==="recap"      &&<SeasonRecapScreenNew />}
 
-        {screen.indexOf("flash-")===0&&<FlashTournamentScreen tournamentId={screen.replace("flash-","")} currentUser={currentUser} onAuthClick={function(m){setAuthScreen(m);}} toast={toast} setScreen={navTo} players={players} isAdmin={isAdmin}/>}
+        {screen.indexOf("flash-")===0&&<FlashTournamentScreenNew tournamentId={screen.replace("flash-","")}/>}
 
-        {screen.indexOf("tournament-")===0&&tournamentDetailContent}
+        {screen.indexOf("tournament-")===0&&<TournamentDetailScreenNew/>}
 
         {screen==="host-apply" &&<HostApplyScreenNew/>}
 
