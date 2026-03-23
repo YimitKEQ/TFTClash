@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { DEFAULT_SEASON_CONFIG, setSeasonChampion } from '../lib/constants.js';
 import { getUserTier } from '../lib/tiers.js';
