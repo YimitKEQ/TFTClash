@@ -2389,7 +2389,7 @@ function Divider({label}){
 
       <div style={{flex:1,height:1,background:"rgba(242,237,228,.07)"}}/>
 
-      {label&&<span className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".14em",textTransform:"uppercase"}}>{label}</span>}
+      {label&&<span className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".14em",textTransform:"uppercase"}}>{label}</span>}
 
       <div style={{flex:1,height:1,background:"rgba(242,237,228,.07)"}}/>
 
@@ -2663,7 +2663,7 @@ function ChampionHeroCard({champion,onClick}){
 
         <div style={{flex:1,minWidth:0}}>
 
-          <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:2}}>{c.season} Champion</div>
+          <div className="cond" style={{fontSize:10,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:2}}>{c.season} Champion</div>
 
           <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(16px,3vw,24px)",fontWeight:900,color:"#E8A838",lineHeight:1,textShadow:"0 0 20px rgba(232,168,56,.4)"}}>{c.name}</div>
 
@@ -2685,7 +2685,7 @@ function ChampionHeroCard({champion,onClick}){
 
               <div className="mono" style={{fontSize:15,fontWeight:700,color:col,lineHeight:1}}>{v}</div>
 
-              <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:2}}>{l}</div>
+              <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:2}}>{l}</div>
 
             </div>
 
@@ -3581,7 +3581,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
 
               <div className="gold-shimmer" style={{fontFamily:"'Russo One',sans-serif",fontSize:14,fontWeight:700,lineHeight:1,letterSpacing:".06em"}}>TFT Clash</div>
 
-              <div className="cond" style={{display:"flex",alignItems:"center",gap:4,fontSize:9,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>
+              <div className="cond" style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"#BECBD9",fontWeight:600,letterSpacing:".06em"}}>
                 <span style={{border:"1px solid rgba(232,168,56,.4)",borderRadius:4,padding:"1px 4px",fontSize:8,color:"#E8A838",fontWeight:700}}>S1</span>
                 Season 1
               </div>
@@ -3769,7 +3769,7 @@ function Navbar({screen,setScreen,players,isAdmin,setIsAdmin,toast,disputes,curr
               color:item.badgeColor||"#9AAABF",
             }},item.badge):null,
             React.createElement("i",{className:"ti "+(item.icon||"ti-circle"),style:{fontSize:20}}),
-            React.createElement("span",{style:{fontSize:9,letterSpacing:".04em"}},item.label)
+            React.createElement("span",{style:{fontSize:10,letterSpacing:".04em"}},item.label)
           );
         })
       )}
@@ -4345,7 +4345,7 @@ function ClashScreen(props){
               React.createElement("div",{style:{fontSize:13,fontWeight:700,color:"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},p.username||p.name||"Player"),
               React.createElement("div",{style:{fontSize:10,color:"#9AAABF"}},(p.wins||0)+" wins, "+(p.games||0)+" games")
             ),
-            sparkData.length>=2?React.createElement(Sparkline,{data:sparkData,w:40,h:14,color:"#9B72CF"}):React.createElement("div",{style:{width:40,height:14,opacity:.2,fontSize:9,color:"#9AAABF",display:"flex",alignItems:"center"}},"--")
+            sparkData.length>=2?React.createElement(Sparkline,{data:sparkData,w:40,h:14,color:"#9B72CF"}):React.createElement("div",{style:{width:40,height:14,opacity:.2,fontSize:10,color:"#9AAABF",display:"flex",alignItems:"center"}},"--")
           );
         })
       )
@@ -5180,7 +5180,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: "#E8A838", lineHeight: 1}}, linkedPlayer.pts || 0),
             React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".08em"}}, "Points")
           ),
-          ptsToNextTier && ptsToNextTier > 0 ? React.createElement("span", {className: "cond", style: {fontSize: 9, color: "#9AAABF", background: "rgba(255,255,255,.03)", borderRadius: 5, padding: "2px 6px", border: "1px solid rgba(242,237,228,.06)"}}, ptsToNextTier + " to " + nextTier.name) : null
+          ptsToNextTier && ptsToNextTier > 0 ? React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", background: "rgba(255,255,255,.03)", borderRadius: 5, padding: "2px 6px", border: "1px solid rgba(242,237,228,.06)"}}, ptsToNextTier + " to " + nextTier.name) : null
         ) : null,
         !linkedPlayer && !profileComplete ? React.createElement(Btn, {v: "primary", s: "sm", onClick: function() { setScreen("account"); }}, "Complete Profile") : null
       ),
@@ -5211,7 +5211,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 10}},
           React.createElement("i", {className: "ti ti-bolt", style: {fontSize: 16, color: "#4ECDC4"}}),
           React.createElement("div", null,
-            React.createElement("div", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#4ECDC4", letterSpacing: ".1em", textTransform: "uppercase"}}, "Flash Tournament"),
+            React.createElement("div", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#4ECDC4", letterSpacing: ".1em", textTransform: "uppercase"}}, "Flash Tournament"),
             React.createElement("div", {style: {fontSize: 14, fontWeight: 700, color: "#F2EDE4"}}, upcomingTournament.name)
           )
         ),
@@ -5239,7 +5239,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Standings"),
               React.createElement("span", {style: {display: "flex", alignItems: "center", gap: 3, marginLeft: 6}},
                 React.createElement("span", {className: "live-dot", style: {width: 5, height: 5, borderRadius: "50%", background: "#52C47C", display: "inline-block"}}),
-                React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6EE7B7"}}, players.length)
+                React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#6EE7B7"}}, players.length)
               )
             ),
             React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "View All")
@@ -5645,7 +5645,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}) {
 
               {belowCut&&<span style={{fontSize:9,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.25)",borderRadius:3,padding:"1px 6px",textTransform:"uppercase"}}>Cut</span>}
 
-              {nearCut&&<span style={{fontSize:9,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:3,padding:"1px 6px"}}>Bubble</span>}
+              {nearCut&&<span style={{fontSize:10,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:3,padding:"1px 6px"}}>Bubble</span>}
 
               <span className="mono" style={{fontSize:13,fontWeight:700,color:belowCut?"#F87171":row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:" - "} pts</span>
 
@@ -6675,7 +6675,7 @@ function PlacementDistribution(props){
   if(total===0)return null;
   var colors=["#E8A838","#C0C0C0","#CD7F32","#9B72CF","#4ECDC4","#6B7B8F","#4A5568","#2D3748"];
   return React.createElement("div",{style:{marginBottom:16}},
-    React.createElement("div",{className:"cond",style:{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}},"Placement Distribution"),
+    React.createElement("div",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}},"Placement Distribution"),
     React.createElement("div",{style:{display:"flex",height:20,borderRadius:6,overflow:"hidden",background:"rgba(255,255,255,.04)"}},
       counts.map(function(c,i){
         var pct=total>0?(c/total*100):0;
@@ -6689,7 +6689,7 @@ function PlacementDistribution(props){
     ),
     React.createElement("div",{style:{display:"flex",justifyContent:"space-between",marginTop:4}},
       counts.map(function(c,i){
-        return React.createElement("div",{key:i,style:{textAlign:"center",flex:1,fontSize:9,color:c>0?colors[i]:"#4A5568",fontWeight:600}},
+        return React.createElement("div",{key:i,style:{textAlign:"center",flex:1,fontSize:10,color:c>0?colors[i]:"#4A5568",fontWeight:600}},
           ordinal(i+1)
         );
       })
@@ -7023,7 +7023,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
           return React.createElement("div",{style:{marginBottom:16}},
             React.createElement(PlacementDistribution,{history:player.clashHistory||[]}),
             ppTrend.length>1?React.createElement("div",{style:{marginBottom:16}},
-              React.createElement("div",{className:"cond",style:{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}},"Season Trajectory"),
+              React.createElement("div",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginBottom:6}},"Season Trajectory"),
               React.createElement(Sparkline,{data:ppTrend,w:280,h:40,color:"#9B72CF"})
             ):null,
             React.createElement("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:16}},
@@ -7037,7 +7037,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
               ].map(function(item){
                 return React.createElement("div",{key:item[1],style:{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"12px 10px",textAlign:"center"}},
                   React.createElement("div",{className:"mono",style:{fontSize:20,fontWeight:700,color:item[2],lineHeight:1}},item[0]),
-                  React.createElement("div",{style:{fontSize:9,color:"#BECBD9",marginTop:4,fontWeight:600,textTransform:"uppercase"}},item[1])
+                  React.createElement("div",{style:{fontSize:10,color:"#BECBD9",marginTop:4,fontWeight:600,textTransform:"uppercase"}},item[1])
                 );
               })
             )
@@ -7066,7 +7066,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
             <div style={{background:"rgba(232,168,56,.05)",border:"1px solid rgba(232,168,56,.15)",borderRadius:9,padding:"12px 14px",marginBottom:12}}>
 
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#BECBD9",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Average Placement</div>
+              <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Average Placement</div>
 
               <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
 
@@ -7076,7 +7076,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                   <div className="mono" style={{fontSize:24,fontWeight:700,color:avgCol(s.avgPlacement),lineHeight:1}}>{s.avgPlacement}</div>
 
-                  <div style={{fontSize:9,color:"#9AAABF",marginTop:2}}>all games · lower is better</div>
+                  <div style={{fontSize:10,color:"#9AAABF",marginTop:2}}>all games · lower is better</div>
 
                 </div>
 
@@ -7088,7 +7088,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                     <div className="mono" style={{fontSize:24,fontWeight:700,color:avgCol(s.perClashAvp),lineHeight:1}}>{s.perClashAvp}</div>
 
-                    <div style={{fontSize:9,color:"#9AAABF",marginTop:2}}>avg within each event</div>
+                    <div style={{fontSize:10,color:"#9AAABF",marginTop:2}}>avg within each event</div>
 
                   </div>
 
@@ -7339,7 +7339,7 @@ function PlayerProfileScreen({player,onBack,allPlayers,setScreen,currentUser,sea
 
                       {(g.bonusPts||0)>0&&!isDropped&&<div className="mono" style={{fontSize:11,color:"#52C47C"}}>+{g.bonusPts} bonus</div>}
 
-                      <div className="cond" style={{fontSize:9,color:"#BECBD9",textTransform:"uppercase"}}>{(g.place||g.placement)===1?"Champion":(g.place||g.placement)<=4?"Top 4":"Bot 4"}</div>
+                      <div className="cond" style={{fontSize:10,color:"#BECBD9",textTransform:"uppercase"}}>{(g.place||g.placement)===1?"Champion":(g.place||g.placement)<=4?"Top 4":"Bot 4"}</div>
 
                     </div>
 
@@ -7620,7 +7620,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                 <div className="mono" style={{fontSize:26,fontWeight:700,color:MCOLS[ri],marginTop:8,lineHeight:1}}>{p.pts}</div>
 
-                <div className="cond" style={{fontSize:9,color:"#BECBD9",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Season Points</div>
+                <div className="cond" style={{fontSize:10,color:"#BECBD9",letterSpacing:".1em",textTransform:"uppercase",marginBottom:10}}>Season Points</div>
 
                 <div style={{display:"flex",justifyContent:"center",gap:12,flexWrap:"wrap"}}>
 
@@ -7630,7 +7630,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                       <div className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
 
-                      <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
+                      <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
 
                     </div>
 
@@ -7722,7 +7722,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                   <div className="mono" style={{fontSize:28,fontWeight:700,color:"#E8A838",lineHeight:1}}>{p.pts}</div>
 
-                  <div className="cond" style={{fontSize:9,color:"#BECBD9",letterSpacing:".1em",textTransform:"uppercase",marginTop:3}}>Season Points</div>
+                  <div className="cond" style={{fontSize:10,color:"#BECBD9",letterSpacing:".1em",textTransform:"uppercase",marginTop:3}}>Season Points</div>
 
                 </div>
 
@@ -7734,7 +7734,7 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                       <div className="mono" style={{fontSize:14,fontWeight:700,color:c}}>{v}</div>
 
-                      <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
+                      <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>{l}</div>
 
                     </div>
 
@@ -8323,7 +8323,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                 <div className="mono" style={{fontSize:isGold?28:20,fontWeight:800,color:col,lineHeight:1}}>{p.pts}</div>
 
-                <div style={{fontSize:9,color:"#BECBD9",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginTop:3}}>Season Pts</div>
+                <div style={{fontSize:10,color:"#BECBD9",fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",marginTop:3}}>Season Pts</div>
 
                 <div style={{display:"flex",justifyContent:"center",gap:10,marginTop:10}}>
 
@@ -8333,7 +8333,7 @@ function ResultsScreen({players,toast,setScreen,setProfilePlayer,tournamentState
 
                       <div className="mono" style={{fontSize:13,fontWeight:700,color:c}}>{v}</div>
 
-                      <div style={{fontSize:9,color:"#9AAABF",textTransform:"uppercase"}}>{l}</div>
+                      <div style={{fontSize:10,color:"#9AAABF",textTransform:"uppercase"}}>{l}</div>
 
                     </div>
 
@@ -8678,7 +8678,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
               </div>
 
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 1 Leader</div>
+              <div className="cond" style={{fontSize:10,fontWeight:700,color:"#E8A838",letterSpacing:".2em",textTransform:"uppercase",marginBottom:5}}>Season 1 Leader</div>
 
               <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(15px,2.5vw,22px)",fontWeight:900,color:"#F2EDE4",textShadow:"0 0 20px rgba(232,168,56,.25)",lineHeight:1.1,marginBottom:8}}>{king.name}</div>
 
@@ -8716,7 +8716,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
                     <div className="mono" style={{fontSize:"clamp(13px,2vw,17px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
 
-                    <div style={{fontSize:9,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
+                    <div style={{fontSize:10,color:"#9AAABF",marginTop:4,fontWeight:600,textTransform:"uppercase",letterSpacing:".04em"}}>{l}</div>
 
                   </div>
 
@@ -8746,7 +8746,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
             <div style={{flexShrink:0,minWidth:150}}>
 
-              <div className="cond" style={{fontSize:9,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Challengers</div>
+              <div className="cond" style={{fontSize:10,fontWeight:700,color:"#BECBD9",letterSpacing:".16em",textTransform:"uppercase",marginBottom:12,textAlign:"center"}}>Challengers</div>
 
               {challengers.map((p,i)=>{
 
@@ -8854,7 +8854,7 @@ function HofScreen({players,setScreen,setProfilePlayer,pastClashes,toast}){
 
                 {isActive&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,#E8A838,transparent)"}}/>}
 
-                {!isActive&&<div style={{position:"absolute",top:10,right:10,fontSize:9,color:"#9AAABF",background:"rgba(255,255,255,.04)",borderRadius:4,padding:"2px 6px",fontWeight:600,letterSpacing:".05em"}}>RETIRED</div>}
+                {!isActive&&<div style={{position:"absolute",top:10,right:10,fontSize:10,color:"#9AAABF",background:"rgba(255,255,255,.04)",borderRadius:4,padding:"2px 6px",fontWeight:600,letterSpacing:".05em"}}>RETIRED</div>}
 
                 <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:12}}>
 
@@ -9599,7 +9599,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
               <div style={{width:34,height:34,background:"linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.05))",border:"1px solid rgba(155,114,207,.3)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{React.createElement("i",{className:"ti ti-shield-cog",style:{fontSize:17,color:"#C4B5FD"}})}</div>
               <div style={{minWidth:0}}>
                 <div style={{fontWeight:800,fontSize:14,color:"#F2EDE4",lineHeight:1}}>Admin</div>
-                <div style={{fontSize:10,color:"#7A8BA0",marginTop:3}}>{seasonName}</div>
+                <div style={{fontSize:10,color:"#9AAABF",marginTop:3}}>{seasonName}</div>
               </div>
             </div>
             <div style={{marginTop:10,padding:"4px 10px",background:phaseColor[currentPhase]+"12",border:"1px solid "+phaseColor[currentPhase]+"33",borderRadius:6,fontSize:10,fontWeight:700,color:phaseColor[currentPhase],textAlign:"center"}}>{phaseLabel[currentPhase]}</div>
@@ -9610,7 +9610,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
           <div style={{flex:1,overflowY:"auto",padding:"8px 0",scrollbarWidth:"none"}}>
             {ADMIN_GROUPS.map(function(group){return(
               React.createElement("div",{key:group.label,style:{marginBottom:4}},
-                React.createElement("div",{style:{padding:"8px 16px 4px",fontSize:10,fontWeight:700,color:"#5A6577",letterSpacing:".1em",textTransform:"uppercase"}},group.label),
+                React.createElement("div",{style:{padding:"8px 16px 4px",fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em",textTransform:"uppercase"}},group.label),
                 group.items.map(function(item){
                   var active=tab===item.id;
                   return React.createElement("button",{key:item.id,onClick:function(){setTab(item.id);},style:{display:"flex",alignItems:"center",gap:10,width:"100%",padding:"8px 16px",background:active?"rgba(155,114,207,.1)":"transparent",borderLeft:active?"3px solid #9B72CF":"3px solid transparent",border:"none",borderBottom:"none",borderTop:"none",borderRight:"none",color:active?"#C4B5FD":"#9AAABF",cursor:"pointer",fontSize:13,fontWeight:active?600:400,fontFamily:"inherit",transition:"all .12s",textAlign:"left"}},
@@ -9623,7 +9623,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
           </div>
 
           {/* Sidebar Footer */}
-          <div style={{padding:"12px 16px",borderTop:"1px solid rgba(242,237,228,.06)",fontSize:11,color:"#5A6577"}}>
+          <div style={{padding:"12px 16px",borderTop:"1px solid rgba(242,237,228,.06)",fontSize:11,color:"#9AAABF"}}>
             {React.createElement("i",{className:"ti ti-info-circle",style:{marginRight:5,fontSize:12}})}
             <span style={{lineHeight:1.4}}>{TAB_INFO[tab]||""}</span>
           </div>
@@ -9663,7 +9663,7 @@ addAudit("ACTION","Removed: "+name);toast(name+" removed","success");}
                 <div className="stat-icon" style={{background:c.color+"14",border:"1px solid "+c.color+"25"}}>{React.createElement("i",{className:"ti ti-"+c.icon,style:{color:c.color}})}</div>
                 <div className="mono stat-value" style={{color:c.color}}>{c.value}</div>
                 <div className="stat-label">{c.label}</div>
-                <div style={{fontSize:11,color:"#5A6577",marginTop:6}}>{c.sub}</div>
+                <div style={{fontSize:11,color:"#9AAABF",marginTop:6}}>{c.sub}</div>
               </div>
             );})}
           </div>
@@ -9901,9 +9901,9 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             {/* Column headers */}
             <div style={{display:"flex",alignItems:"center",gap:12,padding:"8px 16px",borderBottom:"1px solid rgba(242,237,228,.06)",background:"rgba(0,0,0,.15)"}}>
-              <span style={{flex:1,fontSize:10,fontWeight:700,color:"#5A6577",textTransform:"uppercase",letterSpacing:".08em"}}>Player</span>
-              <span style={{width:70,fontSize:10,fontWeight:700,color:"#5A6577",textTransform:"uppercase",letterSpacing:".08em",textAlign:"right"}}>Current</span>
-              <span style={{width:110,fontSize:10,fontWeight:700,color:"#5A6577",textTransform:"uppercase",letterSpacing:".08em",textAlign:"center"}}>New Value</span>
+              <span style={{flex:1,fontSize:10,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>Player</span>
+              <span style={{width:70,fontSize:10,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",textAlign:"right"}}>Current</span>
+              <span style={{width:110,fontSize:10,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em",textAlign:"center"}}>New Value</span>
             </div>
 
             {players.map(function(p,idx){
@@ -10060,7 +10060,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
               <span style={{fontSize:13,fontWeight:seedAlgo==="anti-stack"?700:500,color:seedAlgo==="anti-stack"?"#F87171":"#C8BFB0",flex:1}}>Anti-Stack</span>
 
-              <span style={{fontSize:11,color:"#7A8BA0"}}>Prevents friend groups from stacking same lobby</span>
+              <span style={{fontSize:11,color:"#9AAABF"}}>Prevents friend groups from stacking same lobby</span>
 
               {seedAlgo==="anti-stack"&&<span style={{fontSize:10,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.1)",border:"1px solid rgba(248,113,113,.25)",borderRadius:4,padding:"2px 8px"}}>SELECTED</span>}
 
@@ -10194,7 +10194,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
                 <div style={{color:"#9AAABF",fontSize:13,fontWeight:600}}>No quick clashes active</div>
 
-                <div style={{color:"#5A6577",fontSize:11,marginTop:4}}>Create one using the form</div>
+                <div style={{color:"#9AAABF",fontSize:11,marginTop:4}}>Create one using the form</div>
 
               </Panel>
 
@@ -10583,7 +10583,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Active Announcements</div>
 
-            {announcements.length===0&&<div style={{textAlign:"center",padding:"36px 0"}}>{React.createElement("i",{className:"ti ti-speakerphone",style:{fontSize:32,color:"#5A6577",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:13}}>No active announcements</div><div style={{color:"#5A6577",fontSize:11,marginTop:4}}>Send one using the form</div></div>}
+            {announcements.length===0&&<div style={{textAlign:"center",padding:"36px 0"}}>{React.createElement("i",{className:"ti ti-speakerphone",style:{fontSize:32,color:"#9AAABF",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:13}}>No active announcements</div><div style={{color:"#9AAABF",fontSize:11,marginTop:4}}>Send one using the form</div></div>}
 
             {announcements.map(a=>(
 
@@ -10631,7 +10631,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
           </div>
 
-          {hostApps.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}>{React.createElement("i",{className:"ti ti-device-gamepad-2",style:{fontSize:36,color:"#5A6577",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:14}}>No host applications yet</div><div style={{color:"#5A6577",fontSize:12,marginTop:4}}>Applications from the Pricing page will appear here</div></Panel>}
+          {hostApps.length===0&&<Panel style={{padding:"40px",textAlign:"center"}}>{React.createElement("i",{className:"ti ti-device-gamepad-2",style:{fontSize:36,color:"#9AAABF",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:14}}>No host applications yet</div><div style={{color:"#9AAABF",fontSize:12,marginTop:4}}>Applications from the Pricing page will appear here</div></Panel>}
 
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
 
@@ -10886,7 +10886,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
                 </div>
 
-                <div style={{fontSize:11,color:"#7A8BA0"}}>{item.perms}</div>
+                <div style={{fontSize:11,color:"#9AAABF"}}>{item.perms}</div>
 
               </div>
 
@@ -10956,7 +10956,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
                   <Btn v="danger" s="sm" onClick={function(){if(setFeaturedEvents)setFeaturedEvents(evts.filter(function(e){return e.id!==ev.id;}));toast("Event removed","success");}}>Remove</Btn>
                 </div>
               );})}
-              {evts.length===0&&<div style={{textAlign:"center",padding:"40px 0"}}>{React.createElement("i",{className:"ti ti-star",style:{fontSize:36,color:"#5A6577",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:13}}>No featured events yet</div><div style={{color:"#5A6577",fontSize:12,marginTop:4}}>Add community tournaments and partner events below</div></div>}
+              {evts.length===0&&<div style={{textAlign:"center",padding:"40px 0"}}>{React.createElement("i",{className:"ti ti-star",style:{fontSize:36,color:"#9AAABF",display:"block",marginBottom:10}})}<div style={{color:"#9AAABF",fontSize:13}}>No featured events yet</div><div style={{color:"#9AAABF",fontSize:12,marginTop:4}}>Add community tournaments and partner events below</div></div>}
             </div>
           </Panel>
 
@@ -11065,7 +11065,7 @@ addAudit("ACTION","Edited: "+editP.name);setEditP(null);toast("Saved","success")
 
           <Panel style={{padding:"20px"}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:14}}>Existing Flash Tournaments ({flashEvents.length})</div>
-            {flashEvents.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#8896A8",fontSize:13}}>No flash tournaments yet. Create one above.</div>}
+            {flashEvents.length===0&&<div style={{textAlign:"center",padding:"28px 0",color:"#9AAABF",fontSize:13}}>No flash tournaments yet. Create one above.</div>}
             {flashEvents.map(function(ev){
               var phaseColors={draft:"#9AAABF",registration:"#9B72CF",check_in:"#E8A838",in_progress:"#52C47C",complete:"#4ECDC4"};
               return(
@@ -11561,7 +11561,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                       <div className="mono" style={{fontSize:item.label==="Top Player"?14:22,fontWeight:700,color:item.c,lineHeight:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{item.val}</div>
 
-                      <div className="cond" style={{fontSize:9,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{item.label}</div>
+                      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{item.label}</div>
 
                     </div>
 
@@ -11705,7 +11705,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                                 {scrimStats.map(function(colP){
 
-                                  if(String(rowP.id)===String(colP.id))return <td key={colP.id} style={{background:"rgba(255,255,255,.03)",padding:"8px 10px",textAlign:"center",borderBottom:"1px solid rgba(242,237,228,.04)",color:"#7A8BA0",fontSize:12}}>-</td>;
+                                  if(String(rowP.id)===String(colP.id))return <td key={colP.id} style={{background:"rgba(255,255,255,.03)",padding:"8px 10px",textAlign:"center",borderBottom:"1px solid rgba(242,237,228,.04)",color:"#9AAABF",fontSize:12}}>-</td>;
 
                                   var rowKey=String(rowP.id),colKey=String(colP.id);
 
@@ -11951,7 +11951,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                       {g.tag!=="standard"&&<Tag color="#4ECDC4" size="sm">{g.tag}</Tag>}
 
-                      {g.duration>0&&<span className="mono" style={{fontSize:9,color:"#9AAABF"}}>{fmt(g.duration)}</span>}
+                      {g.duration>0&&<span className="mono" style={{fontSize:10,color:"#9AAABF"}}>{fmt(g.duration)}</span>}
 
                     </div>
 
@@ -12041,7 +12041,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                       <div className="mono" style={{fontSize:22,fontWeight:700,color:item.c,lineHeight:1}}>{item.val}</div>
 
-                      <div className="cond" style={{fontSize:9,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{item.label}</div>
+                      <div className="cond" style={{fontSize:10,fontWeight:700,color:"#C8D4E0",marginTop:4,letterSpacing:".04em",textTransform:"uppercase"}}>{item.label}</div>
 
                     </div>
 
@@ -12061,7 +12061,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                   {["AVG","WIN%","TOP4","BEST","WRST","PTS"].map(function(h){
 
-                    return <div key={h} style={{fontSize:9,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>{h}</div>;
+                    return <div key={h} style={{fontSize:10,fontWeight:700,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".06em",textAlign:"center"}}>{h}</div>;
 
                   })}
 
@@ -12261,7 +12261,7 @@ function ScrimsScreen({players,toast,setScreen,sessions,setSessions,isAdmin,scri
 
                                           </div>
 
-                                        ):<span style={{color:"#7A8BA0",fontSize:12}}>-</span>}
+                                        ):<span style={{color:"#9AAABF",fontSize:12}}>-</span>}
 
                                       </td>
 
@@ -13157,7 +13157,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                     <div className="mono" style={{fontSize:16,fontWeight:700,color:"#E8A838"}}>+{c.xp}</div>
 
-                    <div style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>XP</div>
+                    <div style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>XP</div>
 
                   </div>
 
@@ -13215,7 +13215,7 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
                       <div className="mono" style={{fontSize:16,fontWeight:700,color:done?"#6EE7B7":"#9B72CF"}}>+{c.xp}</div>
 
-                      <div style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>XP</div>
+                      <div style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase"}}>XP</div>
 
                     </div>
 
@@ -14862,7 +14862,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
           <div>
 
-            <div className="cond" style={{fontSize:9,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6}}>TFT Clash · Season 1 Recap</div>
+            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#E8A838",letterSpacing:".22em",textTransform:"uppercase",marginBottom:6}}>TFT Clash · Season 1 Recap</div>
 
             <div style={{fontFamily:"'Russo One',sans-serif",fontSize:"clamp(24px,5vw,44px)",fontWeight:900,color:"#F2EDE4",lineHeight:1}}>{player.name}</div>
 
@@ -14890,7 +14890,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
               <div className="mono" style={{fontSize:"clamp(18px,3vw,26px)",fontWeight:700,color:c,lineHeight:1}}>{v}</div>
 
-              <div className="cond" style={{fontSize:9,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:4,letterSpacing:".08em"}}>{l}</div>
+              <div className="cond" style={{fontSize:10,color:"#BECBD9",fontWeight:700,textTransform:"uppercase",marginTop:4,letterSpacing:".08em"}}>{l}</div>
 
             </div>
 
@@ -14904,7 +14904,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
 
           <div style={{marginBottom:16}}>
 
-            <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Awards This Season</div>
+            <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:8}}>Awards This Season</div>
 
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
 
@@ -14935,7 +14935,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:16,marginBottom:24,maxWidth:700}}>
 
         {bestPlace&&React.createElement("div",{style:{background:"#111827",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"18px 20px"}},
-          React.createElement("div",{className:"cond",style:{fontSize:9,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:12}},"Best Finish"),
+          React.createElement("div",{className:"cond",style:{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:12}},"Best Finish"),
           React.createElement("div",{style:{display:"flex",alignItems:"center",gap:14}},
             React.createElement("div",{className:"mono",style:{fontSize:48,fontWeight:800,lineHeight:1,color:bestPlace===1?"#E8A838":bestPlace<=3?"#C0C0C0":"#9B72CF"}},
               ordinal(bestPlace)
@@ -14955,7 +14955,7 @@ function SeasonRecapScreen({player,players,toast,setScreen}){
         )}
 
         <div style={{background:"#111827",border:"1px solid rgba(155,114,207,.2)",borderRadius:14,padding:"18px 20px"}}>
-          <div className="cond" style={{fontSize:9,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:12}}>Stats Summary</div>
+          <div className="cond" style={{fontSize:10,fontWeight:700,color:"#9B72CF",letterSpacing:".14em",textTransform:"uppercase",marginBottom:12}}>Stats Summary</div>
           {[
             ["Top 4 Rate",top4Rate+"%",top4Rate>=50?"#6EE7B7":"#E8A838"],
             ["Win Rate",s.top1Rate+"%",parseFloat(s.top1Rate)>=20?"#6EE7B7":"#C4B5FD"],
@@ -16460,7 +16460,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
         <p style={{color:"#BECBD9",fontSize:13,margin:0}}>Flash tournaments, competitive events, and community clashes. Free to enter, play to win.</p>
       </div>
 
-      {loading&&<div style={{textAlign:"center",padding:"60px 0",color:"#8896A8"}}>Loading tournaments...</div>}
+      {loading&&<div style={{textAlign:"center",padding:"60px 0",color:"#9AAABF"}}>Loading tournaments...</div>}
 
       {!loading&&tournaments.length===0&&(
         <Panel style={{padding:"48px 20px",textAlign:"center"}}>
@@ -16502,7 +16502,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
                     {countdownStr&&(
                       <span style={{fontSize:11,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",borderRadius:12,padding:"2px 8px",border:"1px solid rgba(232,168,56,.2)"}}>{"\u23F0 "+countdownStr}</span>
                     )}
-                    <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
+                    <span style={{fontSize:11,color:"#9AAABF"}}>{dateStr}</span>
                   </div>
                 </div>
                 <div style={{fontWeight:700,fontSize:17,color:"#F2EDE4",marginBottom:8}}>{t.name}</div>
@@ -16522,7 +16522,7 @@ function TournamentsListScreen({setScreen,currentUser,toast}){
                     <div style={{height:4,borderRadius:2,background:pct>=90?"#F87171":pct>=60?"#E8A838":"#9B72CF",width:pct+"%",transition:"width .3s"}}/>
                   </div>
                 </div>
-                <div style={{fontSize:12,color:"#8896A8"}}>{(t.round_count||3)+" games \u00B7 "+(t.seeding_method||"snake")+" seeding"}</div>
+                <div style={{fontSize:12,color:"#9AAABF"}}>{(t.round_count||3)+" games \u00B7 "+(t.seeding_method||"snake")+" seeding"}</div>
               </div>
             );
           })}
@@ -17083,7 +17083,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
   if(loading){
     return(
       <div className="page wrap" style={{textAlign:"center",paddingTop:80}}>
-        <div style={{color:"#8896A8",fontSize:14}}>Loading tournament...</div>
+        <div style={{color:"#9AAABF",fontSize:14}}>Loading tournament...</div>
       </div>
     );
   }
@@ -17200,7 +17200,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       <div style={{background:"linear-gradient(135deg,rgba(155,114,207,.12),rgba(78,205,196,.08))",border:"1px solid rgba(155,114,207,.2)",borderRadius:16,padding:"28px 24px",marginBottom:20}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,flexWrap:"wrap"}}>
           <span style={{fontSize:11,fontWeight:700,color:phaseColors[phase],textTransform:"uppercase",letterSpacing:".5px",background:"rgba(255,255,255,.06)",borderRadius:6,padding:"3px 10px"}}>{phaseLabels[phase]||phase}</span>
-          <span style={{fontSize:11,color:"#8896A8"}}>{dateStr}</span>
+          <span style={{fontSize:11,color:"#9AAABF"}}>{dateStr}</span>
         </div>
         <h1 style={{color:"#F2EDE4",fontSize:28,fontWeight:700,margin:"0 0 8px 0"}}>{tournament.name}</h1>
         <div style={{display:"flex",gap:16,flexWrap:"wrap",fontSize:13,color:"#BECBD9"}}>
@@ -17262,10 +17262,10 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
           <Panel style={{padding:"18px"}}>
             <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:10}}>Tournament Details</div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,fontSize:13}}>
-              <div><span style={{color:"#8896A8"}}>Format: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.seeding_method||"snake"}</span></div>
-              <div><span style={{color:"#8896A8"}}>Games: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.round_count||3}</span></div>
-              <div><span style={{color:"#8896A8"}}>Max Players: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{maxP}</span></div>
-              <div><span style={{color:"#8896A8"}}>Lobby Host: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.lobby_host_method||"random"}</span></div>
+              <div><span style={{color:"#9AAABF"}}>Format: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.seeding_method||"snake"}</span></div>
+              <div><span style={{color:"#9AAABF"}}>Games: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.round_count||3}</span></div>
+              <div><span style={{color:"#9AAABF"}}>Max Players: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{maxP}</span></div>
+              <div><span style={{color:"#9AAABF"}}>Lobby Host: </span><span style={{color:"#F2EDE4",fontWeight:600}}>{tournament.lobby_host_method||"random"}</span></div>
             </div>
           </Panel>
           {tournament.announcement&&(
@@ -17281,7 +17281,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       {activeTab==="players"&&(
         <Panel style={{padding:"16px"}}>
           <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4",marginBottom:12}}>{"Registered Players ("+registrations.length+")"}</div>
-          {sortedRegs.length===0&&<div style={{textAlign:"center",padding:"32px 20px",color:"#8896A8",fontSize:14}}>No players registered yet. Share the tournament link!</div>}
+          {sortedRegs.length===0&&<div style={{textAlign:"center",padding:"32px 20px",color:"#9AAABF",fontSize:14}}>No players registered yet. Share the tournament link!</div>}
           <div style={{display:"flex",flexDirection:"column",gap:4}}>
             {sortedRegs.map(function(r,idx){
               var pData=r.players||{};
@@ -17292,7 +17292,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                   <span style={{color:statusColors[r.status]||"#8896A8",fontSize:14,width:18,textAlign:"center"}}>{statusIcons[r.status]||"?"}</span>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{fontWeight:600,fontSize:13,color:"#F2EDE4"}}>{pData.username||"Player"}</div>
-                    <div style={{fontSize:11,color:"#8896A8"}}>{(pData.rank||"Unranked")+" · "+(pData.region||"")}</div>
+                    <div style={{fontSize:11,color:"#9AAABF"}}>{(pData.rank||"Unranked")+" · "+(pData.region||"")}</div>
                   </div>
                   <span style={{fontSize:11,fontWeight:700,color:statusColors[r.status]||"#8896A8",textTransform:"uppercase"}}>{r.status==="checked_in"?"Checked In":r.status}</span>
                 </div>
@@ -17449,7 +17449,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                     </div>
                     <div>
                       <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{"Lobby "+lobbyLetter}</div>
-                      <div style={{fontSize:11,color:"#8896A8"}}>{lobbyPlayers.length+" players"+(isLocked?" · Locked":"")}</div>
+                      <div style={{fontSize:11,color:"#9AAABF"}}>{lobbyPlayers.length+" players"+(isLocked?" · Locked":"")}</div>
                     </div>
                   </div>
                   <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
@@ -17591,12 +17591,12 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                 <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,tableLayout:"auto",minWidth:360}}>
                   <thead>
                     <tr style={{background:"rgba(255,255,255,.03)",borderBottom:"1px solid rgba(242,237,228,.08)"}}>
-                      <th style={{padding:"8px 10px 8px 18px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap",position:"sticky",left:0,zIndex:3,background:"#0D1421"}}>#</th>
-                      <th style={{padding:"8px 10px",textAlign:"left",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap",position:"sticky",left:40,zIndex:3,background:"#0D1421"}}>Player</th>
+                      <th style={{padding:"8px 10px 8px 18px",textAlign:"left",fontWeight:600,fontSize:11,color:"#9AAABF",whiteSpace:"nowrap",position:"sticky",left:0,zIndex:3,background:"#0D1421"}}>#</th>
+                      <th style={{padding:"8px 10px",textAlign:"left",fontWeight:600,fontSize:11,color:"#9AAABF",whiteSpace:"nowrap",position:"sticky",left:40,zIndex:3,background:"#0D1421"}}>Player</th>
                       <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#E8A838",whiteSpace:"nowrap"}}>Pts</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Avg</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Wins</th>
-                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#8896A8",whiteSpace:"nowrap"}}>Top4</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#9AAABF",whiteSpace:"nowrap"}}>Avg</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#9AAABF",whiteSpace:"nowrap"}}>Wins</th>
+                      <th style={{padding:"8px 10px",textAlign:"center",fontWeight:600,fontSize:11,color:"#9AAABF",whiteSpace:"nowrap"}}>Top4</th>
                       {allGameNums.map(function(gn){
                         return(<th key={gn} style={{padding:"8px 8px",textAlign:"center",fontWeight:600,fontSize:11,color:"#9B72CF",whiteSpace:"nowrap"}}>{"G"+gn}</th>);
                       })}
@@ -17622,7 +17622,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
                           </td>
                           <td style={{padding:"10px 10px",maxWidth:160,position:"sticky",left:40,zIndex:2,background:"#0D1421"}}>
                             <div style={{fontWeight:600,color:isMe?"#E8A838":"#F2EDE4",fontSize:13,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{entry.name+(isMe?" (you)":"")}</div>
-                            <div style={{fontSize:10,color:"#8896A8"}}>{entry.rank}</div>
+                            <div style={{fontSize:10,color:"#9AAABF"}}>{entry.rank}</div>
                           </td>
                           <td style={{padding:"10px 10px",textAlign:"center",fontWeight:700,color:"#E8A838",fontSize:14,whiteSpace:"nowrap"}}>{entry.totalPts}</td>
                           <td style={{padding:"10px 10px",textAlign:"center",color:"#BECBD9",fontSize:12,whiteSpace:"nowrap"}}>{entry.avgPlace.toFixed(1)}</td>
@@ -17733,7 +17733,7 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
               <Btn v="success" s="sm" onClick={finalizeTournament}>Finalize Tournament</Btn>
             )}
           </div>
-          <div style={{fontSize:11,color:"#8896A8",marginTop:10}}>
+          <div style={{fontSize:11,color:"#9AAABF",marginTop:10}}>
             {"Phase: "+(phaseLabels[phase]||phase)+" · Registered: "+regCount+" · Checked in: "+checkedInCount+(lobbies.length>0?" · "+lobbies.length+" lobbies":"")+(phase==="in_progress"?" · Game "+currentGameNumber+" of "+(tournament.round_count||3):"")}
           </div>
         </Panel>
@@ -17847,7 +17847,7 @@ function FeaturedScreen({setScreen,currentUser,onAuthClick,toast,featuredEvents,
                           <span style={{width:4,height:4,borderRadius:"50%",background:"#52C47C",animation:"pulse 2s infinite",display:"inline-block"}}/>LIVE
                         </span>
                       ):(
-                        <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:9,fontWeight:700,color:"#4ECDC4"}}>UPCOMING</span>
+                        <span style={{background:"rgba(78,205,196,.08)",border:"1px solid rgba(78,205,196,.2)",borderRadius:20,padding:"3px 8px",fontSize:10,fontWeight:700,color:"#4ECDC4"}}>UPCOMING</span>
                       )}
                     </div>
                   </div>
@@ -17978,7 +17978,7 @@ function RulesScreen({setScreen}){
             <div key={fact.label} style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:12,padding:"14px 12px",textAlign:"center"}}>
               <div style={{fontSize:20,marginBottom:6,color:fact.color}}>{React.createElement("i",{className:"ti ti-"+fact.icon})}</div>
               <div style={{fontSize:16,fontWeight:800,color:fact.color,fontFamily:"'Barlow Condensed',sans-serif",marginBottom:2}}>{fact.value}</div>
-              <div style={{fontSize:11,color:"#8896A8",textTransform:"uppercase",letterSpacing:".08em"}}>{fact.label}</div>
+              <div style={{fontSize:11,color:"#9AAABF",textTransform:"uppercase",letterSpacing:".08em"}}>{fact.label}</div>
             </div>
           );
         })}
@@ -17994,7 +17994,7 @@ function RulesScreen({setScreen}){
 
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {filtered.length===0&&(
-          <div style={{textAlign:"center",padding:"32px 16px",color:"#8896A8",fontSize:14}}>{"No results for \""+rulesSearch+"\". Try a different term."}</div>
+          <div style={{textAlign:"center",padding:"32px 16px",color:"#9AAABF",fontSize:14}}>{"No results for \""+rulesSearch+"\". Try a different term."}</div>
         )}
         {filtered.map(function(sec){
           var isOpen=expanded===sec.id;
@@ -18015,9 +18015,9 @@ function RulesScreen({setScreen}){
                         {[1,2,3,4,5,6,7,8].map(function(place){
                           return(
                             <div key={place} style={{flex:1,textAlign:"center",background:"rgba(255,255,255,.03)",border:"1px solid rgba(242,237,228,.08)",borderRadius:8,padding:"10px 4px"}}>
-                              <div style={{fontSize:11,color:"#8896A8",marginBottom:6,fontFamily:"'Barlow Condensed',sans-serif",textTransform:"uppercase",letterSpacing:".06em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
+                              <div style={{fontSize:11,color:"#9AAABF",marginBottom:6,fontFamily:"'Barlow Condensed',sans-serif",textTransform:"uppercase",letterSpacing:".06em"}}>{place===1?"1st":place===2?"2nd":place===3?"3rd":place+"th"}</div>
                               <div style={{fontSize:20,fontWeight:800,color:ptColors[place-1],fontFamily:"'Barlow Condensed',sans-serif"}}>{9-place}</div>
-                              <div style={{fontSize:10,color:"#8896A8",marginTop:2}}>pts</div>
+                              <div style={{fontSize:10,color:"#9AAABF",marginTop:2}}>pts</div>
                             </div>
                           );
                         })}
@@ -18095,7 +18095,7 @@ function FAQScreen({setScreen}){
       />
 
       {totalResults===0&&(
-        <div style={{textAlign:"center",padding:"32px 16px",color:"#8896A8",fontSize:14}}>{"No results for \""+faqSearch+"\". Try a different search term."}</div>
+        <div style={{textAlign:"center",padding:"32px 16px",color:"#9AAABF",fontSize:14}}>{"No results for \""+faqSearch+"\". Try a different search term."}</div>
       )}
 
       <div style={{display:"flex",flexDirection:"column",gap:16}}>
@@ -18109,8 +18109,8 @@ function FAQScreen({setScreen}){
               >
                 <span style={{color:"#9B72CF",fontSize:16}}>{React.createElement("i",{className:"ti ti-"+cat.icon})}</span>
                 <span style={{fontSize:13,fontWeight:700,color:"#C4B5FD",textTransform:"uppercase",letterSpacing:".1em",fontFamily:"'Barlow Condensed',sans-serif",flex:1}}>{cat.cat}</span>
-                <span style={{fontSize:12,color:"#8896A8",fontWeight:600}}>{cat.items.length+" Q"}</span>
-                <span style={{fontSize:16,color:"#8896A8",transition:"transform .2s",transform:isCatOpen?"rotate(180deg)":"rotate(0deg)"}}>{React.createElement("i",{className:"ti ti-chevron-down"})}</span>
+                <span style={{fontSize:12,color:"#9AAABF",fontWeight:600}}>{cat.items.length+" Q"}</span>
+                <span style={{fontSize:16,color:"#9AAABF",transition:"transform .2s",transform:isCatOpen?"rotate(180deg)":"rotate(0deg)"}}>{React.createElement("i",{className:"ti ti-chevron-down"})}</span>
               </button>
               {isCatOpen&&(
                 <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -18394,11 +18394,11 @@ function Footer(props){
     <footer style={{background:"#06060C",borderTop:"1px solid rgba(155,114,207,.15)",padding:"40px 24px 24px",marginTop:40}}>
       <div style={{maxWidth:1200,margin:"0 auto"}}>
         {sponsorEntries.length>0&&<div className="sponsor-strip" style={{marginBottom:24}}>
-          <span className="cond" style={{fontSize:9,fontWeight:700,color:"#5A6573",letterSpacing:".12em",textTransform:"uppercase",marginRight:12}}>Partners</span>
+          <span className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".12em",textTransform:"uppercase",marginRight:12}}>Partners</span>
           {sponsorEntries.map(function(s,i){
             return React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:6,padding:"4px 12px",borderRadius:6,background:s.color+"12",border:"1px solid "+s.color+"25"}},
               React.createElement("span",{style:{fontSize:12,fontWeight:800,color:s.color}},s.logo||s.org.slice(0,2).toUpperCase()),
-              React.createElement("span",{style:{fontSize:11,fontWeight:600,color:"#8896A8"}},s.org)
+              React.createElement("span",{style:{fontSize:11,fontWeight:600,color:"#9AAABF"}},s.org)
             );
           })}
         </div>}
@@ -18406,7 +18406,7 @@ function Footer(props){
           <div>
             <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Platform</div>
             {platformLinks.map(function(arr){return(
-              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
+              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#9AAABF",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
                 onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
                 onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
             );})}
@@ -18414,16 +18414,16 @@ function Footer(props){
           <div>
             <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Community</div>
             {communityLinks.map(function(arr){return(
-              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
+              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#9AAABF",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
                 onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
                 onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
             );})}
-            <button onClick={function(){window.open("https://discord.gg/tftclash","_blank");}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit"}}>Discord</button>
+            <button onClick={function(){window.open("https://discord.gg/tftclash","_blank");}} style={{display:"block",background:"none",border:"none",color:"#9AAABF",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit"}}>Discord</button>
           </div>
           <div>
             <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Hosting</div>
             {hostingLinks.map(function(arr){return(
-              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
+              <button key={arr[0]} onClick={function(){setScreen(arr[0]);}} style={{display:"block",background:"none",border:"none",color:"#9AAABF",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit",transition:"color .15s"}}
                 onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
                 onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
             );})}
@@ -18431,13 +18431,13 @@ function Footer(props){
         </div>
         <div style={{borderTop:"1px solid rgba(155,114,207,.08)",paddingTop:16,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
           <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-            <span style={{fontSize:11,color:"#8896A8"}}>{"\u00a9"} 2026 TFT Clash {"\u00b7"} Season 1 {"\u00b7"} Free to compete, always.</span>
-            <button onClick={function(){setScreen("privacy");}} style={{background:"none",border:"none",color:"#5A6573",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Privacy</button>
-            <button onClick={function(){setScreen("terms");}} style={{background:"none",border:"none",color:"#5A6573",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Terms</button>
+            <span style={{fontSize:11,color:"#9AAABF"}}>{"\u00a9"} 2026 TFT Clash {"\u00b7"} Season 1 {"\u00b7"} Free to compete, always.</span>
+            <button onClick={function(){setScreen("privacy");}} style={{background:"none",border:"none",color:"#9AAABF",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Privacy</button>
+            <button onClick={function(){setScreen("terms");}} style={{background:"none",border:"none",color:"#9AAABF",fontSize:11,cursor:"pointer",fontFamily:"inherit",textDecoration:"underline",padding:0}}>Terms</button>
           </div>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
             <img src="/icon-border.png" alt="TFT Clash" style={{width:16,height:16,opacity:0.4}}/>
-            <span style={{fontSize:10,color:"#5A6573"}}>Built for the community</span>
+            <span style={{fontSize:10,color:"#9AAABF"}}>Built for the community</span>
           </div>
         </div>
       </div>
@@ -18489,8 +18489,8 @@ function PlayerComparisonModal(props) {
           React.createElement(Sparkline, {data:(them.clashHistory||[]).slice(-8).map(function(c){return c.placement||4;}), width:200, height:40, color:"#4ECDC4"})
         ),
         React.createElement("div", {style:{display:"flex",gap:12,justifyContent:"center",marginTop:2}},
-          React.createElement("span", {style:{fontSize:9,color:"#9B72CF",fontWeight:600}}, me.name),
-          React.createElement("span", {style:{fontSize:9,color:"#4ECDC4",fontWeight:600}}, them.name)
+          React.createElement("span", {style:{fontSize:10,color:"#9B72CF",fontWeight:600}}, me.name),
+          React.createElement("span", {style:{fontSize:10,color:"#4ECDC4",fontWeight:600}}, them.name)
         )
       ),
       React.createElement("div", {style:{textAlign:"center",marginTop:16}},
@@ -18554,7 +18554,7 @@ function OnboardingFlow(props) {
             setStep(3);
           });
         }}, linking ? "Linking..." : "Link Account"),
-        React.createElement("div", {style:{marginTop:12,fontSize:12,color:"#6B7B8F",cursor:"pointer"},onClick:function(){setStep(3);}}, "Skip for now")
+        React.createElement("div", {style:{marginTop:12,fontSize:12,color:"#9AAABF",cursor:"pointer"},onClick:function(){setStep(3);}}, "Skip for now")
       )
     );
   }
