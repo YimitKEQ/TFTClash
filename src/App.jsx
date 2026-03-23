@@ -31,6 +31,8 @@ import AccountScreenNew from './screens/AccountScreen';
 import PrivacyScreenNew from './screens/PrivacyScreen';
 import TermsScreenNew from './screens/TermsScreen';
 import ScrimsScreenNew from './screens/ScrimsScreen';
+import HostApplyScreenNew from './screens/HostApplyScreen';
+import HostDashboardScreenNew from './screens/HostDashboardScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18168,9 +18170,9 @@ function TFTClash(){
 
         {screen.indexOf("tournament-")===0&&tournamentDetailContent}
 
-        {screen==="host-apply" &&<HostApplyScreen currentUser={currentUser} toast={toast} setScreen={navTo} setHostApps={setHostApps}/>}
+        {screen==="host-apply" &&<HostApplyScreenNew/>}
 
-        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreen currentUser={currentUser} players={players} toast={toast} setScreen={navTo} hostApps={hostApps} hostTournaments={hostTournaments} setHostTournaments={setHostTournaments} hostBranding={hostBranding} setHostBranding={setHostBranding} hostAnnouncements={hostAnnouncements} setHostAnnouncements={setHostAnnouncements} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents}/>}
+        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreenNew/>}
 
         {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap" style={{textAlign:"center",paddingTop:80}}><div style={{fontSize:36,marginBottom:16}}>{React.createElement("i",{className:"ti ti-lock"})}</div><h2 style={{color:"#F2EDE4",marginBottom:10}}>Host Access Required</h2><p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>Your host application is pending review. You'll be notified once approved.</p><Btn v="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
