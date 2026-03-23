@@ -265,6 +265,20 @@ export const MILESTONES = [
 
 export function getAchievements(p) { return ACHIEVEMENTS.filter(a => { try { return a.check(p); } catch { return false; } }); }
 
+// ─── CHALLENGES ───────────────────────────────────────────────────────────────
+
+export var WEEKLY_CHALLENGES = [
+  {id:"w1",icon:"fire",name:"On A Roll",desc:"Win 2 lobbies this week",xp:120,type:"weekly",progress:1,goal:2},
+  {id:"w2",icon:"bar-chart-line-fill",name:"Consistency Check",desc:"Average top 3 across 3 games",xp:100,type:"weekly",progress:2,goal:3},
+  {id:"w3",icon:"trophy-fill",name:"Podium Finish",desc:"Top 3 in a clash event",xp:150,type:"weekly",progress:0,goal:1},
+];
+
+export var DAILY_CHALLENGES = [
+  {id:"d1",icon:"bullseye",name:"Sharp Shooter",desc:"Finish in the top 2",xp:50,type:"daily",progress:0,goal:1},
+  {id:"d2",icon:"lightning-charge-fill",name:"Speed Run",desc:"Complete a game in under 30 mins",xp:40,type:"daily",progress:0,goal:1},
+  {id:"d3",icon:"shield-fill",name:"Survivor",desc:"Finish top 4 in any lobby",xp:30,type:"daily",progress:0,goal:1},
+];
+
 export function checkAchievements(player, rank) {
   if (!player) return [];
   var stats = getStats(player);
