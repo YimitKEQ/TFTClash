@@ -125,17 +125,14 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
         {top5.map(function(player, i) {
           var isFirst = i === 0
           var stats = getStats(player)
-
-          function handleClick() {
-            onNavigate('/player/' + player.name)
-          }
+          var playerPath = '/player/' + player.name
 
           if (isFirst) {
             return (
               <div
                 key={player.id || player.name}
                 className="group relative overflow-hidden bg-surface-container-high p-4 rounded-lg flex items-center justify-between border-l-4 border-primary cursor-pointer"
-                onClick={handleClick}
+                onClick={function() { onNavigate(playerPath) }}
               >
                 <div className="flex items-center gap-6">
                   <span className="font-display text-2xl text-primary w-8">{RANK_LABELS[i]}</span>
@@ -176,7 +173,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
             <div
               key={player.id || player.name}
               className={'bg-surface-container-low p-4 rounded-lg flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer ' + opacity}
-              onClick={handleClick}
+              onClick={function() { onNavigate(playerPath) }}
             >
               <div className="flex items-center gap-6">
                 <span className="font-display text-2xl text-on-surface-variant w-8">{RANK_LABELS[i]}</span>
