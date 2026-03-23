@@ -43,7 +43,6 @@ function getTrendColor(avgPlacement) {
 }
 
 function PodiumCard({ player, rank, onClick }) {
-  var stats = getStats(player)
   var isFirst = rank === 1
   var medalColor = MEDAL_COLORS[rank - 1]
   var medalLabel = rank === 1 ? '1ST' : rank === 2 ? '2ND' : '3RD'
@@ -157,7 +156,7 @@ function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick })
     <div>
       <div className={divider.bg + ' ' + divider.border + ' px-8 py-3 flex items-center justify-between'}>
         <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
-        <span className={'font-mono text-xs ' + divider.color + '/40'}>{divider.sub}</span>
+        <span className="font-mono text-xs" style={{ color: 'currentColor', opacity: 0.4 }}>{divider.sub}</span>
       </div>
       <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <table className="w-full text-left border-collapse">
@@ -367,18 +366,10 @@ export default function LeaderboardScreen() {
             })}
 
             {/* Footer */}
-            <div className="bg-surface-container-lowest py-6 px-8 flex justify-between items-center border-t border-outline-variant/10">
+            <div className="bg-surface-container-lowest py-6 px-8 border-t border-outline-variant/10">
               <span className="text-xs font-label text-outline tracking-widest uppercase">
-                {'Showing ' + sorted.length + ' of ' + sorted.length + ' Players'}
+                {'Showing ' + sorted.length + ' of ' + players.length + ' Players'}
               </span>
-              <div className="flex gap-2">
-                <button className="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all active:scale-95">
-                  <span className="material-symbols-outlined text-lg">chevron_left</span>
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all active:scale-95">
-                  <span className="material-symbols-outlined text-lg">chevron_right</span>
-                </button>
-              </div>
             </div>
           </div>
         )}

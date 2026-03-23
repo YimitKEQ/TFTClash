@@ -479,7 +479,17 @@ export default function HostDashboardScreen() {
           <div className="flex gap-4">
             <button
               className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-secondary flex items-center gap-2 hover:bg-white/5 transition-all"
-              onClick={function() { setTab("announce"); }}
+              onClick={function() {
+                var data = JSON.stringify(tournaments, null, 2);
+                var blob = new Blob([data], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'tournaments-export.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                toast('Data exported!', 'success');
+              }}
             >
               <Icon name="file_upload" size={16} />
               Export Data
@@ -500,39 +510,34 @@ export default function HostDashboardScreen() {
           <div className="md:col-span-3 bg-surface-container-low p-6 rounded-lg relative overflow-hidden">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h3 className="font-editorial text-xl mb-1">Audience Analytics</h3>
-                <p className="font-condensed text-xs text-slate-500 uppercase tracking-widest">Global engagement over 30 days</p>
-              </div>
-              <div className="flex gap-2">
-                <span className="px-3 py-1 bg-tertiary-container/10 text-tertiary font-mono text-xs rounded-sm">+12.4% vs last mo</span>
+                <h3 className="font-editorial text-xl mb-1">Tournament History</h3>
+                <p className="font-condensed text-xs text-slate-500 uppercase tracking-widest">{tournaments.length + ' tournament' + (tournaments.length !== 1 ? 's' : '') + ' hosted'}</p>
               </div>
             </div>
-            {/* Mock bar chart */}
-            <div className="h-48 w-full flex items-end gap-1 px-2">
-              {[
-                { h: "50%", lit: false },
-                { h: "66%", lit: false },
-                { h: "50%", lit: false },
-                { h: "75%", lit: true },
-                { h: "100%", lit: true },
-                { h: "80%", lit: true },
-                { h: "66%", lit: false },
-                { h: "50%", lit: false },
-                { h: "72%", lit: false }
-              ].map(function(bar, i) {
-                return (
-                  <div
-                    key={i}
-                    className="flex-grow rounded-t-sm"
-                    style={{
-                      height: bar.h,
-                      background: bar.lit ? "rgba(255,198,107,.25)" : "rgba(30,30,40,.6)",
-                      borderTop: bar.lit ? "2px solid rgba(255,198,107,.8)" : "2px solid rgba(255,255,255,.04)"
-                    }}
-                  />
-                );
-              })}
-            </div>
+            {/* Real bar chart from tournament data */}
+            {tournaments.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-slate-500 text-sm font-condensed uppercase tracking-widest">No analytics data yet</div>
+            ) : (
+              <div className="h-48 w-full flex items-end gap-1 px-2">
+                {tournaments.slice(-9).map(function(t, i) {
+                  var fill = t.size > 0 ? (t.registered || 0) / t.size : 0;
+                  var h = Math.max(8, Math.round(fill * 100));
+                  var isLast = i === Math.min(tournaments.length, 9) - 1;
+                  return (
+                    <div
+                      key={t.id || i}
+                      className="flex-grow rounded-t-sm"
+                      title={t.name + ': ' + (t.registered || 0) + '/' + (t.size || 0) + ' players'}
+                      style={{
+                        height: h + '%',
+                        background: isLast ? "rgba(255,198,107,.25)" : "rgba(30,30,40,.6)",
+                        borderTop: isLast ? "2px solid rgba(255,198,107,.8)" : "2px solid rgba(255,255,255,.04)"
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
             {/* Stats row */}
             <div className="mt-4 flex gap-8 border-t border-outline-variant/10 pt-4">
               <div>

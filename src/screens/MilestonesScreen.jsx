@@ -202,7 +202,6 @@ export default function MilestonesScreen() {
   var players = ctx.players || [];
   var currentUser = ctx.currentUser;
   var setProfilePlayer = ctx.setProfilePlayer;
-  var setScreen = ctx.setScreen;
 
   var myPlayer = currentUser ? players.find(function(p) { return p.name === currentUser.username; }) : null;
   var sorted = players.slice().sort(function(a, b) { return b.pts - a.pts; });
@@ -221,8 +220,7 @@ export default function MilestonesScreen() {
 
   function handlePlayerClick(p) {
     setProfilePlayer(p);
-    setScreen('profile');
-    navigate('/profile');
+    navigate('/player/' + p.name);
   }
 
   var myPts = myPlayer ? (myPlayer.pts || 0) : 0;
@@ -242,7 +240,7 @@ export default function MilestonesScreen() {
 
   var feedBorderColors = ['border-primary', 'border-tertiary', 'border-secondary'];
   var feedTextColors = ['text-primary', 'text-tertiary', 'text-secondary'];
-  var feedTimeLabels = ['2 hours ago', 'Yesterday', '3 days ago'];
+  var feedTimeLabels = ['Recent', 'Recent', 'Recent'];
 
   return (
     <PageLayout>
@@ -448,8 +446,11 @@ export default function MilestonesScreen() {
                   </div>
                 )}
 
-                <button className="w-full py-4 text-center font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/10 rounded-sm hover:bg-surface-container-high">
-                  View Full History
+                <button
+                  className="w-full py-4 text-center font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/10 rounded-sm hover:bg-surface-container-high"
+                  onClick={function() { navigate('/leaderboard'); }}
+                >
+                  View Leaderboard
                 </button>
               </div>
             </aside>
@@ -544,7 +545,10 @@ export default function MilestonesScreen() {
                 <span className="font-sans-condensed uppercase tracking-widest text-xs block text-on-surface-variant mb-1">Season Progress</span>
                 <span className="font-mono text-primary font-bold">{progressPct}% to Challenger</span>
               </div>
-              <button className="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary font-sans-condensed font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95">
+              <button
+                className="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary font-sans-condensed font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95"
+                onClick={function() { navigate('/pricing'); }}
+              >
                 View Rewards
               </button>
             </div>

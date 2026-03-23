@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, memo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS, HOMIES_IDS, PAST_CLASHES } from '../lib/constants.js'
@@ -95,7 +96,7 @@ function BracketScreen(){
   var isAdmin=ctx.isAdmin;
   var currentUser=ctx.currentUser;
   var setProfilePlayer=ctx.setProfilePlayer;
-  var setScreen=ctx.setScreen;
+  var navigate=useNavigate();
   var tournamentState=ctx.tournamentState;
   var setTournamentState=ctx.setTournamentState;
   var seasonConfig=ctx.seasonConfig;
@@ -695,7 +696,7 @@ function BracketScreen(){
               <div className="text-on-surface-variant text-sm">All rounds locked. View final standings on the Leaderboard.</div>
             </div>
             <button
-              onClick={function(){setScreen("leaderboard");}}
+              onClick={function(){navigate("/leaderboard");}}
               className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
               View Results
             </button>
@@ -716,13 +717,13 @@ function BracketScreen(){
             </p>
             <div className="flex gap-3 justify-center">
               <button
-                onClick={function(){setScreen("home");}}
+                onClick={function(){navigate("/");}}
                 className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
                 Back to Home
               </button>
               {tournamentState&&tournamentState.phase==="complete"&&(
                 <button
-                  onClick={function(){setScreen("results");}}
+                  onClick={function(){navigate("/results");}}
                   className="px-5 py-2.5 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
                   View Results
                 </button>
@@ -930,7 +931,7 @@ function BracketScreen(){
                           return(
                             <div
                               key={p.id}
-                              onClick={function(){setProfilePlayer(p);setScreen("profile");}}
+                              onClick={function(){setProfilePlayer(p);navigate("/player/"+p.name);}}
                               className={"flex items-center justify-between px-4 py-2 hover:bg-surface-container-highest transition-colors cursor-pointer " + (isMe?"bg-secondary/5":"")}>
                               <div className="flex items-center gap-3">
                                 <span className={"font-mono text-xs " + (pi===0?"text-primary":pi===1?"text-on-surface-variant/60":pi===2?"text-on-surface-variant/50":"text-on-surface-variant/30")}>

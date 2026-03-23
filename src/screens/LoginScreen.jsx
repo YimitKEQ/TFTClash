@@ -201,22 +201,8 @@ export default function LoginScreen() {
                   {pwErr && <p className="text-error text-xs font-condensed uppercase tracking-wide mt-1">{pwErr}</p>}
                 </div>
 
-                {/* Remember me + forgot */}
-                <div className="flex items-center justify-between py-2">
-                  <label className="flex items-center space-x-3 cursor-pointer group">
-                    <div className="relative flex items-center">
-                      <input
-                        type="checkbox"
-                        className="peer appearance-none w-5 h-5 bg-surface-container-highest border border-outline-variant rounded-none checked:bg-primary transition-all"
-                      />
-                      <span className="material-symbols-outlined absolute inset-0 text-on-primary text-sm opacity-0 peer-checked:opacity-100 flex items-center justify-center pointer-events-none select-none">
-                        check
-                      </span>
-                    </div>
-                    <span className="font-condensed text-xs uppercase tracking-wider text-on-surface/60 group-hover:text-on-surface transition-colors">
-                      Keep Session Active
-                    </span>
-                  </label>
+                {/* Forgot password */}
+                <div className="flex items-center justify-end py-2">
                   <button
                     type="button"
                     onClick={handleForgotPassword}

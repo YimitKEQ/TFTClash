@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { getStats, ACHIEVEMENTS, MILESTONES, isHotStreak } from '../lib/stats.js'
+import { getStats, ACHIEVEMENTS, MILESTONES, WEEKLY_CHALLENGES, DAILY_CHALLENGES, isHotStreak } from '../lib/stats.js'
 import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -233,7 +233,7 @@ export default function AccountScreen() {
     return (
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <span className="material-symbols-outlined text-5xl text-on-surface/30 mb-4">account_circle</span>
+          <Icon name="account_circle" size={48} className="text-on-surface/30 mb-4" />
           <h2 className="font-serif text-2xl text-on-surface mb-3">Sign in to view your account</h2>
           <Btn v="primary" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
         </div>
@@ -270,7 +270,7 @@ export default function AccountScreen() {
                   }}
                   className="flex items-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-on-surface/70 hover:text-on-surface font-sans-cond text-xs uppercase tracking-widest transition-colors"
                 >
-                  <span className="material-symbols-outlined text-sm">share</span>
+                  <Icon name="share" size={16} />
                   Share
                 </button>
               )}
@@ -278,7 +278,7 @@ export default function AccountScreen() {
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-error/70 hover:text-error font-sans-cond text-xs uppercase tracking-widest transition-colors"
               >
-                <span className="material-symbols-outlined text-sm">logout</span>
+                <Icon name="logout" size={16} />
                 Sign Out
               </button>
             </div>
@@ -329,12 +329,12 @@ export default function AccountScreen() {
                   </div>
                   {isPro && (
                     <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary border-2 border-surface-container-low flex items-center justify-center">
-                      <span className="material-symbols-outlined text-on-primary" style={{ fontSize: 11, fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <Icon name="star" size={11} fill={true} className="text-on-primary" />
                     </div>
                   )}
                   {isPro && edit ? (
                     <label className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all cursor-pointer">
-                      <span className="material-symbols-outlined text-base">edit</span>
+                      <Icon name="edit" size={18} />
                       <input
                         type="file"
                         accept="image/*"
@@ -356,7 +356,7 @@ export default function AccountScreen() {
                     </label>
                   ) : (
                     <button className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all">
-                      <span className="material-symbols-outlined text-base">edit</span>
+                      <Icon name="edit" size={18} />
                     </button>
                   )}
                 </div>
@@ -601,7 +601,7 @@ export default function AccountScreen() {
                       {/* Riot ID warning if not set */}
                       {!riotIdSet && (
                         <div className="flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded mt-2">
-                          <span className="material-symbols-outlined text-primary text-base flex-shrink-0 mt-0.5">warning</span>
+                          <Icon name="warning" size={18} className="text-primary flex-shrink-0 mt-0.5" />
                           <div>
                             <div className="text-primary text-xs font-bold font-sans-cond uppercase tracking-widest mb-0.5">Set your Riot ID to join tournaments</div>
                             <div className="text-on-surface/50 text-xs">You need a Riot ID to register for flash tournaments.</div>
@@ -629,7 +629,7 @@ export default function AccountScreen() {
                           onClick={function() { setEdit(true); }}
                           className="flex items-center gap-1.5 px-5 py-2 bg-surface-variant/20 border border-outline-variant/30 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-surface-variant transition-colors"
                         >
-                          <span className="material-symbols-outlined text-sm">edit</span>
+                          <Icon name="edit" size={16} />
                           Edit Profile
                         </button>
                       </div>
@@ -652,7 +652,7 @@ export default function AccountScreen() {
                 </div>
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="w-12 h-12 bg-surface-container-lowest flex items-center justify-center rounded-lg flex-shrink-0">
-                    <span className="material-symbols-outlined text-tertiary text-2xl">shield_person</span>
+                    <Icon name="shield_person" size={24} className="text-tertiary" />
                   </div>
                   <div>
                     <div className="font-mono text-lg text-on-surface">
@@ -727,7 +727,7 @@ export default function AccountScreen() {
                 {/* Twitch */}
                 <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (((user.user_metadata && user.user_metadata.twitch) || user.twitch) ? ' border-l-2 border-secondary' : '')}>
                   <div className="flex items-center space-x-4">
-                    <span className="material-symbols-outlined text-on-surface/40 group-hover:text-secondary transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>videogame_asset</span>
+                    <Icon name="videogame_asset" size={24} fill={true} className="text-on-surface/40 group-hover:text-secondary transition-colors" />
                     <div>
                       <span className="font-body text-sm text-on-surface">Twitch</span>
                       {((user.user_metadata && user.user_metadata.twitch) || user.twitch) && (
@@ -753,7 +753,7 @@ export default function AccountScreen() {
                 {/* Twitter / X */}
                 <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (((user.user_metadata && user.user_metadata.twitter) || user.twitter) ? ' border-l-2 border-primary' : '')}>
                   <div className="flex items-center space-x-4">
-                    <span className="material-symbols-outlined text-on-surface/40 group-hover:text-primary transition-colors">share</span>
+                    <Icon name="share" size={24} className="text-on-surface/40 group-hover:text-primary transition-colors" />
                     <div>
                       <span className="font-body text-sm text-on-surface">Twitter / X</span>
                       {((user.user_metadata && user.user_metadata.twitter) || user.twitter) && (
@@ -803,17 +803,17 @@ export default function AccountScreen() {
                         <span className="font-sans-cond text-[10px] uppercase tracking-widest text-primary">Active Banner</span>
                       </div>
                       <div className="absolute top-2 right-2">
-                        <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                        <Icon name="check_circle" size={16} fill={true} className="text-primary" />
                       </div>
                     </div>
                     {/* Placeholder unlocked slots */}
                     <div className="relative h-24 rounded-lg overflow-hidden cursor-pointer border border-outline-variant/20 group bg-surface-container-lowest flex items-center justify-center">
-                      <span className="material-symbols-outlined text-on-surface/20 text-3xl">add_photo_alternate</span>
+                      <Icon name="add_photo_alternate" size={32} className="text-on-surface/20" />
                     </div>
                     {/* Locked slot */}
                     <div className="relative h-24 rounded-lg overflow-hidden cursor-not-allowed border border-outline-variant/10 group bg-surface-container-lowest">
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
-                        <span className="material-symbols-outlined text-on-surface/20">lock</span>
+                        <Icon name="lock" size={20} className="text-on-surface/20" />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
                         <span className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/20">Locked</span>
@@ -842,7 +842,7 @@ export default function AccountScreen() {
                         return (
                           <div key={i} className="relative h-24 rounded-lg overflow-hidden cursor-not-allowed border border-outline-variant/10 bg-surface-container-lowest">
                             <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
-                              <span className="material-symbols-outlined text-on-surface/20">lock</span>
+                              <Icon name="lock" size={20} className="text-on-surface/20" />
                             </div>
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
                               <span className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/20">{item.label}</span>
@@ -861,7 +861,7 @@ export default function AccountScreen() {
                           </div>
                           {item.active && (
                             <div className="absolute top-2 right-2">
-                              <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                              <Icon name="lock" size={16} fill={true} className="text-primary" />
                             </div>
                           )}
                         </div>
@@ -979,6 +979,45 @@ export default function AccountScreen() {
                   })}
                 </div>
 
+                {/* Milestones progress */}
+                <div className="mb-8">
+                  <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-4">Season Milestones</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {MILESTONES.map(function(m) {
+                      var reached = false;
+                      try { reached = m.check(linkedPlayer); } catch(e) { reached = false; }
+                      return (
+                        <div
+                          key={m.id}
+                          className="p-4 rounded-lg border flex flex-col gap-2"
+                          style={{
+                            background: reached ? 'rgba(255,198,107,.07)' : 'rgba(255,255,255,.02)',
+                            border: '1px solid ' + (reached ? 'rgba(255,198,107,.35)' : 'rgba(228,225,236,.06)'),
+                            opacity: reached ? 1 : 0.55,
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span style={{ color: reached ? '#ffc66b' : '#9AAABF' }}><Icon name={reached ? 'emoji_events' : 'military_tech'} size={18} /></span>
+                            <span className="font-sans-cond text-xs font-bold uppercase tracking-widest" style={{ color: reached ? '#ffc66b' : '#9AAABF' }}>{m.name}</span>
+                          </div>
+                          {m.pts && (
+                            <div className="font-mono text-xs text-on-surface/40">{m.pts + ' pts required'}</div>
+                          )}
+                          <div className="text-on-surface/50 text-xs font-body">{m.reward}</div>
+                          {reached && (
+                            <div className="flex items-center gap-1 text-tertiary text-xs font-sans-cond uppercase tracking-widest">
+                              <Icon name="check_circle" size={14} />
+                              Reached
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Achievements */}
+                <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-4">Achievements</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {ACHIEVEMENTS.map(function(a) {
                     var unlocked = false;
@@ -994,14 +1033,17 @@ export default function AccountScreen() {
                           opacity: unlocked ? 1 : 0.5,
                         }}
                       >
-                        <span className="material-symbols-outlined flex-shrink-0" style={{ color: unlocked ? col : '#9AAABF', fontSize: 22 }}>
+                        <span
+                          className="material-symbols-outlined flex-shrink-0"
+                          style={{ color: unlocked ? col : '#9AAABF', fontSize: 22 }}
+                        >
                           {a.icon === 'trophy' ? 'emoji_events' : a.icon === 'fire' || a.icon === 'flame' ? 'local_fire_department' : a.icon === 'star' ? 'star' : a.icon === 'shield' ? 'shield' : a.icon === 'target' || a.icon === 'bullseye' ? 'my_location' : 'military_tech'}
                         </span>
                         <div className="min-w-0">
                           <div className="font-sans-cond text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : '#9AAABF' }}>{a.name}</div>
                           <div className="text-on-surface/40 text-xs font-body mt-0.5">{a.desc}</div>
                         </div>
-                        {unlocked && <span className="material-symbols-outlined text-tertiary text-sm ml-auto flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
+                        {unlocked && <Icon name="check_circle" size={16} fill={true} className="text-tertiary ml-auto flex-shrink-0" />}
                       </div>
                     );
                   })}
@@ -1009,7 +1051,7 @@ export default function AccountScreen() {
               </div>
             ) : (
               <div className="text-center py-16 text-on-surface/40">
-                <span className="material-symbols-outlined text-4xl block mb-3">military_tech</span>
+                <Icon name="military_tech" size={40} className="block mb-3" />
                 <p className="font-sans-cond uppercase tracking-widest text-xs">No player data linked yet.</p>
               </div>
             )}
@@ -1023,6 +1065,78 @@ export default function AccountScreen() {
               <div>
                 <div className="mb-6">
                   <p className="text-on-surface/50 text-sm font-body">Complete challenges to earn rewards and recognition in the arena.</p>
+                </div>
+
+                {/* Daily Challenges */}
+                <div className="mb-6">
+                  <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-3">Daily Challenges</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {DAILY_CHALLENGES.map(function(ch) {
+                      var pct = ch.goal > 0 ? Math.min(100, Math.round((ch.progress / ch.goal) * 100)) : 0;
+                      var done = ch.progress >= ch.goal;
+                      return (
+                        <div
+                          key={ch.id}
+                          className="p-4 rounded-lg border flex flex-col gap-2"
+                          style={{
+                            background: done ? 'rgba(103,226,217,.07)' : 'rgba(255,255,255,.02)',
+                            border: '1px solid ' + (done ? 'rgba(103,226,217,.35)' : 'rgba(228,225,236,.08)'),
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span style={{ color: done ? '#67e2d9' : '#9AAABF' }}><Icon name="bolt" size={16} /></span>
+                              <span className="font-sans-cond text-xs font-bold uppercase tracking-widest" style={{ color: done ? '#67e2d9' : '#e4e1ec' }}>{ch.name}</span>
+                            </div>
+                            <span className="font-mono text-xs font-bold" style={{ color: '#ffc66b' }}>{'+' + ch.xp + ' XP'}</span>
+                          </div>
+                          <p className="text-on-surface/50 text-xs font-body">{ch.desc}</p>
+                          <div className="h-1 rounded-full bg-surface-container-highest">
+                            <div className="h-1 rounded-full transition-all" style={{ width: pct + '%', background: done ? '#67e2d9' : '#9B72CF' }} />
+                          </div>
+                          <div className="text-on-surface/30 text-[10px] font-sans-cond uppercase tracking-widest">
+                            {ch.progress + ' / ' + ch.goal}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Weekly Challenges */}
+                <div className="mb-6">
+                  <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-3">Weekly Challenges</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {WEEKLY_CHALLENGES.map(function(ch) {
+                      var pct = ch.goal > 0 ? Math.min(100, Math.round((ch.progress / ch.goal) * 100)) : 0;
+                      var done = ch.progress >= ch.goal;
+                      return (
+                        <div
+                          key={ch.id}
+                          className="p-4 rounded-lg border flex flex-col gap-2"
+                          style={{
+                            background: done ? 'rgba(155,114,207,.07)' : 'rgba(255,255,255,.02)',
+                            border: '1px solid ' + (done ? 'rgba(155,114,207,.35)' : 'rgba(228,225,236,.08)'),
+                          }}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span style={{ color: done ? '#9B72CF' : '#9AAABF' }}><Icon name="calendar_month" size={16} /></span>
+                              <span className="font-sans-cond text-xs font-bold uppercase tracking-widest" style={{ color: done ? '#9B72CF' : '#e4e1ec' }}>{ch.name}</span>
+                            </div>
+                            <span className="font-mono text-xs font-bold" style={{ color: '#ffc66b' }}>{'+' + ch.xp + ' XP'}</span>
+                          </div>
+                          <p className="text-on-surface/50 text-xs font-body">{ch.desc}</p>
+                          <div className="h-1 rounded-full bg-surface-container-highest">
+                            <div className="h-1 rounded-full transition-all" style={{ width: pct + '%', background: done ? '#9B72CF' : '#ffc66b' }} />
+                          </div>
+                          <div className="text-on-surface/30 text-[10px] font-sans-cond uppercase tracking-widest">
+                            {ch.progress + ' / ' + ch.goal}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Stats Grid */}
@@ -1097,7 +1211,7 @@ export default function AccountScreen() {
               </div>
             ) : (
               <div className="text-center py-16 text-on-surface/40">
-                <span className="material-symbols-outlined text-4xl block mb-3">sports_esports</span>
+                <Icon name="sports_esports" size={40} className="block mb-3" />
                 <p className="font-sans-cond uppercase tracking-widest text-xs">No stats linked to your account yet.</p>
                 <p className="text-on-surface/30 text-xs mt-2">Your account name must match a registered player.</p>
               </div>

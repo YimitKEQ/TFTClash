@@ -176,7 +176,35 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
   var past = allEvents.filter(function(e) { return e.status === 'complete' })
   var active = live.concat(upcoming)
 
-  var shown = filter === 'all' ? active : filter === 'live' ? live : upcoming
+  var filtered
+  if (filter === 'all') {
+    filtered = active
+  } else if (filter === 'live') {
+    filtered = live
+  } else {
+    filtered = active.filter(function(e) {
+      return !e.type || e.type === filter
+    })
+  }
+
+  var shown = filtered.slice().sort(function(a, b) {
+    if (sortBy === 'name') {
+      return (a.name || '').localeCompare(b.name || '')
+    }
+    if (sortBy === 'prize') {
+      var aVal = parseFloat((a.prizePool || '0').replace(/[^0-9.]/g, '')) || 0
+      var bVal = parseFloat((b.prizePool || '0').replace(/[^0-9.]/g, '')) || 0
+      return bVal - aVal
+    }
+    if (sortBy === 'status') {
+      var order = { live: 0, upcoming: 1, complete: 2 }
+      return (order[a.status] || 1) - (order[b.status] || 1)
+    }
+    // default: date - soonest first
+    var aDate = a.date ? new Date(a.date).getTime() : Infinity
+    var bDate = b.date ? new Date(b.date).getTime() : Infinity
+    return aDate - bDate
+  })
 
   function handleRegister(ev) {
     if (!setFeaturedEvents) return
@@ -304,6 +332,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
           >
             <option value="date">Start Date (Soonest)</option>
             <option value="prize">Prize Pool (Highest)</option>
+            <option value="name">Name (A-Z)</option>
             <option value="status">Status (Live First)</option>
           </select>
         </div>
@@ -353,7 +382,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
               <h4 className="font-headline text-2xl font-bold">Safe and Fair Play</h4>
             </div>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-4">
-              All tournaments are monitored by our proprietary Vanguard API. Cheating or unsportsmanlike behavior results in permanent league bans.
+              All tournaments are monitored by TFT Clash staff and community moderators. Cheating or unsportsmanlike behavior results in permanent bans from the platform.
             </p>
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-tertiary"></span>

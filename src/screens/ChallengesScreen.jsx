@@ -51,29 +51,29 @@ function getWeeklyReset() {
   return d + 'd ' + h + 'h';
 }
 
-var HEATMAP_CELLS = [
-  'bg-primary/10','bg-primary/40','bg-primary/20','bg-surface-container-lowest','bg-primary/60','bg-primary/80','bg-primary/20',
-  'bg-primary/40','bg-surface-container-lowest','bg-primary/20','bg-primary/20','bg-primary/40','bg-primary/20','bg-primary/90',
-  'bg-surface-container-lowest','bg-primary/10','bg-primary/30','bg-primary/60','bg-primary/20','bg-primary/40','bg-primary/20',
-  'bg-primary/10','bg-primary/40','bg-primary/20','bg-surface-container-lowest','bg-primary/10','bg-primary/10','bg-primary/10',
-];
-
-var HEATMAP_GLOW = {5: true, 13: true};
-
-var XP_LOG = [
-  { icon: 'trophy-fill', action: 'Won Clash #13', xp: '+40 XP', time: 'Mar 1 2026', c: 'text-primary' },
-  { icon: 'bullseye', action: 'Weekly challenge: On A Roll', xp: '+120 XP', time: 'Mar 1 2026', c: 'text-secondary' },
-  { icon: 'award-fill', action: '1st place - Top 2 finish', xp: '+50 XP', time: 'Feb 28 2026', c: 'text-primary' },
-  { icon: 'shield-fill', action: 'Survived top 4', xp: '+15 XP', time: 'Feb 28 2026', c: 'text-tertiary' },
-  { icon: 'arrow-up-circle-fill', action: 'Ranked up: Silver to Gold', xp: 'RANK UP', time: 'Feb 22 2026', c: 'text-primary' },
-  { icon: 'controller', action: 'Completed a game', xp: '+25 XP', time: 'Feb 22 2026', c: 'text-on-surface/60' },
-];
+function buildHeatmapCells(challengeCompletions) {
+  var intensityClasses = [
+    'bg-surface-container-lowest',
+    'bg-primary/20',
+    'bg-primary/50',
+    'bg-primary/90'
+  ];
+  var cells = [];
+  var keys = Object.keys(challengeCompletions || {});
+  for (var i = 0; i < 28; i++) {
+    var intensity = keys.length > 0 ? (i < keys.length ? 2 : 0) : 0;
+    cells.push(intensityClasses[intensity]);
+  }
+  return cells;
+}
 
 export default function ChallengesScreen() {
   var ctx = useApp();
   var currentUser = ctx.currentUser;
   var players = ctx.players || [];
   var challengeCompletions = ctx.challengeCompletions || {};
+  var seasonConfig = ctx.seasonConfig;
+  var seasonName = (seasonConfig && seasonConfig.seasonName) || 'Season Battlepass';
 
   var [questTab, setQuestTab] = useState('daily');
   var [mainTab, setMainTab] = useState('active');
@@ -126,7 +126,7 @@ export default function ChallengesScreen() {
         <header className="mb-12">
           <div className="flex justify-between items-end mb-4">
             <div>
-              <span className="font-condensed text-primary uppercase tracking-[0.2em] text-xs font-bold">Season IX Battlepass</span>
+              <span className="font-condensed text-primary uppercase tracking-[0.2em] text-xs font-bold">{seasonName}</span>
               <h1 className="font-serif text-5xl mt-2 italic">Challenges &amp; Progression</h1>
             </div>
             <div className="text-right">
@@ -261,11 +261,11 @@ export default function ChallengesScreen() {
               <div className="bg-surface-container p-6 border-t-2 border-primary/20">
                 <h2 className="font-condensed text-xs uppercase tracking-[0.2em] text-on-surface/40 mb-6">Activity Frequency</h2>
                 <div className="grid grid-cols-7 gap-1">
-                  {HEATMAP_CELLS.map(function(cls, i) {
+                  {buildHeatmapCells(challengeCompletions).map(function(cls, i) {
                     return (
                       <div
                         key={i}
-                        className={'aspect-square ' + cls + (HEATMAP_GLOW[i] ? ' shadow-[0_0_8px_rgba(255,198,107,0.4)]' : '')}
+                        className={'aspect-square ' + cls}
                       />
                     );
                   })}
@@ -313,20 +313,6 @@ export default function ChallengesScreen() {
                 </div>
               </div>
 
-              {/* Bonus Card */}
-              <div className="relative overflow-hidden group bg-surface-container-lowest">
-                <div className="w-full h-48 bg-gradient-to-br from-tertiary/20 via-surface-container to-surface-container-lowest flex items-center justify-center">
-                  <span className="material-symbols-outlined text-tertiary/30 text-8xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    psychology
-                  </span>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
-                  <span className="bg-tertiary/20 text-tertiary px-2 py-0.5 text-[10px] font-mono uppercase border border-tertiary/30">BONUS ACTIVE</span>
-                  <h4 className="font-display text-lg mt-1 text-on-surface">DRAGON SOUL BUFF</h4>
-                  <p className="text-[10px] font-body text-on-surface/60 uppercase tracking-tighter">Earn +15% XP using Dragon Synergies today</p>
-                </div>
-              </div>
 
             </div>
           </div>
@@ -375,26 +361,10 @@ export default function ChallengesScreen() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
             </div>
-            <div className="bg-surface-container-low">
-              {XP_LOG.map(function(e, i) {
-                return (
-                  <div
-                    key={i}
-                    className={'flex items-center gap-5 p-5 ' + (i < XP_LOG.length - 1 ? 'border-b border-outline-variant/10' : '')}
-                  >
-                    <div className="w-10 h-10 bg-surface-container-high flex items-center justify-center flex-shrink-0">
-                      <span className={'material-symbols-outlined text-xl ' + e.c} style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {mapMaterialIcon(e.icon)}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-on-surface font-body">{e.action}</div>
-                      <div className="text-[10px] font-mono text-on-surface/40 uppercase tracking-wider mt-0.5">{e.time}</div>
-                    </div>
-                    <span className={'font-mono text-sm font-bold flex-shrink-0 ' + e.c}>{e.xp}</span>
-                  </div>
-                );
-              })}
+            <div className="bg-surface-container-low p-12 text-center">
+              <span className="material-symbols-outlined text-on-surface/20 text-6xl block mb-4">history</span>
+              <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No XP history yet</p>
+              <p className="text-xs text-on-surface/30 mt-2 font-body">Complete challenges to build your XP history</p>
             </div>
           </div>
         )}

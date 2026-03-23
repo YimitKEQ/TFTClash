@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { getStats, getAchievements, checkAchievements, syncAchievements, ACHIEVEMENTS, isHotStreak, isOnTilt, estimateXp } from '../lib/stats.js'
+import { getStats, getAchievements, checkAchievements, syncAchievements, ACHIEVEMENTS, isHotStreak, isOnTilt } from '../lib/stats.js'
 import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
-import { RCOLS, RANKS, CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
+import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Badge, Tag, StatCard } from '../components/ui'
 import RankBadge from '../components/shared/RankBadge'
@@ -83,6 +83,104 @@ function ordinalSuffix(n) {
   return 'TH';
 }
 
+// ─── SPARKLINE SVG ───────────────────────────────────────────────────────────
+function renderSparklineSvg(clashHistory) {
+  var hist = (clashHistory || []).slice().reverse();
+  if (hist.length < 2) {
+    return (
+      <div className="flex items-center justify-center h-full text-on-surface/20 font-technical text-xs uppercase tracking-widest">
+        Not enough data
+      </div>
+    );
+  }
+  var cumulativePts = [];
+  var running = 0;
+  hist.forEach(function(g) {
+    running += (g.pts || 0);
+    cumulativePts.push(running);
+  });
+  var maxPts = Math.max.apply(null, cumulativePts) || 1;
+  var n = cumulativePts.length;
+  var points = cumulativePts.map(function(v, i) {
+    var x = (i / (n - 1)) * 1000;
+    var y = 200 - (v / maxPts) * 180;
+    return x + ',' + y;
+  });
+  var pathD = 'M' + points.join(' L');
+  var fillD = pathD + ' V200 H0 Z';
+  return (
+    <svg className="w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="line-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#ffc66b" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#ffc66b" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={pathD} fill="none" stroke="#ffc66b" strokeWidth="3" strokeLinecap="round" />
+      <path d={fillD} fill="url(#line-gradient)" />
+    </svg>
+  );
+}
+
+// ─── CLASH HISTORY ROWS ──────────────────────────────────────────────────────
+function renderClashHistoryRows(clashHistory, seasonConfig) {
+  var hist = (clashHistory || []).slice();
+  var dropped = {};
+  if (seasonConfig && seasonConfig.dropWeeks > 0) {
+    var clashMap = {};
+    hist.forEach(function(g) {
+      var cid = g.clashId || 'c0';
+      clashMap[cid] = (clashMap[cid] || 0) + (g.pts || 0);
+    });
+    var sorted2 = Object.entries(clashMap).sort(function(a, b) { return a[1] - b[1]; });
+    sorted2.slice(0, seasonConfig.dropWeeks).forEach(function(e) { dropped[e[0]] = true; });
+  }
+  return hist.map(function(g, i) {
+    var isDropped = dropped[g.clashId || 'c0'];
+    var place = g.place || g.placement;
+    return (
+      <div
+        key={i}
+        className="flex items-center gap-4 px-6 py-4 border-b border-on-surface/5 hover:bg-surface-container-high transition-all"
+        style={{ background: place === 1 ? 'rgba(232,168,56,.03)' : 'transparent', opacity: isDropped ? 0.45 : 1 }}
+      >
+        <div
+          className="w-12 h-12 flex flex-col items-center justify-center rounded border flex-shrink-0"
+          style={{ background: place === 1 ? 'rgba(78,205,196,.1)' : 'rgba(255,255,255,.03)', borderColor: place === 1 ? 'rgba(78,205,196,.2)' : 'rgba(255,255,255,.07)' }}
+        >
+          <span className="font-display text-xl" style={{ color: place === 1 ? '#67e2d9' : place <= 4 ? '#4ECDC4' : '#BECBD9', textDecoration: isDropped ? 'line-through' : 'none' }}>
+            {place}
+          </span>
+          <span className="font-technical text-[8px] -mt-1 uppercase" style={{ color: place === 1 ? 'rgba(103,226,217,.6)' : 'rgba(255,255,255,.2)' }}>
+            {typeof place === 'number' ? ordinalSuffix(place) : ''}
+          </span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
+          <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
+          <div className="flex gap-1 flex-wrap mt-1">
+            {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(155,114,207,.15)', color: '#C4B5FD', border: '1px solid rgba(155,114,207,.3)' }}>Clutch</span>}
+            {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(190,203,217,.1)', color: '#BECBD9', border: '1px solid rgba(190,203,217,.2)' }}>Dropped</span>}
+            {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(78,205,196,.1)', color: '#4ECDC4', border: '1px solid rgba(78,205,196,.25)' }}>Comeback +2</span>}
+            {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(232,168,56,.1)', color: '#E8A838', border: '1px solid rgba(232,168,56,.25)' }}>{g.attendanceMilestone + '-Streak Bonus'}</span>}
+          </div>
+        </div>
+        <div className="text-right flex-shrink-0">
+          <div className="font-stats text-base font-bold" style={{ color: isDropped ? '#BECBD9' : '#E8A838', textDecoration: isDropped ? 'line-through' : 'none' }}>
+            {'+' + g.pts + 'pts'}
+          </div>
+          {(g.bonusPts || 0) > 0 && !isDropped && (
+            <div className="font-stats text-xs text-emerald-400">{'+' + g.bonusPts + ' bonus'}</div>
+          )}
+          <div className="font-technical text-[10px] text-on-surface/40 uppercase">
+            {place === 1 ? 'Champion' : place <= 4 ? 'Top 4' : 'Bot 4'}
+          </div>
+        </div>
+      </div>
+    );
+  });
+}
+
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function PlayerProfileScreen() {
   var params = useParams();
@@ -100,15 +198,8 @@ export default function PlayerProfileScreen() {
   var tab = _tab[0];
   var setTab = _tab[1];
 
-  // Resolve user metadata
-  var allUsers = ctx.allUsers || [];
+  // Resolve user metadata from player record only
   var userMeta = player ? (player.userMeta || null) : null;
-  if (!userMeta && allUsers.length) {
-    var mu = allUsers.find(function(u) {
-      return player && (u.username === player.name || u.id === player.auth_user_id);
-    });
-    if (mu) userMeta = mu.user_metadata || null;
-  }
 
   var pBio = player ? (player.bio || (userMeta && userMeta.bio) || '') : '';
   var pTwitch = player ? (player.twitch || (userMeta && userMeta.twitch) || '') : '';
@@ -435,43 +526,7 @@ export default function PlayerProfileScreen() {
               </div>
               {/* SVG Sparkline */}
               <div className="relative h-48 w-full mt-4">
-                {(function() {
-                  var hist = (player.clashHistory || []).slice().reverse();
-                  if (hist.length < 2) {
-                    return (
-                      <div className="flex items-center justify-center h-full text-on-surface/20 font-technical text-xs uppercase tracking-widest">
-                        Not enough data
-                      </div>
-                    );
-                  }
-                  var cumulativePts = [];
-                  var running = 0;
-                  hist.forEach(function(g) {
-                    running += (g.pts || 0);
-                    cumulativePts.push(running);
-                  });
-                  var maxPts = Math.max.apply(null, cumulativePts) || 1;
-                  var n = cumulativePts.length;
-                  var points = cumulativePts.map(function(v, i) {
-                    var x = (i / (n - 1)) * 1000;
-                    var y = 200 - (v / maxPts) * 180;
-                    return x + ',' + y;
-                  });
-                  var pathD = 'M' + points.join(' L');
-                  var fillD = pathD + ' V200 H0 Z';
-                  return (
-                    <svg className="w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="line-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#ffc66b" stopOpacity="0.2" />
-                          <stop offset="100%" stopColor="#ffc66b" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                      <path d={pathD} fill="none" stroke="#ffc66b" strokeWidth="3" strokeLinecap="round" />
-                      <path d={fillD} fill="url(#line-gradient)" />
-                    </svg>
-                  );
-                })()}
+                {renderSparklineSvg(player.clashHistory)}
                 <div className="absolute bottom-0 left-0 w-full flex justify-between px-2 pt-4 border-t border-outline-variant/10">
                   <span className="font-technical text-[10px] text-on-surface/20">WEEK 1</span>
                   <span className="font-technical text-[10px] text-on-surface/20">WEEK 4</span>
@@ -719,63 +774,7 @@ export default function PlayerProfileScreen() {
             ? (
               <div className="text-center py-12 text-on-surface/40 font-technical text-sm">No history yet</div>
             )
-            : (function() {
-              var hist = (player.clashHistory || []).slice();
-              var dropped = {};
-              if (seasonConfig && seasonConfig.dropWeeks > 0) {
-                var clashMap = {};
-                hist.forEach(function(g) {
-                  var cid = g.clashId || 'c0';
-                  clashMap[cid] = (clashMap[cid] || 0) + (g.pts || 0);
-                });
-                var sorted2 = Object.entries(clashMap).sort(function(a, b) { return a[1] - b[1]; });
-                sorted2.slice(0, seasonConfig.dropWeeks).forEach(function(e) { dropped[e[0]] = true; });
-              }
-              return hist.map(function(g, i) {
-                var isDropped = dropped[g.clashId || 'c0'];
-                var place = g.place || g.placement;
-                return (
-                  <div
-                    key={i}
-                    className="flex items-center gap-4 px-6 py-4 border-b border-on-surface/5 hover:bg-surface-container-high transition-all"
-                    style={{ background: place === 1 ? 'rgba(232,168,56,.03)' : 'transparent', opacity: isDropped ? 0.45 : 1 }}
-                  >
-                    <div
-                      className="w-12 h-12 flex flex-col items-center justify-center rounded border flex-shrink-0"
-                      style={{ background: place === 1 ? 'rgba(78,205,196,.1)' : 'rgba(255,255,255,.03)', borderColor: place === 1 ? 'rgba(78,205,196,.2)' : 'rgba(255,255,255,.07)' }}
-                    >
-                      <span className="font-display text-xl" style={{ color: place === 1 ? '#67e2d9' : place <= 4 ? '#4ECDC4' : '#BECBD9', textDecoration: isDropped ? 'line-through' : 'none' }}>
-                        {place}
-                      </span>
-                      <span className="font-technical text-[8px] -mt-1 uppercase" style={{ color: place === 1 ? 'rgba(103,226,217,.6)' : 'rgba(255,255,255,.2)' }}>
-                        {typeof place === 'number' ? ordinalSuffix(place) : ''}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
-                      <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
-                      <div className="flex gap-1 flex-wrap mt-1">
-                        {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(155,114,207,.15)', color: '#C4B5FD', border: '1px solid rgba(155,114,207,.3)' }}>Clutch</span>}
-                        {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(190,203,217,.1)', color: '#BECBD9', border: '1px solid rgba(190,203,217,.2)' }}>Dropped</span>}
-                        {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(78,205,196,.1)', color: '#4ECDC4', border: '1px solid rgba(78,205,196,.25)' }}>Comeback +2</span>}
-                        {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(232,168,56,.1)', color: '#E8A838', border: '1px solid rgba(232,168,56,.25)' }}>{g.attendanceMilestone + '-Streak Bonus'}</span>}
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="font-stats text-base font-bold" style={{ color: isDropped ? '#BECBD9' : '#E8A838', textDecoration: isDropped ? 'line-through' : 'none' }}>
-                        {'+' + g.pts + 'pts'}
-                      </div>
-                      {(g.bonusPts || 0) > 0 && !isDropped && (
-                        <div className="font-stats text-xs text-emerald-400">{'+' + g.bonusPts + ' bonus'}</div>
-                      )}
-                      <div className="font-technical text-[10px] text-on-surface/40 uppercase">
-                        {place === 1 ? 'Champion' : place <= 4 ? 'Top 4' : 'Bot 4'}
-                      </div>
-                    </div>
-                  </div>
-                );
-              });
-            })()
+            : renderClashHistoryRows(player.clashHistory, seasonConfig)
           }
         </div>
       )}

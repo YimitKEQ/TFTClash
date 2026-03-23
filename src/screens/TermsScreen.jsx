@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
 
@@ -73,6 +74,7 @@ var TERMS_SECTIONS = [
 
 export default function TermsScreen() {
   var [activeSection, setActiveSection] = useState(null)
+  var navigate = useNavigate()
 
   function scrollTo(id) {
     var el = document.getElementById('terms-' + id)
@@ -92,21 +94,21 @@ export default function TermsScreen() {
               <h2 className="font-editorial text-3xl mt-1 text-on-surface">Resources</h2>
             </div>
 
-            <a
-              href="/privacy"
-              className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all no-underline"
+            <button
+              onClick={function() { navigate('/privacy') }}
+              className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all w-full text-left"
             >
               <Icon name="gavel" size={18} />
               <span className="font-condensed text-sm font-bold uppercase tracking-wide">Privacy Policy</span>
-            </a>
+            </button>
 
-            <a
-              href="/terms"
-              className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary transition-all no-underline"
+            <button
+              onClick={function() { navigate('/terms') }}
+              className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary transition-all w-full text-left"
             >
               <Icon name="description" size={18} />
               <span className="font-condensed text-sm font-bold uppercase tracking-wide">Terms of Service</span>
-            </a>
+            </button>
 
             <div className="mt-8 p-5 bg-surface-container-low rounded-sm border border-outline-variant/15">
               <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">Last Updated</span>

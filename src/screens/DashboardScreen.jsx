@@ -131,7 +131,7 @@ function AnnouncementStrip({ text, variant }) {
 // --- PULSE HEADER (stitch-matched) ---
 
 function PulseHeader({
-  linkedPlayer, currentUser, myRankIdx, rankDelta, currentTierInfo,
+  linkedPlayer, currentUser, myRankIdx, totalPlayers, rankDelta, currentTierInfo,
   nextTier, ptsToNextTier, tPhase, tRound, registeredCount, checkedInCount,
   tournamentState, clashName, clashDate, clashTime, diff, D, H, M, S,
   isMyRegistered, isMyWaitlisted, myWaitlistPos, myCheckedIn, profileComplete,
@@ -151,7 +151,8 @@ function PulseHeader({
 
   var playerName = linkedPlayer ? linkedPlayer.name : (currentUser && currentUser.username ? currentUser.username : 'Summoner')
   var playerRank = linkedPlayer ? (linkedPlayer.rank || 'Unranked') : ''
-  var seasonLabel = currentTierInfo ? ('Season - Top ' + (myRankIdx || '?') + '%') : 'Season'
+  var topPct = (myRankIdx && totalPlayers > 0) ? Math.max(1, Math.round((myRankIdx / totalPlayers) * 100)) : null
+  var seasonLabel = currentTierInfo ? ('Season - Top ' + (topPct !== null ? topPct : '?') + '%') : 'Season'
 
   // Format countdown as HH:MM:SS for primary display
   var countdownStr = (H < 10 ? '0' + H : '' + H) + ':' + (M < 10 ? '0' + M : '' + M) + ':' + (S < 10 ? '0' + S : '' + S)
@@ -215,7 +216,7 @@ function PulseHeader({
           <h1 className="font-editorial text-4xl text-on-surface leading-none italic">{playerName}</h1>
           <p className="font-condensed text-xs uppercase tracking-[0.2em] text-secondary mt-2">
             {linkedPlayer
-              ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + myRankIdx + '%')
+              ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + (totalPlayers > 0 ? Math.max(1, Math.round((myRankIdx / totalPlayers) * 100)) : myRankIdx) + '%')
               : 'Link your Riot ID to get started'}
           </p>
           {/* Phase action + registration status */}
@@ -290,44 +291,44 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
 
   var recent = (clashHistory || []).slice(-5)
 
-  var COMP_NAMES = ['Arcanist Fated', 'Storyweaver Mythic', 'Void Wanderer', 'Fated Duelist', 'Fortune Invoker']
-
   return (
     <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40">
-          Recent Form (Last {Math.min(5, recent.length || 5)})
+          Recent Form (Last {recent.length})
         </h3>
-        <FormCircles history={recent.length > 0 ? recent : [
-          { placement: 1 }, { placement: 3 }, { placement: 6 }, { placement: 2 }, { placement: 1 }
-        ]} />
+        {recent.length > 0 && <FormCircles history={recent} />}
       </div>
 
-      <div className="space-y-3">
-        {(recent.length > 0 ? recent.slice(-2) : [
-          { placement: 1, comp: 'Arcanist Fated', timeAgo: '2h ago' },
-          { placement: 3, comp: 'Storyweaver Mythic', timeAgo: '5h ago' }
-        ]).map(function (h, i) {
-          var p = h.placement || h.place || 1
-          var isTop4 = p <= 4
-          var comp = h.comp || COMP_NAMES[i % COMP_NAMES.length]
-          var timeAgo = h.timeAgo || (h.date ? h.date : ((i + 2) + 'h ago'))
-          return (
-            <div
-              key={i}
-              className={'flex items-center justify-between p-3 bg-surface-container rounded-sm border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
-            >
-              <div className="flex items-center gap-3">
-                <span className={'font-mono font-bold ' + (isTop4 ? 'text-tertiary' : 'text-on-surface/60')}>
-                  {'#' + p}
-                </span>
-                <span className="font-condensed uppercase text-xs tracking-widest text-on-surface">{comp}</span>
+      {recent.length === 0 ? (
+        <div className="py-6 text-center">
+          <span className="text-on-surface/30 text-xs font-condensed uppercase tracking-widest">No recent games</span>
+          <p className="text-on-surface/20 text-[10px] font-mono mt-1">Play your first clash to see data here</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {recent.slice(-2).map(function (h, i) {
+            var p = h.placement || h.place || 1
+            var isTop4 = p <= 4
+            var gameLabel = h.comp || ('Game ' + (h.clashId || (i + 1)))
+            var timeStr = h.date || ''
+            return (
+              <div
+                key={i}
+                className={'flex items-center justify-between p-3 bg-surface-container rounded-sm border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={'font-mono font-bold ' + (isTop4 ? 'text-tertiary' : 'text-on-surface/60')}>
+                    {'#' + p}
+                  </span>
+                  <span className="font-condensed uppercase text-xs tracking-widest text-on-surface">{gameLabel}</span>
+                </div>
+                <span className="text-[10px] font-mono text-on-surface/40">{timeStr}</span>
               </div>
-              <span className="text-[10px] font-mono text-on-surface/40">{timeAgo}</span>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -338,15 +339,13 @@ function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
   return (
     <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
       <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">
-        Clash Standings: Group B
+        Clash Standings
       </h3>
       <div className="space-y-2">
-        {(top5.length > 0 ? top5 : [
-          { id: 1, name: 'Soulstealer7', pts: 450 },
-          { id: 2, name: 'Kael\'Thas Prime', pts: 410 },
-          { id: 3, name: 'TFT_Wizard', pts: 385 },
-          { id: 4, name: 'LuckyRoll', pts: 320 }
-        ]).slice(0, 4).map(function (p, i) {
+        {top5.length === 0 && (
+          <div className="py-4 text-center text-on-surface/30 text-xs font-condensed uppercase tracking-widest">No standings data yet</div>
+        )}
+        {top5.slice(0, 4).map(function (p, i) {
           var isMe = linkedPlayer && p.id === linkedPlayer.id
           var isLast = i === (Math.min(top5.length, 4) - 1)
           return (
@@ -388,65 +387,45 @@ function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
 // --- ACTIVITY FEED (stitch-matched) ---
 
 function ActivityFeed({ items }) {
-  var defaultItems = [
-    {
-      id: 'a1',
-      icon: 'celebration',
-      message: 'Promoted to',
-      highlight: 'Diamond I',
-      highlightColor: 'text-secondary',
-      timeStr: 'Yesterday at 11:42 PM'
-    },
-    {
-      id: 'a2',
-      icon: 'groups',
-      message: 'Joined Team',
-      highlight: 'The Obsidian Arena',
-      highlightColor: 'text-primary',
-      timeStr: '2 days ago'
-    }
-  ]
+  var hasItems = items && items.length > 0
 
-  var displayItems = (items && items.length > 0) ? items.slice(0, 4).map(function (item) {
+  var displayItems = hasItems ? items.slice(0, 4).map(function (item) {
     return {
       id: item.id,
       icon: item.icon || 'notifications',
       message: item.message || (item.detail_json && item.detail_json.text) || '',
-      highlight: null,
-      highlightColor: 'text-primary',
       timeStr: item.created_at
         ? new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
         : ''
     }
-  }) : defaultItems
+  }) : []
 
   return (
     <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10 overflow-hidden relative">
       {/* Decorative blur */}
       <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-secondary/5 rounded-full blur-3xl" />
       <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">Live Activity</h3>
-      <div className="space-y-4">
-        {displayItems.map(function (item, idx) {
-          return (
-            <div key={item.id || idx} className="flex gap-3">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
-                <Icon name={item.icon} size={16} className="text-on-surface/60" />
-              </div>
-              <div>
-                {item.highlight ? (
-                  <p className="text-xs text-on-surface/80">
-                    {item.message + ' '}
-                    <span className={'font-bold ' + item.highlightColor}>{item.highlight}</span>
-                  </p>
-                ) : (
+      {displayItems.length === 0 ? (
+        <div className="py-4 text-center">
+          <span className="text-on-surface/30 text-xs font-condensed uppercase tracking-widest">No recent activity</span>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {displayItems.map(function (item, idx) {
+            return (
+              <div key={item.id || idx} className="flex gap-3">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+                  <Icon name={item.icon} size={16} className="text-on-surface/60" />
+                </div>
+                <div>
                   <p className="text-xs text-on-surface/80">{item.message}</p>
-                )}
-                <span className="text-[10px] font-mono text-on-surface/30">{item.timeStr}</span>
+                  <span className="text-[10px] font-mono text-on-surface/30">{item.timeStr}</span>
+                </div>
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
@@ -486,7 +465,6 @@ export default function DashboardScreen() {
   var featuredEvents = ctx.featuredEvents
   var seasonConfig = ctx.seasonConfig
   var setProfilePlayer = ctx.setProfilePlayer
-  var setScreen = ctx.setScreen
   var toast = ctx.toast
   var navigate = useNavigate()
 
@@ -499,6 +477,12 @@ export default function DashboardScreen() {
       ? new Date(tournamentState.clashTimestamp).getTime()
       : Date.now() + 7 * 86400000
   )
+
+  useEffect(function () {
+    if (tournamentState && tournamentState.clashTimestamp) {
+      targetMsRef.current = new Date(tournamentState.clashTimestamp).getTime()
+    }
+  }, [tournamentState && tournamentState.clashTimestamp])
 
   var _now = useState(Date.now())
   var now = _now[0]
@@ -751,7 +735,7 @@ export default function DashboardScreen() {
     } else if (linkedPlayer && profileComplete) {
       phaseActionBtn = <Btn variant="primary" size="sm" onClick={registerFromAccount}>Register</Btn>
     } else if (!profileComplete) {
-      phaseActionBtn = <Btn variant="primary" size="sm" onClick={function () { setScreen('account') }}>Complete Profile</Btn>
+      phaseActionBtn = <Btn variant="primary" size="sm" onClick={function () { navigate('/account') }}>Complete Profile</Btn>
     }
   } else if (tPhase === 'checkin') {
     if (!myCheckedIn && isMyRegistered) {
@@ -760,20 +744,20 @@ export default function DashboardScreen() {
       phaseActionBtn = <span className="text-xs font-bold text-success">Checked In</span>
     }
   } else if (tPhase === 'inprogress') {
-    phaseActionBtn = <Btn variant="secondary" size="sm" onClick={function () { setScreen('bracket') }}>Watch Live</Btn>
+    phaseActionBtn = <Btn variant="secondary" size="sm" onClick={function () { navigate('/bracket') }}>Watch Live</Btn>
   } else if (tPhase === 'complete') {
-    phaseActionBtn = <Btn variant="secondary" size="sm" onClick={function () { setScreen('results') }}>View Results</Btn>
+    phaseActionBtn = <Btn variant="secondary" size="sm" onClick={function () { navigate('/results') }}>View Results</Btn>
   }
 
   function handleViewPlayer(p) {
     setProfilePlayer(p)
-    setScreen('profile')
+    navigate('/player/' + p.name)
   }
 
   function handleViewProfile() {
     if (linkedPlayer) {
       setProfilePlayer(linkedPlayer)
-      setScreen('profile')
+      navigate('/player/' + linkedPlayer.name)
     }
   }
 
@@ -793,6 +777,7 @@ export default function DashboardScreen() {
         linkedPlayer={linkedPlayer}
         currentUser={currentUser}
         myRankIdx={myRankIdx}
+        totalPlayers={players.length}
         rankDelta={rankDelta}
         currentTierInfo={currentTierInfo}
         nextTier={nextTier}

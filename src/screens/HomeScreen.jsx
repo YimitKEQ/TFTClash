@@ -72,23 +72,22 @@ function HeroCountdown({ clashTimestamp, onRegister }) {
 
 // ── SeasonStatsBar ────────────────────────────────────────────────────────────
 
-function SeasonStatsBar({ players, totalGames }) {
-  var prizePool = '$250,000'
-  var activeTeams = (players.length > 0 ? players.length : 1420).toLocaleString()
-  var tournamentCount = '12'
+function SeasonStatsBar({ players, pastClashes }) {
+  var activeTeams = players.length > 0 ? players.length.toLocaleString() : 'Growing'
+  var tournamentCount = (pastClashes && pastClashes.length > 0) ? String(pastClashes.length) : '0'
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
-        <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Total Prize Pool</span>
-        <span className="font-mono text-xl text-primary">{prizePool}</span>
+        <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Community</span>
+        <span className="font-mono text-xl text-primary">Free to Play</span>
       </div>
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
-        <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Active Teams</span>
+        <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Players</span>
         <span className="font-mono text-xl text-on-surface">{activeTeams}</span>
       </div>
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
-        <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Tournaments</span>
+        <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Clashes Run</span>
         <span className="font-mono text-xl text-on-surface">{tournamentCount}</span>
       </div>
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
@@ -219,12 +218,12 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
 // ── PromotionFooter ───────────────────────────────────────────────────────────
 
 function PromotionFooter({ playerCount, onRules, onHowToPlay }) {
-  var count = playerCount > 0 ? playerCount.toLocaleString() : '50,000'
+  var countText = playerCount > 0 ? 'Join ' + playerCount.toLocaleString() + ' players competing for glory and rewards.' : 'Join our growing community and compete for glory and rewards.'
 
   return (
     <footer className="pt-12 border-t border-outline-variant/10 text-center space-y-4">
       <p className="text-on-surface-variant text-sm">
-        {'Join over ' + count + ' players competing daily for glory and rewards.'}
+        {countText}
       </p>
       <div className="flex justify-center gap-4">
         <button
@@ -254,6 +253,8 @@ export default function HomeScreen() {
   var currentUser = ctx.currentUser
   var tournamentState = ctx.tournamentState
   var setAuthScreen = ctx.setAuthScreen
+  var pastClashes = ctx.pastClashes || []
+  var seasonConfig = ctx.seasonConfig || {}
   var navigate = useNavigate()
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
@@ -282,11 +283,7 @@ export default function HomeScreen() {
     navigate('/faq')
   }
 
-  if (currentUser) {
-    return null
-  }
-
-  var seasonLabel = clashName || 'Season 12: Magic n\' Mayhem'
+  var seasonLabel = clashName || seasonConfig.seasonName || 'TFT Clash'
 
   return (
     <PageLayout showSidebar={false} maxWidth="max-w-[880px]">
@@ -343,7 +340,7 @@ export default function HomeScreen() {
         </section>
 
         {/* ── Season Stats Bar ──────────────────────────────────────────────── */}
-        <SeasonStatsBar players={players} />
+        <SeasonStatsBar players={players} pastClashes={pastClashes} />
 
         {/* ── Leaderboard Preview ───────────────────────────────────────────── */}
         {top5.length > 0 && (

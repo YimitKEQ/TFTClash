@@ -1,10 +1,25 @@
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import Panel from '../components/ui/Panel'
-import Tag from '../components/ui/Tag'
 import Icon from '../components/ui/Icon'
+import PageLayout from '../components/layout/PageLayout'
 
 // ClashReport: detailed round-by-round breakdown for a single clash
 export default function ClashReportScreen({ clashData, players }) {
+  var navigate = useNavigate()
+  var ctx = useApp()
+  var toast = ctx.toast
+
+  if (!clashData || !players) {
+    return (
+      <PageLayout>
+        <div className="text-center py-20 text-on-surface/50 text-sm">
+          <Icon name="search_off" size={40} className="text-on-surface/30 mb-4" />
+          <p>No clash data available.</p>
+        </div>
+      </PageLayout>
+    )
+  }
+
   var allP = (players && players.length > 0) ? players : []
 
   var report = clashData ? clashData.report : null
@@ -31,13 +46,16 @@ export default function ClashReportScreen({ clashData, players }) {
 
   if (sorted.length === 0) {
     return (
-      <div className="text-center py-8 text-on-surface/50 text-sm">
-        No detailed data for this clash yet.
-      </div>
+      <PageLayout>
+        <div className="text-center py-8 text-on-surface/50 text-sm">
+          No detailed data for this clash yet.
+        </div>
+      </PageLayout>
     )
   }
 
   return (
+    <PageLayout>
     <div>
       {/* Winner Banner */}
       <section className="flex flex-col items-center justify-center text-center py-12 relative overflow-hidden">
@@ -368,17 +386,30 @@ export default function ClashReportScreen({ clashData, players }) {
           Immortalize your legacy
         </h5>
         <div className="flex flex-wrap justify-center gap-3">
-          <button className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
+          <button
+            onClick={function() {
+              var text = champion + ' won ' + clashName + '! ' + sorted.length + ' players competed.'
+              navigator.clipboard.writeText(text).then(function() {
+                toast('Copied to clipboard', 'success')
+              }).catch(function() {
+                toast('Could not copy to clipboard', 'error')
+              })
+            }}
+            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
             <Icon name="share" size={16} className="text-on-surface-variant" />
             Share Summary
           </button>
-          <button className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-technical font-bold tracking-widest uppercase text-sm flex items-center gap-2 active:scale-95 transition-transform"
+          <button
+            onClick={function() { toast('Export coming soon', 'info') }}
+            className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-technical font-bold tracking-widest uppercase text-sm flex items-center gap-2 active:scale-95 transition-transform"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
             <Icon name="download" size={16} className="text-on-primary" />
             Export Highlights
           </button>
-          <button className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
+          <button
+            onClick={function() { navigate('/bracket') }}
+            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
             style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
             <Icon name="sports_esports" size={16} className="text-on-surface-variant" />
             Join Next Clash
@@ -386,5 +417,6 @@ export default function ClashReportScreen({ clashData, players }) {
         </div>
       </section>
     </div>
+    </PageLayout>
   )
 }

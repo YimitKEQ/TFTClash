@@ -167,18 +167,6 @@ export default function AdminScreen() {
   var setScreen = ctx.setScreen
   var navigate = ctx.navigate
 
-  if (!isAdmin) {
-    return (
-      <PageLayout>
-        <div className="text-center max-w-md mx-auto py-20">
-          <Icon name="lock" size={38} className="text-on-surface/40 mb-4" />
-          <h2 className="text-on-surface font-bold text-lg mb-2">Admin Required</h2>
-          <p className="text-on-surface/50 text-sm">Contact an admin to get access.</p>
-        </div>
-      </PageLayout>
-    )
-  }
-
   var _tab = useState('dashboard')
   var tab = _tab[0]
   var setTab = _tab[1]
@@ -300,6 +288,18 @@ export default function AdminScreen() {
       }
     })
   }, [])
+
+  if (!isAdmin) {
+    return (
+      <PageLayout>
+        <div className="text-center max-w-md mx-auto py-20">
+          <Icon name="lock" size={38} className="text-on-surface/40 mb-4" />
+          <h2 className="text-on-surface font-bold text-lg mb-2">Admin Required</h2>
+          <p className="text-on-surface/50 text-sm">Contact an admin to get access.</p>
+        </div>
+      </PageLayout>
+    )
+  }
 
   function loadDbAudit() {
     supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(100).then(function(res) {

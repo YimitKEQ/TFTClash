@@ -62,7 +62,8 @@ export default function HostApplyScreen() {
         slug: slug,
         bio: reason.trim(),
         status: "pending",
-        social_links: { freq: freq, discord: discord.trim() }
+        social_links: { freq: freq, discord: discord.trim() },
+        vision: vision.trim()
       }, { onConflict: 'user_id' }).then(function(res) {
         if (res.error) console.error("[TFT] host_profiles insert failed:", res.error);
       });
@@ -216,7 +217,7 @@ export default function HostApplyScreen() {
             <div className="pt-6 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-slate-500">
                 <Icon name="info" size={16} />
-                <span className="text-xs italic">Review takes 3-5 business days</span>
+                <span className="text-xs italic">Review takes up to 48 hours</span>
               </div>
               <button
                 type="button"
@@ -231,29 +232,6 @@ export default function HostApplyScreen() {
 
         {/* Status + Meta Side (4 cols) */}
         <div className="col-span-12 lg:col-span-4 space-y-6">
-
-          {/* Application Status Card */}
-          <div className="bg-surface-container-high p-8 rounded-xl border border-outline-variant/10">
-            <h4 className="font-label text-xs tracking-widest text-slate-400 uppercase mb-6">Current Status</h4>
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-              <span className="font-headline text-2xl font-bold text-on-surface">Application Pending</span>
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center text-sm border-b border-white/5 pb-4">
-                <span className="text-slate-500">Submitted</span>
-                <span className="font-mono">{new Date().toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase()}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm border-b border-white/5 pb-4">
-                <span className="text-slate-500">Reference ID</span>
-                <span className="font-mono">{"#HOST-" + String(Date.now()).slice(-4)}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Tier Track</span>
-                <span className="font-mono text-tertiary">Challenger Circuit</span>
-              </div>
-            </div>
-          </div>
 
           {/* Requirements Checklist */}
           <div className="bg-surface-container/60 backdrop-blur-[24px] p-8 rounded-xl border border-outline-variant/10">

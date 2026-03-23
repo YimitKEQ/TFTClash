@@ -5,19 +5,20 @@ import { Icon } from '../components/ui'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function buildNarrativeParts(player, s, position, totalPlayers) {
+function buildNarrativeParts(player, s, position, totalPlayers, seasonName) {
   var name = player.name || 'You'
   var winRate = s.top1Rate
   var avp = s.avgPlacement
   var wins = s.wins
   var games = s.games
+  var sn = seasonName || 'Season 1'
   if (position === 1) {
     return [
       { text: name + ' stood above every challenger this season. ', italic: false },
       { text: wins + ' victories', italic: true },
       { text: ' across ' + games + ' games, an average placement of ' + avp + ', and a ', italic: false },
       { text: winRate + '% win rate', italic: true },
-      { text: ' cemented a historic Season 1 run. Dominant, consistent, and clinical - a true Season 1 Champion.', italic: false },
+      { text: ' cemented a historic ' + sn + ' run. Dominant, consistent, and clinical - a true ' + sn + ' Champion.', italic: false },
     ]
   }
   if (position <= 3) {
@@ -30,7 +31,7 @@ function buildNarrativeParts(player, s, position, totalPlayers) {
     ]
   }
   return [
-    { text: name + ' competed hard across Season 1 - ', italic: false },
+    { text: name + ' competed hard across ' + sn + ' - ', italic: false },
     { text: wins + ' wins', italic: true },
     { text: ' and a ', italic: false },
     { text: avp + ' average placement', italic: true },
@@ -52,7 +53,8 @@ function getRankLabel(player) {
   return player.rank || 'Unranked'
 }
 
-function buildHighlights(player, s, awards) {
+function buildHighlights(player, s, awards, seasonTag) {
+  var tag = seasonTag || 'S1'
   var items = []
   if (s.wins > 0) {
     items.push({
@@ -60,8 +62,8 @@ function buildHighlights(player, s, awards) {
       color: 'text-primary',
       borderColor: 'border-primary/40',
       title: s.wins + (s.wins === 1 ? ' Victory' : ' Victories') + ' This Season',
-      subtitle: 'Clash wins recorded in Season 1',
-      date: 'S1',
+      subtitle: 'Clash wins recorded in ' + tag,
+      date: tag,
     })
   }
   if (player.bestStreak && player.bestStreak >= 2) {
@@ -71,7 +73,7 @@ function buildHighlights(player, s, awards) {
       borderColor: 'border-tertiary/40',
       title: player.bestStreak + '-Game Win Streak',
       subtitle: 'Best consecutive first-place run',
-      date: 'S1',
+      date: tag,
     })
   }
   if (awards && awards.length > 0) {
@@ -81,7 +83,7 @@ function buildHighlights(player, s, awards) {
       borderColor: 'border-secondary/40',
       title: awards[0].title,
       subtitle: 'Season award earned',
-      date: 'S1',
+      date: tag,
     })
   }
   if (s.games >= 10) {
@@ -91,14 +93,14 @@ function buildHighlights(player, s, awards) {
       borderColor: 'border-primary/40',
       title: s.games + ' Clashes Entered',
       subtitle: 'Showed up every week',
-      date: 'S1',
+      date: tag,
     })
   }
   return items.slice(0, 4)
 }
 
 function nextSeasonCountdown() {
-  return 'Season 2 Starts Soon'
+  return 'Next Season - Coming Soon'
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
@@ -108,6 +110,9 @@ export default function SeasonRecapScreen() {
   var players = ctx.players || []
   var currentUser = ctx.currentUser
   var toast = ctx.toast
+  var seasonConfig = ctx.seasonConfig || {}
+  var seasonName = seasonConfig.seasonName || 'Season 1'
+  var seasonTag = seasonConfig.seasonTag || 'S1'
 
   var player = null
   if (currentUser) {
@@ -135,14 +140,14 @@ export default function SeasonRecapScreen() {
   var position = sorted.findIndex(function(p) { return p.id === player.id }) + 1
   var totalPlayers = players.length
 
-  var narrativeParts = buildNarrativeParts(player, s, position, totalPlayers)
+  var narrativeParts = buildNarrativeParts(player, s, position, totalPlayers, seasonName)
   var topPct = topPercentLabel(position, totalPlayers)
   var rankLabel = getRankLabel(player)
-  var highlights = buildHighlights(player, s, awards)
+  var highlights = buildHighlights(player, s, awards, seasonTag)
 
   function handleShare() {
     var text = (
-      'TFT Clash Season 1 Recap - ' + player.name +
+      'TFT Clash ' + seasonName + ' Recap - ' + player.name +
       ' | #' + position + ' overall (' + player.pts + ' pts)' +
       ' | ' + s.wins + ' wins' +
       ' | AVP ' + s.avgPlacement +
@@ -171,7 +176,7 @@ export default function SeasonRecapScreen() {
             Season Achievement Unlocked
           </div>
           <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight leading-none mb-4">
-            Season 1{' '}
+            {seasonName + ' '}
             <span
               className="font-serif"
               style={{
@@ -314,7 +319,7 @@ export default function SeasonRecapScreen() {
             <div className="absolute bottom-8 left-8 z-20">
               <h4 className="font-serif text-3xl font-bold">The Obsidian Trophy</h4>
               <p className="font-condensed text-primary uppercase tracking-widest text-sm">
-                Season 1 Commemorative Item
+                {seasonName + ' Commemorative Item'}
               </p>
             </div>
             <div className="absolute top-8 right-8 z-20">

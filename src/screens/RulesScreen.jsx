@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
+import { PTS } from '../lib/constants.js'
 
 var QUICK_FACTS = [
   {
@@ -23,13 +24,18 @@ var QUICK_FACTS = [
   },
 ]
 
-var SCORING_ROWS = [
-  { place: '1st Place', pts: '8 Points', bonus: '+2 Streak', isFirst: true, isStreak: true },
-  { place: '2nd Place', pts: '6 Points', bonus: '+1 Streak', isFirst: false, isStreak: true },
-  { place: '3rd Place', pts: '5 Points', bonus: '-', isFirst: false, isStreak: false },
-  { place: '4th Place', pts: '4 Points', bonus: '-', isFirst: false, isStreak: false },
-  { place: '5th-8th',   pts: '2-0 Points', bonus: '-', isFirst: false, isStreak: false, isDim: true },
-]
+var ORDINALS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th']
+
+var SCORING_ROWS = [1, 2, 3, 4, 5, 6, 7, 8].map(function(place) {
+  return {
+    place: ORDINALS[place - 1] + ' Place',
+    pts: PTS[place] + ' Point' + (PTS[place] === 1 ? '' : 's'),
+    bonus: place === 1 ? '+2 Streak' : place === 2 ? '+1 Streak' : '-',
+    isFirst: place === 1,
+    isStreak: place <= 2,
+    isDim: false,
+  }
+})
 
 var TIEBREAKER_ITEMS = [
   'Total tournament points',

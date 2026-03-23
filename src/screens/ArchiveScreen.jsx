@@ -1,48 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
+import { getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
-
-var SEASON_DEFS = [
-  {
-    key: 's1',
-    number: 1,
-    title: 'Season 1',
-    subtitle: 'NEON ASCENSION',
-    year: '2025',
-    status: 'active',
-    champion: 'Levitate',
-    participants: '96',
-    clashes: '12',
-    topScore: '1024',
-    players: '9',
-    bgGradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-  },
-  {
-    key: 's0',
-    number: 0,
-    title: 'Season 0',
-    subtitle: 'GENESIS PROTOCOL',
-    year: '2024',
-    status: 'legacy',
-    champion: 'Zounderkite',
-    participants: '64',
-    clashes: '8',
-    topScore: '880',
-    players: '7',
-    bgGradient: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #252525 100%)',
-  },
-]
-
-var MINOR_EVENTS = [
-  { name: 'Genesis Warmup #3', winner: 'BingBing', entries: 16, date: 'Dec 12, 2024' },
-  { name: 'Neon Circuit Qualifier', winner: 'Ole', entries: 24, date: 'Jan 04, 2025' },
-  { name: 'Community Clash #01', winner: 'Sybor', entries: 16, date: 'Jan 18, 2025' },
-  { name: 'Weekly Clash #04', winner: 'Uri', entries: 8, date: 'Feb 01, 2025' },
-  { name: 'Weekly Clash #07', winner: 'Wiwi', entries: 8, date: 'Feb 22, 2025' },
-  { name: 'Weekly Clash #11', winner: 'Ivdim', entries: 8, date: 'Mar 08, 2025' },
-]
 
 function SeasonHero(props) {
   var season = props.season
@@ -195,15 +156,51 @@ function SeasonCard(props) {
 export default function ArchiveScreen() {
   var navigate = useNavigate()
   var ctx = useApp()
+  var players = ctx.players || []
+  var pastClashes = ctx.pastClashes || []
+  var seasonConfig = ctx.seasonConfig || {}
 
   var [search, setSearch] = useState('')
 
-  var filteredMinor = MINOR_EVENTS.filter(function(e) {
+  // Build season card from live context data
+  var champion = getSeasonChampion()
+  var championName = (champion && champion.name) || (players.length > 0 ? players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })[0].name : 'TBD')
+  var topPlayer = players.length > 0 ? players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })[0] : null
+  var topScore = topPlayer ? String(topPlayer.pts || 0) : '0'
+
+  var currentSeason = {
+    key: 'current',
+    number: seasonConfig.seasonTag || 'S1',
+    title: seasonConfig.seasonName || 'Season 1',
+    subtitle: 'CURRENT SEASON',
+    year: new Date().getFullYear().toString(),
+    status: 'active',
+    champion: championName,
+    participants: String(players.length),
+    clashes: String(pastClashes.length),
+    topScore: topScore,
+    players: String(players.length),
+    bgGradient: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+  }
+
+  var seasonDefs = [currentSeason]
+
+  // Minor events from pastClashes
+  var minorEvents = pastClashes.map(function(clash) {
+    return {
+      name: clash.name || ('Clash #' + clash.id),
+      winner: clash.champion || '',
+      entries: clash.players || 8,
+      date: clash.date || '',
+    }
+  })
+
+  var filteredMinor = minorEvents.filter(function(e) {
     if (!search) return true
     var q = search.toLowerCase()
     return (
       e.name.toLowerCase().indexOf(q) !== -1 ||
-      e.winner.toLowerCase().indexOf(q) !== -1
+      (e.winner && e.winner.toLowerCase().indexOf(q) !== -1)
     )
   })
 
@@ -224,7 +221,7 @@ export default function ArchiveScreen() {
 
         {/* Seasons Archive Grid */}
         <div className="flex flex-col gap-8">
-          {SEASON_DEFS.map(function(season) {
+          {seasonDefs.map(function(season) {
             return (
               <SeasonCard
                 key={season.key}
