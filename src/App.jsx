@@ -38,6 +38,7 @@ import TournamentDetailScreenNew from './screens/TournamentDetailScreen';
 import TournamentsListScreenNew from './screens/TournamentsListScreen';
 import AdminScreenNew from './screens/AdminScreen';
 import HofScreenNew from './screens/HofScreen';
+import GearScreenNew from './screens/GearScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -6809,7 +6810,7 @@ function TFTClash(){
 
         {screen==="terms"      &&<TermsScreenNew/>}
 
-        {screen==="gear"       &&<GearScreen setScreen={navTo} isAdmin={isAdmin} toast={toast}/>}
+        {screen==="gear"       &&<GearScreenNew/>}
 
         {screen==="account"    &&<AccountScreenNew />}
 
