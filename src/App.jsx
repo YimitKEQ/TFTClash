@@ -13,6 +13,7 @@ import { AppProvider, useApp } from './context/AppContext.jsx';
 import LoginScreenNew from './screens/LoginScreen';
 import SignUpScreenNew from './screens/SignUpScreen';
 import GuestHomeScreen from './screens/HomeScreen';
+import DashboardScreen from './screens/DashboardScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18114,7 +18115,7 @@ function TFTClash(){
         <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
         {screen==="home"&&!currentUser&&<GuestHomeScreen/>}
-        {screen==="home"&&currentUser&&<HomeScreen players={players} setPlayers={setPlayers} setScreen={navTo} toast={toast} announcement={announcement} setProfilePlayer={setProfilePlayer} currentUser={currentUser} onAuthClick={(m)=>setAuthScreen(m)} tournamentState={tournamentState} setTournamentState={setTournamentState} quickClashes={quickClashes} onJoinQuickClash={joinQuickClash} onRegister={handleRegister} tickerOverrides={tickerOverrides} hostAnnouncements={hostAnnouncements} featuredEvents={featuredEvents} seasonConfig={seasonConfig}/>}
+        {screen==="home"&&currentUser&&<DashboardScreen/>}
 
         {screen==="standings"  &&<StandingsScreen subRoute={subRoute} players={players} setScreen={navTo} setProfilePlayer={setProfilePlayer} currentUser={currentUser} toast={toast} pastClashes={pastClashes}/>}
 
