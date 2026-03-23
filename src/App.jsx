@@ -3834,13 +3834,13 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
       <div style={{display:"grid",gridTemplateColumns:cols,padding:"9px 14px",borderBottom:"1px solid rgba(242,237,228,.07)",background:"#0A0F1A"}}>
 
-        <span className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}>#</span>
+        <span className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}>#</span>
 
         <H k="name" label="Player"/><H k="pts" label="Pts"/><H k="avg" label="Avg"/><H k="games" label="G"/>
 
         {!compact&&<H k="wins" label="W"/>}
 
-        <span className="cond" style={{fontSize:9,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}>Trend</span>
+        <span className="cond" style={{fontSize:10,fontWeight:700,color:"#9AAABF",letterSpacing:".1em"}}>Trend</span>
 
       </div>
 
@@ -3871,7 +3871,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
             var tName=TIER_THRESHOLDS[ti].name;
             tierLine=React.createElement("div",{key:"tier-"+i,style:{display:"flex",alignItems:"center",gap:8,padding:"4px 14px",margin:"4px 0"}},
               React.createElement("div",{style:{flex:1,height:1,background:tColor,opacity:0.4}}),
-              React.createElement("span",{className:"cond",style:{fontSize:8,fontWeight:700,color:tColor,letterSpacing:".1em",textTransform:"uppercase"}},tName),
+              React.createElement("span",{className:"cond",style:{fontSize:10,fontWeight:700,color:tColor,letterSpacing:".1em",textTransform:"uppercase"}},tName),
               React.createElement("div",{style:{flex:1,height:1,background:tColor,opacity:0.4}})
             );
             break;
@@ -4772,7 +4772,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             React.createElement("div", {className: "inner-box", style: {width: 56, height: 56, display: "flex", alignItems: "center", justifyContent: "center"}},
               React.createElement("span", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: "#E8A838"}}, seg[0])
             ),
-            React.createElement("div", {className: "cond", style: {fontSize: 9, color: "#6B7A8D", marginTop: 5, fontWeight: 700, letterSpacing: ".1em"}}, seg[1])
+            React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginTop: 5, fontWeight: 700, letterSpacing: ".1em"}}, seg[1])
           );
         })
       ),
@@ -4795,12 +4795,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               [[guestChampion.pts, "PTS", "#E8A838"], [guestChampion.wins || 0, "WINS", "#6EE7B7"], [guestChampStats ? guestChampStats.avgPlacement : "-", "AVG", "#4ECDC4"]].map(function(st) {
                 return React.createElement("div", {key: st[1]},
                   React.createElement("span", {className: "mono", style: {fontSize: 16, fontWeight: 700, color: st[2]}}, st[0]),
-                  React.createElement("span", {className: "cond", style: {fontSize: 9, color: "#6B7A8D", marginLeft: 4, letterSpacing: ".08em"}}, st[1])
+                  React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginLeft: 4, letterSpacing: ".08em"}}, st[1])
                 );
               })
             )
           ),
-          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 18, color: "#5A6577"}})
+          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 18, color: "#9AAABF"}})
         )
       )
     ) : null;
@@ -4816,7 +4816,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 16 : 13, fontWeight: 900, color: rkCol, textAlign: "center"}}, i < 3 ? React.createElement("i", {className: "ti ti-" + (ICON_REMAP["award-fill"] || "award-fill"), style: {color: rkCol}}) : i + 1),
         React.createElement("div", {style: {minWidth: 0}},
           React.createElement("div", {style: {fontWeight: i < 3 ? 700 : 500, fontSize: i < 3 ? 14 : 13, color: namC, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, p.name),
-          React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", marginTop: 1}}, (p.rank || "Unranked") + " - " + (p.wins || 0) + "W")
+          React.createElement("div", {style: {fontSize: 11, color: "#9AAABF", marginTop: 1}}, (p.rank || "Unranked") + " - " + (p.wins || 0) + "W")
         ),
         React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 18 : 14, fontWeight: 800, color: ptsC, textAlign: "right"}}, p.pts),
         React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4}},
@@ -4862,7 +4862,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               React.createElement("i", {className: "ti " + item[3], style: {fontSize: 13, color: item[2], opacity: 0.7}}),
               React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: item[2], lineHeight: 1}}, item[0])
             ),
-            React.createElement("div", {className: "cond", style: {fontSize: 9, color: "#6B7A8D", marginTop: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em"}}, item[1])
+            React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginTop: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em"}}, item[1])
           );
         })
       ),
@@ -4885,7 +4885,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
                   React.createElement("div", {className: "inner-box", style: {padding: "8px 0", display: "flex", alignItems: "center", justifyContent: "center"}},
                     React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: "#E8A838"}}, seg[0])
                   ),
-                  React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", marginTop: 3, fontWeight: 700}}, seg[1])
+                  React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginTop: 3, fontWeight: 700}}, seg[1])
                 );
               })
             ),
@@ -4906,7 +4906,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "View All")
           ),
           guestLbRows,
-          top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 32, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
+          top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 32, color: "#9AAABF", fontSize: 13}}, "No players yet") : null
         )
       ),
 
@@ -4915,7 +4915,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
           React.createElement("i", {className: "ti ti-calendar-event", style: {fontSize: 12, color: "#C4B5FD"}}),
           React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#C4B5FD", letterSpacing: ".12em", textTransform: "uppercase"}}, "Featured Event"),
-          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#5A6577", marginLeft: "auto"}})
+          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#9AAABF", marginLeft: "auto"}})
         ),
         React.createElement("div", {style: {padding: "12px 14px", display: "flex", alignItems: "center", gap: 12}},
           React.createElement("div", {style: {flex: 1, minWidth: 0}},
@@ -4936,7 +4936,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           return React.createElement(Panel, {key: step.n, style: {padding: "14px 12px", textAlign: "center"}},
             React.createElement("i", {className: "ti " + step.ic, style: {fontSize: 18, color: step.c, marginBottom: 6, display: "block"}}),
             React.createElement("div", {style: {fontWeight: 700, fontSize: 12, color: "#F2EDE4", marginBottom: 3}}, step.t),
-            React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", lineHeight: 1.4}}, step.d)
+            React.createElement("div", {style: {fontSize: 12, color: "#BECBD9", lineHeight: 1.4}}, step.d)
           );
         })
       ),
@@ -5016,7 +5016,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("div", {className: "inner-box", style: {width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center"}},
           React.createElement("span", {className: "mono", style: {fontSize: 18, fontWeight: 800, color: "#E8A838"}}, seg[0])
         ),
-        React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", marginTop: 3, fontWeight: 700, letterSpacing: ".1em"}}, seg[1])
+        React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", marginTop: 3, fontWeight: 700, letterSpacing: ".1em"}}, seg[1])
       );
     })
   ) : null;
@@ -5034,12 +5034,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       // Sparkline
       pointsTrend.length >= 2 ? React.createElement("div", {style: {marginBottom: 16, padding: "12px 14px", background: "rgba(155,114,207,.04)", borderRadius: 10, border: "1px solid rgba(155,114,207,.08)"}},
         React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8}},
-          React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".12em"}}, "Season Trajectory"),
+          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".12em"}}, "Season Trajectory"),
           React.createElement("span", {className: "mono", style: {fontSize: 12, fontWeight: 700, color: "#E8A838"}}, linkedPlayer.pts + " pts total")
         ),
         React.createElement(Sparkline, {data: pointsTrend, color: "#9B72CF", w: 260, h: 32}),
         React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6, marginTop: 8}},
-          React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em"}}, "Form"),
+          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em"}}, "Form"),
           React.createElement(FormDots, {history: clashHistory})
         )
       ) : null,
@@ -5057,17 +5057,17 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       // Last clash + streak
       React.createElement("div", {style: {display: "flex", gap: 10, flexWrap: "wrap"}},
         lastClash ? React.createElement("div", {className: "inner-box", style: {flex: 1, minWidth: 130, padding: "12px 14px"}},
-          React.createElement("div", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Last Clash"),
+          React.createElement("div", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Last Clash"),
           React.createElement("div", {style: {display: "flex", alignItems: "baseline", gap: 6}},
             React.createElement("span", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: lastClash.placement <= 4 ? "#E8A838" : "#9AAABF"}}, ordinal(lastClash.placement)),
             React.createElement("span", {style: {fontSize: 12, color: "#BECBD9", fontWeight: 600}}, "+" + (lastClash.points || 0) + " pts")
           )
         ) : React.createElement("div", {className: "inner-box", style: {flex: 1, minWidth: 130, padding: "12px 14px"}},
-          React.createElement("div", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Last Clash"),
-          React.createElement("div", {style: {fontSize: 12, color: "#6B7A8D"}}, "No results yet")
+          React.createElement("div", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Last Clash"),
+          React.createElement("div", {style: {fontSize: 12, color: "#9AAABF"}}, "No results yet")
         ),
         currentStreak > 1 ? React.createElement("div", {className: "inner-box", style: {flex: 1, minWidth: 130, padding: "12px 14px"}},
-          React.createElement("div", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Active Streak"),
+          React.createElement("div", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 6}}, "Active Streak"),
           React.createElement("div", {style: {display: "flex", alignItems: "baseline", gap: 5}},
             React.createElement("span", {className: "mono", style: {fontSize: 24, fontWeight: 800, color: "#6EE7B7"}}, currentStreak),
             React.createElement("span", {style: {fontSize: 12, color: "#BECBD9", fontWeight: 600}}, streakType === "win" ? "wins" : "top 4s")
@@ -5086,7 +5086,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("span", {style: {width: 6, height: 6, borderRadius: "50%", background: "#52C47C", animation: "pulse 2s infinite", display: "inline-block"}}),
         "LIVE NOW"
       ) : React.createElement("span", {style: {marginLeft: "auto", fontSize: 10, color: "#BECBD9"}}, heroEv.date || ""),
-      React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#5A6577", marginLeft: 4}})
+      React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#9AAABF", marginLeft: 4}})
     ),
     React.createElement("div", {style: {padding: "14px 16px", display: "flex", gap: 12, alignItems: "center"}},
       React.createElement("div", {style: {flex: 1, minWidth: 0}},
@@ -5113,7 +5113,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 16 : 13, fontWeight: 900, color: rkCol, textAlign: "center"}}, i < 3 ? React.createElement("i", {className: "ti ti-" + (ICON_REMAP["award-fill"] || "award-fill"), style: {color: rkCol}}) : i + 1),
       React.createElement("div", {style: {minWidth: 0}},
         React.createElement("div", {style: {fontWeight: i < 3 ? 700 : 500, fontSize: i < 3 ? 14 : 13, color: isMe ? "#C4B5FD" : namC, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, p.name + (isMe ? " (you)" : "")),
-        React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", marginTop: 1}}, (p.rank || "Unranked") + " - " + (p.wins || 0) + "W")
+        React.createElement("div", {style: {fontSize: 11, color: "#9AAABF", marginTop: 1}}, (p.rank || "Unranked") + " - " + (p.wins || 0) + "W")
       ),
       React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 18 : 14, fontWeight: 800, color: ptsC, textAlign: "right"}}, p.pts),
       React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4}},
@@ -5134,7 +5134,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     hostAnnouncements && hostAnnouncements.length > 0 ? React.createElement("div", {style: {background: "rgba(155,114,207,.04)", border: "1px solid rgba(155,114,207,.12)", borderRadius: 10, padding: "10px 16px", marginBottom: 12, display: "flex", alignItems: "center", gap: 10}},
       React.createElement("i", {className: "ti ti-speakerphone", style: {fontSize: 14, color: "#C4B5FD", flexShrink: 0}}),
       React.createElement("span", {style: {color: "#C4B5FD", fontWeight: 600, fontSize: 12, flex: 1}}, hostAnnouncements[0].msg),
-      React.createElement("span", {style: {fontSize: 10, color: "#6B7A8D", flexShrink: 0}}, hostAnnouncements[0].sentAt)
+      React.createElement("span", {style: {fontSize: 10, color: "#9AAABF", flexShrink: 0}}, hostAnnouncements[0].sentAt)
     ) : null,
 
     // Zone 1 - The Pulse (clash status) - compact header
@@ -5163,8 +5163,8 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           React.createElement("div", {style: {fontWeight: 700, fontSize: 15, color: "#F2EDE4", lineHeight: 1.2}}, linkedPlayer ? linkedPlayer.name : (currentUser.username || "Summoner")),
           linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6, marginTop: 2}},
             React.createElement("span", {className: "cond", style: {fontSize: 10, color: currentTierInfo.color, fontWeight: 700, letterSpacing: ".06em", textTransform: "uppercase"}}, currentTierInfo.name),
-            React.createElement("span", {style: {fontSize: 10, color: "#6B7A8D"}}, linkedPlayer.rank || "Unranked")
-          ) : React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", marginTop: 2}}, "Link your Riot ID to get started")
+            React.createElement("span", {style: {fontSize: 10, color: "#9AAABF"}}, linkedPlayer.rank || "Unranked")
+          ) : React.createElement("div", {style: {fontSize: 11, color: "#9AAABF", marginTop: 2}}, "Link your Riot ID to get started")
         ),
         // Rank + Points inline
         linkedPlayer ? React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 12, flexShrink: 0}},
@@ -5173,12 +5173,12 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
               React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: currentTierInfo.color, lineHeight: 1}}, "#" + myRankIdx),
               rankDelta !== 0 ? React.createElement("span", {className: "mono", style: {fontSize: 9, fontWeight: 700, color: rankDelta < 0 ? "#6EE7B7" : "#F87171"}}, rankDelta < 0 ? "+" + Math.abs(rankDelta) : "-" + Math.abs(rankDelta)) : null
             ),
-            React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".08em"}}, "Rank")
+            React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".08em"}}, "Rank")
           ),
           React.createElement("div", {style: {width: 1, height: 24, background: "rgba(242,237,228,.06)"}}),
           React.createElement("div", {style: {textAlign: "center"}},
             React.createElement("span", {className: "mono", style: {fontSize: 20, fontWeight: 800, color: "#E8A838", lineHeight: 1}}, linkedPlayer.pts || 0),
-            React.createElement("div", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".08em"}}, "Points")
+            React.createElement("div", {className: "cond", style: {fontSize: 10, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".08em"}}, "Points")
           ),
           ptsToNextTier && ptsToNextTier > 0 ? React.createElement("span", {className: "cond", style: {fontSize: 9, color: "#9AAABF", background: "rgba(255,255,255,.03)", borderRadius: 5, padding: "2px 6px", border: "1px solid rgba(242,237,228,.06)"}}, ptsToNextTier + " to " + nextTier.name) : null
         ) : null,
@@ -5195,7 +5195,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           [[D, "D"], [H, "H"], [M, "M"], [S, "S"]].map(function(seg) {
             return React.createElement("div", {key: seg[1], className: "inner-box", style: {padding: "4px 8px", display: "flex", alignItems: "center", gap: 3}},
               React.createElement("span", {className: "mono", style: {fontSize: 14, fontWeight: 800, color: "#E8A838"}}, seg[0]),
-              React.createElement("span", {className: "cond", style: {fontSize: 8, color: "#6B7A8D", fontWeight: 700}}, seg[1])
+              React.createElement("span", {className: "cond", style: {fontSize: 10, color: "#9AAABF", fontWeight: 700}}, seg[1])
             );
           })
         )
@@ -5245,7 +5245,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "View All")
           ),
           dashLbRows,
-          top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 24, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
+          top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 24, color: "#9AAABF", fontSize: 13}}, "No players yet") : null
         ),
 
         // Activity feed
@@ -5258,7 +5258,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
             return React.createElement("div", {key: item.id || idx, style: {display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", borderBottom: idx < 3 ? "1px solid rgba(242,237,228,.04)" : "none"}},
               React.createElement("i", {className: "ti ti-" + (item.icon || "activity"), style: {fontSize: 12, color: item.color || "#9AAABF", flexShrink: 0}}),
               React.createElement("span", {style: {fontSize: 12, color: "#C8D4E0", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, item.message || item.text || ""),
-              item.created_at ? React.createElement("span", {style: {fontSize: 9, color: "#5A6577", flexShrink: 0}}, new Date(item.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})) : null
+              item.created_at ? React.createElement("span", {style: {fontSize: 10, color: "#9AAABF", flexShrink: 0}}, new Date(item.created_at).toLocaleDateString("en-GB", {day: "numeric", month: "short"})) : null
             );
           })
         ) : null
