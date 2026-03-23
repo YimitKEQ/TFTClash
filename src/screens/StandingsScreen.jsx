@@ -4,6 +4,7 @@ import PageLayout from '../components/layout/PageLayout'
 import PageHeader from '../components/shared/PageHeader'
 import { Panel, Icon } from '../components/ui'
 import LeaderboardScreen from './LeaderboardScreen'
+import HofScreen from './HofScreen'
 
 var TABS = [
   { id: '', label: 'Leaderboard', icon: 'emoji_events' },
@@ -56,13 +57,7 @@ export default function StandingsScreen() {
 
       {tab === '' && <LeaderboardScreen />}
 
-      {tab === 'hof' && (
-        <Panel className="text-center py-16">
-          <Icon name="workspace_premium" size={48} className="text-primary/30 mx-auto mb-4" />
-          <h2 className="font-serif text-2xl font-bold text-on-surface mb-2">Hall of Fame</h2>
-          <p className="text-on-surface-variant text-sm">Coming soon - Season legends will be enshrined here.</p>
-        </Panel>
-      )}
+      {tab === 'hof' && <HofScreen />}
 
       {tab === 'roster' && (
         <Panel className="text-center py-16">
