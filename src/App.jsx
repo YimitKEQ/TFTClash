@@ -15,6 +15,7 @@ import SignUpScreenNew from './screens/SignUpScreen';
 import GuestHomeScreen from './screens/HomeScreen';
 import DashboardScreen from './screens/DashboardScreen';
 import LeaderboardScreenNew from './screens/LeaderboardScreen';
+import PlayerProfileScreenNew from './screens/PlayerProfileScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18124,7 +18125,7 @@ function TFTClash(){
 
         {screen==="bracket"    &&<MemoBracketScreen players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
 
-        {screen==="profile"    &&profilePlayer&&<MemoPlayerProfileScreen player={profilePlayer} onBack={()=>setScreen("leaderboard")} allPlayers={players} setScreen={navTo} currentUser={currentUser} seasonConfig={seasonConfig} setComparePlayer={setComparePlayer}/>}
+        {screen==="profile"    &&profilePlayer&&<PlayerProfileScreenNew/>}
 
         {screen==="profile"    &&!profilePlayer&&<ProfileScreen subRoute={subRoute} currentUser={currentUser} setAuthScreen={setAuthScreen} onUpdate={updateUser} onLogout={handleLogout} toast={toast} setScreen={navTo} players={players} setPlayers={setPlayers} setProfilePlayer={setProfilePlayer} isAdmin={isAdmin} hostApps={hostApps} challengeCompletions={challengeCompletions}/>}
 
