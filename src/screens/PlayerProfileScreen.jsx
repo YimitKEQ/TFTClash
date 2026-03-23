@@ -8,20 +8,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Badge, Tag, StatCard } from '../components/ui'
 import RankBadge from '../components/shared/RankBadge'
 
-// ─── ICON REMAP for Tabler icons ─────────────────────────────────────────────
-var ICON_REMAP = {"exclamation-triangle-fill":"alert-triangle","exclamation-octagon-fill":"alert-octagon","info-circle-fill":"info-circle","check-circle-fill":"circle-check","x-circle-fill":"circle-x","slash-circle-fill":"ban","patch-check-fill":"rosette-discount-check","house-fill":"home","search":"search","three-dots":"dots","x-lg":"x","gear-fill":"settings","speedometer2":"gauge","download":"download","inbox":"inbox","clipboard":"clipboard","clipboard-check-fill":"clipboard-check","clipboard-data-fill":"clipboard-data","person-fill":"user","people-fill":"users","person-arms-up":"mood-happy","trophy-fill":"trophy","award-fill":"award","controller":"device-gamepad-2","dice-5-fill":"dice-5","bullseye":"target","crosshair":"crosshair","flag-fill":"flag","fire":"flame","snow":"snowflake","lightning-charge-fill":"bolt","sun-fill":"sun","moon-fill":"moon","water":"droplet-half-2","droplet":"droplet","droplet-fill":"droplet","hexagon-fill":"hexagon","diamond-half":"diamond","gem":"diamond","star-fill":"star","stars":"stars","heart-fill":"heart","shield-fill":"shield","shield-check":"shield-check","coin":"coin","bell-fill":"bell","bell-slash-fill":"bell-off","chat-fill":"message","megaphone-fill":"speakerphone","mic-fill":"microphone","broadcast-pin":"broadcast","calendar-event-fill":"calendar-event","calendar3":"calendar","calendar-check-fill":"calendar-check","bar-chart-line-fill":"chart-bar","graph-up-arrow":"trending-up","diagram-3-fill":"tournament","gift-fill":"gift","lock-fill":"lock","pin-fill":"pin","pencil-fill":"pencil","tag-fill":"tag","building":"building","tv-fill":"device-tv","pc-display":"device-desktop","mouse-fill":"mouse","headphones":"headphones","mortarboard-fill":"school","rocket-takeoff-fill":"rocket","journal-text":"notebook","question-circle-fill":"help-circle","eye-fill":"eye","emoji-dizzy":"mood-sad","pause-fill":"player-pause","archive-fill":"archive","arrow-up-circle-fill":"arrow-up-circle","twitter-x":"brand-x"};
-
-function tablerIcon(name, sizeStyle, colorStyle) {
-  var mapped = ICON_REMAP[name] || name;
-  return (
-    <i
-      className={'ti ti-' + mapped}
-      style={{ fontSize: sizeStyle || 'inherit', color: colorStyle || 'currentColor', lineHeight: 1, verticalAlign: 'middle' }}
-    />
-  );
-}
-
-// ─── PLACEMENT DISTRIBUTION ───────────────────────────────────────────────────
+// ─── PLACEMENT DISTRIBUTION BAR CHART ────────────────────────────────────────
 function PlacementDistribution({ history }) {
   var counts = [0, 0, 0, 0, 0, 0, 0, 0];
   (history || []).forEach(function(g) {
@@ -29,28 +16,45 @@ function PlacementDistribution({ history }) {
     if (p >= 0 && p < 8) counts[p]++;
   });
   var total = counts.reduce(function(s, v) { return s + v; }, 0) || 1;
-  var colors = ['#E8A838', '#C0C0C0', '#CD7F32', '#4ECDC4', '#9AAABF', '#9AAABF', '#F87171', '#F87171'];
+
+  // Group: 1st, 2nd, 3rd, 4th, 5-8
+  var grouped = [counts[0], counts[1], counts[2], counts[3], counts[4] + counts[5] + counts[6] + counts[7]];
+  var labels = ['1ST', '2ND', '3RD', '4TH', '5-8'];
+  var bgClasses = [
+    'bg-primary',
+    'bg-primary-container/60',
+    'bg-primary-container/40',
+    'bg-primary-container/20',
+    'bg-on-surface/5'
+  ];
+  var labelColors = [
+    'text-primary',
+    'text-on-surface/60',
+    'text-on-surface/60',
+    'text-on-surface/60',
+    'text-on-surface/20'
+  ];
+  var maxCount = Math.max.apply(null, grouped) || 1;
 
   return (
-    <div className="mb-4">
-      <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mb-3">Placement Distribution</div>
-      {counts.map(function(count, i) {
-        var pct = Math.round((count / total) * 100);
-        return (
-          <div key={i} className="flex items-center gap-3 mb-1.5">
-            <div className="font-mono text-xs font-bold w-5 text-right flex-shrink-0" style={{ color: colors[i] }}>
-              {i + 1}
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Placement Distribution</h3>
+        <Icon className="text-on-surface/40">info</Icon>
+      </div>
+      <div className="flex items-end justify-between h-48 gap-2">
+        {grouped.map(function(count, i) {
+          var pct = Math.round((count / total) * 100);
+          var heightPct = Math.round((count / maxCount) * 100);
+          return (
+            <div key={i} className="flex flex-col items-center flex-1 group">
+              <span className="text-xs font-stats text-on-surface/40 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">{pct + '%'}</span>
+              <div className={'w-full rounded-t-sm ' + bgClasses[i]} style={{ height: heightPct + '%', minHeight: count > 0 ? '4px' : '0' }}></div>
+              <span className={'font-technical text-[10px] mt-4 ' + labelColors[i]}>{labels[i]}</span>
             </div>
-            <div className="flex-1 h-2 rounded-full bg-surface-container-high overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500"
-                style={{ width: pct + '%', backgroundColor: colors[i] }}
-              />
-            </div>
-            <div className="font-mono text-[11px] text-on-surface/50 w-8 flex-shrink-0">{count}x</div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -61,14 +65,22 @@ function RateBar({ label, value, color }) {
   return (
     <div className="mb-3">
       <div className="flex justify-between mb-1">
-        <span className="text-xs text-on-surface/60">{label}</span>
-        <span className="font-mono text-xs font-bold" style={{ color: color }}>{value}</span>
+        <span className="text-xs font-technical text-on-surface/60">{label}</span>
+        <span className="font-stats text-xs font-bold" style={{ color: color }}>{value}</span>
       </div>
       <div className="h-1 rounded-full bg-surface-container-high overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: pct + '%', backgroundColor: color, transition: 'width 0.5s' }} />
+        <div className="h-full rounded-t-sm" style={{ width: pct + '%', backgroundColor: color, transition: 'width 0.5s' }} />
       </div>
     </div>
   );
+}
+
+// ─── ORDINAL SUFFIX ───────────────────────────────────────────────────────────
+function ordinalSuffix(n) {
+  if (n === 1) return 'ST';
+  if (n === 2) return 'ND';
+  if (n === 3) return 'RD';
+  return 'TH';
 }
 
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
@@ -189,230 +201,309 @@ export default function PlayerProfileScreen() {
 
   return (
     <PageLayout>
-      {/* Action Bar */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <Btn onClick={function() { navigate(-1); }}>
-          {tablerIcon('arrow-left', 12, null)}
-          <span className="ml-1">Back</span>
-        </Btn>
-        <Btn onClick={function() { navigate('/challenges'); }}>
-          {tablerIcon('bolt', 12, null)}
-          <span className="ml-1">Challenges</span>
-        </Btn>
-        <Btn onClick={downloadStatsCard}>
-          {tablerIcon('download', 12, null)}
-          <span className="ml-1">Download Card</span>
-        </Btn>
-        <Btn onClick={handleShare}>
-          {tablerIcon('brand-x', 12, null)}
-          <span className="ml-1">Share</span>
-        </Btn>
-        {setComparePlayer && !isOwnProfile && (
-          <Btn onClick={function() { setComparePlayer(player); }}>
-            {tablerIcon('arrows-diff', 12, null)}
-            <span className="ml-1">Compare</span>
-          </Btn>
-        )}
-      </div>
-
-      {/* Champion Banner */}
-      {isChampion && (
-        <div className="mb-4 px-4 py-3 rounded-xl flex items-center gap-3" style={{ background: 'linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))', border: '1px solid rgba(232,168,56,.5)' }}>
-          {tablerIcon('trophy', 22, '#E8A838')}
-          <div className="flex-1">
-            <div className="font-bold text-sm text-[#E8A838]">{champion.title}</div>
-            <div className="text-xs text-on-surface/60">Reigning champion since {champion.since}</div>
-          </div>
-          <Tag color="#E8A838">Season {champion.season}</Tag>
-        </div>
-      )}
-
       {/* Hero Banner */}
-      <div className="rounded-xl overflow-hidden mb-6" style={{ border: '1px solid ' + rankColor + '30' }}>
-        {/* Banner area */}
-        <div className="h-28 relative overflow-hidden" style={{ background: pBanner ? ('url(' + pBanner + ') center/cover no-repeat') : ('linear-gradient(135deg,' + (pAccent || rankColor) + '28,#08080F 60%)') }}>
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(transparent 30%,#08080F)' }} />
-        </div>
+      <div className="relative h-72 w-full overflow-hidden -mx-6 mb-8" style={{ width: 'calc(100% + 3rem)' }}>
+        <div className="absolute inset-0 opacity-20" style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}></div>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #13131a, transparent)' }}></div>
+        {pBanner && (
+          <img
+            src={pBanner}
+            alt="Profile Banner"
+            className="w-full h-full object-cover mix-blend-overlay opacity-30"
+          />
+        )}
 
-        <div className="px-6 pb-6" style={{ marginTop: '-36px' }}>
-          <div className="flex items-end gap-4 flex-wrap relative">
-            {/* Avatar */}
+        {/* Profile Info Overlay */}
+        <div className="absolute bottom-0 left-0 w-full px-6 pb-8 flex flex-col md:flex-row items-end gap-6">
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
             <div
-              className="flex items-center justify-center font-bold flex-shrink-0 text-3xl rounded-full"
+              className="w-32 h-32 md:w-40 md:h-40 border-4 border-primary p-1 rounded-full overflow-hidden relative z-10 flex items-center justify-center font-bold text-4xl"
               style={{
-                width: 80, height: 80,
-                background: pPic ? ('url(' + pPic + ') center/cover no-repeat') : ('linear-gradient(135deg,' + rankColor + '33,' + rankColor + '11)'),
-                border: '4px solid #08080F',
-                boxShadow: '0 0 0 2px ' + (isChampion ? '#E8A838' : rankColor + '66'),
-                color: isChampion ? '#E8A838' : rankColor,
-                fontFamily: "'Russo One',sans-serif",
-                position: 'relative'
+                background: pPic ? ('url(' + pPic + ') center/cover no-repeat') : 'linear-gradient(135deg, #34343c, #1f1f27)',
+                boxShadow: '0 0 30px rgba(253, 186, 73, 0.15)',
+                color: rankColor,
+                fontFamily: "'Russo One', sans-serif"
               }}
             >
-              {isChampion && (
-                <span style={{ position: 'absolute', top: -8, right: -8, fontSize: 16 }}>
-                  {tablerIcon('trophy', 16, '#E8A838')}
-                </span>
-              )}
               {!pPic && player.name.charAt(0)}
             </div>
-
-            {/* Name + meta */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                <h1 className="text-3xl font-serif text-on-surface leading-tight">{player.name}</h1>
-                {isChampion && (
-                  <Tag color="#E8A838">
-                    {tablerIcon('trophy', 11, '#E8A838')}
-                    <span className="ml-1">{champion.title}</span>
-                  </Tag>
-                )}
-                {isHotStreak(player) && tablerIcon('flame', 18, '#F97316')}
-                {isOnTilt(player) && tablerIcon('mood-sad', 18, '#F87171')}
+            {isChampion && (
+              <div className="absolute -bottom-2 right-4 z-20 bg-primary text-on-primary-fixed font-technical font-bold px-3 py-1 rounded-full text-xs tracking-tighter">
+                CHAMPION
               </div>
-
-              <div className="flex gap-2 flex-wrap mb-2">
-                <RankBadge rank={player.rank} />
-                {player.region && <Tag color="#4ECDC4">{player.region}</Tag>}
-                {player.riotId && (
-                  <span className="font-mono text-xs text-on-surface/40">{player.riotId}</span>
-                )}
+            )}
+            {!isChampion && s.games > 0 && (
+              <div className="absolute -bottom-2 right-4 z-20 bg-primary text-on-primary-fixed font-technical font-bold px-3 py-1 rounded-full text-xs tracking-tighter">
+                {'LVL ' + Math.max(1, s.games)}
               </div>
+            )}
+          </div>
 
-              {/* Top achievements preview */}
-              {achievements.length > 0 && (
-                <div className="flex gap-1.5 flex-wrap">
-                  {achievements.slice(0, 4).map(function(a) {
-                    return (
-                      <div key={a.id} title={a.desc} className="flex items-center gap-1 px-2 py-0.5 rounded text-xs" style={{ background: 'rgba(232,168,56,.1)', border: '1px solid rgba(232,168,56,.3)' }}>
-                        {tablerIcon(ICON_REMAP[a.icon] || a.icon, 11, null)}
-                        <span className="font-bold text-[#E8A838] text-[10px]">{a.name}</span>
-                      </div>
-                    );
-                  })}
+          <div className="flex-1 mb-2">
+            <div className="flex items-center gap-4 mb-1 flex-wrap">
+              <h1 className="text-5xl font-editorial text-on-surface">{player.name}</h1>
+              {player.rank && (
+                <div className="bg-tertiary/10 text-tertiary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-tertiary/20">
+                  {player.rank.toUpperCase()}
+                </div>
+              )}
+              {isChampion && (
+                <div className="bg-primary/10 text-primary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-primary/20">
+                  {champion.title.toUpperCase()}
                 </div>
               )}
             </div>
+            {pBio && (
+              <p className="text-on-surface/40 font-body text-sm max-w-lg mb-3">{pBio}</p>
+            )}
+            {!pBio && (
+              <p className="text-on-surface/40 font-body text-sm max-w-lg mb-3">
+                {'Season ' + (seasonConfig && seasonConfig.season ? seasonConfig.season : '1') + ' competitor.'}
+              </p>
+            )}
+            <div className="flex gap-4 mt-2 flex-wrap">
+              <button
+                className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
+                onClick={handleShare}
+              >
+                <Icon className="text-lg">share</Icon>
+                <span className="font-technical text-xs tracking-widest uppercase">Socials</span>
+              </button>
+              {!isOwnProfile && (
+                <button
+                  className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
+                  onClick={function() { if (setComparePlayer) setComparePlayer(player); }}
+                >
+                  <Icon className="text-lg">person_add</Icon>
+                  <span className="font-technical text-xs tracking-widest uppercase">Follow</span>
+                </button>
+              )}
+              {isOwnProfile && (
+                <button
+                  className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
+                  onClick={function() { navigate('/account'); }}
+                >
+                  <Icon className="text-lg">edit</Icon>
+                  <span className="font-technical text-xs tracking-widest uppercase">Edit Profile</span>
+                </button>
+              )}
+              <button
+                className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
+                onClick={downloadStatsCard}
+              >
+                <Icon className="text-lg">download</Icon>
+                <span className="font-technical text-xs tracking-widest uppercase">Download Card</span>
+              </button>
+            </div>
           </div>
 
-          {/* Bio + Socials */}
-          {(pBio || pTwitch || pTwitter || pYoutube) && (
-            <div className="mt-4">
-              {pBio && <div className="text-sm text-on-surface/70 leading-relaxed mb-2">{pBio}</div>}
-              <div className="flex gap-3 flex-wrap">
-                {pTwitch && (
-                  <a href={'https://twitch.tv/' + pTwitch} target="_blank" rel="noopener noreferrer" className="text-xs text-primary no-underline flex items-center gap-1 hover:underline">
-                    {tablerIcon('brand-twitch', 13, '#9B72CF')}
-                    twitch.tv/{pTwitch}
-                  </a>
-                )}
-                {pTwitter && (
-                  <a href={'https://x.com/' + pTwitter} target="_blank" rel="noopener noreferrer" className="text-xs text-[#4ECDC4] no-underline flex items-center gap-1 hover:underline">
-                    {tablerIcon('brand-x', 13, '#4ECDC4')}
-                    @{pTwitter}
-                  </a>
-                )}
-                {pYoutube && (
-                  <a href={'https://youtube.com/@' + pYoutube} target="_blank" rel="noopener noreferrer" className="text-xs text-rose-400 no-underline flex items-center gap-1 hover:underline">
-                    {tablerIcon('brand-youtube', 13, '#F87171')}
-                    youtube.com/@{pYoutube}
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Regional Rank */}
+          <div className="hidden lg:flex flex-col items-end gap-2 mb-2">
+            <span className="font-technical text-on-surface/40 uppercase text-xs tracking-[0.2em]">Regional Rank</span>
+            <span className="text-4xl font-display text-primary tracking-tighter">
+              {'#' + (seasonRank < 10 ? '0' + seasonRank : seasonRank)}
+            </span>
+          </div>
+        </div>
+      </div>
 
-          {isOwnProfile && (
-            <div className="mt-3">
-              <Btn onClick={function() { navigate('/profile'); }}>Edit Profile</Btn>
-            </div>
-          )}
+      {/* 4-Column Stat Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Stat 1: Total LP Points */}
+        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Icon className="text-6xl">military_tech</Icon>
+          </div>
+          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">Total LP Points</span>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-stats text-on-surface">{player.pts}</span>
+            {ppg > 0 && (
+              <span className="text-primary text-sm font-stats mb-1">{'+' + ppg + ' PPG'}</span>
+            )}
+          </div>
+        </div>
 
-          {/* Quick stats grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
-            <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(232,168,56,.06)', border: '1px solid rgba(232,168,56,.15)' }}>
-              <div className="font-mono text-2xl font-bold text-[#E8A838] leading-tight">{player.pts}</div>
-              <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mt-1">Season Pts</div>
-            </div>
-            <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(110,231,183,.06)', border: '1px solid rgba(110,231,183,.15)' }}>
-              <div className="font-mono text-2xl font-bold text-emerald-400 leading-tight">{s.top1Rate + '%'}</div>
-              <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mt-1">Win Rate</div>
-            </div>
-            <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(78,205,196,.06)', border: '1px solid rgba(78,205,196,.15)' }}>
-              <div className="font-mono text-2xl font-bold leading-tight" style={{ color: avgCol(s.avgPlacement) }}>{s.avgPlacement}</div>
-              <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mt-1">Avg Place</div>
-            </div>
-            <div className="rounded-lg p-3 text-center" style={{ background: 'rgba(196,181,253,.06)', border: '1px solid rgba(196,181,253,.15)' }}>
-              <div className="font-mono text-2xl font-bold text-[#C4B5FD] leading-tight">{s.top4Rate + '%'}</div>
-              <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mt-1">Top 4 %</div>
-            </div>
+        {/* Stat 2: Total Wins */}
+        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Icon className="text-6xl">workspace_premium</Icon>
+          </div>
+          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">Total Wins</span>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-stats text-on-surface">{s.wins}</span>
+            <span className="text-on-surface/40 text-sm font-stats mb-1">{'/ ' + s.games + ' Games'}</span>
+          </div>
+        </div>
+
+        {/* Stat 3: Avg Placement */}
+        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+            <Icon className="text-6xl">analytics</Icon>
+          </div>
+          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">Avg Placement</span>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-stats text-on-surface">{s.avgPlacement}</span>
+            <div className="w-12 h-1 bg-tertiary rounded-full mb-3"></div>
+          </div>
+        </div>
+
+        {/* Stat 4: Win Streak */}
+        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group border-b-2 border-primary/20">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Icon className="text-primary text-6xl">local_fire_department</Icon>
+          </div>
+          <span className="font-technical text-primary uppercase text-xs tracking-widest mb-4 block">Current Win Streak</span>
+          <div className="flex items-end gap-2">
+            <span className="text-4xl font-stats text-primary">{player.currentStreak || 0}</span>
+            <span className="text-primary/60 text-sm font-technical uppercase tracking-widest mb-1">Matches</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1.5 mb-5 overflow-x-auto pb-1">
+      <div className="flex gap-1 mb-6 overflow-x-auto pb-1 border-b border-outline-variant/20">
         {tabs.map(function(t) {
           var label = t === 'h2h' ? 'H2H' : t === 'rounds' ? 'By Round' : t.charAt(0).toUpperCase() + t.slice(1);
+          var isActive = tab === t;
           return (
-            <Btn
+            <button
               key={t}
               onClick={function() { setTab(t); }}
-              className="flex-shrink-0 capitalize"
-              style={tab === t ? { background: '#9B72CF', color: '#fff' } : {}}
+              className={'flex-shrink-0 px-5 py-3 font-technical text-xs uppercase tracking-widest transition-all ' + (isActive ? 'text-primary border-b-2 border-primary -mb-px' : 'text-on-surface/40 hover:text-on-surface')}
             >
               {label}
-            </Btn>
+            </button>
           );
         })}
       </div>
 
       {/* Overview Tab */}
       {tab === 'overview' && (
-        <div className="space-y-5">
-          <PlacementDistribution history={player.clashHistory || []} />
+        <div className="space-y-8">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Career Stats */}
-            <Panel>
-              <h3 className="text-sm font-bold text-on-surface mb-4">Career Stats</h3>
+          {/* Champion Banner */}
+          {isChampion && (
+            <div className="px-5 py-4 rounded-lg flex items-center gap-3" style={{ background: 'linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))', border: '1px solid rgba(232,168,56,.4)' }}>
+              <Icon className="text-2xl" style={{ color: '#E8A838' }}>emoji_events</Icon>
+              <div className="flex-1">
+                <div className="font-bold text-sm text-primary">{champion.title}</div>
+                <div className="text-xs text-on-surface/60">{'Reigning champion since ' + champion.since}</div>
+              </div>
+              <div className="bg-primary/10 text-primary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-primary/20">
+                {'SEASON ' + champion.season}
+              </div>
+            </div>
+          )}
 
-              {((player.currentStreak || 0) >= 3 || (player.tiltStreak || 0) >= 3) && (
-                <div className="flex gap-2 flex-wrap mb-4">
-                  {(player.currentStreak || 0) >= 3 && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#E8A838]" style={{ background: 'rgba(232,168,56,.15)', border: '1px solid rgba(232,168,56,.4)' }}>
-                      {tablerIcon('flame', 14, '#F97316')}
-                      Hot Streak - {player.currentStreak} wins in a row
-                    </div>
-                  )}
-                  {(player.tiltStreak || 0) >= 3 && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-[#93C5FD]" style={{ background: 'rgba(96,165,250,.1)', border: '1px solid rgba(96,165,250,.35)' }}>
-                      {tablerIcon('snowflake', 14, '#38BDF8')}
-                      Cold Streak - {player.tiltStreak} losses
-                    </div>
-                  )}
+          {/* Hot/Cold Streak */}
+          {((player.currentStreak || 0) >= 3 || (player.tiltStreak || 0) >= 3) && (
+            <div className="flex gap-3 flex-wrap">
+              {(player.currentStreak || 0) >= 3 && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-primary" style={{ background: 'rgba(232,168,56,.1)', border: '1px solid rgba(232,168,56,.3)' }}>
+                  <Icon className="text-base" style={{ color: '#F97316' }}>local_fire_department</Icon>
+                  {'Hot Streak - ' + player.currentStreak + ' wins in a row'}
                 </div>
               )}
+              {(player.tiltStreak || 0) >= 3 && (
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-[#93C5FD]" style={{ background: 'rgba(96,165,250,.1)', border: '1px solid rgba(96,165,250,.3)' }}>
+                  <Icon className="text-base" style={{ color: '#38BDF8' }}>ac_unit</Icon>
+                  {'Cold Streak - ' + player.tiltStreak + ' losses'}
+                </div>
+              )}
+            </div>
+          )}
 
-              {/* AVP display */}
-              <div className="rounded-lg p-3 mb-4" style={{ background: 'rgba(232,168,56,.05)', border: '1px solid rgba(232,168,56,.15)' }}>
-                <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mb-2">Average Placement</div>
-                <div className="flex gap-4 flex-wrap">
+          {/* Visual Analytics Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Placement Distribution */}
+            <div className="lg:col-span-1 bg-surface-container-low p-8 rounded-lg">
+              <PlacementDistribution history={player.clashHistory || []} />
+            </div>
+
+            {/* Season Trajectory Sparkline */}
+            <div className="lg:col-span-2 bg-surface-container-low p-8 rounded-lg overflow-hidden relative">
+              <div className="flex justify-between items-center mb-8 relative z-10">
+                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Season Trajectory</h3>
+                <div className="flex gap-4 items-center">
+                  <span className="font-stats text-xs text-primary">
+                    {player.rank ? player.rank.toUpperCase() : 'UNRANKED'}
+                  </span>
+                  <Icon className="text-primary text-xs">arrow_forward</Icon>
+                  <span className="font-stats text-xs text-primary">{'#' + seasonRank}</span>
+                </div>
+              </div>
+              {/* SVG Sparkline */}
+              <div className="relative h-48 w-full mt-4">
+                {(function() {
+                  var hist = (player.clashHistory || []).slice().reverse();
+                  if (hist.length < 2) {
+                    return (
+                      <div className="flex items-center justify-center h-full text-on-surface/20 font-technical text-xs uppercase tracking-widest">
+                        Not enough data
+                      </div>
+                    );
+                  }
+                  var cumulativePts = [];
+                  var running = 0;
+                  hist.forEach(function(g) {
+                    running += (g.pts || 0);
+                    cumulativePts.push(running);
+                  });
+                  var maxPts = Math.max.apply(null, cumulativePts) || 1;
+                  var n = cumulativePts.length;
+                  var points = cumulativePts.map(function(v, i) {
+                    var x = (i / (n - 1)) * 1000;
+                    var y = 200 - (v / maxPts) * 180;
+                    return x + ',' + y;
+                  });
+                  var pathD = 'M' + points.join(' L');
+                  var fillD = pathD + ' V200 H0 Z';
+                  return (
+                    <svg className="w-full h-full" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="line-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#ffc66b" stopOpacity="0.2" />
+                          <stop offset="100%" stopColor="#ffc66b" stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <path d={pathD} fill="none" stroke="#ffc66b" strokeWidth="3" strokeLinecap="round" />
+                      <path d={fillD} fill="url(#line-gradient)" />
+                    </svg>
+                  );
+                })()}
+                <div className="absolute bottom-0 left-0 w-full flex justify-between px-2 pt-4 border-t border-outline-variant/10">
+                  <span className="font-technical text-[10px] text-on-surface/20">WEEK 1</span>
+                  <span className="font-technical text-[10px] text-on-surface/20">WEEK 4</span>
+                  <span className="font-technical text-[10px] text-on-surface/20">WEEK 8</span>
+                  <span className="font-technical text-[10px] text-primary">PRESENT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Career Stats + Rates Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Career Stats */}
+            <div className="bg-surface-container-low p-8 rounded-lg">
+              <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Career Stats</h3>
+              <div className="rounded-lg p-4 mb-6" style={{ background: 'rgba(232,168,56,.05)', border: '1px solid rgba(232,168,56,.15)' }}>
+                <div className="text-[10px] font-technical text-on-surface/40 uppercase tracking-widest mb-3">Average Placement</div>
+                <div className="flex gap-6 flex-wrap">
                   <div className="flex-1">
-                    <div className="text-xs text-on-surface/60 mb-1">Career AVP</div>
-                    <div className="font-mono text-2xl font-bold leading-tight" style={{ color: avgCol(s.avgPlacement) }}>{s.avgPlacement}</div>
+                    <div className="text-xs font-technical text-on-surface/60 mb-1">Career AVP</div>
+                    <div className="font-stats text-2xl font-bold leading-tight" style={{ color: avgCol(s.avgPlacement) }}>{s.avgPlacement}</div>
                     <div className="text-[10px] text-on-surface/40 mt-1">all games - lower is better</div>
                   </div>
                   {s.perClashAvp && (
                     <div className="flex-1 pl-4 border-l border-on-surface/10">
-                      <div className="text-xs text-on-surface/60 mb-1">Per-Clash AVP</div>
-                      <div className="font-mono text-2xl font-bold leading-tight" style={{ color: avgCol(s.perClashAvp) }}>{s.perClashAvp}</div>
+                      <div className="text-xs font-technical text-on-surface/60 mb-1">Per-Clash AVP</div>
+                      <div className="font-stats text-2xl font-bold leading-tight" style={{ color: avgCol(s.perClashAvp) }}>{s.perClashAvp}</div>
                       <div className="text-[10px] text-on-surface/40 mt-1">avg within each event</div>
                     </div>
                   )}
                 </div>
               </div>
-
               {[
                 ['Games', s.games, '#C8D4E0'],
                 ['Wins', s.wins, '#E8A838'],
@@ -426,38 +517,136 @@ export default function PlayerProfileScreen() {
               ].map(function(row) {
                 return (
                   <div key={row[0]} className="flex justify-between items-center py-2 border-b border-on-surface/5">
-                    <span className="text-sm text-on-surface/60">{row[0]}</span>
-                    <span className="font-mono text-sm font-bold" style={{ color: row[2] }}>{row[1]}</span>
+                    <span className="font-technical text-sm text-on-surface/60">{row[0]}</span>
+                    <span className="font-stats text-sm font-bold" style={{ color: row[2] }}>{row[1]}</span>
                   </div>
                 );
               })}
-            </Panel>
+            </div>
 
-            {/* Rates Panel */}
-            <div className="space-y-5">
-              <Panel>
-                <h3 className="text-sm font-bold text-on-surface mb-4">Rates</h3>
+            {/* Rates + Season Standing */}
+            <div className="space-y-6">
+              <div className="bg-surface-container-low p-8 rounded-lg">
+                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Performance Rates</h3>
                 <RateBar label="Top 1%" value={s.top1Rate + '%'} color="#E8A838" />
                 <RateBar label="Top 4%" value={s.top4Rate + '%'} color="#4ECDC4" />
                 <RateBar label="Bot 4%" value={s.bot4Rate + '%'} color="#F87171" />
                 <RateBar label="Comeback" value={s.comebackRate + '%'} color="#52C47C" />
                 <RateBar label="Clutch" value={s.clutchRate + '%'} color="#9B72CF" />
-              </Panel>
+              </div>
 
-              {/* Regional rank placeholder */}
-              <Panel>
-                <h3 className="text-sm font-bold text-on-surface mb-3">Season Standing</h3>
-                <div className="flex items-center gap-4">
+              <div className="bg-surface-container-low p-8 rounded-lg">
+                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Season Standing</h3>
+                <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <div className="font-mono text-3xl font-bold text-[#E8A838]">{'#' + seasonRank}</div>
-                    <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mt-1">Season Rank</div>
+                    <div className="font-stats text-3xl font-bold text-primary">{'#' + seasonRank}</div>
+                    <div className="font-technical text-[10px] text-on-surface/40 uppercase tracking-widest mt-1">Season Rank</div>
                   </div>
                   <div className="flex-1 text-right">
-                    <div className="text-xs text-on-surface/50">out of {players.length} players</div>
-                    {player.region && <div className="text-xs text-on-surface/40 mt-0.5">{player.region} Region</div>}
+                    <div className="text-xs font-technical text-on-surface/50">{'out of ' + players.length + ' players'}</div>
+                    {player.region && <div className="text-xs font-technical text-on-surface/40 mt-1">{player.region + ' Region'}</div>}
                   </div>
                 </div>
-              </Panel>
+              </div>
+
+              {/* Socials */}
+              {(pTwitch || pTwitter || pYoutube) && (
+                <div className="bg-surface-container-low p-8 rounded-lg">
+                  <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Links</h3>
+                  <div className="flex flex-col gap-2">
+                    {pTwitch && (
+                      <a href={'https://twitch.tv/' + pTwitch} target="_blank" rel="noopener noreferrer" className="text-xs text-primary no-underline flex items-center gap-2 hover:underline">
+                        <Icon className="text-sm" style={{ color: '#9B72CF' }}>live_tv</Icon>
+                        {'twitch.tv/' + pTwitch}
+                      </a>
+                    )}
+                    {pTwitter && (
+                      <a href={'https://x.com/' + pTwitter} target="_blank" rel="noopener noreferrer" className="text-xs text-tertiary no-underline flex items-center gap-2 hover:underline">
+                        <Icon className="text-sm">alternate_email</Icon>
+                        {'@' + pTwitter}
+                      </a>
+                    )}
+                    {pYoutube && (
+                      <a href={'https://youtube.com/@' + pYoutube} target="_blank" rel="noopener noreferrer" className="text-xs text-rose-400 no-underline flex items-center gap-2 hover:underline">
+                        <Icon className="text-sm">smart_display</Icon>
+                        {'youtube.com/@' + pYoutube}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Battle Logs */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="font-editorial text-2xl text-on-surface italic">Recent Battle Logs</h3>
+              <button
+                className="font-technical text-xs text-primary tracking-widest uppercase hover:underline"
+                onClick={function() { setTab('history'); }}
+              >
+                View Full Match History
+              </button>
+            </div>
+            <div className="space-y-3">
+              {(player.clashHistory || []).length === 0 && (
+                <div className="bg-surface-container-low p-8 rounded-lg text-center text-on-surface/40 font-technical text-sm">
+                  No clash history yet
+                </div>
+              )}
+              {(player.clashHistory || []).slice(0, 5).map(function(g, i) {
+                var place = g.place || g.placement || '-';
+                var isWin = place === 1;
+                var isTop4 = place <= 4 && place !== '-';
+                return (
+                  <div
+                    key={i}
+                    className="bg-surface-container-low p-4 rounded-lg flex items-center justify-between group hover:bg-surface-container-high transition-all"
+                  >
+                    <div className="flex items-center gap-6">
+                      <div
+                        className={'w-12 h-12 flex flex-col items-center justify-center rounded border ' + (isWin ? 'bg-tertiary/10 border-tertiary/20' : 'bg-on-surface/5 border-outline-variant/10')}
+                      >
+                        <span className={'text-xl font-display ' + (isWin ? 'text-tertiary' : 'text-on-surface/40')}>{place}</span>
+                        <span className={'text-[8px] font-technical -mt-1 uppercase ' + (isWin ? 'text-tertiary/60' : 'text-on-surface/20')}>
+                          {typeof place === 'number' ? ordinalSuffix(place) : ''}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-technical text-sm font-semibold tracking-wide">{(g.name || 'Clash').toUpperCase()}</h4>
+                        <p className="text-xs text-on-surface/40 font-body">
+                          {g.date || ''}
+                          {g.date ? ' - ' : ''}
+                          {isTop4 ? 'Top 4' : 'Competitive'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="hidden md:flex items-center gap-8">
+                      <div className="flex gap-1 flex-wrap">
+                        {g.claimedClutch && (
+                          <div className="bg-secondary-container/30 text-secondary px-2 py-0.5 rounded-sm font-technical text-[10px] tracking-wider border border-secondary/20">
+                            CLUTCH
+                          </div>
+                        )}
+                        {g.comebackTriggered && (
+                          <div className="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded-sm font-technical text-[10px] tracking-wider border border-tertiary/20">
+                            COMEBACK
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <span className={'block font-stats text-sm ' + (isTop4 ? 'text-primary' : 'text-on-surface')}>
+                          {'+' + (g.pts || 0) + ' LP'}
+                        </span>
+                        <span className="block font-technical text-[10px] text-on-surface/40 uppercase">
+                          {isWin ? 'Victory' : isTop4 ? 'Top 4' : 'Secure'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -465,67 +654,70 @@ export default function PlayerProfileScreen() {
 
       {/* Rounds Tab */}
       {tab === 'rounds' && (
-        <Panel>
-          <h3 className="text-sm font-bold text-on-surface mb-4">Average Placement By Round</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div className="bg-surface-container-low p-8 rounded-lg">
+          <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Average Placement By Round</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             {[['R1', s.roundAvgs.r1, '#4ECDC4'], ['R2', s.roundAvgs.r2, '#9B72CF'], ['R3', s.roundAvgs.r3, '#EAB308'], ['Finals', s.roundAvgs.finals, '#E8A838']].map(function(row) {
               return (
-                <div key={row[0]} className="rounded-lg p-3 text-center" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(242,237,228,.07)' }}>
-                  <div className="text-[10px] font-bold text-on-surface/40 uppercase tracking-widest mb-2">{row[0]}</div>
+                <div key={row[0]} className="rounded-lg p-4 text-center" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(242,237,228,.07)' }}>
+                  <div className="font-technical text-[10px] text-on-surface/40 uppercase tracking-widest mb-2">{row[0]}</div>
                   {row[1]
                     ? (
                       <div>
-                        <div className="font-mono text-xl font-bold leading-tight" style={{ color: avgCol(row[1]) }}>{row[1]}</div>
-                        <div className="text-[10px] mt-1" style={{ color: avgCol(row[1]) }}>
+                        <div className="font-stats text-xl font-bold leading-tight" style={{ color: avgCol(row[1]) }}>{row[1]}</div>
+                        <div className="font-technical text-[10px] mt-1" style={{ color: avgCol(row[1]) }}>
                           {parseFloat(row[1]) < 3 ? 'Great' : parseFloat(row[1]) < 5 ? 'OK' : 'Rough'}
                         </div>
                       </div>
                     )
-                    : <div className="font-mono text-lg text-on-surface/30">-</div>
+                    : <div className="font-stats text-lg text-on-surface/30">-</div>
                   }
                 </div>
               );
             })}
           </div>
 
-          <div className="text-xs text-on-surface/50 mb-3">Per-clash round breakdown:</div>
+          <div className="font-technical text-xs text-on-surface/50 mb-4 uppercase tracking-widest">Per-clash round breakdown</div>
+          {(player.clashHistory || []).length === 0 && (
+            <div className="text-center py-8 text-on-surface/40 font-technical text-sm">No data yet</div>
+          )}
           {(player.clashHistory || []).slice(0, 6).map(function(g, i) {
             return (
-              <div key={i} className="grid items-center gap-2 py-2 border-b border-on-surface/5" style={{ gridTemplateColumns: '1fr 50px 50px 50px 50px 50px' }}>
+              <div key={i} className="grid items-center gap-2 py-3 border-b border-on-surface/5" style={{ gridTemplateColumns: '1fr 50px 50px 50px 50px 60px' }}>
                 <div>
-                  <div className="font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
-                  <div className="text-xs text-on-surface/40">{g.date || ''}</div>
+                  <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
+                  <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
                 </div>
                 {['r1', 'r2', 'r3', 'finals'].map(function(rk) {
                   var v = g.roundPlacements ? g.roundPlacements[rk] : null;
                   return (
                     <div key={rk} className="text-center">
                       {v
-                        ? <span className="font-mono text-sm font-bold" style={{ color: v === 1 ? '#E8A838' : v <= 4 ? '#4ECDC4' : '#F87171' }}>#{v}</span>
-                        : <span className="text-on-surface/30">-</span>
+                        ? <span className="font-stats text-sm font-bold" style={{ color: v === 1 ? '#E8A838' : v <= 4 ? '#4ECDC4' : '#F87171' }}>{'#' + v}</span>
+                        : <span className="text-on-surface/30 font-stats">-</span>
                       }
                     </div>
                   );
                 })}
-                <div className="font-mono text-sm font-bold text-[#E8A838] text-center">+{g.pts}</div>
+                <div className="font-stats text-sm font-bold text-primary text-center">{'+' + g.pts}</div>
               </div>
             );
           })}
-        </Panel>
+        </div>
       )}
 
       {/* History Tab */}
       {tab === 'history' && (
-        <Panel className="overflow-hidden">
-          <div className="px-4 py-3 border-b border-on-surface/10 flex items-center justify-between flex-wrap gap-2" style={{ background: '#0A0F1A' }}>
-            <h3 className="text-sm font-bold text-on-surface">Clash History</h3>
+        <div className="bg-surface-container-low rounded-lg overflow-hidden">
+          <div className="px-6 py-4 border-b border-on-surface/10 flex items-center justify-between flex-wrap gap-2" style={{ background: 'rgba(14,13,21,.6)' }}>
+            <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Clash History</h3>
             {seasonConfig && seasonConfig.dropWeeks > 0 && (
-              <span className="text-xs text-primary">Drop Weeks: {seasonConfig.dropWeeks} worst excluded</span>
+              <span className="font-technical text-xs text-primary">{'Drop Weeks: ' + seasonConfig.dropWeeks + ' worst excluded'}</span>
             )}
           </div>
           {(player.clashHistory || []).length === 0
             ? (
-              <div className="text-center py-10 text-on-surface/40">No history yet</div>
+              <div className="text-center py-12 text-on-surface/40 font-technical text-sm">No history yet</div>
             )
             : (function() {
               var hist = (player.clashHistory || []).slice();
@@ -543,26 +735,40 @@ export default function PlayerProfileScreen() {
                 var isDropped = dropped[g.clashId || 'c0'];
                 var place = g.place || g.placement;
                 return (
-                  <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-on-surface/5" style={{ background: place === 1 ? 'rgba(232,168,56,.03)' : 'transparent', opacity: isDropped ? 0.45 : 1 }}>
-                    <div className="font-mono text-xl font-bold min-w-6 text-center" style={{ color: place === 1 ? '#E8A838' : place <= 4 ? '#4ECDC4' : '#BECBD9', textDecoration: isDropped ? 'line-through' : 'none' }}>
-                      {place}
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 px-6 py-4 border-b border-on-surface/5 hover:bg-surface-container-high transition-all"
+                    style={{ background: place === 1 ? 'rgba(232,168,56,.03)' : 'transparent', opacity: isDropped ? 0.45 : 1 }}
+                  >
+                    <div
+                      className="w-12 h-12 flex flex-col items-center justify-center rounded border flex-shrink-0"
+                      style={{ background: place === 1 ? 'rgba(78,205,196,.1)' : 'rgba(255,255,255,.03)', borderColor: place === 1 ? 'rgba(78,205,196,.2)' : 'rgba(255,255,255,.07)' }}
+                    >
+                      <span className="font-display text-xl" style={{ color: place === 1 ? '#67e2d9' : place <= 4 ? '#4ECDC4' : '#BECBD9', textDecoration: isDropped ? 'line-through' : 'none' }}>
+                        {place}
+                      </span>
+                      <span className="font-technical text-[8px] -mt-1 uppercase" style={{ color: place === 1 ? 'rgba(103,226,217,.6)' : 'rgba(255,255,255,.2)' }}>
+                        {typeof place === 'number' ? ordinalSuffix(place) : ''}
+                      </span>
                     </div>
-                    <div className="flex-1">
-                      <div className="font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
-                      <div className="text-xs text-on-surface/40">{g.date || ''}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
+                      <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
                       <div className="flex gap-1 flex-wrap mt-1">
-                        {g.claimedClutch && <Tag color="#9B72CF" size="sm">Clutch</Tag>}
-                        {isDropped && <Tag color="#BECBD9" size="sm">Dropped</Tag>}
-                        {g.comebackTriggered && <Tag color="#4ECDC4" size="sm">Comeback +2</Tag>}
-                        {g.attendanceMilestone && <Tag color="#E8A838" size="sm">{g.attendanceMilestone}-Streak Bonus</Tag>}
+                        {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(155,114,207,.15)', color: '#C4B5FD', border: '1px solid rgba(155,114,207,.3)' }}>Clutch</span>}
+                        {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(190,203,217,.1)', color: '#BECBD9', border: '1px solid rgba(190,203,217,.2)' }}>Dropped</span>}
+                        {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(78,205,196,.1)', color: '#4ECDC4', border: '1px solid rgba(78,205,196,.25)' }}>Comeback +2</span>}
+                        {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(232,168,56,.1)', color: '#E8A838', border: '1px solid rgba(232,168,56,.25)' }}>{g.attendanceMilestone + '-Streak Bonus'}</span>}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-mono text-base font-bold" style={{ color: isDropped ? '#BECBD9' : '#E8A838', textDecoration: isDropped ? 'line-through' : 'none' }}>+{g.pts}pts</div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="font-stats text-base font-bold" style={{ color: isDropped ? '#BECBD9' : '#E8A838', textDecoration: isDropped ? 'line-through' : 'none' }}>
+                        {'+' + g.pts + 'pts'}
+                      </div>
                       {(g.bonusPts || 0) > 0 && !isDropped && (
-                        <div className="font-mono text-xs text-emerald-400">+{g.bonusPts} bonus</div>
+                        <div className="font-stats text-xs text-emerald-400">{'+' + g.bonusPts + ' bonus'}</div>
                       )}
-                      <div className="text-[10px] text-on-surface/40 uppercase font-bold">
+                      <div className="font-technical text-[10px] text-on-surface/40 uppercase">
                         {place === 1 ? 'Champion' : place <= 4 ? 'Top 4' : 'Bot 4'}
                       </div>
                     </div>
@@ -571,28 +777,28 @@ export default function PlayerProfileScreen() {
               });
             })()
           }
-        </Panel>
+        </div>
       )}
 
       {/* H2H Tab */}
       {tab === 'h2h' && (
         <div>
-          <div className="mb-4">
-            <h3 className="text-sm font-bold text-on-surface mb-1">Rivals and Head-to-Head</h3>
-            <p className="text-xs text-on-surface/50">Track your record against every player you have shared a lobby with.</p>
+          <div className="mb-6">
+            <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-1">Rivals and Head-to-Head</h3>
+            <p className="font-body text-xs text-on-surface/50">Track your record against every player you have shared a lobby with.</p>
           </div>
           {(player.clashHistory || []).length === 0
             ? (
-              <div className="text-center py-10 rounded-xl text-on-surface/40" style={{ background: 'rgba(14,22,40,.9)', border: '1px solid rgba(242,237,228,.09)' }}>
-                <div className="mb-3">{tablerIcon('tournament', 32, null)}</div>
-                <div className="text-sm font-bold text-on-surface/60 mb-1">No H2H data yet</div>
-                <div className="text-xs">Compete in a clash to build your rivalry record.</div>
+              <div className="text-center py-12 rounded-lg text-on-surface/40 bg-surface-container-low">
+                <Icon className="text-4xl mb-3 block">emoji_events</Icon>
+                <div className="font-technical text-sm font-bold text-on-surface/60 mb-1">No H2H data yet</div>
+                <div className="font-body text-xs">Compete in a clash to build your rivalry record.</div>
               </div>
             )
             : (
-              <Panel className="overflow-hidden">
-                <div className="px-4 py-2.5 border-b border-on-surface/10 flex justify-between items-center" style={{ background: '#0A0F1A' }}>
-                  <span className="text-xs font-bold text-on-surface/40 uppercase tracking-widest">Shared lobbies</span>
+              <div className="bg-surface-container-low rounded-lg overflow-hidden">
+                <div className="px-6 py-3 border-b border-on-surface/10 flex justify-between items-center" style={{ background: 'rgba(14,13,21,.6)' }}>
+                  <span className="font-technical text-xs font-bold text-on-surface/40 uppercase tracking-widest">Shared lobbies</span>
                 </div>
                 {players.filter(function(op) {
                   return op.id !== player.id && (op.clashHistory || []).some(function(h) {
@@ -611,19 +817,25 @@ export default function PlayerProfileScreen() {
                   var ahead = mW > tW;
                   var tied = mW === tW;
                   return (
-                    <div key={op.id} className="px-4 py-3 border-b border-on-surface/5" style={{ background: i % 2 === 0 ? 'rgba(255,255,255,.01)' : 'transparent' }}>
-                      <div className="flex items-center gap-3 mb-2">
+                    <div
+                      key={op.id}
+                      className="px-6 py-4 border-b border-on-surface/5"
+                      style={{ background: i % 2 === 0 ? 'rgba(255,255,255,.01)' : 'transparent' }}
+                    >
+                      <div className="flex items-center gap-4 mb-2">
                         <div className="flex-1">
-                          <div className="font-bold text-sm text-on-surface">{op.name}</div>
-                          <div className="text-xs text-on-surface/40">{op.rank} - {op.region} - {sharedClashes.length} shared {sharedClashes.length === 1 ? 'clash' : 'clashes'}</div>
+                          <div className="font-technical font-bold text-sm text-on-surface">{op.name}</div>
+                          <div className="font-technical text-xs text-on-surface/40">
+                            {op.rank + ' - ' + op.region + ' - ' + sharedClashes.length + ' shared ' + (sharedClashes.length === 1 ? 'clash' : 'clashes')}
+                          </div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="font-mono text-sm">
-                            <span className="font-bold text-emerald-400">{mW}W</span>
+                          <div className="font-stats text-sm">
+                            <span className="font-bold text-emerald-400">{mW + 'W'}</span>
                             <span className="text-on-surface/40 mx-1">-</span>
-                            <span className="font-bold text-rose-400">{tW}L</span>
+                            <span className="font-bold text-rose-400">{tW + 'L'}</span>
                           </div>
-                          <div className="text-[10px] font-bold mt-0.5" style={{ color: ahead ? '#6EE7B7' : tied ? '#E8A838' : '#F87171' }}>
+                          <div className="font-technical text-[10px] font-bold mt-0.5" style={{ color: ahead ? '#6EE7B7' : tied ? '#E8A838' : '#F87171' }}>
                             {ahead ? "You're ahead" : tied ? 'All tied' : "They're ahead"}
                           </div>
                         </div>
@@ -635,7 +847,7 @@ export default function PlayerProfileScreen() {
                     </div>
                   );
                 })}
-              </Panel>
+              </div>
             )
           }
         </div>
@@ -648,12 +860,24 @@ export default function PlayerProfileScreen() {
             var unlocked = false;
             try { unlocked = a.check(player); } catch (e) {}
             return (
-              <Panel key={a.id} className="p-4" style={{ opacity: unlocked ? 1 : 0.4, border: '1px solid ' + (unlocked ? 'rgba(232,168,56,.3)' : 'rgba(242,237,228,.07)') }}>
-                <div className="text-2xl mb-1.5">{tablerIcon(ICON_REMAP[a.icon] || a.icon, 26, null)}</div>
-                <div className="font-bold text-sm mb-1" style={{ color: unlocked ? '#F2EDE4' : '#BECBD9' }}>{a.name}</div>
-                <div className="text-xs text-on-surface/50 leading-relaxed">{a.desc}</div>
-                {unlocked && <div className="mt-2"><Tag color="#E8A838" size="sm">Unlocked</Tag></div>}
-              </Panel>
+              <div
+                key={a.id}
+                className="bg-surface-container-low p-6 rounded-lg"
+                style={{ opacity: unlocked ? 1 : 0.4, border: '1px solid ' + (unlocked ? 'rgba(232,168,56,.3)' : 'rgba(242,237,228,.07)') }}
+              >
+                <div className="text-2xl mb-2">
+                  <Icon className="text-3xl" style={{ color: unlocked ? '#E8A838' : undefined }}>{a.icon || 'military_tech'}</Icon>
+                </div>
+                <div className="font-technical font-bold text-sm mb-1" style={{ color: unlocked ? '#F2EDE4' : '#BECBD9' }}>{a.name}</div>
+                <div className="font-body text-xs text-on-surface/50 leading-relaxed">{a.desc}</div>
+                {unlocked && (
+                  <div className="mt-3">
+                    <span className="font-technical text-[10px] px-2 py-1 rounded-sm" style={{ background: 'rgba(232,168,56,.15)', color: '#E8A838', border: '1px solid rgba(232,168,56,.3)' }}>
+                      UNLOCKED
+                    </span>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import { Panel, Btn } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
+import PageLayout from '../components/layout/PageLayout'
 
 function Bar(props) {
   var val = props.val || 0;
@@ -102,7 +103,8 @@ export default function TournamentDetailScreen() {
   var DETAIL_TABS = [['overview', 'Overview'], ['bracket', 'Bracket'], ['standings', 'Standings'], ['rules', 'Rules']];
 
   return (
-    <div className="page wrap">
+
+    <PageLayout>    <div className="page wrap">
       <div style={{marginBottom: 20}}>
         <button onClick={function() { setScreen('featured'); }} style={{background: 'none', border: 'none', color: '#9B72CF', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0, marginBottom: 12, fontFamily: 'inherit'}}>{'\u2190 Back to Featured Events'}</button>
       </div>
@@ -343,5 +345,6 @@ export default function TournamentDetailScreen() {
         </div>
       )}
     </div>
+    </PageLayout>
   );
 }

@@ -1,26 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { getStats, ACHIEVEMENTS, MILESTONES, isHotStreak, estimateXp } from '../lib/stats.js'
+import { getStats, ACHIEVEMENTS, MILESTONES, isHotStreak } from '../lib/stats.js'
 import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
 
-// ─── ICON REMAP for Tabler icons ─────────────────────────────────────────────
-var ICON_REMAP = {"exclamation-triangle-fill":"alert-triangle","exclamation-octagon-fill":"alert-octagon","info-circle-fill":"info-circle","check-circle-fill":"circle-check","x-circle-fill":"circle-x","slash-circle-fill":"ban","patch-check-fill":"rosette-discount-check","house-fill":"home","search":"search","three-dots":"dots","x-lg":"x","gear-fill":"settings","speedometer2":"gauge","download":"download","inbox":"inbox","clipboard":"clipboard","clipboard-check-fill":"clipboard-check","clipboard-data-fill":"clipboard-data","person-fill":"user","people-fill":"users","person-arms-up":"mood-happy","trophy-fill":"trophy","award-fill":"award","controller":"device-gamepad-2","dice-5-fill":"dice-5","bullseye":"target","crosshair":"crosshair","flag-fill":"flag","fire":"flame","snow":"snowflake","lightning-charge-fill":"bolt","sun-fill":"sun","moon-fill":"moon","water":"droplet-half-2","droplet":"droplet","droplet-fill":"droplet","hexagon-fill":"hexagon","diamond-half":"diamond","gem":"diamond","star-fill":"star","stars":"stars","heart-fill":"heart","shield-fill":"shield","shield-check":"shield-check","coin":"coin","bell-fill":"bell","bell-slash-fill":"bell-off","chat-fill":"message","megaphone-fill":"speakerphone","mic-fill":"microphone","broadcast-pin":"broadcast","calendar-event-fill":"calendar-event","calendar3":"calendar","calendar-check-fill":"calendar-check","bar-chart-line-fill":"chart-bar","graph-up-arrow":"trending-up","diagram-3-fill":"tournament","gift-fill":"gift","lock-fill":"lock","pin-fill":"pin","pencil-fill":"pencil","tag-fill":"tag","building":"building","tv-fill":"device-tv","pc-display":"device-desktop","mouse-fill":"mouse","headphones":"headphones","mortarboard-fill":"school","rocket-takeoff-fill":"rocket","journal-text":"notebook","question-circle-fill":"help-circle","eye-fill":"eye","emoji-dizzy":"mood-sad","pause-fill":"player-pause","archive-fill":"archive","arrow-up-circle-fill":"arrow-up-circle","twitter-x":"brand-x"};
-
-function tablerIcon(name, sz, col) {
-  var mapped = ICON_REMAP[name] || name;
-  return (
-    <i
-      className={'ti ti-' + mapped}
-      style={{ fontSize: sz || 'inherit', color: col || 'currentColor', lineHeight: 1, verticalAlign: 'middle' }}
-    />
-  );
-}
-
-// ─── Inline select component ─────────────────────────────────────────────────
+// ─── Inline select component ──────────────────────────────────────────────────
 function Sel({ value, onChange, children, style }) {
   return (
     <select
@@ -28,11 +15,11 @@ function Sel({ value, onChange, children, style }) {
       onChange={function(e) { onChange(e.target.value); }}
       style={Object.assign({
         width: '100%',
-        background: '#0F1520',
-        border: '1px solid rgba(242,237,228,.15)',
-        borderRadius: 8,
+        background: '#0e0d15',
+        border: '1px solid rgba(80,69,53,.5)',
+        borderRadius: 4,
         padding: '9px 12px',
-        color: '#F2EDE4',
+        color: '#e4e1ec',
         fontSize: 13,
         fontFamily: 'inherit',
         cursor: 'pointer',
@@ -58,18 +45,18 @@ function Sparkline({ data, color, w, h }) {
   }).join(' ');
   return (
     <svg width={W} height={H} style={{ overflow: 'visible' }}>
-      <polyline points={pts} fill="none" stroke={color || '#E8A838'} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      <polyline points={pts} fill="none" stroke={color || '#ffc66b'} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
       <circle
         cx={(data.length - 1) / (data.length - 1) * W}
         cy={H - ((data[data.length - 1] - min) / range) * (H - 4) + 2}
         r="2.5"
-        fill={color || '#E8A838'}
+        fill={color || '#ffc66b'}
       />
     </svg>
   );
 }
 
-// ─── Placement distribution ───────────────────────────────────────────────────
+// ─── Placement distribution bar chart ─────────────────────────────────────────
 function PlacementDistribution({ history }) {
   var counts = [0, 0, 0, 0, 0, 0, 0, 0];
   (history || []).forEach(function(g) {
@@ -77,24 +64,24 @@ function PlacementDistribution({ history }) {
     if (p >= 0 && p < 8) counts[p]++;
   });
   var total = counts.reduce(function(s, v) { return s + v; }, 0) || 1;
-  var colors = ['#E8A838', '#C0C0C0', '#CD7F32', '#4ECDC4', '#9AAABF', '#9AAABF', '#F87171', '#F87171'];
+  var colors = ['#ffc66b', '#C0C0C0', '#CD7F32', '#67e2d9', '#9AAABF', '#9AAABF', '#F87171', '#F87171'];
 
   return (
-    <Panel style={{ padding: '16px', marginBottom: 10 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#9AAABF', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 12 }}>Placement Distribution</div>
+    <div className="bg-surface-container-high rounded p-4 mb-3">
+      <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-3">Placement Distribution</div>
       {counts.map(function(count, i) {
         var pct = Math.round((count / total) * 100);
         return (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <div style={{ width: 20, fontSize: 11, fontWeight: 700, color: colors[i], textAlign: 'right', flexShrink: 0 }}>{'#' + (i + 1)}</div>
-            <div style={{ flex: 1, height: 8, background: 'rgba(255,255,255,.05)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ width: pct + '%', height: '100%', background: colors[i], borderRadius: 4, transition: 'width .4s' }} />
+          <div key={i} className="flex items-center gap-2 mb-1.5">
+            <div className="w-5 text-right text-xs font-bold flex-shrink-0" style={{ color: colors[i] }}>{'#' + (i + 1)}</div>
+            <div className="flex-1 h-2 bg-surface-container-lowest rounded-full overflow-hidden">
+              <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: colors[i] }} />
             </div>
-            <div style={{ width: 24, fontSize: 11, color: '#BECBD9', textAlign: 'right', flexShrink: 0 }}>{count}</div>
+            <div className="w-5 text-right text-xs text-on-surface/50 flex-shrink-0">{count}</div>
           </div>
         );
       })}
-    </Panel>
+    </div>
   );
 }
 
@@ -113,7 +100,7 @@ export default function AccountScreen() {
 
   var user = currentUser || {};
 
-  var [tab, setTab] = useState('profile');
+  var [tab, setTab] = useState('account');
   var [edit, setEdit] = useState(false);
 
   var [bio, setBio] = useState(user.bio || '');
@@ -145,7 +132,7 @@ export default function AccountScreen() {
   var myAchievements = linkedPlayer ? ACHIEVEMENTS.filter(function(a) { try { return a.check(linkedPlayer); } catch(e) { return false; } }) : [];
   var myMilestones = linkedPlayer ? MILESTONES.filter(function(m) { try { return m.check(linkedPlayer); } catch(e) { return false; } }) : [];
 
-  var tierCols = { bronze: '#CD7F32', silver: '#C0C0C0', gold: '#E8A838', legendary: '#9B72CF' };
+  var tierCols = { bronze: '#CD7F32', silver: '#C0C0C0', gold: '#ffc66b', legendary: '#9B72CF' };
 
   var acctProfileFields = [
     user.user_metadata && user.user_metadata.riot_id,
@@ -154,8 +141,10 @@ export default function AccountScreen() {
   ];
   var acctProfileComplete = acctProfileFields.filter(Boolean).length;
   var acctProfileTotal = acctProfileFields.length;
-  var acctMissingField = !(user.user_metadata && user.user_metadata.riot_id) ? 'Riot ID' : !(user.user_metadata && user.user_metadata.bio) ? 'bio' : 'region';
-  var acctProgressMsg = 'Profile ' + acctProfileComplete + '/' + acctProfileTotal + ' complete' + (acctProfileComplete < acctProfileTotal ? ' - Add a ' + acctMissingField + ' to finish' : '');
+
+  var discordIdent = user.identities && user.identities.find(function(i) { return i.provider === 'discord'; });
+  var discordId = discordIdent && discordIdent.identity_data && discordIdent.identity_data.sub;
+  var discordName = discordIdent && discordIdent.identity_data && (discordIdent.identity_data.global_name || discordIdent.identity_data.full_name);
 
   useEffect(function() {
     if (!user || !user.id) return;
@@ -243,176 +232,69 @@ export default function AccountScreen() {
   if (!user || !user.id) {
     return (
       <PageLayout>
-        <div style={{ textAlign: 'center', padding: '80px 20px' }}>
-          <div style={{ fontSize: 40, marginBottom: 16 }}>{tablerIcon('user-circle', 40, '#9B72CF')}</div>
-          <h2 style={{ color: '#F2EDE4', marginBottom: 10 }}>Sign in to view your account</h2>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <span className="material-symbols-outlined text-5xl text-on-surface/30 mb-4">account_circle</span>
+          <h2 className="font-serif text-2xl text-on-surface mb-3">Sign in to view your account</h2>
           <Btn v="primary" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
         </div>
       </PageLayout>
     );
   }
 
+  var seasonRank = linkedPlayer
+    ? ([...players].sort(function(a, b) { return b.pts - a.pts; }).findIndex(function(p) { return p.id === linkedPlayer.id; }) + 1)
+    : null;
+
+  var avatarInitial = (user.username || 'U').charAt(0).toUpperCase();
+  var riotIdDisplay = user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id);
+  var riotRegionDisplay = user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region);
+
   return (
     <PageLayout>
-      <div style={{ maxWidth: 800, margin: '0 auto', paddingTop: 8 }}>
+      <div className="max-w-7xl mx-auto px-8 py-12">
 
-        {/* Header row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <Btn v="dark" s="sm" onClick={function() { setScreen('home'); navigate('/'); }}>
-            {tablerIcon('arrow-left', 12)} Back
-          </Btn>
-          <h2 style={{ color: '#F2EDE4', fontSize: 20, margin: 0, flex: 1 }}>My Account</h2>
-          {linkedPlayer && (
-            <Btn v="dark" s="sm" onClick={function() {
-              var myRank = ([...players].sort(function(a, b) { return b.pts - a.pts; }).findIndex(function(p) { return p.id === linkedPlayer.id; }) + 1);
-              shareToTwitter(buildShareText('profile', { name: user.username, rank: myRank, pts: linkedPlayer.pts }));
-            }}>
-              {tablerIcon('brand-x', 11)} Share
-            </Btn>
-          )}
-          <Btn v="dark" s="sm" onClick={handleLogout}>Sign Out</Btn>
-        </div>
-
-        {/* Riot ID warning */}
-        {!riotIdSet && (
-          <div style={{ background: 'rgba(232,168,56,.1)', border: '1px solid rgba(232,168,56,.3)', borderRadius: 10, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18 }}>{tablerIcon('alert-triangle', 18, '#E8A838')}</span>
+        {/* Page Header */}
+        <header className="mb-12">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <div style={{ color: '#E8A838', fontWeight: 600, fontSize: 13 }}>Set your Riot ID to join tournaments</div>
-              <div style={{ color: '#BECBD9', fontSize: 12 }}>You need a Riot ID to register for flash tournaments.</div>
+              <h1 className="font-serif text-5xl md:text-6xl text-on-surface mb-2">Account Settings</h1>
+              <p className="text-on-surface/60 font-body max-w-2xl">
+                Manage your competitive identity, link external accounts, and customize your presence in the Obsidian Arena.
+              </p>
             </div>
-          </div>
-        )}
-
-        {/* Profile completion */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: acctProfileComplete === acctProfileTotal ? '#52C47C' : '#E8A838', display: 'inline-block', flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: acctProfileComplete === acctProfileTotal ? '#52C47C' : '#BECBD9', fontWeight: 500 }}>{acctProgressMsg}</span>
-        </div>
-
-        {/* Hero card */}
-        <div style={{ position: 'relative', borderRadius: 16, marginBottom: 20, overflow: 'hidden', border: '1px solid rgba(242,237,228,.12)' }}>
-          {/* Banner */}
-          <div style={{ height: bannerUrl ? 140 : 90, background: bannerUrl ? ('url(' + bannerUrl + ') center/cover no-repeat') : ('linear-gradient(135deg,' + (profileAccent || rankColor) + '33,#08080F 80%)'), position: 'relative' }}>
-            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(transparent 40%,#08080F)' }} />
-          </div>
-
-          <div style={{ padding: '0 24px 24px', marginTop: -44 }}>
-            <div style={{ display: 'flex', gap: 20, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-
-              {/* Avatar */}
-              <div style={{ position: 'relative', flexShrink: 0 }}>
-                <div style={{
-                  width: 88, height: 88, borderRadius: '50%',
-                  background: profilePic ? ('url(' + profilePic + ') center/cover no-repeat') : ('linear-gradient(135deg,' + rankColor + '44,' + rankColor + '11)'),
-                  border: '4px solid #08080F',
-                  boxShadow: '0 0 0 2px ' + (profileAccent || rankColor) + '66',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: profilePic ? 0 : 34, fontWeight: 800, color: rankColor,
-                }}>
-                  {!profilePic && (user.username || 'U').charAt(0).toUpperCase()}
-                </div>
-                {isPro && (
-                  <div style={{ position: 'absolute', top: -2, right: -2, width: 22, height: 22, borderRadius: '50%', background: 'linear-gradient(135deg,#E8A838,#C8882A)', border: '2px solid #08080F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#fff', fontWeight: 900 }}>
-                    {'\u2605'}
-                  </div>
-                )}
-                {myMilestones.length > 0 && (
-                  <div style={{ position: 'absolute', bottom: -2, right: -2, width: 22, height: 22, borderRadius: '50%', background: '#E8A838', border: '2px solid #08080F', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
-                    {tablerIcon(ICON_REMAP[myMilestones[myMilestones.length - 1].icon] || myMilestones[myMilestones.length - 1].icon, 11)}
-                  </div>
-                )}
-              </div>
-
-              {/* Name + info */}
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
-                  <h2 style={{ fontSize: 24, fontWeight: 900, color: '#F2EDE4', margin: 0 }}>{user.username}</h2>
-                  {isPro && (
-                    <span style={{ background: 'linear-gradient(90deg,#E8A838,#C8882A)', borderRadius: 20, padding: '3px 10px', fontSize: 10, fontWeight: 800, color: '#08080F', letterSpacing: '.04em' }}>PRO</span>
-                  )}
-                  {linkedPlayer && isHotStreak(linkedPlayer) && (
-                    <span style={{ fontSize: 14 }}>{tablerIcon('flame', 14, '#F97316')}</span>
-                  )}
-                </div>
-
-                {linkedPlayer && (
-                  <div style={{ fontSize: 13, color: '#BECBD9', marginBottom: 8 }}>
-                    {linkedPlayer.riotId} {linkedPlayer.region ? ('- ' + linkedPlayer.region) : ''}
-                  </div>
-                )}
-
-                <div style={{ marginBottom: 10, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {subscription ? (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', borderRadius: 20, background: subscription.plan === 'host' ? 'rgba(232,168,56,.15)' : 'rgba(155,114,207,.15)', border: '1px solid ' + (subscription.plan === 'host' ? 'rgba(232,168,56,.4)' : 'rgba(155,114,207,.4)'), fontSize: 12, fontWeight: 700, color: subscription.plan === 'host' ? '#E8A838' : '#C4B5FD' }}>
-                      {subscription.plan === 'host' ? 'Host Plan' : 'Pro Plan'} - Active
-                    </div>
-                  ) : (
-                    <button onClick={function() { setScreen('pricing'); navigate('/pricing'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: 'transparent', border: '1px solid rgba(155,114,207,.35)', fontSize: 12, color: '#9B72CF', cursor: 'pointer', fontFamily: 'inherit' }}>
-                      Upgrade to Pro
-                    </button>
-                  )}
-                  {(isAdmin || (hostApps || []).some(function(a) { return a.status === 'approved' && (a.name === user.username || a.email === user.email); })) && (
-                    <button onClick={function() { setScreen('host-dashboard'); navigate('/host-dashboard'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 20, background: 'rgba(232,168,56,.12)', border: '1px solid rgba(232,168,56,.4)', fontSize: 12, fontWeight: 700, color: '#E8A838', cursor: 'pointer', fontFamily: 'inherit' }}>
-                      {tablerIcon('device-gamepad-2', 12)} Host Dashboard
-                    </button>
-                  )}
-                </div>
-
-                {user.bio ? (
-                  <p style={{ fontSize: 13, color: '#C8D4E0', lineHeight: 1.6, margin: 0, maxWidth: 480 }}>{user.bio}</p>
-                ) : (
-                  <p style={{ fontSize: 13, color: '#9AAABF', fontStyle: 'italic', margin: 0 }}>No bio yet - tell people who you are.</p>
-                )}
-
-                {(user.twitch || user.twitter || user.youtube) && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                    {user.twitch && (
-                      <a href={'https://twitch.tv/' + user.twitch} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#9147FF', background: 'rgba(145,71,255,.1)', border: '1px solid rgba(145,71,255,.3)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontWeight: 700 }}>
-                        {tablerIcon('device-tv', 10)} {user.twitch}
-                      </a>
-                    )}
-                    {user.twitter && (
-                      <a href={'https://twitter.com/' + user.twitter} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: '#1DA1F2', background: 'rgba(29,161,242,.1)', border: '1px solid rgba(29,161,242,.3)', borderRadius: 6, padding: '3px 10px', textDecoration: 'none', fontWeight: 700 }}>
-                        {tablerIcon('brand-x', 10)} {user.twitter}
-                      </a>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Quick pts */}
+            <div className="flex items-center gap-3">
               {linkedPlayer && (
-                <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                  <div className="mono" style={{ fontSize: 40, fontWeight: 900, color: '#E8A838', lineHeight: 1 }}>{linkedPlayer.pts}</div>
-                  <div style={{ fontSize: 11, color: '#BECBD9', marginTop: 2 }}>Clash Points</div>
-                  <div style={{ fontSize: 12, color: '#C8D4E0', marginTop: 4 }}>
-                    Season Rank #{[...players].sort(function(a, b) { return b.pts - a.pts; }).findIndex(function(p) { return p.id === linkedPlayer.id; }) + 1}
-                  </div>
-                </div>
+                <button
+                  onClick={function() {
+                    shareToTwitter(buildShareText('profile', { name: user.username, rank: seasonRank, pts: linkedPlayer.pts }));
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-on-surface/70 hover:text-on-surface font-sans-cond text-xs uppercase tracking-widest transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">share</span>
+                  Share
+                </button>
               )}
-
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-error/70 hover:text-error font-sans-cond text-xs uppercase tracking-widest transition-colors"
+              >
+                <span className="material-symbols-outlined text-sm">logout</span>
+                Sign Out
+              </button>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: '#111827', borderRadius: 10, padding: 4 }}>
-          {[['profile', 'Profile'], ['stats', 'Stats'], ['achievements', 'Achievements'], ['history', 'History']].map(function(item) {
+        {/* Navigation Tabs */}
+        <div className="flex space-x-12 mb-10 border-b border-outline-variant/10">
+          {[['account', 'Account'], ['milestones', 'Milestones'], ['challenges', 'Challenges']].map(function(item) {
             var v = item[0];
             var l = item[1];
             return (
               <button
                 key={v}
                 onClick={function() { setTab(v); }}
-                style={{
-                  flex: 1, padding: '8px 10px', borderRadius: 7, border: 'none', cursor: 'pointer',
-                  fontWeight: 700, fontSize: 12,
-                  background: tab === v ? '#1E2A3A' : 'transparent',
-                  color: tab === v ? '#F2EDE4' : '#BECBD9',
-                  transition: 'all .15s',
-                  fontFamily: 'inherit',
-                }}
+                className={'pb-4 border-b-2 font-sans-cond uppercase tracking-[0.2em] text-sm transition-colors ' + (tab === v ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface/40 hover:text-on-surface')}
               >
                 {l}
               </button>
@@ -420,383 +302,684 @@ export default function AccountScreen() {
           })}
         </div>
 
-        {/* ── PROFILE TAB ──────────────────────────────────────────────────────── */}
-        {tab === 'profile' && (
-          <Panel style={{ padding: '20px' }}>
-            {!edit ? (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h3 style={{ color: '#F2EDE4', fontSize: 15, margin: 0 }}>Profile Details</h3>
-                  <Btn v="dark" s="sm" onClick={function() { setEdit(true); }}>
-                    {tablerIcon('pencil', 11)} Edit
-                  </Btn>
-                </div>
+        {/* ── ACCOUNT TAB ──────────────────────────────────────────────────────── */}
+        {tab === 'account' && (
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
-                <div style={{ display: 'grid', gap: 12 }}>
-                  {[
-                    ['Username', user.username, usernameChanged ? '#9B72CF' : '#F2EDE4'],
-                    ['Riot ID', (user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id)) ? ((user.user_metadata.riotId || user.user_metadata.riot_id) + ' - ' + (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region || 'EUW')) : null, '#E8A838'],
-                    ['Secondary Riot ID', (user.user_metadata && user.user_metadata.secondRiotId) ? (user.user_metadata.secondRiotId + ' - ' + (user.user_metadata.secondRegion || 'EUW')) : null, '#C4B5FD'],
-                    ['Bio', (user.user_metadata && user.user_metadata.bio) || user.bio || null, '#C8D4E0'],
-                    ['Twitch', (user.user_metadata && user.user_metadata.twitch) || user.twitch ? ('twitch.tv/' + ((user.user_metadata && user.user_metadata.twitch) || user.twitch)) : null, '#9147FF'],
-                    ['Twitter', (user.user_metadata && user.user_metadata.twitter) || user.twitter ? ('@' + ((user.user_metadata && user.user_metadata.twitter) || user.twitter)) : null, '#1DA1F2'],
-                    ['Profile Picture', profilePic ? 'Custom avatar set' : 'Not set (default initial)', profilePic ? '#6EE7B7' : '#9AAABF'],
-                    ['Banner', bannerUrl ? 'Custom banner set' : 'Not set (rank gradient)', bannerUrl ? '#6EE7B7' : '#9AAABF'],
-                  ].map(function(row) {
-                    var label = row[0];
-                    var val = row[1];
-                    var col = row[2];
-                    return (
-                      <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid rgba(242,237,228,.07)' }}>
-                        <span style={{ color: '#BECBD9', fontSize: 13 }}>{label}</span>
-                        <span style={{ color: val ? col : '#9AAABF', fontSize: 13, fontWeight: val ? 600 : 400, maxWidth: 280, textAlign: 'right' }}>{val || '-'}</span>
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Profile Identity Card */}
+            <section className="md:col-span-8 bg-surface-container-low rounded-lg p-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+              <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
 
-                {/* Discord connection */}
-                {(function() {
-                  var discordId = user.identities && user.identities.find(function(i) { return i.provider === 'discord'; }) && user.identities.find(function(i) { return i.provider === 'discord'; }).identity_data && user.identities.find(function(i) { return i.provider === 'discord'; }).identity_data.sub;
-                  var discordIdent = user.identities && user.identities.find(function(i) { return i.provider === 'discord'; });
-                  var discordName = discordIdent && discordIdent.identity_data && (discordIdent.identity_data.global_name || discordIdent.identity_data.full_name);
-                  return (
-                    <div style={{ marginTop: 20, padding: '14px 16px', background: 'rgba(88,101,242,.06)', border: '1px solid rgba(88,101,242,.25)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <svg width="20" height="15" viewBox="0 0 71 55" fill="#5865F2" xmlns="http://www.w3.org/2000/svg"><path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/></svg>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: discordId ? '#6EE7B7' : '#C8D4E0' }}>Discord {discordId ? 'Connected' : 'Not Connected'}</div>
-                          {discordId ? (
-                            <div style={{ fontSize: 11, color: '#9AAABF' }}>{discordName || 'ID: ' + discordId}</div>
-                          ) : (
-                            <div style={{ fontSize: 11, color: '#9AAABF' }}>Link to auto-sync with our Discord bot</div>
-                          )}
-                        </div>
-                      </div>
-                      {!discordId ? (
-                        <button
-                          onClick={async function() { await supabase.auth.linkIdentity({ provider: 'discord', options: { redirectTo: CANONICAL_ORIGIN + '#account' } }); }}
-                          style={{ padding: '7px 14px', background: '#5865F2', border: 'none', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}
-                        >
-                          Connect Discord
-                        </button>
-                      ) : (
-                        <button
-                          onClick={async function() {
-                            if (!window.confirm('Disconnect Discord? You will need a password to log in.')) return;
-                            try {
-                              var discIdent = user.identities && user.identities.find(function(i) { return i.provider === 'discord'; });
-                              await supabase.auth.unlinkIdentity(discIdent);
-                              toast('Discord disconnected', 'success');
-                              handleLogout();
-                            } catch(e) {
-                              toast('Could not disconnect: ' + e.message, 'error');
-                            }
-                          }}
-                          style={{ padding: '7px 14px', background: 'rgba(220,38,38,.12)', border: '1px solid rgba(220,38,38,.4)', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#F87171', flexShrink: 0 }}
-                        >
-                          Disconnect
-                        </button>
-                      )}
-                    </div>
-                  );
-                })()}
-
-                {/* Danger zone */}
-                <div style={{ marginTop: 20, padding: '14px 16px', background: 'rgba(220,38,38,.04)', border: '1px solid rgba(220,38,38,.2)', borderRadius: 10 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F87171', marginBottom: 6 }}>Danger Zone</div>
-                  <div style={{ fontSize: 12, color: '#9AAABF', marginBottom: 10 }}>Permanently delete your account and all data. This cannot be undone.</div>
-                  <button
-                    onClick={async function() {
-                      if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
-                      try {
-                        if (supabase.from) {
-                          await supabase.from('registrations').delete().eq('player_id', user.id).catch(function() {});
-                          await supabase.from('notifications').delete().eq('user_id', user.id).catch(function() {});
-                          await supabase.from('player_achievements').delete().eq('player_id', user.id).catch(function() {});
-                          await supabase.from('players').delete().eq('auth_user_id', user.id).catch(function() {});
-                        }
-                        if (setPlayers) {
-                          setPlayers(function(ps) {
-                            return ps.filter(function(p) {
-                              return p.authUserId !== user.id && (p.name || '').toLowerCase() !== (user.username || '').toLowerCase();
-                            });
-                          });
-                        }
-                        await supabase.auth.signOut();
-                        handleLogout();
-                        toast('Account deleted - signed out', 'success');
-                      } catch(e) {
-                        await supabase.auth.signOut();
-                        handleLogout();
-                      }
+                {/* Avatar */}
+                <div className="relative group flex-shrink-0">
+                  <div
+                    className="w-32 h-32 rounded-lg overflow-hidden border-2 border-primary-container shadow-xl flex items-center justify-center"
+                    style={{
+                      background: profilePic
+                        ? ('url(' + profilePic + ') center/cover no-repeat')
+                        : ('linear-gradient(135deg,' + rankColor + '44,' + rankColor + '11)'),
+                      color: rankColor,
+                      fontSize: profilePic ? 0 : 40,
+                      fontFamily: 'inherit',
+                      fontWeight: 900,
                     }}
-                    style={{ padding: '7px 14px', background: 'rgba(220,38,38,.15)', border: '1px solid rgba(220,38,38,.5)', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#F87171', fontFamily: 'inherit' }}
                   >
-                    Delete Account
-                  </button>
+                    {!profilePic && avatarInitial}
+                  </div>
+                  {isPro && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary border-2 border-surface-container-low flex items-center justify-center">
+                      <span className="material-symbols-outlined text-on-primary" style={{ fontSize: 11, fontVariationSettings: "'FILL' 1" }}>star</span>
+                    </div>
+                  )}
+                  {isPro && edit ? (
+                    <label className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all cursor-pointer">
+                      <span className="material-symbols-outlined text-base">edit</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={function(e) {
+                          var file = e.target.files[0];
+                          if (!file) return;
+                          if (file.size > 2 * 1024 * 1024) { toast('Max 2MB', 'error'); return; }
+                          supabase.storage.from('avatars').upload(user.id + '/avatar.png', file, { upsert: true })
+                            .then(function(res) {
+                              if (res.error) { toast('Upload failed', 'error'); return; }
+                              var url = supabase.storage.from('avatars').getPublicUrl(user.id + '/avatar.png').data.publicUrl;
+                              setProfilePic(url);
+                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', user.id);
+                              toast('Avatar updated!', 'success');
+                            });
+                        }}
+                      />
+                    </label>
+                  ) : (
+                    <button className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all">
+                      <span className="material-symbols-outlined text-base">edit</span>
+                    </button>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <h3 style={{ color: '#F2EDE4', fontSize: 15, margin: 0 }}>Edit Profile</h3>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <Btn v="dark" s="sm" onClick={function() { setEdit(false); }}>Cancel</Btn>
-                    <Btn v="primary" s="sm" onClick={save}>Save Changes</Btn>
-                  </div>
-                </div>
 
-                <div style={{ display: 'grid', gap: 16 }}>
+                {/* Fields */}
+                <div className="flex-1 space-y-6 w-full">
 
-                  {/* Username */}
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                      <div style={{ fontSize: 12, color: '#BECBD9' }}>
-                        Username {usernameChanged && <span style={{ color: '#9B72CF', fontSize: 11 }}>(locked - changed once)</span>}
-                      </div>
-                    </div>
-                    {usernameChanged ? (
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <div style={{ flex: 1, background: '#0F1520', border: '1px solid rgba(242,237,228,.08)', borderRadius: 8, padding: '9px 12px', color: '#9AAABF', fontSize: 13 }}>{user.username}</div>
-                        <Btn v="dark" s="sm" onClick={function() { requestChange('username'); }}>Request Change</Btn>
-                      </div>
-                    ) : (
-                      <div>
-                        <Inp value={usernameEdit} onChange={setUsernameEdit} placeholder="Your display name" />
-                        <div style={{ fontSize: 11, color: '#9AAABF', marginTop: 4 }}>You can only change this once. After that, contact admin.</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Main Riot ID */}
-                  <div>
-                    <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>
-                      Main Riot ID {riotIdSet && <span style={{ color: '#E8A838', fontSize: 11 }}>(locked)</span>}
-                    </div>
-                    {riotIdSet ? (
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                        <div style={{ flex: 1, background: '#0F1520', border: '1px solid rgba(232,168,56,.15)', borderRadius: 8, padding: '9px 12px', color: '#E8A838', fontSize: 13, fontWeight: 600 }}>
-                          {(user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id))} - {(user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region)) || 'EUW'}
-                        </div>
-                        <Btn v="dark" s="sm" onClick={function() { requestChange('riotId'); }}>Request Change</Btn>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 8 }}>
-                        <Inp value={riotId} onChange={setRiotId} placeholder="GameName#TAG" />
-                        <Sel value={riotRegion} onChange={setRiotRegion}>
-                          {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
-                        </Sel>
-                      </div>
-                    )}
-                    <div style={{ fontSize: 11, color: '#9AAABF', marginTop: 4 }}>EU and NA accounts only. Cannot be changed without admin approval.</div>
-                  </div>
-
-                  {/* Secondary Riot ID */}
-                  <div>
-                    <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>
-                      Secondary Riot ID <span style={{ color: '#9AAABF', fontWeight: 400 }}>(optional)</span>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: 8 }}>
-                      <Inp value={secondRiotId} onChange={setSecondRiotId} placeholder="SecondName#TAG" />
-                      <Sel value={secondRegion} onChange={setSecondRegion}>
-                        {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
-                      </Sel>
-                    </div>
-                    <div style={{ fontSize: 11, color: '#9AAABF', marginTop: 4 }}>For players on both EU and NA. EU and NA only.</div>
-                  </div>
-
-                  {/* Bio */}
-                  <div>
-                    <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>Bio</div>
-                    <textarea
-                      value={bio}
-                      onChange={function(e) { setBio(e.target.value); }}
-                      maxLength={160}
-                      placeholder="Tell people who you are..."
-                      style={{ width: '100%', background: '#0F1520', border: '1px solid rgba(242,237,228,.15)', borderRadius: 8, padding: '10px 12px', color: '#F2EDE4', fontSize: 13, resize: 'none', height: 72, fontFamily: 'inherit', boxSizing: 'border-box' }}
-                    />
-                    <div style={{ fontSize: 11, color: '#9AAABF', marginTop: 2, textAlign: 'right' }}>{bio.length}/160</div>
-                  </div>
-
-                  {/* Appearance - Pro only */}
-                  <div style={{ borderTop: '1px solid rgba(242,237,228,.08)', paddingTop: 16 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#F2EDE4' }}>Appearance</div>
-                      {isPro ? (
-                        <span style={{ background: 'linear-gradient(90deg,#E8A838,#C8882A)', borderRadius: 20, padding: '2px 8px', fontSize: 9, fontWeight: 800, color: '#08080F' }}>PRO</span>
-                      ) : (
-                        <span style={{ fontSize: 11, color: '#9AAABF' }}>(Pro feature)</span>
-                      )}
-                    </div>
-
-                    {isPro ? (
-                      <div style={{ display: 'grid', gap: 14 }}>
-                        <div>
-                          <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>Profile Picture</div>
-                          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', background: 'rgba(155,114,207,.12)', border: '1px solid rgba(155,114,207,.35)', borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#C4B5FD', flexShrink: 0 }}>
-                              Upload Photo
+                  {edit ? (
+                    <div className="space-y-4">
+                      {/* Username + Email row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">
+                            Username {usernameChanged && <span className="text-secondary/70">(locked)</span>}
+                          </label>
+                          {usernameChanged ? (
+                            <div className="flex gap-2 items-center">
+                              <div className="flex-1 bg-surface-container-lowest border-0 border-b border-outline-variant/30 p-3 text-on-surface/50 text-sm font-body">{user.username}</div>
+                              <button
+                                onClick={function() { requestChange('username'); }}
+                                className="px-3 py-2 bg-surface-container border border-outline-variant/30 rounded font-sans-cond text-xs uppercase tracking-widest text-on-surface/60 hover:text-on-surface transition-colors flex-shrink-0"
+                              >
+                                Request
+                              </button>
+                            </div>
+                          ) : (
+                            <div>
                               <input
-                                type="file"
-                                accept="image/*"
-                                style={{ display: 'none' }}
-                                onChange={function(e) {
-                                  var file = e.target.files[0];
-                                  if (!file) return;
-                                  if (file.size > 2 * 1024 * 1024) { toast('Max 2MB', 'error'); return; }
-                                  supabase.storage.from('avatars').upload(user.id + '/avatar.png', file, { upsert: true })
-                                    .then(function(res) {
-                                      if (res.error) { toast('Upload failed', 'error'); return; }
-                                      var url = supabase.storage.from('avatars').getPublicUrl(user.id + '/avatar.png').data.publicUrl;
-                                      setProfilePic(url);
-                                      supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', user.id);
-                                      toast('Avatar updated!', 'success');
-                                    });
-                                }}
+                                type="text"
+                                value={usernameEdit}
+                                onChange={function(e) { setUsernameEdit(e.target.value); }}
+                                placeholder="Your display name"
+                                className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors"
                               />
-                            </label>
-                            <span style={{ fontSize: 11, color: '#9AAABF' }}>or paste URL below</span>
-                          </div>
-                          <Inp value={profilePic} onChange={setProfilePic} placeholder="https://i.imgur.com/your-pic.png" />
-                          <div style={{ fontSize: 10, color: '#9AAABF', marginTop: 3 }}>Max 2MB. Square images work best.</div>
-                          {profilePic && (
-                            <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-                              <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'url(' + profilePic + ') center/cover', border: '2px solid ' + rankColor + '44' }} />
-                              <span style={{ fontSize: 11, color: '#6EE7B7' }}>Preview</span>
+                              <p className="text-[11px] text-on-surface/40 mt-1">You can only change this once.</p>
                             </div>
                           )}
                         </div>
-                        <div>
-                          <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>Banner Image URL</div>
-                          <Inp value={bannerUrl} onChange={setBannerUrl} placeholder="https://i.imgur.com/your-banner.png" />
-                          <div style={{ fontSize: 10, color: '#9AAABF', marginTop: 3 }}>Recommended: 1500x500 or similar wide aspect ratio.</div>
-                          {bannerUrl && <div style={{ marginTop: 8, height: 60, borderRadius: 8, background: 'url(' + bannerUrl + ') center/cover', border: '1px solid rgba(242,237,228,.1)' }} />}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 8 }}>Profile Accent Color</div>
-                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            {['', '#9B72CF', '#E8A838', '#4ECDC4', '#F87171', '#6EE7B7', '#60A5FA', '#FB923C', '#EC4899', '#8B5CF6'].map(function(clr) {
-                              var isActive = profileAccent === clr;
-                              return (
-                                <div
-                                  key={clr || 'default'}
-                                  onClick={function() { setProfileAccent(clr); }}
-                                  style={{ width: 28, height: 28, borderRadius: '50%', background: clr || ('linear-gradient(135deg,' + rankColor + '44,' + rankColor + '11)'), cursor: 'pointer', border: isActive ? '3px solid #fff' : '3px solid transparent', transition: 'border .15s', position: 'relative' }}
-                                >
-                                  {!clr && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8, color: '#BECBD9' }}>Auto</span>}
-                                </div>
-                              );
-                            })}
-                          </div>
+                        <div className="space-y-1">
+                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Email Address</label>
+                          <input
+                            type="email"
+                            value={user.email || ''}
+                            readOnly
+                            className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 text-on-surface/60 font-body p-3 cursor-not-allowed"
+                          />
                         </div>
                       </div>
-                    ) : (
-                      <div style={{ background: 'rgba(232,168,56,.04)', border: '1px dashed rgba(232,168,56,.25)', borderRadius: 10, padding: '16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: 13, color: '#E8A838', fontWeight: 600, marginBottom: 6 }}>Unlock Profile Customization</div>
-                        <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 12 }}>Set a custom avatar, banner image, and accent color. Make your profile stand out.</div>
+
+                      {/* Bio */}
+                      <div className="space-y-1">
+                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Bio / Tagline</label>
+                        <textarea
+                          value={bio}
+                          onChange={function(e) { setBio(e.target.value); }}
+                          maxLength={160}
+                          placeholder="Tell people who you are..."
+                          className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors h-24 resize-none"
+                        />
+                        <div className="flex justify-between">
+                          <span className="text-[11px] text-on-surface/40">Max 160 characters</span>
+                          <span className="text-[11px] text-on-surface/30">{bio.length}/160</span>
+                        </div>
+                      </div>
+
+                      {/* Riot ID */}
+                      <div className="space-y-1">
+                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">
+                          Main Riot ID {riotIdSet && <span className="text-primary/60">(locked)</span>}
+                        </label>
+                        {riotIdSet ? (
+                          <div className="flex gap-2 items-center">
+                            <div className="flex-1 bg-surface-container-lowest border border-primary/15 rounded p-3 text-primary text-sm font-mono font-bold">
+                              {(user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id))} - {(user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region)) || 'EUW'}
+                            </div>
+                            <button
+                              onClick={function() { requestChange('riotId'); }}
+                              className="px-3 py-2 bg-surface-container border border-outline-variant/30 rounded font-sans-cond text-xs uppercase tracking-widest text-on-surface/60 hover:text-on-surface transition-colors flex-shrink-0"
+                            >
+                              Request
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-[1fr_100px] gap-2">
+                            <input
+                              type="text"
+                              value={riotId}
+                              onChange={function(e) { setRiotId(e.target.value); }}
+                              placeholder="GameName#TAG"
+                              className="bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
+                            />
+                            <Sel value={riotRegion} onChange={setRiotRegion}>
+                              {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
+                            </Sel>
+                          </div>
+                        )}
+                        <p className="text-[11px] text-on-surface/40">EU and NA accounts only. Cannot be changed without admin approval.</p>
+                      </div>
+
+                      {/* Secondary Riot ID */}
+                      <div className="space-y-1">
+                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Secondary Riot ID <span className="text-on-surface/30">(optional)</span></label>
+                        <div className="grid grid-cols-[1fr_100px] gap-2">
+                          <input
+                            type="text"
+                            value={secondRiotId}
+                            onChange={function(e) { setSecondRiotId(e.target.value); }}
+                            placeholder="SecondName#TAG"
+                            className="bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
+                          />
+                          <Sel value={secondRegion} onChange={setSecondRegion}>
+                            {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
+                          </Sel>
+                        </div>
+                      </div>
+
+                      {/* Appearance - Pro only */}
+                      <div className="pt-4 border-t border-outline-variant/10">
+                        <div className="flex items-center gap-2 mb-4">
+                          <span className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface">Appearance</span>
+                          {isPro ? (
+                            <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 text-[9px] font-bold font-sans-cond uppercase">PRO</span>
+                          ) : (
+                            <span className="text-on-surface/30 text-xs font-sans-cond">(Pro feature)</span>
+                          )}
+                        </div>
+
+                        {isPro ? (
+                          <div className="space-y-4">
+                            <div className="space-y-1">
+                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Picture URL</label>
+                              <input
+                                type="text"
+                                value={profilePic}
+                                onChange={function(e) { setProfilePic(e.target.value); }}
+                                placeholder="https://i.imgur.com/your-pic.png"
+                                className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
+                              />
+                              {profilePic && (
+                                <div className="flex items-center gap-3 mt-2">
+                                  <div className="w-10 h-10 rounded-lg border border-outline-variant/30" style={{ background: 'url(' + profilePic + ') center/cover' }} />
+                                  <span className="text-[11px] text-tertiary">Preview</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Banner Image URL</label>
+                              <input
+                                type="text"
+                                value={bannerUrl}
+                                onChange={function(e) { setBannerUrl(e.target.value); }}
+                                placeholder="https://i.imgur.com/your-banner.png"
+                                className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
+                              />
+                              <p className="text-[11px] text-on-surface/30">Recommended: 1500x500 or similar wide aspect ratio.</p>
+                              {bannerUrl && <div className="mt-2 h-12 rounded border border-outline-variant/20" style={{ background: 'url(' + bannerUrl + ') center/cover' }} />}
+                            </div>
+                            <div className="space-y-2">
+                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Accent Color</label>
+                              <div className="flex gap-2 flex-wrap">
+                                {['', '#9B72CF', '#ffc66b', '#67e2d9', '#F87171', '#6EE7B7', '#60A5FA', '#FB923C', '#EC4899', '#8B5CF6'].map(function(clr) {
+                                  var isActive = profileAccent === clr;
+                                  return (
+                                    <div
+                                      key={clr || 'default'}
+                                      onClick={function() { setProfileAccent(clr); }}
+                                      style={{ width: 26, height: 26, borderRadius: '50%', background: clr || ('linear-gradient(135deg,' + rankColor + '44,' + rankColor + '11)'), cursor: 'pointer', border: isActive ? '3px solid #fff' : '3px solid transparent', transition: 'border .15s', position: 'relative', flexShrink: 0 }}
+                                    >
+                                      {!clr && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: '#9AAABF' }}>Auto</span>}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="bg-primary/5 border border-primary/20 border-dashed rounded-lg p-4 text-center">
+                            <div className="font-sans-cond text-sm font-bold text-primary mb-1">Unlock Profile Customization</div>
+                            <p className="text-on-surface/50 text-xs mb-3">Set a custom avatar, banner, and accent color.</p>
+                            <button
+                              onClick={function() { setScreen('pricing'); navigate('/pricing'); setEdit(false); }}
+                              className="bg-primary text-on-primary px-4 py-2 rounded font-sans-cond text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+                            >
+                              Go Pro - EUR 4.99/mo
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Save / Cancel */}
+                      <div className="flex justify-end gap-3 pt-2">
                         <button
-                          onClick={function() { setScreen('pricing'); navigate('/pricing'); setEdit(false); }}
-                          style={{ background: 'linear-gradient(90deg,#E8A838,#C8882A)', border: 'none', borderRadius: 8, padding: '8px 18px', fontSize: 12, fontWeight: 700, color: '#08080F', cursor: 'pointer', fontFamily: 'inherit' }}
+                          onClick={function() { setEdit(false); }}
+                          className="px-6 py-2.5 bg-surface-container border border-outline-variant/30 rounded-full font-sans-cond text-xs uppercase tracking-widest text-on-surface/60 hover:text-on-surface transition-colors"
                         >
-                          Go Pro - EUR 4.99/mo
+                          Cancel
+                        </button>
+                        <button
+                          onClick={save}
+                          className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-2.5 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all"
+                        >
+                          Save Changes
                         </button>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Socials */}
-                  <div>
-                    <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>Twitch username</div>
-                    <Inp value={twitch} onChange={setTwitch} placeholder="your_twitch_name" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, color: '#BECBD9', marginBottom: 5 }}>Twitter / X handle</div>
-                    <Inp value={twitter} onChange={setTwitter} placeholder="@yourhandle" />
-                  </div>
-                </div>
-              </div>
-            )}
-          </Panel>
-        )}
-
-        {/* ── STATS TAB ─────────────────────────────────────────────────────────── */}
-        {tab === 'stats' && (
-          <div>
-            {linkedPlayer && s ? (
-              <div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(130px,1fr))', gap: 10, marginBottom: 16 }}>
-                  {[
-                    { l: 'Clash Points', v: linkedPlayer.pts, c: '#E8A838' },
-                    { l: 'Total Wins', v: linkedPlayer.wins, c: '#6EE7B7' },
-                    { l: 'Top 4 Rate', v: s.top4Rate + '%', c: '#C4B5FD' },
-                    { l: 'Avg Placement', v: s.avgPlacement, c: avgCol(s.avgPlacement) },
-                    { l: 'Games Played', v: linkedPlayer.games, c: '#4ECDC4' },
-                    { l: 'Best Streak', v: linkedPlayer.bestStreak, c: '#F87171' },
-                    { l: 'PPG', v: s.ppg, c: '#EAB308' },
-                    { l: 'Clutch Rate', v: s.clutchRate + '%', c: '#9B72CF' },
-                  ].map(function(item) {
-                    return (
-                      <div key={item.l} className="inner-box" style={{ padding: '14px 12px', textAlign: 'center' }}>
-                        <div className="mono" style={{ fontSize: 20, fontWeight: 700, color: item.c, lineHeight: 1 }}>{item.v}</div>
-                        <div style={{ fontSize: 10, color: '#BECBD9', marginTop: 5, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em' }}>{item.l}</div>
+                    </div>
+                  ) : (
+                    /* View mode */
+                    <div className="space-y-4">
+                      {/* Username + Email display */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Username</label>
+                          <div className="flex items-center gap-2">
+                            <p className="font-body text-on-surface text-sm p-3 border-b border-outline-variant/20 flex-1">{user.username}</p>
+                            {isPro && (
+                              <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 font-sans-cond text-[9px] font-bold uppercase tracking-widest flex-shrink-0">
+                                {subscription && subscription.plan === 'host' ? 'HOST' : 'PRO'}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Email Address</label>
+                          <p className="font-body text-on-surface/60 text-sm p-3 border-b border-outline-variant/20">{user.email}</p>
+                        </div>
                       </div>
-                    );
-                  })}
+
+                      {/* Bio display */}
+                      <div className="space-y-1">
+                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Bio / Tagline</label>
+                        {((user.user_metadata && user.user_metadata.bio) || user.bio) ? (
+                          <p className="font-body text-on-surface text-sm p-3 border-b border-outline-variant/20 h-24 overflow-auto leading-relaxed">
+                            {(user.user_metadata && user.user_metadata.bio) || user.bio}
+                          </p>
+                        ) : (
+                          <p className="font-body text-on-surface/30 text-sm p-3 border-b border-outline-variant/20 h-24 italic">
+                            No bio set yet...
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Riot ID warning if not set */}
+                      {!riotIdSet && (
+                        <div className="flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded mt-2">
+                          <span className="material-symbols-outlined text-primary text-base flex-shrink-0 mt-0.5">warning</span>
+                          <div>
+                            <div className="text-primary text-xs font-bold font-sans-cond uppercase tracking-widest mb-0.5">Set your Riot ID to join tournaments</div>
+                            <div className="text-on-surface/50 text-xs">You need a Riot ID to register for flash tournaments.</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Subscription status */}
+                      {subscription ? (
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-sans-cond" style={{ background: subscription.plan === 'host' ? 'rgba(255,198,107,.12)' : 'rgba(155,114,207,.12)', border: '1px solid ' + (subscription.plan === 'host' ? 'rgba(255,198,107,.4)' : 'rgba(155,114,207,.4)'), color: subscription.plan === 'host' ? '#ffc66b' : '#d9b9ff' }}>
+                          {subscription.plan === 'host' ? 'Host Plan' : 'Pro Plan'} - Active
+                        </div>
+                      ) : (
+                        <button
+                          onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-secondary/30 text-secondary/70 hover:text-secondary text-xs font-sans-cond uppercase tracking-widest transition-colors"
+                        >
+                          Upgrade to Pro
+                        </button>
+                      )}
+
+                      {/* Edit button */}
+                      <div className="flex justify-end">
+                        <button
+                          onClick={function() { setEdit(true); }}
+                          className="flex items-center gap-1.5 px-5 py-2 bg-surface-variant/20 border border-outline-variant/30 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-surface-variant transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-sm">edit</span>
+                          Edit Profile
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Riot ID Verification */}
+            <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8 flex flex-col justify-between border-l-4 border-tertiary">
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Riot Verification</h3>
+                  {riotIdSet ? (
+                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider font-bold">Verified</span>
+                  ) : (
+                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider">Unverified</span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="w-12 h-12 bg-surface-container-lowest flex items-center justify-center rounded-lg flex-shrink-0">
+                    <span className="material-symbols-outlined text-tertiary text-2xl">shield_person</span>
+                  </div>
+                  <div>
+                    <div className="font-mono text-lg text-on-surface">
+                      {riotIdDisplay ? (riotIdDisplay + (riotRegionDisplay ? '#' + riotRegionDisplay : '')) : 'Not linked'}
+                    </div>
+                    <div className="text-[10px] font-sans-cond text-on-surface/40 uppercase">
+                      {linkedPlayer && linkedPlayer.rank ? linkedPlayer.rank : (riotIdSet ? 'Linked' : 'No account linked')}
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-on-surface/60 font-body mb-6">Your Riot ID is used to fetch match history and calculate competitive standings.</p>
+              </div>
+              {riotIdSet ? (
+                <button
+                  onClick={function() { requestChange('riotId'); }}
+                  className="w-full bg-surface-variant/20 border border-outline-variant/30 py-3 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-surface-variant transition-colors"
+                >
+                  Update Riot ID
+                </button>
+              ) : (
+                <button
+                  onClick={function() { setEdit(true); setTab('account'); }}
+                  className="w-full bg-tertiary/10 border border-tertiary/30 text-tertiary py-3 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-tertiary/20 transition-colors"
+                >
+                  Link Riot ID
+                </button>
+              )}
+            </section>
+
+            {/* Social Connections */}
+            <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8">
+              <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest mb-8">Social Connections</h3>
+              <div className="space-y-4">
+
+                {/* Discord */}
+                <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (discordId ? ' border-l-2 border-[#5865F2]' : '')}>
+                  <div className="flex items-center space-x-4">
+                    <svg width="20" height="16" viewBox="0 0 71 55" fill={discordId ? '#5865F2' : 'rgba(228,225,236,0.3)'} xmlns="http://www.w3.org/2000/svg">
+                      <path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/>
+                    </svg>
+                    <div>
+                      <span className="font-body text-sm text-on-surface">Discord</span>
+                      {discordName && <div className="font-sans-cond text-[10px] text-on-surface/40 uppercase">{discordName}</div>}
+                    </div>
+                  </div>
+                  {discordId ? (
+                    <button
+                      onClick={async function() {
+                        if (!window.confirm('Disconnect Discord? You will need a password to log in.')) return;
+                        try {
+                          await supabase.auth.unlinkIdentity(discordIdent);
+                          toast('Discord disconnected', 'success');
+                          handleLogout();
+                        } catch(e) {
+                          toast('Could not disconnect: ' + e.message, 'error');
+                        }
+                      }}
+                      className="text-error/60 hover:text-error font-sans-cond text-[10px] uppercase tracking-widest transition-colors"
+                    >
+                      Disconnect
+                    </button>
+                  ) : (
+                    <button
+                      onClick={async function() { await supabase.auth.linkIdentity({ provider: 'discord', options: { redirectTo: CANONICAL_ORIGIN + '#account' } }); }}
+                      className="text-primary font-sans-cond text-xs uppercase tracking-widest font-bold"
+                    >
+                      Connect
+                    </button>
+                  )}
                 </div>
 
-                {linkedPlayer.sparkline && linkedPlayer.sparkline.length > 0 && (
-                  <Panel style={{ padding: '16px', marginBottom: 12 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#F2EDE4', marginBottom: 10 }}>Points Trend</div>
-                    <Sparkline data={linkedPlayer.sparkline} color="#E8A838" h={60} />
-                  </Panel>
+                {/* Twitch */}
+                <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (((user.user_metadata && user.user_metadata.twitch) || user.twitch) ? ' border-l-2 border-secondary' : '')}>
+                  <div className="flex items-center space-x-4">
+                    <span className="material-symbols-outlined text-on-surface/40 group-hover:text-secondary transition-colors" style={{ fontVariationSettings: "'FILL' 1" }}>videogame_asset</span>
+                    <div>
+                      <span className="font-body text-sm text-on-surface">Twitch</span>
+                      {((user.user_metadata && user.user_metadata.twitch) || user.twitch) && (
+                        <div className="font-sans-cond text-[10px] text-on-surface/40 uppercase">{(user.user_metadata && user.user_metadata.twitch) || user.twitch}</div>
+                      )}
+                    </div>
+                  </div>
+                  {edit ? (
+                    <input
+                      type="text"
+                      value={twitch}
+                      onChange={function(e) { setTwitch(e.target.value); }}
+                      placeholder="username"
+                      className="w-28 bg-surface-container border border-outline-variant/20 rounded px-2 py-1 text-xs text-on-surface font-body focus:border-primary focus:ring-0 transition-colors"
+                    />
+                  ) : (
+                    <button onClick={function() { setEdit(true); }} className="text-primary font-sans-cond text-xs uppercase tracking-widest font-bold">
+                      {((user.user_metadata && user.user_metadata.twitch) || user.twitch) ? 'Edit' : 'Connect'}
+                    </button>
+                  )}
+                </div>
+
+                {/* Twitter / X */}
+                <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (((user.user_metadata && user.user_metadata.twitter) || user.twitter) ? ' border-l-2 border-primary' : '')}>
+                  <div className="flex items-center space-x-4">
+                    <span className="material-symbols-outlined text-on-surface/40 group-hover:text-primary transition-colors">share</span>
+                    <div>
+                      <span className="font-body text-sm text-on-surface">Twitter / X</span>
+                      {((user.user_metadata && user.user_metadata.twitter) || user.twitter) && (
+                        <div className="font-sans-cond text-[10px] text-on-surface/40 uppercase">{'@' + ((user.user_metadata && user.user_metadata.twitter) || user.twitter)}</div>
+                      )}
+                    </div>
+                  </div>
+                  {edit ? (
+                    <input
+                      type="text"
+                      value={twitter}
+                      onChange={function(e) { setTwitter(e.target.value); }}
+                      placeholder="@handle"
+                      className="w-28 bg-surface-container border border-outline-variant/20 rounded px-2 py-1 text-xs text-on-surface font-body focus:border-primary focus:ring-0 transition-colors"
+                    />
+                  ) : (
+                    <button onClick={function() { setEdit(true); }} className="text-primary font-sans-cond text-xs uppercase tracking-widest font-bold">
+                      {((user.user_metadata && user.user_metadata.twitter) || user.twitter) ? 'Edit' : 'Connect'}
+                    </button>
+                  )}
+                </div>
+
+              </div>
+            </section>
+
+            {/* Custom Banner */}
+            <section className="md:col-span-8 bg-surface-container-low rounded-lg p-8">
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Custom Banner</h3>
+                {isPro ? (
+                  <span className="font-mono text-[10px] text-primary/60 uppercase">Premium Unlocks: Active</span>
+                ) : (
+                  <span className="font-mono text-[10px] text-on-surface/30 uppercase">Premium Unlocks: Locked</span>
                 )}
-
-                <PlacementDistribution history={linkedPlayer.clashHistory || []} />
-
-                {(function() {
-                  var acctHistory = linkedPlayer.clashHistory || [];
-                  var ppTrend2 = [];
-                  var ppCum2 = 0;
-                  acctHistory.forEach(function(c) { ppCum2 = ppCum2 + (c.points || 0); ppTrend2.push(ppCum2); });
-                  if (ppTrend2.length <= 1) return null;
-                  return (
-                    <Panel style={{ padding: '16px', marginTop: 10 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#F2EDE4', marginBottom: 10 }}>Season Trajectory</div>
-                      <Sparkline data={ppTrend2} w={280} h={40} color="#9B72CF" />
-                    </Panel>
-                  );
-                })()}
               </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '48px 20px' }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>{tablerIcon('chart-bar', 40, '#BECBD9')}</div>
-                <div style={{ color: '#BECBD9', fontSize: 14 }}>No stats linked to your account yet.</div>
-                <div style={{ color: '#9AAABF', fontSize: 12, marginTop: 6 }}>Your account name must match a registered player.</div>
+
+              {isPro ? (
+                <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Active banner */}
+                    <div className="relative h-24 rounded-lg overflow-hidden cursor-pointer border-2 border-primary group">
+                      <div
+                        className="w-full h-full"
+                        style={{ background: bannerUrl ? ('url(' + bannerUrl + ') center/cover') : ('linear-gradient(135deg,' + (profileAccent || rankColor) + '88,#13131a 80%)') }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
+                        <span className="font-sans-cond text-[10px] uppercase tracking-widest text-primary">Active Banner</span>
+                      </div>
+                      <div className="absolute top-2 right-2">
+                        <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      </div>
+                    </div>
+                    {/* Placeholder unlocked slots */}
+                    <div className="relative h-24 rounded-lg overflow-hidden cursor-pointer border border-outline-variant/20 group bg-surface-container-lowest flex items-center justify-center">
+                      <span className="material-symbols-outlined text-on-surface/20 text-3xl">add_photo_alternate</span>
+                    </div>
+                    {/* Locked slot */}
+                    <div className="relative h-24 rounded-lg overflow-hidden cursor-not-allowed border border-outline-variant/10 group bg-surface-container-lowest">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+                        <span className="material-symbols-outlined text-on-surface/20">lock</span>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
+                        <span className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/20">Locked</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-8 flex justify-end">
+                    <button
+                      onClick={save}
+                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                    {/* Preview locked banners */}
+                    {[
+                      { label: 'Obsidian Current', active: true },
+                      { label: 'Nebula Strike', active: false },
+                      { label: 'Void Walker', locked: true },
+                    ].map(function(item, i) {
+                      if (item.locked) {
+                        return (
+                          <div key={i} className="relative h-24 rounded-lg overflow-hidden cursor-not-allowed border border-outline-variant/10 bg-surface-container-lowest">
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
+                              <span className="material-symbols-outlined text-on-surface/20">lock</span>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
+                              <span className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/20">{item.label}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={i} className={'relative h-24 rounded-lg overflow-hidden border group ' + (item.active ? 'border-2 border-primary cursor-pointer' : 'border-outline-variant/20 cursor-pointer opacity-50')}>
+                          <div
+                            className="w-full h-full"
+                            style={{ background: i === 0 ? 'linear-gradient(135deg,#1a2a3a,#0e1f2f)' : 'linear-gradient(135deg,#2a1a3a,#1a0e2f)' }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
+                            <span className={'font-sans-cond text-[10px] uppercase tracking-widest ' + (item.active ? 'text-primary' : 'text-on-surface/60')}>{item.label}</span>
+                          </div>
+                          {item.active && (
+                            <div className="absolute top-2 right-2">
+                              <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>lock</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
+                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all"
+                    >
+                      Go Pro to Unlock
+                    </button>
+                  </div>
+                </div>
+              )}
+            </section>
+
+            {/* Competitive Stats QuickView */}
+            {linkedPlayer && s ? (
+              <section className="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-primary/20">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Win Rate</div>
+                  <div className="font-mono text-3xl text-primary">{s.winRate + '%'}</div>
+                </div>
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-tertiary/20">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Top 4 Rate</div>
+                  <div className="font-mono text-3xl text-tertiary">{s.top4Rate + '%'}</div>
+                </div>
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-secondary/20">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Clash Trophies</div>
+                  <div className="font-mono text-3xl text-secondary">{String(linkedPlayer.wins).padStart(2, '0')}</div>
+                </div>
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-on-surface/10">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Tournament LP</div>
+                  <div className="font-mono text-3xl text-on-surface">{linkedPlayer.pts.toLocaleString()}</div>
+                </div>
+              </section>
+            ) : linkedPlayer ? (
+              <section className="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-primary/20">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Clash Points</div>
+                  <div className="font-mono text-3xl text-primary">{linkedPlayer.pts}</div>
+                </div>
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-tertiary/20">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Total Wins</div>
+                  <div className="font-mono text-3xl text-tertiary">{linkedPlayer.wins}</div>
+                </div>
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-secondary/20">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Games</div>
+                  <div className="font-mono text-3xl text-secondary">{linkedPlayer.games}</div>
+                </div>
+                <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-on-surface/10">
+                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Rank</div>
+                  <div className="font-mono text-xl text-on-surface">{linkedPlayer.rank || '-'}</div>
+                </div>
+              </section>
+            ) : null}
+
+            {/* Danger Zone */}
+            <section className="md:col-span-12">
+              <div className="bg-error/5 border border-error/20 rounded-lg p-5">
+                <div className="font-sans-cond text-xs font-bold uppercase tracking-widest text-error mb-1">Danger Zone</div>
+                <p className="text-on-surface/40 text-xs mb-3">Permanently delete your account and all data. This cannot be undone.</p>
+                <button
+                  onClick={async function() {
+                    if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
+                    try {
+                      if (supabase.from) {
+                        await supabase.from('registrations').delete().eq('player_id', user.id).catch(function() {});
+                        await supabase.from('notifications').delete().eq('user_id', user.id).catch(function() {});
+                        await supabase.from('player_achievements').delete().eq('player_id', user.id).catch(function() {});
+                        await supabase.from('players').delete().eq('auth_user_id', user.id).catch(function() {});
+                      }
+                      if (setPlayers) {
+                        setPlayers(function(ps) {
+                          return ps.filter(function(p) {
+                            return p.authUserId !== user.id && (p.name || '').toLowerCase() !== (user.username || '').toLowerCase();
+                          });
+                        });
+                      }
+                      await supabase.auth.signOut();
+                      handleLogout();
+                      toast('Account deleted - signed out', 'success');
+                    } catch(e) {
+                      await supabase.auth.signOut();
+                      handleLogout();
+                    }
+                  }}
+                  className="px-4 py-2 bg-error/10 border border-error/40 rounded font-sans-cond text-xs font-bold uppercase tracking-widest text-error hover:bg-error/20 transition-colors"
+                >
+                  Delete Account
+                </button>
               </div>
-            )}
+            </section>
+
           </div>
         )}
 
-        {/* ── ACHIEVEMENTS TAB ──────────────────────────────────────────────────── */}
-        {tab === 'achievements' && (
+        {/* ── MILESTONES TAB ───────────────────────────────────────────────────── */}
+        {tab === 'milestones' && (
           <div>
             {linkedPlayer ? (
               <div>
-                <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#F2EDE4' }}>{myAchievements.length} of {ACHIEVEMENTS.length} unlocked</span>
+                <div className="flex items-center gap-3 mb-6 flex-wrap">
+                  <span className="font-serif text-xl text-on-surface">{myAchievements.length} of {ACHIEVEMENTS.length} unlocked</span>
                   {['legendary', 'gold', 'silver', 'bronze'].map(function(tier) {
                     var n = myAchievements.filter(function(a) { return a.tier === tier; }).length;
                     if (!n) return null;
                     return (
-                      <span key={tier} style={{ fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 10, background: tierCols[tier] + '22', color: tierCols[tier], border: '1px solid ' + tierCols[tier] + '44' }}>
+                      <span key={tier} className="px-3 py-0.5 rounded-full text-xs font-bold font-sans-cond uppercase" style={{ background: tierCols[tier] + '22', color: tierCols[tier], border: '1px solid ' + tierCols[tier] + '44' }}>
                         {n} {tier}
                       </span>
                     );
                   })}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 8 }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {ACHIEVEMENTS.map(function(a) {
                     var unlocked = false;
                     try { unlocked = a.check(linkedPlayer); } catch(e) { unlocked = false; }
@@ -804,75 +987,122 @@ export default function AccountScreen() {
                     return (
                       <div
                         key={a.id}
+                        className="flex gap-3 items-center p-4 rounded-lg border transition-opacity"
                         style={{
                           background: unlocked ? col + '11' : 'rgba(255,255,255,.02)',
-                          border: '1px solid ' + (unlocked ? col + '44' : 'rgba(242,237,228,.06)'),
-                          borderRadius: 10, padding: '12px', opacity: unlocked ? 1 : 0.5,
-                          display: 'flex', gap: 10, alignItems: 'center',
+                          border: '1px solid ' + (unlocked ? col + '44' : 'rgba(228,225,236,.06)'),
+                          opacity: unlocked ? 1 : 0.5,
                         }}
                       >
-                        <div style={{ fontSize: 22, flexShrink: 0 }}>{tablerIcon(ICON_REMAP[a.icon] || a.icon, 22, unlocked ? col : '#BECBD9')}</div>
-                        <div>
-                          <div style={{ fontWeight: 700, fontSize: 13, color: unlocked ? col : '#BECBD9' }}>{a.name}</div>
-                          <div style={{ fontSize: 11, color: '#9AAABF', marginTop: 2 }}>{a.desc}</div>
+                        <span className="material-symbols-outlined flex-shrink-0" style={{ color: unlocked ? col : '#9AAABF', fontSize: 22 }}>
+                          {a.icon === 'trophy' ? 'emoji_events' : a.icon === 'fire' || a.icon === 'flame' ? 'local_fire_department' : a.icon === 'star' ? 'star' : a.icon === 'shield' ? 'shield' : a.icon === 'target' || a.icon === 'bullseye' ? 'my_location' : 'military_tech'}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-sans-cond text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : '#9AAABF' }}>{a.name}</div>
+                          <div className="text-on-surface/40 text-xs font-body mt-0.5">{a.desc}</div>
                         </div>
-                        {unlocked && <div style={{ marginLeft: 'auto', color: '#6EE7B7', fontSize: 14, flexShrink: 0 }}>{'check'}</div>}
+                        {unlocked && <span className="material-symbols-outlined text-tertiary text-sm ml-auto flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>}
                       </div>
                     );
                   })}
                 </div>
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '48px 20px', color: '#BECBD9' }}>No player data linked yet.</div>
+              <div className="text-center py-16 text-on-surface/40">
+                <span className="material-symbols-outlined text-4xl block mb-3">military_tech</span>
+                <p className="font-sans-cond uppercase tracking-widest text-xs">No player data linked yet.</p>
+              </div>
             )}
           </div>
         )}
 
-        {/* ── HISTORY TAB ───────────────────────────────────────────────────────── */}
-        {tab === 'history' && (
-          <Panel style={{ overflow: 'hidden' }}>
-            <div style={{ padding: '13px 16px', background: '#0A0F1A', borderBottom: '1px solid rgba(242,237,228,.07)' }}>
-              <h3 style={{ fontSize: 15, color: '#F2EDE4', margin: 0 }}>Clash History</h3>
-            </div>
-            {linkedPlayer && (linkedPlayer.clashHistory || []).length > 0 ? (
-              (linkedPlayer.clashHistory || []).map(function(g, i) {
-                var place = g.place || g.placement;
-                var isFirst = place === 1;
-                var isTop4 = place <= 4;
-                return (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 16px', borderBottom: '1px solid rgba(242,237,228,.05)' }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 8,
-                      background: isFirst ? 'rgba(232,168,56,.12)' : isTop4 ? 'rgba(82,196,124,.08)' : 'rgba(255,255,255,.03)',
-                      border: '1px solid ' + (isFirst ? 'rgba(232,168,56,.4)' : isTop4 ? 'rgba(82,196,124,.25)' : 'rgba(242,237,228,.08)'),
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 13, fontWeight: 800,
-                      color: isFirst ? '#E8A838' : isTop4 ? '#6EE7B7' : '#BECBD9',
-                      flexShrink: 0,
-                    }}>
-                      {'#' + place}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#F2EDE4' }}>
-                        {isFirst ? 'Victory' : isTop4 ? 'Top 4 Finish' : 'Outside Top 4'}
-                        {g.clutch && (
-                          <span style={{ marginLeft: 6, fontSize: 11, color: '#9B72CF', fontWeight: 700 }}>
-                            {tablerIcon('bolt', 11)} Clutch
-                          </span>
-                        )}
+        {/* ── CHALLENGES TAB ───────────────────────────────────────────────────── */}
+        {tab === 'challenges' && (
+          <div>
+            {linkedPlayer ? (
+              <div>
+                <div className="mb-6">
+                  <p className="text-on-surface/50 text-sm font-body">Complete challenges to earn rewards and recognition in the arena.</p>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                  {[
+                    { l: 'Clash Points', v: linkedPlayer.pts, c: '#ffc66b' },
+                    { l: 'Total Wins', v: linkedPlayer.wins, c: '#67e2d9' },
+                    { l: 'Top 4 Rate', v: s ? (s.top4Rate + '%') : '-', c: '#d9b9ff' },
+                    { l: 'Avg Placement', v: s ? s.avgPlacement : '-', c: s ? avgCol(s.avgPlacement) : '#9AAABF' },
+                    { l: 'Games Played', v: linkedPlayer.games, c: '#67e2d9' },
+                    { l: 'Best Streak', v: linkedPlayer.bestStreak, c: '#F87171' },
+                    { l: 'PPG', v: s ? s.ppg : '-', c: '#ffc66b' },
+                    { l: 'Clutch Rate', v: s ? (s.clutchRate + '%') : '-', c: '#9B72CF' },
+                  ].map(function(item) {
+                    return (
+                      <div key={item.l} className="bg-surface-container-high p-4 rounded-lg text-center">
+                        <div className="font-mono text-2xl font-bold" style={{ color: item.c }}>{item.v}</div>
+                        <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mt-1">{item.l}</div>
                       </div>
-                      <div style={{ fontSize: 11, color: '#BECBD9', marginTop: 2 }}>
-                        R1: #{g.r1} - R2: #{g.r2} - R3: #{g.r3}
-                      </div>
-                    </div>
-                    <div className="mono" style={{ fontSize: 14, fontWeight: 700, color: '#E8A838' }}>{(g.pts || '-') + 'pts'}</div>
+                    );
+                  })}
+                </div>
+
+                {/* Sparkline */}
+                {linkedPlayer.sparkline && linkedPlayer.sparkline.length > 1 && (
+                  <div className="bg-surface-container-low rounded-lg p-5 mb-4">
+                    <div className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface/60 mb-3">Points Trend</div>
+                    <Sparkline data={linkedPlayer.sparkline} color="#ffc66b" h={60} />
                   </div>
-                );
-              })
+                )}
+
+                <PlacementDistribution history={linkedPlayer.clashHistory || []} />
+
+                {/* Clash History */}
+                <div className="bg-surface-container-low rounded-lg overflow-hidden mt-4">
+                  <div className="p-4 border-b border-outline-variant/10">
+                    <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface">Clash History</h3>
+                  </div>
+                  {(linkedPlayer.clashHistory || []).length > 0 ? (
+                    (linkedPlayer.clashHistory || []).map(function(g, i) {
+                      var place = g.place || g.placement;
+                      var isFirst = place === 1;
+                      var isTop4 = place <= 4;
+                      return (
+                        <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-outline-variant/5 last:border-0">
+                          <div
+                            className="w-9 h-9 rounded flex items-center justify-center text-sm font-bold flex-shrink-0 font-mono"
+                            style={{
+                              background: isFirst ? 'rgba(255,198,107,.12)' : isTop4 ? 'rgba(103,226,217,.08)' : 'rgba(255,255,255,.03)',
+                              border: '1px solid ' + (isFirst ? 'rgba(255,198,107,.4)' : isTop4 ? 'rgba(103,226,217,.25)' : 'rgba(228,225,236,.08)'),
+                              color: isFirst ? '#ffc66b' : isTop4 ? '#67e2d9' : '#9AAABF',
+                            }}
+                          >
+                            {'#' + place}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-body text-on-surface font-medium">
+                              {isFirst ? 'Victory' : isTop4 ? 'Top 4 Finish' : 'Outside Top 4'}
+                            </div>
+                            <div className="text-xs text-on-surface/40 mt-0.5">
+                              {'R1: #' + g.r1 + ' - R2: #' + g.r2 + ' - R3: #' + g.r3}
+                            </div>
+                          </div>
+                          <div className="font-mono text-sm font-bold text-primary flex-shrink-0">{(g.pts || '-') + ' pts'}</div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-10 text-on-surface/30 font-sans-cond text-xs uppercase tracking-widest">No clash history yet.</div>
+                  )}
+                </div>
+              </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9AAABF' }}>No clash history yet.</div>
+              <div className="text-center py-16 text-on-surface/40">
+                <span className="material-symbols-outlined text-4xl block mb-3">sports_esports</span>
+                <p className="font-sans-cond uppercase tracking-widest text-xs">No stats linked to your account yet.</p>
+                <p className="text-on-surface/30 text-xs mt-2">Your account name must match a registered player.</p>
+              </div>
             )}
-          </Panel>
+          </div>
         )}
 
       </div>

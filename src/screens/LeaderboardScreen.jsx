@@ -3,90 +3,181 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import { REGIONS } from '../lib/constants.js'
-import PageHeader from '../components/shared/PageHeader'
-import Podium from '../components/shared/Podium'
-import RankBadge from '../components/shared/RankBadge'
-import { Panel, Icon, Inp } from '../components/ui'
+import PageLayout from '../components/layout/PageLayout'
 
 var MEDAL_COLORS = ['#E8A838', '#C0C0C0', '#CD7F32']
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
 
-function avgPlacementColor(avg) {
-  if (!avg || avg === '-') return 'text-on-surface/40'
-  var n = parseFloat(avg)
-  if (n <= 2.5) return 'text-emerald-400'
-  if (n <= 4.0) return 'text-primary'
-  if (n <= 5.5) return 'text-yellow-400'
-  return 'text-rose-400'
+var TIER_DIVIDERS = [
+  { key: 'Challenger',   label: 'CHALLENGER DIVISION',   sub: 'TOP 10 PLAYERS',    color: 'text-primary',   bg: 'bg-gradient-to-r from-primary/10 via-primary/5 to-transparent',   border: '' },
+  { key: 'Grandmaster',  label: 'GRANDMASTER DIVISION',  sub: 'TOP 200 PLAYERS',   color: 'text-error',     bg: 'bg-gradient-to-r from-error/10 via-error/5 to-transparent',         border: 'border-t border-outline-variant/10' },
+  { key: 'Master',       label: 'MASTER DIVISION',       sub: 'TOP 500 PLAYERS',   color: 'text-secondary', bg: 'bg-gradient-to-r from-secondary/10 via-secondary/5 to-transparent', border: 'border-t border-outline-variant/10' },
+  { key: 'Diamond',      label: 'DIAMOND DIVISION',      sub: 'OPEN COMPETITION',  color: 'text-tertiary',  bg: 'bg-gradient-to-r from-tertiary/10 via-tertiary/5 to-transparent',   border: 'border-t border-outline-variant/10' },
+  { key: 'Other',        label: 'RANKED PLAYERS',        sub: 'ALL RANKS',         color: 'text-on-surface-variant', bg: 'bg-gradient-to-r from-outline/10 via-outline/5 to-transparent', border: 'border-t border-outline-variant/10' }
+]
+
+function getTierKey(rank) {
+  if (!rank) return 'Other'
+  var r = rank.toLowerCase()
+  if (r === 'challenger') return 'Challenger'
+  if (r === 'grandmaster') return 'Grandmaster'
+  if (r === 'master') return 'Master'
+  if (r === 'diamond') return 'Diamond'
+  return 'Other'
 }
 
-function RankRow({ player, rank, isMe, onClick }) {
+function getTrendIcon(avgPlacement) {
+  if (!avgPlacement || avgPlacement === '-') return 'horizontal_rule'
+  var n = parseFloat(avgPlacement)
+  if (n <= 3.0) return 'trending_up'
+  if (n <= 5.0) return 'horizontal_rule'
+  return 'trending_down'
+}
+
+function getTrendColor(avgPlacement) {
+  if (!avgPlacement || avgPlacement === '-') return 'text-secondary'
+  var n = parseFloat(avgPlacement)
+  if (n <= 3.0) return 'text-tertiary'
+  if (n <= 5.0) return 'text-secondary'
+  return 'text-error'
+}
+
+function PodiumCard({ player, rank, onClick }) {
   var stats = getStats(player)
-  var isTop3 = rank <= 3
-  var medalColor = isTop3 ? MEDAL_COLORS[rank - 1] : null
+  var isFirst = rank === 1
+  var medalColor = MEDAL_COLORS[rank - 1]
+  var medalLabel = rank === 1 ? '1ST' : rank === 2 ? '2ND' : '3RD'
+  var initial = (player.name || '?').charAt(0).toUpperCase()
+
+  if (isFirst) {
+    return (
+      <div className="order-1 md:order-2 flex flex-col items-center -translate-y-8">
+        <div className="relative group cursor-pointer mb-6" onClick={onClick}>
+          <div className="absolute -top-6 left-1/2 -translate-x-1/2">
+            <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+          </div>
+          <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center" style={{ boxShadow: '0 0 25px 2px rgba(253, 186, 73, 0.25)' }}>
+            <span className="font-headline text-5xl font-bold text-primary">{initial}</span>
+          </div>
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-label font-bold px-6 py-2 rounded-sm text-sm shadow-xl uppercase tracking-widest whitespace-nowrap">
+            {player.name.toUpperCase()}
+          </div>
+        </div>
+        <h3 className="font-headline text-2xl mb-1 mt-4">{player.name}</h3>
+        <p className="font-mono text-primary text-lg font-bold">{(player.pts || 0) + ' pts'}</p>
+        <div className="mt-6 h-36 w-full bg-gradient-to-b from-primary/10 to-surface-container-low rounded-t-xl"></div>
+      </div>
+    )
+  }
+
+  var borderClass = rank === 2 ? 'border-[#C0C0C0]/30' : 'border-[#CD7F32]/30'
+  var labelBg = rank === 2 ? 'bg-[#C0C0C0]' : 'bg-[#CD7F32]'
+  var imgFilter = rank === 2 ? 'grayscale opacity-80' : 'sepia-[.3]'
+  var heightClass = rank === 2 ? 'h-24' : 'h-20'
+  var orderClass = rank === 2 ? 'order-2 md:order-1' : 'order-3'
 
   return (
-    <div
-      className={'flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-surface-container-high/60' + (isMe ? ' bg-primary/5 border-l-2 border-primary' : '') + (rank === 1 ? ' border-l-2 border-[#E8A838]' : '')}
-      onClick={onClick}
-    >
-      <div className="w-8 text-center flex-shrink-0">
-        {isTop3
-          ? <span className="font-mono text-sm font-bold" style={{ color: medalColor }}>{'#' + rank}</span>
-          : <span className="font-mono text-sm text-on-surface/40">{'#' + rank}</span>
-        }
-      </div>
-
-      <div className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-sm border-2" style={isTop3 ? { borderColor: medalColor + '66', backgroundColor: medalColor + '1a', color: medalColor } : { borderColor: 'rgba(242,237,228,0.1)', backgroundColor: 'rgba(242,237,228,0.05)', color: 'rgba(242,237,228,0.5)' }}>
-        {(player.name || '?').charAt(0).toUpperCase()}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className={'font-bold text-sm truncate' + (isMe ? ' text-primary' : ' text-on-surface')}>
-            {player.name}
-          </span>
-          {isMe && (
-            <span className="font-sans text-[9px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-sm flex-shrink-0">
-              You
-            </span>
-          )}
-          {player.plan === 'pro' && (
-            <span className="font-sans text-[9px] font-bold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-sm flex-shrink-0">
-              Pro
-            </span>
-          )}
-          {player.rank && <RankBadge rank={player.rank} className="hidden sm:inline-flex" />}
+    <div className={orderClass + ' flex flex-col items-center'}>
+      <div className="relative group cursor-pointer mb-6" onClick={onClick}>
+        <div className={'w-24 h-24 rounded-full border-4 ' + borderClass + ' overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center'}>
+          <span className={'font-headline text-3xl font-bold ' + imgFilter} style={{ color: medalColor }}>{initial}</span>
         </div>
-        <div className="text-[11px] text-on-surface/40 mt-0.5">
-          {player.region || 'EUW'}
-          {stats.games > 0 ? (' - ' + stats.games + ' games') : ''}
+        <div className={'absolute -bottom-2 left-1/2 -translate-x-1/2 ' + labelBg + ' text-surface font-label font-bold px-3 py-1 rounded-sm text-xs uppercase tracking-widest'}>
+          {medalLabel}
         </div>
       </div>
+      <h3 className="font-headline text-xl mb-1">{player.name}</h3>
+      <p className="font-mono text-tertiary text-sm">{(player.pts || 0) + ' pts'}</p>
+      <div className={'mt-4 ' + heightClass + ' w-full bg-surface-container-low rounded-t-xl opacity-40'}></div>
+    </div>
+  )
+}
 
-      <div className="hidden sm:flex items-center gap-6 flex-shrink-0 text-right">
-        <div>
-          <div className={'font-mono text-sm font-bold ' + avgPlacementColor(stats.avgPlacement)}>{stats.avgPlacement}</div>
-          <div className="font-sans text-[9px] uppercase tracking-widest text-on-surface/30">Avg</div>
+function TableRow({ player, rank, isMe, onClick }) {
+  var stats = getStats(player)
+  var trendIcon = getTrendIcon(stats.avgPlacement)
+  var trendColor = getTrendColor(stats.avgPlacement)
+  var rankLabel = '#' + (rank < 10 ? '0' + rank : rank)
+
+  if (isMe) {
+    return (
+      <tr
+        id="lb-me-row"
+        className="relative group cursor-pointer"
+        style={{ background: 'rgba(217,185,255,0.05)', boxShadow: 'inset 0 0 15px rgba(217, 185, 255, 0.15)' }}
+        onClick={onClick}
+      >
+        <td className="px-8 py-5 font-mono text-secondary font-bold text-sm">{rankLabel}</td>
+        <td className="px-8 py-5">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 bg-secondary-container rounded-full border border-secondary/50 flex items-center justify-center flex-shrink-0">
+              <span className="font-bold text-secondary text-sm">{(player.name || '?').charAt(0).toUpperCase()}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-secondary">{player.name}</span>
+              <span className="bg-secondary/20 text-secondary text-[10px] px-2 py-0.5 font-label tracking-tighter rounded-full uppercase">You</span>
+            </div>
+          </div>
+        </td>
+        <td className="px-8 py-5 font-mono text-secondary text-sm">{(player.pts || 0) + ' pts'}</td>
+        <td className="px-8 py-5 font-mono text-secondary text-sm">{stats.avgPlacement}</td>
+        <td className="px-8 py-5 text-right">
+          <span className={'material-symbols-outlined align-middle ' + trendColor}>{trendIcon}</span>
+        </td>
+      </tr>
+    )
+  }
+
+  return (
+    <tr className="hover:bg-white/5 transition-colors group cursor-pointer" onClick={onClick}>
+      <td className="px-8 py-5 font-mono text-on-surface text-sm">{rankLabel}</td>
+      <td className="px-8 py-5">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center flex-shrink-0">
+            <span className="font-bold text-on-surface/60 text-sm">{(player.name || '?').charAt(0).toUpperCase()}</span>
+          </div>
+          <span className="font-bold text-on-surface">{player.name}</span>
         </div>
-        <div>
-          <div className="font-mono text-sm font-bold text-emerald-400">{stats.top4Rate + '%'}</div>
-          <div className="font-sans text-[9px] uppercase tracking-widest text-on-surface/30">Top4</div>
-        </div>
-        <div>
-          <div className="font-mono text-sm font-bold text-secondary">{stats.wins}</div>
-          <div className="font-sans text-[9px] uppercase tracking-widest text-on-surface/30">Wins</div>
-        </div>
+      </td>
+      <td className="px-8 py-5 font-mono text-tertiary text-sm">{(player.pts || 0) + ' pts'}</td>
+      <td className="px-8 py-5 font-mono text-on-surface-variant text-sm">{stats.avgPlacement}</td>
+      <td className="px-8 py-5 text-right">
+        <span className={'material-symbols-outlined align-middle ' + trendColor}>{trendIcon}</span>
+      </td>
+    </tr>
+  )
+}
+
+function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick }) {
+  var divider = TIER_DIVIDERS.find(function(d) { return d.key === tierKey }) || TIER_DIVIDERS[TIER_DIVIDERS.length - 1]
+
+  if (players.length === 0) return null
+
+  return (
+    <div>
+      <div className={divider.bg + ' ' + divider.border + ' px-8 py-3 flex items-center justify-between'}>
+        <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
+        <span className={'font-mono text-xs ' + divider.color + '/40'}>{divider.sub}</span>
       </div>
-
-      <div className="flex-shrink-0 text-right min-w-[56px]">
-        <div className={'font-mono font-bold' + (isTop3 ? ' text-base' : ' text-sm')} style={isTop3 ? { color: medalColor } : { color: 'rgba(242,237,228,0.7)' }}>
-          {player.pts || 0}
-        </div>
-        <div className="font-sans text-[9px] uppercase tracking-widest text-on-surface/30">pts</div>
+      <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <table className="w-full text-left border-collapse">
+          <tbody className="divide-y divide-outline-variant/5">
+            {players.map(function(player) {
+              var rank = ranksMap[player.name]
+              var isMe = currentUser && player.name === currentUser.username
+              return (
+                <TableRow
+                  key={player.id || player.name}
+                  player={player}
+                  rank={rank}
+                  isMe={isMe}
+                  onClick={function() { onPlayerClick(player) }}
+                />
+              )
+            })}
+          </tbody>
+        </table>
       </div>
-
-      <Icon name="chevron_right" size={14} className="text-on-surface/20 flex-shrink-0" />
     </div>
   )
 }
@@ -127,6 +218,22 @@ export default function LeaderboardScreen() {
     ? sorted.findIndex(function(p) { return p.name === currentUser.username })
     : -1
 
+  var ranksMap = useMemo(function() {
+    var map = {}
+    sorted.forEach(function(p, i) { map[p.name] = i + 1 })
+    return map
+  }, [sorted])
+
+  var tierGroups = useMemo(function() {
+    var groups = {}
+    TIER_DIVIDERS.forEach(function(d) { groups[d.key] = [] })
+    sorted.forEach(function(p) {
+      var key = getTierKey(p.rank)
+      groups[key].push(p)
+    })
+    return groups
+  }, [sorted])
+
   function openPlayer(p) {
     setProfilePlayer(p)
     setScreen('profile')
@@ -139,121 +246,144 @@ export default function LeaderboardScreen() {
   }
 
   return (
-    <div className="space-y-8 pb-8">
-      <PageHeader
-        title="Ranked"
-        goldWord="Standings"
-        subtitle="Global Competition"
-        description="Season rankings across all TFT Clash players. Compete weekly to climb the board."
-      />
+    <PageLayout>
+      <div className="pb-20">
 
-      {top3.length >= 3 && (
-        <Podium players={top3} />
-      )}
+        {/* Header */}
+        <header className="mb-16 text-center">
+          <span className="font-label uppercase tracking-[0.2em] text-primary text-sm mb-2 block">Global Competition</span>
+          <h1 className="font-headline text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
+          <p className="text-on-surface-variant max-w-2xl mx-auto font-body opacity-80">
+            Behold the elite tacticians of the convergence. Only those with iron resolve and unmatched strategy ascend the Obsidian Arena.
+          </p>
+        </header>
 
-      {top3.length < 3 && top3.length > 0 && (
-        <Panel className="text-center py-8">
-          <Icon name="trophy" fill size={28} className="text-primary mx-auto mb-3" />
-          <div className="font-bold text-on-surface mb-1">Season in progress</div>
-          <div className="text-sm text-on-surface/50">Podium appears after 3+ players have competed.</div>
-        </Panel>
-      )}
+        {/* Podium */}
+        {top3.length >= 3 && (
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-20 px-4">
+            <PodiumCard player={top3[1]} rank={2} onClick={function() { openPlayer(top3[1]) }} />
+            <PodiumCard player={top3[0]} rank={1} onClick={function() { openPlayer(top3[0]) }} />
+            <PodiumCard player={top3[2]} rank={3} onClick={function() { openPlayer(top3[2]) }} />
+          </section>
+        )}
 
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1 min-w-0">
-          <Icon name="search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/40 pointer-events-none" />
-          <Inp
-            value={search}
-            onChange={setSearch}
-            placeholder="Search players..."
-            className="pl-9"
-          />
+        {/* Filters & Search */}
+        <div className="flex flex-col md:flex-row gap-6 mb-8 items-center justify-between">
+          <div className="flex gap-4">
+            <div className="relative">
+              <select
+                value={regionFilter}
+                onChange={function(e) { setRegionFilter(e.target.value) }}
+                className="appearance-none bg-surface-container-lowest border-b border-outline-variant/30 font-label uppercase tracking-widest text-xs py-3 pl-4 pr-10 focus:border-primary focus:ring-0 outline-none text-on-surface"
+              >
+                <option value="All">Global (All Regions)</option>
+                {REGIONS.map(function(r) {
+                  return <option key={r} value={r}>{r}</option>
+                })}
+              </select>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">expand_more</span>
+            </div>
+            <div className="relative">
+              <select
+                value={tierFilter}
+                onChange={function(e) { setTierFilter(e.target.value) }}
+                className="appearance-none bg-surface-container-lowest border-b border-outline-variant/30 font-label uppercase tracking-widest text-xs py-3 pl-4 pr-10 focus:border-primary focus:ring-0 outline-none text-on-surface"
+              >
+                {TIERS_OPTIONS.map(function(t) {
+                  return <option key={t} value={t}>{t === 'All' ? 'All Tiers' : t}</option>
+                })}
+              </select>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">expand_more</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-96 group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-lg">search</span>
+              <input
+                type="text"
+                value={search}
+                onChange={function(e) { setSearch(e.target.value) }}
+                placeholder="SEARCH PLAYER..."
+                className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 py-4 pl-12 pr-4 font-label uppercase tracking-widest text-sm focus:ring-0 focus:border-primary placeholder:text-outline/50 transition-all outline-none text-on-surface"
+              />
+            </div>
+
+            {currentUser && myIdx >= 0 && (
+              <button
+                onClick={handleMyPosition}
+                className="flex-shrink-0 flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed px-4 py-3 rounded-full font-label font-bold tracking-widest uppercase text-xs shadow-xl active:scale-95 transition-all whitespace-nowrap"
+              >
+                <span className="material-symbols-outlined text-sm">my_location</span>
+                {'#' + (myIdx + 1)}
+              </button>
+            )}
+          </div>
         </div>
 
-        <select
-          value={regionFilter}
-          onChange={function(e) { setRegionFilter(e.target.value) }}
-          className="bg-surface-container border border-outline-variant/20 text-on-surface text-sm rounded-sm px-3 py-2 focus:outline-none focus:border-primary/40"
-        >
-          <option value="All">All Regions</option>
-          {REGIONS.map(function(r) {
-            return <option key={r} value={r}>{r}</option>
-          })}
-        </select>
-
-        <select
-          value={tierFilter}
-          onChange={function(e) { setTierFilter(e.target.value) }}
-          className="bg-surface-container border border-outline-variant/20 text-on-surface text-sm rounded-sm px-3 py-2 focus:outline-none focus:border-primary/40"
-        >
-          {TIERS_OPTIONS.map(function(t) {
-            return <option key={t} value={t}>{t === 'All' ? 'All Tiers' : t}</option>
-          })}
-        </select>
-
-        {currentUser && myIdx >= 0 && (
-          <button
-            onClick={handleMyPosition}
-            className="flex-shrink-0 px-3 py-2 text-sm font-sans font-semibold text-primary bg-primary/10 border border-primary/20 rounded-sm hover:bg-primary/15 transition-colors"
-          >
-            {'My Position #' + (myIdx + 1)}
-          </button>
+        {/* Table Container */}
+        {sorted.length === 0 && (
+          <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
+            <span className="material-symbols-outlined text-on-surface/20 text-5xl block mb-4">leaderboard</span>
+            <div className="font-headline text-xl text-on-surface mb-2">No players found</div>
+            <div className="text-sm text-on-surface-variant">
+              {search || regionFilter !== 'All' || tierFilter !== 'All'
+                ? 'Try adjusting your filters.'
+                : 'Standings appear once clashes have been played and results submitted.'}
+            </div>
+          </div>
         )}
-      </div>
 
-      {sorted.length === 0 && (
-        <Panel className="text-center py-16">
-          <Icon name="trophy" fill size={32} className="text-on-surface/20 mx-auto mb-4" />
-          <div className="font-bold text-on-surface mb-2">No players found</div>
-          <div className="text-sm text-on-surface/50">
-            {search || regionFilter !== 'All' || tierFilter !== 'All'
-              ? 'Try adjusting your filters.'
-              : 'Standings appear once clashes have been played and results submitted.'}
-          </div>
-        </Panel>
-      )}
+        {sorted.length > 0 && (
+          <div className="bg-surface-container-low rounded-sm overflow-hidden border border-outline-variant/10">
 
-      {sorted.length > 0 && (
-        <Panel className="overflow-hidden p-0">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-outline-variant/10 bg-surface-container-highest/20">
-            <div className="flex items-center gap-4">
-              <div className="font-sans text-[10px] uppercase tracking-widest text-on-surface/50">Rank</div>
-              <div className="font-sans text-[10px] uppercase tracking-widest text-on-surface/50">Player</div>
+            {/* Table header row */}
+            <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-surface-container-lowest/50">
+                  <tr>
+                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Rank</th>
+                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Player</th>
+                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Points</th>
+                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Avg Placement</th>
+                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
+                  </tr>
+                </thead>
+              </table>
             </div>
-            <div className="hidden sm:flex items-center gap-6 pr-10">
-              <div className="font-sans text-[10px] uppercase tracking-widest text-on-surface/50 w-8 text-right">Avg</div>
-              <div className="font-sans text-[10px] uppercase tracking-widest text-on-surface/50 w-10 text-right">Top4</div>
-              <div className="font-sans text-[10px] uppercase tracking-widest text-on-surface/50 w-8 text-right">Wins</div>
-              <div className="font-sans text-[10px] uppercase tracking-widest text-on-surface/50 w-14 text-right">Pts</div>
-            </div>
-          </div>
 
-          <div className="divide-y divide-outline-variant/10">
-            {sorted.map(function(player, i) {
-              var rank = i + 1
-              var isMe = currentUser && player.name === currentUser.username
-              var rowId = isMe ? 'lb-me-row' : undefined
-
+            {/* Tier sections */}
+            {TIER_DIVIDERS.map(function(divider) {
               return (
-                <div key={player.id || player.name} id={rowId}>
-                  <RankRow
-                    player={player}
-                    rank={rank}
-                    isMe={isMe}
-                    onClick={function() { openPlayer(player) }}
-                  />
-                </div>
+                <TierSection
+                  key={divider.key}
+                  tierKey={divider.key}
+                  players={tierGroups[divider.key] || []}
+                  ranksMap={ranksMap}
+                  currentUser={currentUser}
+                  onPlayerClick={openPlayer}
+                />
               )
             })}
-          </div>
 
-          <div className="px-4 py-3 border-t border-outline-variant/10 bg-surface-container-highest/10 text-center">
-            <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface/30">
-              {sorted.length + ' player' + (sorted.length !== 1 ? 's' : '') + ' ranked this season'}
-            </span>
+            {/* Footer */}
+            <div className="bg-surface-container-lowest py-6 px-8 flex justify-between items-center border-t border-outline-variant/10">
+              <span className="text-xs font-label text-outline tracking-widest uppercase">
+                {'Showing ' + sorted.length + ' of ' + sorted.length + ' Players'}
+              </span>
+              <div className="flex gap-2">
+                <button className="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all active:scale-95">
+                  <span className="material-symbols-outlined text-lg">chevron_left</span>
+                </button>
+                <button className="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant/30 text-outline hover:border-primary hover:text-primary transition-all active:scale-95">
+                  <span className="material-symbols-outlined text-lg">chevron_right</span>
+                </button>
+              </div>
+            </div>
           </div>
-        </Panel>
-      )}
-    </div>
+        )}
+
+      </div>
+    </PageLayout>
   )
 }

@@ -1,20 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
-import PageHeader from '../components/shared/PageHeader'
-import { Btn } from '../components/ui'
+import Icon from '../components/ui/Icon'
 import { FAQ_DATA } from '../lib/constants.js'
 
-var DEFAULT_EXPANDED_CATS = FAQ_DATA.reduce(function (acc, cat) {
-  acc[cat.cat] = true
-  return acc
-}, {})
+var CATEGORIES = FAQ_DATA.map(function (cat) {
+  return cat.cat
+})
+
+var FEATURED = {
+  label: 'Essential Knowledge',
+  q: 'What is the scoring system?',
+  a: 'Standard EMEA scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash.'
+}
 
 export default function FAQScreen() {
   var navigate = useNavigate()
   var [openKey, setOpenKey] = useState(null)
   var [faqSearch, setFaqSearch] = useState('')
-  var [expandedCats, setExpandedCats] = useState(DEFAULT_EXPANDED_CATS)
+  var [activeTab, setActiveTab] = useState(null)
 
   var q = faqSearch.trim().toLowerCase()
 
@@ -29,20 +33,9 @@ export default function FAQScreen() {
       : cat.items
     return Object.assign({}, cat, { items: items })
   }).filter(function (cat) {
+    if (activeTab && cat.cat !== activeTab) return false
     return cat.items.length > 0
   })
-
-  var totalResults = filteredData.reduce(function (acc, cat) {
-    return acc + cat.items.length
-  }, 0)
-
-  function toggleCat(catName) {
-    setExpandedCats(function (prev) {
-      var next = Object.assign({}, prev)
-      next[catName] = !prev[catName]
-      return next
-    })
-  }
 
   function toggleItem(key) {
     setOpenKey(function (prev) {
@@ -50,188 +43,195 @@ export default function FAQScreen() {
     })
   }
 
+  function handleTabClick(tab) {
+    setActiveTab(function (prev) {
+      return prev === tab ? null : tab
+    })
+    setOpenKey(null)
+  }
+
+  function handleSearchChange(e) {
+    setFaqSearch(e.target.value)
+    setOpenKey(null)
+  }
+
+  var allItems = filteredData.reduce(function (acc, cat) {
+    return acc.concat(cat.items.map(function (item) {
+      return { item: item, catName: cat.cat }
+    }))
+  }, [])
+
   return (
-    <PageLayout showSidebar={false}>
-      <PageHeader title="FAQ" goldWord="FAQ" description="Frequently asked questions about TFT Clash" />
+    <PageLayout showSidebar={false} maxWidth="max-w-5xl">
 
-      {/* Search */}
-      <input
-        type="text"
-        placeholder="Search FAQ..."
-        value={faqSearch}
-        onChange={function (e) {
-          setFaqSearch(e.target.value)
-          setOpenKey(null)
-        }}
-        className="w-full mb-4 rounded-xl text-sm outline-none"
-        style={{
-          padding: '10px 14px',
-          background: 'rgba(255,255,255,.05)',
-          border: '1px solid rgba(242,237,228,.1)',
-          color: '#F2EDE4',
-          fontFamily: 'inherit',
-          boxSizing: 'border-box',
-        }}
-      />
-
-      {totalResults === 0 && (
-        <div className="text-center py-8 text-sm" style={{ color: '#9AAABF' }}>
-          {'No results for "' + faqSearch + '". Try a different search term.'}
+      {/* Hero Header & Search */}
+      <section className="text-center mb-16 mt-4">
+        <h1 className="text-5xl md:text-7xl font-editorial text-on-background mb-6 leading-tight">
+          {'How can we '}
+          <span className="text-primary italic">assist</span>
+          {' you?'}
+        </h1>
+        <p className="text-on-surface-variant text-lg max-w-2xl mx-auto mb-10 font-body">
+          Everything you need to know about the TFT Clash ecosystem, from your first roll to the Grandmaster podium.
+        </p>
+        <div className="relative group max-w-2xl mx-auto">
+          <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity"></div>
+          <input
+            type="text"
+            value={faqSearch}
+            onChange={handleSearchChange}
+            placeholder="Search for rules, scoring, or schedules..."
+            className="relative w-full bg-surface-container-lowest border-none py-5 px-14 text-lg font-body focus:outline-none focus:ring-1 focus:ring-primary-container shadow-2xl text-on-surface placeholder:text-on-surface-variant/50"
+          />
+          <Icon name="search" className="absolute left-5 top-1/2 -translate-y-1/2 text-primary text-3xl" />
         </div>
-      )}
+      </section>
 
-      {/* Categories */}
-      <div className="flex flex-col gap-4">
-        {filteredData.map(function (cat) {
-          var isCatOpen = expandedCats[cat.cat] !== false
-          return (
-            <div key={cat.cat}>
-              {/* Category Header */}
+      {/* Category Tabs */}
+      <section className="mb-12">
+        <div className="flex flex-wrap gap-2 justify-center">
+          {CATEGORIES.map(function (cat) {
+            var isActive = activeTab === cat
+            return (
               <button
-                onClick={function () {
-                  toggleCat(cat.cat)
-                }}
-                className="w-full flex items-center gap-2.5 text-left"
-                style={{
-                  padding: '10px 0',
-                  background: 'none',
-                  border: 'none',
-                  borderBottom: '1px solid rgba(242,237,228,.1)',
-                  cursor: 'pointer',
-                  marginBottom: 10,
-                }}
+                key={cat}
+                onClick={function () { handleTabClick(cat) }}
+                className={
+                  'px-6 py-2 rounded-full font-condensed font-bold uppercase tracking-wider text-sm transition-all ' +
+                  (isActive
+                    ? 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20'
+                    : 'bg-surface-container-high text-slate-400 hover:text-on-surface')
+                }
               >
-                <span className="text-base" style={{ color: '#9B72CF' }}>
-                  <i className={'ti ti-' + cat.icon} />
-                </span>
-                <span
-                  className="flex-1 text-xs font-bold uppercase tracking-widest"
-                  style={{
-                    color: '#C4B5FD',
-                    fontFamily: "'Barlow Condensed',sans-serif",
-                    letterSpacing: '.1em',
-                  }}
-                >
-                  {cat.cat}
-                </span>
-                <span className="text-xs font-semibold" style={{ color: '#9AAABF' }}>
-                  {cat.items.length + ' Q'}
-                </span>
-                <span
-                  className="text-base"
-                  style={{
-                    color: '#9AAABF',
-                    transition: 'transform .2s',
-                    transform: isCatOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  }}
-                >
-                  <i className="ti ti-chevron-down" />
-                </span>
+                {cat}
               </button>
+            )
+          })}
+        </div>
+      </section>
 
-              {/* Items */}
-              {isCatOpen && (
-                <div className="flex flex-col gap-1.5">
-                  {cat.items.map(function (item) {
-                    var key = cat.cat + '|' + item.q
-                    var isOpen = openKey === key
-                    return (
-                      <div
-                        key={key}
-                        className="rounded-xl overflow-hidden"
-                        style={{
-                          background: isOpen ? 'rgba(155,114,207,.06)' : 'rgba(255,255,255,.02)',
-                          border:
-                            '1px solid ' +
-                            (isOpen ? 'rgba(155,114,207,.25)' : 'rgba(242,237,228,.08)'),
-                          transition: 'all .2s',
-                        }}
-                      >
-                        <button
-                          onClick={function () {
-                            toggleItem(key)
-                          }}
-                          className="w-full flex items-center justify-between gap-3 text-left"
-                          style={{
-                            padding: '14px 16px',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <span
-                            className="text-sm font-semibold leading-snug"
-                            style={{ color: isOpen ? '#C4B5FD' : '#F2EDE4' }}
-                          >
-                            {item.q}
-                          </span>
-                          <span
-                            className="text-lg flex-shrink-0"
-                            style={{
-                              color: isOpen ? '#9B72CF' : '#8896A8',
-                              transition: 'transform .2s',
-                              transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-                            }}
-                          >
-                            +
-                          </span>
-                        </button>
-                        {isOpen && (
-                          <div style={{ padding: '0 16px 16px 16px' }}>
-                            <div className="text-sm leading-relaxed" style={{ color: '#BECBD9' }}>
-                              {item.a}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Left Column: Featured Card */}
+        <div className="lg:col-span-4 bg-surface-container-low p-8 flex flex-col justify-between border-l-2 border-primary">
+          <div>
+            <span className="text-primary font-mono text-xs uppercase tracking-[0.2em] mb-4 block">
+              {FEATURED.label}
+            </span>
+            <h3 className="text-2xl font-editorial leading-tight mb-4 text-on-surface">
+              {FEATURED.q}
+            </h3>
+            <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-body">
+              {FEATURED.a}
+            </p>
+          </div>
+          <div className="h-20 bg-surface-container-high flex items-center justify-center">
+            <div className="flex gap-3">
+              {[1,2,3,4,5,6,7,8].map(function (place) {
+                var pts = [8,7,6,5,4,3,2,1][place - 1]
+                return (
+                  <div key={place} className="text-center">
+                    <div className={'text-xs font-mono font-bold ' + (place === 1 ? 'text-primary' : 'text-on-surface-variant')}>
+                      {pts}
+                    </div>
+                    <div className="text-[10px] font-mono text-on-surface-variant/50 uppercase">
+                      {'#' + place}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-          )
-        })}
+          </div>
+        </div>
+
+        {/* Right Column: Accordion List */}
+        <div className="lg:col-span-8 space-y-3">
+          {allItems.length === 0 && (
+            <div className="bg-surface-container-low p-8 text-center text-on-surface-variant font-body">
+              {faqSearch
+                ? 'No results for "' + faqSearch + '". Try a different search term.'
+                : 'No questions in this category.'}
+            </div>
+          )}
+
+          {allItems.map(function (entry) {
+            var item = entry.item
+            var key = entry.catName + '|' + item.q
+            var isOpen = openKey === key
+            return (
+              <div
+                key={key}
+                className={'bg-surface-container-low group ' + (isOpen ? '' : 'hover:bg-surface-container transition-colors')}
+              >
+                <button
+                  onClick={function () { toggleItem(key) }}
+                  className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
+                >
+                  <span className="text-xl font-editorial text-on-surface pr-4">
+                    {item.q}
+                  </span>
+                  <Icon
+                    name="expand_more"
+                    className={
+                      'flex-shrink-0 transition-all ' +
+                      (isOpen ? 'text-primary rotate-180' : 'text-slate-500 group-hover:text-primary')
+                    }
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-6 pb-6 text-on-surface-variant font-body leading-relaxed border-t border-white/5 pt-4">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* CTA */}
-      {totalResults > 0 && (
-        <div
-          className="mt-8 rounded-2xl text-center"
-          style={{
-            background: 'rgba(155,114,207,.06)',
-            border: '1px solid rgba(155,114,207,.2)',
-            padding: '20px 24px',
-          }}
-        >
-          <div className="text-base font-bold mb-1.5" style={{ color: '#C4B5FD' }}>
-            Still have questions?
+      {/* CTA Banner */}
+      <section className="mt-24 mb-12">
+        <div className="relative bg-surface-container-low p-12 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-white/5">
+          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-primary/5 rounded-full blur-[100px]"></div>
+          <div className="relative z-10 max-w-xl">
+            <h2 className="text-3xl font-editorial mb-4 text-on-background">
+              {'Still need '}
+              <span className="italic text-primary">human</span>
+              {' support?'}
+            </h2>
+            <p className="text-on-surface-variant font-body">
+              Our 24/7 Tournament Arbiters are ready to handle technical disputes and account inquiries via our priority ticketing system.
+            </p>
           </div>
-          <div className="text-sm leading-relaxed mb-3.5" style={{ color: '#BECBD9' }}>
-            Join the community on Discord or reach out to an admin directly.
-          </div>
-          <div className="flex gap-2.5 justify-center flex-wrap">
-            <Btn
-              v="primary"
-              s="sm"
-              onClick={function () {
-                window.open('https://discord.gg/tftclash', '_blank')
-              }}
+          <div className="relative z-10 flex gap-4 flex-wrap">
+            <button
+              onClick={function () { window.open('https://discord.gg/tftclash', '_blank') }}
+              className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface"
             >
-              <i className="ti ti-brand-discord" style={{ marginRight: 5 }} />
               Join Discord
-            </Btn>
-            <Btn
-              v="dark"
-              s="sm"
-              onClick={function () {
-                navigate('/')
-              }}
+            </button>
+            <button
+              onClick={function () { navigate('/') }}
+              className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface"
             >
               Back to Home
-            </Btn>
+            </button>
           </div>
         </div>
-      )}
+      </section>
+
+      {/* Footer Stats */}
+      <footer className="py-12 flex flex-col md:flex-row justify-between border-t border-white/5 text-xs font-mono text-slate-500 uppercase tracking-widest gap-6">
+        <div className="flex gap-8">
+          <span>Season: Active</span>
+          <span>{'Status: '}<span className="text-tertiary">Operational</span></span>
+        </div>
+        <div>
+          2024 TFT CLASH - ALL RIGHTS RESERVED
+        </div>
+      </footer>
+
     </PageLayout>
   )
 }

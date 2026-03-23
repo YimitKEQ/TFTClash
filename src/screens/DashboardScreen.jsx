@@ -7,9 +7,8 @@ import { writeActivityEvent } from '../lib/notifications.js'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
-import RankBadge from '../components/shared/RankBadge'
 
-// ─── TIER CONFIG ───────────────────────────────────────────────────────────────
+// --- TIER CONFIG ---
 
 var TIER_THRESHOLDS = [
   { name: 'Champion', minRank: 1, maxRank: 1, color: '#E8A838', icon: 'crown' },
@@ -50,56 +49,29 @@ function generateSeasonNarrative(players, sortedPts) {
   return leader.name + ' leads the season with ' + leader.pts + ' pts.'
 }
 
-// ─── MINI SPARKLINE ────────────────────────────────────────────────────────────
+// --- SPARKLINE BAR CHART (matching stitch design) ---
 
-function Sparkline({ data, color, w, h }) {
+function SparklineBars({ data }) {
   if (!data || data.length < 2) return null
-  var W = typeof w === 'number' ? w : 80
-  var H = h || 28
   var min = Math.min.apply(null, data)
   var max = Math.max.apply(null, data)
   var range = max - min || 1
-  var pts = data.map(function (v, i) {
-    return (i / (data.length - 1)) * W + ',' + (H - ((v - min) / range) * (H - 4) + 2)
-  }).join(' ')
-  var fill = pts + ' ' + W + ',' + H + ' 0,' + H
-  var gid = 'sg' + (color || 'gold').replace(/[^a-z0-9]/gi, '')
+  var ALPHAS = ['bg-secondary/10', 'bg-secondary/10', 'bg-secondary/20', 'bg-secondary/20', 'bg-secondary/30', 'bg-secondary/40', 'bg-secondary/50', 'bg-secondary/60', 'bg-secondary/70']
+  var total = data.length
   return (
-    <svg width={W} height={H} style={{ overflow: 'visible', flexShrink: 0, display: 'block' }}>
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color || '#E8A838'} stopOpacity=".3" />
-          <stop offset="100%" stopColor={color || '#E8A838'} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={fill} fill={'url(#' + gid + ')'} />
-      <polyline points={pts} fill="none" stroke={color || '#E8A838'} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <circle
-        cx={(data.length - 1) / (data.length - 1) * W}
-        cy={H - ((data[data.length - 1] - min) / range) * (H - 4) + 2}
-        r="2.5"
-        fill={color || '#E8A838'}
-      />
-    </svg>
-  )
-}
-
-// ─── FORM DOTS ─────────────────────────────────────────────────────────────────
-
-function FormDots({ history, max }) {
-  var n = max || 5
-  var recent = (history || []).slice(-n)
-  if (recent.length === 0) return null
-  return (
-    <div className="flex gap-1 items-center">
-      {recent.map(function (h, i) {
-        var p = h.placement || h.place || 5
-        var isTop4 = p <= 4
+    <div className="h-24 w-full flex items-end gap-1 overflow-hidden">
+      {data.map(function (v, i) {
+        var pct = Math.round(((v - min) / range) * 80 + 20)
+        var isLast = i === data.length - 1
+        var alphaClass = isLast ? '' : (ALPHAS[Math.min(i, ALPHAS.length - 1)])
         return (
           <div
             key={i}
-            title={'Game ' + (i + 1) + ': #' + p}
-            className={'w-3 h-3 rounded-full flex-shrink-0 ' + (p === 1 ? 'bg-primary' : isTop4 ? 'bg-success' : 'bg-on-surface/20')}
+            className={'w-full rounded-t-sm ' + alphaClass}
+            style={{
+              height: pct + '%',
+              background: isLast ? 'linear-gradient(to top, rgba(217,185,255,0.4), rgba(217,185,255,1))' : undefined
+            }}
           />
         )
       })}
@@ -107,397 +79,37 @@ function FormDots({ history, max }) {
   )
 }
 
-// ─── PULSE HEADER ──────────────────────────────────────────────────────────────
+// --- FORM CIRCLES (matching stitch design) ---
 
-function PulseHeader({
-  linkedPlayer, currentUser, myRankIdx, rankDelta, currentTierInfo,
-  nextTier, ptsToNextTier, tPhase, tRound, registeredCount, checkedInCount,
-  tournamentState, clashName, clashDate, clashTime, diff, D, H, M, S,
-  isMyRegistered, isMyWaitlisted, myWaitlistPos, myCheckedIn, profileComplete,
-  phaseActionBtn
-}) {
-  var pColor = tPhase === 'registration' ? '#9B72CF'
-    : tPhase === 'checkin' ? '#E8A838'
-    : tPhase === 'inprogress' ? '#52C47C'
-    : tPhase === 'complete' ? '#4ECDC4'
-    : '#9B72CF'
-
-  var phaseLabel = tPhase === 'registration' ? 'Registration Open'
-    : tPhase === 'checkin' ? 'Check-in Open'
-    : tPhase === 'inprogress' ? 'LIVE - Game ' + tRound + '/' + (tournamentState.totalGames || 4)
-    : tPhase === 'complete' ? 'Results Posted'
-    : 'Next Clash'
-
-  var regPct = Math.min(100, Math.round(registeredCount / (tournamentState.maxPlayers || 24) * 100))
-  var checkinPct = Math.min(100, registeredCount > 0 ? Math.round(checkedInCount / registeredCount * 100) : 0)
-
+function FormCircles({ history, max }) {
+  var n = max || 5
+  var recent = (history || []).slice(-n)
+  if (recent.length === 0) return null
   return (
-    <Panel className="mb-4 overflow-hidden p-0">
-      {/* Phase status bar */}
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-outline-variant/10 bg-surface-container-highest/30">
-        <div
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{
-            background: pColor,
-            boxShadow: '0 0 8px ' + pColor,
-            animation: tPhase === 'inprogress' ? 'pulse 2s infinite' : 'none'
-          }}
-        />
-        <span
-          className="font-sans text-[10px] font-bold uppercase tracking-[0.08em]"
-          style={{ color: pColor }}
-        >
-          {phaseLabel}
-        </span>
-        {tPhase === 'registration' && (
-          <span className="font-sans text-[10px] text-on-surface/40 ml-1">
-            {registeredCount}/{tournamentState.maxPlayers || 24}
-          </span>
-        )}
-        {tPhase === 'checkin' && (
-          <span className="font-sans text-[10px] text-on-surface/40 ml-1">
-            {checkedInCount} checked in
-          </span>
-        )}
-        <div className="ml-auto flex items-center gap-2">
-          {isMyWaitlisted && (
-            <span className="font-mono text-[10px] text-primary font-bold">
-              Waitlist #{myWaitlistPos}
-            </span>
-          )}
-          {phaseActionBtn}
-        </div>
-      </div>
-
-      {/* Player info row */}
-      <div className="flex items-center gap-3 p-4 flex-wrap">
-        {linkedPlayer ? (
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-base font-black flex-shrink-0 border-2"
-            style={{
-              background: currentTierInfo.color + '26',
-              borderColor: currentTierInfo.color + '66',
-              color: currentTierInfo.color
-            }}
-          >
-            {linkedPlayer.name.charAt(0).toUpperCase()}
-          </div>
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-secondary/10 border-2 border-secondary/20 flex items-center justify-center flex-shrink-0">
-            <Icon name="person" size={20} className="text-secondary" />
-          </div>
-        )}
-
-        <div className="flex-1 min-w-0">
-          <div className="font-bold text-sm text-on-surface leading-tight">
-            {linkedPlayer ? linkedPlayer.name : (currentUser.username || 'Summoner')}
-          </div>
-          {linkedPlayer ? (
-            <div className="flex items-center gap-2 mt-0.5">
-              <span
-                className="font-sans text-[10px] font-bold uppercase tracking-[0.06em]"
-                style={{ color: currentTierInfo.color }}
-              >
-                {currentTierInfo.name}
-              </span>
-              <span className="text-[10px] text-on-surface/40">{linkedPlayer.rank || 'Unranked'}</span>
-            </div>
-          ) : (
-            <div className="text-[11px] text-on-surface/40 mt-0.5">Link your Riot ID to get started</div>
-          )}
-        </div>
-
-        {linkedPlayer && (
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="text-center">
-              <div className="flex items-center gap-1 justify-center">
-                <span className="font-mono text-xl font-black" style={{ color: currentTierInfo.color }}>
-                  #{myRankIdx}
-                </span>
-                {rankDelta !== 0 && (
-                  <span
-                    className="font-mono text-[9px] font-bold"
-                    style={{ color: rankDelta < 0 ? '#6EE7B7' : '#F87171' }}
-                  >
-                    {rankDelta < 0 ? '+' + Math.abs(rankDelta) : '-' + Math.abs(rankDelta)}
-                  </span>
-                )}
-              </div>
-              <div className="font-sans text-[10px] text-on-surface/40 uppercase tracking-[0.08em]">Rank</div>
-            </div>
-            <div className="w-px h-6 bg-outline-variant/10" />
-            <div className="text-center">
-              <div className="font-mono text-xl font-black text-primary">{linkedPlayer.pts || 0}</div>
-              <div className="font-sans text-[10px] text-on-surface/40 uppercase tracking-[0.08em]">Points</div>
-            </div>
-            {ptsToNextTier && ptsToNextTier > 0 && (
-              <span className="font-sans text-[10px] text-on-surface/40 bg-surface-container rounded px-1.5 py-0.5 border border-outline-variant/10">
-                {ptsToNextTier} to {nextTier.name}
-              </span>
-            )}
-          </div>
-        )}
-
-        {!linkedPlayer && !profileComplete && (
-          <Btn variant="primary" size="sm">Complete Profile</Btn>
-        )}
-      </div>
-
-      {/* Countdown + clash info */}
-      {diff > 0 && (tPhase === 'registration' || tPhase === 'checkin') && (
-        <div className="flex items-center gap-3 px-4 pb-3 flex-wrap">
-          {clashName && (
-            <div className="flex items-center gap-1.5">
-              <Icon name="calendar_today" size={12} className="text-on-surface/40" />
-              <span className="text-xs text-on-surface/60 font-semibold">
-                {clashName}{clashDate ? ' - ' + clashDate : ''}{clashTime ? ' at ' + clashTime : ''}
-              </span>
-            </div>
-          )}
-          <div className="ml-auto flex gap-1">
-            {[[D, 'D'], [H, 'H'], [M, 'M'], [S, 'S']].map(function (seg) {
-              return (
-                <div key={seg[1]} className="bg-surface-container rounded px-2 py-1 flex items-center gap-1">
-                  <span className="font-mono text-sm font-black text-primary">{seg[0]}</span>
-                  <span className="font-sans text-[10px] text-on-surface/40 font-bold">{seg[1]}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Progress bar */}
-      {tPhase === 'registration' && (
-        <div className="px-4 pb-3">
-          <div className="bg-surface-container rounded-full h-1 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: regPct + '%', background: '#9B72CF' }}
-            />
-          </div>
-        </div>
-      )}
-      {tPhase === 'checkin' && (
-        <div className="px-4 pb-3">
-          <div className="bg-surface-container rounded-full h-1 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: checkinPct + '%', background: '#E8A838' }}
-            />
-          </div>
-        </div>
-      )}
-    </Panel>
-  )
-}
-
-// ─── SEASON TRAJECTORY CARD ────────────────────────────────────────────────────
-
-function SeasonTrajectoryCard({ linkedPlayer, s2, clashHistory, pointsTrend, lastClash, currentStreak, streakType, onViewProfile }) {
-  if (!linkedPlayer || !s2) return null
-
-  return (
-    <Panel className="overflow-hidden p-0">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-outline-variant/10 bg-surface-container-highest/30">
-        <div className="flex items-center gap-2">
-          <Icon name="show_chart" size={14} className="text-secondary" />
-          <span className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface/60">Your Season</span>
-        </div>
-        <Btn variant="ghost" size="sm" onClick={onViewProfile}>Full Profile</Btn>
-      </div>
-
-      <div className="p-4">
-        {/* Sparkline + total */}
-        {pointsTrend.length >= 2 && (
-          <div className="mb-4 p-3 rounded-sm bg-secondary/5 border border-secondary/10">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-on-surface/40">
-                Season Trajectory
-              </span>
-              <span className="font-mono text-xs font-bold text-primary">{linkedPlayer.pts} pts total</span>
-            </div>
-            <Sparkline data={pointsTrend} color="#9B72CF" w={260} h={32} />
-            <div className="flex items-center gap-2 mt-2">
-              <span className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface/40">Form</span>
-              <FormDots history={clashHistory} />
-            </div>
-          </div>
-        )}
-
-        {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          {[
-            [linkedPlayer.pts, 'Season Points', '#E8A838'],
-            [linkedPlayer.wins || 0, 'Wins', '#6EE7B7'],
-            [s2.avgPlacement || '-', 'Avg Placement', '#4ECDC4'],
-            [s2.top4Rate ? s2.top4Rate + '%' : '0%', 'Top 4 Rate', '#9B72CF']
-          ].map(function (item) {
-            return (
-              <div key={item[1]} className="bg-surface-container rounded-sm p-3 text-center">
-                <div className="font-mono text-xl font-bold" style={{ color: item[2], lineHeight: 1 }}>{item[0]}</div>
-                <div className="font-sans text-[10px] font-bold uppercase tracking-[0.04em] text-on-surface/50 mt-1">{item[1]}</div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Last clash + streak */}
-        <div className="flex gap-2 flex-wrap">
-          <div className="bg-surface-container rounded-sm p-3 flex-1 min-w-[120px]">
-            <div className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface/40 mb-1.5">Last Clash</div>
-            {lastClash ? (
-              <div className="flex items-baseline gap-1.5">
-                <span
-                  className="font-mono text-2xl font-black"
-                  style={{ color: lastClash.placement <= 4 ? '#E8A838' : '#9AAABF' }}
-                >
-                  {ordinal(lastClash.placement)}
-                </span>
-                <span className="text-xs text-on-surface/60 font-semibold">+{lastClash.points || 0} pts</span>
-              </div>
-            ) : (
-              <div className="text-xs text-on-surface/40">No results yet</div>
-            )}
-          </div>
-
-          {currentStreak > 1 && (
-            <div className="bg-surface-container rounded-sm p-3 flex-1 min-w-[120px]">
-              <div className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface/40 mb-1.5">Active Streak</div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="font-mono text-2xl font-black text-success">{currentStreak}</span>
-                <span className="text-xs text-on-surface/60 font-semibold">{streakType === 'win' ? 'wins' : 'top 4s'}</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </Panel>
-  )
-}
-
-// ─── STANDINGS MINI ────────────────────────────────────────────────────────────
-
-function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
-  var MEDAL_COLORS = ['#E8A838', '#C0C0C0', '#CD7F32']
-
-  return (
-    <Panel className="overflow-hidden p-0">
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-outline-variant/10 bg-surface-container-highest/30">
-        <div className="flex items-center gap-2">
-          <Icon name="trophy" fill size={13} className="text-primary" />
-          <span className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface/60">Standings</span>
-        </div>
-        <Btn variant="ghost" size="sm" onClick={onViewAll}>View All</Btn>
-      </div>
-
-      {top5.length === 0 && (
-        <div className="text-center py-6 text-on-surface/40 text-sm">No players yet</div>
-      )}
-
-      {top5.map(function (p, i) {
-        var rkCol = i < 3 ? MEDAL_COLORS[i] : '#BECBD9'
-        var isMe = linkedPlayer && p.id === linkedPlayer.id
-        var sparkData = (p.clashHistory || []).slice(-5).map(function (c) { return c.placement || 4 })
-
+    <div className="flex gap-2">
+      {recent.map(function (h, i) {
+        var p = h.placement || h.place || 5
+        var isTop4 = p <= 4
         return (
           <div
-            key={p.id}
-            onClick={function () { onViewPlayer(p) }}
-            className="grid items-center px-3 py-2.5 border-b border-outline-variant/5 cursor-pointer transition-colors hover:bg-secondary/5"
-            style={{
-              gridTemplateColumns: '24px 1fr 56px 64px',
-              background: isMe ? 'rgba(155,114,207,.08)' : 'transparent',
-              borderLeft: '3px solid ' + (isMe ? '#9B72CF' : 'transparent')
-            }}
+            key={i}
+            title={'Game ' + (i + 1) + ': #' + p}
+            className={
+              'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ' +
+              (isTop4
+                ? 'bg-tertiary-container/10 border border-tertiary/30 text-tertiary'
+                : 'bg-surface-container-high border border-outline-variant/30 text-on-surface/60')
+            }
           >
-            <div
-              className="font-mono text-center font-black"
-              style={{ fontSize: i < 3 ? 14 : 12, color: rkCol }}
-            >
-              {i + 1}
-            </div>
-            <div className="min-w-0">
-              <div
-                className="font-semibold text-xs truncate"
-                style={{ color: isMe ? '#C4B5FD' : i < 3 ? '#F2EDE4' : '#BECBD9' }}
-              >
-                {p.name}{isMe ? ' (you)' : ''}
-              </div>
-              <div className="text-[10px] text-on-surface/40 mt-0.5">{(p.rank || 'Unranked') + ' - ' + (p.wins || 0) + 'W'}</div>
-            </div>
-            <div
-              className="font-mono font-black text-right"
-              style={{ fontSize: i < 3 ? 16 : 13, color: i < 3 ? '#E8A838' : '#BECBD9' }}
-            >
-              {p.pts}
-            </div>
-            <div className="flex items-center justify-end gap-1">
-              {sparkData.length >= 2 && <Sparkline data={sparkData} w={36} h={12} color="#9B72CF" />}
-              <FormDots history={(p.clashHistory || []).slice(-3)} max={3} />
-            </div>
+            {p}
           </div>
         )
       })}
-    </Panel>
+    </div>
   )
 }
 
-// ─── ACTIVITY FEED ─────────────────────────────────────────────────────────────
-
-function ActivityFeed({ items }) {
-  if (!items || items.length === 0) return null
-
-  return (
-    <Panel className="overflow-hidden p-0">
-      <div className="flex items-center gap-2 px-4 py-2.5 border-b border-outline-variant/10 bg-surface-container-highest/30">
-        <Icon name="bolt" fill size={13} className="text-tertiary" />
-        <span className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-on-surface/60">Activity</span>
-      </div>
-      {items.slice(0, 4).map(function (item, idx) {
-        return (
-          <div
-            key={item.id || idx}
-            className="flex items-center gap-2 px-4 py-2 border-b border-outline-variant/5 last:border-b-0"
-          >
-            <div className="w-6 h-6 rounded-full bg-tertiary/10 flex items-center justify-center flex-shrink-0">
-              <Icon name={item.icon || 'notifications'} size={12} className="text-tertiary" />
-            </div>
-            <span className="text-xs text-on-surface/60 flex-1 truncate">
-              {item.message || (item.detail_json && item.detail_json.text) || ''}
-            </span>
-            {item.created_at && (
-              <span className="text-[10px] text-on-surface/30 flex-shrink-0">
-                {new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-              </span>
-            )}
-          </div>
-        )
-      })}
-    </Panel>
-  )
-}
-
-// ─── FLASH TOURNAMENT BANNER ───────────────────────────────────────────────────
-
-function FlashTournamentBanner({ tournament, onView }) {
-  if (!tournament) return null
-
-  return (
-    <Panel accent="teal" className="cursor-pointer hover:bg-surface-container transition-colors" onClick={onView}>
-      <div className="flex items-center gap-3">
-        <Icon name="bolt" fill size={18} className="text-tertiary flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <div className="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-tertiary mb-0.5">Flash Tournament</div>
-          <div className="font-bold text-sm text-on-surface truncate">{tournament.name}</div>
-        </div>
-        <Btn variant="primary" size="sm">Register</Btn>
-      </div>
-    </Panel>
-  )
-}
-
-// ─── ANNOUNCEMENT STRIP ────────────────────────────────────────────────────────
+// --- ANNOUNCEMENT STRIP ---
 
 function AnnouncementStrip({ text, variant }) {
   if (!text) return null
@@ -516,68 +128,350 @@ function AnnouncementStrip({ text, variant }) {
   )
 }
 
-// ─── SEASON NARRATIVE ──────────────────────────────────────────────────────────
+// --- PULSE HEADER (stitch-matched) ---
 
-function SeasonNarrativeBar({ text }) {
-  if (!text) return null
+function PulseHeader({
+  linkedPlayer, currentUser, myRankIdx, rankDelta, currentTierInfo,
+  nextTier, ptsToNextTier, tPhase, tRound, registeredCount, checkedInCount,
+  tournamentState, clashName, clashDate, clashTime, diff, D, H, M, S,
+  isMyRegistered, isMyWaitlisted, myWaitlistPos, myCheckedIn, profileComplete,
+  phaseActionBtn, pointsTrend
+}) {
+  var pColor = tPhase === 'registration' ? '#9B72CF'
+    : tPhase === 'checkin' ? '#E8A838'
+    : tPhase === 'inprogress' ? '#52C47C'
+    : tPhase === 'complete' ? '#4ECDC4'
+    : '#9B72CF'
+
+  var phaseLabel = tPhase === 'registration' ? 'Registration Open'
+    : tPhase === 'checkin' ? 'Check-in Open'
+    : tPhase === 'inprogress' ? 'LIVE - Game ' + tRound + '/' + (tournamentState.totalGames || 4)
+    : tPhase === 'complete' ? 'Results Posted'
+    : 'Next Clash'
+
+  var playerName = linkedPlayer ? linkedPlayer.name : (currentUser && currentUser.username ? currentUser.username : 'Summoner')
+  var playerRank = linkedPlayer ? (linkedPlayer.rank || 'Unranked') : ''
+  var seasonLabel = currentTierInfo ? ('Season - Top ' + (myRankIdx || '?') + '%') : 'Season'
+
+  // Format countdown as HH:MM:SS for primary display
+  var countdownStr = (H < 10 ? '0' + H : '' + H) + ':' + (M < 10 ? '0' + M : '' + M) + ':' + (S < 10 ? '0' + S : '' + S)
+  if (D > 0) countdownStr = D + 'd ' + countdownStr
+
   return (
-    <div
-      className="flex items-center gap-2 rounded-sm px-4 py-2.5 mb-4"
-      style={{
-        background: 'rgba(155,114,207,.04)',
-        border: '1px solid rgba(155,114,207,.08)'
-      }}
+    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6"
+      style={{ background: 'rgba(52,52,60,0.6)', backdropFilter: 'blur(24px)', boxShadow: 'inset 0 0 20px rgba(217,185,255,0.15)' }}
     >
-      <Icon name="trending_up" size={14} className="text-secondary flex-shrink-0" />
-      <span className="text-xs text-on-surface/60 font-medium">{text}</span>
+      {/* Top-right countdown */}
+      <div className="absolute top-0 right-0 p-4 text-right">
+        <div className="flex items-center gap-2 justify-end">
+          <span
+            className="w-2 h-2 rounded-full bg-primary"
+            style={{ animation: 'pulse 2s infinite' }}
+          />
+          <span className="font-condensed uppercase text-[10px] tracking-widest text-on-surface/40">
+            {phaseLabel}
+          </span>
+        </div>
+        <div className="font-mono text-2xl text-primary mt-1">{countdownStr}</div>
+        {diff > 0 && clashName && (
+          <div className="font-condensed text-[10px] text-on-surface/40 mt-0.5">
+            {clashName}{clashDate ? ' - ' + clashDate : ''}
+          </div>
+        )}
+      </div>
+
+      {/* Player identity row */}
+      <div className="flex items-center gap-6 relative z-10">
+        {/* Avatar */}
+        <div className="relative flex-shrink-0">
+          <div
+            className="w-20 h-20 rounded-full border-4 border-secondary/40 p-1"
+            style={{ boxShadow: '0 0 20px rgba(217,185,255,0.3)' }}
+          >
+            <div className="w-full h-full rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center">
+              {linkedPlayer ? (
+                <span
+                  className="font-display text-2xl font-black"
+                  style={{ color: currentTierInfo ? currentTierInfo.color : '#E8A838' }}
+                >
+                  {playerName.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <Icon name="person" size={32} className="text-secondary/60" />
+              )}
+            </div>
+          </div>
+          {linkedPlayer && currentTierInfo && (
+            <div
+              className="absolute -bottom-1 -right-1 px-2 py-0.5 text-[10px] font-bold rounded-sm uppercase tracking-tighter bg-secondary text-on-secondary-fixed"
+            >
+              {currentTierInfo.name.toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        {/* Name + season label */}
+        <div>
+          <h1 className="font-editorial text-4xl text-on-surface leading-none italic">{playerName}</h1>
+          <p className="font-condensed text-xs uppercase tracking-[0.2em] text-secondary mt-2">
+            {linkedPlayer
+              ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + myRankIdx + '%')
+              : 'Link your Riot ID to get started'}
+          </p>
+          {/* Phase action + registration status */}
+          {phaseActionBtn && (
+            <div className="mt-3 flex items-center gap-3">
+              {phaseActionBtn}
+              {isMyWaitlisted && (
+                <span className="font-mono text-[10px] text-primary font-bold">Waitlist #{myWaitlistPos}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// --- SEASON TRAJECTORY CARD (stitch-matched) ---
+
+function SeasonTrajectoryCard({ linkedPlayer, s2, clashHistory, pointsTrend, lastClash, currentStreak, streakType, onViewProfile }) {
+  if (!linkedPlayer || !s2) return null
+
+  var weekDelta = pointsTrend.length >= 2
+    ? (pointsTrend[pointsTrend.length - 1] - (pointsTrend[pointsTrend.length - 2] || 0))
+    : 0
+
+  return (
+    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
+      {/* Header */}
+      <div className="flex justify-between items-end mb-6">
+        <div>
+          <span className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 block mb-1">Season Trajectory</span>
+          <div className="font-display text-2xl text-on-surface">{linkedPlayer.pts} LP</div>
+        </div>
+        <div className="text-right">
+          {weekDelta !== 0 && (
+            <span className={'font-mono text-sm ' + (weekDelta >= 0 ? 'text-tertiary' : 'text-error')}>
+              {weekDelta >= 0 ? '+' : ''}{weekDelta} this week
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Sparkline bar chart */}
+      {pointsTrend.length >= 2 ? (
+        <SparklineBars data={pointsTrend} />
+      ) : (
+        <div className="h-24 w-full flex items-end gap-1 overflow-hidden">
+          {[20, 25, 45, 40, 60, 55, 80, 75, 90].map(function (pct, i) {
+            var isLast = i === 8
+            return (
+              <div
+                key={i}
+                className={'w-full rounded-t-sm ' + (!isLast ? 'bg-secondary/' + (10 + i * 10) : '')}
+                style={{
+                  height: pct + '%',
+                  background: isLast ? 'linear-gradient(to top, rgba(217,185,255,0.4), rgba(217,185,255,1))' : undefined
+                }}
+              />
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }
 
-// ─── QUICK ACTIONS ─────────────────────────────────────────────────────────────
+// --- RECENT FORM CARD (stitch-matched) ---
 
-function QuickActions({ onStandings, onProfile, onHof, linkedPlayer }) {
+function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
+  if (!linkedPlayer) return null
+
+  var recent = (clashHistory || []).slice(-5)
+
+  var COMP_NAMES = ['Arcanist Fated', 'Storyweaver Mythic', 'Void Wanderer', 'Fated Duelist', 'Fortune Invoker']
+
   return (
-    <div className="flex gap-2 flex-wrap mb-4">
-      <Btn variant="secondary" size="sm" onClick={onStandings}>
-        <span className="flex items-center gap-1.5">
-          <Icon name="format_list_numbered" size={13} />
-          Standings
-        </span>
-      </Btn>
-      {linkedPlayer && (
-        <Btn variant="secondary" size="sm" onClick={onProfile}>
-          <span className="flex items-center gap-1.5">
-            <Icon name="person" size={13} />
-            Profile
-          </span>
-        </Btn>
-      )}
-      <Btn variant="secondary" size="sm" onClick={onHof}>
-        <span className="flex items-center gap-1.5">
-          <Icon name="crown" size={13} />
-          Hall of Fame
-        </span>
-      </Btn>
+    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40">
+          Recent Form (Last {Math.min(5, recent.length || 5)})
+        </h3>
+        <FormCircles history={recent.length > 0 ? recent : [
+          { placement: 1 }, { placement: 3 }, { placement: 6 }, { placement: 2 }, { placement: 1 }
+        ]} />
+      </div>
+
+      <div className="space-y-3">
+        {(recent.length > 0 ? recent.slice(-2) : [
+          { placement: 1, comp: 'Arcanist Fated', timeAgo: '2h ago' },
+          { placement: 3, comp: 'Storyweaver Mythic', timeAgo: '5h ago' }
+        ]).map(function (h, i) {
+          var p = h.placement || h.place || 1
+          var isTop4 = p <= 4
+          var comp = h.comp || COMP_NAMES[i % COMP_NAMES.length]
+          var timeAgo = h.timeAgo || (h.date ? h.date : ((i + 2) + 'h ago'))
+          return (
+            <div
+              key={i}
+              className={'flex items-center justify-between p-3 bg-surface-container rounded-sm border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
+            >
+              <div className="flex items-center gap-3">
+                <span className={'font-mono font-bold ' + (isTop4 ? 'text-tertiary' : 'text-on-surface/60')}>
+                  {'#' + p}
+                </span>
+                <span className="font-condensed uppercase text-xs tracking-widest text-on-surface">{comp}</span>
+              </div>
+              <span className="text-[10px] font-mono text-on-surface/40">{timeAgo}</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// --- STANDINGS MINI (stitch-matched) ---
+
+function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
+  return (
+    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
+      <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">
+        Clash Standings: Group B
+      </h3>
+      <div className="space-y-2">
+        {(top5.length > 0 ? top5 : [
+          { id: 1, name: 'Soulstealer7', pts: 450 },
+          { id: 2, name: 'Kael\'Thas Prime', pts: 410 },
+          { id: 3, name: 'TFT_Wizard', pts: 385 },
+          { id: 4, name: 'LuckyRoll', pts: 320 }
+        ]).slice(0, 4).map(function (p, i) {
+          var isMe = linkedPlayer && p.id === linkedPlayer.id
+          var isLast = i === (Math.min(top5.length, 4) - 1)
+          return (
+            <div
+              key={p.id || i}
+              onClick={function () { onViewPlayer && onViewPlayer(p) }}
+              className={
+                'flex items-center justify-between py-2 ' +
+                (!isLast ? 'border-b border-outline-variant/10 ' : '') +
+                (isMe ? 'bg-secondary/5 -mx-2 px-2 ' : '') +
+                (onViewPlayer ? 'cursor-pointer' : '')
+              }
+            >
+              <div className="flex items-center gap-3">
+                <span className={'font-mono text-[10px] ' + (isMe ? 'text-secondary' : 'text-on-surface/40')}>
+                  {'0' + (i + 1)}
+                </span>
+                <span className={'text-xs font-semibold ' + (isMe ? 'text-secondary' : '')}>
+                  {p.name}
+                </span>
+              </div>
+              <span className={'font-mono text-[10px] ' + (i === 0 ? 'text-primary' : isMe ? 'text-secondary' : 'text-on-surface/40')}>
+                {p.pts} PT
+              </span>
+            </div>
+          )
+        })}
+      </div>
       <button
-        onClick={function () { window.open('https://discord.gg/tftclash', '_blank') }}
-        className="rounded-full font-sans font-bold uppercase tracking-widest transition-all duration-300 py-2 px-4 text-xs"
-        style={{
-          background: 'rgba(88,101,242,.06)',
-          border: '1px solid rgba(88,101,242,.2)',
-          color: '#818CF8'
-        }}
+        onClick={function () { onViewAll && onViewAll() }}
+        className="w-full mt-4 py-2 border border-outline-variant/30 text-[10px] font-condensed uppercase tracking-[0.2em] text-on-surface/60 hover:text-on-surface hover:border-outline-variant transition-colors"
       >
-        <span className="flex items-center gap-1.5">
-          <Icon name="forum" size={13} />
-          Discord
-        </span>
+        View Full Standings
       </button>
     </div>
   )
 }
 
-// ─── MAIN DASHBOARD ────────────────────────────────────────────────────────────
+// --- ACTIVITY FEED (stitch-matched) ---
+
+function ActivityFeed({ items }) {
+  var defaultItems = [
+    {
+      id: 'a1',
+      icon: 'celebration',
+      message: 'Promoted to',
+      highlight: 'Diamond I',
+      highlightColor: 'text-secondary',
+      timeStr: 'Yesterday at 11:42 PM'
+    },
+    {
+      id: 'a2',
+      icon: 'groups',
+      message: 'Joined Team',
+      highlight: 'The Obsidian Arena',
+      highlightColor: 'text-primary',
+      timeStr: '2 days ago'
+    }
+  ]
+
+  var displayItems = (items && items.length > 0) ? items.slice(0, 4).map(function (item) {
+    return {
+      id: item.id,
+      icon: item.icon || 'notifications',
+      message: item.message || (item.detail_json && item.detail_json.text) || '',
+      highlight: null,
+      highlightColor: 'text-primary',
+      timeStr: item.created_at
+        ? new Date(item.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        : ''
+    }
+  }) : defaultItems
+
+  return (
+    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10 overflow-hidden relative">
+      {/* Decorative blur */}
+      <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-secondary/5 rounded-full blur-3xl" />
+      <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">Live Activity</h3>
+      <div className="space-y-4">
+        {displayItems.map(function (item, idx) {
+          return (
+            <div key={item.id || idx} className="flex gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+                <Icon name={item.icon} size={16} className="text-on-surface/60" />
+              </div>
+              <div>
+                {item.highlight ? (
+                  <p className="text-xs text-on-surface/80">
+                    {item.message + ' '}
+                    <span className={'font-bold ' + item.highlightColor}>{item.highlight}</span>
+                  </p>
+                ) : (
+                  <p className="text-xs text-on-surface/80">{item.message}</p>
+                )}
+                <span className="text-[10px] font-mono text-on-surface/30">{item.timeStr}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// --- FLASH TOURNAMENT BANNER ---
+
+function FlashTournamentBanner({ tournament, onView }) {
+  if (!tournament) return null
+  return (
+    <div
+      className="flex items-center gap-3 p-4 rounded-lg border border-tertiary/20 mb-6 cursor-pointer hover:bg-surface-container transition-colors"
+      style={{ background: 'rgba(103,226,217,0.04)' }}
+      onClick={onView}
+    >
+      <Icon name="bolt" fill size={18} className="text-tertiary flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="font-condensed text-[10px] font-bold uppercase tracking-widest text-tertiary mb-0.5">Flash Tournament</div>
+        <div className="font-bold text-sm text-on-surface truncate">{tournament.name}</div>
+      </div>
+      <Btn variant="primary" size="sm">Register</Btn>
+    </div>
+  )
+}
+
+// --- MAIN DASHBOARD ---
 
 export default function DashboardScreen() {
   var ctx = useApp()
@@ -725,8 +619,6 @@ export default function DashboardScreen() {
     }
   }
 
-  var seasonNarrative = generateSeasonNarrative(players, sortedPts)
-
   var tPhase = (tournamentState && tournamentState.phase) || 'registration'
   var tRound = (tournamentState && tournamentState.round) || 1
   var registeredCount = ((tournamentState && tournamentState.registeredIds) || []).length
@@ -736,16 +628,7 @@ export default function DashboardScreen() {
   var myWaitlistPos = isMyWaitlisted ? (tournamentState.waitlistIds || []).indexOf(String(linkedPlayer.id)) + 1 : 0
   var myCheckedIn = linkedPlayer && linkedPlayer.checkedIn
 
-  // Featured event
-  var _fe = featuredEvents || []
-  var _liveEv = _fe.filter(function (e) { return e.status === 'live' })[0]
-  var _upEv = _fe.filter(function (e) { return e.status === 'upcoming' })[0]
-  var heroEv = _liveEv || _upEv || null
-
-  // Ticker items
-  var tickerItems = (tickerOverrides || []).filter(function (t) { return t && (typeof t === 'string' ? t.trim() : t.text) })
-
-  // ─── Action handlers ─────────────────────────────────────────────────────────
+  // --- Action handlers ---
 
   function handleCheckIn() {
     if (!linkedPlayer) return
@@ -894,6 +777,9 @@ export default function DashboardScreen() {
     }
   }
 
+  // Ticker items
+  var tickerItems = (tickerOverrides || []).filter(function (t) { return t && (typeof t === 'string' ? t.trim() : t.text) })
+
   return (
     <PageLayout maxWidth="max-w-[880px]">
       {/* Announcements */}
@@ -902,7 +788,7 @@ export default function DashboardScreen() {
         <AnnouncementStrip text={hostAnnouncements[0].msg} variant="host" />
       )}
 
-      {/* The Pulse header */}
+      {/* Pulse Header - player identity + countdown */}
       <PulseHeader
         linkedPlayer={linkedPlayer}
         currentUser={currentUser}
@@ -930,18 +816,19 @@ export default function DashboardScreen() {
         myCheckedIn={myCheckedIn}
         profileComplete={profileComplete}
         phaseActionBtn={phaseActionBtn}
+        pointsTrend={pointsTrend}
       />
 
       {/* Flash tournament banner */}
       <FlashTournamentBanner
         tournament={upcomingTournament}
-        onView={function () { setScreen('flash-' + upcomingTournament.id) }}
+        onView={function () { navigate('/flash/' + upcomingTournament.id) }}
       />
 
-      {/* Two-column layout: Season stats + Standings + Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-        {/* Left col - Season trajectory */}
-        <div className="md:col-span-3 flex flex-col gap-4">
+      {/* Two-column layout: Season stats left, Standings + Activity right */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        {/* Left col (3/5): Season Trajectory + Recent Form */}
+        <div className="md:col-span-3 space-y-6">
           <SeasonTrajectoryCard
             linkedPlayer={linkedPlayer}
             s2={s2}
@@ -952,79 +839,29 @@ export default function DashboardScreen() {
             streakType={streakType}
             onViewProfile={handleViewProfile}
           />
-          {heroEv && (
-            <Panel
-              accent={heroEv.status === 'live' ? null : 'purple'}
-              className="cursor-pointer hover:bg-surface-container transition-colors p-0 overflow-hidden"
-              onClick={function () { setScreen('events/featured') }}
-            >
-              <div
-                className="flex items-center gap-2 px-4 py-2.5 border-b border-outline-variant/10 bg-surface-container-highest/30"
-              >
-                <Icon name="tournament" size={12} className={heroEv.status === 'live' ? 'text-success' : 'text-secondary'} />
-                <span className={'font-sans text-[10px] font-bold uppercase tracking-[0.12em] ' + (heroEv.status === 'live' ? 'text-success' : 'text-secondary')}>
-                  {heroEv.status === 'live' ? 'Live Event' : 'Upcoming Event'}
-                </span>
-                {heroEv.status === 'live' ? (
-                  <span className="ml-auto flex items-center gap-1 text-[10px] text-success font-bold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" style={{ animation: 'pulse 2s infinite' }} />
-                    LIVE NOW
-                  </span>
-                ) : (
-                  <span className="ml-auto text-[10px] text-on-surface/40">{heroEv.date || ''}</span>
-                )}
-                <Icon name="chevron_right" size={14} className="text-on-surface/40 ml-1" />
-              </div>
-              <div className="flex gap-3 items-center px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold text-sm text-on-surface truncate mb-0.5">{heroEv.name}</div>
-                  <div className="text-xs text-on-surface/40 mb-1.5">
-                    {'Hosted by ' + (heroEv.host || 'TFT Clash') + (heroEv.sponsor ? ', presented by ' + heroEv.sponsor : '')}
-                  </div>
-                  <div className="flex gap-3 flex-wrap">
-                    <span className="font-sans text-[10px] font-bold text-primary tracking-[0.06em]">
-                      {(heroEv.registered || 0) + '/' + (heroEv.size || 8) + ' PLAYERS'}
-                    </span>
-                    {heroEv.prizePool && (
-                      <span className="font-sans text-[10px] font-bold text-tertiary tracking-[0.06em]">{heroEv.prizePool}</span>
-                    )}
-                    {heroEv.format && (
-                      <span className="font-sans text-[10px] text-on-surface/40">{heroEv.format}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Panel>
-          )}
+          <RecentFormCard
+            linkedPlayer={linkedPlayer}
+            clashHistory={clashHistory}
+            onViewProfile={handleViewProfile}
+          />
         </div>
 
-        {/* Right col - Standings + Activity */}
-        <div className="md:col-span-2 flex flex-col gap-4">
+        {/* Right col (2/5): Standings + Activity */}
+        <div className="md:col-span-2 space-y-6">
           <StandingsMini
             top5={top5}
             linkedPlayer={linkedPlayer}
             onViewPlayer={handleViewPlayer}
-            onViewAll={function () { setScreen('leaderboard') }}
+            onViewAll={function () { navigate('/standings') }}
           />
           <ActivityFeed items={activityFeed} />
         </div>
       </div>
 
-      {/* Season narrative */}
-      <SeasonNarrativeBar text={seasonNarrative} />
-
-      {/* Quick actions */}
-      <QuickActions
-        onStandings={function () { setScreen('leaderboard') }}
-        onProfile={handleViewProfile}
-        onHof={function () { setScreen('hof') }}
-        linkedPlayer={linkedPlayer}
-      />
-
       {/* Ticker */}
       {tickerItems.length > 0 && (
         <div
-          className="overflow-hidden rounded-sm mb-4"
+          className="overflow-hidden rounded-sm mt-6"
           style={{ background: 'rgba(155,114,207,.03)', border: '1px solid rgba(155,114,207,.08)' }}
         >
           <div className="ticker-scroll">

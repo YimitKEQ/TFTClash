@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import { Panel } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
+import PageLayout from '../components/layout/PageLayout'
 
 export default function TournamentsListScreen() {
   var ctx = useApp();
@@ -36,7 +37,8 @@ export default function TournamentsListScreen() {
   var phaseBadgeColor = {draft: '#9AAABF', registration: '#9B72CF', check_in: '#E8A838', in_progress: '#52C47C', complete: '#4ECDC4'};
 
   return (
-    <div className="page wrap">
+
+    <PageLayout>    <div className="page wrap">
       <div style={{marginBottom: 28}}>
         <h1 style={{color: '#F2EDE4', fontSize: 24, fontWeight: 700, margin: 0, marginBottom: 6}}>Tournaments</h1>
         <p style={{color: '#BECBD9', fontSize: 13, margin: 0}}>Flash tournaments, competitive events, and community clashes. Free to enter, play to win.</p>
@@ -107,5 +109,6 @@ export default function TournamentsListScreen() {
         </div>
       )}
     </div>
+    </PageLayout>
   );
 }

@@ -1,196 +1,229 @@
 import { useState } from 'react'
 import PageLayout from '../components/layout/PageLayout'
-import PageHeader from '../components/shared/PageHeader'
+import Icon from '../components/ui/Icon'
 
 var TERMS_SECTIONS = [
   {
     id: 'acceptance',
+    num: '01.',
     title: 'Acceptance of Terms',
-    icon: 'ti ti-file-check',
-    body: 'By creating an account or using TFT Clash, you agree to these terms. If you do not agree, please do not use the platform.'
+    body: 'By creating an account or using TFT Clash, you agree to these terms. If you do not agree, please do not use the platform.',
+    items: null
   },
   {
     id: 'accounts',
+    num: '02.',
     title: 'Accounts',
-    icon: 'ti ti-user',
-    body: 'You must provide accurate information when creating an account. You are responsible for maintaining the security of your account credentials. One account per person.'
+    body: 'You must provide accurate information when creating an account. You are responsible for maintaining the security of your account credentials. One account per person.',
+    items: null
   },
   {
     id: 'conduct',
+    num: '03.',
     title: 'Acceptable Use',
-    icon: 'ti ti-shield-check',
-    body: 'You agree not to: manipulate game results, use automated tools to interact with the platform, harass other users, impersonate others, or exploit bugs instead of reporting them.'
+    body: 'You agree not to engage in any of the following prohibited behaviors on the TFT Clash platform:',
+    items: [
+      { strong: 'Result Manipulation:', text: ' Do not manipulate game results or submit false scores.' },
+      { strong: 'Automation:', text: ' Do not use automated tools or bots to interact with the platform.' },
+      { strong: 'Harassment:', text: ' Do not harass, threaten, or demean other users or organizers.' },
+      { strong: 'Impersonation:', text: ' Do not impersonate other players or staff members.' },
+      { strong: 'Exploit Abuse:', text: ' Report bugs instead of exploiting them for competitive advantage.' }
+    ]
   },
   {
     id: 'content',
+    num: '04.',
     title: 'User Content',
-    icon: 'ti ti-edit',
-    body: 'You retain ownership of content you create (profile info, messages). By posting, you grant TFT Clash a license to display it within the platform. We may remove content that violates these terms.'
+    body: 'You retain ownership of content you create such as profile info and messages. By posting, you grant TFT Clash a license to display it within the platform. We may remove content that violates these terms.',
+    items: null
   },
   {
     id: 'subscriptions',
+    num: '05.',
     title: 'Subscriptions and Payments',
-    icon: 'ti ti-credit-card',
-    body: 'Paid tiers (Pro, Host) are billed monthly. You may cancel at any time. Refunds are handled case-by-case. Features are subject to change with notice.'
+    highlight: true,
+    body: 'Paid tiers (Pro at $4.99/mo and Host at $19.99/mo) are billed monthly. You may cancel at any time. Refunds are handled case-by-case. Features are subject to change with reasonable notice.',
+    cards: [
+      { label: 'Pro Tier', text: '$4.99/month. Cancel anytime. No lock-in contracts.' },
+      { label: 'Host Tier', text: '$19.99/month. Full tournament hosting suite included.' }
+    ]
   },
   {
     id: 'termination',
+    num: '06.',
     title: 'Termination',
-    icon: 'ti ti-ban',
-    body: 'We may suspend or terminate accounts that violate these terms. You may delete your account at any time via Account Settings.'
+    body: 'We may suspend or terminate accounts that violate these terms. You may delete your account at any time via Account Settings. Terminations for rule violations may be permanent.',
+    items: null
   },
   {
     id: 'liability',
+    num: '07.',
     title: 'Limitation of Liability',
-    icon: 'ti ti-alert-triangle',
-    body: 'TFT Clash is provided as-is. We are not liable for competitive outcomes, data loss from service interruptions, or third-party actions. Use the platform at your own risk.'
+    body: 'TFT Clash is provided as-is. We are not liable for competitive outcomes, data loss from service interruptions, or third-party actions. Use the platform at your own risk.',
+    items: null
   },
   {
     id: 'changes',
+    num: '08.',
     title: 'Changes to Terms',
-    icon: 'ti ti-refresh',
-    body: 'We may update these terms periodically. Continued use after changes constitutes acceptance. We will notify users of significant changes via the platform.'
+    body: 'We may update these terms periodically. Continued use after changes constitutes acceptance. We will notify users of significant changes via the platform.',
+    items: null
   }
 ]
 
 export default function TermsScreen() {
-  var [expanded, setExpanded] = useState(null)
+  var [activeSection, setActiveSection] = useState(null)
 
-  function toggleSection(id) {
-    setExpanded(function (prev) {
-      return prev === id ? null : id
-    })
+  function scrollTo(id) {
+    var el = document.getElementById('terms-' + id)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setActiveSection(id)
   }
 
   return (
     <PageLayout showSidebar={false}>
-      <PageHeader
-        title="Terms of"
-        goldWord="Service"
-        description="Please read these terms carefully before using TFT Clash"
-      />
+      <div className="flex flex-col md:flex-row gap-10 md:gap-12 pt-4">
 
-      {/* Last updated + table of contents */}
-      <div
-        className="rounded-xl mb-6"
-        style={{
-          background: 'rgba(255,255,255,.03)',
-          border: '1px solid rgba(242,237,228,.08)',
-          padding: '16px 20px',
-        }}
-      >
-        <div
-          className="text-xs uppercase tracking-widest mb-3"
-          style={{
-            color: '#9AAABF',
-            fontFamily: "'Barlow Condensed',sans-serif",
-            letterSpacing: '.1em',
-          }}
-        >
-          Last updated: March 2026
-        </div>
-        <div className="flex flex-col gap-1">
-          {TERMS_SECTIONS.map(function (s) {
-            return (
-              <a
-                key={s.id}
-                href={'#terms-' + s.id}
-                onClick={function (e) {
-                  e.preventDefault()
-                  setExpanded(s.id)
-                  var el = document.getElementById('terms-' + s.id)
-                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-                className="text-sm"
-                style={{
-                  color: '#9B72CF',
-                  textDecoration: 'none',
-                  padding: '2px 0',
-                }}
-              >
-                {s.title}
-              </a>
-            )
-          })}
-        </div>
-      </div>
+        {/* Sidebar */}
+        <aside className="w-full md:w-64 shrink-0">
+          <div className="md:sticky md:top-28 flex flex-col gap-1">
+            <div className="mb-5">
+              <span className="font-condensed text-xs uppercase tracking-widest text-primary font-bold">Legal Directory</span>
+              <h2 className="font-editorial text-3xl mt-1 text-on-surface">Resources</h2>
+            </div>
 
-      {/* Sections */}
-      <div className="flex flex-col gap-2">
-        {TERMS_SECTIONS.map(function (sec) {
-          var isOpen = expanded === sec.id
-          return (
-            <div
-              key={sec.id}
-              id={'terms-' + sec.id}
-              className="rounded-xl overflow-hidden"
-              style={{
-                background: isOpen ? 'rgba(155,114,207,.06)' : 'rgba(255,255,255,.02)',
-                border:
-                  '1px solid ' +
-                  (isOpen ? 'rgba(155,114,207,.25)' : 'rgba(242,237,228,.08)'),
-                transition: 'all .2s',
-              }}
+            <a
+              href="/privacy"
+              className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all no-underline"
             >
-              <button
-                onClick={function () {
-                  toggleSection(sec.id)
-                }}
-                className="w-full flex items-center justify-between gap-3 text-left"
-                style={{
-                  padding: '16px 18px',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-lg" style={{ color: isOpen ? '#9B72CF' : '#8896A8' }}>
-                    <i className={sec.icon} />
-                  </span>
-                  <span
-                    className="text-sm font-semibold"
-                    style={{ color: isOpen ? '#C4B5FD' : '#F2EDE4' }}
-                  >
-                    {sec.title}
-                  </span>
-                </div>
-                <span
-                  className="text-lg flex-shrink-0"
-                  style={{
-                    color: isOpen ? '#9B72CF' : '#8896A8',
-                    transition: 'transform .2s',
-                    transform: isOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-                  }}
-                >
-                  +
-                </span>
-              </button>
+              <Icon name="gavel" size={18} />
+              <span className="font-condensed text-sm font-bold uppercase tracking-wide">Privacy Policy</span>
+            </a>
 
-              {isOpen && (
-                <div style={{ padding: '0 18px 18px 18px' }}>
-                  <div className="text-sm leading-relaxed" style={{ color: '#BECBD9' }}>
-                    {sec.body}
+            <a
+              href="/terms"
+              className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary transition-all no-underline"
+            >
+              <Icon name="description" size={18} />
+              <span className="font-condensed text-sm font-bold uppercase tracking-wide">Terms of Service</span>
+            </a>
+
+            <div className="mt-8 p-5 bg-surface-container-low rounded-sm border border-outline-variant/15">
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">Last Updated</span>
+              <p className="font-mono text-sm mt-1 text-on-surface">MARCH 2026</p>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-1">
+              {TERMS_SECTIONS.map(function (s) {
+                var isActive = activeSection === s.id
+                return (
+                  <button
+                    key={s.id}
+                    onClick={function () { scrollTo(s.id) }}
+                    className="text-left px-4 py-2 text-xs transition-all hover:bg-white/5 rounded-sm"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: isActive ? '#ffc66b' : '#9d8e7c'
+                    }}
+                  >
+                    <span className="font-mono mr-2" style={{ color: '#ffc66b', opacity: isActive ? 1 : 0.5 }}>{s.num}</span>
+                    {s.title}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <section className="flex-1 pb-16 min-w-0">
+          <div className="mb-10">
+            <span className="font-condensed text-xs uppercase tracking-widest text-secondary">Platform Agreement</span>
+            <h1 className="font-editorial text-5xl md:text-6xl mt-2 leading-tight text-on-surface">Terms of Service</h1>
+            <p className="text-on-surface-variant mt-4 max-w-2xl leading-relaxed">
+              Please read these terms carefully before using TFT Clash. By accessing or using the platform you agree to be bound by these terms.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-14">
+            {TERMS_SECTIONS.map(function (sec) {
+              if (sec.highlight) {
+                return (
+                  <div key={sec.id} id={'terms-' + sec.id} className="relative overflow-hidden">
+                    <div className="absolute inset-0 bg-primary/5 -skew-y-1 translate-y-2 pointer-events-none"></div>
+                    <div className="relative bg-surface-container-high p-8 rounded-sm border-l-4 border-primary">
+                      <div className="flex items-center gap-4 mb-5">
+                        <span className="font-mono text-primary text-base">{sec.num}</span>
+                        <h3 className="font-editorial text-2xl text-on-surface">{sec.title}</h3>
+                      </div>
+                      <p className="leading-relaxed text-on-surface mb-6">{sec.body}</p>
+                      {sec.cards && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {sec.cards.map(function (card) {
+                            return (
+                              <div key={card.label} className="p-4 bg-surface-container-lowest rounded-sm border border-outline-variant/10">
+                                <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">{card.label}</span>
+                                <p className="text-sm mt-2 text-on-surface-variant">{card.text}</p>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              }
+
+              return (
+                <div key={sec.id} id={'terms-' + sec.id} className="group">
+                  <div className="flex items-center gap-4 mb-5">
+                    <span className="font-mono text-primary text-base">{sec.num}</span>
+                    <h3 className="font-editorial text-2xl text-on-surface group-hover:text-primary transition-colors">{sec.title}</h3>
+                  </div>
+                  <div className="bg-surface-container-low p-7 rounded-sm space-y-5">
+                    <p className="leading-relaxed text-on-surface">{sec.body}</p>
+
+                    {sec.items && (
+                      <ul className="space-y-4">
+                        {sec.items.map(function (item, i) {
+                          return (
+                            <li key={i} className="flex gap-3">
+                              <Icon name="check_circle" size={18} className="text-primary mt-0.5 shrink-0" />
+                              <span className="text-sm text-on-surface-variant">
+                                <strong className="text-on-surface">{item.strong}</strong>
+                                {item.text}
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+              )
+            })}
 
-      {/* Footer note */}
-      <div
-        className="mt-8 rounded-2xl text-center"
-        style={{
-          background: 'rgba(155,114,207,.06)',
-          border: '1px solid rgba(155,114,207,.2)',
-          padding: '20px 24px',
-        }}
-      >
-        <div className="text-sm leading-relaxed" style={{ color: '#BECBD9' }}>
-          These terms govern your use of TFT Clash. By continuing to use the platform, you accept any updates to these terms.
-        </div>
+            {/* Contact Footer */}
+            <div className="pt-10 mt-2 border-t border-outline-variant/20">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                  <h4 className="font-editorial text-xl text-on-surface">Questions about these terms?</h4>
+                  <p className="text-on-surface-variant text-sm mt-1">Reach out to the TFT Clash team via Discord for any legal or compliance questions.</p>
+                </div>
+                <a
+                  href="https://discord.gg/tftclash"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-8 py-3 bg-primary text-on-primary font-bold rounded-full font-condensed text-sm uppercase tracking-wide hover:bg-primary/90 active:scale-95 transition-all no-underline whitespace-nowrap"
+                >
+                  Contact via Discord
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </PageLayout>
   )

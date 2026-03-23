@@ -3,58 +3,62 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Inp, Tag } from '../components/ui'
+import { Panel, Btn, Inp, Icon, Tag, Divider } from '../components/ui'
 
-// ─── Inline select ────────────────────────────────────────────────────────────
-function Sel({ value, onChange, children, style }) {
+// --- Local select wrapper ---
+function Sel({ value, onChange, children, className }) {
   return (
     <select
-      className="bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2 text-on-surface text-sm w-full"
+      className={"w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono text-sm " + (className || "")}
       value={value}
       onChange={function(e) { onChange(e.target.value); }}
-      style={style || {}}
     >
       {children}
     </select>
   );
 }
 
-// ─── Inline progress bar ──────────────────────────────────────────────────────
+// --- Small progress bar ---
 function Bar({ val, max, color, h }) {
   var pct = max > 0 ? Math.min(100, Math.round((val / max) * 100)) : 0;
-  var height = h || 6;
+  var height = h || 4;
   return (
-    <div style={{ height: height, background: 'rgba(255,255,255,.06)', borderRadius: height, overflow: 'hidden' }}>
-      <div style={{ width: pct + '%', height: '100%', background: color || '#9B72CF', borderRadius: height, transition: 'width .4s' }} />
+    <div style={{ height: height, background: "rgba(255,255,255,.06)", borderRadius: height, overflow: "hidden" }}>
+      <div style={{ width: pct + "%", height: "100%", background: color || "#ffc66b", borderRadius: height, transition: "width .4s" }} />
     </div>
   );
 }
 
-var ICON_REMAP = {"controller":"device-gamepad-2","megaphone-fill":"speakerphone","palette":"palette","chart-bar":"chart-bar","diagram-3-fill":"tournament","star-fill":"star","lock-fill":"lock","tag-fill":"tag","calendar-event-fill":"calendar-event","people-fill":"users","trophy":"trophy","alert-triangle":"alert-triangle","trending-up":"trending-up","clipboard":"clipboard"};
-
-function tiIcon(name) {
-  var mapped = ICON_REMAP[name] || name;
-  return <i className={"ti ti-" + mapped} />;
+// --- Status badge pill ---
+function StatusPill({ status }) {
+  if (status === "live") {
+    return (
+      <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded-sm flex items-center gap-1">
+        <span className="w-1.5 h-1.5 rounded-full bg-tertiary inline-block" />
+        LIVE
+      </span>
+    );
+  }
+  if (status === "upcoming" || status === "draft") {
+    return <span className="px-2 py-0.5 bg-surface-variant text-slate-300 font-condensed text-[10px] uppercase tracking-tighter rounded-sm">DRAFT</span>;
+  }
+  if (status === "pending_approval") {
+    return <span className="px-2 py-0.5 bg-primary/10 text-primary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">PENDING</span>;
+  }
+  return <span className="px-2 py-0.5 bg-on-background/5 text-slate-500 font-condensed text-[10px] uppercase tracking-tighter rounded-sm">COMPLETED</span>;
 }
 
-var TABS = [
-  ["overview", "Overview"],
-  ["tournaments", "Tournaments"],
-  ["analytics", "Analytics"],
-  ["game-flow", "Game Flow"],
-  ["registrations", "Players"],
-  ["announce", "Announce"],
-  ["branding", "Branding"]
-];
+var ACCENT_COLORS = ["#ffc66b", "#67e2d9", "#d9b9ff", "#f87171", "#6ee7b7", "#60a5fa", "#fb923c"];
 
-// ─── HostDashboardScreen ──────────────────────────────────────────────────────
+var WIZ_STEPS = ["Basics", "Format", "Branding", "Review"];
+
+// --- HostDashboardScreen ---
 export default function HostDashboardScreen() {
   var ctx = useApp();
   var currentUser = ctx.currentUser;
   var players = ctx.players;
   var toast = ctx.toast;
   var setScreen = ctx.setScreen;
-  var hostApps = ctx.hostApps;
   var hostTournaments = ctx.hostTournaments;
   var setHostTournaments = ctx.setHostTournaments;
   var hostBranding = ctx.hostBranding;
@@ -65,37 +69,35 @@ export default function HostDashboardScreen() {
   var setFeaturedEvents = ctx.setFeaturedEvents;
   var navigate = useNavigate();
 
+  // Active section: "overview" | "tournaments" | "analytics" | "game-flow" | "registrations" | "announce" | "branding"
   var [tab, setTab] = useState("overview");
   var [showCreate, setShowCreate] = useState(false);
-  var [tName, setTName] = useState("");
-  var [tDate, setTDate] = useState("");
-  var [tSize, setTSize] = useState("32");
-  var [tInvite, setTInvite] = useState(false);
-  var [tEntryFee, setTEntryFee] = useState("");
-  var [tRules, setTRules] = useState("");
+  var [filterStatus, setFilterStatus] = useState("all");
 
-  var tournaments = hostTournaments || [];
-  var setTournaments = setHostTournaments || function() {};
+  // Tournament wizard state
+  var [wizStep, setWizStep] = useState(0);
+  var [wizData, setWizData] = useState({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
+  var [wizCreating, setWizCreating] = useState(false);
 
+  // Branding state
   var [brandName, setBrandName] = useState((hostBranding && hostBranding.name) || (currentUser && currentUser.username) || "My Org");
   var [brandLogo, setBrandLogo] = useState((hostBranding && hostBranding.logo) || "controller");
-  var [brandColor, setBrandColor] = useState((hostBranding && hostBranding.color) || "#9B72CF");
+  var [brandColor, setBrandColor] = useState((hostBranding && hostBranding.color) || "#ffc66b");
   var [brandBio, setBrandBio] = useState((hostBranding && hostBranding.bio) || "");
   var [brandLogoUrl, setBrandLogoUrl] = useState((hostBranding && hostBranding.logoUrl) || "");
   var [brandBannerUrl, setBrandBannerUrl] = useState((hostBranding && hostBranding.bannerUrl) || "");
-
-  var [wizStep, setWizStep] = useState(0);
-  var [wizData, setWizData] = useState({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#9B72CF", entryFee: "", inviteOnly: false, rules: "" });
-  var [wizCreating, setWizCreating] = useState(false);
-
   var [uploadingLogo, setUploadingLogo] = useState(false);
   var [uploadingBanner, setUploadingBanner] = useState(false);
   var [dbProfileLoaded, setDbProfileLoaded] = useState(false);
   var [brandSaved, setBrandSaved] = useState(false);
+
+  // Announce state
   var [announceMsg, setAnnounceMsg] = useState("");
   var [announceTo, setAnnounceTo] = useState("all");
   var [announcements, setAnnouncements] = useState(hostAnnouncements || []);
-  var [selectedT, setSelectedT] = useState(null);
+
+  var tournaments = hostTournaments || [];
+  var setTournaments = setHostTournaments || function() {};
 
   // Load host profile from DB on mount
   useEffect(function() {
@@ -113,7 +115,7 @@ export default function HostDashboardScreen() {
     });
   }, [currentUser]);
 
-  // Load host tournaments from DB for analytics
+  // Load host tournaments from DB
   useEffect(function() {
     if (!currentUser || !supabase.from) return;
     supabase.from("tournaments").select("id, name, date, max_players, host_id")
@@ -148,20 +150,6 @@ export default function HostDashboardScreen() {
       var url = supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
       setUrl(url);
       toast((type === "logo" ? "Logo" : "Banner") + " uploaded!", "success");
-    });
-  }
-
-  function handleLogoUpload(file) {
-    if (!file || !supabase.storage) return;
-    var path = "host-logos/" + (currentUser ? currentUser.id : "anon") + "/" + file.name;
-    return supabase.storage.from("host-assets").upload(path, file, { upsert: true }).then(function(res) {
-      if (!res.error) {
-        var url = supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
-        setBrandLogoUrl(url);
-        return supabase.from("host_profiles").update({ logo_url: url }).eq("user_id", currentUser ? currentUser.id : "");
-      } else {
-        toast("Logo upload failed: " + res.error.message, "error");
-      }
     });
   }
 
@@ -251,83 +239,8 @@ export default function HostDashboardScreen() {
     }
     setShowCreate(false);
     setWizStep(0);
-    setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#9B72CF", entryFee: "", inviteOnly: false, rules: "" });
+    setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
     toast(wizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
-  }
-
-  function createTournament() {
-    if (!tName.trim() || !tDate.trim()) { toast("Name and date required", "error"); return; }
-    var newT = {
-      id: Date.now(),
-      name: tName,
-      date: tDate,
-      size: parseInt(tSize),
-      invite: tInvite,
-      entryFee: tEntryFee,
-      rules: tRules,
-      status: tEntryFee ? "pending_approval" : "upcoming",
-      registered: 0,
-      approved: !tEntryFee
-    };
-    setTournaments(function(ts) { return ts.concat([newT]); });
-    if (setFeaturedEvents) {
-      setFeaturedEvents(function(evts) {
-        return evts.concat([{
-          id: "host-" + newT.id,
-          name: tName,
-          host: brandName,
-          sponsor: null,
-          status: "upcoming",
-          date: tDate,
-          time: "TBD",
-          format: "Swiss",
-          size: parseInt(tSize),
-          registered: 0,
-          registeredIds: [],
-          prizePool: null,
-          region: "",
-          description: tRules || "Host tournament by " + brandName,
-          tags: tInvite ? ["Invite Only"] : ["Open"],
-          logo: brandLogo,
-          screen: "tournament-host-" + newT.id,
-          hostTournamentId: newT.id
-        }]);
-      });
-    }
-    if (supabase.from) {
-      supabase.from("host_profiles").select("id").eq("user_id", currentUser ? currentUser.id : "").single()
-        .then(function(hpRes) {
-          var hpId = hpRes.data ? hpRes.data.id : null;
-          return supabase.from("tournaments").insert({
-            name: tName,
-            date: tDate,
-            format: "swiss",
-            max_players: parseInt(tSize),
-            invite_only: tInvite,
-            entry_fee: tEntryFee || null,
-            rules_text: tRules || null,
-            host_profile_id: hpId,
-            description: tRules || "Host tournament by " + brandName,
-            region: ""
-          }).select().single();
-        }).then(function(res) {
-          if (res && res.error) console.error("[TFT] Failed to create tournament:", res.error);
-          else if (res && res.data) {
-            var dbId = res.data.id;
-            setTournaments(function(ts) { return ts.map(function(t) { return t.name === tName && !t.dbId ? Object.assign({}, t, { dbId: dbId }) : t; }); });
-            if (setFeaturedEvents) {
-              setFeaturedEvents(function(evts) { return evts.map(function(ev) { return ev.name === tName && !ev.dbTournamentId ? Object.assign({}, ev, { dbTournamentId: dbId }) : ev; }); });
-            }
-          }
-        });
-    }
-    setShowCreate(false);
-    setTName("");
-    setTDate("");
-    setTEntryFee("");
-    setTRules("");
-    setTInvite(false);
-    toast(tEntryFee ? "Tournament created - pending admin approval for entry fee" : "Tournament created!", "success");
   }
 
   function saveBranding() {
@@ -362,301 +275,532 @@ export default function HostDashboardScreen() {
   var upcomingTournaments = tournaments.filter(function(t) { return t.status === "upcoming"; });
   var completedTournaments = tournaments.filter(function(t) { return t.status === "complete"; });
   var totalHosted = tournaments.length;
-  var totalPlayers = tournaments.reduce(function(s, t) { return s + t.registered; }, 0);
+  var totalPlayers = tournaments.reduce(function(s, t) { return s + (t.registered || 0); }, 0);
 
-  var ACCENT_COLORS = ["#9B72CF", "#4ECDC4", "#E8A838", "#F87171", "#6EE7B7", "#60A5FA", "#FB923C"];
+  var filteredTournaments = tournaments.filter(function(t) {
+    if (filterStatus === "all") return true;
+    if (filterStatus === "live") return t.status === "live";
+    if (filterStatus === "draft") return t.status === "upcoming" || t.status === "pending_approval";
+    if (filterStatus === "completed") return t.status === "complete";
+    return true;
+  });
 
-  return (
-    <PageLayout>
-      <div className="page wrap">
-
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <span style={{ fontSize: 24 }}>{tiIcon(brandLogo)}</span>
-              <h2 style={{ color: "#F2EDE4", fontSize: 20, margin: 0 }}>{brandName}</h2>
-              <Tag color="#9B72CF">{tiIcon("device-gamepad-2")} Host</Tag>
-              {liveTournaments.length > 0 && (
-                <span style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(82,196,124,.12)", border: "1px solid rgba(82,196,124,.3)", borderRadius: 20, padding: "3px 9px", fontSize: 10, fontWeight: 700, color: "#6EE7B7" }}>
-                  <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#52C47C", display: "inline-block" }} />LIVE
-                </span>
-              )}
+  // --- Wizard steps ---
+  function renderWizardStep() {
+    if (wizStep === 0) {
+      return (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Tournament Name</label>
+              <input
+                className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
+                value={wizData.name}
+                onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { name: v }); }); }}
+                placeholder="e.g. Weekly Clash #15"
+              />
             </div>
-            <p style={{ fontSize: 13, color: "#BECBD9", margin: 0 }}>Host Dashboard - manage tournaments, players, and branding.</p>
+            <div className="space-y-2">
+              <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Date</label>
+              <input
+                className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
+                value={wizData.date}
+                onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { date: v }); }); }}
+                placeholder="Mar 24 2026"
+              />
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Btn v="dark" s="sm" onClick={function() { setScreen("featured"); navigate("/featured"); }}>Featured</Btn>
-            <Btn v="primary" onClick={function() { setShowCreate(function(s) { return !s; }); }}>{showCreate ? "Cancel" : "+ New Tournament"}</Btn>
+          <div className="flex items-center gap-4">
+            <button
+              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-2 hover:bg-white/5 transition-all"
+              onClick={function() { setShowCreate(false); setWizStep(0); }}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+              onClick={function() { if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; } setWizStep(1); }}
+            >
+              Next: Format
+            </button>
+            <span className="text-xs font-mono text-slate-500">All fields auto-save to cloud.</span>
           </div>
         </div>
-
-        {/* Tournament creation wizard */}
-        {showCreate && (
-          <Panel style={{ padding: "20px", marginBottom: 20, border: "1px solid rgba(232,168,56,.25)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 18 }}>
-              <h3 style={{ fontSize: 15, color: "#F2EDE4", margin: 0 }}>New Tournament</h3>
-              <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
-                {["Basics", "Format", "Branding", "Review"].map(function(label, i) {
-                  return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: wizStep === i ? "#9B72CF" : wizStep > i ? "#4ECDC4" : "rgba(255,255,255,.08)", border: "1px solid " + (wizStep === i ? "rgba(155,114,207,.6)" : wizStep > i ? "rgba(78,205,196,.4)" : "rgba(242,237,228,.1)"), display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: wizStep >= i ? "#fff" : "#9AAABF", transition: "all .2s" }}>{wizStep > i ? "check" : (i + 1)}</div>
-                      <span style={{ fontSize: 10, color: wizStep === i ? "#C4B5FD" : "#9AAABF", fontWeight: wizStep === i ? 700 : 400, display: wizStep === i ? "inline" : "none" }}>{label}</span>
-                      {i < 3 && <div style={{ width: 16, height: 1, background: wizStep > i ? "rgba(78,205,196,.4)" : "rgba(242,237,228,.08)" }} />}
-                    </div>
-                  );
-                })}
-              </div>
+      );
+    }
+    if (wizStep === 1) {
+      return (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Format</label>
+              <Sel value={wizData.type} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { type: v }); }); }}>
+                <option value="swiss">Swiss System</option>
+                <option value="standard">Single Elimination</option>
+                <option value="round_robin">Round Robin</option>
+              </Sel>
             </div>
-
-            {wizStep === 0 && (
-              <div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Tournament Name</div>
-                    <Inp value={wizData.name} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { name: v }); }); }} placeholder="e.g. Weekly Clash #15" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Date</div>
-                    <Inp value={wizData.date} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { date: v }); }); }} placeholder="Mar 24 2026" />
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <Btn v="dark" s="sm" onClick={function() { setShowCreate(false); setWizStep(0); }}>Cancel</Btn>
-                  <Btn v="primary" s="sm" onClick={function() { if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; } setWizStep(1); }}>Next - Format</Btn>
-                </div>
-              </div>
-            )}
-
-            {wizStep === 1 && (
-              <div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Format</div>
-                    <Sel value={wizData.type} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { type: v }); }); }}>
-                      <option value="swiss">Swiss</option>
-                      <option value="standard">Standard</option>
-                    </Sel>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Games per Player</div>
-                    <Sel value={String(wizData.totalGames)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { totalGames: parseInt(v) }); }); }}>
-                      {[2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n + " games"}</option>; })}
-                    </Sel>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Max Players</div>
-                    <Sel value={String(wizData.maxPlayers)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { maxPlayers: parseInt(v) }); }); }}>
-                      {[8, 16, 24, 32, 48, 64, 96, 126, 128].map(function(n) { return <option key={n} value={n}>{n + " players"}</option>; })}
-                    </Sel>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Entry Fee <span style={{ color: "#9AAABF", fontWeight: 400 }}>(admin approval)</span></div>
-                    <Inp value={wizData.entryFee} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { entryFee: v }); }); }} placeholder="Leave blank = free" />
-                  </div>
-                </div>
-                <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Custom Rules <span style={{ color: "#9AAABF", fontWeight: 400 }}>(optional)</span></div>
-                  <textarea
-                    className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2 text-on-surface text-sm resize-y min-h-[60px] outline-none font-sans"
-                    value={wizData.rules}
-                    onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { rules: v }); }); }}
-                    placeholder="Any special rules or format notes..."
-                  />
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                  <div onClick={function() { setWizData(function(d) { return Object.assign({}, d, { inviteOnly: !d.inviteOnly }); }); }} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-                    <div style={{ width: 36, height: 20, borderRadius: 99, background: wizData.inviteOnly ? "rgba(155,114,207,.3)" : "rgba(255,255,255,.08)", border: "1px solid " + (wizData.inviteOnly ? "rgba(155,114,207,.5)" : "rgba(242,237,228,.1)"), position: "relative", transition: "all .2s" }}>
-                      <div style={{ width: 14, height: 14, borderRadius: "50%", background: wizData.inviteOnly ? "#C4B5FD" : "#9AAABF", position: "absolute", top: 2, left: wizData.inviteOnly ? 18 : 2, transition: "left .2s" }} />
-                    </div>
-                    <span style={{ fontSize: 13, color: "#C8D4E0" }}>Invite-only registration</span>
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <Btn v="dark" s="sm" onClick={function() { setWizStep(0); }}>Back</Btn>
-                  <Btn v="primary" s="sm" onClick={function() { setWizStep(2); }}>Next - Branding</Btn>
-                </div>
-              </div>
-            )}
-
-            {wizStep === 2 && (
-              <div>
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 8 }}>Tournament Accent Color</div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                    {ACCENT_COLORS.map(function(c) {
-                      return (
-                        <div key={c} onClick={function() { setWizData(function(d) { return Object.assign({}, d, { accentColor: c }); }); }}
-                          style={{ width: 28, height: 28, borderRadius: "50%", background: c, cursor: "pointer", border: wizData.accentColor === c ? "3px solid #fff" : "3px solid transparent", transition: "border .15s" }} />
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input type="color" value={wizData.accentColor} onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { accentColor: v }); }); }} style={{ width: 36, height: 32, borderRadius: 6, border: "1px solid rgba(242,237,228,.12)", background: "transparent", cursor: "pointer", padding: 2 }} />
-                    <span style={{ fontSize: 12, color: "#9AAABF", fontFamily: "monospace" }}>{wizData.accentColor}</span>
-                  </div>
-                </div>
-                <div style={{ background: "rgba(255,255,255,.02)", border: "1px solid " + wizData.accentColor + "44", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, color: "#9AAABF", marginBottom: 4, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".05em" }}>Preview</div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "#F2EDE4" }}>{wizData.name || "Tournament Name"}</div>
-                  <div style={{ fontSize: 12, color: wizData.accentColor, fontWeight: 600, marginTop: 2 }}>{wizData.type === "swiss" ? "Swiss" : "Standard"} - {wizData.maxPlayers} players</div>
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <Btn v="dark" s="sm" onClick={function() { setWizStep(1); }}>Back</Btn>
-                  <Btn v="primary" s="sm" onClick={function() { setWizStep(3); }}>Review</Btn>
-                </div>
-              </div>
-            )}
-
-            {wizStep === 3 && (
-              <div>
-                <div style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(242,237,228,.08)", borderRadius: 10, padding: "16px", marginBottom: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "#F2EDE4", marginBottom: 12 }}>{wizData.name}</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                    {[
-                      ["Date", wizData.date],
-                      ["Format", wizData.type === "swiss" ? "Swiss" : "Standard"],
-                      ["Games", String(wizData.totalGames) + " per player"],
-                      ["Max Players", String(wizData.maxPlayers)],
-                      ["Entry Fee", wizData.entryFee || "Free"],
-                      ["Invite Only", wizData.inviteOnly ? "Yes" : "No"]
-                    ].map(function(arr) {
-                      return (
-                        <div key={arr[0]} style={{ background: "rgba(255,255,255,.02)", borderRadius: 7, padding: "8px 10px" }}>
-                          <div style={{ fontSize: 10, color: "#9AAABF", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 2 }}>{arr[0]}</div>
-                          <div style={{ fontSize: 13, color: "#F2EDE4", fontWeight: 600 }}>{arr[1]}</div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                    <div style={{ width: 16, height: 16, borderRadius: "50%", background: wizData.accentColor }} />
-                    <span style={{ fontSize: 12, color: "#9AAABF", fontFamily: "monospace" }}>{wizData.accentColor}</span>
-                  </div>
-                </div>
-                {wizData.entryFee && (
-                  <div style={{ background: "rgba(232,168,56,.06)", border: "1px solid rgba(232,168,56,.2)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: "#E8A838" }}>
-                    {tiIcon("alert-triangle")} Entry fee tournaments require admin approval before going live.
-                  </div>
-                )}
-                <div style={{ display: "flex", gap: 8 }}>
-                  <Btn v="dark" s="sm" onClick={function() { setWizStep(2); }}>Back</Btn>
-                  <Btn v="primary" onClick={submitWizard} disabled={wizCreating}>{wizCreating ? "Creating..." : "Create Tournament"}</Btn>
-                </div>
-              </div>
-            )}
-          </Panel>
-        )}
-
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 18, overflowX: "auto", whiteSpace: "nowrap", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none", flexWrap: "nowrap" }}>
-          {TABS.map(function(arr) {
-            var t = arr[0];
-            var label = arr[1];
-            return <Btn key={t} v={tab === t ? "primary" : "dark"} s="sm" onClick={function() { setTab(t); }} style={{ flexShrink: 0, whiteSpace: "nowrap" }}>{label}</Btn>;
-          })}
+            <div className="space-y-2">
+              <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Player Limit</label>
+              <Sel value={String(wizData.maxPlayers)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { maxPlayers: parseInt(v) }); }); }}>
+                {[8, 16, 24, 32, 48, 64, 96, 128].map(function(n) { return <option key={n} value={n}>{n + " Players"}</option>; })}
+              </Sel>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Check-in Window</label>
+              <Sel value={String(wizData.totalGames)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { totalGames: parseInt(v) }); }); }}>
+                {[2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n + " games"}</option>; })}
+              </Sel>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Entry Fee <span className="text-on-surface-variant/50 normal-case font-normal">(optional, requires admin approval)</span></label>
+            <input
+              className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
+              value={wizData.entryFee}
+              onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { entryFee: v }); }); }}
+              placeholder="Leave blank = free"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Custom Rules <span className="text-on-surface-variant/50 normal-case font-normal">(optional)</span></label>
+            <textarea
+              className="w-full bg-surface-container-lowest border-b border-outline-variant/20 px-0 py-3 text-on-background text-sm resize-y min-h-16 outline-none font-mono"
+              value={wizData.rules}
+              onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { rules: v }); }); }}
+              placeholder="Any special rules or format notes..."
+            />
+          </div>
+          <div
+            onClick={function() { setWizData(function(d) { return Object.assign({}, d, { inviteOnly: !d.inviteOnly }); }); }}
+            className="flex items-center gap-3 cursor-pointer select-none"
+          >
+            <div className="w-9 h-5 rounded-full relative transition-all" style={{ background: wizData.inviteOnly ? "rgba(255,198,107,.25)" : "rgba(255,255,255,.08)", border: "1px solid " + (wizData.inviteOnly ? "rgba(255,198,107,.4)" : "rgba(255,255,255,.1)") }}>
+              <div className="w-3.5 h-3.5 rounded-full absolute top-0.5 transition-all" style={{ background: wizData.inviteOnly ? "#ffc66b" : "#9aaabf", left: wizData.inviteOnly ? "18px" : "2px" }} />
+            </div>
+            <span className="text-sm text-on-surface-variant">Invite-only registration</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(0); }}>Back</button>
+            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(2); }}>Next: Branding</button>
+          </div>
         </div>
-
-        {/* Overview tab */}
-        {tab === "overview" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginBottom: 20 }}>
-              {[
-                ["Tournaments", "" + totalHosted, "#E8A838"],
-                ["Players Hosted", "" + totalPlayers, "#6EE7B7"],
-                ["Live Now", "" + liveTournaments.length, "#52C47C"],
-                ["Upcoming", "" + upcomingTournaments.length, "#4ECDC4"]
-              ].map(function(arr) {
-                var l = arr[0]; var v = arr[1]; var c = arr[2];
+      );
+    }
+    if (wizStep === 2) {
+      return (
+        <div className="space-y-8">
+          <div className="space-y-3">
+            <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Accent Color</label>
+            <div className="flex gap-2 flex-wrap">
+              {ACCENT_COLORS.map(function(c) {
                 return (
-                  <Panel key={l} style={{ padding: "18px", textAlign: "center" }}>
-                    <div className="mono" style={{ fontSize: 28, fontWeight: 700, color: c, lineHeight: 1 }}>{v}</div>
-                    <div className="cond" style={{ fontSize: 10, color: "#BECBD9", fontWeight: 700, textTransform: "uppercase", marginTop: 6, letterSpacing: ".06em" }}>{l}</div>
-                  </Panel>
+                  <div key={c} onClick={function() { setWizData(function(d) { return Object.assign({}, d, { accentColor: c }); }); }}
+                    className="w-7 h-7 rounded-full cursor-pointer transition-all"
+                    style={{ background: c, border: wizData.accentColor === c ? "3px solid #fff" : "3px solid transparent" }} />
                 );
               })}
             </div>
-            {liveTournaments.length > 0 && (
-              <Panel style={{ padding: "18px", marginBottom: 16, border: "1px solid rgba(82,196,124,.2)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(82,196,124,.12)", border: "1px solid rgba(82,196,124,.3)", borderRadius: 20, padding: "3px 9px", fontSize: 11, fontWeight: 700, color: "#6EE7B7" }}>
-                    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#52C47C", display: "inline-block" }} />LIVE
-                  </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "#F2EDE4" }}>Active Tournament</span>
+            <div className="flex items-center gap-3">
+              <input type="color" value={wizData.accentColor} onChange={function(e) { var v = e.target.value; setWizData(function(d) { return Object.assign({}, d, { accentColor: v }); }); }} className="w-9 h-8 rounded border border-outline-variant/20 bg-transparent cursor-pointer p-0.5" />
+              <span className="text-xs text-on-surface-variant font-mono">{wizData.accentColor}</span>
+            </div>
+          </div>
+          <div className="bg-surface-container p-4 rounded-sm border-l-4" style={{ borderColor: wizData.accentColor }}>
+            <div className="text-xs text-on-surface-variant font-condensed uppercase tracking-widest mb-1">Preview</div>
+            <div className="font-bold text-on-surface font-editorial">{wizData.name || "Tournament Name"}</div>
+            <div className="text-xs font-mono mt-1" style={{ color: wizData.accentColor }}>{wizData.type === "swiss" ? "Swiss" : "Standard"} - {wizData.maxPlayers} players</div>
+          </div>
+          <div className="flex items-center gap-4">
+            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(1); }}>Back</button>
+            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(3); }}>Review</button>
+          </div>
+        </div>
+      );
+    }
+    // Step 3: Review
+    return (
+      <div className="space-y-8">
+        <div className="bg-surface-container p-5 rounded-sm space-y-4">
+          <div className="font-bold text-lg text-on-surface font-editorial">{wizData.name}</div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              ["Date", wizData.date],
+              ["Format", wizData.type === "swiss" ? "Swiss" : "Standard"],
+              ["Games", wizData.totalGames + " per player"],
+              ["Max Players", String(wizData.maxPlayers)],
+              ["Entry Fee", wizData.entryFee || "Free"],
+              ["Invite Only", wizData.inviteOnly ? "Yes" : "No"]
+            ].map(function(arr) {
+              return (
+                <div key={arr[0]} className="bg-surface-container-high p-3 rounded-sm">
+                  <div className="text-xs font-condensed uppercase tracking-widest text-on-surface-variant mb-1">{arr[0]}</div>
+                  <div className="text-sm font-mono text-on-surface">{arr[1]}</div>
                 </div>
-                {liveTournaments.map(function(t) {
-                  return (
-                    <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: "#F2EDE4", marginBottom: 4 }}>{t.name}</div>
-                        <div style={{ fontSize: 12, color: "#BECBD9", marginBottom: 8 }}>{tiIcon("calendar-event")} {t.date} - {tiIcon("users")} {t.registered}/{t.size} players</div>
-                        <Bar val={t.registered} max={t.size} color="#6EE7B7" h={4} />
-                      </div>
-                      <Btn v="primary" s="sm" onClick={function() { setScreen("bracket"); navigate("/bracket"); }}>Live Bracket</Btn>
-                    </div>
-                  );
-                })}
-              </Panel>
-            )}
-            <Panel style={{ padding: "18px" }}>
-              <div style={{ fontWeight: 600, fontSize: 14, color: "#F2EDE4", marginBottom: 12 }}>Quick Actions</div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <Btn v="ghost" s="sm" onClick={function() { setShowCreate(true); setTab("tournaments"); }}>+ New Tournament</Btn>
-                <Btn v="ghost" s="sm" onClick={function() { setTab("announce"); }}>{tiIcon("speakerphone")} Announce</Btn>
-                <Btn v="ghost" s="sm" onClick={function() { setTab("branding"); }}>{tiIcon("palette")} Edit Branding</Btn>
-                <Btn v="ghost" s="sm" onClick={function() { setScreen("bracket"); navigate("/bracket"); }}>{tiIcon("tournament")} View Bracket</Btn>
-                <Btn v="ghost" s="sm" onClick={function() { setScreen("featured"); navigate("/featured"); }}>{tiIcon("star")} Featured Page</Btn>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full" style={{ background: wizData.accentColor }} />
+            <span className="text-xs text-on-surface-variant font-mono">{wizData.accentColor}</span>
+          </div>
+        </div>
+        {wizData.entryFee && (
+          <div className="bg-primary/5 border border-primary/20 rounded-sm p-3 text-sm text-primary flex items-center gap-2">
+            <Icon name="warning" size={16} />
+            Entry fee tournaments require admin approval before going live.
+          </div>
+        )}
+        <div className="flex items-center gap-4">
+          <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(2); }}>Back</button>
+          <button
+            className="bg-primary text-on-primary px-10 py-4 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+            onClick={submitWizard}
+            disabled={wizCreating}
+          >
+            {wizCreating ? "Creating..." : "Create Tournament"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- Render ---
+  return (
+    <PageLayout>
+      <div className="p-8 max-w-7xl mx-auto space-y-10">
+
+        {/* Hero / Editorial Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <h1 className="text-5xl font-editorial font-bold text-on-background mb-2">Host Central</h1>
+            <p className="text-slate-400 font-body max-w-xl">Manage your prestigious arenas, analyze player engagement, and brand your tournament experience with surgical precision.</p>
+          </div>
+          <div className="flex gap-4">
+            <button
+              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-secondary flex items-center gap-2 hover:bg-white/5 transition-all"
+              onClick={function() { setTab("announce"); }}
+            >
+              <Icon name="file_upload" size={16} />
+              Export Data
+            </button>
+            <button
+              className="bg-gradient-to-br from-primary to-primary-container px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest text-on-primary flex items-center gap-2 active:scale-95 transition-all"
+              onClick={function() { setShowCreate(function(s) { return !s; }); setWizStep(0); }}
+            >
+              <Icon name="add" size={20} />
+              {showCreate ? "Cancel" : "Create Tournament"}
+            </button>
+          </div>
+        </div>
+
+        {/* Bento Grid: Analytics + Branding */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Analytics Large */}
+          <div className="md:col-span-3 bg-surface-container-low p-6 rounded-lg relative overflow-hidden">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h3 className="font-editorial text-xl mb-1">Audience Analytics</h3>
+                <p className="font-condensed text-xs text-slate-500 uppercase tracking-widest">Global engagement over 30 days</p>
               </div>
-            </Panel>
+              <div className="flex gap-2">
+                <span className="px-3 py-1 bg-tertiary-container/10 text-tertiary font-mono text-xs rounded-sm">+12.4% vs last mo</span>
+              </div>
+            </div>
+            {/* Mock bar chart */}
+            <div className="h-48 w-full flex items-end gap-1 px-2">
+              {[
+                { h: "50%", lit: false },
+                { h: "66%", lit: false },
+                { h: "50%", lit: false },
+                { h: "75%", lit: true },
+                { h: "100%", lit: true },
+                { h: "80%", lit: true },
+                { h: "66%", lit: false },
+                { h: "50%", lit: false },
+                { h: "72%", lit: false }
+              ].map(function(bar, i) {
+                return (
+                  <div
+                    key={i}
+                    className="flex-grow rounded-t-sm"
+                    style={{
+                      height: bar.h,
+                      background: bar.lit ? "rgba(255,198,107,.25)" : "rgba(30,30,40,.6)",
+                      borderTop: bar.lit ? "2px solid rgba(255,198,107,.8)" : "2px solid rgba(255,255,255,.04)"
+                    }}
+                  />
+                );
+              })}
+            </div>
+            {/* Stats row */}
+            <div className="mt-4 flex gap-8 border-t border-outline-variant/10 pt-4">
+              <div>
+                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Completed</div>
+                <div className="font-mono text-lg font-bold text-on-surface">{completedTournaments.length}</div>
+              </div>
+              <div>
+                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Avg Fill</div>
+                <div className="font-mono text-lg font-bold text-on-surface">
+                  {tournaments.length === 0 ? "--" : Math.round(tournaments.reduce(function(s, t) { return s + (t.size > 0 ? (t.registered / t.size) : 0); }, 0) / tournaments.length * 100) + "%"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Total Players</div>
+                <div className="font-mono text-lg font-bold text-on-surface">{totalPlayers}</div>
+              </div>
+              <div>
+                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Live Now</div>
+                <div className="font-mono text-lg font-bold text-tertiary">{liveTournaments.length}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Branding Quick Tool */}
+          <div className="bg-secondary-container/10 p-6 rounded-lg border-r-4 border-secondary flex flex-col justify-between">
+            <div>
+              <h3 className="font-editorial text-xl mb-4">Branding</h3>
+              <div className="space-y-4">
+                <div
+                  className="group relative w-full aspect-square bg-surface-container-highest flex flex-col items-center justify-center border-2 border-dashed border-outline-variant/30 rounded-lg cursor-pointer hover:border-amber-500/50 transition-colors"
+                  onClick={function() { setTab("branding"); }}
+                >
+                  {brandLogoUrl
+                    ? <img src={brandLogoUrl} alt="Logo" className="w-3/4 h-3/4 object-contain rounded" />
+                    : (
+                      <>
+                        <Icon name="cloud_upload" size={28} className="text-slate-500 mb-2" />
+                        <span className="text-[10px] font-condensed uppercase text-slate-400">Upload Logo</span>
+                      </>
+                    )
+                  }
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-condensed uppercase text-slate-400">Primary Color</span>
+                  <div className="flex gap-1">
+                    {ACCENT_COLORS.slice(0, 3).map(function(c) {
+                      return (
+                        <div
+                          key={c}
+                          onClick={function() { setBrandColor(c); }}
+                          className="w-6 h-6 rounded-full cursor-pointer border border-white/20 hover:scale-110 transition-all"
+                          style={{ background: c, outline: brandColor === c ? "2px solid rgba(255,255,255,.6)" : "none", outlineOffset: "1px" }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={function() { setTab("branding"); }}
+              className="w-full text-xs font-mono text-secondary-fixed-dim mt-4 uppercase text-left hover:underline"
+            >
+              Edit Palette
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Draft (wizard) */}
+        {showCreate && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="font-editorial text-2xl">Quick Draft</h3>
+                {/* Step indicators */}
+                <div className="flex items-center gap-2">
+                  {WIZ_STEPS.map(function(label, i) {
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all" style={{
+                            background: wizStep === i ? "rgba(255,198,107,.2)" : wizStep > i ? "rgba(103,226,217,.15)" : "rgba(255,255,255,.06)",
+                            border: "1px solid " + (wizStep === i ? "rgba(255,198,107,.5)" : wizStep > i ? "rgba(103,226,217,.4)" : "rgba(255,255,255,.1)"),
+                            color: wizStep === i ? "#ffc66b" : wizStep > i ? "#67e2d9" : "#9aaabf"
+                          }}>
+                            {wizStep > i ? <Icon name="check" size={12} /> : (i + 1)}
+                          </div>
+                          {wizStep === i && <span className="text-xs font-condensed text-primary hidden sm:inline">{label}</span>}
+                        </div>
+                        {i < WIZ_STEPS.length - 1 && <div className="w-4 h-px" style={{ background: wizStep > i ? "rgba(103,226,217,.3)" : "rgba(255,255,255,.08)" }} />}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="p-8 rounded-lg border border-outline-variant/5 space-y-8" style={{ background: "rgba(52,52,60,0.6)", backdropFilter: "blur(24px)" }}>
+                {renderWizardStep()}
+              </div>
+            </div>
+
+            {/* Broadcast Preview */}
+            <div className="space-y-6">
+              <h3 className="font-editorial text-2xl">Broadcast Preview</h3>
+              <div className="bg-surface-container-low rounded-lg p-6 relative aspect-video flex flex-col items-center justify-center">
+                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
+                <div className="relative z-10 text-center">
+                  <p className="font-condensed text-[10px] uppercase tracking-[0.4em] text-primary mb-2">Live Broadcast Overlay</p>
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="w-12 h-0.5 bg-primary"></div>
+                    <span className="font-display text-2xl uppercase tracking-tighter">VERSUS</span>
+                    <div className="w-12 h-0.5 bg-primary"></div>
+                  </div>
+                  <div className="mt-4 flex flex-col gap-2 items-center">
+                    <div className="w-16 h-1 bg-secondary shadow-[0_0_15px_rgba(217,185,255,0.4)]"></div>
+                    <span className="font-editorial italic text-slate-400">{wizData.name || "Tournament Name"}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 bg-surface-container-high rounded-lg space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-condensed uppercase text-slate-400">Host Status</span>
+                  <span className="flex items-center gap-1.5 text-xs font-mono text-tertiary">
+                    <span className="w-2 h-2 rounded-full bg-tertiary"></span> Online
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-condensed uppercase text-slate-400">Stream Delay</span>
+                  <span className="text-xs font-mono text-slate-200">120s (Standard)</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Tournaments tab */}
-        {tab === "tournaments" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {tournaments.map(function(t) {
-              var statusColor = t.status === "live" ? "#6EE7B7" : t.status === "upcoming" ? "#4ECDC4" : t.status === "pending_approval" ? "#E8A838" : "#BECBD9";
-              var statusLabel = t.status === "live" ? "Live" : t.status === "upcoming" ? "Upcoming" : t.status === "pending_approval" ? "Pending" : "Completed";
+        {/* Tournament Management */}
+        <div className="space-y-6">
+          <div className="flex justify-between items-center border-b border-outline-variant/10 pb-4">
+            <h2 className="font-editorial text-2xl">Hosted Events</h2>
+            <div className="flex bg-surface-container-lowest p-1 rounded-sm gap-1">
+              {["all", "live", "draft", "completed"].map(function(f) {
+                return (
+                  <button
+                    key={f}
+                    onClick={function() { setFilterStatus(f); }}
+                    className={"px-4 py-1 text-xs font-condensed uppercase tracking-widest transition-colors " + (filterStatus === f ? "bg-primary text-on-primary" : "text-slate-500 hover:text-slate-300")}
+                  >
+                    {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tournament List */}
+          <div className="space-y-3">
+            {filteredTournaments.length === 0 && (
+              <div className="bg-surface-container-low p-12 rounded-lg text-center">
+                <Icon name="military_tech" size={40} className="text-slate-500 mx-auto mb-3" />
+                <p className="text-slate-500 text-sm">No tournaments yet. Create your first one above.</p>
+              </div>
+            )}
+            {filteredTournaments.map(function(t) {
+              var isLive = t.status === "live";
+              var isDraft = t.status === "upcoming" || t.status === "pending_approval";
+              var isComplete = t.status === "complete";
               return (
-                <Panel key={t.id} style={{ padding: "18px", border: t.status === "live" ? "1px solid rgba(82,196,124,.25)" : "1px solid rgba(242,237,228,.07)" }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flexWrap: "wrap" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                        <span style={{ fontWeight: 700, fontSize: 15, color: "#F2EDE4" }}>{t.name}</span>
-                        <Tag color={statusColor} size="sm">{statusLabel}</Tag>
-                        {t.invite && <Tag color="#9B72CF" size="sm">{tiIcon("lock")} Invite Only</Tag>}
-                        {t.entryFee && <Tag color="#EAB308" size="sm">{tiIcon("tag")} {t.entryFee}</Tag>}
-                      </div>
-                      <div style={{ fontSize: 13, color: "#BECBD9", marginBottom: 8 }}>{tiIcon("calendar-event")} {t.date} - {tiIcon("users")} {t.registered}/{t.size} registered</div>
-                      <Bar val={t.registered} max={t.size} color="#E8A838" h={4} />
-                      <div style={{ fontSize: 10, color: "#BECBD9", marginTop: 3 }}>{t.size - t.registered} spots remaining</div>
-                      {t.rules && <div style={{ fontSize: 11, color: "#9AAABF", marginTop: 6, fontStyle: "italic" }}>{tiIcon("clipboard")} {t.rules}</div>}
+                <div key={t.id} className="bg-surface-container-low p-5 rounded-lg flex items-center gap-6 hover:bg-surface-container transition-all group">
+                  {/* Icon block */}
+                  <div className={"w-16 h-16 bg-surface-container-high rounded flex items-center justify-center shrink-0" + (isDraft ? " grayscale opacity-50" : "")}>
+                    <Icon
+                      name={isLive ? "trophy" : isDraft ? "rocket_launch" : "emoji_events"}
+                      size={28}
+                      className={isLive ? "text-primary" : isDraft ? "text-slate-400" : "text-slate-500"}
+                    />
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-3 mb-1 flex-wrap">
+                      <StatusPill status={t.status} />
+                      <h4 className={"font-editorial text-lg " + (isComplete ? "text-slate-400" : isDraft ? "text-slate-300" : "text-on-background")}>
+                        {t.name}
+                      </h4>
+                      {t.invite && <span className="px-2 py-0.5 bg-secondary/10 text-secondary font-condensed text-[10px] uppercase rounded-sm">Invite Only</span>}
                     </div>
-                    <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap" }}>
-                      {t.status === "upcoming" && (
-                        <Btn v="ghost" s="sm" onClick={function() { updateTournamentAndFeatured(t.id, { status: "live" }); toast("Check-in opened! Tournament is now LIVE", "success"); }}>Open Check-In</Btn>
+                    <div className="flex gap-6 flex-wrap">
+                      <span className={"text-xs font-mono flex items-center gap-1 " + (isComplete ? "text-slate-600" : "text-slate-500")}>
+                        <Icon name="group" size={14} />
+                        {t.registered || 0}/{t.size} Players
+                      </span>
+                      <span className={"text-xs font-mono flex items-center gap-1 " + (isComplete ? "text-slate-600" : "text-slate-500")}>
+                        <Icon name={isComplete ? "check_circle" : "calendar_today"} size={14} />
+                        {isComplete ? "Finalized" : (t.date || "TBD")}
+                      </span>
+                      {isComplete && t.champion && (
+                        <span className="text-xs font-mono text-slate-600 flex items-center gap-1">
+                          <Icon name="emoji_events" size={14} />
+                          Winner: {t.champion}
+                        </span>
                       )}
-                      {t.status === "live" && (
-                        <Btn v="ghost" s="sm" onClick={function() { updateTournamentAndFeatured(t.id, { status: "closed" }); toast("Registration closed", "info"); }}>Close Registration</Btn>
-                      )}
-                      {(t.status === "live" || t.status === "closed") && (
-                        <Btn v="primary" s="sm" onClick={function() {
+                    </div>
+                    {!isComplete && (
+                      <div className="mt-2">
+                        <Bar val={t.registered || 0} max={t.size || 1} color="#ffc66b" h={3} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 shrink-0 items-center">
+                    {t.status === "upcoming" && (
+                      <button
+                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
+                        onClick={function() { updateTournamentAndFeatured(t.id, { status: "live" }); toast("Check-in opened! Tournament is now LIVE", "success"); }}
+                      >
+                        Publish Event
+                      </button>
+                    )}
+                    {t.status === "pending_approval" && (
+                      <span className="text-xs text-primary font-condensed font-bold uppercase tracking-wider">Awaiting Approval</span>
+                    )}
+                    {t.status === "live" && (
+                      <button
+                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
+                        onClick={function() { updateTournamentAndFeatured(t.id, { status: "closed" }); toast("Registration closed", "info"); }}
+                      >
+                        Close Reg
+                      </button>
+                    )}
+                    {(t.status === "live" || t.status === "closed") && (
+                      <button
+                        className="px-4 py-2 bg-primary/10 text-primary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-primary/20 transition-colors"
+                        onClick={function() {
                           var champ = prompt("Enter champion name:");
                           if (champ && champ.trim()) {
                             updateTournamentAndFeatured(t.id, { status: "complete", champion: champ.trim(), top4: [champ.trim()] });
                             toast("Tournament completed! Champion: " + champ.trim(), "success");
-                          } else {
-                            toast("Cancelled", "info");
                           }
-                        }}>Complete</Btn>
-                      )}
-                      {t.status === "pending_approval" && (
-                        <span style={{ fontSize: 11, color: "#E8A838", fontWeight: 600, padding: "5px 0" }}>Awaiting Approval</span>
-                      )}
-                      {t.status === "complete" && (
-                        <Btn v="ghost" s="sm" onClick={function() { setScreen("tournament-host-" + t.id); }}>View Details</Btn>
-                      )}
-                      <Btn v="ghost" s="sm" onClick={function() {
+                        }}
+                      >
+                        Complete
+                      </button>
+                    )}
+                    <button
+                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                      onClick={function() { setTab("analytics"); }}
+                    >
+                      <Icon name="analytics" size={18} />
+                    </button>
+                    {!isComplete && (
+                      <button
+                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                        onClick={function() { setTab("game-flow"); }}
+                      >
+                        <Icon name="edit" size={18} />
+                      </button>
+                    )}
+                    {isComplete && (
+                      <button
+                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                        onClick={function() { navigate("/results"); }}
+                      >
+                        <Icon name="history_edu" size={18} />
+                      </button>
+                    )}
+                    <button
+                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors"
+                      onClick={function() {
                         if (confirm("Delete this tournament?")) {
                           setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
                           if (setFeaturedEvents) {
@@ -664,109 +808,202 @@ export default function HostDashboardScreen() {
                           }
                           toast("Tournament deleted", "info");
                         }
-                      }} style={{ color: "#F87171" }}>Delete</Btn>
-                    </div>
+                      }}
+                    >
+                      <Icon name="more_vert" size={18} />
+                    </button>
                   </div>
-                </Panel>
+                </div>
               );
             })}
-            {tournaments.length === 0 && (
-              <div style={{ textAlign: "center", padding: "48px", color: "#BECBD9" }}>
-                <div style={{ fontSize: 32, marginBottom: 12 }}>{tiIcon("device-gamepad-2")}</div>
-                <div style={{ fontSize: 14 }}>No tournaments yet. Create your first one above.</div>
-              </div>
-            )}
           </div>
-        )}
+        </div>
 
-        {/* Analytics tab */}
-        {tab === "analytics" && (
-          <div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: 12, marginBottom: 20 }}>
-              {[
-                ["Total Hosted", "" + totalHosted, "#E8A838"],
-                ["Players Hosted", "" + totalPlayers, "#6EE7B7"],
-                ["Completed", "" + completedTournaments.length, "#4ECDC4"],
-                ["Upcoming", "" + upcomingTournaments.length, "#9B72CF"]
-              ].map(function(arr) {
-                var l = arr[0]; var v = arr[1]; var c = arr[2];
-                return (
-                  <Panel key={l} style={{ padding: "18px", textAlign: "center" }}>
-                    <div className="mono" style={{ fontSize: 28, fontWeight: 700, color: c, lineHeight: 1 }}>{v}</div>
-                    <div className="cond" style={{ fontSize: 10, color: "#BECBD9", fontWeight: 700, textTransform: "uppercase", marginTop: 6, letterSpacing: ".06em" }}>{l}</div>
-                  </Panel>
-                );
-              })}
-            </div>
-            <Panel style={{ padding: "18px", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "#F2EDE4", marginBottom: 14 }}>{tiIcon("chart-bar")} Tournament History</h3>
-              {tournaments.length === 0 && (
-                <div style={{ textAlign: "center", padding: "32px", color: "#BECBD9" }}>
-                  <div style={{ fontSize: 32, marginBottom: 10 }}>{tiIcon("device-gamepad-2")}</div>
-                  <div style={{ fontSize: 13 }}>No tournament data yet. Create your first tournament to see analytics here.</div>
+        {/* Announce tab */}
+        {tab === "announce" && (
+          <div className="space-y-6">
+            <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Send Announcement</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-5">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Send to</label>
+                  <Sel value={announceTo} onChange={setAnnounceTo}>
+                    <option value="all">All registered players</option>
+                    {tournaments.map(function(t) { return <option key={t.id} value={t.name}>{t.name}</option>; })}
+                  </Sel>
                 </div>
-              )}
-              {tournaments.length > 0 && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {tournaments.map(function(t) {
-                    var fillPct = t.size > 0 ? Math.round((t.registered / t.size) * 100) : 0;
-                    var statusColor = t.status === "live" ? "#6EE7B7" : t.status === "complete" ? "#E8A838" : t.status === "pending_approval" ? "#FB923C" : "#4ECDC4";
-                    var statusLabel = t.status === "live" ? "Live" : t.status === "complete" ? "Completed" : t.status === "pending_approval" ? "Pending" : "Upcoming";
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Message</label>
+                  <textarea
+                    className="w-full bg-surface-container-lowest border-b border-outline-variant/20 px-0 py-3 text-on-background text-sm resize-y min-h-24 outline-none font-mono"
+                    value={announceMsg}
+                    onChange={function(e) { setAnnounceMsg(e.target.value); }}
+                    placeholder="e.g. Check-in is now open! Join the Discord for lobby codes..."
+                  />
+                </div>
+                <button
+                  className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+                  onClick={sendAnnouncement}
+                >
+                  <Icon name="campaign" size={18} />
+                  Send Announcement
+                </button>
+              </div>
+              <div>
+                <h3 className="font-editorial text-lg text-on-background mb-4">Sent</h3>
+                {announcements.length === 0 && (
+                  <p className="text-slate-500 text-sm">No announcements sent yet.</p>
+                )}
+                <div className="space-y-3">
+                  {announcements.map(function(a) {
                     return (
-                      <div key={t.id} style={{ background: "rgba(255,255,255,.02)", border: "1px solid rgba(242,237,228,.06)", borderRadius: 10, padding: "14px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
-                          <span style={{ fontWeight: 700, fontSize: 14, color: "#F2EDE4", flex: 1 }}>{t.name}</span>
-                          <Tag color={statusColor} size="sm">{statusLabel}</Tag>
-                          <span style={{ fontSize: 11, color: "#9AAABF" }}>{t.date}</span>
+                      <div key={a.id} className="bg-surface-container-low p-3 rounded-lg space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded-sm font-condensed uppercase">To: {a.to}</span>
+                          <span className="text-xs text-slate-500">{a.sentAt}</span>
                         </div>
-                        <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                          <div style={{ flex: 1, minWidth: 100 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                              <span style={{ fontSize: 10, color: "#BECBD9" }}>Fill rate</span>
-                              <span style={{ fontSize: 10, fontWeight: 700, color: "#E8A838" }}>{t.registered + "/" + t.size + " (" + fillPct + "%)"}</span>
-                            </div>
-                            <Bar val={t.registered} max={t.size} color="#E8A838" h={4} />
-                          </div>
-                          {t.status === "complete" && t.champion && (
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(232,168,56,.06)", border: "1px solid rgba(232,168,56,.15)", borderRadius: 8, padding: "4px 10px" }}>
-                              <i className="ti ti-trophy" style={{ color: "#E8A838", fontSize: 13 }} />
-                              <span style={{ fontSize: 12, fontWeight: 700, color: "#E8A838" }}>{t.champion}</span>
-                            </div>
-                          )}
-                        </div>
+                        <p className="text-sm text-slate-400">{a.msg}</p>
                       </div>
                     );
                   })}
                 </div>
-              )}
-            </Panel>
-            <Panel style={{ padding: "18px" }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "#F2EDE4", marginBottom: 12 }}>{tiIcon("trending-up")} Performance Summary</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 8, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 10, color: "#9AAABF", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 4 }}>Avg Fill Rate</div>
-                  <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: "#6EE7B7" }}>
-                    {tournaments.length === 0 ? "--" : Math.round(tournaments.reduce(function(s, t) { return s + (t.size > 0 ? (t.registered / t.size) : 0); }, 0) / tournaments.length * 100) + "%"}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Branding tab */}
+        {tab === "branding" && (
+          <div className="space-y-6">
+            <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Host Branding</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8 p-8 rounded-lg border border-outline-variant/5" style={{ background: "rgba(52,52,60,0.6)", backdropFilter: "blur(24px)" }}>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Org / Display Name</label>
+                  <input
+                    className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
+                    value={brandName}
+                    onChange={function(e) { setBrandName(e.target.value); }}
+                    placeholder="Your org or community name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Brand Color</label>
+                  <div className="flex gap-2 flex-wrap mb-2">
+                    {ACCENT_COLORS.map(function(c) {
+                      return (
+                        <div key={c} onClick={function() { setBrandColor(c); }}
+                          className="w-7 h-7 rounded-full cursor-pointer transition-all hover:scale-110"
+                          style={{ background: c, border: brandColor === c ? "3px solid #fff" : "3px solid transparent" }} />
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input type="color" value={brandColor} onChange={function(e) { setBrandColor(e.target.value); }} className="w-9 h-8 rounded border border-outline-variant/20 bg-transparent cursor-pointer p-0.5" />
+                    <input
+                      className="bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-2 font-mono text-sm"
+                      value={brandColor}
+                      onChange={function(e) { setBrandColor(e.target.value); }}
+                      placeholder="#ffc66b"
+                      style={{ maxWidth: 120 }}
+                    />
                   </div>
                 </div>
-                <div style={{ background: "rgba(255,255,255,.02)", borderRadius: 8, padding: "12px 14px" }}>
-                  <div style={{ fontSize: 10, color: "#9AAABF", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em", marginBottom: 4 }}>Completed Events</div>
-                  <div className="mono" style={{ fontSize: 22, fontWeight: 700, color: "#4ECDC4" }}>{completedTournaments.length}</div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Bio / Description</label>
+                  <textarea
+                    className="w-full bg-surface-container-lowest border-b border-outline-variant/20 px-0 py-3 text-on-background text-sm resize-y min-h-20 outline-none font-mono"
+                    value={brandBio}
+                    onChange={function(e) { setBrandBio(e.target.value); }}
+                    placeholder="Tell players about your org, community, and what kind of clashes you run..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Logo Image</label>
+                  <div className="flex gap-3 items-center">
+                    <input
+                      className="flex-1 bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono text-sm"
+                      value={brandLogoUrl}
+                      onChange={function(e) { setBrandLogoUrl(e.target.value); }}
+                      placeholder="https://example.com/logo.png"
+                    />
+                    <label className="bg-secondary/10 border border-secondary/30 rounded-full px-4 py-2 text-xs font-bold text-secondary cursor-pointer whitespace-nowrap hover:bg-secondary/20 transition-colors font-condensed uppercase tracking-wider">
+                      {uploadingLogo ? "Uploading..." : "Upload"}
+                      <input type="file" accept="image/*" className="hidden" onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "logo"); }} />
+                    </label>
+                  </div>
+                  {brandLogoUrl && <img src={brandLogoUrl} alt="Logo preview" className="w-12 h-12 rounded object-cover border border-outline-variant/20 mt-1" />}
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Banner Image</label>
+                  <div className="flex gap-3 items-center">
+                    <input
+                      className="flex-1 bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono text-sm"
+                      value={brandBannerUrl}
+                      onChange={function(e) { setBrandBannerUrl(e.target.value); }}
+                      placeholder="https://example.com/banner.png"
+                    />
+                    <label className="bg-secondary/10 border border-secondary/30 rounded-full px-4 py-2 text-xs font-bold text-secondary cursor-pointer whitespace-nowrap hover:bg-secondary/20 transition-colors font-condensed uppercase tracking-wider">
+                      {uploadingBanner ? "Uploading..." : "Upload"}
+                      <input type="file" accept="image/*" className="hidden" onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "banner"); }} />
+                    </label>
+                  </div>
+                  {brandBannerUrl && <img src={brandBannerUrl} alt="Banner preview" className="w-full max-h-28 rounded object-cover border border-outline-variant/20 mt-1" />}
+                </div>
+                <button
+                  className="bg-primary text-on-primary px-10 py-4 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+                  onClick={saveBranding}
+                >
+                  {brandSaved ? "Saved!" : "Save Branding"}
+                </button>
+              </div>
+
+              {/* Branding Preview */}
+              <div className="space-y-6">
+                <h3 className="font-editorial text-lg text-on-background">Preview</h3>
+                <div className="p-5 bg-surface-container-low rounded-lg" style={{ borderLeft: "4px solid " + brandColor }}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: brandColor + "22", border: "1px solid " + brandColor + "44" }}>
+                      {brandLogoUrl
+                        ? <img src={brandLogoUrl} alt="Logo" className="w-8 h-8 object-contain rounded" />
+                        : <Icon name="military_tech" size={20} style={{ color: brandColor }} />
+                      }
+                    </div>
+                    <div>
+                      <div className="font-bold text-on-surface text-sm">{brandName || "Your Org"}</div>
+                      <div className="text-xs font-condensed" style={{ color: brandColor }}>Host Partner</div>
+                    </div>
+                  </div>
+                  {brandBio && <p className="text-xs text-slate-400 leading-relaxed">{brandBio}</p>}
+                </div>
+                {/* Host status panel */}
+                <div className="p-6 bg-surface-container-high rounded-lg space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-condensed uppercase text-slate-400">Host Status</span>
+                    <span className="flex items-center gap-1.5 text-xs font-mono text-tertiary">
+                      <span className="w-2 h-2 rounded-full bg-tertiary"></span> Online
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-condensed uppercase text-slate-400">Tournaments Hosted</span>
+                    <span className="text-xs font-mono text-slate-200">{totalHosted}</span>
+                  </div>
                 </div>
               </div>
-            </Panel>
+            </div>
           </div>
         )}
 
         {/* Game Flow tab */}
         {tab === "game-flow" && (
-          <div>
+          <div className="space-y-5">
+            <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Game Flow</h2>
             {tournaments.filter(function(t) { return t.status === "live" || t.status === "closed"; }).length === 0 && (
-              <Panel style={{ padding: "40px 24px", textAlign: "center" }}>
-                <div style={{ fontSize: 36, marginBottom: 12 }}>&#9876;&#65039;</div>
-                <h3 style={{ color: "#F2EDE4", marginBottom: 8 }}>No Live Tournaments</h3>
-                <p style={{ color: "#BECBD9", fontSize: 13 }}>Open check-in on a tournament to start the game flow. You can then enter placements round by round.</p>
-              </Panel>
+              <div className="bg-surface-container-low p-12 rounded-lg text-center">
+                <Icon name="sports_esports" size={40} className="text-slate-500 mx-auto mb-3" />
+                <h3 className="font-editorial text-lg text-on-surface mb-2">No Live Tournaments</h3>
+                <p className="text-slate-500 text-sm">Open check-in on a tournament to start the game flow.</p>
+              </div>
             )}
             {tournaments.filter(function(t) { return t.status === "live" || t.status === "closed"; }).map(function(t) {
               var matchingEvent = (featuredEvents || []).find(function(ev) { return ev.hostTournamentId === t.id; });
@@ -774,23 +1011,23 @@ export default function HostDashboardScreen() {
               var roundCount = t.roundCount || 3;
               var currentRound = t.currentRound || 1;
               return (
-                <Panel key={t.id} style={{ padding: "20px", marginBottom: 16, border: "1px solid rgba(82,196,124,.2)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 700, color: "#F2EDE4", margin: 0, flex: 1 }}>{t.name}</h3>
-                    <Tag color="#6EE7B7" size="sm">Round {currentRound}/{roundCount}</Tag>
-                    <Tag color="#E8A838" size="sm">{regIds.length} players</Tag>
+                <div key={t.id} className="bg-surface-container-low p-6 rounded-lg border border-tertiary/20">
+                  <div className="flex items-center gap-3 mb-5">
+                    <h3 className="font-editorial text-lg text-on-surface flex-1">{t.name}</h3>
+                    <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">Round {currentRound}/{roundCount}</span>
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">{regIds.length} players</span>
                   </div>
                   {regIds.length === 0 && (
-                    <div style={{ fontSize: 13, color: "#BECBD9", padding: "16px 0", textAlign: "center" }}>No players registered yet. Players need to register before you can enter results.</div>
+                    <p className="text-slate-500 text-sm text-center py-6">No players registered yet.</p>
                   )}
                   {regIds.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 10 }}>Enter placements for Round {currentRound}</div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 14 }}>
+                    <div className="space-y-4">
+                      <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
+                      <div className="space-y-2">
                         {regIds.map(function(username) {
                           return (
-                            <div key={username} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", background: "rgba(255,255,255,.02)", borderRadius: 8, border: "1px solid rgba(242,237,228,.04)" }}>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: "#F2EDE4", flex: 1 }}>{username}</span>
+                            <div key={username} className="flex items-center gap-3 p-3 bg-surface-container rounded-sm">
+                              <span className="text-sm font-mono text-on-surface flex-1">{username}</span>
                               <Sel value="" onChange={function(val) {
                                 if (!val) return;
                                 var placement = parseInt(val);
@@ -812,7 +1049,7 @@ export default function HostDashboardScreen() {
                                 } else {
                                   toast(username + " placed " + placement + (placement === 1 ? "st" : placement === 2 ? "nd" : placement === 3 ? "rd" : "th") + " (" + pts + "pts)", "success");
                                 }
-                              }} style={{ width: 90 }}>
+                              }} className="w-28">
                                 <option value="">Place</option>
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(function(p) {
                                   return <option key={p} value={p}>{p}{p === 1 ? "st" : p === 2 ? "nd" : p === 3 ? "rd" : "th"} ({({ 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 })[p]}pts)</option>;
@@ -822,199 +1059,130 @@ export default function HostDashboardScreen() {
                           );
                         })}
                       </div>
-                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                        <Btn v="primary" s="sm" onClick={function() {
-                          if (currentRound < roundCount) {
-                            updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
-                            toast("Advanced to Round " + (currentRound + 1), "success");
-                          } else {
-                            var champ = prompt("Enter champion name:");
-                            if (champ && champ.trim()) {
-                              updateTournamentAndFeatured(t.id, { status: "complete", champion: champ.trim(), top4: [champ.trim()] });
-                              toast("Tournament completed! Champion: " + champ.trim(), "success");
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-condensed font-bold uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all"
+                          onClick={function() {
+                            if (currentRound < roundCount) {
+                              updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
+                              toast("Advanced to Round " + (currentRound + 1), "success");
+                            } else {
+                              var champ = prompt("Enter champion name:");
+                              if (champ && champ.trim()) {
+                                updateTournamentAndFeatured(t.id, { status: "complete", champion: champ.trim(), top4: [champ.trim()] });
+                                toast("Tournament completed! Champion: " + champ.trim(), "success");
+                              }
                             }
-                          }
-                        }}>{currentRound < roundCount ? "Advance to Round " + (currentRound + 1) : "Finalize Tournament"}</Btn>
-                        <Btn v="ghost" s="sm" onClick={function() { setScreen("tournament-host-" + t.id); }}>View Public Page</Btn>
+                          }}
+                        >
+                          {currentRound < roundCount ? "Advance to Round " + (currentRound + 1) : "Finalize Tournament"}
+                        </button>
+                        <button
+                          className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-2.5 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant text-sm hover:bg-white/5 transition-all"
+                          onClick={function() { setScreen("tournament-host-" + t.id); }}
+                        >
+                          View Public Page
+                        </button>
                       </div>
                     </div>
                   )}
-                </Panel>
+                </div>
               );
             })}
           </div>
         )}
 
-        {/* Registrations / Players tab */}
+        {/* Registrations tab */}
         {tab === "registrations" && (
-          <div>
+          <div className="space-y-5">
+            <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Player Registrations</h2>
             {tournaments.filter(function(t) { return t.status !== "complete"; }).map(function(t) {
               var matchingEvent = (featuredEvents || []).find(function(ev) { return ev.hostTournamentId === t.id; });
               var regIds = matchingEvent ? (matchingEvent.registeredIds || []) : [];
               return (
-                <Panel key={t.id} style={{ padding: "18px", marginBottom: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                    <h3 style={{ fontSize: 14, color: "#F2EDE4", margin: 0, flex: 1 }}>{t.name}</h3>
-                    <Tag color={t.status === "live" ? "#6EE7B7" : "#4ECDC4"} size="sm">{regIds.length + "/" + t.size}</Tag>
+                <div key={t.id} className="bg-surface-container-low p-5 rounded-lg">
+                  <div className="flex items-center gap-3 mb-4">
+                    <h3 className="font-editorial text-base text-on-surface flex-1">{t.name}</h3>
+                    <span className={"px-2 py-0.5 font-condensed text-[10px] uppercase tracking-tighter rounded-sm " + (t.status === "live" ? "bg-tertiary-container/10 text-tertiary" : "bg-primary/10 text-primary")}>
+                      {regIds.length + "/" + t.size}
+                    </span>
                   </div>
                   {regIds.length === 0 && (
-                    <div style={{ fontSize: 13, color: "#BECBD9", padding: "16px 0", textAlign: "center" }}>No players registered yet.</div>
+                    <p className="text-slate-500 text-sm text-center py-6">No players registered yet.</p>
                   )}
-                  {regIds.map(function(username, i) {
-                    return (
-                      <div key={username} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 0", borderBottom: i < regIds.length - 1 ? "1px solid rgba(242,237,228,.05)" : "none" }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13, color: "#F2EDE4" }}>{username}</div>
-                        </div>
-                        <Tag color="#6EE7B7" size="sm">Registered</Tag>
-                        <button
-                          onClick={function() {
-                            if (confirm("Remove " + username + "?")) {
-                              if (setFeaturedEvents) {
-                                setFeaturedEvents(function(evts) {
-                                  return evts.map(function(ev) {
-                                    if (ev.hostTournamentId !== t.id) return ev;
-                                    return Object.assign({}, ev, {
-                                      registeredIds: (ev.registeredIds || []).filter(function(u) { return u !== username; }),
-                                      registered: Math.max(0, (ev.registered || 0) - 1)
+                  <div className="space-y-1">
+                    {regIds.map(function(username, i) {
+                      return (
+                        <div key={username} className="flex items-center gap-3 py-2.5 border-b border-outline-variant/5 last:border-0">
+                          <span className="text-xs font-mono text-slate-500 w-5">{i + 1}</span>
+                          <span className="flex-1 text-sm font-mono text-on-surface">{username}</span>
+                          <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">Registered</span>
+                          <button
+                            onClick={function() {
+                              if (confirm("Remove " + username + "?")) {
+                                if (setFeaturedEvents) {
+                                  setFeaturedEvents(function(evts) {
+                                    return evts.map(function(ev) {
+                                      if (ev.hostTournamentId !== t.id) return ev;
+                                      return Object.assign({}, ev, {
+                                        registeredIds: (ev.registeredIds || []).filter(function(u) { return u !== username; }),
+                                        registered: Math.max(0, (ev.registered || 0) - 1)
+                                      });
                                     });
                                   });
-                                });
+                                }
+                                toast(username + " removed", "info");
                               }
-                              toast(username + " removed", "info");
-                            }
-                          }}
-                          style={{ background: "rgba(220,38,38,.1)", border: "1px solid rgba(220,38,38,.3)", borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 700, color: "#F87171", cursor: "pointer", fontFamily: "inherit" }}
-                        >Remove</button>
-                      </div>
-                    );
-                  })}
-                </Panel>
+                            }}
+                            className="text-xs font-condensed uppercase text-error/70 hover:text-error transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
           </div>
         )}
 
-        {/* Announce tab */}
-        {tab === "announce" && (
-          <div>
-            <Panel style={{ padding: "20px", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 15, color: "#F2EDE4", marginBottom: 14 }}>Send Announcement</h3>
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Send to</div>
-                <Sel value={announceTo} onChange={setAnnounceTo}>
-                  <option value="all">All registered players</option>
-                  {tournaments.map(function(t) { return <option key={t.id} value={t.name}>{t.name}</option>; })}
-                </Sel>
-              </div>
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Message</div>
-                <textarea
-                  className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2 text-on-surface text-sm resize-y min-h-[90px] outline-none font-sans"
-                  value={announceMsg}
-                  onChange={function(e) { setAnnounceMsg(e.target.value); }}
-                  placeholder="e.g. Check-in is now open! Join the Discord for lobby codes..."
-                />
-              </div>
-              <Btn v="primary" onClick={sendAnnouncement}>{tiIcon("speakerphone")} Send Announcement</Btn>
-            </Panel>
-            <Panel style={{ padding: "18px" }}>
-              <h3 style={{ fontSize: 14, color: "#F2EDE4", marginBottom: 14 }}>Sent Announcements</h3>
-              {announcements.length === 0 && (
-                <div style={{ fontSize: 13, color: "#BECBD9", padding: "16px 0", textAlign: "center" }}>No announcements sent yet.</div>
-              )}
-              {announcements.map(function(a) {
-                return (
-                  <div key={a.id} style={{ borderBottom: "1px solid rgba(242,237,228,.05)", padding: "12px 0" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 11, background: "rgba(155,114,207,.1)", border: "1px solid rgba(155,114,207,.2)", borderRadius: 20, padding: "2px 8px", color: "#C4B5FD", fontWeight: 600 }}>To: {a.to}</span>
-                      <span style={{ fontSize: 10, color: "#9AAABF", marginLeft: "auto" }}>{a.sentAt}</span>
-                    </div>
-                    <div style={{ fontSize: 13, color: "#C8D4E0", lineHeight: 1.5 }}>{a.msg}</div>
-                  </div>
-                );
-              })}
-            </Panel>
+        {/* Secondary nav for sub-sections */}
+        {tab !== "overview" && (
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-outline-variant/10">
+            {[["announce", "Announce"], ["branding", "Branding"], ["game-flow", "Game Flow"], ["registrations", "Players"]].map(function(arr) {
+              return (
+                <button
+                  key={arr[0]}
+                  onClick={function() { setTab(arr[0]); }}
+                  className={"px-5 py-2 rounded-full font-condensed font-bold uppercase tracking-widest text-xs transition-all " + (tab === arr[0] ? "bg-primary text-on-primary" : "bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5")}
+                >
+                  {arr[1]}
+                </button>
+              );
+            })}
+            <button
+              onClick={function() { setTab("overview"); navigate("/host/dashboard"); }}
+              className="px-5 py-2 rounded-full font-condensed font-bold uppercase tracking-widest text-xs bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5 transition-all"
+            >
+              Back to Overview
+            </button>
           </div>
         )}
 
-        {/* Branding tab */}
-        {tab === "branding" && (
-          <Panel style={{ padding: "24px" }}>
-            <h3 style={{ fontSize: 15, color: "#F2EDE4", marginBottom: 18 }}>{tiIcon("palette")} Host Branding</h3>
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-start", flexWrap: "wrap", marginBottom: 24 }}>
-              <div style={{ background: "linear-gradient(145deg,#0D1520,#0f1827)", border: "1px solid " + brandColor + "55", borderRadius: 14, padding: "16px 20px", minWidth: 220, flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: brandColor + "22", border: "1px solid " + brandColor + "44", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>
-                    {tiIcon(brandLogo)}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: "#F2EDE4" }}>{brandName}</div>
-                    <div style={{ fontSize: 11, color: brandColor, fontWeight: 600 }}>Host Partner</div>
-                  </div>
-                </div>
-                {brandBio && <div style={{ fontSize: 12, color: "#C8D4E0", lineHeight: 1.5 }}>{brandBio}</div>}
-              </div>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Org / Display Name</div>
-                <Inp value={brandName} onChange={setBrandName} placeholder="Your org or community name" />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Logo Icon</div>
-                <Inp value={brandLogo} onChange={setBrandLogo} placeholder="e.g. icon names: controller, trophy" />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 8 }}>Brand Color</div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-                  {ACCENT_COLORS.map(function(c) {
-                    return (
-                      <div key={c} onClick={function() { setBrandColor(c); }}
-                        style={{ width: 28, height: 28, borderRadius: "50%", background: c, cursor: "pointer", border: brandColor === c ? "3px solid #fff" : "3px solid transparent", transition: "border .15s" }} />
-                    );
-                  })}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <input type="color" value={brandColor} onChange={function(e) { setBrandColor(e.target.value); }} style={{ width: 36, height: 32, borderRadius: 6, border: "1px solid rgba(242,237,228,.12)", background: "transparent", cursor: "pointer", padding: 2 }} />
-                  <Inp value={brandColor} onChange={setBrandColor} placeholder="#9B72CF" style={{ maxWidth: 120, fontFamily: "monospace" }} />
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Bio / Description <span style={{ color: "#9AAABF", fontWeight: 400 }}>(shown on Featured page)</span></div>
-                <textarea
-                  className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2 text-on-surface text-sm resize-y min-h-[80px] outline-none font-sans"
-                  value={brandBio}
-                  onChange={function(e) { setBrandBio(e.target.value); }}
-                  placeholder="Tell players about your org, community, and what kind of clashes you run..."
-                />
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Logo Image <span style={{ color: "#9AAABF", fontWeight: 400 }}>(URL or upload)</span></div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <Inp value={brandLogoUrl} onChange={setBrandLogoUrl} placeholder="https://example.com/logo.png" />
-                  <label style={{ background: "rgba(155,114,207,.12)", border: "1px solid rgba(155,114,207,.3)", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, color: "#C4B5FD", cursor: "pointer", whiteSpace: "nowrap" }}>
-                    {uploadingLogo ? "Uploading..." : "Upload"}
-                    <input type="file" accept="image/*" style={{ display: "none" }} onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "logo"); }} />
-                  </label>
-                </div>
-                {brandLogoUrl && <img src={brandLogoUrl} alt="Logo preview" style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover", marginTop: 8, border: "1px solid rgba(242,237,228,.1)" }} />}
-              </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "#C8D4E0", marginBottom: 6 }}>Banner Image <span style={{ color: "#9AAABF", fontWeight: 400 }}>(URL or upload)</span></div>
-                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <Inp value={brandBannerUrl} onChange={setBrandBannerUrl} placeholder="https://example.com/banner.png" />
-                  <label style={{ background: "rgba(155,114,207,.12)", border: "1px solid rgba(155,114,207,.3)", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, color: "#C4B5FD", cursor: "pointer", whiteSpace: "nowrap" }}>
-                    {uploadingBanner ? "Uploading..." : "Upload"}
-                    <input type="file" accept="image/*" style={{ display: "none" }} onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "banner"); }} />
-                  </label>
-                </div>
-                {brandBannerUrl && <img src={brandBannerUrl} alt="Banner preview" style={{ width: "100%", maxHeight: 120, borderRadius: 10, objectFit: "cover", marginTop: 8, border: "1px solid rgba(242,237,228,.1)" }} />}
-              </div>
-              <Btn v="primary" onClick={saveBranding}>{brandSaved ? "Saved!" : "Save Branding"}</Btn>
-            </div>
-          </Panel>
-        )}
+        {/* Footer */}
+        <footer className="pt-8 mt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[10px] font-condensed uppercase tracking-[0.3em] text-slate-500">
+            TFT Clash Engine | Host Dashboard | System Status: Optimal
+          </p>
+          <div className="flex gap-8">
+            <button onClick={function() { setTab("announce"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Announce</button>
+            <button onClick={function() { setTab("branding"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Branding</button>
+            <button onClick={function() { setTab("game-flow"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Game Flow</button>
+            <button onClick={function() { navigate("/bracket"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">View Bracket</button>
+          </div>
+        </footer>
 
       </div>
     </PageLayout>

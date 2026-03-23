@@ -1,21 +1,34 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { DAILY_CHALLENGES, WEEKLY_CHALLENGES, estimateXp, getXpProgress } from '../lib/stats.js'
-import { Panel, Icon } from '../components/ui'
+import PageLayout from '../components/layout/PageLayout'
 
-var ICON_REMAP = {
-  'fire':'flame','trophy-fill':'trophy','shield-fill':'shield-filled','award-fill':'award',
-  'bar-chart-line-fill':'chart-bar','lightning-charge-fill':'bolt','bullseye':'target',
-  'star-fill':'star-filled','graph-up-arrow':'trending-up','rocket-takeoff-fill':'rocket',
-  'moon-fill':'moon','coin':'coin','gem':'diamond','patch-check-fill':'rosette',
-  'calendar-check-fill':'calendar-check','shield-check':'shield-check','eye-fill':'eye',
-  'sun-fill':'sun','controller':'device-gamepad-2','rosette-discount-check':'rosette-discount-check',
-  'check-circle-fill':'circle-check-filled','arrow-up-circle-fill':'circle-arrow-up-filled',
+var MATERIAL_ICON_MAP = {
+  'fire': 'local_fire_department',
+  'bullseye': 'my_location',
+  'lightning-charge-fill': 'bolt',
+  'shield-fill': 'shield',
+  'bar-chart-line-fill': 'bar_chart',
+  'trophy-fill': 'emoji_events',
+  'award-fill': 'military_tech',
+  'star-fill': 'star',
+  'rocket-takeoff-fill': 'rocket_launch',
+  'moon-fill': 'dark_mode',
+  'coin': 'monetization_on',
+  'gem': 'diamond',
+  'patch-check-fill': 'verified',
+  'calendar-check-fill': 'event_available',
+  'shield-check': 'verified_user',
+  'eye-fill': 'visibility',
+  'sun-fill': 'wb_sunny',
+  'controller': 'sports_esports',
+  'check-circle-fill': 'check_circle',
+  'arrow-up-circle-fill': 'arrow_circle_up',
+  'rosette-discount-check': 'workspace_premium',
 };
 
-function mapIcon(name) {
-  return ICON_REMAP[name] || name;
+function mapMaterialIcon(name) {
+  return MATERIAL_ICON_MAP[name] || 'task_alt';
 }
 
 function getDailyReset() {
@@ -38,32 +51,32 @@ function getWeeklyReset() {
   return d + 'd ' + h + 'h';
 }
 
-function ProgressBar({ val, max, color, h }) {
-  var pct = Math.min(100, (val / Math.max(max || 1, 1)) * 100);
-  return (
-    <div style={{ height: h || 4, background: '#1C2030', borderRadius: 99, overflow: 'hidden', flex: 1 }}>
-      <div style={{ height: '100%', width: pct + '%', background: color || 'linear-gradient(90deg,#E8A838,#D4922A)', borderRadius: 99, transition: 'width .7s ease' }} />
-    </div>
-  );
-}
+var HEATMAP_CELLS = [
+  'bg-primary/10','bg-primary/40','bg-primary/20','bg-surface-container-lowest','bg-primary/60','bg-primary/80','bg-primary/20',
+  'bg-primary/40','bg-surface-container-lowest','bg-primary/20','bg-primary/20','bg-primary/40','bg-primary/20','bg-primary/90',
+  'bg-surface-container-lowest','bg-primary/10','bg-primary/30','bg-primary/60','bg-primary/20','bg-primary/40','bg-primary/20',
+  'bg-primary/10','bg-primary/40','bg-primary/20','bg-surface-container-lowest','bg-primary/10','bg-primary/10','bg-primary/10',
+];
+
+var HEATMAP_GLOW = {5: true, 13: true};
 
 var XP_LOG = [
-  { icon: 'trophy-fill', action: 'Won Clash #13', xp: '+40 XP', time: 'Mar 1 2026', c: '#E8A838' },
-  { icon: 'bullseye', action: 'Weekly challenge: On A Roll', xp: '+120 XP', time: 'Mar 1 2026', c: '#9B72CF' },
-  { icon: 'award-fill', action: '1st place - Top 2 finish', xp: '+50 XP', time: 'Feb 28 2026', c: '#E8A838' },
-  { icon: 'shield-fill', action: 'Survived top 4', xp: '+15 XP', time: 'Feb 28 2026', c: '#4ECDC4' },
-  { icon: 'arrow-up-circle-fill', action: 'Ranked up: Silver to Gold', xp: 'RANK UP', time: 'Feb 22 2026', c: '#EAB308' },
-  { icon: 'controller', action: 'Completed a game', xp: '+25 XP', time: 'Feb 22 2026', c: '#BECBD9' },
+  { icon: 'trophy-fill', action: 'Won Clash #13', xp: '+40 XP', time: 'Mar 1 2026', c: 'text-primary' },
+  { icon: 'bullseye', action: 'Weekly challenge: On A Roll', xp: '+120 XP', time: 'Mar 1 2026', c: 'text-secondary' },
+  { icon: 'award-fill', action: '1st place - Top 2 finish', xp: '+50 XP', time: 'Feb 28 2026', c: 'text-primary' },
+  { icon: 'shield-fill', action: 'Survived top 4', xp: '+15 XP', time: 'Feb 28 2026', c: 'text-tertiary' },
+  { icon: 'arrow-up-circle-fill', action: 'Ranked up: Silver to Gold', xp: 'RANK UP', time: 'Feb 22 2026', c: 'text-primary' },
+  { icon: 'controller', action: 'Completed a game', xp: '+25 XP', time: 'Feb 22 2026', c: 'text-on-surface/60' },
 ];
 
 export default function ChallengesScreen() {
-  var navigate = useNavigate();
   var ctx = useApp();
   var currentUser = ctx.currentUser;
   var players = ctx.players || [];
   var challengeCompletions = ctx.challengeCompletions || {};
 
-  var [tab, setTab] = useState('active');
+  var [questTab, setQuestTab] = useState('daily');
+  var [mainTab, setMainTab] = useState('active');
 
   var dailyReset = getDailyReset();
   var weeklyReset = getWeeklyReset();
@@ -95,187 +108,298 @@ export default function ChallengesScreen() {
     return Object.assign({}, c, { progress: prog });
   });
 
-  var xp = linked ? estimateXp(linked) : 0;
+  var xp = linked ? estimateXp(linked) : 12450;
   var rankInfo = getXpProgress(xp);
+  var xpNeeded = rankInfo.needed || 15000;
+  var xpPct = rankInfo.needed > 0 ? Math.min(100, Math.round((rankInfo.current / rankInfo.needed) * 100)) : 100;
 
   var completedChallenges = dailyChallenges.concat(weeklyChallenges).filter(function(c) { return c.progress >= c.goal; });
 
+  var activeQuests = questTab === 'daily' ? dailyChallenges : weeklyChallenges;
+  var resetLabel = questTab === 'daily' ? ('Resets in ' + dailyReset) : ('Resets in ' + weeklyReset);
+
   return (
-    <div className="page wrap">
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-        <button
-          onClick={function() { navigate(-1); }}
-          style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid rgba(242,237,228,.12)', background: 'rgba(255,255,255,.04)', color: '#C8D4E0', fontSize: 13, cursor: 'pointer' }}
-        >
-          Back
-        </button>
-      </div>
+    <PageLayout>
+      <div className="p-8 min-h-screen bg-surface">
 
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ color: '#F2EDE4', fontSize: 20, marginBottom: 4 }}>Challenges</h2>
-        <p style={{ fontSize: 13, color: '#BECBD9' }}>Complete challenges to earn XP and climb the platform ranks.</p>
-      </div>
-
-      {/* XP / Rank overview */}
-      <Panel style={{ padding: '20px', marginBottom: 20, background: 'linear-gradient(135deg,rgba(232,168,56,.06),rgba(8,8,15,.98))' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 36 }}>
-            <i className={'ti ti-' + mapIcon(rankInfo.rank.icon)} style={{ color: rankInfo.rank.color }} />
-          </div>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: rankInfo.rank.color }}>{rankInfo.rank.name}</span>
+        {/* Hero XP Section */}
+        <header className="mb-12">
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <span className="font-condensed text-primary uppercase tracking-[0.2em] text-xs font-bold">Season IX Battlepass</span>
+              <h1 className="font-serif text-5xl mt-2 italic">Challenges &amp; Progression</h1>
+            </div>
+            <div className="text-right">
               {rankInfo.next && (
-                <span style={{ fontSize: 12, color: '#BECBD9' }}>
-                  to <i className={'ti ti-' + mapIcon(rankInfo.next.icon)} style={{ fontSize: 12, color: rankInfo.next.color }} /> {rankInfo.next.name}
-                </span>
+                <span className="font-mono text-tertiary text-sm">{'NEXT RANK: ' + rankInfo.next.name.toUpperCase()}</span>
               )}
             </div>
-            <ProgressBar val={rankInfo.current} max={rankInfo.needed || 1} color={rankInfo.rank.color} h={6} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-              <span className="mono" style={{ fontSize: 11, color: '#BECBD9' }}>{xp} total XP</span>
-              <span className="mono" style={{ fontSize: 11, color: rankInfo.rank.color }}>{rankInfo.pct}% to next rank</span>
-            </div>
           </div>
+          <div className="relative h-4 bg-surface-container-lowest rounded-full overflow-hidden">
+            <div
+              className="absolute inset-y-0 left-0 shadow-[0_0_15px_rgba(253,186,73,0.3)]"
+              style={{ width: xpPct + '%', background: 'linear-gradient(135deg, #FFC66B 0%, #E8A838 100%)' }}
+            />
+            <div
+              className="absolute inset-y-0 w-1 bg-white animate-pulse"
+              style={{ left: xpPct + '%' }}
+            />
+          </div>
+          <div className="flex justify-between mt-3 font-mono text-[10px] text-on-surface/40 uppercase tracking-widest">
+            <span>{'Rank ' + (rankInfo.rank.name || '') + ' (' + xp.toLocaleString() + ' XP)'}</span>
+            <span>{xpNeeded.toLocaleString() + ' XP REQUIRED'}</span>
+          </div>
+        </header>
+
+        {/* Main tab selector */}
+        <div className="flex gap-4 mb-8">
+          {['active', 'completed', 'xp-log'].map(function(t) {
+            var label = t === 'xp-log' ? 'XP Log' : (t.charAt(0).toUpperCase() + t.slice(1));
+            var isActive = mainTab === t;
+            return (
+              <button
+                key={t}
+                onClick={function() { setMainTab(t); }}
+                className={'font-condensed text-xs py-1 px-4 rounded-full border transition-colors ' + (isActive
+                  ? 'border-primary/30 text-primary bg-primary/5'
+                  : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
+              >
+                {label.toUpperCase()}
+              </button>
+            );
+          })}
         </div>
-      </Panel>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 18 }}>
-        {['active', 'completed', 'xp-log'].map(function(t) {
-          var label = t === 'xp-log' ? 'XP Log' : t.charAt(0).toUpperCase() + t.slice(1);
-          return (
-            <button key={t} onClick={function() { setTab(t); }}
-              style={{
-                padding: '7px 14px', borderRadius: 8, border: '1px solid',
-                borderColor: tab === t ? '#9B72CF' : 'rgba(242,237,228,.1)',
-                background: tab === t ? 'rgba(155,114,207,.15)' : 'rgba(255,255,255,.04)',
-                color: tab === t ? '#9B72CF' : '#C8D4E0',
-                fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: 'all .15s',
-              }}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+        {/* Active Tab */}
+        {mainTab === 'active' && (
+          <div className="grid grid-cols-12 gap-6">
 
-      {tab === 'active' && (
-        <div>
-          {/* Daily challenges */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div className="cond" style={{ fontSize: 11, fontWeight: 700, color: '#E8A838', letterSpacing: '.14em', textTransform: 'uppercase' }}>Daily Challenges</div>
-            <div style={{ fontSize: 11, color: '#BECBD9' }}>Resets in <span style={{ color: '#F87171', fontWeight: 700 }}>{dailyReset}</span></div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-            {dailyChallenges.map(function(c) {
-              return (
-                <div key={c.id} className="task-card">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'rgba(232,168,56,.08)', border: '1px solid rgba(232,168,56,.2)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                      <i className={'ti ti-' + mapIcon(c.icon)} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: '#F2EDE4', marginBottom: 2 }}>{c.name}</div>
-                      <div style={{ fontSize: 12, color: '#C8D4E0' }}>{c.desc}</div>
-                      <div style={{ marginTop: 8 }}>
-                        <ProgressBar val={c.progress} max={c.goal} color="#E8A838" h={4} />
-                        <div style={{ fontSize: 10, color: '#BECBD9', marginTop: 3 }}>{c.progress}/{c.goal} completed</div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 700, color: '#E8A838' }}>+{c.xp}</div>
-                      <div style={{ fontSize: 10, color: '#BECBD9', fontWeight: 700, textTransform: 'uppercase' }}>XP</div>
-                    </div>
-                  </div>
+            {/* Active Challenges Column */}
+            <div className="col-span-12 lg:col-span-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Active Quests</h2>
+                <div className="flex gap-4">
+                  <button
+                    onClick={function() { setQuestTab('daily'); }}
+                    className={'font-condensed text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'daily'
+                      ? 'border-primary/30 text-primary bg-primary/5'
+                      : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
+                  >
+                    DAILY
+                  </button>
+                  <button
+                    onClick={function() { setQuestTab('weekly'); }}
+                    className={'font-condensed text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'weekly'
+                      ? 'border-primary/30 text-primary bg-primary/5'
+                      : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
+                  >
+                    WEEKLY
+                  </button>
                 </div>
-              );
-            })}
-          </div>
+              </div>
 
-          {/* Weekly challenges */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div className="cond" style={{ fontSize: 11, fontWeight: 700, color: '#9B72CF', letterSpacing: '.14em', textTransform: 'uppercase' }}>Weekly Challenges</div>
-            <div style={{ fontSize: 11, color: '#BECBD9' }}>Resets in <span style={{ color: '#9B72CF', fontWeight: 700 }}>{weeklyReset}</span></div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {weeklyChallenges.map(function(c) {
-              var done = c.progress >= c.goal;
-              var iconName = done ? 'circle-check-filled' : mapIcon(c.icon);
-              return (
-                <div key={c.id} className="weekly-card"
-                  style={{
-                    background: done ? 'rgba(82,196,124,.05)' : undefined,
-                    border: done ? '1px solid rgba(82,196,124,.3)' : undefined,
-                  }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{ width: 44, height: 44, background: 'rgba(155,114,207,.08)', border: '1px solid rgba(155,114,207,.25)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
-                      <i className={'ti ti-' + iconName} style={{ color: done ? '#52C47C' : undefined }} />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 14, color: done ? '#6EE7B7' : '#F2EDE4', marginBottom: 2 }}>{c.name}</div>
-                      <div style={{ fontSize: 12, color: '#C8D4E0' }}>{c.desc}</div>
-                      <div style={{ marginTop: 8 }}>
-                        <ProgressBar val={c.progress} max={c.goal} color={done ? '#6EE7B7' : '#9B72CF'} h={4} />
-                        <div style={{ fontSize: 10, color: '#BECBD9', marginTop: 3 }}>{c.progress}/{c.goal} {done ? '- Completed!' : ''}</div>
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                      <div className="mono" style={{ fontSize: 16, fontWeight: 700, color: done ? '#6EE7B7' : '#9B72CF' }}>+{c.xp}</div>
-                      <div style={{ fontSize: 10, color: '#BECBD9', fontWeight: 700, textTransform: 'uppercase' }}>XP</div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+              <div className="font-mono text-[10px] text-on-surface/30 uppercase tracking-widest -mt-2">
+                {resetLabel}
+              </div>
 
-      {tab === 'completed' && (
-        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#BECBD9' }}>
-          <i className="ti ti-rosette-discount-check" style={{ fontSize: 36, display: 'block', marginBottom: 12 }} />
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#F2EDE4', marginBottom: 6 }}>
-            {completedChallenges.length} challenge{completedChallenges.length !== 1 ? 's' : ''} completed
-          </div>
-          {completedChallenges.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 16, textAlign: 'left', maxWidth: 360, margin: '16px auto 0' }}>
-              {completedChallenges.map(function(c) {
+              {activeQuests.map(function(c, idx) {
+                var done = c.progress >= c.goal;
+                var pct = Math.min(100, Math.round((c.progress / Math.max(c.goal, 1)) * 100));
+                var isWeekly = c.type === 'weekly';
+                var accentColor = done ? 'text-tertiary' : (isWeekly ? 'text-secondary' : 'text-primary');
+                var borderAccent = done ? 'border-l-4 border-tertiary/50' : (isWeekly && idx === 1 ? 'border-l-4 border-secondary/50' : '');
+                var progressBg = done ? 'bg-tertiary' : (isWeekly ? 'bg-secondary-container' : '');
+                var progressStyle = done ? {} : (isWeekly ? {} : { background: 'linear-gradient(135deg, #FFC66B 0%, #E8A838 100%)' });
+                var iconName = mapMaterialIcon(c.icon);
+
                 return (
-                  <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'rgba(82,196,124,.06)', border: '1px solid rgba(82,196,124,.2)', borderRadius: 8 }}>
-                    <i className={'ti ti-' + mapIcon(c.icon)} style={{ fontSize: 16 }} />
-                    <span style={{ flex: 1, fontSize: 13, color: '#6EE7B7', fontWeight: 600 }}>{c.name}</span>
-                    <span className="mono" style={{ fontSize: 12, color: '#52C47C' }}>+{c.xp} XP</span>
+                  <div
+                    key={c.id}
+                    className={'bg-surface-container-low p-6 flex items-center gap-6 group hover:bg-surface-container transition-colors ' + borderAccent}
+                  >
+                    <div className="w-16 h-16 bg-surface-container-high flex items-center justify-center border border-outline-variant/20 flex-shrink-0">
+                      <span
+                        className={'material-symbols-outlined text-3xl ' + accentColor}
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        {iconName}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-serif text-xl">{c.name}</h3>
+                          <p className={'text-xs text-on-surface/60 font-body ' + (done ? 'line-through' : '')}>{c.desc}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-4">
+                          <span className={'font-mono text-sm ' + accentColor}>{'+' + c.xp + ' XP'}</span>
+                          {done && (
+                            <div className="text-[10px] font-mono text-tertiary uppercase tracking-widest mt-0.5">DONE</div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="relative h-1.5 bg-surface-container-lowest mt-4">
+                        <div
+                          className={'absolute inset-y-0 left-0 ' + progressBg}
+                          style={Object.assign({ width: pct + '%' }, progressStyle)}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-2 font-mono text-[10px] text-on-surface/30">
+                        <span>PROGRESS</span>
+                        <span>{c.progress + ' / ' + c.goal + ' COMPLETED'}</span>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
             </div>
-          )}
-          {completedChallenges.length === 0 && (
-            <div style={{ fontSize: 13 }}>Keep playing to unlock more</div>
-          )}
-        </div>
-      )}
 
-      {tab === 'xp-log' && (
-        <Panel style={{ padding: '18px' }}>
-          <h3 style={{ fontSize: 15, color: '#F2EDE4', marginBottom: 14 }}>XP History</h3>
-          {XP_LOG.map(function(e, i) {
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: i < XP_LOG.length - 1 ? '1px solid rgba(242,237,228,.05)' : 'none' }}>
-                <div style={{ width: 32, height: 32, background: 'rgba(255,255,255,.04)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <i className={'ti ti-' + mapIcon(e.icon)} style={{ fontSize: 15, color: e.c }} />
+            {/* Heatmap and Stats Column */}
+            <div className="col-span-12 lg:col-span-4 space-y-6">
+
+              {/* Activity Heatmap */}
+              <div className="bg-surface-container p-6 border-t-2 border-primary/20">
+                <h2 className="font-condensed text-xs uppercase tracking-[0.2em] text-on-surface/40 mb-6">Activity Frequency</h2>
+                <div className="grid grid-cols-7 gap-1">
+                  {HEATMAP_CELLS.map(function(cls, i) {
+                    return (
+                      <div
+                        key={i}
+                        className={'aspect-square ' + cls + (HEATMAP_GLOW[i] ? ' shadow-[0_0_8px_rgba(255,198,107,0.4)]' : '')}
+                      />
+                    );
+                  })}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13, color: '#F2EDE4' }}>{e.action}</div>
-                  <div style={{ fontSize: 11, color: '#BECBD9' }}>{e.time}</div>
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-[10px] font-mono text-on-surface/30">LESS</span>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-surface-container-lowest" />
+                    <div className="w-2 h-2 bg-primary/20" />
+                    <div className="w-2 h-2 bg-primary/50" />
+                    <div className="w-2 h-2 bg-primary/90" />
+                  </div>
+                  <span className="text-[10px] font-mono text-on-surface/30">MORE</span>
                 </div>
-                <div className="mono" style={{ fontSize: 13, fontWeight: 700, color: e.c, flexShrink: 0 }}>{e.xp}</div>
               </div>
-            );
-          })}
-        </Panel>
-      )}
-    </div>
+
+              {/* Stats Card */}
+              <div className="bg-surface-container-high p-6 border border-outline-variant/10" style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <span className="font-condensed text-xs uppercase text-on-surface/50">COMPLETION RATE</span>
+                    <span className="font-mono text-primary">
+                      {completedChallenges.length > 0
+                        ? Math.round((completedChallenges.length / (dailyChallenges.length + weeklyChallenges.length)) * 100) + '%'
+                        : '0%'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-condensed text-xs uppercase text-on-surface/50">CURRENT STREAK</span>
+                    <span className="font-mono text-secondary">
+                      {linked && linked.currentStreak ? (linked.currentStreak + ' DAYS') : '0 DAYS'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-condensed text-xs uppercase text-on-surface/50">TOTAL EARNED XP</span>
+                    <span className="font-mono text-tertiary">
+                      {xp >= 1000 ? (xp / 1000).toFixed(1) + 'K' : xp}
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-8 pt-6 border-t border-outline-variant/10">
+                  <p className="font-serif italic text-on-surface/80 text-center text-sm leading-relaxed">
+                    "The master of the arena is not born, but forged in the heat of daily discipline."
+                  </p>
+                </div>
+              </div>
+
+              {/* Bonus Card */}
+              <div className="relative overflow-hidden group bg-surface-container-lowest">
+                <div className="w-full h-48 bg-gradient-to-br from-tertiary/20 via-surface-container to-surface-container-lowest flex items-center justify-center">
+                  <span className="material-symbols-outlined text-tertiary/30 text-8xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    psychology
+                  </span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <span className="bg-tertiary/20 text-tertiary px-2 py-0.5 text-[10px] font-mono uppercase border border-tertiary/30">BONUS ACTIVE</span>
+                  <h4 className="font-display text-lg mt-1 text-on-surface">DRAGON SOUL BUFF</h4>
+                  <p className="text-[10px] font-body text-on-surface/60 uppercase tracking-tighter">Earn +15% XP using Dragon Synergies today</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* Completed Tab */}
+        {mainTab === 'completed' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Completed Challenges</h2>
+              <span className="font-mono text-xs text-on-surface/40">{completedChallenges.length + ' TOTAL'}</span>
+            </div>
+
+            {completedChallenges.length === 0 ? (
+              <div className="bg-surface-container-low p-12 text-center">
+                <span className="material-symbols-outlined text-on-surface/20 text-6xl block mb-4">workspace_premium</span>
+                <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No completed challenges yet</p>
+                <p className="text-xs text-on-surface/30 mt-2 font-body">Keep playing to unlock rewards</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {completedChallenges.map(function(c) {
+                  return (
+                    <div key={c.id} className="bg-surface-container-low p-5 flex items-center gap-5 border-l-4 border-tertiary/50">
+                      <div className="w-12 h-12 bg-surface-container-high flex items-center justify-center border border-tertiary/20 flex-shrink-0">
+                        <span className="material-symbols-outlined text-tertiary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                          check_circle
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-serif text-lg text-tertiary">{c.name}</h3>
+                        <p className="text-xs text-on-surface/50 font-body mt-0.5">{c.desc}</p>
+                      </div>
+                      <span className="font-mono text-tertiary text-sm flex-shrink-0">{'+' + c.xp + ' XP'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* XP Log Tab */}
+        {mainTab === 'xp-log' && (
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
+            </div>
+            <div className="bg-surface-container-low">
+              {XP_LOG.map(function(e, i) {
+                return (
+                  <div
+                    key={i}
+                    className={'flex items-center gap-5 p-5 ' + (i < XP_LOG.length - 1 ? 'border-b border-outline-variant/10' : '')}
+                  >
+                    <div className="w-10 h-10 bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                      <span className={'material-symbols-outlined text-xl ' + e.c} style={{ fontVariationSettings: "'FILL' 1" }}>
+                        {mapMaterialIcon(e.icon)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-on-surface font-body">{e.action}</div>
+                      <div className="text-[10px] font-mono text-on-surface/40 uppercase tracking-wider mt-0.5">{e.time}</div>
+                    </div>
+                    <span className={'font-mono text-sm font-bold flex-shrink-0 ' + e.c}>{e.xp}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
+    </PageLayout>
   );
 }

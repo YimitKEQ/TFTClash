@@ -35,8 +35,7 @@ import TournamentsListScreenNew from './screens/TournamentsListScreen';
 import AdminScreenNew from './screens/AdminScreen';
 import HofScreenNew from './screens/HofScreen';
 import GearScreenNew from './screens/GearScreen';
-import FooterNew from './components/layout/Footer';
-import NavbarNew from './components/layout/Navbar';
+import PageLayout from './components/layout/PageLayout';
 import ClashScreenNew from './screens/ClashScreen';
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
@@ -596,11 +595,7 @@ function TFTClash(){
         playerCount:players.length
       })}
 
-      <div style={{position:"relative",zIndex:1,minHeight:"100vh",paddingBottom:72}}>
-
-        <NavbarNew/>
-
-
+      <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
 
         <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
@@ -614,7 +609,7 @@ function TFTClash(){
         {screen==="milestones" &&<MilestonesScreenNew/>}
         {screen==="challenges" &&<ChallengesScreenNew/>}
 
-        {screen==="clash"      &&<ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/>}
+        {screen==="clash"      &&<PageLayout><ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/></PageLayout>}
 
         {screen==="bracket"    &&<BracketScreenNew/>}
 
@@ -658,8 +653,6 @@ function TFTClash(){
         {screen==="admin"&&<AdminScreenNew/>}
 
         </ScreenBoundary>
-
-        <FooterNew/>
 
       </div>
 

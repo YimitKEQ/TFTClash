@@ -6,18 +6,20 @@ import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievemen
 import { applyCutLine, computeTournamentStandings } from '../lib/tournament.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
 import { Panel, Btn, Inp } from '../components/ui'
+import Icon from '../components/ui/Icon.jsx'
+import PageLayout from '../components/layout/PageLayout'
 
-// ── Sel component (inline copy from App.jsx) ──────────────────────────────────
-function Sel({value,onChange,children,style}){
+// ── Sel component (inline, local) ─────────────────────────────────────────────
+function Sel({value,onChange,children,className}){
   return(
-    <div style={{position:"relative",...(style&&style.width?{width:style.width}:{})}}>
-      <select value={value} onChange={function(e){onChange(e.target.value);}}
-        style={Object.assign({width:"100%",background:"#141E30",border:"1px solid rgba(242,237,228,.11)",
-          borderRadius:8,padding:"12px 36px 12px 14px",color:"#F2EDE4",fontSize:15,minHeight:46,
-          appearance:"none",cursor:"pointer"},style||{})}>
+    <div className="relative">
+      <select
+        value={value}
+        onChange={function(e){onChange(e.target.value);}}
+        className={"bg-surface-container-lowest border-none text-xs font-mono focus:ring-1 focus:ring-primary h-8 py-1 rounded appearance-none pr-6 pl-2 text-on-surface " + (className||"")}>
         {children}
       </select>
-      <div style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",pointerEvents:"none",color:"#BECBD9",fontSize:11}}>{"▼"}</div>
+      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/40 text-xs">{"v"}</div>
     </div>
   );
 }
@@ -39,34 +41,48 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
   var lockedCount=tournamentState&&tournamentState.lockedLobbies?tournamentState.lockedLobbies.length:0;
 
   return(
-    <Panel style={{padding:"20px",marginTop:24}}>
-      <div style={{fontWeight:700,fontSize:14,color:"#E8A838",marginBottom:4,display:"flex",alignItems:"center",gap:8}}>
-        <span style={{fontSize:16}}><i className="ti ti-chart-bar"/></span>
-        {"Live Standings - Game "+round+"/"+totalGames}
-        <span style={{fontSize:11,color:"#BECBD9",fontWeight:400,marginLeft:4}}>{"("+lockedCount+" of "+lobbies.length+" "+(lobbies.length===1?"lobby":"lobbies")+" locked)"}</span>
+    <div className="mt-6 bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+      <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+        <Icon name="bar_chart" size={18} className="text-primary" />
+        <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
+          {"Live Standings - Game " + round + "/" + totalGames}
+        </span>
+        <span className="text-xs text-on-surface-variant/50 font-mono ml-auto">
+          {"(" + lockedCount + "/" + lobbies.length + " locked)"}
+        </span>
       </div>
       {showCutLine&&(
-        <div style={{fontSize:11,color:"#E8A838",marginBottom:10,padding:"4px 10px",background:"rgba(232,168,56,.06)",borderRadius:4,border:"1px solid rgba(232,168,56,.12)"}}>{"Cut line: "+cutLine+" pts - players at or below are eliminated after Game "+cutAfterGame}</div>
+        <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-nav tracking-wider">
+          {"Cut line: " + cutLine + " pts - players at or below are eliminated after Game " + cutAfterGame}
+        </div>
       )}
-      <div style={{display:"flex",flexDirection:"column",gap:4}}>
+      <div className="divide-y divide-outline-variant/5">
         {liveRows.map(function(row,ri){
           var isLeader=ri===0&&row.earned>0;
           var belowCut=showCutLine&&row.earned<=cutLine;
           var nearCut=showCutLine&&!belowCut&&row.earned<=cutLine+3;
           return(
-            <div key={row.id} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",
-              background:belowCut?"rgba(248,113,113,.06)":isLeader?"rgba(232,168,56,.07)":ri%2===0?"rgba(255,255,255,.01)":"transparent",
-              borderRadius:6,border:belowCut?"1px solid rgba(248,113,113,.2)":isLeader?"1px solid rgba(232,168,56,.18)":"1px solid transparent",opacity:belowCut?0.6:1}}>
-              <span className="mono" style={{fontSize:12,fontWeight:700,color:belowCut?"#F87171":ri===0?"#E8A838":ri===1?"#C0C0C0":ri===2?"#CD7F32":"#9AAABF",minWidth:22,textAlign:"center"}}>{ri+1}</span>
-              <span style={{flex:1,fontSize:13,fontWeight:isLeader?700:500,color:belowCut?"#F87171":isLeader?"#E8A838":"#F2EDE4"}}>{row.name}</span>
-              {belowCut&&<span style={{fontSize:9,fontWeight:700,color:"#F87171",background:"rgba(248,113,113,.12)",border:"1px solid rgba(248,113,113,.25)",borderRadius:3,padding:"1px 6px",textTransform:"uppercase"}}>Cut</span>}
-              {nearCut&&<span style={{fontSize:10,fontWeight:700,color:"#E8A838",background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.2)",borderRadius:3,padding:"1px 6px"}}>Bubble</span>}
-              <span className="mono" style={{fontSize:13,fontWeight:700,color:belowCut?"#F87171":row.earned>0?"#6EE7B7":"#9AAABF"}}>{row.earned>0?"+"+row.earned:" - "}{"pts"}</span>
+            <div key={row.id} className={"flex items-center gap-3 px-5 py-2 " + (belowCut?"opacity-60 bg-error/5":isLeader?"bg-primary/5":"")}>
+              <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (belowCut?"text-error":ri===0?"text-primary":ri===1?"text-on-surface-variant":ri===2?"text-on-surface-variant/70":"text-on-surface-variant/40")}>
+                {ri+1}
+              </span>
+              <span className={"flex-1 text-sm " + (belowCut?"text-error":isLeader?"text-primary font-bold":"text-on-surface")}>
+                {row.name}
+              </span>
+              {belowCut&&(
+                <span className="text-[9px] font-bold font-nav tracking-widest text-error bg-error/10 border border-error/25 px-1.5 py-0.5 rounded-sm">CUT</span>
+              )}
+              {nearCut&&(
+                <span className="text-[10px] font-bold font-nav tracking-wider text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-sm">BUBBLE</span>
+              )}
+              <span className={"font-mono text-xs font-bold " + (belowCut?"text-error":row.earned>0?"text-tertiary":"text-on-surface-variant/40")}>
+                {row.earned>0?"+"+row.earned+" pts":"- pts"}
+              </span>
             </div>
           );
         })}
       </div>
-    </Panel>
+    </div>
   );
 }
 
@@ -533,291 +549,505 @@ function BracketScreen(){
   var myLobbyAuto=currentUser?lobbies.findIndex(function(lb){return lb.some(function(p){return p.name===currentUser.username;});}): -1;
   var effectiveHighlight=highlightLobby!==null?highlightLobby:myLobbyAuto>=0?myLobbyAuto:null;
 
+  var phaseLabel=tournamentState.phase==="inprogress"?"Live":tournamentState.phase==="complete"?"Complete":tournamentState.phase==="checkin"?"Check-in":"Setup";
+  var totalGames=tournamentState.totalGames||4;
+  var clashName=(tournamentState&&tournamentState.clashName)||"TFT Clash";
+  var lockedCount=lockedLobbies.length;
+
+  var lobbyLetters=["A","B","C","D","E","F","G","H","I","J"];
+
   return(
-    <div className="page wrap">
+    <PageLayout>
+      <div className="max-w-7xl mx-auto">
 
-      {showFinalizeConfirm&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1003,padding:16}}>
-          <Panel glow style={{width:"100%",maxWidth:420,padding:"28px"}}>
-            <div style={{textAlign:"center",marginBottom:20}}>
-              <div style={{fontSize:48,marginBottom:12}}><i className="ti ti-trophy"/></div>
-              <h3 style={{color:"#F2EDE4",fontSize:20,marginBottom:8}}>Finalize This Clash?</h3>
-              <p style={{color:"#BECBD9",fontSize:14,lineHeight:1.5,marginBottom:4}}>{"This will end the tournament and post final results. All "+checkedIn.length+" players will receive their season points."}</p>
-              <p style={{color:"#E8A838",fontSize:12,fontWeight:600}}>This action cannot be undone.</p>
+        {/* Finalize confirm modal */}
+        {showFinalizeConfirm&&(
+          <div className="fixed inset-0 bg-black/85 flex items-center justify-center z-[1003] p-4">
+            <div className="bg-surface-container-low border border-outline-variant/20 rounded-xl w-full max-w-md p-7">
+              <div className="text-center mb-5">
+                <div className="mb-3 flex justify-center">
+                  <Icon name="emoji_events" size={48} fill className="text-primary" />
+                </div>
+                <h3 className="text-on-surface text-xl font-bold mb-2">Finalize This Clash?</h3>
+                <p className="text-on-surface-variant text-sm leading-relaxed mb-2">
+                  {"This will end the tournament and post final results. All " + checkedIn.length + " players will receive their season points."}
+                </p>
+                <p className="text-primary text-xs font-bold">This action cannot be undone.</p>
+              </div>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={function(){setShowFinalizeConfirm(false);}}
+                  className="px-5 py-2.5 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                  Cancel
+                </button>
+                <button
+                  onClick={function(){
+                    setShowFinalizeConfirm(false);
+                    saveResultsToSupabase(players,currentClashId);
+                    setTournamentState(function(ts){return Object.assign({},ts,{phase:"complete",lockedLobbies:[],savedLobbies:[]});});
+                    toast("Clash complete! View results","success");
+                  }}
+                  className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                  Finalize Clash
+                </button>
+              </div>
             </div>
-            <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-              <Btn v="dark" onClick={function(){setShowFinalizeConfirm(false);}}>Cancel</Btn>
-              <Btn v="primary" onClick={function(){
-                setShowFinalizeConfirm(false);
-                saveResultsToSupabase(players,currentClashId);
-                setTournamentState(function(ts){return Object.assign({},ts,{phase:"complete",lockedLobbies:[],savedLobbies:[]});});
-                toast("Clash complete! View results","success");
-              }}>Finalize Clash</Btn>
-            </div>
-          </Panel>
-        </div>
-      )}
-
-      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20,flexWrap:"wrap"}}>
-        <Btn v="dark" s="sm" onClick={function(){setScreen("home");}}>{"<- Back"}</Btn>
-        <h2 style={{color:"#F2EDE4",fontSize:20,margin:0,flex:1,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
-          <span>{"Game "+round+"/"+(tournamentState.totalGames||4)}</span>
-          <span style={{fontSize:10,fontWeight:700,padding:"3px 10px",borderRadius:12,letterSpacing:".08em",textTransform:"uppercase",
-            background:tournamentState.phase==="inprogress"?"rgba(82,196,124,.12)":tournamentState.phase==="complete"?"rgba(78,205,196,.12)":"rgba(155,114,207,.12)",
-            color:tournamentState.phase==="inprogress"?"#6EE7B7":tournamentState.phase==="complete"?"#4ECDC4":"#C4B5FD",
-            border:"1px solid "+(tournamentState.phase==="inprogress"?"rgba(82,196,124,.3)":tournamentState.phase==="complete"?"rgba(78,205,196,.3)":"rgba(155,114,207,.3)")}}>
-            {tournamentState.phase==="inprogress"?"Live":tournamentState.phase==="complete"?"Complete":tournamentState.phase==="checkin"?"Check-in":"Setup"}
-          </span>
-          <span style={{fontSize:13,fontWeight:400,color:"#BECBD9"}}>{lobbies.length+" "+(lobbies.length===1?"Lobby":"Lobbies")+" - "+checkedIn.length+" players"}</span>
-        </h2>
-        {isAdmin&&(
-          <div style={{display:"flex",gap:8}}>
-            <Btn v="dark" s="sm" disabled={round<=1} onClick={function(){setTournamentState(function(ts){return Object.assign({},ts,{round:ts.round-1,lockedLobbies:[],savedLobbies:[]});});}}>{"<- Round"}</Btn>
-            <Btn v="primary" s="sm" disabled={!allLocked} onClick={function(){
-              var maxRounds=tournamentState.totalGames||4;
-              var cutL=tournamentState.cutLine||0;
-              var cutG=tournamentState.cutAfterGame||0;
-              if(round>=maxRounds){
-                setShowFinalizeConfirm(true);
-              }else{
-                var nextRound=round+1;
-                var cutMsg="";
-                if(cutL>0&&round===cutG){
-                  var standings=computeTournamentStandings(checkedIn,[],null);
-                  var cutResult=applyCutLine(standings,cutL,cutG);
-                  var elimCount=cutResult.eliminated.length;
-                  if(elimCount>0){
-                    cutMsg=" - "+elimCount+" players eliminated (below "+cutL+"pts)";
-                    cutResult.eliminated.forEach(function(ep){
-                      setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});
-                    });
-                    setTournamentState(function(ts){
-                      var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});
-                      return Object.assign({},ts,{checkedInIds:kept});
-                    });
-                  }
-                }
-                setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
-                toast("Advanced to Game "+nextRound+cutMsg,"success");
-              }
-            }}>
-              {round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game ->"}
-            </Btn>
           </div>
         )}
-      </div>
 
-      {allLocked&&checkedIn.length>0&&(
-        <div style={{background:"rgba(82,196,124,.08)",border:"1px solid rgba(82,196,124,.3)",borderRadius:10,padding:"10px 16px",marginBottom:16,display:"flex",alignItems:"center",gap:10,animation:"pulse 2s infinite"}}>
-          <span style={{fontSize:16}}><i className="ti ti-circle-check" style={{color:"#52C47C"}}/></span>
-          <span style={{fontSize:13,fontWeight:600,color:"#6EE7B7",flex:1}}>
-            {"All "+lobbies.length+" lobbies locked - "+(round>=(tournamentState.totalGames||4)?"ready to finalize!":"ready for next game!")}
-            {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||4)?" Auto-advancing in "+autoAdvanceCountdown+"s":""}
-          </span>
-          {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<(tournamentState.totalGames||4)&&(
-            <button onClick={cancelAutoAdvance} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"4px 12px",fontFamily:"inherit",whiteSpace:"nowrap"}}>Cancel</button>
-          )}
-        </div>
-      )}
-
-      {checkedIn.length===0&&(
-        <div style={{textAlign:"center",padding:"60px 20px"}}>
-          <div style={{fontSize:48,marginBottom:16}}>
-            {tournamentState&&tournamentState.phase==="complete"?<i className="ti ti-trophy"/>:tournamentState&&tournamentState.phase==="inprogress"?<i className="ti ti-bolt"/>:<i className="ti ti-device-gamepad-2"/>}
-          </div>
-          <h3 style={{color:"#F2EDE4",marginBottom:8}}>{tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}</h3>
-          <p style={{color:"#BECBD9",fontSize:14,marginBottom:20}}>{tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&tournamentState.phase==="inprogress"?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}</p>
-          <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-            <Btn v="primary" onClick={function(){setScreen("home");}}>{"<- Back to Home"}</Btn>
-            {tournamentState&&tournamentState.phase==="complete"&&<Btn v="dark" onClick={function(){setScreen("results");}}>View Results</Btn>}
-          </div>
-        </div>
-      )}
-
-      {checkedIn.length>0&&(
-        <>
-          {/* Find my lobby */}
-          <Panel style={{padding:"14px 16px",marginBottom:20,display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
-            <span style={{fontSize:13,color:"#C8D4E0",flexShrink:0}}><i className="ti ti-search" style={{fontSize:13,marginRight:4}}/>Find your lobby:</span>
-            <Inp value={mySearch} onChange={setMySearch} placeholder="Your name or Riot ID" onKeyDown={function(e){if(e.key==="Enter")findMyLobby();}}/>
-            <Btn v="purple" s="sm" onClick={findMyLobby}>Find Me</Btn>
-            {effectiveHighlight!==null&&<span style={{fontSize:12,color:"#6EE7B7",fontWeight:600}}>{"You are in Lobby "+(effectiveHighlight+1)}</span>}
-          </Panel>
-
-          {/* Lobby lock progress */}
-          {lobbies.length>0&&tournamentState.phase==="inprogress"&&(
-            <div style={{marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
-              <div style={{flex:1,background:"rgba(255,255,255,.04)",borderRadius:8,height:6,overflow:"hidden"}}>
-                <div style={{height:"100%",borderRadius:8,background:allLocked?"linear-gradient(90deg,#52C47C,#6EE7B7)":"linear-gradient(90deg,#E8A838,#9B72CF)",width:Math.round(lockedLobbies.length/lobbies.length*100)+"%",transition:"width .5s ease"}}/>
+        {/* Page header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <div>
+            <h1 className="font-editorial italic text-4xl md:text-5xl text-on-background mb-2">
+              {clashName.includes(":")
+                ? clashName.split(":")[0]+":"
+                : "TFT Clash:"
+              }
+              {" "}
+              <span className="text-primary not-italic font-display uppercase tracking-tight">
+                {clashName.includes(":")
+                  ? clashName.split(":").slice(1).join(":").trim()
+                  : clashName
+                }
+              </span>
+            </h1>
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className={"px-3 py-1 rounded-sm font-nav text-xs tracking-wider border " + (tournamentState.phase==="inprogress"?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
+                {tournamentState.phase==="inprogress"?"ACTIVE TOURNAMENT":tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN OPEN":"SETUP"}
+              </span>
+              <div className="flex items-center gap-2 text-on-surface-variant/60 font-mono text-sm">
+                <Icon name="calendar_today" size={14} />
+                {"Game " + round + " of " + totalGames + " - " + checkedIn.length + " players"}
               </div>
-              <span style={{fontSize:11,fontWeight:700,color:allLocked?"#6EE7B7":"#E8A838",whiteSpace:"nowrap"}}>{lockedLobbies.length+"/"+lobbies.length+" locked"}</span>
+            </div>
+          </div>
+
+          {/* Admin phase controls */}
+          {isAdmin&&(
+            <div className="bg-surface-container-low p-2 rounded-xl border border-outline-variant/10 flex gap-2 flex-wrap">
+              <button
+                disabled={round<=1}
+                onClick={function(){setTournamentState(function(ts){return Object.assign({},ts,{round:ts.round-1,lockedLobbies:[],savedLobbies:[]});});}}
+                className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold font-nav uppercase tracking-widest opacity-40 hover:opacity-70 disabled:pointer-events-none transition-opacity">
+                Prev Round
+              </button>
+              <button
+                disabled={!allLocked}
+                onClick={function(){
+                  var maxRounds=tournamentState.totalGames||4;
+                  var cutL=tournamentState.cutLine||0;
+                  var cutG=tournamentState.cutAfterGame||0;
+                  if(round>=maxRounds){
+                    setShowFinalizeConfirm(true);
+                  }else{
+                    var nextRound=round+1;
+                    var cutMsg="";
+                    if(cutL>0&&round===cutG){
+                      var standings=computeTournamentStandings(checkedIn,[],null);
+                      var cutResult=applyCutLine(standings,cutL,cutG);
+                      var elimCount=cutResult.eliminated.length;
+                      if(elimCount>0){
+                        cutMsg=" - "+elimCount+" players eliminated (below "+cutL+"pts)";
+                        cutResult.eliminated.forEach(function(ep){
+                          setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});
+                        });
+                        setTournamentState(function(ts){
+                          var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});
+                          return Object.assign({},ts,{checkedInIds:kept});
+                        });
+                      }
+                    }
+                    setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
+                    toast("Advanced to Game "+nextRound+cutMsg,"success");
+                  }
+                }}
+                className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold font-nav uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-110">
+                {round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game"}
+              </button>
+              {allLocked&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<totalGames&&(
+                <button
+                  onClick={cancelAutoAdvance}
+                  className="px-4 py-2 rounded-lg bg-surface-container-high text-error text-xs font-bold font-nav uppercase tracking-widest border border-error/20 hover:bg-error/10 transition-colors">
+                  {"Cancel Auto (" + autoAdvanceCountdown + "s)"}
+                </button>
+              )}
             </div>
           )}
+        </div>
 
-          {/* Tournament complete banner */}
-          {tournamentState&&tournamentState.phase==="complete"&&(
-            <div style={{background:"rgba(232,168,56,.1)",border:"1px solid rgba(232,168,56,.4)",borderRadius:10,padding:"14px 18px",marginBottom:16,display:"flex",alignItems:"center",gap:12}}>
-              <span style={{fontSize:22}}><i className="ti ti-trophy"/></span>
-              <div>
-                <div style={{fontWeight:700,color:"#E8A838",fontSize:15}}>Clash Complete!</div>
-                <div style={{fontSize:12,color:"#C8D4E0"}}>All rounds locked. View final standings on the Leaderboard.</div>
-              </div>
-              <Btn v="primary" s="sm" style={{marginLeft:"auto"}} onClick={function(){setScreen("leaderboard");}}>{"View Results ->"}</Btn>
-            </div>
-          )}
-
-          {/* Round progress indicators */}
-          <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
-            {[1,2,3].map(function(r){return(
-              <div key={r} style={{flex:1,minWidth:80,
-                background:r<round?"rgba(82,196,124,.08)":r===round?"rgba(232,168,56,.08)":"rgba(255,255,255,.02)",
-                border:"1px solid "+(r<round?"rgba(82,196,124,.3)":r===round?"rgba(232,168,56,.4)":"rgba(242,237,228,.08)"),
-                borderRadius:8,padding:"10px 14px",textAlign:"center"}}>
-                <div style={{fontSize:11,fontWeight:700,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF",letterSpacing:".08em",textTransform:"uppercase",marginBottom:2}}>{"Round "+r}</div>
-                <div style={{fontSize:11,color:r<round?"#6EE7B7":r===round?"#E8A838":"#9AAABF"}}>{r<round?"Complete":r===round?"In Progress":"Upcoming"}</div>
-              </div>
-            );})}
+        {/* All lobbies locked banner */}
+        {allLocked&&checkedIn.length>0&&(
+          <div className="mb-6 bg-tertiary/8 border border-tertiary/25 rounded-[4px] px-5 py-3 flex items-center gap-3">
+            <Icon name="check_circle" size={18} fill className="text-tertiary" />
+            <span className="text-tertiary font-nav font-bold text-sm tracking-wider flex-1">
+              {"All " + lobbies.length + " lobbies locked - " + (round>=(totalGames)?"ready to finalize!":"ready for next game!")}
+              {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<totalGames?" Auto-advancing in "+autoAdvanceCountdown+"s...":""}
+            </span>
           </div>
+        )}
 
-          {/* Lobby grid */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(min(320px,100%),1fr))",gap:16}}>
-            {lobbies.map(function(lobby,li){
-              var isMyLobby=effectiveHighlight===li;
-              var locked=lockedLobbies.includes(li);
+        {/* Complete banner */}
+        {tournamentState&&tournamentState.phase==="complete"&&checkedIn.length>0&&(
+          <div className="mb-6 bg-primary/8 border border-primary/30 rounded-[4px] px-5 py-4 flex items-center gap-4">
+            <Icon name="emoji_events" size={24} fill className="text-primary" />
+            <div className="flex-1">
+              <div className="font-bold text-primary text-base mb-0.5">Clash Complete!</div>
+              <div className="text-on-surface-variant text-sm">All rounds locked. View final standings on the Leaderboard.</div>
+            </div>
+            <button
+              onClick={function(){setScreen("leaderboard");}}
+              className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+              View Results
+            </button>
+          </div>
+        )}
 
-              return(
-                <div key={li} style={{
-                  background:isMyLobby?"rgba(155,114,207,.06)":"#111827",
-                  border:"2px solid "+(isMyLobby?"#9B72CF":locked?"rgba(82,196,124,.35)":"rgba(242,237,228,.1)"),
-                  borderRadius:14,overflow:"hidden",
-                  boxShadow:isMyLobby?"0 0 24px rgba(155,114,207,.15)":"none",
-                  transition:"box-shadow .2s"}}>
+        {/* Empty state */}
+        {checkedIn.length===0&&(
+          <div className="text-center py-20">
+            <div className="flex justify-center mb-4">
+              <Icon name={tournamentState&&tournamentState.phase==="complete"?"emoji_events":tournamentState&&tournamentState.phase==="inprogress"?"bolt":"sports_esports"} size={56} className="text-on-surface-variant/30" />
+            </div>
+            <h3 className="text-on-surface text-xl font-bold mb-2">
+              {tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}
+            </h3>
+            <p className="text-on-surface-variant text-sm mb-6 max-w-sm mx-auto leading-relaxed">
+              {tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&tournamentState.phase==="inprogress"?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}
+            </p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={function(){setScreen("home");}}
+                className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                Back to Home
+              </button>
+              {tournamentState&&tournamentState.phase==="complete"&&(
+                <button
+                  onClick={function(){setScreen("results");}}
+                  className="px-5 py-2.5 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                  View Results
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
-                  {/* Lobby header */}
-                  <div style={{padding:"14px 16px",background:isMyLobby?"rgba(155,114,207,.1)":"rgba(255,255,255,.02)",
-                    borderBottom:"1px solid rgba(242,237,228,.07)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:10}}>
-                      <div style={{width:32,height:32,borderRadius:8,
-                        background:isMyLobby?"rgba(155,114,207,.2)":locked?"rgba(82,196,124,.12)":"rgba(232,168,56,.08)",
-                        border:"1px solid "+(isMyLobby?"rgba(155,114,207,.5)":locked?"rgba(82,196,124,.3)":"rgba(232,168,56,.2)"),
-                        display:"flex",alignItems:"center",justifyContent:"center",
-                        fontSize:13,fontWeight:800,color:isMyLobby?"#9B72CF":locked?"#6EE7B7":"#E8A838"}}>
-                        {li+1}
-                      </div>
-                      <div>
-                        <div style={{fontWeight:700,fontSize:14,color:"#F2EDE4"}}>{"Lobby "+(li+1)}</div>
-                        <div style={{fontSize:11,color:"#BECBD9"}}>{lobby.length+" players"+(isMyLobby?" - Your Lobby":"")}</div>
+        {checkedIn.length>0&&(
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            {/* Left column: Status + controls */}
+            <div className="lg:col-span-4 space-y-5">
+
+              {/* Live status card */}
+              <div className="bg-surface-container-low rounded-[4px] p-6 border-l-4 border-primary relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <Icon name="sensors" size={56} />
+                </div>
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="relative flex h-3 w-3">
+                    <span className={"animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 " + (tournamentState.phase==="inprogress"?"bg-error":tournamentState.phase==="complete"?"bg-tertiary":"bg-secondary")}></span>
+                    <span className={"relative inline-flex rounded-full h-3 w-3 " + (tournamentState.phase==="inprogress"?"bg-error":tournamentState.phase==="complete"?"bg-tertiary":"bg-secondary")}></span>
+                  </span>
+                  <span className="font-display text-xl tracking-tighter">
+                    {tournamentState.phase==="inprogress"?"LIVE - Round "+round+" of "+totalGames:tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN":"SETUP"}
+                  </span>
+                </div>
+                <p className="text-on-surface-variant text-sm mb-5 leading-relaxed">
+                  {tournamentState.phase==="inprogress"?"The arena is live. All lobbies have been synchronized. Placement data entry is now active for lobby admins.":tournamentState.phase==="complete"?"All rounds are locked. Final results have been recorded.":"Tournament is in setup or check-in phase. Players are joining the lobby."}
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
+                    <div className="text-[10px] font-nav text-on-surface-variant/60 uppercase mb-1">Lobbies</div>
+                    <div className="font-mono text-lg font-bold text-primary">{lobbies.length}</div>
+                  </div>
+                  <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
+                    <div className="text-[10px] font-nav text-on-surface-variant/60 uppercase mb-1">Players</div>
+                    <div className="font-mono text-lg font-bold text-tertiary">{checkedIn.length}</div>
+                  </div>
+                </div>
+
+                {/* Lobby lock progress */}
+                {lobbies.length>0&&tournamentState.phase==="inprogress"&&(
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider">Lobbies Locked</span>
+                      <span className={"text-xs font-mono font-bold " + (allLocked?"text-tertiary":"text-primary")}>{lockedCount+"/"+lobbies.length}</span>
+                    </div>
+                    <div className="w-full bg-surface-container-lowest rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className={"h-full rounded-full transition-all duration-500 " + (allLocked?"bg-tertiary":"bg-primary")}
+                        style={{width:Math.round(lockedCount/lobbies.length*100)+"%"}}>
                       </div>
                     </div>
-                    {isMyLobby&&<div style={{fontSize:12,fontWeight:700,color:"#9B72CF",background:"rgba(155,114,207,.12)",border:"1px solid rgba(155,114,207,.3)",borderRadius:6,padding:"3px 10px"}}>YOU</div>}
-                    {locked&&!isMyLobby&&<div style={{fontSize:11,color:"#6EE7B7",fontWeight:700}}>{"✓ Locked"}</div>}
-                    {locked&&isAdmin&&<button onClick={function(e){e.stopPropagation();unlockLobby(li);}} style={{fontSize:11,color:"#F87171",fontWeight:700,cursor:"pointer",background:"rgba(248,113,113,.08)",border:"1px solid rgba(248,113,113,.3)",borderRadius:6,padding:"3px 10px",marginLeft:6}}>Unlock</button>}
                   </div>
+                )}
+              </div>
 
-                  {/* Player list */}
-                  <div style={{padding:"10px 12px"}}>
-                    {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p,pi){
-                      var isMe=currentUser&&p.name===currentUser.username;
-                      var homie=HOMIES_IDS.includes(p.id);
+              {/* Find my lobby */}
+              <div className="bg-surface-container-low rounded-[4px] p-5 border border-outline-variant/15">
+                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Find Your Lobby</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={mySearch}
+                    onChange={function(e){setMySearch(e.target.value);}}
+                    onKeyDown={function(e){if(e.key==="Enter")findMyLobby();}}
+                    placeholder="Your name or Riot ID"
+                    className="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded text-sm text-on-surface placeholder:text-on-surface-variant/30 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <button
+                    onClick={findMyLobby}
+                    className="px-4 py-2 bg-secondary-container text-on-secondary-container font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                    Find
+                  </button>
+                </div>
+                {effectiveHighlight!==null&&(
+                  <div className="mt-3 flex items-center gap-2 text-tertiary text-sm font-semibold">
+                    <Icon name="location_on" size={14} fill />
+                    {"You are in Lobby " + (effectiveHighlight+1)}
+                  </div>
+                )}
+              </div>
 
-                      return(
-                        <div key={p.id} onClick={function(){setProfilePlayer(p);setScreen("profile");}}
-                          style={{display:"flex",alignItems:"center",gap:10,padding:"8px 6px",
-                            borderBottom:pi<lobby.length-1?"1px solid rgba(242,237,228,.05)":"none",
-                            cursor:"pointer",borderRadius:6,
-                            background:isMe?"rgba(155,114,207,.08)":"transparent",
-                            transition:"background .15s"}}
-                          onMouseEnter={function(e){e.currentTarget.style.background=isMe?"rgba(155,114,207,.12)":"rgba(242,237,228,.03)";}}
-                          onMouseLeave={function(e){e.currentTarget.style.background=isMe?"rgba(155,114,207,.08)":"transparent";}}>
-
-                          <div className="mono" style={{fontSize:12,fontWeight:800,color:pi===0?"#E8A838":pi===1?"#C0C0C0":pi===2?"#CD7F32":"#9AAABF",minWidth:18,textAlign:"center"}}>{pi+1}</div>
-
-                          <div style={{flex:1,minWidth:0}}>
-                            <div style={{display:"flex",alignItems:"center",gap:5}}>
-                              <span style={{fontWeight:isMe?700:600,fontSize:13,color:isMe?"#C4B5FD":"#F2EDE4",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</span>
-                              {homie&&<span style={{fontSize:10}}><i className="ti ti-heart" style={{color:"#9B72CF"}}/></span>}
-                              {isHotStreak(p)&&<span style={{fontSize:10}}><i className="ti ti-flame" style={{color:"#F97316"}}/></span>}
-                            </div>
-                            <div style={{fontSize:10,color:"#BECBD9"}}>{p.rank+" - "+p.region}</div>
+              {/* Round progress */}
+              <div className="bg-surface-container-low rounded-[4px] p-5 border border-outline-variant/15">
+                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Round Progress</h3>
+                <div className="space-y-2">
+                  {Array.from({length:totalGames},function(_,idx){return idx+1;}).map(function(r){
+                    var isComplete=r<round;
+                    var isCurrent=r===round;
+                    return(
+                      <div key={r} className={"flex items-center gap-3 px-3 py-2.5 rounded-sm border " + (isComplete?"bg-tertiary/5 border-tertiary/20":isCurrent?"bg-primary/8 border-primary/30":"bg-surface-container-lowest/50 border-outline-variant/8")}>
+                        <div className={"w-6 h-6 rounded-sm flex items-center justify-center flex-shrink-0 " + (isComplete?"bg-tertiary/20":isCurrent?"bg-primary/20":"bg-surface-container-high")}>
+                          {isComplete
+                            ? <Icon name="check" size={14} className="text-tertiary" />
+                            : isCurrent
+                              ? <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span></span>
+                              : <span className="font-mono text-[10px] text-on-surface-variant/30 font-bold">{r}</span>
+                          }
+                        </div>
+                        <div className="flex-1">
+                          <div className={"text-xs font-nav font-bold uppercase tracking-widest " + (isComplete?"text-tertiary":isCurrent?"text-primary":"text-on-surface-variant/40")}>
+                            {"Round " + r}
                           </div>
+                        </div>
+                        <div className={"text-[10px] font-mono font-bold " + (isComplete?"text-tertiary":isCurrent?"text-primary":"text-on-surface-variant/30")}>
+                          {isComplete?"Done":isCurrent?"Active":"Soon"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
-                          <div className="mono" style={{fontSize:12,fontWeight:700,color:"#E8A838",flexShrink:0}}>{p.pts+"pts"}</div>
+              {/* Admin quick actions */}
+              {isAdmin&&(
+                <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 rounded-[4px]">
+                  <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface-variant/60">Admin Quick Actions</h3>
+                  <div className="space-y-2">
+                    <button
+                      onClick={function(){
+                        setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:[]});});
+                        toast("Lobbies re-rolled!","success");
+                      }}
+                      className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded-sm">
+                      <span className="text-sm font-medium text-on-surface">Re-roll Lobbies</span>
+                      <Icon name="shuffle" size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
+                    </button>
+                    {tournamentState.phase==="inprogress"&&round>=(tournamentState.totalGames||4)&&(
+                      <button
+                        onClick={function(){setShowFinalizeConfirm(true);}}
+                        className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded-sm">
+                        <span className="text-sm font-medium text-error">Finalize Tournament</span>
+                        <Icon name="emoji_events" size={18} fill className="text-error opacity-60" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
-                          {isMe&&!locked&&tournamentState.phase==="inprogress"&&(
-                            playerSubmissions[li]&&playerSubmissions[li][p.id]?(
-                              <div style={{fontSize:10,color:"#6EE7B7",fontWeight:700,flexShrink:0}}>{"#"+playerSubmissions[li][p.id].placement+" ✓"}</div>
-                            ):(
-                              <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}} style={{width:52,fontSize:11,flexShrink:0}}>
-                                <option value="">{" - "}</option>
-                                {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
-                              </Sel>
-                            )
+              {/* Live standings (shown after some lobbies lock) */}
+              {tournamentState&&tournamentState.phase==="inprogress"&&lockedLobbies.length>0&&(
+                <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>
+              )}
+
+              {/* Finals display */}
+              {round>3&&checkedIn.length>0&&(
+                <div className="bg-surface-container-low rounded-[4px] p-6 text-center border border-primary/20">
+                  <div className="flex justify-center mb-3">
+                    <Icon name="emoji_events" size={40} fill className="text-primary" />
+                  </div>
+                  <h3 className="text-primary text-lg font-display uppercase tracking-widest mb-2">Grand Finals</h3>
+                  <p className="text-on-surface-variant text-sm">All rounds complete. Finals results locked in.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Right column: Lobby grid */}
+            <div className="lg:col-span-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {lobbies.map(function(lobby,li){
+                  var isMyLobby=effectiveHighlight===li;
+                  var locked=lockedLobbies.includes(li);
+                  var lobbyLetter=lobbyLetters[li]||String(li+1);
+                  var hasPlacements=placementEntry[li]&&placementEntry[li].open;
+
+                  return(
+                    <div key={li} className={"bg-surface-container-high rounded-[4px] overflow-hidden border-2 transition-all " + (isMyLobby?"border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]":locked?"border-tertiary/30":"border-outline-variant/15")}>
+
+                      {/* Lobby header */}
+                      <div className={"px-4 py-3 flex justify-between items-center border-b " + (isMyLobby?"bg-secondary/10 border-secondary/20":locked?"bg-tertiary/5 border-tertiary/15":"bg-surface-container border-outline-variant/10")}>
+                        <div className="flex items-center gap-2">
+                          <span className={"font-display " + (isMyLobby?"text-secondary":locked?"text-tertiary":"text-on-surface-variant/80")}>
+                            {"LOBBY " + lobbyLetter}
+                          </span>
+                          {isMyLobby&&(
+                            <span className="bg-secondary/20 text-[10px] text-secondary px-2 py-0.5 rounded font-nav font-bold tracking-tighter">YOUR LOBBY</span>
+                          )}
+                          {locked&&!isMyLobby&&(
+                            <span className="bg-tertiary/10 text-[10px] text-tertiary px-2 py-0.5 rounded font-nav font-bold tracking-tighter flex items-center gap-1">
+                              <Icon name="lock" size={10} fill />
+                              LOCKED
+                            </span>
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Admin placement entry */}
-                  {isAdmin&&!locked&&(
-                    <div style={{borderTop:"1px solid rgba(242,237,228,.06)"}}>
-                      {(!placementEntry[li]||!placementEntry[li].open)?(
-                        <div style={{padding:"10px 12px",background:"rgba(255,255,255,.01)"}}>
-                          <Btn v="teal" s="sm" full onClick={function(){openPlacementEntry(li);}}>
-                            {"Enter Placements"+(playerSubmissions[li]?" ("+Object.keys(playerSubmissions[li]).length+" submitted)":"")}
-                          </Btn>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-on-surface-variant/40">{lobby.length + " players"}</span>
+                          {locked&&isAdmin&&(
+                            <button
+                              onClick={function(){unlockLobby(li);}}
+                              className="text-[10px] text-error font-bold font-nav cursor-pointer bg-error/8 border border-error/25 rounded px-2 py-0.5 hover:bg-error/15 transition-colors">
+                              Unlock
+                            </button>
+                          )}
                         </div>
-                      ):(
-                        <div style={{padding:"12px",background:"rgba(78,205,196,.03)",borderTop:"1px solid rgba(78,205,196,.12)"}}>
-                          <div style={{fontSize:11,fontWeight:700,color:"#4ECDC4",marginBottom:10,textTransform:"uppercase",letterSpacing:".08em"}}>{"Enter Placements - Round "+round}</div>
-                          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:10}}>
-                            {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){
-                              var dup=lobby.filter(function(x){return placementEntry[li].placements[x.id]===placementEntry[li].placements[p.id];}).length>1;
-                              var wasSelfSubmitted=((playerSubmissions||{})[li]||{})[p.id];
-                              return(
-                                <div key={p.id} style={{display:"flex",alignItems:"center",gap:8}}>
-                                  <span style={{fontSize:12,color:"#F2EDE4",flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                                    {p.name}
-                                    {wasSelfSubmitted&&<span style={{fontSize:9,color:"#4ECDC4",fontWeight:700,marginLeft:4}}>SELF</span>}
-                                  </span>
-                                  <Sel value={placementEntry[li].placements[p.id]||"1"} onChange={function(v){setPlace(li,p.id,v);}} style={{width:60,border:dup?"1px solid #F87171":undefined}}>
-                                    {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
-                                    <option value="0">DNP</option>
-                                  </Sel>
+                      </div>
+
+                      {/* Player list */}
+                      <div className="divide-y divide-outline-variant/10">
+                        {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p,pi){
+                          var isMe=currentUser&&p.name===currentUser.username;
+                          var homie=HOMIES_IDS.includes(p.id);
+
+                          return(
+                            <div
+                              key={p.id}
+                              onClick={function(){setProfilePlayer(p);setScreen("profile");}}
+                              className={"flex items-center justify-between px-4 py-2 hover:bg-surface-container-highest transition-colors cursor-pointer " + (isMe?"bg-secondary/5":"")}>
+                              <div className="flex items-center gap-3">
+                                <span className={"font-mono text-xs " + (pi===0?"text-primary":pi===1?"text-on-surface-variant/60":pi===2?"text-on-surface-variant/50":"text-on-surface-variant/30")}>
+                                  {String(pi+1).padStart(2,"0")}
+                                </span>
+                                <div className="w-8 h-8 rounded-sm bg-surface-container-low flex items-center justify-center flex-shrink-0">
+                                  <Icon name="person" size={16} className="text-on-surface-variant/40" />
                                 </div>
-                              );
-                            })}
-                          </div>
-                          {!placementValid(li)&&<div style={{fontSize:11,color:"#F87171",marginBottom:8}}>Each placement must be unique (1-8)</div>}
-                          <div style={{display:"flex",gap:8}}>
-                            <Btn v="success" s="sm" full disabled={!placementValid(li)} onClick={function(){applyGameResults(li);}}>{"Confirm & Lock ✓"}</Btn>
-                            <Btn v="dark" s="sm" onClick={function(){setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:false})});});}}>Cancel</Btn>
-                          </div>
+                                <div>
+                                  <div className={"text-sm font-semibold flex items-center gap-1 " + (isMe?"text-secondary":isMyLobby?"text-on-surface":"text-on-surface-variant/90")}>
+                                    {p.name}
+                                    {homie&&<Icon name="favorite" size={12} fill className="text-secondary/70" />}
+                                    {isHotStreak(p)&&<Icon name="local_fire_department" size={12} fill className="text-orange-400" />}
+                                  </div>
+                                  <div className="text-[10px] text-on-surface-variant/40">{p.rank}</div>
+                                </div>
+                              </div>
+                              {/* Player placement controls */}
+                              {locked&&tournamentState.lockedPlacements&&tournamentState.lockedPlacements[li]&&tournamentState.lockedPlacements[li][p.id]?(
+                                <span className={"font-mono text-xs font-bold " + (tournamentState.lockedPlacements[li][p.id]===1?"text-primary":tournamentState.lockedPlacements[li][p.id]<=4?"text-tertiary":"text-on-surface-variant/50")}>
+                                  {"#" + tournamentState.lockedPlacements[li][p.id]}
+                                </span>
+                              ):isMe&&!locked&&tournamentState.phase==="inprogress"?(
+                                playerSubmissions[li]&&playerSubmissions[li][p.id]?(
+                                  <div className="font-mono text-xs text-tertiary font-bold">
+                                    {"#" + playerSubmissions[li][p.id].placement + " sub"}
+                                  </div>
+                                ):(
+                                  <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}}>
+                                    <option value="">{" - "}</option>
+                                    {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
+                                  </Sel>
+                                )
+                              ):(
+                                <div className={"font-mono text-xs font-bold " + (locked?"text-on-surface-variant/20":"text-on-surface-variant/20")}>
+                                  {tournamentState.phase==="inprogress"&&!locked?"In Progress":"-"}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Admin placement entry */}
+                      {isAdmin&&!locked&&(
+                        <div className="border-t border-outline-variant/10">
+                          {!hasPlacements?(
+                            <div className="p-4 bg-surface-container-low">
+                              <button
+                                onClick={function(){openPlacementEntry(li);}}
+                                className="w-full py-2 bg-secondary text-on-secondary font-bold font-nav text-xs rounded shadow-sm hover:brightness-110 transition-all uppercase tracking-widest">
+                                {"Enter Placements" + (playerSubmissions[li]?" ("+Object.keys(playerSubmissions[li]).length+" submitted)":"")}
+                              </button>
+                            </div>
+                          ):(
+                            <div className="p-4 bg-secondary/3 border-t border-secondary/10">
+                              <div className="text-[11px] font-nav font-bold text-secondary/70 uppercase tracking-widest mb-3">
+                                {"Enter Placements - Round " + round}
+                              </div>
+                              <div className="space-y-2 mb-3">
+                                {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p){
+                                  var dup=lobby.filter(function(x){return placementEntry[li].placements[x.id]===placementEntry[li].placements[p.id];}).length>1;
+                                  var wasSelfSubmitted=((playerSubmissions||{})[li]||{})[p.id];
+                                  return(
+                                    <div key={p.id} className="flex items-center gap-2">
+                                      <span className="text-sm text-on-surface flex-1 truncate">
+                                        {p.name}
+                                        {wasSelfSubmitted&&<span className="text-[9px] text-tertiary font-bold ml-1">SELF</span>}
+                                      </span>
+                                      <Sel
+                                        value={placementEntry[li].placements[p.id]||"1"}
+                                        onChange={function(v){setPlace(li,p.id,v);}}
+                                        className={dup?"ring-1 ring-error":""}>
+                                        {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
+                                        <option value="0">DNP</option>
+                                      </Sel>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              {!placementValid(li)&&(
+                                <div className="text-xs text-error mb-2">Each placement must be unique (1-8)</div>
+                              )}
+                              <div className="flex gap-2">
+                                <button
+                                  disabled={!placementValid(li)}
+                                  onClick={function(){applyGameResults(li);}}
+                                  className="flex-1 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs uppercase tracking-widest rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                                  Confirm and Lock
+                                </button>
+                                <button
+                                  onClick={function(){setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:false})});});}}
+                                  className="px-4 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs uppercase tracking-widest rounded hover:bg-surface-container-highest transition-colors">
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Locked overlay footer */}
+                      {locked&&(
+                        <div className="px-4 py-3 bg-tertiary/5 border-t border-tertiary/10 flex items-center justify-center gap-2">
+                          <Icon name="lock" size={14} fill className="text-tertiary" />
+                          <span className="text-xs font-nav font-bold text-tertiary uppercase tracking-wider">Results Locked</span>
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
           </div>
-
-          {/* Live standings during inprogress */}
-          {tournamentState&&tournamentState.phase==="inprogress"&&lockedLobbies.length>0&&(
-            <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>
-          )}
-
-          {/* Finals display */}
-          {round>3&&checkedIn.length>0&&(
-            <Panel style={{padding:"24px",marginTop:24,textAlign:"center"}}>
-              <div style={{fontSize:32,marginBottom:12}}><i className="ti ti-trophy"/></div>
-              <h3 style={{color:"#E8A838",fontSize:20,marginBottom:8}}>Grand Finals</h3>
-              <p style={{color:"#BECBD9",fontSize:14}}>All rounds complete. Finals results locked in.</p>
-            </Panel>
-          )}
-        </>
-      )}
-    </div>
+        )}
+      </div>
+    </PageLayout>
   );
 }
 

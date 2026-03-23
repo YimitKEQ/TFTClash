@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase.js'
 import { PTS, RANKS } from '../lib/constants.js'
 import { buildFlashLobbies } from '../lib/tournament.js'
 import { createNotification } from '../lib/notifications.js'
+import PageLayout from '../components/layout/PageLayout'
 
 export default function FlashTournamentScreen(props) {
   var tournamentId = props.tournamentId;
@@ -635,7 +636,8 @@ export default function FlashTournamentScreen(props) {
   });
 
   return (
-    <div className="page wrap">
+
+    <PageLayout>    <div className="page wrap">
       <button onClick={function() { setScreen('tournaments'); }} style={{background: 'none', border: 'none', color: '#9B72CF', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: '0 0 16px 0', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 4}}>
         {'\u2190 Back to Tournaments'}
       </button>
@@ -1162,5 +1164,6 @@ export default function FlashTournamentScreen(props) {
         </Panel>
       )}
     </div>
+    </PageLayout>
   );
 }
