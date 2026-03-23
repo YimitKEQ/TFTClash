@@ -36,6 +36,7 @@ import HostDashboardScreenNew from './screens/HostDashboardScreen';
 import FlashTournamentScreenNew from './screens/FlashTournamentScreen';
 import TournamentDetailScreenNew from './screens/TournamentDetailScreen';
 import TournamentsListScreenNew from './screens/TournamentsListScreen';
+import AdminScreenNew from './screens/AdminScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18182,21 +18183,7 @@ function TFTClash(){
 
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreenNew/>}
 
-        {screen==="admin"      &&isAdmin&&<AdminPanel players={players} setPlayers={setPlayers} toast={toast} setAnnouncement={setAnnouncement} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} quickClashes={quickClashes} setQuickClashes={setQuickClashes} orgSponsors={orgSponsors} setOrgSponsors={setOrgSponsors} scheduledEvents={scheduledEvents} setScheduledEvents={setScheduledEvents} auditLog={auditLog} setAuditLog={setAuditLog} hostApps={hostApps} setHostApps={setHostApps} scrimAccess={scrimAccess} setScrimAccess={setScrimAccess} tickerOverrides={tickerOverrides} setTickerOverrides={setTickerOverrides} setNotifications={setNotifications} featuredEvents={featuredEvents} setFeaturedEvents={setFeaturedEvents} currentUser={currentUser}/>}
-
-        {screen==="admin"      &&!isAdmin&&(
-
-          <div className="page" style={{textAlign:"center",maxWidth:440,margin:"0 auto"}}>
-
-            <div style={{fontSize:38,marginBottom:14}}>{React.createElement("i",{className:"ti ti-lock"})}</div>
-
-            <h2 style={{color:"#F2EDE4",marginBottom:8}}>Admin Required</h2>
-
-            <div style={{fontSize:13,color:"#9AAABF"}}>Contact an admin to get access.</div>
-
-          </div>
-
-        )}
+        {screen==="admin"&&<AdminScreenNew/>}
 
         </ScreenBoundary>
 
