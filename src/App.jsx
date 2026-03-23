@@ -10,6 +10,8 @@ import { getUserTier, hasFeature } from './lib/tiers.js';
 import { writeActivityEvent, createNotification } from './lib/notifications.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext.jsx';
+import LoginScreenNew from './screens/LoginScreen';
+import SignUpScreenNew from './screens/SignUpScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -12228,10 +12230,12 @@ function ChallengesScreen({currentUser,players,toast,setScreen,challengeCompleti
 
 
 
-// ─── AUTH SCREENS ─────────────────────────────────────────────────────────────
+// ─── AUTH SCREENS (migrated to src/screens/) ─────────────────────────────────
+// LoginScreen -> src/screens/LoginScreen.jsx
+// SignUpScreen -> src/screens/SignUpScreen.jsx
 
 
-function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
+function SignUpScreen_REMOVED({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
   const [email,setEmail]=useState("");
 
@@ -12444,7 +12448,7 @@ function SignUpScreen({onSignUp,onGoLogin,onBack,toast,setPlayers}){
 
 
 
-function LoginScreen({onLogin,onGoSignUp,onBack,toast}){
+function LoginScreen_REMOVED({onLogin,onGoSignUp,onBack,toast}){
 
   const [email,setEmail]=useState("");
 
@@ -17911,17 +17915,11 @@ function TFTClash(){
 
       <style>{GCSS+styleHideMobile}</style>
 
-      <Hexbg/>
+      <LoginScreenNew/>
 
-      <div style={{position:"relative",zIndex:1}}>
+      <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
-        <LoginScreen onLogin={handleLogin} onGoSignUp={()=>setAuthScreen("signup")} onBack={()=>setAuthScreen(null)} toast={toast}/>
-
-        <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
-
-          {toasts.map(t=><div key={t.id} style={{pointerEvents:"auto"}}><Toast msg={t.msg} type={t.type} onClose={()=>removeToast(t.id)}/></div>)}
-
-        </div>
+        {toasts.map(t=><div key={t.id} style={{pointerEvents:"auto"}}><Toast msg={t.msg} type={t.type} onClose={()=>removeToast(t.id)}/></div>)}
 
       </div>
 
@@ -17935,17 +17933,11 @@ function TFTClash(){
 
       <style>{GCSS+styleHideMobile}</style>
 
-      <Hexbg/>
+      <SignUpScreenNew/>
 
-      <div style={{position:"relative",zIndex:1}}>
+      <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
-        <SignUpScreen onSignUp={handleSignUp} onGoLogin={()=>setAuthScreen("login")} onBack={()=>setAuthScreen(null)} toast={toast} setPlayers={setPlayers}/>
-
-        <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
-
-          {toasts.map(t=><div key={t.id} style={{pointerEvents:"auto"}}><Toast msg={t.msg} type={t.type} onClose={()=>removeToast(t.id)}/></div>)}
-
-        </div>
+        {toasts.map(t=><div key={t.id} style={{pointerEvents:"auto"}}><Toast msg={t.msg} type={t.type} onClose={()=>removeToast(t.id)}/></div>)}
 
       </div>
 
