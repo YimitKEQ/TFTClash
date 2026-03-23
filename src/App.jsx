@@ -18,6 +18,7 @@ import LeaderboardScreenNew from './screens/LeaderboardScreen';
 import PlayerProfileScreenNew from './screens/PlayerProfileScreen';
 import StandingsScreenNew from './screens/StandingsScreen';
 import BracketScreenNew from './screens/BracketScreen';
+import PricingScreenNew from './screens/PricingScreen';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
 (function(){try{var v=localStorage.getItem("tft-data-version");if(v!==String(DATA_VERSION)){var keys=Object.keys(localStorage).filter(function(k){return k.startsWith("tft-");});keys.forEach(function(k){localStorage.removeItem(k);});localStorage.setItem("tft-data-version",String(DATA_VERSION));dbg("[TFT] Cleared stale localStorage (v"+DATA_VERSION+")");}}catch(e){}}());
@@ -18145,7 +18146,7 @@ function TFTClash(){
 
         {screen==="gear"       &&<GearScreen setScreen={navTo} isAdmin={isAdmin} toast={toast}/>}
 
-        {screen==="pricing"    &&<PricingScreen currentPlan={currentUser&&currentUser.plan||"free"} toast={toast} currentUser={currentUser} setScreen={navTo} userTier={userTier}/>}
+        {screen==="pricing"    &&<PricingScreenNew />}
 
         {screen==="recap"      &&profilePlayer&&<SeasonRecapScreen player={profilePlayer} players={players} toast={toast} setScreen={navTo}/>}
 
