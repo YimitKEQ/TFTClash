@@ -89,13 +89,15 @@ function FormDots(props) {
   var n = props.max || 5;
   var recent = (props.history || []).slice(-n);
   if (recent.length === 0) return null;
-  return React.createElement("div", { style: { display: "flex", gap: 3, alignItems: "center" } },
-    recent.map(function(h, i) {
-      var p = h.placement || h.place || 5;
-      var cls = "form-dot " + (p === 1 ? "form-dot-win" : p <= 4 ? "form-dot-top4" : "form-dot-bot4");
-      var title = "Game " + (i + 1) + ": #" + p;
-      return React.createElement("span", { key: i, className: cls, title: title });
-    })
+  return (
+    <div className="flex gap-[3px] items-center">
+      {recent.map(function(h, i) {
+        var p = h.placement || h.place || 5;
+        var cls = "form-dot " + (p === 1 ? "form-dot-win" : p <= 4 ? "form-dot-top4" : "form-dot-bot4");
+        var title = "Game " + (i + 1) + ": #" + p;
+        return <span key={i} className={cls} title={title} />;
+      })}
+    </div>
   );
 }
 
@@ -182,18 +184,15 @@ function ClashRecap(props) {
   var recap = props.recap;
   if (!recap) return null;
   return (
-    <div style={{
-      background: "rgba(17,24,39,.8)", border: "1px solid rgba(52,211,153,.15)",
-      borderRadius: 14, padding: 20, margin: "0 16px 20px", position: "relative", overflow: "hidden",
-    }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg,transparent,#34D399,transparent)" }} />
-      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".12em", color: "#34D399", fontWeight: 700, marginBottom: 10, fontFamily: "'Barlow Condensed',sans-serif" }}>{recap.clashName + " Recap"}</div>
-      <div style={{ fontSize: 14, color: "#F2EDE4", lineHeight: 1.8 }}>
+    <div className="relative overflow-hidden rounded-[14px] mx-4 mb-5 p-5" style={{ background: "rgba(17,24,39,.8)", border: "1px solid rgba(52,211,153,.15)" }}>
+      <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,transparent,#34D399,transparent)" }} />
+      <div className="font-condensed text-[10px] uppercase tracking-[.12em] font-bold mb-[10px]" style={{ color: "#34D399" }}>{recap.clashName + " Recap"}</div>
+      <div className="text-[14px] text-on-surface leading-[1.8]">
         {recap.lines.map(function(line, i) {
-          return <p key={i} style={{ marginBottom: 8 }}>{line}</p>;
+          return <p key={i} className="mb-2">{line}</p>;
         })}
       </div>
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+      <div className="flex gap-2 mt-3">
         <Btn v="ghost" s="sm" onClick={function() {
           var text = recap.clashName + " Recap\n\n" + recap.lines.join("\n");
           navigator.clipboard.writeText(text);
@@ -454,40 +453,40 @@ function ResultSubmitModal(props) {
     });
   }
 
-  return React.createElement("div", {
-    style: {
-      position: "fixed", inset: 0, background: "rgba(8,8,15,.85)", zIndex: 9995,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      backdropFilter: "blur(8px)",
-    }, onClick: props.onClose
-  },
-    React.createElement("div", {
-      style: {
-        background: "#111827", border: "1px solid rgba(155,114,207,.2)",
-        borderRadius: 16, padding: 24, maxWidth: 420, width: "90%",
-        maxHeight: "80vh", overflowY: "auto",
-      }, onClick: function(e) { e.stopPropagation(); }
-    },
-      React.createElement("h3", { style: { color: "#F2EDE4", marginBottom: 16, fontFamily: "'Playfair Display',serif" } }, "Submit Results"),
-      rankings.map(function(r, i) {
-        return React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 10, marginBottom: 8 } },
-          React.createElement("span", { style: { fontSize: 13, color: "#F2EDE4", flex: 1 } }, r.player.username || r.player.name || r.player),
-          React.createElement("select", {
-            value: r.position,
-            onChange: function(e) { handlePositionChange(i, e.target.value); },
-            style: { padding: "6px 10px", borderRadius: 6, background: "#08080F", border: "1px solid rgba(242,237,228,.1)", color: "#F2EDE4", fontSize: 13 },
-          },
-            [1, 2, 3, 4, 5, 6, 7, 8].map(function(pos) {
-              return React.createElement("option", { key: pos, value: pos }, ordinal(pos));
-            })
-          )
-        );
-      }),
-      React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 16 } },
-        React.createElement(Btn, { v: "primary", onClick: function() { props.onSubmit(rankings); } }, "Submit"),
-        React.createElement(Btn, { v: "ghost", onClick: props.onClose }, "Cancel")
-      )
-    )
+  return (
+    <div
+      className="fixed inset-0 z-[9995] flex items-center justify-center"
+      style={{ background: "rgba(8,8,15,.85)", backdropFilter: "blur(8px)" }}
+      onClick={props.onClose}
+    >
+      <div
+        className="rounded-2xl p-6 overflow-y-auto"
+        style={{ background: "#111827", border: "1px solid rgba(155,114,207,.2)", maxWidth: 420, width: "90%", maxHeight: "80vh" }}
+        onClick={function(e) { e.stopPropagation(); }}
+      >
+        <h3 className="font-editorial mb-4" style={{ color: "#F2EDE4" }}>Submit Results</h3>
+        {rankings.map(function(r, i) {
+          return (
+            <div key={i} className="flex items-center gap-[10px] mb-2">
+              <span className="flex-1 text-[13px]" style={{ color: "#F2EDE4" }}>{r.player.username || r.player.name || r.player}</span>
+              <select
+                value={r.position}
+                onChange={function(e) { handlePositionChange(i, e.target.value); }}
+                style={{ padding: "6px 10px", borderRadius: 6, background: "#08080F", border: "1px solid rgba(242,237,228,.1)", color: "#F2EDE4", fontSize: 13 }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(function(pos) {
+                  return <option key={pos} value={pos}>{ordinal(pos)}</option>;
+                })}
+              </select>
+            </div>
+          );
+        })}
+        <div className="flex gap-[10px] mt-4">
+          <Btn v="primary" onClick={function() { props.onSubmit(rankings); }}>Submit</Btn>
+          <Btn v="ghost" onClick={props.onClose}>Cancel</Btn>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -495,36 +494,33 @@ function ResultSubmitModal(props) {
 
 function ConfirmResultsModal(props) {
   var submission = props.submission;
-  return React.createElement("div", {
-    style: {
-      position: "fixed", inset: 0, background: "rgba(8,8,15,.85)", zIndex: 9995,
-      display: "flex", alignItems: "center", justifyContent: "center",
-      backdropFilter: "blur(8px)",
-    }, onClick: props.onClose
-  },
-    React.createElement("div", {
-      style: {
-        background: "#111827", border: "1px solid rgba(78,205,196,.2)",
-        borderRadius: 16, padding: 24, maxWidth: 420, width: "90%",
-      }, onClick: function(e) { e.stopPropagation(); }
-    },
-      React.createElement("h3", { style: { color: "#F2EDE4", marginBottom: 4, fontFamily: "'Playfair Display',serif" } }, "Confirm Results?"),
-      React.createElement("p", { style: { fontSize: 12, color: "#9AAABF", marginBottom: 16 } }, "Submitted by " + (submission.submittedBy || "unknown")),
-      (submission.rankings || []).map(function(r, i) {
-        return React.createElement("div", { key: i, style: { display: "flex", alignItems: "center", gap: 10, padding: "6px 0", borderBottom: "1px solid rgba(242,237,228,.04)" } },
-          React.createElement("span", { style: { width: 28, fontSize: 12, fontWeight: 700, color: i < 3 ? ["#E8A838", "#C0C0C0", "#CD7F32"][i] : "#BECBD9" } }, ordinal(r.position)),
-          React.createElement("span", { style: { fontSize: 13, color: "#F2EDE4" } }, r.player.username || r.player.name || r.player)
-        );
-      }),
-      React.createElement("div", { style: { display: "flex", gap: 10, marginTop: 16 } },
-        React.createElement(Btn, { v: "primary", onClick: props.onConfirm },
-          React.createElement(Icon, { name: "check", style: { marginRight: 4 } }), "Confirm"
-        ),
-        React.createElement(Btn, { v: "ghost", style: { borderColor: "rgba(248,113,113,.3)", color: "#F87171" }, onClick: props.onDispute },
-          React.createElement(Icon, { name: "flag", style: { marginRight: 4 } }), "Dispute"
-        )
-      )
-    )
+  return (
+    <div
+      className="fixed inset-0 z-[9995] flex items-center justify-center"
+      style={{ background: "rgba(8,8,15,.85)", backdropFilter: "blur(8px)" }}
+      onClick={props.onClose}
+    >
+      <div
+        className="rounded-2xl p-6"
+        style={{ background: "#111827", border: "1px solid rgba(78,205,196,.2)", maxWidth: 420, width: "90%" }}
+        onClick={function(e) { e.stopPropagation(); }}
+      >
+        <h3 className="font-editorial mb-1" style={{ color: "#F2EDE4" }}>Confirm Results?</h3>
+        <p className="text-[12px] mb-4" style={{ color: "#9AAABF" }}>{"Submitted by " + (submission.submittedBy || "unknown")}</p>
+        {(submission.rankings || []).map(function(r, i) {
+          return (
+            <div key={i} className="flex items-center gap-[10px] py-[6px]" style={{ borderBottom: "1px solid rgba(242,237,228,.04)" }}>
+              <span className="text-[12px] font-bold w-7" style={{ color: i < 3 ? ["#E8A838", "#C0C0C0", "#CD7F32"][i] : "#BECBD9" }}>{ordinal(r.position)}</span>
+              <span className="text-[13px]" style={{ color: "#F2EDE4" }}>{r.player.username || r.player.name || r.player}</span>
+            </div>
+          );
+        })}
+        <div className="flex gap-[10px] mt-4">
+          <Btn v="primary" onClick={props.onConfirm}><Icon name="check" style={{ marginRight: 4 }} />Confirm</Btn>
+          <Btn v="ghost" style={{ borderColor: "rgba(248,113,113,.3)", color: "#F87171" }} onClick={props.onDispute}><Icon name="flag" style={{ marginRight: 4 }} />Dispute</Btn>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -677,21 +673,23 @@ function StandingsTable(props) {
             if (i === TIER_THRESHOLDS[ti].maxRank && i > 0) {
               var tColor = TIER_THRESHOLDS[ti].color;
               var tName = TIER_THRESHOLDS[ti].name;
-              tierLine = React.createElement("div", { key: "tier-" + i, style: { display: "flex", alignItems: "center", gap: 8, padding: "4px 14px", margin: "4px 0" } },
-                React.createElement("div", { style: { flex: 1, height: 1, background: tColor, opacity: 0.4 } }),
-                React.createElement("span", { className: "cond", style: { fontSize: 10, fontWeight: 700, color: tColor, letterSpacing: ".1em", textTransform: "uppercase" } }, tName),
-                React.createElement("div", { style: { flex: 1, height: 1, background: tColor, opacity: 0.4 } })
+              tierLine = (
+                <div key={"tier-" + i} className="flex items-center gap-2 px-[14px] my-1">
+                  <div className="flex-1 h-px opacity-40" style={{ background: tColor }} />
+                  <span className="cond text-[10px] font-bold uppercase tracking-[.1em]" style={{ color: tColor }}>{tName}</span>
+                  <div className="flex-1 h-px opacity-40" style={{ background: tColor }} />
+                </div>
               );
               break;
             }
           }
 
           var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || 4; });
-          var deltaNode = p.last_clash_rank ? React.createElement("span", {
-            style: { fontSize: 10, fontWeight: 700, color: p.last_clash_rank > (i + 1) ? "#6EE7B7" : p.last_clash_rank < (i + 1) ? "#F87171" : "#9AAABF", marginLeft: 4 }
-          },
-            React.createElement(Icon, { name: p.last_clash_rank > (i + 1) ? "arrow_upward" : "arrow_downward", style: { fontSize: 9 } }),
-            " " + Math.abs(p.last_clash_rank - (i + 1))
+          var deltaNode = p.last_clash_rank ? (
+            <span className="ml-1 text-[10px] font-bold" style={{ color: p.last_clash_rank > (i + 1) ? "#6EE7B7" : p.last_clash_rank < (i + 1) ? "#F87171" : "#9AAABF" }}>
+              <Icon name={p.last_clash_rank > (i + 1) ? "arrow_upward" : "arrow_downward"} style={{ fontSize: 9 }} />
+              {" " + Math.abs(p.last_clash_rank - (i + 1))}
+            </span>
           ) : null;
 
           var rowEl = (
@@ -736,13 +734,13 @@ function StandingsTable(props) {
               <div className="mono" style={{ fontSize: 11, color: top8 ? "#BECBD9" : "#9AAABF" }}>{p.games || 0}</div>
               {!compact && <div className="mono" style={{ fontSize: 13, color: top3 ? "#6EE7B7" : top8 ? "#6EE7B7" : "#8896A8" }}>{p.wins || 0}</div>}
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                {sparkData.length >= 2 ? React.createElement(Sparkline, { data: sparkData, w: 50, h: 16, color: "#9B72CF" }) : null}
-                {React.createElement(FormDots, { history: (p.clashHistory || []).slice(-5) })}
+                {sparkData.length >= 2 ? <Sparkline data={sparkData} w={50} h={16} color="#9B72CF" /> : null}
+                <FormDots history={(p.clashHistory || []).slice(-5)} />
               </div>
             </div>
           );
 
-          return React.createElement(React.Fragment, { key: "frag-" + i }, tierLine, rowEl);
+          return <React.Fragment key={"frag-" + i}>{tierLine}{rowEl}</React.Fragment>;
         })}
         {rows.length === 0 && <div style={{ textAlign: "center", padding: 40, color: "#8E9BB0", fontSize: 14 }}>No data yet</div>}
       </div>
@@ -757,55 +755,48 @@ var MemoStandingsTable = memo(StandingsTable);
 function LiveStandingsTable(props) {
   var standings = props.standings || [];
   if (standings.length === 0) return null;
-  return React.createElement("div", {
-    style: {
-      background: "rgba(8,8,15,.6)", border: "1px solid rgba(242,237,228,.06)",
-      borderRadius: 12, overflow: "hidden", margin: "0 16px 20px",
-    }
-  },
-    React.createElement("div", {
-      style: {
-        display: "grid", gridTemplateColumns: "36px 1fr 60px 50px",
-        padding: "8px 14px", fontSize: 10, color: "#9AAABF",
-        borderBottom: "1px solid rgba(242,237,228,.04)",
-        fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: ".06em", textTransform: "uppercase",
-      }
-    },
-      React.createElement("span", null, "#"),
-      React.createElement("span", null, "Player"),
-      React.createElement("span", { style: { textAlign: "right" } }, "Pts"),
-      React.createElement("span", { style: { textAlign: "right" } }, "Delta")
-    ),
-    standings.map(function(p, i) {
-      var isFirst = i === 0;
-      var delta = p.delta || 0;
-      var posChange = p.posChange || 0;
-      return React.createElement("div", {
-        key: p.id || p.username || p.name || i,
-        className: "fade-up",
-        style: {
-          display: "grid", gridTemplateColumns: "36px 1fr 60px 50px",
-          padding: "10px 14px", fontSize: 13,
-          background: isFirst ? "rgba(232,168,56,.04)" : "transparent",
-          borderLeft: isFirst ? "3px solid #E8A838" : "3px solid transparent",
-          animationDelay: (i * 0.05) + "s",
-        }
-      },
-        React.createElement("span", {
-          style: { color: isFirst ? "#E8A838" : "#BECBD9", fontWeight: isFirst ? 700 : 400 }
-        }, isFirst ? "\ud83d\udc51" : String(i + 1)),
-        React.createElement("span", { style: { color: "#F2EDE4", fontWeight: isFirst ? 700 : 500, display: "flex", alignItems: "center", gap: 6 } },
-          p.username || p.name,
-          posChange !== 0 ? React.createElement("span", {
-            style: { fontSize: 10, color: posChange > 0 ? "#6EE7B7" : "#F87171" }
-          }, posChange > 0 ? "\u25b2" + posChange : "\u25bc" + Math.abs(posChange)) : null
-        ),
-        React.createElement("span", { style: { textAlign: "right", color: isFirst ? "#E8A838" : "#F2EDE4", fontWeight: 700 } }, p.points || 0),
-        React.createElement("span", {
-          style: { textAlign: "right", fontSize: 12, color: delta > 0 ? "#6EE7B7" : delta < 0 ? "#F87171" : "#9AAABF" }
-        }, delta > 0 ? "+" + delta : delta === 0 ? "-" : String(delta))
-      );
-    })
+  return (
+    <div className="rounded-xl overflow-hidden mx-4 mb-5" style={{ background: "rgba(8,8,15,.6)", border: "1px solid rgba(242,237,228,.06)" }}>
+      <div className="grid px-[14px] py-2 font-condensed text-[10px] uppercase tracking-[.06em]" style={{ gridTemplateColumns: "36px 1fr 60px 50px", color: "#9AAABF", borderBottom: "1px solid rgba(242,237,228,.04)" }}>
+        <span>#</span>
+        <span>Player</span>
+        <span className="text-right">Pts</span>
+        <span className="text-right">Delta</span>
+      </div>
+      {standings.map(function(p, i) {
+        var isFirst = i === 0;
+        var delta = p.delta || 0;
+        var posChange = p.posChange || 0;
+        return (
+          <div
+            key={p.id || p.username || p.name || i}
+            className="fade-up grid px-[14px] py-[10px] text-[13px]"
+            style={{
+              gridTemplateColumns: "36px 1fr 60px 50px",
+              background: isFirst ? "rgba(232,168,56,.04)" : "transparent",
+              borderLeft: isFirst ? "3px solid #E8A838" : "3px solid transparent",
+              animationDelay: (i * 0.05) + "s",
+            }}
+          >
+            <span style={{ color: isFirst ? "#E8A838" : "#BECBD9", fontWeight: isFirst ? 700 : 400 }}>
+              {isFirst ? "\ud83d\udc51" : String(i + 1)}
+            </span>
+            <span className="flex items-center gap-[6px]" style={{ color: "#F2EDE4", fontWeight: isFirst ? 700 : 500 }}>
+              {p.username || p.name}
+              {posChange !== 0 ? (
+                <span className="text-[10px]" style={{ color: posChange > 0 ? "#6EE7B7" : "#F87171" }}>
+                  {posChange > 0 ? "\u25b2" + posChange : "\u25bc" + Math.abs(posChange)}
+                </span>
+              ) : null}
+            </span>
+            <span className="text-right font-bold" style={{ color: isFirst ? "#E8A838" : "#F2EDE4" }}>{p.points || 0}</span>
+            <span className="text-right text-[12px]" style={{ color: delta > 0 ? "#6EE7B7" : delta < 0 ? "#F87171" : "#9AAABF" }}>
+              {delta > 0 ? "+" + delta : delta === 0 ? "-" : String(delta)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -826,28 +817,31 @@ function YourFinishCard(props) {
   if (!found) return null;
   var medals = ["\ud83e\udd47", "\ud83e\udd48", "\ud83e\udd49"];
   var posChange = found.posChange || 0;
-  return React.createElement("div", {
-    className: "fade-up", style: {
-      background: "rgba(155,114,207,.06)",
-      border: "1px solid rgba(155,114,207,.25)",
-      borderLeft: "4px solid #9B72CF",
-      borderRadius: 12, padding: "16px 20px", margin: "0 16px 20px",
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-    }
-  },
-    React.createElement("div", null,
-      React.createElement("div", { style: { fontSize: 10, color: "#9AAABF", textTransform: "uppercase", letterSpacing: ".1em", marginBottom: 4, fontFamily: "'Barlow Condensed',sans-serif" } }, "Your Finish"),
-      React.createElement("div", { style: { fontSize: 24, fontWeight: 900, color: "#9B72CF", fontFamily: "'Playfair Display',serif" } },
-        found.position <= 3 ? (medals[found.position - 1] + " ") : "",
-        "#" + found.position
-      )
-    ),
-    React.createElement("div", { style: { textAlign: "right" } },
-      React.createElement("div", { style: { fontSize: 22, fontWeight: 700, color: "#E8A838" } }, (found.points || found.pts || 0) + " pts"),
-      posChange !== 0 ? React.createElement("div", { style: { fontSize: 11, color: posChange > 0 ? "#6EE7B7" : "#F87171" } },
-        posChange > 0 ? "\u25b2 " + posChange + " from last clash" : "\u25bc " + Math.abs(posChange) + " from last clash"
-      ) : null
-    )
+  return (
+    <div
+      className="fade-up rounded-xl px-5 py-4 mx-4 mb-5 flex items-center justify-between"
+      style={{
+        background: "rgba(155,114,207,.06)",
+        border: "1px solid rgba(155,114,207,.25)",
+        borderLeft: "4px solid #9B72CF",
+      }}
+    >
+      <div>
+        <div className="font-condensed text-[10px] uppercase tracking-[.1em] mb-1" style={{ color: "#9AAABF" }}>Your Finish</div>
+        <div className="font-editorial text-[24px] font-black" style={{ color: "#9B72CF" }}>
+          {found.position <= 3 ? (medals[found.position - 1] + " ") : ""}
+          {"#" + found.position}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="text-[22px] font-bold" style={{ color: "#E8A838" }}>{(found.points || found.pts || 0) + " pts"}</div>
+        {posChange !== 0 ? (
+          <div className="text-[11px]" style={{ color: posChange > 0 ? "#6EE7B7" : "#F87171" }}>
+            {posChange > 0 ? "\u25b2 " + posChange + " from last clash" : "\u25bc " + Math.abs(posChange) + " from last clash"}
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -921,26 +915,32 @@ function PlacementDistribution(props) {
   var total = counts.reduce(function(s, c) { return s + c; }, 0);
   if (total === 0) return null;
   var colors = ["#E8A838", "#C0C0C0", "#CD7F32", "#9B72CF", "#4ECDC4", "#6B7B8F", "#4A5568", "#2D3748"];
-  return React.createElement("div", { style: { marginBottom: 16 } },
-    React.createElement("div", { className: "cond", style: { fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".12em", textTransform: "uppercase", marginBottom: 6 } }, "Placement Distribution"),
-    React.createElement("div", { style: { display: "flex", height: 20, borderRadius: 6, overflow: "hidden", background: "rgba(255,255,255,.04)" } },
-      counts.map(function(c, i) {
-        var pct = total > 0 ? (c / total * 100) : 0;
-        if (pct === 0) return null;
-        return React.createElement("div", {
-          key: i,
-          title: ordinal(i + 1) + ": " + c + " (" + Math.round(pct) + "%)",
-          style: { width: pct + "%", background: colors[i], transition: "width .5s ease" }
-        });
-      })
-    ),
-    React.createElement("div", { style: { display: "flex", justifyContent: "space-between", marginTop: 4 } },
-      counts.map(function(c, i) {
-        return React.createElement("div", { key: i, style: { textAlign: "center", flex: 1, fontSize: 10, color: c > 0 ? colors[i] : "#4A5568", fontWeight: 600 } },
-          ordinal(i + 1)
-        );
-      })
-    )
+  return (
+    <div className="mb-4">
+      <div className="cond text-[10px] font-bold uppercase tracking-[.12em] mb-[6px]" style={{ color: "#9AAABF" }}>Placement Distribution</div>
+      <div className="flex h-5 rounded-[6px] overflow-hidden" style={{ background: "rgba(255,255,255,.04)" }}>
+        {counts.map(function(c, i) {
+          var pct = total > 0 ? (c / total * 100) : 0;
+          if (pct === 0) return null;
+          return (
+            <div
+              key={i}
+              title={ordinal(i + 1) + ": " + c + " (" + Math.round(pct) + "%)"}
+              style={{ width: pct + "%", background: colors[i], transition: "width .5s ease" }}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-1">
+        {counts.map(function(c, i) {
+          return (
+            <div key={i} className="text-center flex-1 text-[10px] font-semibold" style={{ color: c > 0 ? colors[i] : "#4A5568" }}>
+              {ordinal(i + 1)}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -1777,15 +1777,15 @@ function BracketScreen(props) {
   return (
     <div className="page wrap">
       {showFinalizeConfirm && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.85)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1003, padding: 16 }}>
+        <div className="fixed inset-0 flex items-center justify-center z-[1003] p-4" style={{ background: "rgba(0,0,0,.85)" }}>
           <Panel glow style={{ width: "100%", maxWidth: 420, padding: "28px" }}>
-            <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}><Icon name="emoji_events" /></div>
-              <h3 style={{ color: "#F2EDE4", fontSize: 20, marginBottom: 8 }}>Finalize This Clash?</h3>
-              <p style={{ color: "#BECBD9", fontSize: 14, lineHeight: 1.5, marginBottom: 4 }}>This will end the tournament and post final results. All {checkedIn.length} players will receive their season points.</p>
-              <p style={{ color: "#E8A838", fontSize: 12, fontWeight: 600 }}>This action cannot be undone.</p>
+            <div className="text-center mb-5">
+              <div className="text-5xl mb-3"><Icon name="emoji_events" /></div>
+              <h3 className="text-on-surface text-xl mb-2">Finalize This Clash?</h3>
+              <p className="text-[#BECBD9] text-sm leading-relaxed mb-1">This will end the tournament and post final results. All {checkedIn.length} players will receive their season points.</p>
+              <p className="text-primary text-xs font-semibold">This action cannot be undone.</p>
             </div>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <div className="flex gap-2.5 justify-center">
               <Btn v="dark" onClick={function() { setShowFinalizeConfirm(false); }}>Cancel</Btn>
               <Btn v="primary" onClick={function() {
                 setShowFinalizeConfirm(false);
@@ -1798,22 +1798,21 @@ function BracketScreen(props) {
         </div>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+      <div className="flex items-center gap-2.5 mb-5 flex-wrap">
         <Btn v="dark" s="sm" onClick={function() { setScreen("home"); }}>{"<-"} Back</Btn>
-        <h2 style={{ color: "#F2EDE4", fontSize: 20, margin: 0, flex: 1, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+        <h2 className="text-on-surface text-xl m-0 flex-1 flex items-center gap-2.5 flex-wrap">
           <span>Game {round}/{tournamentState.totalGames || 4}</span>
-          <span style={{
-            fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 12, letterSpacing: ".08em", textTransform: "uppercase",
+          <span className="font-condensed text-[10px] font-bold px-2.5 py-0.5 rounded-xl tracking-widest uppercase" style={{
             background: tournamentState.phase === "inprogress" ? "rgba(82,196,124,.12)" : tournamentState.phase === "complete" ? "rgba(78,205,196,.12)" : "rgba(155,114,207,.12)",
             color: tournamentState.phase === "inprogress" ? "#6EE7B7" : tournamentState.phase === "complete" ? "#4ECDC4" : "#C4B5FD",
             border: "1px solid " + (tournamentState.phase === "inprogress" ? "rgba(82,196,124,.3)" : tournamentState.phase === "complete" ? "rgba(78,205,196,.3)" : "rgba(155,114,207,.3)")
           }}>
             {tournamentState.phase === "inprogress" ? "Live" : tournamentState.phase === "complete" ? "Complete" : tournamentState.phase === "checkin" ? "Check-in" : "Setup"}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 400, color: "#BECBD9" }}>{lobbies.length} {lobbies.length === 1 ? "Lobby" : "Lobbies"} - {checkedIn.length} players</span>
+          <span className="text-[13px] font-normal text-[#BECBD9]">{lobbies.length} {lobbies.length === 1 ? "Lobby" : "Lobbies"} - {checkedIn.length} players</span>
         </h2>
         {isAdmin && (
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="flex gap-2">
             <Btn v="dark" s="sm" disabled={round <= 1} onClick={function() { setTournamentState(function(ts) { return Object.assign({}, ts, { round: ts.round - 1, lockedLobbies: [], savedLobbies: [] }); }); }}>{"<-"} Round</Btn>
             <Btn v="primary" s="sm" disabled={!allLocked} onClick={function() {
               var maxRounds = tournamentState.totalGames || 4;
@@ -1850,23 +1849,23 @@ function BracketScreen(props) {
       </div>
 
       {allLocked && checkedIn.length > 0 && (
-        <div style={{ background: "rgba(82,196,124,.08)", border: "1px solid rgba(82,196,124,.3)", borderRadius: 10, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10, animation: "pulse 2s infinite" }}>
-          <span style={{ fontSize: 16 }}><Icon name="check_circle" style={{ color: "#52C47C" }} /></span>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#6EE7B7", flex: 1 }}>All {lobbies.length} lobbies locked - {round >= (tournamentState.totalGames || 4) ? "ready to finalize!" : "ready for next game!"}{isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) ? " Auto-advancing in " + autoAdvanceCountdown + "s" : ""}</span>
+        <div className="flex items-center gap-2.5 rounded-[10px] px-4 py-2.5 mb-4" style={{ background: "rgba(82,196,124,.08)", border: "1px solid rgba(82,196,124,.3)", animation: "pulse 2s infinite" }}>
+          <Icon name="check_circle" style={{ fontSize: 16, color: "#52C47C" }} />
+          <span className="text-[13px] font-semibold text-[#6EE7B7] flex-1">All {lobbies.length} lobbies locked - {round >= (tournamentState.totalGames || 4) ? "ready to finalize!" : "ready for next game!"}{isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) ? " Auto-advancing in " + autoAdvanceCountdown + "s" : ""}</span>
           {isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) && (
-            <button onClick={cancelAutoAdvance} style={{ fontSize: 11, color: "#F87171", fontWeight: 700, cursor: "pointer", background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.3)", borderRadius: 6, padding: "4px 12px", fontFamily: "inherit", whiteSpace: "nowrap" }}>Cancel</button>
+            <button onClick={cancelAutoAdvance} className="text-[11px] font-bold cursor-pointer rounded-md px-3 py-1 whitespace-nowrap" style={{ color: "#F87171", background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.3)", fontFamily: "inherit" }}>Cancel</button>
           )}
         </div>
       )}
 
       {checkedIn.length === 0 && (
-        <div style={{ textAlign: "center", padding: "60px 20px" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>
+        <div className="text-center py-16 px-5">
+          <div className="text-5xl mb-4">
             {tournamentState && tournamentState.phase === "complete" ? <Icon name="emoji_events" /> : tournamentState && tournamentState.phase === "inprogress" ? <Icon name="bolt" /> : <Icon name="sports_esports" />}
           </div>
-          <h3 style={{ color: "#F2EDE4", marginBottom: 8 }}>{tournamentState && tournamentState.phase === "complete" ? "Tournament Complete" : tournamentState && tournamentState.phase === "inprogress" ? "Waiting for Players" : "No Active Tournament"}</h3>
-          <p style={{ color: "#BECBD9", fontSize: 14, marginBottom: 20 }}>{tournamentState && tournamentState.phase === "complete" ? "The last tournament has been finalized. Check Results for the full breakdown." : tournamentState && tournamentState.phase === "inprogress" ? "Players need to check in to join the bracket." : "No tournament is running right now. Check back when the next clash is announced!"}</p>
-          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+          <h3 className="text-on-surface mb-2">{tournamentState && tournamentState.phase === "complete" ? "Tournament Complete" : tournamentState && tournamentState.phase === "inprogress" ? "Waiting for Players" : "No Active Tournament"}</h3>
+          <p className="text-[#BECBD9] text-sm mb-5">{tournamentState && tournamentState.phase === "complete" ? "The last tournament has been finalized. Check Results for the full breakdown." : tournamentState && tournamentState.phase === "inprogress" ? "Players need to check in to join the bracket." : "No tournament is running right now. Check back when the next clash is announced!"}</p>
+          <div className="flex gap-2.5 justify-center">
             <Btn v="primary" onClick={function() { setScreen("home"); }}>{"<-"} Back to Home</Btn>
             {tournamentState && tournamentState.phase === "complete" && <Btn v="dark" onClick={function() { setScreen("results"); }}>View Results</Btn>}
           </div>
@@ -1877,45 +1876,44 @@ function BracketScreen(props) {
         <>
           {/* Find my lobby */}
           <Panel style={{ padding: "14px 16px", marginBottom: 20, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 13, color: "#C8D4E0", flexShrink: 0 }}><Icon name="search" style={{ fontSize: 13, marginRight: 4 }} />Find your lobby:</span>
+            <span className="text-[13px] text-[#C8D4E0] shrink-0"><Icon name="search" style={{ fontSize: 13, marginRight: 4 }} />Find your lobby:</span>
             <Inp value={mySearch} onChange={setMySearch} placeholder="Your name or Riot ID" onKeyDown={function(e) { if (e.key === "Enter") findMyLobby(); }} />
             <Btn v="purple" s="sm" onClick={findMyLobby}>Find Me</Btn>
-            {effectiveHighlight !== null && <span style={{ fontSize: 12, color: "#6EE7B7", fontWeight: 600 }}>You are in Lobby {effectiveHighlight + 1}</span>}
+            {effectiveHighlight !== null && <span className="text-xs text-[#6EE7B7] font-semibold">You are in Lobby {effectiveHighlight + 1}</span>}
           </Panel>
 
           {/* Lobby lock progress */}
           {lobbies.length > 0 && tournamentState.phase === "inprogress" && (
-            <div style={{ marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ flex: 1, background: "rgba(255,255,255,.04)", borderRadius: 8, height: 6, overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 8, background: allLocked ? "linear-gradient(90deg,#52C47C,#6EE7B7)" : "linear-gradient(90deg,#E8A838,#9B72CF)", width: Math.round(lockedLobbies.length / lobbies.length * 100) + "%", transition: "width .5s ease" }} />
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex-1 rounded-lg h-1.5 overflow-hidden" style={{ background: "rgba(255,255,255,.04)" }}>
+                <div className="h-full rounded-lg" style={{ background: allLocked ? "linear-gradient(90deg,#52C47C,#6EE7B7)" : "linear-gradient(90deg,#E8A838,#9B72CF)", width: Math.round(lockedLobbies.length / lobbies.length * 100) + "%", transition: "width .5s ease" }} />
               </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: allLocked ? "#6EE7B7" : "#E8A838", whiteSpace: "nowrap" }}>{lockedLobbies.length}/{lobbies.length} locked</span>
+              <span className="text-[11px] font-bold whitespace-nowrap" style={{ color: allLocked ? "#6EE7B7" : "#E8A838" }}>{lockedLobbies.length}/{lobbies.length} locked</span>
             </div>
           )}
 
           {/* Complete banner */}
           {tournamentState && tournamentState.phase === "complete" && (
-            <div style={{ background: "rgba(232,168,56,.1)", border: "1px solid rgba(232,168,56,.4)", borderRadius: 10, padding: "14px 18px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 22 }}><Icon name="emoji_events" /></span>
+            <div className="flex items-center gap-3 rounded-[10px] px-[18px] py-3.5 mb-4" style={{ background: "rgba(232,168,56,.1)", border: "1px solid rgba(232,168,56,.4)" }}>
+              <Icon name="emoji_events" style={{ fontSize: 22 }} />
               <div>
-                <div style={{ fontWeight: 700, color: "#E8A838", fontSize: 15 }}>Clash Complete!</div>
-                <div style={{ fontSize: 12, color: "#C8D4E0" }}>All rounds locked. View final standings on the Leaderboard.</div>
+                <div className="font-bold text-primary text-[15px]">Clash Complete!</div>
+                <div className="text-xs text-[#C8D4E0]">All rounds locked. View final standings on the Leaderboard.</div>
               </div>
               <Btn v="primary" s="sm" style={{ marginLeft: "auto" }} onClick={function() { setScreen("leaderboard"); }}>View Results {"->"}</Btn>
             </div>
           )}
 
-          <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          <div className="flex gap-2 mb-5 flex-wrap">
             {[1, 2, 3].map(function(r) {
               return (
-                <div key={r} style={{
-                  flex: 1, minWidth: 80,
+                <div key={r} className="flex-1 rounded-lg px-3.5 py-2.5 text-center" style={{
+                  minWidth: 80,
                   background: r < round ? "rgba(82,196,124,.08)" : r === round ? "rgba(232,168,56,.08)" : "rgba(255,255,255,.02)",
-                  border: "1px solid " + (r < round ? "rgba(82,196,124,.3)" : r === round ? "rgba(232,168,56,.4)" : "rgba(242,237,228,.08)"),
-                  borderRadius: 8, padding: "10px 14px", textAlign: "center"
+                  border: "1px solid " + (r < round ? "rgba(82,196,124,.3)" : r === round ? "rgba(232,168,56,.4)" : "rgba(242,237,228,.08)")
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF", letterSpacing: ".08em", textTransform: "uppercase", marginBottom: 2 }}>Round {r}</div>
-                  <div style={{ fontSize: 11, color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF" }}>{r < round ? "Complete" : r === round ? "In Progress" : "Upcoming"}</div>
+                  <div className="font-condensed text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF" }}>Round {r}</div>
+                  <div className="text-[11px]" style={{ color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF" }}>{r < round ? "Complete" : r === round ? "In Progress" : "Upcoming"}</div>
                 </div>
               );
             })}
@@ -1927,67 +1925,61 @@ function BracketScreen(props) {
               var isMyLobby = effectiveHighlight === li;
               var lobbyLocked = lockedLobbies.includes(li);
               return (
-                <div key={li} style={{
+                <div key={li} className="rounded-[14px] overflow-hidden transition-shadow" style={{
                   background: isMyLobby ? "rgba(155,114,207,.06)" : "#111827",
                   border: "2px solid " + (isMyLobby ? "#9B72CF" : lobbyLocked ? "rgba(82,196,124,.35)" : "rgba(242,237,228,.1)"),
-                  borderRadius: 14, overflow: "hidden",
-                  boxShadow: isMyLobby ? "0 0 24px rgba(155,114,207,.15)" : "none",
-                  transition: "box-shadow .2s"
+                  boxShadow: isMyLobby ? "0 0 24px rgba(155,114,207,.15)" : "none"
                 }}>
                   {/* Lobby header */}
-                  <div style={{
-                    padding: "14px 16px", background: isMyLobby ? "rgba(155,114,207,.1)" : "rgba(255,255,255,.02)",
-                    borderBottom: "1px solid rgba(242,237,228,.07)", display: "flex", alignItems: "center", justifyContent: "space-between"
+                  <div className="px-4 py-3.5 flex items-center justify-between" style={{
+                    background: isMyLobby ? "rgba(155,114,207,.1)" : "rgba(255,255,255,.02)",
+                    borderBottom: "1px solid rgba(242,237,228,.07)"
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: 8,
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center font-mono text-[13px] font-extrabold shrink-0" style={{
                         background: isMyLobby ? "rgba(155,114,207,.2)" : lobbyLocked ? "rgba(82,196,124,.12)" : "rgba(232,168,56,.08)",
                         border: "1px solid " + (isMyLobby ? "rgba(155,114,207,.5)" : lobbyLocked ? "rgba(82,196,124,.3)" : "rgba(232,168,56,.2)"),
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 13, fontWeight: 800, color: isMyLobby ? "#9B72CF" : lobbyLocked ? "#6EE7B7" : "#E8A838"
+                        color: isMyLobby ? "#9B72CF" : lobbyLocked ? "#6EE7B7" : "#E8A838"
                       }}>
                         {li + 1}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: "#F2EDE4" }}>Lobby {li + 1}</div>
-                        <div style={{ fontSize: 11, color: "#BECBD9" }}>{lobby.length} players{isMyLobby ? " - Your Lobby" : ""}</div>
+                        <div className="font-bold text-[14px] text-on-surface">Lobby {li + 1}</div>
+                        <div className="text-[11px] text-[#BECBD9]">{lobby.length} players{isMyLobby ? " - Your Lobby" : ""}</div>
                       </div>
                     </div>
-                    {isMyLobby && <div style={{ fontSize: 12, fontWeight: 700, color: "#9B72CF", background: "rgba(155,114,207,.12)", border: "1px solid rgba(155,114,207,.3)", borderRadius: 6, padding: "3px 10px" }}>YOU</div>}
-                    {lobbyLocked && !isMyLobby && <div style={{ fontSize: 11, color: "#6EE7B7", fontWeight: 700 }}>Locked</div>}
-                    {lobbyLocked && isAdmin && <button onClick={function(e) { e.stopPropagation(); unlockLobby(li); }} style={{ fontSize: 11, color: "#F87171", fontWeight: 700, cursor: "pointer", background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.3)", borderRadius: 6, padding: "3px 10px", marginLeft: 6 }}>Unlock</button>}
+                    {isMyLobby && <div className="text-xs font-bold rounded-md px-2.5 py-0.5" style={{ color: "#9B72CF", background: "rgba(155,114,207,.12)", border: "1px solid rgba(155,114,207,.3)" }}>YOU</div>}
+                    {lobbyLocked && !isMyLobby && <div className="text-[11px] text-[#6EE7B7] font-bold">Locked</div>}
+                    {lobbyLocked && isAdmin && <button onClick={function(e) { e.stopPropagation(); unlockLobby(li); }} className="text-[11px] font-bold cursor-pointer rounded-md px-2.5 py-0.5 ml-1.5" style={{ color: "#F87171", background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.3)", fontFamily: "inherit" }}>Unlock</button>}
                   </div>
 
                   {/* Player list */}
-                  <div style={{ padding: "10px 12px" }}>
+                  <div className="px-3 py-2.5">
                     {[].concat(lobby).sort(function(a, b) { return b.pts - a.pts; }).map(function(p, pi) {
                       var isMe = currentUser && p.name === currentUser.username;
                       var homie = HOMIES_IDS.includes(p.id);
                       return (
                         <div key={p.id} onClick={function() { setProfilePlayer(p); setScreen("profile"); }}
+                          className="flex items-center gap-2.5 px-1.5 py-2 rounded-md cursor-pointer transition-colors"
                           style={{
-                            display: "flex", alignItems: "center", gap: 10, padding: "8px 6px",
                             borderBottom: pi < lobby.length - 1 ? "1px solid rgba(242,237,228,.05)" : "none",
-                            cursor: "pointer", borderRadius: 6,
-                            background: isMe ? "rgba(155,114,207,.08)" : "transparent",
-                            transition: "background .15s"
+                            background: isMe ? "rgba(155,114,207,.08)" : "transparent"
                           }}
                           onMouseEnter={function(e) { e.currentTarget.style.background = isMe ? "rgba(155,114,207,.12)" : "rgba(242,237,228,.03)"; }}
                           onMouseLeave={function(e) { e.currentTarget.style.background = isMe ? "rgba(155,114,207,.08)" : "transparent"; }}>
-                          <div className="mono" style={{ fontSize: 12, fontWeight: 800, color: pi === 0 ? "#E8A838" : pi === 1 ? "#C0C0C0" : pi === 2 ? "#CD7F32" : "#9AAABF", minWidth: 18, textAlign: "center" }}>{pi + 1}</div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                              <span style={{ fontWeight: isMe ? 700 : 600, fontSize: 13, color: isMe ? "#C4B5FD" : "#F2EDE4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-                              {homie && <span style={{ fontSize: 10 }}><Icon name="favorite" style={{ color: "#9B72CF" }} /></span>}
-                              {isHotStreak(p) && <span style={{ fontSize: 10 }}><Icon name="local_fire_department" style={{ color: "#F97316" }} /></span>}
+                          <div className="mono text-xs font-extrabold min-w-[18px] text-center" style={{ color: pi === 0 ? "#E8A838" : pi === 1 ? "#C0C0C0" : pi === 2 ? "#CD7F32" : "#9AAABF" }}>{pi + 1}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[13px] overflow-hidden text-ellipsis whitespace-nowrap" style={{ fontWeight: isMe ? 700 : 600, color: isMe ? "#C4B5FD" : "#F2EDE4" }}>{p.name}</span>
+                              {homie && <span className="text-[10px]"><Icon name="favorite" style={{ color: "#9B72CF" }} /></span>}
+                              {isHotStreak(p) && <span className="text-[10px]"><Icon name="local_fire_department" style={{ color: "#F97316" }} /></span>}
                             </div>
-                            <div style={{ fontSize: 10, color: "#BECBD9" }}>{p.rank} - {p.region}</div>
+                            <div className="text-[10px] text-[#BECBD9]">{p.rank} - {p.region}</div>
                           </div>
-                          <div className="mono" style={{ fontSize: 12, fontWeight: 700, color: "#E8A838", flexShrink: 0 }}>{p.pts}pts</div>
+                          <div className="mono text-xs font-bold text-primary shrink-0">{p.pts}pts</div>
                           {isMe && !lobbyLocked && tournamentState.phase === "inprogress" && (
                             playerSubmissions[li] && playerSubmissions[li][p.id] ? (
-                              <div style={{ fontSize: 10, color: "#6EE7B7", fontWeight: 700, flexShrink: 0 }}>#{playerSubmissions[li][p.id].placement} Submitted</div>
+                              <div className="text-[10px] text-[#6EE7B7] font-bold shrink-0">#{playerSubmissions[li][p.id].placement} Submitted</div>
                             ) : (
                               <Sel value="" onChange={function(v) { if (v) submitMyPlacement(li, p.id, p.name, v); }} style={{ width: 52, fontSize: 11, flexShrink: 0 }}>
                                 <option value=""> - </option>
@@ -2004,21 +1996,21 @@ function BracketScreen(props) {
                   {isAdmin && !lobbyLocked && (
                     <div style={{ borderTop: "1px solid rgba(242,237,228,.06)" }}>
                       {(!placementEntry[li] || !placementEntry[li].open) ? (
-                        <div style={{ padding: "10px 12px", background: "rgba(255,255,255,.01)" }}>
+                        <div className="px-3 py-2.5" style={{ background: "rgba(255,255,255,.01)" }}>
                           <Btn v="teal" s="sm" full onClick={function() { openPlacementEntry(li); }}>
                             Enter Placements{playerSubmissions[li] ? " (" + Object.keys(playerSubmissions[li]).length + " submitted)" : ""}
                           </Btn>
                         </div>
                       ) : (
-                        <div style={{ padding: "12px", background: "rgba(78,205,196,.03)", borderTop: "1px solid rgba(78,205,196,.12)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: "#4ECDC4", marginBottom: 10, textTransform: "uppercase", letterSpacing: ".08em" }}>Enter Placements - Round {round}</div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 10 }}>
+                        <div className="p-3" style={{ background: "rgba(78,205,196,.03)", borderTop: "1px solid rgba(78,205,196,.12)" }}>
+                          <div className="font-condensed text-[11px] font-bold text-[#4ECDC4] mb-2.5 uppercase tracking-widest">Enter Placements - Round {round}</div>
+                          <div className="flex flex-col gap-1.5 mb-2.5">
                             {[].concat(lobby).sort(function(a, b) { return b.pts - a.pts; }).map(function(p) {
                               var dup = lobby.filter(function(x) { return placementEntry[li].placements[x.id] === placementEntry[li].placements[p.id]; }).length > 1;
                               var wasSelfSubmitted = ((playerSubmissions || {})[li] || {})[p.id];
                               return (
-                                <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                  <span style={{ fontSize: 12, color: "#F2EDE4", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}{wasSelfSubmitted && <span style={{ fontSize: 9, color: "#4ECDC4", fontWeight: 700, marginLeft: 4 }}>SELF</span>}</span>
+                                <div key={p.id} className="flex items-center gap-2">
+                                  <span className="text-xs text-on-surface flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{p.name}{wasSelfSubmitted && <span className="text-[9px] text-[#4ECDC4] font-bold ml-1">SELF</span>}</span>
                                   <Sel value={placementEntry[li].placements[p.id] || "1"} onChange={function(v) { setPlace(li, p.id, v); }} style={{ width: 60, border: dup ? "1px solid #F87171" : undefined }}>
                                     {[1, 2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n}</option>; })}
                                     <option value="0">DNP</option>
@@ -2027,8 +2019,8 @@ function BracketScreen(props) {
                               );
                             })}
                           </div>
-                          {!placementValid(li) && <div style={{ fontSize: 11, color: "#F87171", marginBottom: 8 }}>Each placement must be unique (1-8)</div>}
-                          <div style={{ display: "flex", gap: 8 }}>
+                          {!placementValid(li) && <div className="text-[11px] text-error mb-2">Each placement must be unique (1-8)</div>}
+                          <div className="flex gap-2">
                             <Btn v="success" s="sm" full disabled={!placementValid(li)} onClick={function() { applyGameResults(li); }}>Confirm and Lock</Btn>
                             <Btn v="dark" s="sm" onClick={function() { setPlacementEntry(function(pe) { return Object.assign({}, pe, { [li]: Object.assign({}, pe[li], { open: false }) }); }); }}>Cancel</Btn>
                           </div>
@@ -2047,9 +2039,9 @@ function BracketScreen(props) {
           {/* Finals display */}
           {round > 3 && checkedIn.length > 0 && (
             <Panel style={{ padding: "24px", marginTop: 24, textAlign: "center" }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}><Icon name="emoji_events" /></div>
-              <h3 style={{ color: "#E8A838", fontSize: 20, marginBottom: 8 }}>Grand Finals</h3>
-              <p style={{ color: "#BECBD9", fontSize: 14 }}>All rounds complete. Finals results locked in.</p>
+              <div className="text-[32px] mb-3"><Icon name="emoji_events" /></div>
+              <h3 className="text-primary text-xl mb-2">Grand Finals</h3>
+              <p className="text-[#BECBD9] text-sm">All rounds complete. Finals results locked in.</p>
             </Panel>
           )}
         </>
@@ -2075,39 +2067,43 @@ function ClashScreen(props) {
   if (!phase) {
     var idlePlayers = props.players || [];
     var idleTop5 = [].concat(idlePlayers).sort(function(a, b) { return (b.pts || 0) - (a.pts || 0); }).slice(0, 5);
-    return React.createElement("div", { className: "page fade-up", style: { padding: "40px 20px", maxWidth: 600, margin: "0 auto" } },
-      React.createElement("div", { style: { textAlign: "center", marginBottom: 32 } },
-        React.createElement(Icon, { name: "sports_esports", style: { fontSize: 48, color: "#9B72CF", opacity: .35, display: "block", marginBottom: 12 } }),
-        React.createElement("h2", { style: { color: "#F2EDE4", marginBottom: 6, fontFamily: "'Playfair Display',serif", fontSize: 26 } }, "No Active Clash"),
-        React.createElement("p", { style: { fontSize: 14, color: "#9AAABF", maxWidth: 380, margin: "0 auto", lineHeight: 1.6 } }, "Stay tuned for the next clash. Keep an eye on announcements and warm up in scrims!")
-      ),
-      idleTop5.length > 0 ? React.createElement(Panel, { style: { padding: "16px 18px", marginBottom: 20 } },
-        React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 8, marginBottom: 12 } },
-          React.createElement(Icon, { name: "emoji_events", style: { fontSize: 16, color: "#E8A838" } }),
-          React.createElement("span", { style: { fontWeight: 700, fontSize: 13, color: "#F2EDE4", letterSpacing: ".02em" } }, "Season Standings")
-        ),
-        idleTop5.map(function(p, i) {
-          return React.createElement("div", {
-            key: p.id || i,
-            onClick: function() { props.setProfilePlayer(p); props.setScreen("profile"); },
-            style: { display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: i > 0 ? "1px solid rgba(242,237,228,.06)" : "none", cursor: "pointer" }
-          },
-            React.createElement("span", { className: "mono", style: { fontSize: 12, fontWeight: 700, color: i === 0 ? "#E8A838" : i < 3 ? "#C4B5FD" : "#BECBD9", width: 20, textAlign: "center" } }, "#" + (i + 1)),
-            React.createElement("span", { style: { flex: 1, fontWeight: 600, fontSize: 13, color: "#F2EDE4" } }, p.name),
-            React.createElement("span", { className: "mono", style: { fontSize: 13, fontWeight: 700, color: "#E8A838" } }, p.pts || 0),
-            React.createElement("span", { style: { fontSize: 10, color: "#9AAABF", marginLeft: 2 } }, "pts")
-          );
-        })
-      ) : null,
-      React.createElement("div", { style: { display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" } },
-        React.createElement(Btn, { v: "primary", onClick: function() { props.setScreen("standings"); } }, "View Standings"),
-        React.createElement(Btn, { v: "ghost", onClick: function() { props.setScreen("events"); } }, "Browse Past Events")
-      )
+    return (
+      <div className="page fade-up" style={{ padding: "40px 20px", maxWidth: 600, margin: "0 auto" }}>
+        <div className="text-center mb-8">
+          <Icon name="sports_esports" style={{ fontSize: 48, color: "#9B72CF", opacity: .35, display: "block", marginBottom: 12 }} />
+          <h2 className="font-editorial text-on-surface mb-1.5" style={{ fontSize: 26 }}>No Active Clash</h2>
+          <p className="text-sm text-[#9AAABF] leading-relaxed mx-auto" style={{ maxWidth: 380 }}>Stay tuned for the next clash. Keep an eye on announcements and warm up in scrims!</p>
+        </div>
+        {idleTop5.length > 0 && (
+          <Panel style={{ padding: "16px 18px", marginBottom: 20 }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name="emoji_events" style={{ fontSize: 16, color: "#E8A838" }} />
+              <span className="font-bold text-[13px] text-on-surface tracking-[.02em]">Season Standings</span>
+            </div>
+            {idleTop5.map(function(p, i) {
+              return (
+                <div key={p.id || i} onClick={function() { props.setProfilePlayer(p); props.setScreen("profile"); }}
+                  className="flex items-center gap-2.5 py-2 cursor-pointer"
+                  style={{ borderTop: i > 0 ? "1px solid rgba(242,237,228,.06)" : "none" }}>
+                  <span className="mono text-xs font-bold w-5 text-center" style={{ color: i === 0 ? "#E8A838" : i < 3 ? "#C4B5FD" : "#BECBD9" }}>{"#" + (i + 1)}</span>
+                  <span className="flex-1 font-semibold text-[13px] text-on-surface">{p.name}</span>
+                  <span className="mono text-[13px] font-bold text-primary">{p.pts || 0}</span>
+                  <span className="text-[10px] text-[#9AAABF] ml-0.5">pts</span>
+                </div>
+              );
+            })}
+          </Panel>
+        )}
+        <div className="flex gap-2.5 justify-center flex-wrap">
+          <Btn v="primary" onClick={function() { props.setScreen("standings"); }}>View Standings</Btn>
+          <Btn v="ghost" onClick={function() { props.setScreen("events"); }}>Browse Past Events</Btn>
+        </div>
+      </div>
     );
   }
 
   var recapData = phase === "complete" ? generateRecap(props.tournamentState) : null;
-  var recapEl = recapData ? React.createElement(ClashRecap, { recap: recapData, toast: props.toast }) : null;
+  var recapEl = recapData ? <ClashRecap recap={recapData} toast={props.toast} /> : null;
 
   // Awards computation for complete phase
   var awardsEl = null;
@@ -2130,157 +2126,143 @@ function ClashScreen(props) {
       comebackPlayer && bestClimb >= 2 ? { icon: "trending_up", label: "Comeback King", name: comebackPlayer.username || comebackPlayer.name, color: "#6EE7B7" } : null,
       clutchPlayer ? { icon: "bolt", label: "Clutch Player", name: clutchPlayer.username || clutchPlayer.name, color: "#C4B5FD" } : null,
     ].filter(Boolean);
-    awardsEl = React.createElement("div", { style: { margin: "0 16px 20px" } },
-      React.createElement("div", { style: { fontSize: 10, textTransform: "uppercase", letterSpacing: ".12em", color: "#9AAABF", fontWeight: 700, marginBottom: 10, fontFamily: "'Barlow Condensed',sans-serif" } }, "Awards"),
-      React.createElement("div", { style: { display: "flex", gap: 8, flexWrap: "wrap" } },
-        awardsList.map(function(a, i) {
-          return React.createElement("div", {
-            key: i, style: {
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "8px 14px", borderRadius: 10,
-              background: "rgba(17,24,39,.8)",
-              border: "1px solid rgba(" + hexToRgb(a.color) + ",.2)",
-              flex: "1 1 140px", minWidth: 0,
-            }
-          },
-            React.createElement(Icon, { name: a.icon, style: { fontSize: 18, color: a.color, flexShrink: 0 } }),
-            React.createElement("div", { style: { minWidth: 0 } },
-              React.createElement("div", { style: { fontSize: 10, color: a.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".08em", fontFamily: "'Barlow Condensed',sans-serif" } }, a.label),
-              React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#F2EDE4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, a.name)
-            )
-          );
-        })
-      )
+    awardsEl = (
+      <div className="mx-4 mb-5">
+        <div className="font-condensed text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold mb-2.5">Awards</div>
+        <div className="flex gap-2 flex-wrap">
+          {awardsList.map(function(a, i) {
+            return (
+              <div key={i} className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] min-w-0" style={{
+                background: "rgba(17,24,39,.8)",
+                border: "1px solid rgba(" + hexToRgb(a.color) + ",.2)",
+                flex: "1 1 140px"
+              }}>
+                <Icon name={a.icon} style={{ fontSize: 18, color: a.color, flexShrink: 0 }} />
+                <div className="min-w-0">
+                  <div className="font-condensed text-[10px] font-bold uppercase tracking-widest" style={{ color: a.color }}>{a.label}</div>
+                  <div className="text-[13px] font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{a.name}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     );
   }
 
   // Registered players for scouting cards
   var registeredPlayers = phase === "registration" ? (props.players || []).filter(function(p) { return p.registered || p.checkedIn; }) : [];
 
-  return React.createElement("div", { className: "page fade-up" },
-    React.createElement("div", {
-      style: {
-        position: "relative", overflow: "hidden",
-        padding: "16px 20px", margin: "0 16px 20px",
-        borderRadius: 14,
+  return (
+    <div className="page fade-up">
+      {/* Phase header bar */}
+      <div className="relative overflow-hidden px-5 py-4 mx-4 mb-5 rounded-[14px]" style={{
         background: "rgba(17,24,39,.8)",
-        border: "1px solid rgba(" + hexToRgb(accentColor) + ",.2)",
-      }
-    },
-      React.createElement("div", {
-        style: {
-          position: "absolute", top: 0, left: 0, right: 0, height: 3,
-          background: "linear-gradient(90deg,transparent," + accentColor + ",transparent)",
-        }
-      }),
-      phase === "live" ? React.createElement("div", {
-        style: {
-          position: "absolute", top: "-50%", left: "30%", width: "40%", height: "200%",
-          background: "radial-gradient(ellipse,rgba(232,168,56,.06) 0%,transparent 70%)",
-          pointerEvents: "none",
-        }
-      }) : null,
-      React.createElement("div", { style: { display: "flex", alignItems: "center", gap: 10 } },
-        React.createElement("div", {
-          style: {
+        border: "1px solid rgba(" + hexToRgb(accentColor) + ",.2)"
+      }}>
+        <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,transparent," + accentColor + ",transparent)" }} />
+        {phase === "live" && (
+          <div className="absolute pointer-events-none" style={{ top: "-50%", left: "30%", width: "40%", height: "200%", background: "radial-gradient(ellipse,rgba(232,168,56,.06) 0%,transparent 70%)" }} />
+        )}
+        <div className="flex items-center gap-2.5">
+          <div style={{
             width: 8, height: 8, borderRadius: "50%", background: accentColor,
             boxShadow: phase === "live" ? "0 0 12px " + accentColor + ", 0 0 24px " + accentColor : "none",
-            animation: phase === "live" ? "live-dot 1.5s ease infinite" : "none",
-          }
-        }),
-        React.createElement("span", {
-          style: {
-            fontSize: 11, textTransform: "uppercase", letterSpacing: ".1em",
-            color: accentColor, fontWeight: 700,
-            fontFamily: "'Barlow Condensed',sans-serif",
-          }
-        }, phaseLabels[phase] || "Clash"),
-        phase === "live" ? React.createElement("span", {
-          style: {
-            marginLeft: "auto", fontSize: 10, color: "#E8A838",
-            fontFamily: "'Barlow Condensed',sans-serif",
-            letterSpacing: ".06em", opacity: .7,
-          }
-        }, "LIVE") : null
-      )
-    ),
-    phase === "registration" && registeredPlayers.length > 0 ? React.createElement("div", { style: { margin: "0 16px 20px" } },
-      React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 } },
-        React.createElement("div", { style: { fontSize: 10, textTransform: "uppercase", letterSpacing: ".12em", color: "#9AAABF", fontWeight: 700, fontFamily: "'Barlow Condensed',sans-serif" } }, "Registered - " + registeredPlayers.length + " players"),
-        React.createElement("div", { style: { fontSize: 10, color: "#9AAABF", fontFamily: "'Barlow Condensed',sans-serif" } }, "Scout the field")
-      ),
-      React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 6 } },
-        registeredPlayers.map(function(p, idx) {
-          var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || c.place || 4; });
-          return React.createElement("div", {
-            key: p.id || p.username || idx,
-            style: {
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 12px",
-              background: "rgba(255,255,255,.03)",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,.06)",
-              cursor: "pointer",
-            },
-            onClick: function() { if (props.setProfilePlayer && props.setScreen) { props.setProfilePlayer(p); props.setScreen("profile"); } }
-          },
-            React.createElement("div", {
-              style: {
-                width: 28, height: 28, borderRadius: 8,
-                background: "linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 800, color: "#C4B5FD", flexShrink: 0,
-              }
-            }, "#" + (idx + 1)),
-            React.createElement("div", { style: { flex: 1, minWidth: 0 } },
-              React.createElement("div", { style: { fontSize: 13, fontWeight: 700, color: "#F2EDE4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, p.username || p.name || "Player"),
-              React.createElement("div", { style: { fontSize: 10, color: "#9AAABF" } }, (p.wins || 0) + " wins, " + (p.games || 0) + " games")
-            ),
-            sparkData.length >= 2 ? React.createElement(Sparkline, { data: sparkData, w: 40, h: 14, color: "#9B72CF" }) : React.createElement("div", { style: { width: 40, height: 14, opacity: .2, fontSize: 10, color: "#9AAABF", display: "flex", alignItems: "center" } }, "--")
-          );
-        })
-      )
-    ) : null,
-    phase === "registration" || phase === "live" ? React.createElement(MemoBracketScreen, {
-      players: props.players, setPlayers: props.setPlayers, toast: props.toast,
-      isAdmin: props.isAdmin, currentUser: props.currentUser, setProfilePlayer: props.setProfilePlayer,
-      setScreen: props.setScreen, tournamentState: props.tournamentState,
-      setTournamentState: props.setTournamentState, seasonConfig: props.seasonConfig
-    }) : null,
-    phase === "live" ? React.createElement("div", { style: { display: "flex", gap: 4, marginBottom: 16, justifyContent: "center", padding: "0 16px" } },
-      Array.from({ length: props.tournamentState.totalGames || 4 }, function(_, i) {
-        var isComplete = i + 1 < (props.tournamentState.round || 1);
-        var isCurrent = i + 1 === (props.tournamentState.round || 1);
-        return React.createElement("div", {
-          key: i, style: {
-            width: isCurrent ? 24 : 8, height: 8, borderRadius: 4,
-            background: isComplete ? "#6EE7B7" : isCurrent ? "#E8A838" : "rgba(255,255,255,.1)",
-            transition: "all .3s ease",
-          }
-        });
-      })
-    ) : null,
-    phase === "live" && (props.tournamentState.seedAlgo === "swiss") && props.tournamentState.round > 1 && props.tournamentState.round % 2 === 0 ? React.createElement("div", {
-      style: {
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-        padding: "8px 16px", margin: "0 16px 12px",
-        background: "rgba(232,168,56,.04)",
-        border: "1px solid rgba(232,168,56,.12)",
-        borderRadius: 8, maxHeight: 48,
-        fontSize: 11, color: "#E8A838",
-        fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: ".04em",
-      }
-    },
-      React.createElement(Icon, { name: "shuffle", style: { fontSize: 16 } }),
-      "Swiss Reseed - Lobbies reorganized by standings"
-    ) : null,
-    phase === "live" && props.tournamentState.liveStandings ? React.createElement(LiveStandingsTable, { standings: props.tournamentState.liveStandings }) : null,
-    phase === "complete" ? React.createElement(React.Fragment, null,
-      React.createElement(YourFinishCard, { currentUser: props.currentUser, finalStandings: props.tournamentState.finalStandings || [] }),
-      awardsEl,
-      recapEl,
-      React.createElement(MemoResultsScreen, { players: props.players, toast: props.toast, setScreen: props.setScreen, setProfilePlayer: props.setProfilePlayer, tournamentState: props.tournamentState })
-    ) : null
+            animation: phase === "live" ? "live-dot 1.5s ease infinite" : "none"
+          }} />
+          <span className="font-condensed text-[11px] uppercase tracking-[.1em] font-bold" style={{ color: accentColor }}>{phaseLabels[phase] || "Clash"}</span>
+          {phase === "live" && (
+            <span className="font-condensed text-[10px] tracking-[.06em] ml-auto" style={{ color: "#E8A838", opacity: .7 }}>LIVE</span>
+          )}
+        </div>
+      </div>
+
+      {/* Registration - scouting list */}
+      {phase === "registration" && registeredPlayers.length > 0 && (
+        <div className="mx-4 mb-5">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="font-condensed text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold">{"Registered - " + registeredPlayers.length + " players"}</div>
+            <div className="font-condensed text-[10px] text-[#9AAABF]">Scout the field</div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {registeredPlayers.map(function(p, idx) {
+              var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || c.place || 4; });
+              return (
+                <div key={p.id || p.username || idx}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer"
+                  style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)" }}
+                  onClick={function() { if (props.setProfilePlayer && props.setScreen) { props.setProfilePlayer(p); props.setScreen("profile"); } }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[11px] font-extrabold text-[#C4B5FD] shrink-0" style={{ background: "linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))" }}>
+                    {"#" + (idx + 1)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{p.username || p.name || "Player"}</div>
+                    <div className="text-[10px] text-[#9AAABF]">{(p.wins || 0) + " wins, " + (p.games || 0) + " games"}</div>
+                  </div>
+                  {sparkData.length >= 2
+                    ? <Sparkline data={sparkData} w={40} h={14} color="#9B72CF" />
+                    : <div className="flex items-center text-[10px] text-[#9AAABF] opacity-20" style={{ width: 40, height: 14 }}>{"--"}</div>
+                  }
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Bracket / lobby view for registration and live phases */}
+      {(phase === "registration" || phase === "live") && (
+        <MemoBracketScreen
+          players={props.players} setPlayers={props.setPlayers} toast={props.toast}
+          isAdmin={props.isAdmin} currentUser={props.currentUser} setProfilePlayer={props.setProfilePlayer}
+          setScreen={props.setScreen} tournamentState={props.tournamentState}
+          setTournamentState={props.setTournamentState} seasonConfig={props.seasonConfig}
+        />
+      )}
+
+      {/* Game progress dots for live phase */}
+      {phase === "live" && (
+        <div className="flex gap-1 mb-4 justify-center px-4">
+          {Array.from({ length: props.tournamentState.totalGames || 4 }, function(_, i) {
+            var isComplete = i + 1 < (props.tournamentState.round || 1);
+            var isCurrent = i + 1 === (props.tournamentState.round || 1);
+            return (
+              <div key={i} className="h-2 rounded" style={{
+                width: isCurrent ? 24 : 8,
+                background: isComplete ? "#6EE7B7" : isCurrent ? "#E8A838" : "rgba(255,255,255,.1)",
+                transition: "all .3s ease"
+              }} />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Swiss reseed banner */}
+      {phase === "live" && props.tournamentState.seedAlgo === "swiss" && props.tournamentState.round > 1 && props.tournamentState.round % 2 === 0 && (
+        <div className="flex items-center justify-center gap-2 px-4 py-2 mx-4 mb-3 rounded-lg font-condensed text-[11px] tracking-[.04em]" style={{
+          background: "rgba(232,168,56,.04)", border: "1px solid rgba(232,168,56,.12)",
+          maxHeight: 48, color: "#E8A838"
+        }}>
+          <Icon name="shuffle" style={{ fontSize: 16 }} />
+          Swiss Reseed - Lobbies reorganized by standings
+        </div>
+      )}
+
+      {/* Live standings table */}
+      {phase === "live" && props.tournamentState.liveStandings && (
+        <LiveStandingsTable standings={props.tournamentState.liveStandings} />
+      )}
+
+      {/* Complete phase: your finish, awards, recap, results */}
+      {phase === "complete" && (
+        <>
+          <YourFinishCard currentUser={props.currentUser} finalStandings={props.tournamentState.finalStandings || []} />
+          {awardsEl}
+          {recapEl}
+          <MemoResultsScreen players={props.players} toast={props.toast} setScreen={props.setScreen} setProfilePlayer={props.setProfilePlayer} tournamentState={props.tournamentState} />
+        </>
+      )}
+    </div>
   );
 }
 

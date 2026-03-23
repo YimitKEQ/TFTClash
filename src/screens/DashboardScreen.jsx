@@ -764,8 +764,23 @@ export default function DashboardScreen() {
   // Ticker items
   var tickerItems = (tickerOverrides || []).filter(function (t) { return t && (typeof t === 'string' ? t.trim() : t.text) })
 
+  // Season stat cards data
+  var totalGames = clashHistory.length
+  var wins = clashHistory.filter(function (h) { return (h.placement || h.place) === 1 }).length
+  var top4s = clashHistory.filter(function (h) { return (h.placement || h.place) <= 4 }).length
+  var winRate = totalGames > 0 ? Math.round((top4s / totalGames) * 100) : 0
+  var bestPlacement = totalGames > 0
+    ? Math.min.apply(null, clashHistory.map(function (h) { return h.placement || h.place || 8 }))
+    : null
+
+  // Season narrative
+  var seasonNarrative = generateSeasonNarrative(players, sortedPts)
+
+  // Next upcoming event
+  var nextEvent = featuredEvents && featuredEvents.length > 0 ? featuredEvents[0] : null
+
   return (
-    <PageLayout maxWidth="max-w-[880px]">
+    <PageLayout maxWidth="max-w-[1200px]">
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}
       {hostAnnouncements && hostAnnouncements.length > 0 && (
@@ -804,16 +819,61 @@ export default function DashboardScreen() {
         pointsTrend={pointsTrend}
       />
 
+      {/* Season Stats Row */}
+      {linkedPlayer && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+              <Icon name="sports_esports" size={18} className="text-secondary" />
+            </div>
+            <div>
+              <div className="font-mono text-xl text-on-surface font-bold">{totalGames}</div>
+              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Total Games</div>
+            </div>
+          </div>
+          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-tertiary/10 flex items-center justify-center flex-shrink-0">
+              <Icon name="trending_up" size={18} className="text-tertiary" />
+            </div>
+            <div>
+              <div className="font-mono text-xl text-on-surface font-bold">{winRate}%</div>
+              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Top-4 Rate</div>
+            </div>
+          </div>
+          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <Icon name="emoji_events" size={18} className="text-primary" />
+            </div>
+            <div>
+              <div className="font-mono text-xl text-on-surface font-bold">{bestPlacement !== null ? '#' + bestPlacement : '-'}</div>
+              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Best Place</div>
+            </div>
+          </div>
+          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+              <Icon name="local_fire_department" size={18} className="text-secondary" />
+            </div>
+            <div>
+              <div className="font-mono text-xl text-on-surface font-bold">{currentStreak > 0 ? currentStreak : wins}</div>
+              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">
+                {currentStreak > 0 ? (streakType === 'win' ? 'Win Streak' : 'Top-4 Streak') : 'Total Wins'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Flash tournament banner */}
       <FlashTournamentBanner
         tournament={upcomingTournament}
         onView={function () { navigate('/flash/' + upcomingTournament.id) }}
       />
 
-      {/* Two-column layout: Season stats left, Standings + Activity right */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        {/* Left col (3/5): Season Trajectory + Recent Form */}
-        <div className="md:col-span-3 space-y-6">
+      {/* Three-column layout: main left, sidebar right */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* LEFT MAIN (2/3): Season cards + narrative + quick actions */}
+        <div className="lg:col-span-2 space-y-6">
           <SeasonTrajectoryCard
             linkedPlayer={linkedPlayer}
             s2={s2}
@@ -829,10 +889,62 @@ export default function DashboardScreen() {
             clashHistory={clashHistory}
             onViewProfile={handleViewProfile}
           />
+
+          {/* Season Narrative */}
+          {seasonNarrative && (
+            <div
+              className="rounded-lg border border-secondary/10 p-5 flex items-start gap-4"
+              style={{ background: 'rgba(217,185,255,0.04)' }}
+            >
+              <Icon name="auto_awesome" size={18} className="text-secondary flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-on-surface/70 font-medium leading-relaxed">{seasonNarrative}</p>
+            </div>
+          )}
+
+          {/* Upcoming Event */}
+          {nextEvent && (
+            <div className="surface-container-low rounded-lg border border-outline-variant/10 p-5">
+              <div className="font-condensed uppercase text-[10px] tracking-widest text-on-surface/40 mb-3">Upcoming Event</div>
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="font-display text-base text-on-surface font-semibold">{nextEvent.name || nextEvent.title}</div>
+                  {nextEvent.date && (
+                    <div className="font-mono text-xs text-on-surface/40 mt-1">{nextEvent.date}</div>
+                  )}
+                </div>
+                <Btn variant="secondary" size="sm" onClick={function () { navigate('/events') }}>View Events</Btn>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Actions Row */}
+          <div className="grid grid-cols-3 gap-3">
+            <button
+              onClick={function () { handleViewProfile() }}
+              className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex flex-col items-center gap-2 hover:border-secondary/30 hover:bg-secondary/5 transition-all group"
+            >
+              <Icon name="person" size={20} className="text-on-surface/40 group-hover:text-secondary transition-colors" />
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors">My Profile</span>
+            </button>
+            <button
+              onClick={function () { navigate('/events') }}
+              className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex flex-col items-center gap-2 hover:border-primary/30 hover:bg-primary/5 transition-all group"
+            >
+              <Icon name="calendar_month" size={20} className="text-on-surface/40 group-hover:text-primary transition-colors" />
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors">Browse Events</span>
+            </button>
+            <button
+              onClick={function () { navigate('/standings') }}
+              className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex flex-col items-center gap-2 hover:border-tertiary/30 hover:bg-tertiary/5 transition-all group"
+            >
+              <Icon name="leaderboard" size={20} className="text-on-surface/40 group-hover:text-tertiary transition-colors" />
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors">Standings</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right col (2/5): Standings + Activity */}
-        <div className="md:col-span-2 space-y-6">
+        {/* RIGHT SIDEBAR (1/3): Standings + Activity + Ad Space */}
+        <div className="space-y-6">
           <StandingsMini
             top5={top5}
             linkedPlayer={linkedPlayer}
@@ -840,6 +952,15 @@ export default function DashboardScreen() {
             onViewAll={function () { navigate('/standings') }}
           />
           <ActivityFeed items={activityFeed} />
+
+          {/* Ad Space */}
+          <div
+            className="rounded-lg border border-dashed border-outline-variant/20 p-6 flex flex-col items-center justify-center gap-2 min-h-[140px]"
+            style={{ background: 'rgba(255,255,255,0.01)' }}
+          >
+            <Icon name="ads_click" size={20} className="text-on-surface/20" />
+            <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/20">Ad Space</span>
+          </div>
         </div>
       </div>
 
