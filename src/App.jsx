@@ -1125,7 +1125,9 @@ function ClashRecap(props){
         if(props.toast)props.toast("Copied to clipboard!","success");
       }},React.createElement("i",{className:"ti ti-brand-discord",style:{marginRight:4}}),"Copy for Discord"),
       React.createElement(Btn,{v:"ghost",s:"sm",onClick:function(){
-        if(props.toast)props.toast("Share card coming soon!","info");
+        var text=recap.clashName+" Recap\n\n"+recap.lines.join("\n")+"\n\ntftclash.com";
+        if(navigator.share){navigator.share({title:recap.clashName+" Recap",text:text}).catch(function(){});}
+        else{navigator.clipboard.writeText(text);if(props.toast)props.toast("Recap copied to clipboard!","success");}
       }},React.createElement("i",{className:"ti ti-share",style:{marginRight:4}}),"Share Card")
     )
   );
@@ -1928,6 +1930,63 @@ input:focus,select:focus,textarea:focus{background:#0F1A2E!important;box-shadow:
   .admin-sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}
 }
 
+/* ─── PREMIUM VISUAL POLISH ─────────────────────────────────────────── */
+
+/* Surface elevation with purple tint */
+.surface-1{background:linear-gradient(0deg,rgba(155,114,207,.03),rgba(155,114,207,.03)),#111827!important;}
+.surface-2{background:linear-gradient(0deg,rgba(155,114,207,.06),rgba(155,114,207,.06)),#111827!important;}
+.surface-3{background:linear-gradient(0deg,rgba(155,114,207,.09),rgba(155,114,207,.09)),#111827!important;}
+
+/* Card hover lift + glow */
+.card-lift{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;}
+.card-lift:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(155,114,207,.12);border-color:rgba(155,114,207,.25)!important;}
+
+/* Gold card hover (featured/champion) */
+.card-gold:hover{box-shadow:0 8px 24px rgba(232,168,56,.15);border-color:rgba(232,168,56,.3)!important;}
+
+/* Live pulse animation */
+@keyframes live-pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(1.4);}}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block;animation:live-pulse 2s ease-in-out infinite;}
+
+/* Gold shimmer for featured cards */
+@keyframes shimmer{0%{background-position:-200% center;}100%{background-position:200% center;}}
+.gold-shimmer{background:linear-gradient(90deg,transparent 0%,rgba(232,168,56,.08) 25%,rgba(232,168,56,.15) 50%,rgba(232,168,56,.08) 75%,transparent 100%);background-size:200% 100%;animation:shimmer 4s linear infinite;}
+
+/* Rank badge glow */
+.rank-glow{border-radius:50%;transition:box-shadow .2s;}
+.rank-glow:hover{box-shadow:0 0 12px currentColor;}
+
+/* Streak form dots */
+.form-dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;transition:transform .15s;}
+.form-dot:hover{transform:scale(1.4);}
+.form-dot-win{background:#4ade80;}
+.form-dot-top4{background:#E8A838;}
+.form-dot-bot4{background:#F87171;}
+
+/* Stat counter animation */
+@keyframes count-up{0%{opacity:0;transform:translateY(8px);}100%{opacity:1;transform:translateY(0);}}
+.stat-animate{animation:count-up .4s ease-out forwards;}
+
+/* Sponsor strip */
+.sponsor-strip{display:flex;align-items:center;justify-content:center;gap:24px;padding:8px 16px;border-top:1px solid rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.04);}
+.sponsor-strip img{height:24px;opacity:.4;filter:grayscale(1);transition:opacity .2s,filter .2s;}
+.sponsor-strip img:hover{opacity:.8;filter:grayscale(0);}
+
+/* Online indicator */
+@keyframes online-glow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.4);}50%{box-shadow:0 0 0 4px rgba(52,211,153,0);}}
+.online-dot{width:6px;height:6px;border-radius:50%;background:#34D399;display:inline-block;animation:online-glow 2s ease-in-out infinite;}
+
+/* Status ribbons */
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-family:'Barlow Condensed',sans-serif;}
+.status-live{background:rgba(239,68,68,.15);color:#FCA5A5;border:1px solid rgba(239,68,68,.3);}
+.status-open{background:rgba(78,205,196,.12);color:#6EE7B7;border:1px solid rgba(78,205,196,.3);}
+.status-upcoming{background:rgba(232,168,56,.12);color:#FCD34D;border:1px solid rgba(232,168,56,.3);}
+.status-complete{background:rgba(255,255,255,.04);color:#9AAABF;border:1px solid rgba(255,255,255,.08);}
+
+/* Sparkline default */
+.sparkline-svg{overflow:visible;}
+.sparkline-svg polyline{fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+
 `;
 
 
@@ -2439,9 +2498,28 @@ function Sparkline({data,color,w,h}){
 
 }
 
+function FormDots({history,max}){
+  var n=max||5;
+  var recent=(history||[]).slice(-n);
+  if(recent.length===0)return null;
+  return React.createElement("div",{style:{display:"flex",gap:3,alignItems:"center"}},
+    recent.map(function(h,i){
+      var p=h.placement||h.place||5;
+      var cls="form-dot "+(p===1?"form-dot-win":p<=4?"form-dot-top4":"form-dot-bot4");
+      var title="Game "+(i+1)+": #"+p;
+      return React.createElement("span",{key:i,className:cls,title:title});
+    })
+  );
+}
 
-
-
+function TournamentSponsorBadge({sponsor}){
+  if(!sponsor)return null;
+  return React.createElement("span",{style:{display:"inline-flex",alignItems:"center",gap:4,padding:"2px 8px",borderRadius:4,background:sponsor.color+"15",border:"1px solid "+sponsor.color+"30",fontSize:10,fontWeight:700,color:sponsor.color,letterSpacing:".04em"}},
+    React.createElement("span",{style:{fontSize:9}},sponsor.logo||sponsor.org.slice(0,2).toUpperCase()),
+    "Sponsored by ",
+    sponsor.org
+  );
+}
 
 // ─── SPONSOR BANNER ───────────────────────────────────────────────────────────
 
@@ -3739,7 +3817,7 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
   );
 
-  const cols=compact?"28px 1fr 60px 55px 50px 50px":"28px 1fr 70px 70px 50px 55px 50px";
+  const cols=compact?"28px 1fr 60px 55px 50px 50px":"28px 1fr 70px 70px 50px 55px 110px";
 
   return(
 
@@ -3867,8 +3945,9 @@ function StandingsTable({rows,compact,onRowClick,myName,seasonConfig}){
 
             {!compact&&<div className="mono" style={{fontSize:13,color:top3?"#6EE7B7":top8?"#6EE7B7":"#8896A8"}}>{p.wins||0}</div>}
 
-            <div style={{display:"flex",alignItems:"center"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
               {sparkData.length>=2?React.createElement(Sparkline,{data:sparkData,w:50,h:16,color:"#9B72CF"}):null}
+              {React.createElement(FormDots,{history:(p.clashHistory||[]).slice(-5)})}
             </div>
 
           </div>
@@ -4726,15 +4805,16 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       var namC = i < 3 ? "#F2EDE4" : "#BECBD9";
       var ptsC = i < 3 ? "#E8A838" : "#BECBD9";
       var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || 4; });
-      return React.createElement("div", {key: p.id, onClick: function() { setProfilePlayer(p); setScreen("profile"); }, style: {display: "grid", gridTemplateColumns: "28px 1fr 60px 50px", alignItems: "center", padding: i < 3 ? "12px 14px" : "9px 14px", borderBottom: "1px solid rgba(242,237,228,.04)", background: rowBg, cursor: "pointer", transition: "background .15s"}, onMouseEnter: function(e) { e.currentTarget.style.background = "rgba(155,114,207,.08)"; }, onMouseLeave: function(e) { e.currentTarget.style.background = rowBg; }},
+      return React.createElement("div", {key: p.id, onClick: function() { setProfilePlayer(p); setScreen("profile"); }, style: {display: "grid", gridTemplateColumns: "28px 1fr 60px 70px", alignItems: "center", padding: i < 3 ? "12px 14px" : "9px 14px", borderBottom: "1px solid rgba(242,237,228,.04)", background: rowBg, cursor: "pointer", transition: "background .15s"}, onMouseEnter: function(e) { e.currentTarget.style.background = "rgba(155,114,207,.08)"; }, onMouseLeave: function(e) { e.currentTarget.style.background = rowBg; }},
         React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 16 : 13, fontWeight: 900, color: rkCol, textAlign: "center"}}, i < 3 ? React.createElement("i", {className: "ti ti-" + (ICON_REMAP["award-fill"] || "award-fill"), style: {color: rkCol}}) : i + 1),
         React.createElement("div", {style: {minWidth: 0}},
           React.createElement("div", {style: {fontWeight: i < 3 ? 700 : 500, fontSize: i < 3 ? 14 : 13, color: namC, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, p.name),
           React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", marginTop: 1}}, (p.rank || "Unranked") + " - " + (p.wins || 0) + "W")
         ),
         React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 18 : 14, fontWeight: 800, color: ptsC, textAlign: "right"}}, p.pts),
-        React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "flex-end"}},
-          sparkData.length >= 2 ? React.createElement(Sparkline, {data: sparkData, w: 40, h: 14, color: "#9B72CF"}) : null
+        React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4}},
+          sparkData.length >= 2 ? React.createElement(Sparkline, {data: sparkData, w: 40, h: 14, color: "#9B72CF"}) : null,
+          React.createElement(FormDots, {history: (p.clashHistory || []).slice(-3), max: 3})
         )
       );
     });
@@ -4756,7 +4836,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         ),
         React.createElement("p", {style: {fontSize: 15, color: "#9AAABF", lineHeight: 1.6, marginBottom: 32, maxWidth: 480, marginLeft: "auto", marginRight: "auto"}}, "Weekly tournaments, seasonal rankings, and a permanent record of every champion crowned. The competitive TFT platform built for players who want more."),
         React.createElement("div", {style: {display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap"}},
-          React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }}, "Create Free Account"),
+          React.createElement(Btn, {v: "primary", s: "lg", onClick: function() { onAuthClick("signup"); }, style: {boxShadow: "0 0 24px rgba(155,114,207,.35), 0 0 48px rgba(155,114,207,.15)", fontSize: 16, padding: "14px 36px"}}, "Create Free Account"),
           React.createElement(Btn, {v: "ghost", s: "lg", onClick: function() { onAuthClick("login"); }}, "Sign In")
         )
       ),
@@ -4792,7 +4872,22 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         top5.length === 0 ? React.createElement("div", {style: {textAlign: "center", padding: 32, color: "#6B7A8D", fontSize: 13}}, "No players yet") : null
       ),
 
-      // How it works - numbered items in a grid, no icon circles
+      // Featured event card (moved above How It Works for visibility)
+      featuredEvents && featuredEvents.length > 0 ? React.createElement(Panel, {style: {marginBottom: 24, cursor: "pointer"}, hover: true, onClick: function() { setScreen("events"); }},
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
+          React.createElement("i", {className: "ti ti-calendar-event", style: {fontSize: 12, color: "#C4B5FD"}}),
+          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#C4B5FD", letterSpacing: ".12em", textTransform: "uppercase"}}, "Featured Event"),
+          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#5A6577", marginLeft: "auto"}})
+        ),
+        React.createElement("div", {style: {padding: "14px 16px", display: "flex", alignItems: "center", gap: 12}},
+          React.createElement("div", {style: {flex: 1, minWidth: 0}},
+            React.createElement("div", {style: {fontWeight: 700, fontSize: 15, color: "#F2EDE4", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, featuredEvents[0].name || "Upcoming Event"),
+            React.createElement("div", {style: {fontSize: 12, color: "#9AAABF"}}, "Hosted by " + (featuredEvents[0].host || "TFT Clash") + (featuredEvents[0].date ? " - " + featuredEvents[0].date : ""))
+          )
+        )
+      ) : null,
+
+      // How it works - numbered items in a grid
       React.createElement(Panel, {style: {marginBottom: 24, padding: "28px 20px"}},
         React.createElement("div", {style: {marginBottom: 20}},
           React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".15em", textTransform: "uppercase"}}, "How It Works")
@@ -4814,21 +4909,6 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           })
         )
       ),
-
-      // Featured event card
-      featuredEvents && featuredEvents.length > 0 ? React.createElement(Panel, {style: {marginBottom: 24, cursor: "pointer"}, hover: true, onClick: function() { setScreen("events"); }},
-        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8, padding: "10px 16px", borderBottom: "1px solid rgba(242,237,228,.06)", background: "#0A0F1A"}},
-          React.createElement("i", {className: "ti ti-calendar-event", style: {fontSize: 12, color: "#C4B5FD"}}),
-          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#C4B5FD", letterSpacing: ".12em", textTransform: "uppercase"}}, "Featured Event"),
-          React.createElement("i", {className: "ti ti-chevron-right", style: {fontSize: 14, color: "#5A6577", marginLeft: "auto"}})
-        ),
-        React.createElement("div", {style: {padding: "14px 16px", display: "flex", alignItems: "center", gap: 12}},
-          React.createElement("div", {style: {flex: 1, minWidth: 0}},
-            React.createElement("div", {style: {fontWeight: 700, fontSize: 15, color: "#F2EDE4", marginBottom: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, featuredEvents[0].name || "Upcoming Event"),
-            React.createElement("div", {style: {fontSize: 12, color: "#9AAABF"}}, "Hosted by " + (featuredEvents[0].host || "TFT Clash") + (featuredEvents[0].date ? " - " + featuredEvents[0].date : ""))
-          )
-        )
-      ) : null,
 
       // Bottom CTA
       React.createElement("div", {style: {textAlign: "center", padding: "32px 20px", marginBottom: 24, borderTop: "1px solid rgba(242,237,228,.06)"}},
@@ -4926,7 +5006,11 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
           React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".12em"}}, "Season Trajectory"),
           React.createElement("span", {className: "mono", style: {fontSize: 12, fontWeight: 700, color: "#E8A838"}}, linkedPlayer.pts + " pts total")
         ),
-        React.createElement(Sparkline, {data: pointsTrend, color: "#9B72CF", w: 260, h: 32})
+        React.createElement(Sparkline, {data: pointsTrend, color: "#9B72CF", w: 260, h: 32}),
+        React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 6, marginTop: 8}},
+          React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6B7A8D", textTransform: "uppercase", letterSpacing: ".1em"}}, "Form"),
+          React.createElement(FormDots, {history: clashHistory})
+        )
       ) : null,
 
       // 2x2 stat grid using inner-box (matching ProfileScreen StatCard)
@@ -4994,15 +5078,16 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
     var namC = i < 3 ? "#F2EDE4" : "#BECBD9";
     var ptsC = i < 3 ? "#E8A838" : "#BECBD9";
     var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || 4; });
-    return React.createElement("div", {key: p.id, onClick: function() { setProfilePlayer(p); setScreen("profile"); }, style: {display: "grid", gridTemplateColumns: "28px 1fr 60px 50px", alignItems: "center", padding: i < 3 ? "12px 14px" : "9px 14px", borderBottom: "1px solid rgba(242,237,228,.04)", background: rowBg, borderLeft: isMe ? "3px solid #9B72CF" : "3px solid transparent", cursor: "pointer", transition: "background .15s"}, onMouseEnter: function(e) { e.currentTarget.style.background = "rgba(155,114,207,.08)"; }, onMouseLeave: function(e) { e.currentTarget.style.background = rowBg; }},
+    return React.createElement("div", {key: p.id, onClick: function() { setProfilePlayer(p); setScreen("profile"); }, style: {display: "grid", gridTemplateColumns: "28px 1fr 60px 70px", alignItems: "center", padding: i < 3 ? "12px 14px" : "9px 14px", borderBottom: "1px solid rgba(242,237,228,.04)", background: rowBg, borderLeft: isMe ? "3px solid #9B72CF" : "3px solid transparent", cursor: "pointer", transition: "background .15s"}, onMouseEnter: function(e) { e.currentTarget.style.background = "rgba(155,114,207,.08)"; }, onMouseLeave: function(e) { e.currentTarget.style.background = rowBg; }},
       React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 16 : 13, fontWeight: 900, color: rkCol, textAlign: "center"}}, i < 3 ? React.createElement("i", {className: "ti ti-" + (ICON_REMAP["award-fill"] || "award-fill"), style: {color: rkCol}}) : i + 1),
       React.createElement("div", {style: {minWidth: 0}},
         React.createElement("div", {style: {fontWeight: i < 3 ? 700 : 500, fontSize: i < 3 ? 14 : 13, color: isMe ? "#C4B5FD" : namC, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}, p.name + (isMe ? " (you)" : "")),
         React.createElement("div", {style: {fontSize: 11, color: "#6B7A8D", marginTop: 1}}, (p.rank || "Unranked") + " - " + (p.wins || 0) + "W")
       ),
       React.createElement("div", {className: "mono", style: {fontSize: i < 3 ? 18 : 14, fontWeight: 800, color: ptsC, textAlign: "right"}}, p.pts),
-      React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "flex-end"}},
-        sparkData.length >= 2 ? React.createElement(Sparkline, {data: sparkData, w: 40, h: 14, color: "#9B72CF"}) : null
+      React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4}},
+        sparkData.length >= 2 ? React.createElement(Sparkline, {data: sparkData, w: 40, h: 14, color: "#9B72CF"}) : null,
+        React.createElement(FormDots, {history: (p.clashHistory || []).slice(-3), max: 3})
       )
     );
   });
@@ -5115,7 +5200,11 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
       React.createElement("div", {style: {display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid rgba(242,237,228,.07)", background: "#0A0F1A"}},
         React.createElement("div", {style: {display: "flex", alignItems: "center", gap: 8}},
           React.createElement("i", {className: "ti ti-trophy", style: {fontSize: 14, color: "#E8A838"}}),
-          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Season Standings")
+          React.createElement("span", {className: "cond", style: {fontSize: 10, fontWeight: 700, color: "#9AAABF", letterSpacing: ".1em", textTransform: "uppercase"}}, "Season Standings"),
+          React.createElement("span", {style: {display: "flex", alignItems: "center", gap: 4, marginLeft: 8}},
+            React.createElement("span", {className: "live-dot", style: {width: 6, height: 6, borderRadius: "50%", background: "#52C47C", display: "inline-block"}}),
+            React.createElement("span", {className: "cond", style: {fontSize: 9, fontWeight: 700, color: "#6EE7B7", letterSpacing: ".06em"}}, players.length + " players")
+          )
         ),
         React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { setScreen("leaderboard"); }}, "Full Leaderboard")
       ),
@@ -5191,7 +5280,7 @@ function HomeScreen({players,setPlayers,setScreen,toast,announcement,setProfileP
         React.createElement("div", {style: {fontWeight: 700, fontSize: 14, color: "#F2EDE4", marginBottom: 2}}, "Join the Community"),
         React.createElement("div", {style: {fontSize: 12, color: "#9AAABF"}}, "Tournament alerts, tactics channels, results, and more.")
       ),
-      React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { toast("Discord link coming soon - server in setup!", "success"); }, style: {background: "rgba(88,101,242,.1)", border: "1px solid rgba(88,101,242,.3)", color: "#818CF8", flexShrink: 0}}, "Join Discord")
+      React.createElement(Btn, {v: "dark", s: "sm", onClick: function() { window.open("https://discord.gg/tftclash","_blank"); }, style: {background: "rgba(88,101,242,.1)", border: "1px solid rgba(88,101,242,.3)", color: "#818CF8", flexShrink: 0}}, "Join Discord")
     )
   );
 
@@ -5583,6 +5672,28 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
   const [playerSubmissions,setPlayerSubmissions]=useState({});
   // Shape: { lobbyIndex: { playerId: { placement: number, name: string, confirmed: boolean } } }
 
+  // Load existing player_reports from DB on mount (survive page refresh)
+  useEffect(function(){
+    if(!supabase.from||!tournamentState.dbTournamentId)return;
+    supabase.from('player_reports').select('player_id,reported_placement,game_number')
+      .eq('tournament_id',tournamentState.dbTournamentId).eq('game_number',round)
+      .then(function(res){
+        if(res.error||!res.data||!res.data.length)return;
+        var restored={};
+        res.data.forEach(function(r){
+          // Find which lobby this player is in
+          lobbies.forEach(function(lobby,li){
+            var found=lobby.find(function(p){return String(p.id)===String(r.player_id);});
+            if(found){
+              if(!restored[li])restored[li]={};
+              restored[li][r.player_id]={placement:r.reported_placement,name:found.name||found.username||'',confirmed:false};
+            }
+          });
+        });
+        if(Object.keys(restored).length>0)setPlayerSubmissions(restored);
+      });
+  },[tournamentState.dbTournamentId,round,lobbies.length]);
+
   const [showFinalizeConfirm,setShowFinalizeConfirm]=useState(false);
 
   const [autoAdvanceCountdown,setAutoAdvanceCountdown]=useState(null);
@@ -5837,6 +5948,26 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
           if(res.error){console.error("[TFT] Failed to save game results:",res.error);toast("Failed to save game results","error");}
+          else{
+            // Sync updated aggregate stats back to players table
+            lobby.forEach(function(lp){
+              var place=parseInt(placementEntry[li].placements[lp.id]||"0");
+              if(place<=0)return;
+              var updatedP=players.find(function(pp){return pp.id===lp.id;});
+              if(!updatedP)return;
+              var newGames=(updatedP.games||0)+1;
+              var newWins=(updatedP.wins||0)+(place===1?1:0);
+              var newTop4=(updatedP.top4||0)+(place<=4?1:0);
+              var newPts=(updatedP.pts||0)+(PTS[place]||0);
+              var newAvg=(((parseFloat(updatedP.avg)||0)*(updatedP.games||0)+place)/newGames);
+              supabase.from('players').update({
+                season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
+                avg_placement:parseFloat(newAvg.toFixed(2))
+              }).eq('id',lp.id).then(function(pr){
+                if(pr.error)console.error("[TFT] Failed to sync player stats for",lp.name||lp.id,pr.error);
+              });
+            });
+          }
         });
       }
     }
@@ -5853,6 +5984,19 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       lobbySubmissions[playerId]={placement:p,name:playerName,confirmed:false};
       return Object.assign({},ps,{[li]:lobbySubmissions});
     });
+    // Persist to player_reports table so submissions survive page refresh
+    if(supabase.from&&tournamentState.dbTournamentId){
+      supabase.from('player_reports').upsert({
+        tournament_id:tournamentState.dbTournamentId,
+        lobby_id:null,
+        game_number:round,
+        player_id:playerId,
+        reported_placement:p,
+        reported_at:new Date().toISOString()
+      },{onConflict:'tournament_id,game_number,player_id'}).then(function(r){
+        if(r.error)console.error("[TFT] Failed to persist placement report:",r.error);
+      });
+    }
     toast("Placement submitted  -  waiting for admin confirmation","success");
   }
 
@@ -5885,15 +6029,41 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
       return Object.assign({},ts,{lockedLobbies:newLocked,lockedPlacements:newSavedPlacements});
     });
     if(supabase.from&&tournamentState.dbTournamentId){
-      supabase.from('game_results').delete()
-        .eq('tournament_id',tournamentState.dbTournamentId)
-        .eq('round_number',round)
-        .then(function(res){if(res.error)console.error("[TFT] Failed to delete game results:",res.error);});
+      // Only delete game_results for players in THIS lobby, not all lobbies
+      var lobbyPlayerIds=lobbies[li]?lobbies[li].map(function(p){return p.id;}):[];
+      if(lobbyPlayerIds.length>0){
+        supabase.from('game_results').delete()
+          .eq('tournament_id',tournamentState.dbTournamentId)
+          .eq('round_number',round)
+          .in('player_id',lobbyPlayerIds)
+          .then(function(res){if(res.error)console.error("[TFT] Failed to delete game results:",res.error);});
+      }
       supabase.from('lobbies').update({status:'active'})
         .eq('tournament_id',tournamentState.dbTournamentId)
         .eq('lobby_number',li+1)
         .eq('round_number',round)
         .then(function(res){if(res.error)console.error("[TFT] Failed to unlock lobby in DB:",res.error);});
+      // Sync reverted stats to players table
+      if(savedPlacements){
+        lobbyPlayerIds.forEach(function(pid){
+          var place=savedPlacements[pid];
+          if(place===undefined)return;
+          var pp=players.find(function(q){return q.id===pid;});
+          if(!pp)return;
+          var earned=PTS[place]||0;
+          var newGames=Math.max((pp.games||1)-1,0);
+          var newWins=Math.max((pp.wins||0)-(place===1?1:0),0);
+          var newTop4=Math.max((pp.top4||0)-(place<=4?1:0),0);
+          var newPts=Math.max((pp.pts||0)-earned,0);
+          var newAvg=newGames>0?(((parseFloat(pp.avg)||0)*(pp.games||1)-place)/newGames):0;
+          supabase.from('players').update({
+            season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
+            avg_placement:parseFloat(newAvg.toFixed(2))
+          }).eq('id',pid).then(function(pr){
+            if(pr.error)console.error("[TFT] Failed to revert player stats:",pr.error);
+          });
+        });
+      }
     }
     toast("Lobby "+(li+1)+" unlocked  -  results reverted","success");
   }
@@ -5988,6 +6158,18 @@ function BracketScreen({players,setPlayers,toast,isAdmin,currentUser,setProfileP
               var ppRankA = allPlayers.filter(function(q) { return q.pts > p.pts; }).length + 1;
               var earnedA = checkAchievements(p, ppRankA);
               if (earnedA.length > 0) syncAchievements(p.id, earnedA);
+            }
+          });
+          // Sync final aggregate stats to players table
+          allPlayers.forEach(function(p) {
+            if (p.id && playerTotals[p.id]) {
+              supabase.from('players').update({
+                season_pts:p.pts||0,wins:p.wins||0,top4:p.top4||0,games:p.games||0,
+                avg_placement:parseFloat(parseFloat(p.avg||0).toFixed(2)),
+                last_clash_rank:sortedByPts.findIndex(function(q){return q.id===p.id;})+1
+              }).eq('id',p.id).then(function(pr){
+                if(pr.error)console.error("[TFT] Failed to sync final stats for",p.name,pr.error);
+              });
             }
           });
         });
@@ -7442,6 +7624,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
 
                   <Sparkline data={p.sparkline||[p.pts]} color={MCOLS[ri]} w={80} h={20}/>
 
+                  <div style={{marginTop:4,display:"flex",justifyContent:"center"}}>{React.createElement(FormDots,{history:p.clashHistory||[]})}</div>
+
                 </div>
 
               </Panel>
@@ -7541,6 +7725,8 @@ function LeaderboardScreen({players,setScreen,setProfilePlayer,currentUser,toast
                 </div>
 
                 <Sparkline data={p.sparkline||[p.pts]} color={rc(p.rank)} w={180} h={22}/>
+
+                <div style={{marginTop:6}}>{React.createElement(FormDots,{history:p.clashHistory||[]})}</div>
 
                 <div style={{marginTop:10,display:"flex",justifyContent:"flex-end"}} onClick={e=>e.stopPropagation()}><span onClick={()=>toggleCompare(p.id)} style={{fontSize:11,padding:"3px 10px",borderRadius:6,border:"1px solid "+(compareIds.includes(p.id)?"#4ECDC4":"rgba(78,205,196,.4)"),background:compareIds.includes(p.id)?"rgba(78,205,196,.18)":"transparent",color:compareIds.includes(p.id)?"#4ECDC4":"#9AAABF",cursor:"pointer",userSelect:"none"}}>{compareIds.includes(p.id)?"Comparing":"Compare"}</span></div>
 
@@ -12330,7 +12516,7 @@ function PricingScreen(props) {
             ? React.createElement("div", {style:{textAlign:"center",padding:"8px 0",fontSize:13,fontWeight:700,color:"#6EE7B7"}}, "Current Plan")
             : tier.id === "free"
               ? null
-              : React.createElement("div", {style:{textAlign:"center",fontSize:12,color:"#9AAABF"}}, "Coming soon")
+              : React.createElement(Btn, {v:"primary",s:"sm",style:{width:"100%",opacity:0.6,cursor:"default"},onClick:function(){toast("Subscriptions launching soon - stay tuned!","info");}}, "Get "+tier.name)
         );
       })
     ),
@@ -13952,10 +14138,15 @@ function AccountScreen({user,onUpdate,onLogout,toast,setScreen,players,setPlayer
                   if(!window.confirm("Delete your account permanently? This cannot be undone."))return;
 
                   try{
-                    // Remove player from DB and local state
-                    if(supabase.from){await supabase.from('players').delete().eq('auth_user_id',user.id).catch(function(){});}
+                    // Remove player row and cascaded data (registrations, game_results via FK)
+                    if(supabase.from){
+                      await supabase.from('registrations').delete().eq('player_id',user.id).catch(function(){});
+                      await supabase.from('notifications').delete().eq('user_id',user.id).catch(function(){});
+                      await supabase.from('player_achievements').delete().eq('player_id',user.id).catch(function(){});
+                      await supabase.from('players').delete().eq('auth_user_id',user.id).catch(function(){});
+                    }
                     if(setPlayers){setPlayers(function(ps){return ps.filter(function(p){return p.authUserId!==user.id&&(p.name||"").toLowerCase()!==(user.username||"").toLowerCase();});});}
-                    await supabase.auth.admin?.deleteUser?.(user.id).catch(()=>{});await supabase.auth.signOut();onLogout();toast("Account deleted","success");
+                    await supabase.auth.signOut();onLogout();toast("Account deleted - signed out","success");
                   }
                   catch(e){await supabase.auth.signOut();onLogout();}
 
@@ -15923,7 +16114,7 @@ function TournamentDetailScreen(props){
       // Also register in DB registrations table
       if(supabase.from&&currentUser&&event.dbTournamentId){
         supabase.from("players").select("id").eq("auth_user_id",currentUser.id).single().then(function(pRes){
-          if(pRes.data)supabase.from("registrations").insert({tournament_id:event.dbTournamentId,player_id:pRes.data.id,status:"registered"})
+          if(pRes.data)supabase.from("registrations").upsert({tournament_id:event.dbTournamentId,player_id:pRes.data.id,status:"registered"},{onConflict:'tournament_id,player_id'})
             .then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
         });
       }
@@ -16505,12 +16696,12 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
     setActionLoading(true);
     if(regCount>=maxP){
       var waitPos=registrations.filter(function(r){return r.status==='waitlisted';}).length+1;
-      supabase.from('registrations').insert({
+      supabase.from('registrations').upsert({
         tournament_id:tournamentId,
         player_id:myPlayer.id,
         status:'waitlisted',
         waitlist_position:waitPos
-      }).then(function(res){
+      },{onConflict:'tournament_id,player_id'}).then(function(res){
         setActionLoading(false);
         if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
         toast("Added to waitlist (position #"+waitPos+")!","info");
@@ -16519,11 +16710,11 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
       });
       return;
     }
-    supabase.from('registrations').insert({
+    supabase.from('registrations').upsert({
       tournament_id:tournamentId,
       player_id:myPlayer.id,
       status:'registered'
-    }).then(function(res){
+    },{onConflict:'tournament_id,player_id'}).then(function(res){
       setActionLoading(false);
       if(res.error){toast("Registration failed: "+res.error.message,"error");return;}
       if(currentUser){createNotification(currentUser.id,"Registration Confirmed","You are registered for "+(tournament?tournament.name:"the tournament")+". Check in when the check-in window opens.","controller");}
@@ -16822,6 +17013,52 @@ function FlashTournamentScreen({tournamentId,currentUser,onAuthClick,toast,setSc
         supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id',tournamentId).in('status',['checked_in','registered']).then(function(rRes){
           if(rRes.data){rRes.data.forEach(function(r){var uid=r.players&&r.players.auth_user_id;if(uid){createNotification(uid,"Results Finalized",(tournament?tournament.name:"The tournament")+" has been finalized. Check the results screen for your placement and points.","trophy");}});}
         });
+        // Aggregate game_results and sync player stats to players table
+        supabase.from('game_results').select('player_id,placement,points')
+          .eq('tournament_id',tournamentId).then(function(grRes){
+            if(grRes.error||!grRes.data||!grRes.data.length)return;
+            var playerAgg={};
+            grRes.data.forEach(function(g){
+              if(!playerAgg[g.player_id])playerAgg[g.player_id]={pts:0,wins:0,top4:0,games:0,placeSum:0};
+              var a=playerAgg[g.player_id];
+              a.pts+=(g.points||0);
+              a.wins+=(g.placement===1?1:0);
+              a.top4+=(g.placement<=4?1:0);
+              a.games+=1;
+              a.placeSum+=g.placement;
+            });
+            // Insert tournament_results aggregate
+            var tRows=Object.keys(playerAgg).map(function(pid){
+              var a=playerAgg[pid];
+              return{tournament_id:tournamentId,player_id:pid,total_points:a.pts,wins:a.wins,top4_count:a.top4,final_placement:Math.round(a.placeSum/a.games)};
+            });
+            if(tRows.length>0){
+              supabase.from('tournament_results').insert(tRows).then(function(tr){
+                if(tr.error)console.error("[TFT] Failed to insert tournament_results:",tr.error);
+              });
+            }
+            // Update each player's cumulative stats
+            Object.keys(playerAgg).forEach(function(pid){
+              var a=playerAgg[pid];
+              // Fetch current player stats then add tournament results
+              supabase.from('players').select('season_pts,wins,top4,games,avg_placement').eq('id',pid).single()
+                .then(function(pRes){
+                  if(pRes.error||!pRes.data)return;
+                  var cur=pRes.data;
+                  var newGames=(cur.games||0)+a.games;
+                  var newAvg=newGames>0?(((parseFloat(cur.avg_placement)||0)*(cur.games||0)+a.placeSum)/newGames):0;
+                  supabase.from('players').update({
+                    season_pts:(cur.season_pts||0)+a.pts,
+                    wins:(cur.wins||0)+a.wins,
+                    top4:(cur.top4||0)+a.top4,
+                    games:newGames,
+                    avg_placement:parseFloat(newAvg.toFixed(2))
+                  }).eq('id',pid).then(function(uRes){
+                    if(uRes.error)console.error("[TFT] Failed to update player stats:",pid,uRes.error);
+                  });
+                });
+            });
+          });
       });
   }
 
@@ -17961,7 +18198,7 @@ function GearScreen(props) {
     loading ? React.createElement("div", {style:{color:"#9AAABF",textAlign:"center",padding:40}}, "Loading...") :
     items.length === 0 ? React.createElement("div", {style:{color:"#9AAABF",textAlign:"center",padding:60}},
       React.createElement("i", {className:"ti ti-shopping-bag",style:{fontSize:32,marginBottom:8,display:"block",opacity:.5}}),
-      "Coming soon. Check back for TFT Clash merch."
+      "No items available yet. Stay tuned for official TFT Clash merch."
     ) :
     categories.map(function(cat) {
       var catItems = items.filter(function(i){return i.category === cat;});
@@ -18130,12 +18367,23 @@ function WeeklyRecapCard(props){
 
 function Footer(props){
   var setScreen=props.setScreen;
+  var orgSponsors=props.orgSponsors||{};
+  var sponsorEntries=Object.values(orgSponsors);
   var platformLinks=[["home","Home"],["roster","Roster"],["leaderboard","Leaderboard"],["hof","Hall of Fame"],["archive","Archive"]];
   var communityLinks=[["featured","Featured Events"],["rules","Rules"],["faq","FAQ"],["gear","Gear"]];
   var hostingLinks=[["pricing","Pricing"],["host-apply","Apply to Host"],["host-dashboard","Host Dashboard"]];
   return(
     <footer style={{background:"#06060C",borderTop:"1px solid rgba(155,114,207,.15)",padding:"40px 24px 24px",marginTop:40}}>
       <div style={{maxWidth:1200,margin:"0 auto"}}>
+        {sponsorEntries.length>0&&<div className="sponsor-strip" style={{marginBottom:24}}>
+          <span className="cond" style={{fontSize:9,fontWeight:700,color:"#5A6573",letterSpacing:".12em",textTransform:"uppercase",marginRight:12}}>Partners</span>
+          {sponsorEntries.map(function(s,i){
+            return React.createElement("div",{key:i,style:{display:"flex",alignItems:"center",gap:6,padding:"4px 12px",borderRadius:6,background:s.color+"12",border:"1px solid "+s.color+"25"}},
+              React.createElement("span",{style:{fontSize:12,fontWeight:800,color:s.color}},s.logo||s.org.slice(0,2).toUpperCase()),
+              React.createElement("span",{style:{fontSize:11,fontWeight:600,color:"#8896A8"}},s.org)
+            );
+          })}
+        </div>}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))",gap:32,marginBottom:32}}>
           <div>
             <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Platform</div>
@@ -18152,7 +18400,7 @@ function Footer(props){
                 onMouseEnter={function(e){e.currentTarget.style.color="#F2EDE4";}}
                 onMouseLeave={function(e){e.currentTarget.style.color="#8896A8";}}>{arr[1]}</button>
             );})}
-            <button onClick={function(){}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"not-allowed",fontFamily:"inherit",opacity:0.5}}>Discord (Coming Soon)</button>
+            <button onClick={function(){window.open("https://discord.gg/tftclash","_blank");}} style={{display:"block",background:"none",border:"none",color:"#8896A8",fontSize:13,padding:"4px 0",cursor:"pointer",fontFamily:"inherit"}}>Discord</button>
           </div>
           <div>
             <div style={{fontSize:12,fontWeight:700,color:"#9B72CF",textTransform:"uppercase",letterSpacing:".08em",marginBottom:14}}>Hosting</div>
@@ -18723,10 +18971,13 @@ function TFTClash(){
             youtube:(r.social_links&&r.social_links.youtube)||'',
             pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
             avg:r.avg_placement?String(r.avg_placement):"0",
-            banned:false,dnpCount:0,notes:'',checkedIn:false,
+            banned:!!r.banned,dnpCount:r.dnp_count||0,notes:r.notes||'',checkedIn:!!r.checked_in,
+            profilePicUrl:r.profile_pic_url||'',
             clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
             tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
-            role:"player",sponsor:null
+            role:r.role||"player",sponsor:r.sponsor_json||null,
+            lastClashRank:r.last_clash_rank||null,consistencyGrade:r.consistency_grade||'',
+            tierOverride:r.tier_override||null
           };
         });
         // Enrich with game_results for detailed stats (clashHistory, streaks, etc.)
@@ -18983,7 +19234,8 @@ function TFTClash(){
 
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
 
-    if(supabase.from)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
+    // Only admins can write to site_settings (RLS enforced); skip for non-admin users
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
       .then(function(res){if(res.error)console.error("[TFT] Failed to sync tournament_state:",res.error);});
 
   },[tournamentState]);
@@ -19590,7 +19842,7 @@ function TFTClash(){
 
         </ScreenBoundary>
 
-        <Footer setScreen={navTo}/>
+        <Footer setScreen={navTo} orgSponsors={orgSponsors}/>
 
       </div>
 
