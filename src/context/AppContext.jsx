@@ -137,7 +137,7 @@ export function AppProvider(props) {
   var setChallengeCompletions = _challengeCompletions[1];
 
   // Auth state
-  var _currentUser = useState({id:1,username:"Levitate",email:"levitate@tftclash.gg",riot_id:"Levitate#EUW",is_admin:true}); // DEV: mock user for preview - revert to null for prod
+  var _currentUser = useState(null);
   var currentUser = _currentUser[0];
   var setCurrentUser = _currentUser[1];
 
@@ -303,10 +303,6 @@ export function AppProvider(props) {
       var region=(u.user_metadata&&u.user_metadata.riotRegion)||(u.user_metadata&&u.user_metadata.riot_region)||(u.user_metadata&&u.user_metadata.region)||"EUW";
       return Object.assign({},u,{username:username,riotId:riotId,region:region});
     }
-
-    // DEV: skip auth hydration when mock user is set
-    var DEV_MOCK=currentUser&&currentUser.email==="levitate@tftclash.gg";
-    if(DEV_MOCK){setIsAuthLoading(false);return function(){};}
 
     supabase.auth.getSession().then(function(result){
       var session=result&&result.data&&result.data.session;
