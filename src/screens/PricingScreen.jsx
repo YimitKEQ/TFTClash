@@ -11,9 +11,11 @@ var PLAYER_FEATURES = [
 ]
 
 var PRO_FEATURES = [
-  { text: 'Advanced LP Analytics', icon: 'bar_chart' },
-  { text: 'Extended Match History', icon: 'check_circle' },
-  { text: 'Pro Badge on Profile', icon: 'check_circle' },
+  { text: 'Auto check-in for weekly clash', icon: 'check_circle' },
+  { text: 'Priority registration (10 min early)', icon: 'schedule' },
+  { text: 'Pro Badge on Profile', icon: 'verified' },
+  { text: 'Full career stats history', icon: 'bar_chart' },
+  { text: 'Exclusive Pro Discord role', icon: 'forum' },
 ]
 
 var HOST_FEATURES = [
@@ -25,24 +27,24 @@ var HOST_FEATURES = [
 
 var COMPARISON_ROWS = [
   {
-    label: 'Advanced LP Analytics',
+    label: 'Auto check-in',
     player: false,
     pro: true,
     host: true,
     type: 'bool',
   },
   {
-    label: 'Tournament Broadcasting Tools',
+    label: 'Priority registration',
     player: false,
-    pro: false,
+    pro: true,
     host: true,
     type: 'bool',
   },
   {
-    label: 'Profile Customization',
-    player: 'Basic',
-    pro: 'Full Access',
-    host: 'Full Access',
+    label: 'Career stats history',
+    player: 'Limited',
+    pro: 'Full',
+    host: 'Full',
     proHighlight: true,
     hostHighlight: true,
     type: 'text',
@@ -81,7 +83,6 @@ export default function PricingScreen() {
   var app = useApp()
   var currentUser = app.currentUser
   var userTier = app.userTier || 'free'
-  var toast = app.toast
   var navigate = useNavigate()
 
   function handleGetStarted() {
@@ -90,14 +91,6 @@ export default function PricingScreen() {
     } else {
       navigate('/signup')
     }
-  }
-
-  function handleBecomePro() {
-    toast('Subscriptions launching soon - stay tuned!', 'info')
-  }
-
-  function handleStartHosting() {
-    toast('Subscriptions launching soon - stay tuned!', 'info')
   }
 
   function handleContactSupport() {
