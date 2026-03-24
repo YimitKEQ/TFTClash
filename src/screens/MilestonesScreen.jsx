@@ -151,7 +151,13 @@ function MilestoneRow(props) {
           <div className="flex items-center gap-2 flex-wrap">
             <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-3 py-1 rounded-sm">
               <Icon name="redeem" size={12} className="text-primary" />
-              <span className="font-sans-condensed text-xs font-bold uppercase tracking-widest text-primary">{m.reward}</span>
+              <span className="text-xs text-[#9AAABF]">
+                {m.reward}
+                {' '}
+                <span className="text-[10px] text-[#6B7280] border border-[rgba(107,114,128,0.3)] rounded px-1.5 py-0.5">
+                  Coming Soon
+                </span>
+              </span>
             </div>
             <span className="text-[10px] font-mono text-on-surface-variant">{earnedBy} player{earnedBy !== 1 ? 's' : ''} unlocked this</span>
           </div>

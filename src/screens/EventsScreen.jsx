@@ -375,8 +375,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
               All tournaments are monitored by TFT Clash staff and community moderators. Cheating or unsportsmanlike behavior results in permanent bans from the platform.
             </p>
             <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-tertiary"></span>
-              <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Active Anticheat Enabled</span>
+              <span className="text-xs text-[#9AAABF]">Community moderated</span>
             </div>
           </div>
         </div>

@@ -279,12 +279,6 @@ export default function ArchiveScreen() {
                         <td className="px-8 py-5 font-mono text-on-surface">{event.entries}</td>
                         <td className="px-8 py-5 font-mono text-slate-500">{event.date}</td>
                         <td className="px-8 py-5 text-right">
-                          <button
-                            className="text-primary text-xs font-condensed font-bold uppercase hover:underline"
-                            onClick={function() { navigate('/archive') }}
-                          >
-                            DETAILS
-                          </button>
                         </td>
                       </tr>
                     )

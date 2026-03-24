@@ -94,7 +94,7 @@ export default function HofScreen() {
         value: Math.round(((byTop4[0].top4 || 0) / byTop4[0].games) * 100) + '% Rate',
         holder: byTop4[0].name, rank: byTop4[0].rank,
         runner: [byTop4[1] && byTop4[1].name, byTop4[2] && byTop4[2].name].filter(Boolean),
-        desc: 'Highest Top 4 conversion rate in professional scrims.',
+        desc: 'Highest Top 4 conversion rate in competitive play.',
       } : null,
     ].filter(Boolean)
   }
