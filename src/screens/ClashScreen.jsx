@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
+import CountdownTimer from '../components/shared/CountdownTimer';
 import { RANKS, RCOLS, REGIONS, PTS, PAST_CLASHES, SEED, CLASH_RANKS, XP_REWARDS, HOMIES_IDS, TIER_FEATURES } from '../lib/constants.js';
 import { computeStats, getStats, effectivePts, tiebreaker, computeClashAwards, generateRecap, getClashRank, getXpProgress, estimateXp, isHotStreak, isOnTilt, isComebackEligible, getAttendanceStreak, computeSeasonBonuses, checkAchievements, syncAchievements } from '../lib/stats.js';
 import { TOURNAMENT_FORMATS, buildLobbies, computeTournamentStandings, applyCutLine } from '../lib/tournament.js';
@@ -2247,9 +2249,106 @@ function BracketScreen(props) {
 
 var MemoBracketScreen = memo(BracketScreen);
 
+// ---- ClashIdleView (waiting room - no active clash) ----
+
+function ClashIdleView(props) {
+  var players = props.players || []
+  var currentUser = props.currentUser
+  var linkedPlayer = props.linkedPlayer
+  var navigate = props.navigate
+
+  var lastClash = PAST_CLASHES[0]
+
+  var now = new Date()
+  var daysUntilSat = (6 - now.getDay() + 7) % 7 || 7
+  var nextSaturday = new Date(now)
+  nextSaturday.setDate(now.getDate() + daysUntilSat)
+  nextSaturday.setHours(20, 0, 0, 0)
+
+  var top3 = lastClash && lastClash.top8 ? lastClash.top8.slice(0, 3) : []
+  var top3Colors = ['text-primary', 'text-on-surface/60', 'text-tertiary']
+  var top3Labels = ['1st', '2nd', '3rd']
+
+  return (
+    <div className="max-w-2xl mx-auto py-10 px-4 flex flex-col gap-6">
+
+      {/* Panel 1 - Countdown Hero */}
+      <Panel>
+        <div className="text-center py-4">
+          <div className="cond text-[9px] font-bold uppercase tracking-[0.15em] text-primary mb-4">Next Clash</div>
+          <CountdownTimer targetDate={nextSaturday} />
+          <div className="inline-flex items-center px-3 py-1 rounded-full border border-on-surface/20 text-on-surface/40 text-[10px] cond font-bold uppercase tracking-widest mt-4 mb-2">
+            No Active Clash
+          </div>
+          <div className="text-xs text-on-surface/40 mt-1">Registration opens Saturday at 18:00 CET</div>
+        </div>
+      </Panel>
+
+      {/* Panel 2 - Last Clash Recap */}
+      {lastClash && (
+        <Panel>
+          <div className="flex items-center justify-between mb-4">
+            <div className="font-display text-sm font-bold text-on-surface">{lastClash.name} - Results</div>
+            <button className="text-[11px] text-primary underline bg-transparent border-0 cursor-pointer p-0" onClick={function() { navigate('/results') }}>View All Results</button>
+          </div>
+          <div className="flex gap-3">
+            {top3.map(function(entry, i) {
+              return (
+                <div key={i} className="flex-1 text-center bg-white/[0.03] rounded-lg p-3 border border-on-surface/10">
+                  <div className={'cond text-[8px] font-bold uppercase tracking-widest mb-1 ' + top3Colors[i]}>{top3Labels[i]}</div>
+                  <div className={'font-bold text-sm ' + top3Colors[i]}>{entry.name}</div>
+                  <div className="text-[10px] text-on-surface/40 mt-0.5">{entry.pts} pts</div>
+                </div>
+              )
+            })}
+          </div>
+        </Panel>
+      )}
+
+      {/* Panel 3 - Season Standing */}
+      <Panel>
+        <div className="flex items-center justify-between mb-4">
+          <div className="font-display text-sm font-bold text-on-surface">Your Season</div>
+          <button className="text-[11px] text-primary underline bg-transparent border-0 cursor-pointer p-0" onClick={function() { navigate('/standings') }}>Full Standings</button>
+        </div>
+        {currentUser && linkedPlayer ? (
+          <div className="flex items-center gap-3 bg-primary/[0.04] rounded-lg p-3 border border-primary/10">
+            <div className="w-8 h-8 rounded-full bg-primary/20 border border-primary/30 flex-shrink-0"></div>
+            <div className="flex-1">
+              <div className="font-bold text-sm text-on-surface">{linkedPlayer.name}</div>
+              <div className="text-[10px] text-on-surface/40">{linkedPlayer.rank || 'Unranked'}</div>
+            </div>
+            <div className="text-right">
+              <div className="font-mono text-base font-bold text-primary">{linkedPlayer.pts || 0}</div>
+              <div className="text-[9px] text-on-surface/30 uppercase tracking-wider">pts</div>
+            </div>
+            <div className="text-right">
+              <div className="font-mono text-sm font-bold text-on-surface">{linkedPlayer.wins || 0}</div>
+              <div className="text-[9px] text-on-surface/30 uppercase tracking-wider">wins</div>
+            </div>
+            <div className="text-right">
+              <div className="font-mono text-sm font-bold text-on-surface">{linkedPlayer.games || 0}</div>
+              <div className="text-[9px] text-on-surface/30 uppercase tracking-wider">clashes</div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <div className="text-sm text-on-surface/40 mb-3">Sign up to track your stats</div>
+            <Btn variant="primary" size="sm" onClick={function() { navigate('/signup') }}>Sign Up Free</Btn>
+          </div>
+        )}
+      </Panel>
+    </div>
+  )
+}
+
 // ---- ClashScreen (main, phase-adaptive) ----
 
 function ClashScreen(props) {
+  var navigate = useNavigate()
+  var linkedPlayer = (props.players || []).find(function(p) {
+    return props.currentUser && p.name === (props.currentUser.username || props.currentUser.name)
+  }) || null
   var phase = props.tournamentState && props.tournamentState.phase;
   var phaseColors = { registration: "#9B72CF", live: "#E8A838", complete: "#4ECDC4" };
   var phaseLabels = {
@@ -2259,42 +2358,8 @@ function ClashScreen(props) {
   };
   var accentColor = phaseColors[phase] || "#9B72CF";
 
-  if (!phase) {
-    var idlePlayers = props.players || [];
-    var idleTop5 = [].concat(idlePlayers).sort(function(a, b) { return (b.pts || 0) - (a.pts || 0); }).slice(0, 5);
-    return (
-      <div className="fade-up py-10 px-5 max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <Icon name="sports_esports" style={{ fontSize: 48, color: "#9B72CF", opacity: .35, display: "block", marginBottom: 12 }} />
-          <h2 className="font-editorial text-on-surface mb-1.5" style={{ fontSize: 26 }}>No Active Clash</h2>
-          <p className="text-sm text-[#9AAABF] leading-relaxed mx-auto" style={{ maxWidth: 380 }}>Stay tuned for the next clash. Keep an eye on announcements and warm up in scrims!</p>
-        </div>
-        {idleTop5.length > 0 && (
-          <Panel style={{ padding: "16px 18px", marginBottom: 20 }}>
-            <div className="flex items-center gap-2 mb-3">
-              <Icon name="emoji_events" style={{ fontSize: 16, color: "#E8A838" }} />
-              <span className="font-bold text-[13px] text-on-surface tracking-[.02em]">Season Standings</span>
-            </div>
-            {idleTop5.map(function(p, i) {
-              return (
-                <div key={p.id || i} onClick={function() { props.setProfilePlayer(p); props.setScreen("profile"); }}
-                  className="flex items-center gap-2.5 py-2 cursor-pointer"
-                  style={{ borderTop: i > 0 ? "1px solid rgba(242,237,228,.06)" : "none" }}>
-                  <span className="mono text-xs font-bold w-5 text-center" style={{ color: i === 0 ? "#E8A838" : i < 3 ? "#C4B5FD" : "#BECBD9" }}>{"#" + (i + 1)}</span>
-                  <span className="flex-1 font-semibold text-[13px] text-on-surface">{p.name}</span>
-                  <span className="mono text-[13px] font-bold text-primary">{p.pts || 0}</span>
-                  <span className="text-[10px] text-[#9AAABF] ml-0.5">pts</span>
-                </div>
-              );
-            })}
-          </Panel>
-        )}
-        <div className="flex gap-2.5 justify-center flex-wrap">
-          <Btn v="primary" onClick={function() { props.setScreen("standings"); }}>View Standings</Btn>
-          <Btn v="ghost" onClick={function() { props.setScreen("events"); }}>Browse Past Events</Btn>
-        </div>
-      </div>
-    );
+  if (!phase || phase === 'idle') {
+    return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} />
   }
 
   var recapData = phase === "complete" ? generateRecap(props.tournamentState) : null;
