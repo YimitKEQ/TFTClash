@@ -221,6 +221,7 @@ export default function Navbar() {
       label: phase === "live" ? "\u25cf LIVE CLASH" : phase === "registration" ? "Clash - Register" : phase === "complete" ? "Clash - Results" : "Clash"
     } : { id: "clash", label: "Clash" },
     { id: "standings", label: "Standings" },
+    { id: "events", label: "Events" },
     { id: "hof", label: "Hall of Fame" },
     { id: "pricing", label: "Pricing" }
   ];
