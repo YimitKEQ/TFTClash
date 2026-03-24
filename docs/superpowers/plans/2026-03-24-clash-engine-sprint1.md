@@ -645,7 +645,7 @@ var pendingResults = _pendingResults[0];
 var setPendingResults = _pendingResults[1];
 ```
 
-Expose it via the context value object (find where `value=` is set in the Provider return, add `pendingResults: pendingResults`).
+Expose it via the context value object (find the `useMemo` at AppContext.jsx line ~719 that builds the `value` object, add `pendingResults: pendingResults` to the returned object). Also add `pendingResults` to the `useMemo` dependency array at line ~776 (after `userTier`) — without this, the memoized value will never update when pending results change and all consumers will see stale data.
 
 - [ ] **Step 2: Load player's own pending submissions in AppContext**
 
@@ -900,7 +900,15 @@ pendingResults: pendingResults,
 allPendingResults: allPendingResults,
 ```
 
-Also update the `useApp` hook destructuring docs/CLAUDE.md-style note: callers access these as `var app = useApp(); var allPendingResults = app.allPendingResults;`.
+Also add `allPendingResults` to the `useMemo` dependency array at AppContext.jsx line ~776 (alongside `pendingResults` added in Task 7). The final dependency array tail should look like:
+```js
+    userTier,
+    pendingResults,
+    allPendingResults
+  ]);
+```
+
+Callers access these as: `var allPendingResults = useApp().allPendingResults;`
 
 - [ ] **Step 2: Add submission review panel component at module scope in ClashScreen.jsx**
 
