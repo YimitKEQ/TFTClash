@@ -1,20 +1,34 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { Panel, Btn, Inp, Icon } from '../ui';
+import { Btn, Inp, Panel, Icon } from '../ui';
 
-// Screen-to-route mapping (mirrors TFTClash.navTo in App.jsx)
 var SCREEN_TO_ROUTE = {
-  home: "/", login: "/login", signup: "/signup", standings: "/standings",
-  leaderboard: "/leaderboard", bracket: "/bracket", profile: "/player",
-  results: "/results", events: "/events", scrims: "/scrims", pricing: "/pricing",
-  milestones: "/milestones", challenges: "/challenges", hof: "/hall-of-fame",
-  archive: "/archive", recap: "/season-recap", rules: "/rules", faq: "/faq",
-  account: "/account", "host-apply": "/host/apply", "host-dashboard": "/host/dashboard",
-  admin: "/admin", privacy: "/privacy", terms: "/terms", clash: "/clash",
-  tournaments: "/tournaments", roster: "/roster", featured: "/featured", gear: "/gear"
+  home: '/', login: '/login', signup: '/signup', standings: '/standings',
+  leaderboard: '/leaderboard', bracket: '/bracket', profile: '/player',
+  results: '/results', events: '/events', scrims: '/scrims', pricing: '/pricing',
+  milestones: '/milestones', challenges: '/challenges', hof: '/hall-of-fame',
+  archive: '/archive', recap: '/season-recap', rules: '/rules', faq: '/faq',
+  account: '/account', 'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
+  admin: '/admin', privacy: '/privacy', terms: '/terms', clash: '/clash',
+  tournaments: '/tournaments', gear: '/gear'
 };
 
+var DESKTOP_LINKS = [
+  { id: 'clash',      label: 'Clash' },
+  { id: 'standings',  label: 'Standings' },
+  { id: 'events',     label: 'Events' },
+  { id: 'hof',        label: 'Hall of Fame' },
+  { id: 'pricing',    label: 'Pricing' },
+];
+
+var MOBILE_TABS = [
+  { id: 'home',      icon: 'home',        label: 'Home' },
+  { id: 'clash',     icon: 'swords',      label: 'Clash' },
+  { id: 'standings', icon: 'leaderboard', label: 'Rank' },
+  { id: 'account',   icon: 'person',      label: 'Account' },
+  { id: '__more__',  icon: 'menu',        label: 'More' },
+];
 
 function NotificationBell(props) {
   var notifications = props.notifications;
@@ -22,93 +36,53 @@ function NotificationBell(props) {
   var _open = useState(false);
   var open = _open[0];
   var setOpen = _open[1];
+  var unread = (notifications || []).filter(function(n) { return !n.read; }).length;
 
-  var unread = notifications.filter(function(n) { return !n.read; }).length;
-
-  // Notification icon mapping
-  var NOTIF_ICON_MAP = {
-    "bell": "notifications",
-    "trophy": "emoji_events",
-    "star": "star",
-    "swords": "swords",
-    "check": "check_circle",
-    "alert": "warning",
-    "info": "info",
-    "calendar": "calendar_today",
-    "gift": "redeem",
-    "fire": "local_fire_department",
-    "bolt": "bolt",
-    "shield": "shield",
-    "person": "person",
-    "chart": "bar_chart"
+  var ICON_MAP = {
+    bell: 'notifications', trophy: 'emoji_events', star: 'star',
+    swords: 'swords', check: 'check_circle', alert: 'warning',
+    info: 'info', calendar: 'calendar_today', gift: 'redeem',
+    fire: 'local_fire_department', bolt: 'bolt', person: 'person'
   };
-
-  function getNotifIcon(iconName) {
-    if (!iconName) return "notifications";
-    return NOTIF_ICON_MAP[iconName] || "notifications";
-  }
 
   return (
     <div className="relative">
       <button
         onClick={function() { setOpen(function(o) { return !o; }); }}
-        className="relative bg-transparent border-none p-1.5 cursor-pointer text-[#C8D4E0] hover:text-[#E8A838] transition-colors duration-150 flex items-center justify-center rounded-lg"
+        className="relative p-2 text-on-surface/50 hover:text-on-surface transition-colors duration-200 rounded-lg hover:bg-white/5"
       >
-        <Icon name="notifications" size={18} />
+        <Icon name="notifications" size={22} />
         {unread > 0 && (
-          <div className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#E8A838] flex items-center justify-center text-[8px] font-black text-[#07070E] leading-none">
-            {unread > 9 ? "9+" : unread}
-          </div>
+          <span className="absolute top-1 right-1 w-3 h-3 rounded-full bg-primary flex items-center justify-center text-[7px] font-black text-[#07070E]">
+            {unread > 9 ? '9+' : unread}
+          </span>
         )}
       </button>
-
       {open && (
         <>
           <div className="fixed inset-0 z-[149]" onClick={function() { setOpen(false); }} />
-          <div className="absolute right-0 top-[calc(100%+8px)] w-[300px] bg-gradient-to-br from-[#0F1828] to-[#0B1220] border border-[rgba(232,168,56,0.2)] rounded-[14px] shadow-[0_20px_56px_rgba(0,0,0,0.7)] z-[150] overflow-hidden">
-
-            <div className="px-3.5 py-3 border-b border-[rgba(242,237,228,0.07)] flex justify-between items-center bg-[rgba(232,168,56,0.04)]">
-              <div className="flex items-center gap-[7px]">
-                <span className="text-[13px] font-bold text-[#F2EDE4]">Notifications</span>
-                {unread > 0 && (
-                  <span className="bg-[#E8A838] text-[#07070E] text-[9px] font-extrabold rounded-full px-[7px] py-[2px]">
-                    {unread} new
-                  </span>
-                )}
-              </div>
+          <div className="absolute right-0 top-[calc(100%+8px)] w-[300px] bg-[#1B1B23] border border-white/10 rounded-xl shadow-[0_20px_56px_rgba(0,0,0,0.7)] z-[150] overflow-hidden">
+            <div className="px-4 py-3 border-b border-white/[0.06] flex justify-between items-center">
+              <span className="text-[13px] font-bold text-on-surface font-['Barlow_Condensed'] uppercase tracking-widest">Notifications</span>
               {unread > 0 && (
-                <button
-                  onClick={function() { onMarkAllRead(); }}
-                  className="bg-transparent border-none cursor-pointer text-[#9B72CF] text-[11px] font-semibold font-[inherit]"
-                >
+                <button onClick={function() { onMarkAllRead && onMarkAllRead(); }} className="text-primary text-[11px] font-semibold bg-transparent border-none cursor-pointer font-[inherit]">
                   Mark all read
                 </button>
               )}
             </div>
-
             <div className="max-h-[360px] overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="py-7 px-3.5 text-center text-[#9AAABF] text-[13px]">All caught up!</div>
+              {(notifications || []).length === 0 ? (
+                <div className="py-8 text-center text-on-surface/40 text-[13px]">All caught up!</div>
               ) : (
-                notifications.map(function(n) {
+                (notifications || []).map(function(n) {
                   return (
-                    <div
-                      key={n.id}
-                      className={"px-3.5 py-3 border-b border-[rgba(242,237,228,0.05)] flex gap-2.5 items-start" + (n.read ? "" : " bg-[rgba(232,168,56,0.03)]")}
-                    >
-                      <div className="shrink-0 mt-0.5">
-                        <Icon name={getNotifIcon(n.icon)} size={16} />
-                      </div>
+                    <div key={n.id} className={'px-4 py-3 border-b border-white/[0.04] flex gap-3 items-start' + (n.read ? '' : ' bg-primary/[0.03]')}>
+                      <Icon name={ICON_MAP[n.icon] || 'notifications'} size={16} className="mt-0.5 text-on-surface/40 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className={"text-xs leading-[1.4] mb-0.5 " + (n.read ? "font-normal text-[#C8D4E0]" : "font-semibold text-[#F2EDE4]")}>
-                          {n.title}
-                        </div>
-                        <div className="text-[11px] text-[#BECBD9] leading-[1.5]">{n.body}</div>
-                        <div className="text-[10px] text-[#9AAABF] mt-1">{n.time}</div>
+                        <div className={'text-xs leading-[1.4] mb-0.5 ' + (n.read ? 'text-on-surface/60' : 'font-semibold text-on-surface')}>{n.title}</div>
+                        <div className="text-[11px] text-on-surface/40 leading-relaxed">{n.body}</div>
                       </div>
-                      {!n.read && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#E8A838] shrink-0 mt-[5px]" />
-                      )}
+                      {!n.read && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mt-1.5" />}
                     </div>
                   );
                 })
@@ -124,7 +98,6 @@ function NotificationBell(props) {
 export default function Navbar() {
   var ctx = useApp();
   var navigate = useNavigate();
-
   var screen = ctx.screen;
   var setScreen = ctx.setScreen;
   var players = ctx.players;
@@ -140,41 +113,27 @@ export default function Navbar() {
   var authScreen = ctx.authScreen;
   var setAuthScreen = ctx.setAuthScreen;
 
-  var _pwModal = useState(false);
-  var pwModal = _pwModal[0];
-  var setPwModal = _pwModal[1];
-
-  var _pw = useState("");
-  var pw = _pw[0];
-  var setPw = _pw[1];
-
   var _drawer = useState(false);
   var drawer = _drawer[0];
   var setDrawer = _drawer[1];
 
-  var dispCount = (disputes || []).length;
-  var canScrims = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
+  var _pwModal = useState(false);
+  var pwModal = _pwModal[0];
+  var setPwModal = _pwModal[1];
 
-  // Navigation helper - mirrors navTo from TFTClash
-  var navTo = useCallback(function(s, sub) {
-    var parts = s.split("/");
-    var base = parts[0];
-    var sr = sub || parts[1] || "";
-    if (base === "admin" && !isAdmin) { toast("Admin access required", "error"); return; }
+  var _pw = useState('');
+  var pw = _pw[0];
+  var setPw = _pw[1];
+
+  var navTo = useCallback(function(s) {
+    var base = s.split('/')[0];
+    if (base === 'admin' && !isAdmin) { toast('Admin access required', 'error'); return; }
     var canS = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
-    if (base === "scrims" && !canS) { toast("Access restricted", "error"); return; }
+    if (base === 'scrims' && !canS) { toast('Access restricted', 'error'); return; }
     setScreen(base);
     var route = SCREEN_TO_ROUTE[base];
-    if (route) {
-      var fullRoute = sr ? route + "/" + sr : route;
-      navigate(fullRoute);
-    } else if (base.indexOf("flash-") === 0) {
-      navigate("/flash/" + base.replace("flash-", ""));
-    } else if (base.indexOf("tournament-") === 0) {
-      navigate("/tournament/" + base.replace("tournament-", ""));
-    } else {
-      navigate("/" + base + (sr ? "/" + sr : ""));
-    }
+    if (route) navigate(route);
+    else navigate('/' + base);
   }, [isAdmin, currentUser, scrimAccess, toast, navigate, setScreen]);
 
   function tryLogin() {
@@ -182,89 +141,70 @@ export default function Navbar() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: pw })
-    }).then(function(res) {
-      return res.json();
-    }).then(function(data) {
-      if (data && data.isAdmin) {
-        setIsAdmin(true);
-        setPwModal(false);
-        setPw("");
-        toast("Admin mode activated", "success");
-      } else {
-        toast("Wrong password", "error");
-      }
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      if (data && data.isAdmin) { setIsAdmin(true); setPwModal(false); setPw(''); toast('Admin activated', 'success'); }
+      else toast('Wrong password', 'error');
     });
   }
 
-  // Tournament phase
   var phase = tournamentState && tournamentState.phase;
+  var dispCount = (disputes || []).length;
+  var canScrims = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
 
-  // Clash nav item with phase-aware badges
-  var clashItem = null;
-  if (phase === "registration") clashItem = { id: "clash", label: "Clash", badge: "Register", badgeColor: "#E8A838" };
-  else if (phase === "live") clashItem = { id: "clash", label: "LIVE", glow: true };
-  else if (phase === "complete") clashItem = { id: "clash", label: "Clash", badge: "Results", badgeColor: "#4ECDC4" };
-
-  // Mobile bottom bar items (5 items)
-  var PRIMARY = [
-    clashItem ? Object.assign({}, clashItem, { icon: "swords" }) : { id: "clash", icon: "swords", label: "Clash" },
-    { id: "standings", icon: "bar_chart", label: "Standings" },
-    { id: "hof", icon: "emoji_events", label: "HoF" },
-    { id: "pricing", icon: "sell", label: "Pricing" },
-    { id: "more", icon: "more_horiz", label: "More" }
+  // Drawer sections
+  var mainItems = [
+    { id: 'home',       icon: 'home',              label: 'Home' },
+    { id: 'clash',      icon: 'swords',            label: 'Clash' },
+    { id: 'standings',  icon: 'bar_chart',         label: 'Standings' },
+    { id: 'leaderboard',icon: 'emoji_events',      label: 'Leaderboard' },
+    { id: 'events',     icon: 'calendar_month',    label: 'Events' },
+    { id: 'hof',        icon: 'workspace_premium', label: 'Hall of Fame' },
   ];
-
-  // Desktop primary links
-  var DESKTOP_PRIMARY = [
-    clashItem ? {
-      id: "clash",
-      label: phase === "live" ? "\u25cf LIVE CLASH" : phase === "registration" ? "Clash - Register" : phase === "complete" ? "Clash - Results" : "Clash"
-    } : { id: "clash", label: "Clash" },
-    { id: "standings", label: "Standings" },
-    { id: "events", label: "Events" },
-    { id: "hof", label: "Hall of Fame" },
-    { id: "pricing", label: "Pricing" }
-  ];
-
-  // Profile completion indicator
-  var navProfileFields = currentUser ? [
-    currentUser.user_metadata && currentUser.user_metadata.riot_id,
-    currentUser.user_metadata && currentUser.user_metadata.bio,
-    currentUser.user_metadata && currentUser.user_metadata.region
-  ] : [];
-  var navProfileComplete = navProfileFields.filter(Boolean).length;
-  var navProfileTotal = 3;
-
-  // Drawer items
   var communityItems = [
-    { id: "archive", icon: "inventory_2", label: "Archive", section: "community" },
-    { id: "results", icon: "assignment_turned_in", label: "Results", section: "community" },
-    { id: "milestones", icon: "redeem", label: "Milestones", section: "community" },
-    { id: "challenges", icon: "star", label: "Challenges", section: "community" }
+    { id: 'archive',    icon: 'inventory_2',       label: 'Archive' },
+    { id: 'results',    icon: 'assignment_turned_in', label: 'Results' },
+    { id: 'milestones', icon: 'redeem',            label: 'Milestones' },
+    { id: 'challenges', icon: 'star',              label: 'Challenges' },
   ];
+  if (canScrims) communityItems.push({ id: 'scrims', icon: 'sports_esports', label: 'Scrims' });
 
-  if (canScrims) {
-    communityItems = communityItems.concat([
-      { id: "scrims", icon: "sports_esports", label: "Scrims", section: "community" }
-    ]);
-  }
-
+  var accountItems = [
+    { id: 'account',    icon: 'person',            label: currentUser ? currentUser.username : 'Sign In' },
+    { id: 'pricing',    icon: 'sell',              label: 'Pricing' },
+    { id: 'rules',      icon: 'menu_book',         label: 'Rules' },
+    { id: 'faq',        icon: 'help',              label: 'FAQ' },
+  ];
   var adminItems = isAdmin ? [
-    { id: "admin", icon: "shield", label: "Admin Panel", section: "admin" },
-    { id: "host-dashboard", icon: "workspace_premium", label: "Host Dashboard", section: "admin" }
+    { id: 'admin',          icon: 'shield',            label: 'Admin Panel' },
+    { id: 'host-dashboard', icon: 'workspace_premium', label: 'Host Dashboard' },
   ] : [];
 
-  var DRAWER_ITEMS = [
-    { id: "clash", icon: "swords", label: "Clash", section: "main" },
-    { id: "standings", icon: "bar_chart", label: "Standings", section: "main" },
-    { id: "leaderboard", icon: "leaderboard", label: "Leaderboard", section: "main" },
-    { id: "hof", icon: "emoji_events", label: "Hall of Fame", section: "main" }
-  ].concat(communityItems).concat([
-    { id: "account", icon: "person", label: currentUser ? ("Account - " + currentUser.username) : "Sign In / Sign Up", section: "account" },
-    { id: "pricing", icon: "sell", label: "Pricing", section: "account" },
-    { id: "rules", icon: "menu_book", label: "Rules", section: "account" },
-    { id: "faq", icon: "help", label: "FAQ", section: "account" }
-  ]).concat(adminItems);
+  var navPlayer = currentUser && players && players.find(function(p) {
+    return p.auth_user_id === currentUser.id || p.name === currentUser.username;
+  });
+  var navPic = (navPlayer && navPlayer.profile_pic_url) || '';
+
+  function DrawerSection(props) {
+    var items = props.items;
+    return items.map(function(item) {
+      var isActive = screen === item.id;
+      return (
+        <button
+          key={item.id}
+          onClick={function() {
+            if (item.id === 'account' && !currentUser) { setAuthScreen('login'); setDrawer(false); return; }
+            navTo(item.id);
+            setDrawer(false);
+          }}
+          className={'flex items-center gap-3.5 py-3 px-6 w-full text-left border-none cursor-pointer transition-all duration-150 text-[13px] font-["Barlow_Condensed"] uppercase tracking-widest font-semibold ' +
+            (isActive ? 'bg-primary/10 text-primary' : 'bg-transparent text-on-surface/50 hover:text-on-surface hover:bg-white/[0.04]')}
+        >
+          <Icon name={item.icon} size={18} className={isActive ? 'opacity-100' : 'opacity-60'} />
+          {item.label}
+        </button>
+      );
+    });
+  }
 
   return (
     <>
@@ -272,245 +212,157 @@ export default function Navbar() {
       {pwModal && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002] p-4">
           <Panel glow className="w-full max-w-[340px] p-[26px]">
-            <div className="mt-1.5">
-              <h3 className="text-[#F2EDE4] text-lg mb-1">Admin Access</h3>
-              <div className="text-[13px] text-[#BECBD9] mb-4">
-                Hint: <span className="text-[#E8A838] font-semibold">admin</span>
-              </div>
-              <Inp
-                value={pw}
-                onChange={function(e) { setPw(e && e.target ? e.target.value : e); }}
-                type="password"
-                placeholder="Enter password..."
-                onKeyDown={function(e) { if (e.key === "Enter") tryLogin(); }}
-                className="mb-3.5"
-              />
-              <div className="flex gap-2.5">
-                <Btn variant="primary" className="flex-1" onClick={tryLogin}>Login</Btn>
-                <Btn variant="ghost" onClick={function() { setPwModal(false); setPw(""); }}>Cancel</Btn>
-              </div>
+            <h3 className="text-on-surface text-lg mb-4">Admin Access</h3>
+            <Inp value={pw} onChange={function(e) { setPw(e && e.target ? e.target.value : e); }}
+              type="password" placeholder="Enter password..."
+              onKeyDown={function(e) { if (e.key === 'Enter') tryLogin(); }}
+              className="mb-3.5" />
+            <div className="flex gap-2.5">
+              <Btn variant="primary" className="flex-1" onClick={tryLogin}>Login</Btn>
+              <Btn variant="ghost" onClick={function() { setPwModal(false); setPw(''); }}>Cancel</Btn>
             </div>
           </Panel>
         </div>
       )}
 
-      {/* Drawer overlay + drawer */}
+      {/* Drawer */}
       {drawer && (
         <>
-          <div className="drawer-overlay" onClick={function() { setDrawer(false); }} />
-          <div className="drawer">
-            <div className="px-5 pb-5 border-b border-[rgba(242,237,228,0.08)] mb-4 flex items-center gap-2.5">
-              <img
-                src="/icon-border.png"
-                alt="TFT Clash"
-                className="w-9 h-9 object-contain drop-shadow-[0_0_10px_rgba(155,114,207,0.55)]"
-              />
-              <div>
-                <div className="font-display text-base font-bold text-primary">TFT Clash</div>
-                <div className="text-xs text-[#BECBD9]">Season 1</div>
-              </div>
+          <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={function() { setDrawer(false); }} />
+          <div className="fixed top-0 right-0 h-full w-72 bg-[#13131A] border-l border-white/[0.06] z-[61] flex flex-col overflow-y-auto">
+            <div className="flex items-center justify-between px-6 h-20 border-b border-white/[0.06] shrink-0">
+              <span className="font-['Russo_One'] text-primary text-lg uppercase tracking-tight">Menu</span>
+              <button onClick={function() { setDrawer(false); }} className="p-2 text-on-surface/40 hover:text-on-surface bg-transparent border-none cursor-pointer">
+                <Icon name="close" size={20} />
+              </button>
             </div>
-
-            {(function() {
-              var lastSection = "";
-              return DRAWER_ITEMS.map(function(l) {
-                var divider = l.section !== lastSection && lastSection !== ""
-                  ? <div key={"div-" + l.section} className="h-px bg-[rgba(242,237,228,0.06)] mx-4 my-2" />
-                  : null;
-                lastSection = l.section;
-                var isActive = screen === l.id;
-                return (
-                  <div key={l.id}>
-                    {divider}
-                    <button
-                      onClick={function() {
-                        if (l.id === "account" && !currentUser) {
-                          setAuthScreen("login");
-                          setDrawer(false);
-                          return;
-                        }
-                        navTo(l.id);
-                        setDrawer(false);
-                      }}
-                      className={"flex items-center gap-3.5 py-3 px-5 border-none w-full text-left cursor-pointer transition-all duration-150 text-[13px] font-semibold " + (isActive ? "bg-[rgba(232,168,56,0.08)] text-[#E8A838]" : "bg-transparent text-[#C8BFB0]")}
-                    >
-                      <span className="min-w-[22px] flex items-center justify-center">
-                        <Icon name={l.icon} size={17} className={isActive ? "opacity-100" : "opacity-70"} />
-                      </span>
-                      {l.label}
-                    </button>
-                  </div>
-                );
-              });
-            })()}
-
-            <div className="mt-auto p-5">
+            <div className="flex-1 py-2">
+              <DrawerSection items={mainItems} />
+              <div className="h-px bg-white/[0.06] mx-6 my-2" />
+              <DrawerSection items={communityItems} />
+              <div className="h-px bg-white/[0.06] mx-6 my-2" />
+              <DrawerSection items={accountItems} />
+              {adminItems.length > 0 && (
+                <>
+                  <div className="h-px bg-white/[0.06] mx-6 my-2" />
+                  <DrawerSection items={adminItems} />
+                </>
+              )}
+            </div>
+            <div className="p-5 border-t border-white/[0.06] shrink-0">
               {!isAdmin ? (
-                <Btn variant="ghost" className="w-full" onClick={function() { setDrawer(false); setPwModal(true); }}>
-                  Admin Login
-                </Btn>
+                <Btn variant="ghost" className="w-full" onClick={function() { setDrawer(false); setPwModal(true); }}>Admin Login</Btn>
               ) : (
-                <Btn variant="destructive" className="w-full" onClick={function() { setIsAdmin(false); setDrawer(false); toast("Admin off", "success"); }}>
-                  Admin On
-                </Btn>
+                <Btn variant="destructive" className="w-full" onClick={function() { setIsAdmin(false); setDrawer(false); toast('Admin off', 'success'); }}>Admin On</Btn>
               )}
             </div>
           </div>
         </>
       )}
 
-      {/* Desktop top nav */}
-      <nav className="top-nav" style={{ borderBottom: "1px solid rgba(155,114,207,.15)" }}>
-        <div className="max-w-[1400px] mx-auto px-4 h-[54px] flex items-center gap-0">
+      {/* Top header */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-20 bg-[#1B1B23]/60 backdrop-blur-xl border-b border-white/5 shadow-[0_40px_40px_rgba(228,225,236,0.04)]">
+        <div className="flex items-center justify-between h-full px-6 xl:px-8 max-w-[1920px] mx-auto">
 
           {/* Logo */}
           <div
-            onClick={function() { navTo("home"); }}
-            className="flex items-center gap-2 mr-3.5 shrink-0 cursor-pointer transition-[filter] duration-200 hover:drop-shadow-[0_0_12px_rgba(232,168,56,0.4)]"
+            onClick={function() { navTo('home'); }}
+            className="font-['Russo_One'] text-xl text-primary uppercase tracking-tight cursor-pointer hover:opacity-80 transition-opacity shrink-0"
           >
-            <img
-              src="/icon-border.png"
-              alt="TFT Clash"
-              className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(155,114,207,0.55)]"
-            />
-            <div>
-              <div className="gold-shimmer font-display text-sm font-bold leading-none tracking-[.06em]">
-                TFT Clash
-              </div>
-              <div className="cond flex items-center gap-1 text-[10px] text-[#BECBD9] font-semibold tracking-[.06em]">
-                <span className="border border-[rgba(232,168,56,0.4)] rounded px-1 text-[8px] text-[#E8A838] font-bold">S1</span>
-                Season 1
-              </div>
-            </div>
+            TFT Clash
           </div>
 
-          {/* Desktop links */}
-          <div className="desktop-links items-center gap-0 flex-1 min-w-0">
-            {DESKTOP_PRIMARY.map(function(l) {
-              var isLiveClash = l.id === "clash" && phase === "live";
+          {/* Desktop nav links */}
+          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
+            {DESKTOP_LINKS.map(function(l) {
+              var isLive = l.id === 'clash' && phase === 'live';
               var isActive = screen === l.id;
+              var label = isLive ? '\u25cf LIVE CLASH' : l.label;
+              if (l.id === 'clash' && phase === 'registration') label = 'Clash - Register';
+              if (l.id === 'clash' && phase === 'complete') label = 'Clash - Results';
               return (
                 <button
                   key={l.id}
                   onClick={function() { navTo(l.id); }}
-                  data-active={isActive ? "true" : "false"}
-                  className={"border-none py-1.5 px-3 text-[12.5px] font-semibold cursor-pointer whitespace-nowrap shrink-0 rounded-lg transition-all duration-200 tracking-[.02em] font-condensed " + (isLiveClash
-                    ? "bg-gradient-to-br from-[rgba(232,168,56,0.25)] to-[rgba(248,113,113,0.15)] text-[#E8A838] font-bold border border-[rgba(232,168,56,0.4)] shadow-[0_0_12px_rgba(232,168,56,0.3),0_0_24px_rgba(232,168,56,0.1)]"
-                    : isActive
-                      ? "bg-[rgba(232,168,56,0.1)] text-[#E8A838]"
-                      : "bg-transparent text-[#9AAABF]"
-                  )}
+                  className={'px-4 py-1.5 border-none cursor-pointer transition-all duration-200 font-["Barlow_Condensed"] uppercase tracking-widest text-sm font-semibold rounded-sm relative ' +
+                    (isLive
+                      ? 'text-primary bg-primary/10'
+                      : isActive
+                        ? 'text-primary'
+                        : 'text-on-surface/50 hover:text-on-surface bg-transparent')}
+                  style={isActive ? { borderBottom: '2px solid #E8A838' } : {}}
                 >
-                  {l.label}
-                  {l.badge && (
-                    <span
-                      className={"ml-1.5 text-[10px] font-bold py-0.5 px-1.5 rounded " + (l.badgeColor === "#E8A838"
-                        ? "bg-[rgba(232,168,56,0.15)] text-[#E8A838] border border-[rgba(232,168,56,0.3)]"
-                        : "bg-[rgba(78,205,196,0.15)] text-[#4ECDC4] border border-[rgba(78,205,196,0.3)]"
-                      )}
-                    >
-                      {l.badge}
-                    </span>
-                  )}
+                  {label}
                 </button>
               );
             })}
+          </nav>
 
-          </div>
-
-          {/* Right side actions */}
-          <div className="flex items-center gap-1.5 ml-auto shrink-0">
-            {/* Hamburger — desktop only (mobile uses bottom bar "More" tab) */}
-            <button
-              className="hidden md:flex bg-transparent border border-[rgba(242,237,228,0.1)] rounded-lg p-1.5 cursor-pointer text-[#C8D4E0] hover:text-[#F2EDE4] items-center justify-center transition-colors duration-150"
-              onClick={function() { setDrawer(function(d) { return !d; }); }}
-            >
-              <Icon name="menu" size={20} />
-            </button>
-
-            {/* Dispute badge */}
+          {/* Right actions */}
+          <div className="flex items-center gap-2 shrink-0">
             {dispCount > 0 && (
-              <button
-                onClick={function() { navTo("admin"); }}
-                className="flex items-center gap-[5px] py-1 px-2.5 bg-[rgba(220,38,38,0.12)] border border-[rgba(220,38,38,0.4)] rounded-full cursor-pointer animate-[pulse-red_2s_infinite]"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444] inline-block" />
-                <span className="text-[11px] font-bold text-[#F87171]">{dispCount}</span>
+              <button onClick={function() { navTo('admin'); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 border border-red-500/30 rounded-full cursor-pointer animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" />
+                <span className="text-[11px] font-bold text-red-400">{dispCount}</span>
               </button>
             )}
 
-            {/* Notification bell */}
-            <NotificationBell
-              notifications={notifications || []}
-              onMarkAllRead={markAllRead || function() {}}
-            />
+            <NotificationBell notifications={notifications || []} onMarkAllRead={markAllRead} />
 
-            {/* User button or sign in/up */}
             {currentUser ? (
               <button
-                onClick={function() { navTo("account"); }}
-                className="flex items-center gap-1.5 bg-[rgba(232,168,56,0.08)] border border-[rgba(232,168,56,0.3)] rounded-full py-[5px] px-3 cursor-pointer transition-all duration-150 hover:border-[rgba(232,168,56,0.6)]"
+                onClick={function() { navTo('account'); }}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/20 bg-primary/5 hover:border-primary/40 transition-all duration-200 cursor-pointer"
               >
-                {(function() {
-                  var navPlayer = players && players.find(function(p) {
-                    return p.auth_user_id === currentUser.id || p.authUserId === currentUser.id || p.name === currentUser.username;
-                  });
-                  var navPic = (navPlayer && navPlayer.profile_pic_url) || (currentUser.user_metadata && currentUser.user_metadata.profilePic) || "";
-                  if (navPic) {
-                    return <div className="w-5 h-5 rounded-full bg-cover bg-center shrink-0" style={{ backgroundImage: "url(" + navPic + ")" }} />;
-                  }
-                  return null;
-                })()}
-                <span className="text-xs font-semibold text-[#E8A838]">{currentUser.username}</span>
-                <span className={"w-1.5 h-1.5 rounded-full inline-block shrink-0 " + (navProfileComplete === navProfileTotal ? "bg-[#52C47C]" : "bg-[#E8A838]")} />
+                {navPic ? (
+                  <div className="w-6 h-6 rounded-full bg-cover bg-center shrink-0 border border-primary/30" style={{ backgroundImage: 'url(' + navPic + ')' }} />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <Icon name="person" size={14} className="text-primary" />
+                  </div>
+                )}
+                <span className="text-sm font-semibold text-primary font-['Barlow_Condensed'] uppercase tracking-wide hidden sm:block">{currentUser.username}</span>
               </button>
             ) : (
-              <div className="flex gap-1.5">
-                <Btn variant="ghost" size="sm" onClick={function() { setAuthScreen("login"); }}>Sign In</Btn>
-                <Btn variant="primary" size="sm" onClick={function() { setAuthScreen("signup"); }}>Sign Up</Btn>
+              <div className="hidden md:flex gap-2">
+                <Btn variant="ghost" size="sm" onClick={function() { setAuthScreen('login'); }}>Sign In</Btn>
+                <Btn variant="primary" size="sm" onClick={function() { setAuthScreen('signup'); }}>Sign Up</Btn>
               </div>
             )}
 
-            {/* Admin toggle */}
-            {!isAdmin ? (
-              <Btn variant="ghost" size="sm" onClick={function() { setPwModal(true); }}>Admin</Btn>
-            ) : (
-              <Btn variant="destructive" size="sm" onClick={function() { setIsAdmin(false); toast("Admin off", "success"); }}>
-                Admin
-              </Btn>
-            )}
+            {/* Menu button - tablet/mobile only (xl has sidebar) */}
+            <button
+              onClick={function() { setDrawer(true); }}
+              className="xl:hidden p-2 text-on-surface/50 hover:text-on-surface transition-colors rounded-lg hover:bg-white/5 bg-transparent border-none cursor-pointer"
+            >
+              <Icon name="menu" size={22} />
+            </button>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Mobile bottom bar */}
-      <nav className="mobile-bottom-bar fixed bottom-0 left-0 right-0 bg-[rgba(8,8,15,0.97)] border-t border-[rgba(242,237,228,0.08)] flex justify-around items-center py-2 pb-[calc(8px+env(safe-area-inset-bottom))] z-[9990] backdrop-blur-[12px]">
-        {PRIMARY.map(function(item) {
-          var isActive = screen === item.id || (item.id === "clash" && (screen === "bracket" || screen === "clash-register" || screen === "clash-live" || screen === "clash-results"));
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-[#13131A]/95 backdrop-blur-xl border-t border-white/[0.06] flex justify-around items-center pb-[env(safe-area-inset-bottom)]">
+        {MOBILE_TABS.map(function(item) {
+          var isActive = item.id !== '__more__' && (screen === item.id || (item.id === 'home' && screen === 'home'));
           return (
             <button
               key={item.id}
               onClick={function() {
-                if (item.id === "more") { setDrawer(true); }
-                else { navTo(item.id); }
+                if (item.id === '__more__') { setDrawer(true); return; }
+                if (item.id === 'account' && !currentUser) { setAuthScreen('login'); return; }
+                navTo(item.id);
               }}
-              className={"flex flex-col items-center gap-0.5 py-1 px-3 cursor-pointer relative bg-transparent border-none font-condensed " + (isActive ? "text-[#F2EDE4]" : "text-[#9AAABF]")}
+              className={'flex flex-col items-center gap-0.5 py-1 px-3 cursor-pointer bg-transparent border-none transition-colors ' +
+                (isActive ? 'text-primary' : 'text-on-surface/40')}
             >
-              {item.glow && (
-                <div className="absolute top-0.5 right-2 w-1.5 h-1.5 rounded-full bg-[#E8A838] shadow-[0_0_8px_#E8A838]" />
+              {item.id === '__more__' && drawer ? (
+                <Icon name="close" size={22} />
+              ) : (
+                <Icon name={item.icon} size={22} />
               )}
-              {item.badge && (
-                <span
-                  className={"absolute top-0 right-0.5 text-[7px] font-bold py-[1px] px-1 rounded-[3px] " + (item.badgeColor === "#E8A838"
-                    ? "bg-[rgba(232,168,56,0.2)] text-[#E8A838]"
-                    : "bg-[rgba(78,205,196,0.2)] text-[#4ECDC4]"
-                  )}
-                >
-                  {item.badge}
-                </span>
-              )}
-              <Icon name={item.icon} size={20} />
-              <span className="text-[10px] tracking-[.04em]">{item.label}</span>
+              <span className="text-[9px] font-['Barlow_Condensed'] uppercase tracking-widest font-bold">{item.label}</span>
             </button>
           );
         })}
