@@ -46,6 +46,7 @@ CREATE TABLE pending_results (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tournament_id uuid REFERENCES tournaments(id),
   round integer NOT NULL,
+  lobby_number integer NOT NULL,
   player_id integer REFERENCES players(id),
   placement integer NOT NULL CHECK (placement BETWEEN 1 AND 8),
   submitted_at timestamptz DEFAULT now(),
@@ -53,12 +54,25 @@ CREATE TABLE pending_results (
   UNIQUE (tournament_id, round, player_id)
 );
 
+-- Index for admin lobby-scoped queries
+CREATE INDEX pending_results_lookup ON pending_results (tournament_id, round, lobby_number);
+
 ALTER TABLE pending_results ENABLE ROW LEVEL SECURITY;
 -- Players can insert/read their own row; admin can read all + update status
 CREATE POLICY "players insert own" ON pending_results FOR INSERT WITH CHECK (player_id = (SELECT id FROM players WHERE auth_user_id = auth.uid()));
 CREATE POLICY "players read own" ON pending_results FOR SELECT USING (player_id = (SELECT id FROM players WHERE auth_user_id = auth.uid()));
+-- Admin policy uses is_admin column on players table (added in migration 3.1a below)
 CREATE POLICY "admin full access" ON pending_results USING (EXISTS (SELECT 1 FROM players WHERE auth_user_id = auth.uid() AND is_admin = true));
 ```
+
+**Additional migration 3.1a — add `is_admin` column to `players`:**
+```sql
+ALTER TABLE players ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false;
+-- Set admin flag for known admin player (Levitate, id=1):
+UPDATE players SET is_admin = true WHERE id = 1;
+```
+
+Note: AppContext currently stores `isAdmin` in `localStorage` as a UI flag. The DB `is_admin` column is the authoritative source used by RLS policies. AppContext should derive `isAdmin` from `currentUser.is_admin` after this migration (Phase 1 includes updating AppContext to read `currentUser.is_admin` instead of `localStorage`).
 
 AppContext exposes `pendingResults` state, subscribed via Supabase realtime on the `pending_results` table (admin sees all rows, players see their own).
 
@@ -78,7 +92,7 @@ Each field shows a status row below it:
 - If filled: teal `check_circle` icon + "Linked — used for [EU/NA] clash weeks"
 - If empty: gold `warning` icon + "Not linked — you won't be able to register for [NA/EU] weeks"
 
-Save button: "Save Riot IDs" — calls `supabase.from('players').update({riot_id_eu, riot_id_na}).eq('id', currentUser.id)`, then updates `currentUser` in AppContext.
+Save button: "Save Riot IDs" — calls `supabase.from('players').update({riot_id_eu, riot_id_na}).eq('id', currentUser.id)`, then calls `setCurrentUser(Object.assign({}, currentUser, { riot_id_eu: riot_id_eu, riot_id_na: riot_id_na }))` to update AppContext state immediately without a re-fetch. AppContext's `currentUser` is a live reflection of the `players` row (loaded via `SELECT *`), so the new fields are present after the next auth session load automatically — the `setCurrentUser` call ensures the UI reflects the change instantly.
 
 ### 4.2 Validation
 
@@ -157,7 +171,9 @@ Admin uses this to read out lobby assignments in Discord so players can find eac
 
 ### 8.1 Live phase ClashCard — player side
 
-The existing "Submit Results" button in the live phase bottom zone triggers an inline placement picker on the ClashCard (no modal, no new screen):
+The live phase bottom zone in `DashboardScreen.jsx` currently renders: a phase tag (teal live dot + "Round X of Y"), a "Round X of Y" body text line, a lobby box showing player names, and two buttons ("Submit Results" + "Live Board"). The "Submit Results" button currently navigates to `/clash`. This navigation is replaced: clicking "Submit Results" now toggles `showPicker` local state to `true`, which swaps the lobby box + buttons for the inline placement picker below. The "Live Board" button is retained and continues to navigate to `/clash`.
+
+**Picker state** (when `showPicker === true`):
 
 **Picker state:**
 - Text: "How did you finish in Lobby [N]?"
@@ -174,13 +190,23 @@ The existing "Submit Results" button in the live phase bottom zone triggers an i
 
 ### 8.2 Data write
 
-On confirmation: `supabase.from('pending_results').upsert({ tournament_id, round: tournamentState.currentRound, player_id: currentUser.id, placement: selectedPlacement, status: 'pending' }, { onConflict: 'tournament_id,round,player_id' })`
+On confirmation:
+```js
+supabase.from('pending_results').upsert({
+  tournament_id: tournamentState.id,
+  round: tournamentState.round,
+  lobby_number: myLobbyNumber,
+  player_id: currentUser.id,
+  placement: selectedPlacement,
+  status: 'pending'
+}, { onConflict: 'tournament_id,round,player_id' })
+```
 
-`upsert` with conflict key allows a player to change their submission before admin confirms.
+`upsert` with conflict key allows a player to change their submission before admin confirms. `myLobbyNumber` is derived by finding which lobby index contains `currentUser.id` in `tournamentState.lobbies`.
 
 ### 8.3 Round tracking
 
-`tournamentState.currentRound` (integer, already in the state object) determines which round submissions belong to.
+`tournamentState.round` (integer, field name confirmed in AppContext line 87 and ClashScreen) determines which round submissions belong to.
 
 ---
 
@@ -208,9 +234,17 @@ In ClashScreen, each lobby card gains a results tab/section showing all 8 submis
 On "Confirm All":
 1. `pending_results` rows for this lobby + round → status set to `'confirmed'`
 2. For each confirmed row: insert into `game_results` (`player_id`, `tournament_id`, `round`, `placement`, `pts` from PTS constant)
-3. Update `players.pts += pts` and `players.wins += (placement === 1 ? 1 : 0)` for each player
-4. If all lobbies confirmed for this round: advance `tournamentState.currentRound += 1`
-5. If final round confirmed: set `tournamentState.phase = 'complete'`
+3. Update player stats atomically using Postgres increment (not client-side read-modify-write):
+   ```sql
+   UPDATE players SET
+     pts = pts + $pts,
+     wins = wins + $winsIncrement
+   WHERE id = $player_id
+   ```
+   Called via `supabase.rpc('increment_player_stats', { p_player_id, p_pts, p_wins })` — a Postgres function added in Phase 1 migration. This prevents lost-update races from concurrent admin confirms.
+4. Check if all lobbies for this round are confirmed: query `pending_results` where `tournament_id = X AND round = Y AND status != 'confirmed'` — if 0 rows remain, all lobbies are done.
+   - If more rounds remain (`tournamentState.round < tournamentState.totalGames`): call `setTournamentState(function(ts){ return Object.assign({}, ts, { round: ts.round + 1 }) })` and persist to DB.
+   - If final round (`tournamentState.round === tournamentState.totalGames`): call `setTournamentState(function(ts){ return Object.assign({}, ts, { phase: 'complete' }) })` and persist to DB.
 
 ### 9.3 Dispute / Override
 
@@ -252,16 +286,21 @@ Every file touched must comply with CLAUDE.md:
 - Tailwind CSS classes for all styling — no inline styles in new/modified code
 - Material Symbols Outlined icons (`<Icon>`) in all new/modified screens
 - `supabase.js` is exempt from these rules
+- **`Sel` component** (select wrapper): not in shared UI library. Define locally in any screen that needs a `<select>` element (e.g. AdminScreen server selector). Pattern: `function Sel(props){ return <select className="..." {...props} /> }`
+- **ClashScreen location**: `src/screens/ClashScreen.jsx` (standalone file, not inside App.jsx). The legacy App.jsx still references it but the actual implementation is in the screens directory.
 
 ---
 
 ## 13. Implementation Phases
 
-**Phase 1 — DB migrations**
+**Phase 1 — DB migrations + AppContext `isAdmin` fix**
 - Add `riot_id_na`, `riot_id_eu` to `players` table
-- Add `server` to `tournament_state` table
-- Create `pending_results` table with RLS policies
-- Update `SEED` constant with `riot_id_eu` values
+- Add `is_admin boolean DEFAULT false` to `players` table; set `is_admin = true` for id=1
+- Add `server text DEFAULT 'EU'` to `tournament_state` table
+- Create `pending_results` table with `lobby_number` column, index, and RLS policies
+- Create `increment_player_stats` Postgres RPC function
+- Update AppContext to read `isAdmin` from `currentUser.is_admin` instead of `localStorage`
+- Update `SEED` constant with `riot_id_eu` values for each homie
 
 **Phase 2 — Account Screen Riot IDs**
 - Add Riot ID section to `AccountScreen.jsx`
