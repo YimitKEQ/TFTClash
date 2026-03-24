@@ -259,27 +259,17 @@ export default function RulesScreen() {
                 </div>
                 <div>
                   <p className="font-editorial text-lg text-on-surface mb-1">Live Admin Support</p>
-                  <p className="text-sm text-slate-400">Response time: ~5 minutes during active tournament windows.</p>
+                  <p className="text-sm text-slate-400">Reach us on Discord</p>
                 </div>
               </div>
-              <button className="w-full py-4 bg-surface-container-highest hover:bg-surface-variant transition-colors rounded-full font-condensed font-bold uppercase tracking-widest text-sm border border-outline-variant/20 text-on-surface">
-                OPEN SUPPORT TICKET
-              </button>
-            </div>
-
-            {/* Cinematic image card */}
-            <div className="relative rounded-xl overflow-hidden aspect-video bg-surface-container-high">
-              <div className="absolute inset-0 bg-gradient-to-br from-surface-container-high to-surface-container-low" />
-              <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 bg-tertiary/10 rounded-sm">
-                  <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
-                  <span className="font-condensed text-tertiary uppercase text-[10px] tracking-widest">Live Updates</span>
-                </div>
-                <p className="font-editorial text-xl text-on-surface leading-tight">
-                  Watch the Rulebook Masterclass on Discord
-                </p>
-              </div>
+              <a
+                href="https://discord.gg/HJH3NQqqXH"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[rgba(103,226,217,0.08)] border border-[rgba(103,226,217,0.2)] text-[#67E2D9] text-sm font-semibold transition-colors hover:bg-[rgba(103,226,217,0.12)] no-underline"
+              >
+                Join Discord
+              </a>
             </div>
 
           </div>

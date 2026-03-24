@@ -262,8 +262,8 @@ export default function PricingScreen() {
                 EUW · EUNE · NA
               </div>
               <div className="flex items-center gap-2">
-                <Icon name="security" size={16} />
-                Anti-Cheat Engine
+                <Icon name="groups" size={16} />
+                Community Moderated
               </div>
             </div>
           </div>

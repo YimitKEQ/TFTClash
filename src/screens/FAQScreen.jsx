@@ -201,12 +201,12 @@ export default function FAQScreen() {
               {' support?'}
             </h2>
             <p className="text-on-surface-variant font-body">
-              Our 24/7 Tournament Arbiters are ready to handle technical disputes and account inquiries via our priority ticketing system.
+              Our admins are available via Discord to handle technical disputes and account inquiries.
             </p>
           </div>
           <div className="relative z-10 flex gap-4 flex-wrap">
             <button
-              onClick={function () { window.open('https://discord.gg/tftclash', '_blank') }}
+              onClick={function () { window.open('https://discord.gg/HJH3NQqqXH', '_blank') }}
               className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface"
             >
               Join Discord
@@ -228,7 +228,7 @@ export default function FAQScreen() {
           <span>{'Status: '}<span className="text-tertiary">Operational</span></span>
         </div>
         <div>
-          2024 TFT CLASH - ALL RIGHTS RESERVED
+          2026 TFT CLASH - ALL RIGHTS RESERVED
         </div>
       </footer>
 

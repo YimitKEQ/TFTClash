@@ -235,7 +235,7 @@ export var FAQ_DATA = [
     {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
   ]},
   {cat:"Pro and Host Tiers",icon:"crown",items:[
-    {q:"What does Pro unlock?",a:"Advanced stats, head-to-head comparisons, broadcast mode, custom profile banners, and priority support."},
+    {q:"What does Pro unlock?",a:"Advanced stats, head-to-head comparisons, auto check-in, priority registration, and an exclusive Pro Discord role."},
     {q:"What does Host unlock?",a:"Create and brand your own tournaments, custom landing pages, featured event placement, and full analytics dashboard."},
     {q:"Can I cancel anytime?",a:"Yes. Your tier remains active until the end of the billing period."}
   ]}
