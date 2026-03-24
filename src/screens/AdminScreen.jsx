@@ -536,6 +536,16 @@ export default function AdminScreen() {
           {/* ── DASHBOARD ── */}
           {tab === 'dashboard' && (
             <div>
+              <div className="mb-6 p-4 bg-surface-container rounded-lg border border-outline-variant/10 flex items-center justify-between">
+                <div>
+                  <div className="font-label text-sm font-bold text-on-surface uppercase tracking-widest">Clash Engine</div>
+                  <div className="text-xs text-on-surface-variant mt-0.5">Manage the live weekly tournament</div>
+                </div>
+                <Btn variant="primary" onClick={function() { navigate('/clash') }}>
+                  <Icon name="play_arrow" size={16} />
+                  Run Clash
+                </Btn>
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
                 {[
                   { label: 'Players', value: players.length, icon: 'group', color: 'text-secondary', sub: players.filter(function(p) { return p.role === 'admin' }).length + ' admin' },
