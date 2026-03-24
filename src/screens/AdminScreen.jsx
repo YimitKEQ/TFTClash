@@ -863,7 +863,7 @@ export default function AdminScreen() {
                   <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Server</div>
                   <Sel
                     value={serverVal}
-                    onChange={function(e) { var v = e.target.value; setServerVal(v); setTournamentState(function(ts) { return Object.assign({}, ts, { server: v }) }) }}
+                    onChange={function(v) { setServerVal(v); setTournamentState(function(ts) { return Object.assign({}, ts, { server: v }) }) }}
                   >
                     <option value="EU">EU -- EUW / EUNE</option>
                     <option value="NA">NA -- NA1</option>
