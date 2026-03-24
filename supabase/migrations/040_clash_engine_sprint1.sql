@@ -63,3 +63,6 @@ BEGIN
   WHERE id = p_player_id;
 END;
 $$;
+
+-- Grant execute permission so authenticated users (browser clients) can call this RPC
+GRANT EXECUTE ON FUNCTION increment_player_stats(integer, integer, integer) TO authenticated;
