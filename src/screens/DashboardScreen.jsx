@@ -442,6 +442,285 @@ function FlashTournamentBanner({ tournament, onView }) {
   )
 }
 
+// --- CLASH COUNTDOWN ---
+
+function ClashCountdown(props) {
+  var target = props.target
+  var _t = useState(function() {
+    var diff = Math.max(0, new Date(target) - new Date())
+    return {
+      D: Math.floor(diff / 86400000),
+      H: Math.floor((diff % 86400000) / 3600000),
+      M: Math.floor((diff % 3600000) / 60000),
+      S: Math.floor((diff % 60000) / 1000)
+    }
+  })
+  var t = _t[0]
+  var setT = _t[1]
+
+  useEffect(function() {
+    var iv = setInterval(function() {
+      var diff = Math.max(0, new Date(target) - new Date())
+      setT({
+        D: Math.floor(diff / 86400000),
+        H: Math.floor((diff % 86400000) / 3600000),
+        M: Math.floor((diff % 3600000) / 60000),
+        S: Math.floor((diff % 60000) / 1000)
+      })
+    }, 1000)
+    return function() { clearInterval(iv) }
+  }, [target])
+
+  function p(n) { return String(n).padStart(2, '0') }
+
+  if (t.D > 0) {
+    return <span className="font-display text-5xl text-primary tracking-tight">{t.D}d {p(t.H)}:{p(t.M)}:{p(t.S)}</span>
+  }
+  return <span className="font-display text-5xl text-primary tracking-tight">{p(t.H)}:{p(t.M)}:{p(t.S)}</span>
+}
+
+// --- COMPLETE TOP THREE ---
+
+function CompleteTopThree(props) {
+  var tournamentState = props.tournamentState
+  var results = tournamentState.results || []
+  var top3 = results.slice(0, 3)
+  if (!top3.length) return null
+
+  return (
+    <div>
+      {top3.map(function(r, i) {
+        var pName = typeof r === 'string' ? r : (r.name || ('Player ' + (i + 1)))
+        var pts = typeof r === 'object' ? r.pts : null
+        return (
+          <div key={i} className={'flex items-center gap-2 py-1.5 ' + (i < 2 ? 'border-b border-white/[0.04]' : '')}>
+            <div className={
+              'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold font-mono flex-shrink-0 ' +
+              (i === 0 ? 'bg-primary text-[#13131A]' : 'bg-white/[0.08] text-on-surface-variant')
+            }>
+              {i + 1}
+            </div>
+            <span className={'text-sm font-semibold ' + (i === 0 ? 'text-on-surface' : 'text-on-surface/70')}>{pName}</span>
+            {pts !== null && (
+              <span className={'ml-auto font-mono text-xs font-bold ' + (i === 0 ? 'text-primary' : 'text-on-surface-variant')}>
+                +{pts} pts
+              </span>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// --- CLASH CARD ---
+
+function ClashCard() {
+  var ctx = useApp()
+  var currentUser = ctx.currentUser
+  var players = ctx.players || []
+  var tournamentState = ctx.tournamentState || {}
+  var seasonConfig = ctx.seasonConfig || {}
+  var navigate = useNavigate()
+
+  var phase = tournamentState.phase || 'idle'
+  var clashTimestamp = tournamentState.clashTimestamp
+  var hasCountdown = clashTimestamp && new Date(clashTimestamp) > new Date()
+
+  var linkedPlayer = currentUser && players.find(function(p) {
+    return p.name === (currentUser.username || currentUser.name)
+  })
+
+  var sortedPlayers = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
+  var myRank = linkedPlayer
+    ? sortedPlayers.findIndex(function(p) { return p.id === linkedPlayer.id }) + 1
+    : null
+
+  var seasonName = seasonConfig.seasonName || 'Season 1'
+  var clashName = tournamentState.clashName || 'Clash'
+  var registeredCount = (tournamentState.registeredIds || []).length
+  var maxPlayers = tournamentState.maxPlayers || 24
+  var tRound = tournamentState.round || 1
+  var totalGames = tournamentState.totalGames || 3
+
+  var isRegistered = currentUser && (tournamentState.registeredIds || []).indexOf(currentUser.id) > -1
+  var isCheckedIn  = currentUser && (tournamentState.checkedInIds  || []).indexOf(currentUser.id) > -1
+
+  var myLobby = null
+  var lobbies = tournamentState.lobbies || []
+  if (currentUser) {
+    for (var i = 0; i < lobbies.length; i++) {
+      var lob = lobbies[i]
+      var lobPlayers = lob.players || lob.playerIds || []
+      var inLobby = lobPlayers.some(function(pid) {
+        if (typeof pid === 'object') return pid.id === currentUser.id || pid.name === currentUser.username
+        return pid === currentUser.id
+      })
+      if (inLobby) { myLobby = lob; break; }
+    }
+  }
+  var lobbyNames = myLobby
+    ? (myLobby.players || []).map(function(p) { return typeof p === 'object' ? (p.name || p.username) : p }).join(' \u00b7 ')
+    : ''
+  var lobbyNum = myLobby ? (myLobby.num || myLobby.number || myLobby.id || '?') : '?'
+
+  var phaseTagMap = {
+    idle:         { label: 'Next clash TBA',                          cls: 'bg-surface-container text-on-surface-variant',                  icon: 'schedule', dot: false },
+    registration: { label: 'Registration Open',                       cls: 'bg-primary/10 text-primary border border-primary/20',            icon: 'how_to_reg', dot: false },
+    checkin:      { label: 'Check-In Open',                           cls: 'bg-primary/10 text-primary border border-primary/20',            icon: 'fact_check', dot: false },
+    live:         { label: 'Live \u00b7 Round ' + tRound + ' of ' + totalGames, cls: 'bg-tertiary/10 text-tertiary border border-tertiary/20', icon: null, dot: true },
+    inprogress:   { label: 'Live \u00b7 Round ' + tRound + ' of ' + totalGames, cls: 'bg-tertiary/10 text-tertiary border border-tertiary/20', icon: null, dot: true },
+    complete:     { label: clashName + ' Complete',                   cls: 'bg-secondary/10 text-secondary border border-secondary/20',      icon: 'military_tech', dot: false },
+  }
+  var phaseTag = phaseTagMap[phase] || phaseTagMap.idle
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-outline-variant/10 mb-6"
+      style={{ background: 'rgba(52,52,60,0.5)', backdropFilter: 'blur(24px)' }}
+    >
+      <div className="p-5 pb-4">
+        <div className="flex items-baseline justify-between mb-1">
+          <span className="font-headline text-base font-bold text-on-surface">
+            {clashName !== 'Clash' ? clashName : seasonName}
+          </span>
+          {linkedPlayer && (
+            <span className="font-label text-xs text-on-surface-variant uppercase tracking-widest">
+              {linkedPlayer.rank || ''} &middot; {linkedPlayer.region || 'EUW'}
+            </span>
+          )}
+        </div>
+        <div className="font-label text-xs text-on-surface-variant mb-3">
+          {currentUser ? (currentUser.username || 'Summoner') : 'Not signed in'}
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          <div className="bg-white/[0.04] rounded-lg p-2.5">
+            <div className="font-mono text-base font-bold text-primary leading-none">
+              {linkedPlayer ? (linkedPlayer.pts || 0).toLocaleString() : '\u2014'}
+            </div>
+            <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Season PTS</div>
+          </div>
+          <div className="bg-white/[0.04] rounded-lg p-2.5">
+            <div className="font-mono text-base font-bold text-on-surface leading-none">
+              {linkedPlayer ? (linkedPlayer.wins || 0) : '\u2014'}
+            </div>
+            <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Wins</div>
+          </div>
+          <div className="bg-white/[0.04] rounded-lg p-2.5">
+            <div className="font-mono text-base font-bold text-tertiary leading-none">
+              {myRank ? ('#' + myRank) : '\u2014'}
+            </div>
+            <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Standing</div>
+          </div>
+          <div className="bg-white/[0.04] rounded-lg p-2.5">
+            <div className="font-mono text-base font-bold text-on-surface leading-none">
+              {linkedPlayer ? (linkedPlayer.games || 0) : '\u2014'}
+            </div>
+            <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant mt-1">Clashes</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="h-px mx-5 bg-white/[0.05]"></div>
+
+      <div className="p-5 pt-4">
+        <div className={'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-label font-bold uppercase tracking-wider mb-3 ' + phaseTag.cls}>
+          {phaseTag.dot && <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>}
+          {phaseTag.icon && <Icon name={phaseTag.icon} size={12} />}
+          {phaseTag.label}
+        </div>
+
+        {(phase === 'idle') && (
+          <div>
+            <p className="text-sm text-on-surface-variant mb-3">No clash scheduled yet. Check back Saturday.</p>
+            <div className="flex gap-2">
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/standings') }}>Standings</Btn>
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/results') }}>Past Results</Btn>
+            </div>
+          </div>
+        )}
+
+        {(phase === 'registration') && (
+          <div>
+            {hasCountdown && (
+              <div className="mb-1">
+                <ClashCountdown target={clashTimestamp} />
+              </div>
+            )}
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-3">
+              Until check-in closes &middot; {registeredCount}/{maxPlayers} registered
+            </div>
+            <div className="flex gap-2">
+              <Btn
+                variant={isRegistered ? 'ghost' : 'primary'}
+                size="sm"
+                className="flex-[2]"
+                onClick={function() { navigate('/clash') }}
+              >
+                {isRegistered ? 'Already Registered' : 'Register Now'}
+              </Btn>
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Who&apos;s In</Btn>
+            </div>
+          </div>
+        )}
+
+        {(phase === 'checkin') && (
+          <div>
+            {hasCountdown && (
+              <div className="mb-1">
+                <ClashCountdown target={clashTimestamp} />
+              </div>
+            )}
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-3">
+              Until clash starts
+            </div>
+            <Btn
+              variant={isCheckedIn ? 'ghost' : 'primary'}
+              size="sm"
+              className="w-full"
+              onClick={function() { navigate('/clash') }}
+            >
+              {isCheckedIn ? 'Checked In' : 'Check In Now'}
+            </Btn>
+          </div>
+        )}
+
+        {(phase === 'live' || phase === 'inprogress') && (
+          <div>
+            {myLobby
+              ? (
+                <div className="bg-tertiary/[0.06] border border-tertiary/15 rounded-lg p-3 mb-3">
+                  <div className="font-label text-xs font-bold text-tertiary mb-1">You are in Lobby {lobbyNum}</div>
+                  <div className="text-[11px] text-on-surface/50 leading-relaxed">{lobbyNames}</div>
+                </div>
+              )
+              : (
+                <p className="text-sm text-on-surface-variant mb-3">You are not in a lobby this round.</p>
+              )
+            }
+            <div className="flex gap-2">
+              <Btn variant="ghost" size="sm" className="flex-[2]"
+                style={{background:'rgba(103,226,217,0.1)',color:'#67E2D9',borderColor:'rgba(103,226,217,0.2)'}}
+                onClick={function() { navigate('/clash') }}>Submit Results</Btn>
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Live Board</Btn>
+            </div>
+          </div>
+        )}
+
+        {(phase === 'complete') && (
+          <div>
+            <CompleteTopThree tournamentState={tournamentState} />
+            <div className="flex gap-2 mt-3">
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/results') }}>Full Results</Btn>
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/standings') }}>Standings</Btn>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
 // --- MAIN DASHBOARD ---
 
 export default function DashboardScreen() {
@@ -773,6 +1052,8 @@ export default function DashboardScreen() {
 
   return (
     <PageLayout maxWidth="max-w-[1200px]">
+      <ClashCard />
+
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}
       {hostAnnouncements && hostAnnouncements.length > 0 && (
