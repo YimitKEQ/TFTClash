@@ -1326,7 +1326,7 @@ export default function HostDashboardScreen() {
                 <div className="flex items-center justify-between px-3 py-2 border-b border-on-surface/8">
                   <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Your Events</span>
                   {tournaments.some(function(e) { return e.status === 'live' }) && (
-                    <span className="cond text-[8px] font-bold uppercase text-red-400 px-1.5 py-0.5 bg-red-400/10 rounded">1 Live</span>
+                    <span className="cond text-[8px] font-bold uppercase text-red-400 px-1.5 py-0.5 bg-red-400/10 rounded">Live</span>
                   )}
                 </div>
                 <div className="p-2 flex flex-col gap-1">
@@ -1338,7 +1338,13 @@ export default function HostDashboardScreen() {
                     return (
                       <div
                         key={ev.id}
-                        onClick={function() { setSelectedEventId(ev.id) }}
+                        onClick={function() {
+                          setSelectedEventId(ev.id)
+                          setPendingPlacements({})
+                          setSelectedPlayer(null)
+                          setPlacementStack([])
+                          setActiveRound(1)
+                        }}
                         className={'rounded-lg p-2 cursor-pointer border transition-colors ' +
                           (isActive ? 'bg-primary/8 border-primary/25' : 'bg-white/[0.02] border-on-surface/8 hover:border-on-surface/15')}
                       >
@@ -1394,9 +1400,7 @@ export default function HostDashboardScreen() {
                         })
                         setPlacementStack(function(s) { return s.filter(function(item) { return item.rank !== rank }) })
                       } else {
-                        var newPlacements = Object.assign({}, pendingPlacements)
-                        newPlacements[rank] = selectedPlayer.id
-                        setPendingPlacements(newPlacements)
+                        setPendingPlacements(function(prev) { return Object.assign({}, prev, { [rank]: selectedPlayer.id }) })
                         setPlacementStack(function(s) { return s.concat([{ rank: rank, playerId: selectedPlayer.id }]) })
                         setSelectedPlayer(null)
                       }
@@ -1426,7 +1430,7 @@ export default function HostDashboardScreen() {
                     setTournamentState(Object.assign({}, tournamentState, {
                       lockedLobbies: (tournamentState.lockedLobbies || []).concat([{ round: activeRound, placements: pendingPlacements }])
                     }))
-                    setActiveRound(activeRound + 1)
+                    if (activeRound < totalRounds) { setActiveRound(activeRound + 1) }
                     setPendingPlacements({})
                     setPlacementStack([])
                     setSelectedPlayer(null)
