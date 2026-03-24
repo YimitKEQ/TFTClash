@@ -84,7 +84,7 @@ export function AppProvider(props) {
   var comparePlayer = _cmp[0];
   var setComparePlayer = _cmp[1];
 
-  var _tournamentState = useState({phase:"registration",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});
+  var _tournamentState = useState({phase:"idle",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24});
   var tournamentState = _tournamentState[0];
   var setTournamentState = _tournamentState[1];
 
