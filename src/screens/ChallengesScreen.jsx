@@ -168,6 +168,7 @@ export default function ChallengesScreen() {
               </button>
             );
           })}
+          {/* TODO: XP Log tab — hidden until XP system is built */}
           {false && (
             <button
               className="font-condensed text-xs py-1 px-4 rounded-full border border-on-surface/10 text-on-surface/40"
@@ -362,7 +363,7 @@ export default function ChallengesScreen() {
           </div>
         )}
 
-        {/* XP Log Tab */}
+        {/* TODO: XP Log tab — hidden until XP system is built */}
         {false && mainTab === 'xp-log' && (
           <div>
             <div className="flex items-center justify-between mb-6">

@@ -260,7 +260,6 @@ export default function ArchiveScreen() {
                     <th className="px-8 py-4">Winner</th>
                     <th className="px-8 py-4">Entries</th>
                     <th className="px-8 py-4">Date</th>
-                    <th className="px-8 py-4 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -278,8 +277,6 @@ export default function ArchiveScreen() {
                         <td className="px-8 py-5 font-mono text-tertiary">{event.winner}</td>
                         <td className="px-8 py-5 font-mono text-on-surface">{event.entries}</td>
                         <td className="px-8 py-5 font-mono text-slate-500">{event.date}</td>
-                        <td className="px-8 py-5 text-right">
-                        </td>
                       </tr>
                     )
                   })}
