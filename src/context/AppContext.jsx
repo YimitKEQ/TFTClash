@@ -311,6 +311,9 @@ export function AppProvider(props) {
           if (result.data) {
             setCurrentUser(result.data);
           } else {
+            if (result.error && result.error.code !== 'PGRST116') {
+              console.error('[TFT] fetchAndSetCurrentUser error:', result.error.message);
+            }
             setCurrentUser(mapUser(authUser));
           }
           if (onDone) onDone();
@@ -339,7 +342,7 @@ export function AppProvider(props) {
   useEffect(function(){
     if(!currentUser||!currentUser.id)return;
     // If currentUser already has player table fields (rank, pts), skip re-fetch
-    if(currentUser.rank!==undefined)return;
+    if(currentUser.auth_user_id)return;
     supabase.from('players').select('*').eq('auth_user_id',currentUser.id).maybeSingle()
       .then(function(res){
         if(res.error){console.error("[TFT] player check failed:",res.error);return;}
@@ -362,7 +365,6 @@ export function AppProvider(props) {
             console.error("[TFT] auto-create player failed:",ins.error);
             return;
           }
-          console.log("[TFT] auto-created player row for",username);
           if(ins.data)setCurrentUser(ins.data);
           loadPlayersFromTable();
         });
