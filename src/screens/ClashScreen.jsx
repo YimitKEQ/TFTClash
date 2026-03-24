@@ -1337,6 +1337,8 @@ function BracketScreen(props) {
   var round = tournamentState ? tournamentState.round : 1;
   var lockedLobbies = tournamentState ? tournamentState.lockedLobbies : [];
   var currentClashId = tournamentState && tournamentState.clashId ? tournamentState.clashId : ("c" + Date.now());
+  var server = (tournamentState && tournamentState.server) || 'EU';
+  var riotIdField = server === 'NA' ? 'riot_id_na' : 'riot_id_eu';
   var _ms = useState(currentUser ? currentUser.username : "");
   var mySearch = _ms[0];
   var setMySearch = _ms[1];
@@ -1976,7 +1978,13 @@ function BracketScreen(props) {
                             </div>
                             <div className="text-[10px] text-[#BECBD9]">{p.rank} - {p.region}</div>
                           </div>
-                          <div className="mono text-xs font-bold text-primary shrink-0">{p.pts}pts</div>
+                          <div className="flex flex-col items-end gap-0.5 shrink-0">
+                            <div className="mono text-xs font-bold text-primary">{p.pts}pts</div>
+                            {p[riotIdField]
+                              ? <span className="font-mono text-[11px] text-on-surface-variant">{p[riotIdField]}</span>
+                              : <span className="flex items-center gap-1 text-[11px] text-primary/60"><Icon name="warning" size={12} />No ID</span>
+                            }
+                          </div>
                           {isMe && !lobbyLocked && tournamentState.phase === "inprogress" && (
                             playerSubmissions[li] && playerSubmissions[li][p.id] ? (
                               <div className="text-[10px] text-[#6EE7B7] font-bold shrink-0">#{playerSubmissions[li][p.id].placement} Submitted</div>
