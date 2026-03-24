@@ -259,6 +259,14 @@ export default function AdminScreen() {
   var auditSource = _auditSource[0]
   var setAuditSource = _auditSource[1]
 
+  var _serverVal = useState(tournamentState && tournamentState.server || 'EU')
+  var serverVal = _serverVal[0]
+  var setServerVal = _serverVal[1]
+
+  useEffect(function() {
+    if (tournamentState && tournamentState.server) setServerVal(tournamentState.server)
+  }, [tournamentState && tournamentState.server])
+
   useEffect(function() {
     supabase.from('tournaments').select('*').eq('type', 'flash_tournament').order('date', { ascending: false }).then(function(res) {
       if (res.data) setFlashEvents(res.data)
@@ -538,7 +546,10 @@ export default function AdminScreen() {
             <div>
               <div className="mb-6 p-4 bg-surface-container rounded-lg border border-outline-variant/10 flex items-center justify-between">
                 <div>
-                  <div className="font-label text-sm font-bold text-on-surface uppercase tracking-widest">Clash Engine</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-label text-sm font-bold text-on-surface uppercase tracking-widest">Clash Engine</div>
+                    <span className={'px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ' + (tournamentState && tournamentState.server === 'NA' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-tertiary/10 text-tertiary border border-tertiary/20')}>{tournamentState && tournamentState.server || 'EU'}</span>
+                  </div>
                   <div className="text-xs text-on-surface-variant mt-0.5">Manage the live weekly tournament</div>
                 </div>
                 <Btn variant="primary" onClick={function() { navigate('/clash') }}>
@@ -847,6 +858,16 @@ export default function AdminScreen() {
                   <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Date</label><Inp value={tournamentState && tournamentState.clashDate || ''} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setTournamentState(function(ts) { return Object.assign({}, ts, { clashDate: val }) }) }} placeholder="e.g. Apr 5 2026" /></div>
                   <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Time</label><Inp value={tournamentState && tournamentState.clashTime || ''} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setTournamentState(function(ts) { return Object.assign({}, ts, { clashTime: val }) }) }} placeholder="e.g. 8PM EST" /></div>
                   <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Countdown (ISO)</label><Inp value={tournamentState && tournamentState.clashTimestamp || ''} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setTournamentState(function(ts) { return Object.assign({}, ts, { clashTimestamp: val }) }) }} placeholder="2026-04-05T20:00:00" /></div>
+                </div>
+                <div className="flex flex-col gap-1 mt-3">
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Server</div>
+                  <Sel
+                    value={serverVal}
+                    onChange={function(e) { var v = e.target.value; setServerVal(v); setTournamentState(function(ts) { return Object.assign({}, ts, { server: v }) }) }}
+                  >
+                    <option value="EU">EU -- EUW / EUNE</option>
+                    <option value="NA">NA -- NA1</option>
+                  </Sel>
                 </div>
               </Panel>
 
