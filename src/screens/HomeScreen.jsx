@@ -62,7 +62,7 @@ function HeroCountdown({ clashTimestamp, onRegister }) {
           className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
           onClick={onRegister}
         >
-          Register Your Team
+          Register Now
         </button>
       </div>
     </div>
@@ -71,9 +71,12 @@ function HeroCountdown({ clashTimestamp, onRegister }) {
 
 // ── SeasonStatsBar ────────────────────────────────────────────────────────────
 
-function SeasonStatsBar({ players, pastClashes }) {
-  var activeTeams = players.length > 0 ? players.length.toLocaleString() : 'Growing'
-  var tournamentCount = (pastClashes && pastClashes.length > 0) ? String(pastClashes.length) : '0'
+function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig }) {
+  var phase = tournamentState && tournamentState.phase
+  var isLive = phase === 'live' || phase === 'inprogress'
+  var playerCount = players && players.length > 0 ? players.length.toLocaleString() : '\u2014'
+  var clashCount = pastClashes && pastClashes.length > 0 ? String(pastClashes.length) : '\u2014'
+  var seasonName = (seasonConfig && seasonConfig.seasonName) || 'Season 1'
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -83,18 +86,25 @@ function SeasonStatsBar({ players, pastClashes }) {
       </div>
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Players</span>
-        <span className="font-mono text-xl text-on-surface">{activeTeams}</span>
+        <span className="font-mono text-xl text-on-surface">{playerCount}</span>
       </div>
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Clashes Run</span>
-        <span className="font-mono text-xl text-on-surface">{tournamentCount}</span>
+        <span className="font-mono text-xl text-on-surface">{clashCount}</span>
       </div>
       <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Status</span>
-        <span className="flex items-center gap-2 font-mono text-xl text-tertiary">
-          <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-          LIVE
-        </span>
+        {isLive
+          ? (
+            <span className="flex items-center gap-2 font-mono text-xl text-tertiary">
+              <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+              LIVE
+            </span>
+          )
+          : (
+            <span className="font-mono text-xl text-on-surface">{seasonName}</span>
+          )
+        }
       </div>
     </section>
   )
@@ -303,8 +313,8 @@ export default function HomeScreen() {
           </h1>
 
           {/* Tagline */}
-          <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-2xl italic opacity-80">
-            Where legends are forged in the convergence.
+          <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-60">
+            Weekly TFT Clash. Every Saturday.
           </p>
 
           {/* Countdown or CTA */}
@@ -332,7 +342,12 @@ export default function HomeScreen() {
         </section>
 
         {/* ── Season Stats Bar ──────────────────────────────────────────────── */}
-        <SeasonStatsBar players={players} pastClashes={pastClashes} />
+        <SeasonStatsBar
+          players={players}
+          pastClashes={pastClashes}
+          tournamentState={tournamentState}
+          seasonConfig={seasonConfig}
+        />
 
         {/* ── Leaderboard Preview ───────────────────────────────────────────── */}
         {top5.length > 0 && (
