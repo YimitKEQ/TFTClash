@@ -1318,6 +1318,105 @@ function ResultsScreen(props) {
 
 var MemoResultsScreen = memo(ResultsScreen);
 
+// ---- LobbySubmissionPanel ----
+
+function LobbySubmissionPanel(props) {
+  var lobby = props.lobby;
+  var round = props.round;
+  var lobbyNum = props.lobbyNum;
+  var tournamentId = props.tournamentId;
+  var allPendingResults = props.allPendingResults;
+  var players = props.players;
+  var onConfirmAll = props.onConfirmAll;
+  var _disputePlayer = useState(null);
+  var disputePlayer = _disputePlayer[0];
+  var setDisputePlayer = _disputePlayer[1];
+  var _disputeVal = useState('');
+  var disputeVal = _disputeVal[0];
+  var setDisputeVal = _disputeVal[1];
+
+  var submissions = allPendingResults.filter(function(r) {
+    return r.round === round && r.lobby_number === lobbyNum;
+  });
+
+  var placementCounts = {};
+  submissions.forEach(function(r) {
+    if (!placementCounts[r.placement]) placementCounts[r.placement] = [];
+    placementCounts[r.placement].push(r.player_id);
+  });
+  var hasConflict = Object.keys(placementCounts).some(function(p) {
+    return placementCounts[p].length > 1;
+  });
+
+  var allSubmitted = lobby.length > 0 && submissions.length >= lobby.length;
+  var canConfirm = allSubmitted && !hasConflict;
+
+  return (
+    <div className="mt-3 border-t border-white/[0.05] pt-3">
+      <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">
+        {submissions.length + ' / ' + lobby.length + ' submitted'}
+      </div>
+      {lobby.map(function(p) {
+        var sub = submissions.find(function(r) { return r.player_id === p.id; });
+        var isConflict = sub && placementCounts[sub.placement] && placementCounts[sub.placement].length > 1;
+        var isDisputing = disputePlayer === p.id;
+        return (
+          <div key={p.id} className="flex items-center gap-2 py-2 border-b border-white/[0.03] last:border-0 text-sm">
+            <div className={'w-6 h-6 rounded-full flex items-center justify-center font-mono text-[11px] font-bold flex-shrink-0 ' +
+              (sub ? 'bg-white/10 text-on-surface' : 'bg-white/[0.04] text-on-surface-variant border border-dashed border-white/20')
+            }>{sub ? String(sub.placement) : '?'}</div>
+            <span className="flex-1 font-display font-semibold text-sm">{p.name || p.username}</span>
+            {isDisputing ? (
+              <div className="flex items-center gap-1">
+                <input
+                  type="number" min="1" max="8"
+                  value={disputeVal}
+                  onChange={function(e) { setDisputeVal(e.target.value); }}
+                  className="w-12 bg-surface-container border border-outline-variant/20 rounded px-2 py-1 text-sm text-center font-mono"
+                />
+                <Btn v="primary" s="sm" onClick={function() {
+                  var val = parseInt(disputeVal);
+                  if (val < 1 || val > 8) return;
+                  supabase.from('pending_results').upsert({
+                    tournament_id: tournamentId,
+                    round: round,
+                    lobby_number: lobbyNum,
+                    player_id: p.id,
+                    placement: val,
+                    status: 'pending'
+                  }, { onConflict: 'tournament_id,round,player_id' }).then(function(r) {
+                    if (!r.error) { setDisputePlayer(null); setDisputeVal(''); }
+                  });
+                }}>Save</Btn>
+                <Btn v="ghost" s="sm" onClick={function() { setDisputePlayer(null); }}>Cancel</Btn>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className={'text-[10px] px-2 py-0.5 rounded font-label font-bold uppercase tracking-wide ' +
+                  (isConflict ? 'bg-error/10 text-error' : sub ? 'bg-tertiary/10 text-tertiary' : 'bg-white/[0.05] text-on-surface-variant')
+                }>{isConflict ? 'Conflict' : sub ? 'Submitted' : 'Pending'}</span>
+                <button
+                  className="text-[10px] text-on-surface-variant underline cursor-pointer"
+                  onClick={function() { setDisputePlayer(p.id); setDisputeVal(sub ? String(sub.placement) : ''); }}
+                >Override</button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+      <div className="mt-3">
+        <Btn
+          v="primary"
+          s="sm"
+          full
+          disabled={!canConfirm}
+          onClick={function() { onConfirmAll(lobbyNum, submissions); }}
+        >Confirm All</Btn>
+      </div>
+    </div>
+  );
+}
+
 // ---- BracketScreen ----
 
 function BracketScreen(props) {
@@ -1331,6 +1430,7 @@ function BracketScreen(props) {
   var tournamentState = props.tournamentState;
   var setTournamentState = props.setTournamentState;
   var seasonConfig = props.seasonConfig;
+  var allPendingResults = props.allPendingResults || [];
 
   var checkedIn = useMemo(function() { return players.filter(function(p) { return p.checkedIn; }); }, [players]);
   var lobbySize = 8;
@@ -1584,6 +1684,73 @@ function BracketScreen(props) {
       }
     }
     toast("Lobby " + (li + 1) + " results applied!", "success");
+  }
+
+  function handleConfirmAll(lobbyNum, submissions) {
+    if (!tournamentState.id || !submissions.length) return;
+    var round = tournamentState.round;
+
+    submissions.forEach(function(sub) {
+      supabase.from('pending_results')
+        .update({ status: 'confirmed' })
+        .eq('id', sub.id)
+        .then(function(r) {
+          if (r.error) console.error('[TFT] Failed to confirm submission', r.error);
+        });
+    });
+
+    var gameRows = submissions.map(function(sub) {
+      return {
+        tournament_id: tournamentState.id,
+        round_number: round,
+        player_id: sub.player_id,
+        placement: sub.placement,
+        points: PTS[sub.placement] || 0,
+        is_dnp: false,
+        game_number: round
+      };
+    });
+    supabase.from('game_results').insert(gameRows).then(function(res) {
+      if (res.error) { toast('Failed to save results: ' + res.error.message, 'error'); return; }
+
+      gameRows.forEach(function(row) {
+        supabase.rpc('increment_player_stats', {
+          p_player_id: row.player_id,
+          p_pts: row.points,
+          p_wins: row.placement === 1 ? 1 : 0
+        }).then(function(r) {
+          if (r.error) console.error('[TFT] RPC failed:', r.error);
+        });
+      });
+
+      setPlayers(function(ps) {
+        return ps.map(function(p) {
+          var row = gameRows.find(function(r) { return r.player_id === p.id; });
+          if (!row) return p;
+          return Object.assign({}, p, {
+            pts: (p.pts || 0) + row.points,
+            wins: (p.wins || 0) + (row.placement === 1 ? 1 : 0)
+          });
+        });
+      });
+
+      supabase.from('pending_results')
+        .select('id', { count: 'exact' })
+        .eq('tournament_id', tournamentState.id)
+        .eq('round', round)
+        .neq('status', 'confirmed')
+        .then(function(checkRes) {
+          if (checkRes.count === 0) {
+            if (round >= (tournamentState.totalGames || 3)) {
+              setTournamentState(function(ts) { return Object.assign({}, ts, { phase: 'complete' }); });
+            } else {
+              var nextRound = round + 1;
+              setTournamentState(function(ts) { return Object.assign({}, ts, { round: nextRound }); });
+            }
+          }
+          toast('Lobby ' + lobbyNum + ' results confirmed!', 'success');
+        });
+    });
   }
 
   function submitMyPlacement(li, playerId, playerName, placement) {
@@ -2043,6 +2210,19 @@ function BracketScreen(props) {
                       )}
                     </div>
                   )}
+                  {isAdmin && (
+                    <div className="px-3 pb-3">
+                      <LobbySubmissionPanel
+                        lobby={lobby}
+                        round={tournamentState.round}
+                        lobbyNum={li + 1}
+                        tournamentId={tournamentState.id}
+                        allPendingResults={allPendingResults}
+                        players={players}
+                        onConfirmAll={handleConfirmAll}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -2232,6 +2412,7 @@ function ClashScreen(props) {
           isAdmin={props.isAdmin} currentUser={props.currentUser} setProfilePlayer={props.setProfilePlayer}
           setScreen={props.setScreen} tournamentState={props.tournamentState}
           setTournamentState={props.setTournamentState} seasonConfig={props.seasonConfig}
+          allPendingResults={props.allPendingResults}
         />
       )}
 

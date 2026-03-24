@@ -235,6 +235,7 @@ function TFTClash(){
   var pastClashes=ctx.pastClashes;
   var featuredEvents=ctx.featuredEvents, setFeaturedEvents=ctx.setFeaturedEvents;
   var challengeCompletions=ctx.challengeCompletions;
+  var allPendingResults=ctx.allPendingResults;
   var currentUser=ctx.currentUser, setCurrentUser=ctx.setCurrentUser;
   var isAuthLoading=ctx.isAuthLoading;
   var isOffline=ctx.isOffline;
@@ -609,7 +610,7 @@ function TFTClash(){
         {screen==="milestones" &&<MilestonesScreenNew/>}
         {screen==="challenges" &&<ChallengesScreenNew/>}
 
-        {screen==="clash"      &&<PageLayout><ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig}/></PageLayout>}
+        {screen==="clash"      &&<PageLayout><ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} allPendingResults={allPendingResults}/></PageLayout>}
 
         {screen==="bracket"    &&<BracketScreenNew/>}
 

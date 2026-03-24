@@ -140,6 +140,10 @@ export function AppProvider(props) {
   var pendingResults = _pendingResults[0];
   var setPendingResults = _pendingResults[1];
 
+  var _allPendingResults = useState([]);
+  var allPendingResults = _allPendingResults[0];
+  var setAllPendingResults = _allPendingResults[1];
+
   // Auth state
   var _currentUser = useState(null);
   var currentUser = _currentUser[0];
@@ -751,6 +755,37 @@ export function AppProvider(props) {
     return function(){supabase.removeChannel(prChannel);};
   },[currentUser&&currentUser.id]);
 
+  // ── Load all pending results for admin ──
+  useEffect(function(){
+    if(!isAdmin||!tournamentState.id||!supabase.from)return;
+    supabase.from('pending_results')
+      .select('*')
+      .eq('tournament_id',tournamentState.id)
+      .then(function(res){
+        if(res.data)setAllPendingResults(res.data);
+      });
+
+    var adminPrChannel=supabase
+      .channel('pending-results-admin')
+      .on('postgres_changes',{
+        event:'*',schema:'public',table:'pending_results'
+      },function(payload){
+        if(payload.eventType==='DELETE'){
+          setAllPendingResults(function(prev){
+            return prev.filter(function(r){return r.id!==payload.old.id;});
+          });
+        }else{
+          setAllPendingResults(function(prev){
+            var without=prev.filter(function(r){return r.id!==payload.new.id;});
+            return without.concat([payload.new]);
+          });
+        }
+      })
+      .subscribe();
+
+    return function(){supabase.removeChannel(adminPrChannel);};
+  },[isAdmin,tournamentState.id]);
+
   // ── Compute season champion from live standings ──
   var computedChampion=useMemo(function(){
     if(!players||players.length===0)return null;
@@ -801,6 +836,7 @@ export function AppProvider(props) {
       featuredEvents: featuredEvents, setFeaturedEvents: setFeaturedEvents,
       challengeCompletions: challengeCompletions, setChallengeCompletions: setChallengeCompletions,
       pendingResults: pendingResults,
+      allPendingResults: allPendingResults,
 
       // Auth
       currentUser: currentUser, setCurrentUser: setCurrentUser,
@@ -838,7 +874,7 @@ export function AppProvider(props) {
     currentUser, isAuthLoading, isOffline,
     subscriptions, authScreen, cookieConsent,
     showOnboarding, newsletterSubmitted, clashRemindersOn,
-    userTier, pendingResults
+    userTier, pendingResults, allPendingResults
   ]);
 
   return React.createElement(AppContext.Provider, {value: value}, children);
