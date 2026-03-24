@@ -15,36 +15,6 @@ var SCREEN_TO_ROUTE = {
   tournaments: "/tournaments", roster: "/roster", featured: "/featured", gear: "/gear"
 };
 
-// Material Symbols name mapping for drawer items
-var DRAWER_ICON_MAP = {
-  "house-fill": "home",
-  "people-fill": "groups",
-  "diagram-3-fill": "account_tree",
-  "bar-chart-line-fill": "leaderboard",
-  "clipboard-check-fill": "assignment_turned_in",
-  "award-fill": "emoji_events",
-  "controller": "sports_esports",
-  "hexagon-fill": "hexagon",
-  "archive-fill": "inventory_2",
-  "lightning-charge-fill": "bolt",
-  "star-fill": "star",
-  "gift-fill": "redeem",
-  "journal-text": "menu_book",
-  "question-circle-fill": "help",
-  "tag-fill": "sell",
-  "person-fill": "person"
-};
-
-// Material Symbols for "More" dropdown items
-var MORE_ICON_MAP = {
-  "swords": "swords",
-  "diamond": "diamond",
-  "book": "menu_book",
-  "help-circle": "help",
-  "crown": "workspace_premium",
-  "shopping-bag": "shopping_bag",
-  "shield": "shield"
-};
 
 function NotificationBell(props) {
   var notifications = props.notifications;
