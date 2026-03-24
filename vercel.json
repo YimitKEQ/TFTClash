@@ -34,7 +34,7 @@
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://api.stripe.com https://*.ingest.sentry.io https://plausible.io; img-src 'self' data: blob: https:; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; object-src 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://api.stripe.com https://*.ingest.sentry.io https://plausible.io; img-src 'self' data: blob: https:; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; object-src 'none';"
         }
       ]
     }
