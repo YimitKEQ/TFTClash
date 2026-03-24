@@ -1555,21 +1555,28 @@ function BracketScreen(props) {
         supabase.from('game_results').insert(gameRows).then(function(res) {
           if (res.error) { console.error("[TFT] Failed to save game results:", res.error); toast("Failed to save game results", "error"); }
           else {
-            lobby.forEach(function(lp) {
-              var place = parseInt(placementEntry[li].placements[lp.id] || "0");
-              if (place <= 0) return;
-              var updatedP = players.find(function(pp) { return pp.id === lp.id; });
-              if (!updatedP) return;
-              var newGames = (updatedP.games || 0) + 1;
-              var newWins = (updatedP.wins || 0) + (place === 1 ? 1 : 0);
-              var newTop4 = (updatedP.top4 || 0) + (place <= 4 ? 1 : 0);
-              var newPts = (updatedP.pts || 0) + (PTS[place] || 0);
-              var newAvg = (((parseFloat(updatedP.avg) || 0) * (updatedP.games || 0) + place) / newGames);
-              supabase.from('players').update({
-                season_pts: newPts, wins: newWins, top4: newTop4, games: newGames,
-                avg_placement: parseFloat(newAvg.toFixed(2))
-              }).eq('id', lp.id).then(function(pr) {
-                if (pr.error) console.error("[TFT] Failed to sync player stats for", lp.name || lp.id, pr.error);
+            gameRows.forEach(function(row) {
+              var ptsGained = row.points || 0;
+              var winsGained = row.placement === 1 ? 1 : 0;
+              if (ptsGained === 0 && winsGained === 0) return;
+              supabase.rpc('increment_player_stats', {
+                p_player_id: row.player_id,
+                p_pts: ptsGained,
+                p_wins: winsGained
+              }).then(function(rpcRes) {
+                if (rpcRes.error) {
+                  console.error('[TFT] increment_player_stats failed for player', row.player_id, rpcRes.error);
+                }
+              });
+            });
+            setPlayers(function(ps) {
+              return ps.map(function(p) {
+                var row = gameRows.find(function(r) { return r.player_id === p.id; });
+                if (!row) return p;
+                return Object.assign({}, p, {
+                  pts: (p.pts || 0) + (row.points || 0),
+                  wins: (p.wins || 0) + (row.placement === 1 ? 1 : 0)
+                });
               });
             });
           }
