@@ -574,14 +574,16 @@ function ClashCard() {
   }
   var phaseTag = phaseTagMap[phase] || phaseTagMap.idle
 
+  var weekNum = Math.max(1, Math.ceil((new Date() - new Date(seasonConfig.startDate || '2025-01-01')) / (7 * 24 * 60 * 60 * 1000)))
+  var weekLabel = seasonName + ' \u00b7 Week ' + weekNum
+
   return (
-    <div className="rounded-xl overflow-hidden border border-outline-variant/10 mb-6"
-      style={{ background: 'rgba(52,52,60,0.5)', backdropFilter: 'blur(24px)' }}
+    <div className="rounded-xl overflow-hidden border border-outline-variant/10 mb-6 bg-[rgba(52,52,60,0.5)] backdrop-blur-[24px]"
     >
       <div className="p-5 pb-4">
         <div className="flex items-baseline justify-between mb-1">
           <span className="font-headline text-base font-bold text-on-surface">
-            {clashName !== 'Clash' ? clashName : seasonName}
+            {weekLabel}
           </span>
           {linkedPlayer && (
             <span className="font-label text-xs text-on-surface-variant uppercase tracking-widest">
@@ -686,6 +688,7 @@ function ClashCard() {
 
         {(phase === 'live' || phase === 'inprogress') && (
           <div>
+            <div className="text-sm text-[#9D8E7C] mb-3">{'Round ' + tRound + ' of ' + totalGames}</div>
             {myLobby
               ? (
                 <div className="bg-tertiary/[0.06] border border-tertiary/15 rounded-lg p-3 mb-3">
@@ -698,8 +701,7 @@ function ClashCard() {
               )
             }
             <div className="flex gap-2">
-              <Btn variant="ghost" size="sm" className="flex-[2]"
-                style={{background:'rgba(103,226,217,0.1)',color:'#67E2D9',borderColor:'rgba(103,226,217,0.2)'}}
+              <Btn variant="ghost" size="sm" className="flex-[2] bg-[rgba(103,226,217,0.1)] text-[#67E2D9] border border-[rgba(103,226,217,0.2)]"
                 onClick={function() { navigate('/clash') }}>Submit Results</Btn>
               <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Live Board</Btn>
             </div>
