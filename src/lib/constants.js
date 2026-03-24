@@ -120,11 +120,58 @@ export var TIER_FEATURES = {
 
 // ─── SEED DATA ────────────────────────────────────────────────────────────────
 
-export const HOMIES_IDS = [];
+export const HOMIES_IDS = [1,2,3,4,5,6,7,8,9];
 
-export const SEED = [];
+export const SEED = [
+  {id:1,name:"Levitate",   rank:"Challenger",  region:"EUW",pts:1024,wins:16,top4:38,games:56},
+  {id:2,name:"Zounderkite",rank:"Grandmaster", region:"EUW",pts:896, wins:13,top4:33,games:52},
+  {id:3,name:"Uri",        rank:"Master",      region:"EUW",pts:780, wins:11,top4:28,games:48},
+  {id:4,name:"BingBing",   rank:"Master",      region:"EUW",pts:720, wins:10,top4:26,games:46},
+  {id:5,name:"Wiwi",       rank:"Diamond",     region:"EUW",pts:610, wins:8, top4:22,games:44},
+  {id:6,name:"Ole",        rank:"Diamond",     region:"EUW",pts:540, wins:7, top4:20,games:40},
+  {id:7,name:"Sybor",      rank:"Platinum",    region:"EUW",pts:430, wins:5, top4:16,games:36},
+  {id:8,name:"Ivdim",      rank:"Platinum",    region:"EUW",pts:380, wins:4, top4:14,games:32},
+  {id:9,name:"Vlad",       rank:"Gold",        region:"EUW",pts:290, wins:3, top4:10,games:28},
+  {id:10,name:"Dishsoap",  rank:"Grandmaster", region:"EUW",pts:260, wins:2, top4:9, games:24},
+  {id:11,name:"k3soju",    rank:"Challenger",  region:"NA", pts:240, wins:2, top4:8, games:22},
+  {id:12,name:"Setsuko",   rank:"Master",      region:"EUW",pts:210, wins:2, top4:7, games:20},
+  {id:13,name:"Mortdog",   rank:"Diamond",     region:"NA", pts:190, wins:1, top4:6, games:18},
+  {id:14,name:"Robinsongz",rank:"Master",      region:"NA", pts:170, wins:1, top4:6, games:16},
+  {id:15,name:"Wrainbash", rank:"Diamond",     region:"EUW",pts:150, wins:1, top4:5, games:14},
+  {id:16,name:"BunnyMuffins",rank:"Master",    region:"NA", pts:130, wins:1, top4:5, games:12},
+  {id:17,name:"Frodan",    rank:"Diamond",     region:"NA", pts:110, wins:0, top4:4, games:10},
+  {id:18,name:"NightShark",rank:"Platinum",    region:"EUW",pts:90,  wins:0, top4:3, games:8},
+  {id:19,name:"CrystalFox",rank:"Platinum",    region:"EUW",pts:70,  wins:0, top4:2, games:6},
+  {id:20,name:"VoidWalker",rank:"Gold",        region:"EUW",pts:50,  wins:0, top4:2, games:4},
+  {id:21,name:"StarForge", rank:"Gold",        region:"NA", pts:40,  wins:0, top4:1, games:4},
+  {id:22,name:"IronMask",  rank:"Silver",      region:"EUW",pts:30,  wins:0, top4:1, games:4},
+  {id:23,name:"DawnBreaker",rank:"Silver",     region:"EUW",pts:20,  wins:0, top4:0, games:2},
+  {id:24,name:"GhostRider",rank:"Bronze",      region:"EUW",pts:10,  wins:0, top4:0, games:2},
+];
 
-export const PAST_CLASHES = [];
+export const PAST_CLASHES = [
+  {id:"c7",name:"Clash #7",date:"2026-03-22",season:"S1",players:24,lobbies:3,champion:"Levitate",
+    top3:["Levitate","Zounderkite","Uri"],
+    top8:[{name:"Levitate",pts:8},{name:"Zounderkite",pts:7},{name:"Uri",pts:6},{name:"BingBing",pts:5},{name:"Wiwi",pts:4},{name:"Ole",pts:3},{name:"Sybor",pts:2},{name:"Ivdim",pts:1}]},
+  {id:"c6",name:"Clash #6",date:"2026-03-15",season:"S1",players:24,lobbies:3,champion:"BingBing",
+    top3:["BingBing","Levitate","Wiwi"],
+    top8:[{name:"BingBing",pts:8},{name:"Levitate",pts:7},{name:"Wiwi",pts:6},{name:"Uri",pts:5},{name:"Zounderkite",pts:4},{name:"Ole",pts:3},{name:"Vlad",pts:2},{name:"Sybor",pts:1}]},
+  {id:"c5",name:"Clash #5",date:"2026-03-08",season:"S1",players:24,lobbies:3,champion:"Zounderkite",
+    top3:["Zounderkite","Ole","Levitate"],
+    top8:[{name:"Zounderkite",pts:8},{name:"Ole",pts:7},{name:"Levitate",pts:6},{name:"BingBing",pts:5},{name:"Ivdim",pts:4},{name:"Wiwi",pts:3},{name:"Uri",pts:2},{name:"Vlad",pts:1}]},
+  {id:"c4",name:"Clash #4",date:"2026-03-01",season:"S1",players:24,lobbies:3,champion:"Levitate",
+    top3:["Levitate","Sybor","Uri"],
+    top8:[{name:"Levitate",pts:8},{name:"Sybor",pts:7},{name:"Uri",pts:6},{name:"Zounderkite",pts:5},{name:"Wiwi",pts:4},{name:"BingBing",pts:3},{name:"Ole",pts:2},{name:"Ivdim",pts:1}]},
+  {id:"c3",name:"Clash #3",date:"2026-02-22",season:"S1",players:24,lobbies:3,champion:"Uri",
+    top3:["Uri","Levitate","BingBing"],
+    top8:[{name:"Uri",pts:8},{name:"Levitate",pts:7},{name:"BingBing",pts:6},{name:"Wiwi",pts:5},{name:"Zounderkite",pts:4},{name:"Sybor",pts:3},{name:"Ole",pts:2},{name:"Vlad",pts:1}]},
+  {id:"c2",name:"Clash #2",date:"2026-02-15",season:"S1",players:24,lobbies:3,champion:"Wiwi",
+    top3:["Wiwi","Zounderkite","Ivdim"],
+    top8:[{name:"Wiwi",pts:8},{name:"Zounderkite",pts:7},{name:"Ivdim",pts:6},{name:"Levitate",pts:5},{name:"Uri",pts:4},{name:"BingBing",pts:3},{name:"Ole",pts:2},{name:"Sybor",pts:1}]},
+  {id:"c1",name:"Clash #1",date:"2026-02-08",season:"S1",players:24,lobbies:3,champion:"Levitate",
+    top3:["Levitate","Ole","Vlad"],
+    top8:[{name:"Levitate",pts:8},{name:"Ole",pts:7},{name:"Vlad",pts:6},{name:"Uri",pts:5},{name:"Zounderkite",pts:4},{name:"BingBing",pts:3},{name:"Wiwi",pts:2},{name:"Ivdim",pts:1}]},
+];
 
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
