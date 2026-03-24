@@ -136,6 +136,10 @@ export function AppProvider(props) {
   var challengeCompletions = _challengeCompletions[0];
   var setChallengeCompletions = _challengeCompletions[1];
 
+  var _pendingResults = useState([]);
+  var pendingResults = _pendingResults[0];
+  var setPendingResults = _pendingResults[1];
+
   // Auth state
   var _currentUser = useState(null);
   var currentUser = _currentUser[0];
@@ -709,6 +713,44 @@ export function AppProvider(props) {
       });
   },[playersLoadedCount]);
 
+  // ── Load player's own pending results ──
+  useEffect(function(){
+    if(!currentUser||!tournamentState.id||!supabase.from)return;
+    supabase.from('pending_results')
+      .select('*')
+      .eq('tournament_id',tournamentState.id)
+      .eq('player_id',currentUser.id)
+      .then(function(res){
+        if(res.data)setPendingResults(res.data);
+      });
+  },[currentUser&&currentUser.id,tournamentState.id]);
+
+  // ── Realtime subscription for player's own pending results ──
+  useEffect(function(){
+    if(!currentUser||!supabase.channel)return;
+    var prChannel=supabase
+      .channel('pending-results-player')
+      .on('postgres_changes',{
+        event:'*',
+        schema:'public',
+        table:'pending_results',
+        filter:'player_id=eq.'+currentUser.id
+      },function(payload){
+        if(payload.eventType==='DELETE'){
+          setPendingResults(function(prev){
+            return prev.filter(function(r){return r.id!==payload.old.id;});
+          });
+        }else{
+          setPendingResults(function(prev){
+            var existing=prev.filter(function(r){return r.id!==payload.new.id;});
+            return existing.concat([payload.new]);
+          });
+        }
+      })
+      .subscribe();
+    return function(){supabase.removeChannel(prChannel);};
+  },[currentUser&&currentUser.id]);
+
   // ── Compute season champion from live standings ──
   var computedChampion=useMemo(function(){
     if(!players||players.length===0)return null;
@@ -758,6 +800,7 @@ export function AppProvider(props) {
       pastClashes: pastClashes, setPastClashes: setPastClashes,
       featuredEvents: featuredEvents, setFeaturedEvents: setFeaturedEvents,
       challengeCompletions: challengeCompletions, setChallengeCompletions: setChallengeCompletions,
+      pendingResults: pendingResults,
 
       // Auth
       currentUser: currentUser, setCurrentUser: setCurrentUser,
@@ -795,7 +838,7 @@ export function AppProvider(props) {
     currentUser, isAuthLoading, isOffline,
     subscriptions, authScreen, cookieConsent,
     showOnboarding, newsletterSubmitted, clashRemindersOn,
-    userTier
+    userTier, pendingResults
   ]);
 
   return React.createElement(AppContext.Provider, {value: value}, children);

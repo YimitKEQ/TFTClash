@@ -521,7 +521,19 @@ function ClashCard() {
   var players = ctx.players || []
   var tournamentState = ctx.tournamentState || {}
   var seasonConfig = ctx.seasonConfig || {}
+  var pendingResults = ctx.pendingResults
+  var toast = ctx.toast
   var navigate = useNavigate()
+
+  var _showPicker = useState(false)
+  var showPicker = _showPicker[0]
+  var setShowPicker = _showPicker[1]
+  var _selectedPlace = useState(0)
+  var selectedPlace = _selectedPlace[0]
+  var setSelectedPlace = _selectedPlace[1]
+  var _submitting = useState(false)
+  var submitting = _submitting[0]
+  var setSubmitting = _submitting[1]
 
   var phase = tournamentState.phase || 'idle'
   var clashTimestamp = tournamentState.clashTimestamp
@@ -575,6 +587,44 @@ function ClashCard() {
     : []
   var lobbyNames = lobbyPlayerList.map(function(p) { return typeof p === 'object' ? (p.name || p.username) : p }).join(' \u00b7 ')
   var lobbyNum = myLobby ? (myLobby.num || myLobby.number || myLobby.id || '?') : '?'
+
+  var myLobbyNumber = 1
+  if (tournamentState.lobbies) {
+    tournamentState.lobbies.forEach(function(lobby, idx) {
+      var lobPlayers = lobby.players || lobby.playerIds || []
+      lobPlayers.forEach(function(pid) {
+        var pidVal = typeof pid === 'object' ? pid.id : pid
+        if (pidVal === (currentUser && currentUser.id)) myLobbyNumber = idx + 1
+      })
+    })
+  }
+
+  var mySubmission = pendingResults && pendingResults.find(function(r) {
+    return r.round === tournamentState.round && r.status !== 'disputed'
+  })
+
+  function handleSubmitPlacement() {
+    if (!selectedPlace || !currentUser || !tournamentState.id) return
+    setSubmitting(true)
+    supabase.from('pending_results').upsert({
+      tournament_id: tournamentState.id,
+      round: tournamentState.round,
+      lobby_number: myLobbyNumber,
+      player_id: currentUser.id,
+      placement: selectedPlace,
+      status: 'pending'
+    }, { onConflict: 'tournament_id,round,player_id' })
+    .then(function(res) {
+      setSubmitting(false)
+      if (res.error) {
+        toast('Failed to submit placement. Try again.', 'error')
+        return
+      }
+      setShowPicker(false)
+      setSelectedPlace(0)
+      toast('Placement submitted!', 'success')
+    })
+  }
 
   var phaseTagMap = {
     idle:         { label: 'Next clash TBA',                          cls: 'bg-surface-container text-on-surface-variant',                  icon: 'schedule', dot: false },
@@ -719,23 +769,67 @@ function ClashCard() {
 
         {(phase === 'live' || phase === 'inprogress') && (
           <div>
-            <div className="text-sm text-[#9D8E7C] mb-3">{'Round ' + tRound + ' of ' + totalGames}</div>
-            {myLobby
-              ? (
-                <div className="bg-tertiary/[0.06] border border-tertiary/15 rounded-lg p-3 mb-3">
-                  <div className="font-label text-xs font-bold text-tertiary mb-1">You are in Lobby {lobbyNum}</div>
-                  <div className="text-[11px] text-on-surface/50 leading-relaxed">{lobbyNames}</div>
+            <div className="text-sm text-on-surface-variant mb-3">{'Round ' + tRound + ' of ' + totalGames}</div>
+            {mySubmission ? (
+              <div>
+                <div className="bg-tertiary/[0.06] border border-tertiary/20 rounded-lg p-3 text-center mb-3">
+                  <div className="font-display text-[40px] text-primary leading-none">{ordinal(mySubmission.placement)}</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">{'Your submission \u00b7 Lobby ' + myLobbyNumber}</div>
+                  <div className="flex items-center justify-center gap-1 text-[11px] text-tertiary mt-1.5">
+                    <Icon name="schedule" size={13} />Waiting for admin to confirm
+                  </div>
                 </div>
-              )
-              : (
-                <p className="text-sm text-on-surface-variant mb-3">You are not in a lobby this round.</p>
-              )
-            }
-            <div className="flex gap-2">
-              <Btn variant="ghost" size="sm" className="flex-[2] bg-[rgba(103,226,217,0.1)] text-[#67E2D9] border border-[rgba(103,226,217,0.2)]"
-                onClick={function() { navigate('/clash') }}>Submit Results</Btn>
-              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Live Board</Btn>
-            </div>
+                <div className="text-[11px] text-on-surface-variant text-center">Results lock in once admin confirms all lobbies.</div>
+              </div>
+            ) : showPicker ? (
+              <div>
+                <div className="text-[12px] text-on-surface-variant mb-2">{'How did you finish in Lobby ' + myLobbyNumber + '?'}</div>
+                <div className="grid grid-cols-4 gap-1.5 mb-3">
+                  {[1,2,3,4,5,6,7,8].map(function(n) {
+                    return (
+                      <button
+                        key={n}
+                        onClick={function() { setSelectedPlace(n) }}
+                        className={'py-2.5 rounded-lg border text-center cursor-pointer transition-all ' +
+                          (selectedPlace === n
+                            ? 'bg-primary/10 border-primary text-primary'
+                            : 'bg-white/[0.04] border-white/[0.08] text-on-surface/70'
+                          )
+                        }
+                      >
+                        <div className="font-mono text-base font-semibold leading-none">{n}</div>
+                        <div className="font-label text-[8px] uppercase tracking-wide mt-0.5 opacity-70">{ordinal(n).replace(String(n), '')}</div>
+                      </button>
+                    )
+                  })}
+                </div>
+                <Btn
+                  variant="primary"
+                  size="sm"
+                  className="w-full mb-1"
+                  disabled={!selectedPlace || submitting}
+                  onClick={handleSubmitPlacement}
+                >
+                  {selectedPlace ? ('Confirm ' + ordinal(selectedPlace) + ' Place') : 'Select your placement'}
+                </Btn>
+                <button
+                  onClick={function() { setShowPicker(false); setSelectedPlace(0) }}
+                  className="w-full text-center text-[11px] text-on-surface-variant py-1 cursor-pointer"
+                >Cancel</button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex gap-2">
+                  <Btn
+                    variant="ghost"
+                    size="sm"
+                    className="flex-[2] bg-tertiary/10 text-tertiary border border-tertiary/20"
+                    onClick={function() { setShowPicker(true) }}
+                  >Submit Results</Btn>
+                  <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Live Board</Btn>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
