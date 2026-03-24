@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase.js';
-import { DEFAULT_SEASON_CONFIG, setSeasonChampion } from '../lib/constants.js';
+import { DEFAULT_SEASON_CONFIG, setSeasonChampion, SEED, PAST_CLASHES } from '../lib/constants.js';
 import { getUserTier } from '../lib/tiers.js';
 
 var AppContext = createContext(null);
@@ -203,8 +203,12 @@ export function AppProvider(props) {
     if(!supabase.from)return;
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
-        if(res.error){console.error("[TFT] Failed to load players:",res.error);return;}
-        if(!res.data||!res.data.length){setPlayers([]);return;}
+        if(res.error){console.error("[TFT] Failed to load players:",res.error);
+          if(supabase.from){supabase.from('players').upsert(SEED,{onConflict:'id'}).then(function(){setPlayers(SEED);}).catch(function(){setPlayers(SEED);});}else{setPlayers(SEED);}
+          return;}
+        if(!res.data||!res.data.length){
+          if(supabase.from){supabase.from('players').upsert(SEED,{onConflict:'id'}).then(function(){setPlayers(SEED);}).catch(function(){setPlayers(SEED);});}else{setPlayers(SEED);}
+          return;}
         var mapped=res.data.map(function(r){
           return{
             id:r.id,name:r.username,username:r.username,
@@ -657,7 +661,7 @@ export function AppProvider(props) {
     supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false})
       .then(function(res){
         if(res.error){console.error("Failed to load tournaments:",res.error);return;}
-        if(!res.data||!res.data.length)return;
+        if(!res.data||!res.data.length){setPastClashes(PAST_CLASHES);return;}
         var tIds=res.data.map(function(t){return t.id;});
         supabase.from('tournament_results').select('tournament_id,player_id,final_placement,total_points')
           .in('tournament_id',tIds).order('final_placement',{ascending:true})
