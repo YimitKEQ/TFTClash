@@ -168,15 +168,11 @@ h1,h2,h3,h4{font-family:'Russo One',Georgia,sans-serif;font-weight:700;letter-sp
 
 .top-nav .desktop-links{display:none;}
 
-.top-nav .mobile-hamburger{display:flex;}
-
 .mobile-bottom-bar{display:flex;}
 
 @media(min-width:768px){
 
   .top-nav .desktop-links{display:flex;}
-
-  .top-nav .mobile-hamburger{display:none;}
 
   .mobile-bottom-bar{display:none!important;}
 

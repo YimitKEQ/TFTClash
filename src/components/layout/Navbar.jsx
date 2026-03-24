@@ -212,7 +212,7 @@ export default function Navbar() {
     { id: "hof", icon: "emoji_events", label: "HoF" },
     { id: "pricing", icon: "sell", label: "Pricing" },
     { id: "more", icon: "more_horiz", label: "More" }
-  ].filter(Boolean);
+  ];
 
   // Desktop primary links
   var DESKTOP_PRIMARY = [
@@ -223,7 +223,7 @@ export default function Navbar() {
     { id: "standings", label: "Standings" },
     { id: "hof", label: "Hall of Fame" },
     { id: "pricing", label: "Pricing" }
-  ].filter(Boolean);
+  ];
 
   // Profile completion indicator
   var navProfileFields = currentUser ? [
