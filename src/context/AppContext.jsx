@@ -397,7 +397,7 @@ export function AppProvider(props) {
   // ── useEffect: load host branding from host_profiles DB on auth ──
   useEffect(function(){
     if(!currentUser||!supabase.from)return;
-    supabase.from("host_profiles").select("*").eq("user_id",currentUser.id).single()
+    supabase.from("host_profiles").select("*").eq("user_id",currentUser.id).maybeSingle()
       .then(function(res){
         if(res.data&&res.data.status==="approved"){
           setHostBranding({name:res.data.org_name||"",logo:res.data.logo_url||"\ud83c\udfae",color:res.data.brand_color||"#9B72CF",bio:res.data.bio||"",logoUrl:res.data.logo_url||"",bannerUrl:res.data.banner_url||""});

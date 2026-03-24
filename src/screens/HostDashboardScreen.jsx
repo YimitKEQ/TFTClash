@@ -304,7 +304,7 @@ export default function HostDashboardScreen() {
   // Load host profile from DB on mount
   useEffect(function() {
     if (!currentUser || !supabase.from || dbProfileLoaded) return;
-    supabase.from("host_profiles").select("*").eq("user_id", currentUser.id).single().then(function(res) {
+    supabase.from("host_profiles").select("*").eq("user_id", currentUser.id).maybeSingle().then(function(res) {
       if (res.data) {
         var hp = res.data;
         setBrandName(hp.org_name || brandName);
