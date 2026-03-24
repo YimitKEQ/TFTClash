@@ -85,6 +85,16 @@ function PlacementDistribution({ history }) {
   );
 }
 
+// ─── Riot ID validation ───────────────────────────────────────────────────────
+function validateRiotId(val) {
+  if (!val || !val.trim()) return '';
+  var parts = val.trim().split('#');
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    return 'Use the format Username#Tag';
+  }
+  return '';
+}
+
 // ─── Main AccountScreen ───────────────────────────────────────────────────────
 export default function AccountScreen() {
   var ctx = useApp();
@@ -116,6 +126,13 @@ export default function AccountScreen() {
   var [secondRiotId, setSecondRiotId] = useState((user.user_metadata && user.user_metadata.secondRiotId) || user.secondRiotId || '');
   var [secondRegion, setSecondRegion] = useState((user.user_metadata && user.user_metadata.secondRegion) || user.secondRegion || 'EUW');
   var [subscription, setSubscription] = useState(null);
+
+  var _riotIdEu = useState(currentUser ? (currentUser.riot_id_eu || '') : '');
+  var riotIdEu = _riotIdEu[0]; var setRiotIdEu = _riotIdEu[1];
+  var _riotIdNa = useState(currentUser ? (currentUser.riot_id_na || '') : '');
+  var riotIdNa = _riotIdNa[0]; var setRiotIdNa = _riotIdNa[1];
+  var _riotIdError = useState('');
+  var riotIdError = _riotIdError[0]; var setRiotIdError = _riotIdError[1];
 
   var usernameChanged = !!(user.user_metadata && user.user_metadata.username_changed);
   var riotIdSet = !!(user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id));
@@ -166,6 +183,14 @@ export default function AccountScreen() {
   }
 
   async function save() {
+    var euErr = validateRiotId(riotIdEu);
+    var naErr = validateRiotId(riotIdNa);
+    if (euErr || naErr) {
+      setRiotIdError(euErr || naErr);
+      return;
+    }
+    setRiotIdError('');
+
     var meta = Object.assign({}, user.user_metadata || {}, {
       bio: bio,
       twitch: twitch,
@@ -198,7 +223,7 @@ export default function AccountScreen() {
     }
 
     var socialLinks = { twitch: meta.twitch || '', twitter: meta.twitter || '', youtube: meta.youtube || '' };
-    var playerUpdate = { bio: meta.bio || '', region: riotRegion, social_links: socialLinks };
+    var playerUpdate = { bio: meta.bio || '', region: riotRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null };
     if (!riotIdSet && meta.riotId) {
       playerUpdate.riot_id = meta.riotId;
       playerUpdate.region = riotRegion;
@@ -217,6 +242,8 @@ export default function AccountScreen() {
       profilePic: profilePic,
       bannerUrl: bannerUrl,
       profileAccent: profileAccent,
+      riot_id_eu: riotIdEu.trim() || null,
+      riot_id_na: riotIdNa.trim() || null,
     });
     setCurrentUser(updated);
     setEdit(false);
@@ -777,6 +804,53 @@ export default function AccountScreen() {
                 </div>
 
               </div>
+            </section>
+
+            {/* Riot Accounts */}
+            <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8">
+              <Panel className="mt-4">
+                <div className="flex items-center gap-2 p-4 border-b border-white/[0.05]">
+                  <Icon name="sports_esports" size={18} className="text-primary" />
+                  <span className="font-label text-sm font-bold uppercase tracking-wide">Riot Accounts</span>
+                </div>
+                <div className="p-4 flex flex-col gap-4">
+
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 font-label text-[10px] uppercase tracking-widest text-on-surface-variant">
+                      EU Riot ID
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-tertiary/10 text-tertiary border border-tertiary/20">EU</span>
+                    </div>
+                    <Inp
+                      value={riotIdEu}
+                      onChange={function(e) { setRiotIdEu(e.target.value); setRiotIdError(''); }}
+                      placeholder="Username#EUW"
+                    />
+                    {riotIdEu
+                      ? <div className="flex items-center gap-1 text-[11px] text-tertiary"><Icon name="check_circle" size={14} />Linked - used for EU clash weeks</div>
+                      : <div className="flex items-center gap-1 text-[11px] text-primary"><Icon name="warning" size={14} />Not linked - you cannot register for EU weeks</div>
+                    }
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2 font-label text-[10px] uppercase tracking-widest text-on-surface-variant">
+                      NA Riot ID
+                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide bg-primary/10 text-primary border border-primary/20">NA</span>
+                    </div>
+                    <Inp
+                      value={riotIdNa}
+                      onChange={function(e) { setRiotIdNa(e.target.value); setRiotIdError(''); }}
+                      placeholder="Username#NA1"
+                    />
+                    {riotIdNa
+                      ? <div className="flex items-center gap-1 text-[11px] text-tertiary"><Icon name="check_circle" size={14} />Linked - used for NA clash weeks</div>
+                      : <div className="flex items-center gap-1 text-[11px] text-primary"><Icon name="warning" size={14} />Not linked - you cannot register for NA weeks</div>
+                    }
+                  </div>
+
+                  {riotIdError && <div className="text-[11px] text-error">{riotIdError}</div>}
+
+                </div>
+              </Panel>
             </section>
 
             {/* Custom Banner */}
