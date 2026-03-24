@@ -304,14 +304,30 @@ export function AppProvider(props) {
       return Object.assign({},u,{username:username,riotId:riotId,region:region});
     }
 
+    function fetchAndSetCurrentUser(authUser, onDone) {
+      if (!authUser) { setCurrentUser(null); if (onDone) onDone(); return; }
+      supabase.from('players').select('*').eq('auth_user_id', authUser.id).single()
+        .then(function(result) {
+          if (result.data) {
+            setCurrentUser(result.data);
+          } else {
+            setCurrentUser(mapUser(authUser));
+          }
+          if (onDone) onDone();
+        })
+        .catch(function() {
+          setCurrentUser(mapUser(authUser));
+          if (onDone) onDone();
+        });
+    }
+
     supabase.auth.getSession().then(function(result){
       var session=result&&result.data&&result.data.session;
-      setCurrentUser(mapUser(session&&session.user?session.user:null));
-      setIsAuthLoading(false);
+      fetchAndSetCurrentUser(session&&session.user?session.user:null, function(){setIsAuthLoading(false);});
     }).catch(function(){setIsAuthLoading(false);});
 
     var authResult=supabase.auth.onAuthStateChange(function(_e,session){
-      setCurrentUser(mapUser(session&&session.user?session.user:null));
+      fetchAndSetCurrentUser(session&&session.user?session.user:null, null);
     });
     var subscription=authResult.data.subscription;
 
@@ -322,10 +338,13 @@ export function AppProvider(props) {
   // ── useEffect: auto-create player row for OAuth users ──
   useEffect(function(){
     if(!currentUser||!currentUser.id)return;
-    supabase.from('players').select('id,riot_id').eq('auth_user_id',currentUser.id).maybeSingle()
+    // If currentUser already has player table fields (rank, pts), skip re-fetch
+    if(currentUser.rank!==undefined)return;
+    supabase.from('players').select('*').eq('auth_user_id',currentUser.id).maybeSingle()
       .then(function(res){
         if(res.error){console.error("[TFT] player check failed:",res.error);return;}
         if(res.data){
+          setCurrentUser(res.data);
           loadPlayersFromTable();
           return;
         }
@@ -344,6 +363,7 @@ export function AppProvider(props) {
             return;
           }
           console.log("[TFT] auto-created player row for",username);
+          if(ins.data)setCurrentUser(ins.data);
           loadPlayersFromTable();
         });
       });
