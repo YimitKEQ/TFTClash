@@ -11,41 +11,23 @@ var PLAYER_FEATURES = [
 ]
 
 var PRO_FEATURES = [
-  { text: 'Exclusive Pro Circuit Access', icon: 'verified', bold: true },
-  { text: 'Advanced Analytical HUD', icon: 'check_circle' },
-  { text: '1.5x Tournament Reward Multiplier', icon: 'check_circle' },
-  { text: 'Priority Matchmaking Queue', icon: 'check_circle' },
-  { text: 'Custom Profile Banners and Tags', icon: 'check_circle' },
+  { text: 'Advanced LP Analytics', icon: 'bar_chart' },
+  { text: 'Extended Match History', icon: 'check_circle' },
+  { text: 'Pro Badge on Profile', icon: 'check_circle' },
 ]
 
 var HOST_FEATURES = [
   { text: 'Full Tournament Orchestration Tools', icon: 'account_tree' },
   { text: 'Custom Prize Pool Management', icon: 'check_circle' },
   { text: 'Brand Partnership Dashboard', icon: 'check_circle' },
-  { text: 'Dedicated Discord Support Bot', icon: 'check_circle' },
+  { text: 'Support via Discord', icon: 'check_circle' },
 ]
 
 var COMPARISON_ROWS = [
   {
-    label: 'Max Monthly Tournaments',
-    player: '10',
-    pro: 'Unlimited',
-    host: 'Unlimited',
-    proHighlight: true,
-    hostHighlight: true,
-    type: 'text',
-  },
-  {
     label: 'Advanced LP Analytics',
     player: false,
     pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Custom Match Lobbies',
-    player: false,
-    pro: false,
     host: true,
     type: 'bool',
   },
@@ -224,13 +206,9 @@ export default function PricingScreen() {
                 Current Plan
               </div>
             ) : (
-              <button
-                onClick={handleBecomePro}
-                className="w-full py-5 rounded-[20px] font-sans font-bold uppercase tracking-widest text-on-primary hover:scale-[1.02] transition-transform active:scale-95 bg-gradient-to-br from-primary to-primary-fixed-dim"
-                style={{ boxShadow: '0 0 20px rgba(253,186,73,0.2)' }}
-              >
-                Become A Pro
-              </button>
+              <div className="w-full py-2.5 text-center rounded-lg bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+                Coming Soon
+              </div>
             )}
           </div>
 
@@ -263,13 +241,9 @@ export default function PricingScreen() {
                 Current Plan
               </div>
             ) : (
-              <button
-                onClick={handleStartHosting}
-                className="w-full py-4 rounded-[20px] font-sans font-bold uppercase tracking-widest bg-secondary text-on-secondary hover:scale-[1.02] transition-transform"
-                style={{ boxShadow: '0 0 20px rgba(217,185,255,0.15)' }}
-              >
-                Start Hosting
-              </button>
+              <div className="w-full py-2.5 text-center rounded-lg bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+                Coming Soon
+              </div>
             )}
           </div>
         </div>
@@ -292,7 +266,7 @@ export default function PricingScreen() {
               </div>
               <div className="flex items-center gap-2">
                 <Icon name="public" size={16} />
-                Global Servers
+                EUW · EUNE · NA
               </div>
               <div className="flex items-center gap-2">
                 <Icon name="security" size={16} />
@@ -355,7 +329,7 @@ export default function PricingScreen() {
             </h4>
             <h2 className="font-serif text-4xl mb-6">Frequently Asked Questions</h2>
             <p className="text-on-surface-variant">
-              Still unsure which path to tread? Our support command center is active 24/7 to assist your ascent.
+              Still unsure which path to tread? Our support command center is active via Discord to assist your ascent.
             </p>
             <div className="mt-8 flex gap-4">
               <button
