@@ -410,6 +410,15 @@ export function AppProvider(props) {
 
   useEffect(function(){try{localStorage.setItem("tft-admin",isAdmin?"1":"0");}catch(e){}},[isAdmin]);
 
+  // ── useEffect: sync isAdmin from currentUser.is_admin (DB source of truth) ──
+  useEffect(function(){
+    if (currentUser && currentUser.is_admin === true) {
+      setIsAdmin(true);
+    } else if (currentUser && currentUser.is_admin === false) {
+      setIsAdmin(false);
+    }
+  }, [currentUser]);
+
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},300);return function(){clearTimeout(t);};},[quickClashes]);
