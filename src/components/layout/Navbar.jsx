@@ -420,9 +420,9 @@ export default function Navbar() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
-            {/* Hamburger — opens drawer on all screen sizes */}
+            {/* Hamburger — desktop only (mobile uses bottom bar "More" tab) */}
             <button
-              className="bg-transparent border border-[rgba(242,237,228,0.1)] rounded-lg p-1.5 cursor-pointer text-[#C8D4E0] hover:text-[#F2EDE4] flex items-center justify-center transition-colors duration-150"
+              className="hidden md:flex bg-transparent border border-[rgba(242,237,228,0.1)] rounded-lg p-1.5 cursor-pointer text-[#C8D4E0] hover:text-[#F2EDE4] items-center justify-center transition-colors duration-150"
               onClick={function() { setDrawer(function(d) { return !d; }); }}
             >
               <Icon name="menu" size={20} />
