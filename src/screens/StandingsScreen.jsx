@@ -55,9 +55,9 @@ export default function StandingsScreen() {
         })}
       </div>
 
-      {tab === '' && <LeaderboardScreen />}
+      {tab === '' && <LeaderboardScreen embedded={true} />}
 
-      {tab === 'hof' && <HofScreen />}
+      {tab === 'hof' && <HofScreen embedded={true} />}
 
       {tab === 'roster' && (
         <Panel className="text-center py-16">

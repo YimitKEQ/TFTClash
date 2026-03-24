@@ -585,6 +585,7 @@ export default function ResultsScreen() {
                     },
                   }}
                   players={players}
+                  embedded={true}
                 />
               </Panel>
             )}

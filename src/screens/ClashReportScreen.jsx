@@ -4,20 +4,19 @@ import Icon from '../components/ui/Icon'
 import PageLayout from '../components/layout/PageLayout'
 
 // ClashReport: detailed round-by-round breakdown for a single clash
-export default function ClashReportScreen({ clashData, players }) {
+export default function ClashReportScreen({ clashData, players, embedded }) {
   var navigate = useNavigate()
   var ctx = useApp()
   var toast = ctx.toast
 
   if (!clashData || !players) {
-    return (
-      <PageLayout>
-        <div className="text-center py-20 text-on-surface/50 text-sm">
-          <Icon name="search_off" size={40} className="text-on-surface/30 mb-4" />
-          <p>No clash data available.</p>
-        </div>
-      </PageLayout>
+    var emptyContent = (
+      <div className="text-center py-20 text-on-surface/50 text-sm">
+        <Icon name="search_off" size={40} className="text-on-surface/30 mb-4" />
+        <p>No clash data available.</p>
+      </div>
     )
+    return embedded ? emptyContent : <PageLayout>{emptyContent}</PageLayout>
   }
 
   var allP = (players && players.length > 0) ? players : []
@@ -45,17 +44,11 @@ export default function ClashReportScreen({ clashData, players }) {
   var top3 = sorted.slice(0, 3)
 
   if (sorted.length === 0) {
-    return (
-      <PageLayout>
-        <div className="text-center py-8 text-on-surface/50 text-sm">
-          No detailed data for this clash yet.
-        </div>
-      </PageLayout>
-    )
+    var emptySort = <div className="text-center py-8 text-on-surface/50 text-sm">No detailed data for this clash yet.</div>
+    return embedded ? emptySort : <PageLayout>{emptySort}</PageLayout>
   }
 
-  return (
-    <PageLayout>
+  var mainContent = (
     <div>
       {/* Winner Banner */}
       <section className="flex flex-col items-center justify-center text-center py-12 relative overflow-hidden">
@@ -399,6 +392,6 @@ export default function ClashReportScreen({ clashData, players }) {
         </div>
       </section>
     </div>
-    </PageLayout>
   )
+  return embedded ? mainContent : <PageLayout>{mainContent}</PageLayout>
 }

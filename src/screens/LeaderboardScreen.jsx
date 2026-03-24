@@ -182,7 +182,8 @@ function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick })
   )
 }
 
-export default function LeaderboardScreen() {
+export default function LeaderboardScreen(props) {
+  var embedded = props.embedded || false
   var ctx = useApp()
   var players = ctx.players
   var currentUser = ctx.currentUser
@@ -245,9 +246,8 @@ export default function LeaderboardScreen() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  return (
-    <PageLayout>
-      <div className="pb-20">
+  var content = (
+    <div className="pb-20">
 
         {/* Header */}
         <header className="mb-16 text-center">
@@ -376,6 +376,6 @@ export default function LeaderboardScreen() {
         )}
 
       </div>
-    </PageLayout>
   )
+  return embedded ? content : <PageLayout>{content}</PageLayout>
 }

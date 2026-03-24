@@ -4,7 +4,8 @@ import { getStats } from '../lib/stats.js'
 import { Icon } from '../components/ui'
 import PageLayout from '../components/layout/PageLayout'
 
-export default function HofScreen() {
+export default function HofScreen(props) {
+  var embedded = props.embedded || false
   var ctx = useApp()
   var players = ctx.players || []
   var pastClashes = ctx.pastClashes || []
@@ -104,9 +105,8 @@ export default function HofScreen() {
   var challengerIconColors = ['#C0C0C0', '#CD7F32', 'rgba(212,212,212,0.4)']
   var challengerIcons = ['workspace_premium', 'workspace_premium', 'military_tech']
 
-  return (
-    <PageLayout>
-      <div className="pb-16 space-y-16">
+  var content = (
+    <div className="pb-16 space-y-16">
 
         {/* Hero Header */}
         <div className="mb-0 text-center md:text-left">
@@ -378,6 +378,6 @@ export default function HofScreen() {
         </div>
 
       </div>
-    </PageLayout>
   )
+  return embedded ? content : <PageLayout>{content}</PageLayout>
 }
