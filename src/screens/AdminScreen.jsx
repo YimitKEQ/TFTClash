@@ -129,7 +129,7 @@ var AUDIT_COLS = { INFO: '#4ECDC4', ACTION: '#52C47C', WARN: '#E8A838', RESULT: 
 var EVENT_COLS = { SCHEDULED: '#E8A838', FLASH: '#F87171', INVITATIONAL: '#9B72CF', WEEKLY: '#4ECDC4' }
 
 var ADMIN_ICON_MAP = {
-  dashboard: 'speed', round: 'bolt', quickclash: 'casino', flash: 'emoji_events',
+  dashboard: 'speed', round: 'bolt', flash: 'emoji_events',
   players: 'group', scores: 'edit', broadcast: 'campaign', schedule: 'calendar_month',
   featured: 'star', season: 'trophy', sponsorships: 'apartment', hosts: 'sports_esports',
   friends: 'swords', ticker: 'rss_feed', audit: 'assignment', settings: 'settings'
@@ -145,8 +145,6 @@ export default function AdminScreen() {
   var setTournamentState = ctx.setTournamentState
   var seasonConfig = ctx.seasonConfig
   var setSeasonConfig = ctx.setSeasonConfig
-  var quickClashes = ctx.quickClashes
-  var setQuickClashes = ctx.setQuickClashes
   var orgSponsors = ctx.orgSponsors
   var setOrgSponsors = ctx.setOrgSponsors
   var scheduledEvents = ctx.scheduledEvents
@@ -405,7 +403,6 @@ export default function AdminScreen() {
     { label: 'TOURNAMENT', items: [
       { id: 'dashboard', label: 'Dashboard' },
       { id: 'round', label: 'Round Control' },
-      { id: 'quickclash', label: 'Quick Clash' },
       { id: 'flash', label: 'Flash Tournaments' },
     ]},
     { label: 'MANAGEMENT', items: [
@@ -431,7 +428,6 @@ export default function AdminScreen() {
   var TAB_INFO = {
     dashboard: 'At-a-glance clash status. Use quick actions to check in all players, pause the round, or jump to broadcast.',
     round: 'Full tournament lifecycle: open check-in, start, advance rounds, complete. Configure seeding and round settings here.',
-    quickclash: 'Spin up an instant open clash (4-16 players, no registration). Appears live on the home screen.',
     schedule: 'Add upcoming clashes to the public calendar. Players see scheduled events on the home screen.',
     players: 'Full roster. Edit info, assign roles, mark DNP (no-show), ban/unban, and add internal notes.',
     scores: 'Override a player\'s season point total. All changes are flagged as DANGER in Audit.',
@@ -562,7 +558,7 @@ export default function AdminScreen() {
                   { label: 'Players', value: players.length, icon: 'group', color: 'text-secondary', sub: players.filter(function(p) { return p.role === 'admin' }).length + ' admin' },
                   { label: 'Checked In', value: players.filter(function(p) { return p.checkedIn }).length, icon: 'check_circle', color: 'text-success', sub: 'of ' + players.length + ' total' },
                   { label: 'Banned', value: players.filter(function(p) { return p.banned }).length, icon: 'block', color: 'text-error', sub: players.filter(function(p) { return (p.dnpCount || 0) > 0 && !p.banned }).length + ' with DNP' },
-                  { label: 'Events', value: (scheduledEvents || []).length, icon: 'calendar_month', color: 'text-primary', sub: (quickClashes || []).length + ' quick clash' + ((quickClashes || []).length !== 1 ? 'es' : '') },
+                  { label: 'Events', value: (scheduledEvents || []).length, icon: 'calendar_month', color: 'text-primary', sub: '0 quick clashes' },
                 ].map(function(c) {
                   return (
                     <Panel key={c.label} className="text-center">
@@ -1015,74 +1011,6 @@ export default function AdminScreen() {
           )}
 
           {/* ── QUICK CLASH ── */}
-          {tab === 'quickclash' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-              <Panel accent="purple">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 bg-primary/10 border border-primary/30 rounded-sm flex items-center justify-center">
-                    <Icon name="casino" size={18} />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-on-surface">New Quick Clash</div>
-                    <div className="text-[11px] text-on-surface/50 mt-0.5">Opens immediately, no registration phase</div>
-                  </div>
-                </div>
-                <div className="grid gap-3 mb-3">
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Event Name</label><Inp value={flashForm.name} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; setFlashForm(function(f) { return Object.assign({}, f, { name: val }) }) }} placeholder="Flash Clash" /></div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Player Cap</label><Sel value={flashForm.cap || '8'} onChange={function(v) { setFlashForm(function(f) { return Object.assign({}, f, { cap: v }) }) }}>{[4, 8, 16].map(function(n) { return <option key={n} value={n}>{n} players</option> })}</Sel></div>
-                    <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Rounds</label><Sel value={flashForm.rounds || '2'} onChange={function(v) { setFlashForm(function(f) { return Object.assign({}, f, { rounds: v }) }) }}>{[1, 2, 3].map(function(n) { return <option key={n} value={n}>{n} round{n > 1 ? 's' : ''}</option> })}</Sel></div>
-                  </div>
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Format</label><Sel value={flashForm.format || 'Single Lobby'} onChange={function(v) { setFlashForm(function(f) { return Object.assign({}, f, { format: v }) }) }}>{['Single Lobby', 'Two Lobbies', 'Finals Only'].map(function(fm) { return <option key={fm}>{fm}</option> })}</Sel></div>
-                </div>
-                <Btn variant="primary" onClick={function() {
-                  if (!flashForm.name || !flashForm.name.trim()) return
-                  var ev = { id: Date.now(), name: flashForm.name.trim(), cap: parseInt(flashForm.cap || '8'), rounds: parseInt(flashForm.rounds || '2'), format: flashForm.format || 'Single Lobby', status: 'open', players: [], startedAt: null, createdAt: new Date().toLocaleTimeString() }
-                  if (setQuickClashes) setQuickClashes(function(qs) { return [ev].concat(qs || []) })
-                  addAudit('ACTION', 'Quick Clash created: ' + flashForm.name)
-                  toast(flashForm.name + ' is open - ' + (flashForm.cap || '8') + ' spots', 'success')
-                  setFlashForm(function(f) { return Object.assign({}, f, { name: 'Flash Clash', cap: '8', rounds: '2', format: 'Single Lobby' }) })
-                }}>Open Quick Clash</Btn>
-              </Panel>
-
-              <div className="flex flex-col gap-2.5">
-                <div className="text-[11px] font-bold text-on-surface/40 tracking-widest uppercase mb-0.5">Active Quick Clashes</div>
-                {(!quickClashes || quickClashes.length === 0) && (
-                  <Panel className="text-center py-10">
-                    <Icon name="bolt" size={24} className="text-primary/30 mb-3" />
-                    <div className="text-on-surface/40 text-sm font-semibold">No quick clashes active</div>
-                    <div className="text-on-surface/30 text-[11px] mt-1">Create one using the form</div>
-                  </Panel>
-                )}
-                {(quickClashes || []).map(function(ev) {
-                  return (
-                    <Panel key={ev.id} className="border border-primary/20">
-                      <div className="flex justify-between items-start gap-2.5">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                            <span className="font-bold text-sm text-on-surface">{ev.name}</span>
-                            <Tag size="sm">QUICK</Tag>
-                            {ev.status === 'open' && <Tag size="sm">OPEN</Tag>}
-                            {ev.status === 'full' && <Tag size="sm">FULL</Tag>}
-                            {ev.status === 'live' && <Tag size="sm">LIVE</Tag>}
-                            {ev.status === 'complete' && <Tag size="sm">DONE</Tag>}
-                          </div>
-                          <div className="text-xs text-on-surface/50">{ev.players ? ev.players.length : 0}/{ev.cap}p - {ev.rounds}R - {ev.format}</div>
-                          <div className="text-[11px] text-on-surface/30 mt-0.5">Created {ev.createdAt}</div>
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          {(ev.status === 'open' || ev.status === 'full') && <Btn size="sm" variant="primary" onClick={function() { if (setQuickClashes) setQuickClashes(function(qs) { return (qs || []).map(function(q) { return q.id === ev.id ? Object.assign({}, q, { status: 'live', startedAt: new Date().toLocaleTimeString() }) : q }) }); addAudit('ACTION', 'Quick Clash started: ' + ev.name); toast(ev.name + ' is LIVE!', 'success') }}>Start</Btn>}
-                          {ev.status === 'live' && <Btn size="sm" variant="secondary" onClick={function() { if (setQuickClashes) setQuickClashes(function(qs) { return (qs || []).map(function(q) { return q.id === ev.id ? Object.assign({}, q, { status: 'complete' }) : q }) }); addAudit('RESULT', 'Quick Clash complete: ' + ev.name); toast(ev.name + ' complete', 'success') }}>End</Btn>}
-                          {ev.status === 'complete' && <Btn size="sm" variant="ghost" onClick={function() { if (setQuickClashes) setQuickClashes(function(qs) { return (qs || []).filter(function(q) { return q.id !== ev.id }) }); addAudit('ACTION', 'Quick Clash removed: ' + ev.name) }}>Remove</Btn>}
-                        </div>
-                      </div>
-                    </Panel>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
           {/* ── SCHEDULE ── */}
           {tab === 'schedule' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
