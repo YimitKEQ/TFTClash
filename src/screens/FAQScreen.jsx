@@ -205,12 +205,14 @@ export default function FAQScreen() {
             </p>
           </div>
           <div className="relative z-10 flex gap-4 flex-wrap">
-            <button
-              onClick={function () { window.open('https://discord.gg/HJH3NQqqXH', '_blank') }}
-              className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface"
+            <a
+              href="https://discord.gg/HJH3NQqqXH"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface inline-block"
             >
               Join Discord
-            </button>
+            </a>
             <button
               onClick={function () { navigate('/') }}
               className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface"
