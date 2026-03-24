@@ -267,9 +267,13 @@ export default function Navbar() {
           {/* Logo */}
           <div
             onClick={function() { navTo('home'); }}
-            className="font-['Russo_One'] text-xl text-primary uppercase tracking-tight cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+            className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
           >
-            TFT Clash
+            <img src="/icon-border.png" alt="TFT Clash" className="w-9 h-9 object-contain drop-shadow-[0_0_12px_rgba(155,114,207,0.6)]" />
+            <div>
+              <div className="font-['Russo_One'] text-sm text-primary uppercase tracking-tight leading-none">TFT Clash</div>
+              <div className="font-['Barlow_Condensed'] text-[10px] text-on-surface/40 uppercase tracking-widest font-semibold mt-0.5">Season 1</div>
+            </div>
           </div>
 
           {/* Desktop nav links */}
@@ -331,10 +335,10 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Menu button - tablet/mobile only (xl has sidebar) */}
+            {/* Menu button - all screen sizes */}
             <button
               onClick={function() { setDrawer(true); }}
-              className="xl:hidden p-2 text-on-surface/50 hover:text-on-surface transition-colors rounded-lg hover:bg-white/5 bg-transparent border-none cursor-pointer"
+              className="p-2 text-on-surface/50 hover:text-on-surface transition-colors rounded-lg hover:bg-white/5 bg-transparent border-none cursor-pointer"
             >
               <Icon name="menu" size={22} />
             </button>
