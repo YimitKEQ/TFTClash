@@ -52,6 +52,150 @@ var ACCENT_COLORS = ["#ffc66b", "#67e2d9", "#d9b9ff", "#f87171", "#6ee7b7", "#60
 
 var WIZ_STEPS = ["Basics", "Format", "Branding", "Review"];
 
+// --- Command Center sub-components ---
+function PlayerPool(props) {
+  var players = props.players || []
+  var selectedId = props.selectedId
+  var usedIds = props.usedIds || []
+  var onSelect = props.onSelect
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/30 mb-2">Players</div>
+      {players.map(function(p) {
+        var isUsed = usedIds.indexOf(p.id) > -1
+        var isSelected = selectedId === p.id
+        return (
+          <div
+            key={p.id}
+            onClick={function() { if (!isUsed) onSelect(p) }}
+            className={'flex items-center gap-2 px-2.5 py-1.5 rounded-md border text-sm cursor-pointer transition-colors ' +
+              (isSelected ? 'bg-primary/10 border-primary/30 text-primary' :
+               isUsed ? 'bg-white/[0.02] border-on-surface/5 text-on-surface/25 cursor-not-allowed' :
+               'bg-white/[0.03] border-on-surface/10 text-on-surface/70 hover:border-on-surface/20')}
+          >
+            <div className="w-5 h-5 rounded-full bg-secondary/20 border border-secondary/30 flex-shrink-0"></div>
+            <span className="flex-1 text-xs font-medium">{p.name}</span>
+            {isUsed && <Icon name="check_circle" size={12} className="text-secondary/40 flex-shrink-0" />}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function PlacementSlots(props) {
+  var players = props.players || []
+  var slots = props.slots || {}
+  var selectedPlayerId = props.selectedPlayerId
+  var onPlace = props.onPlace
+
+  var rankColors = ['text-primary', 'text-on-surface/50', 'text-tertiary', 'text-on-surface/40', 'text-on-surface/30', 'text-on-surface/30', 'text-on-surface/25', 'text-on-surface/25']
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/30 mb-2">Click a slot to place</div>
+      {[1,2,3,4,5,6,7,8].map(function(rank) {
+        var playerId = slots[rank]
+        var player = playerId ? players.find(function(p) { return p.id === playerId }) : null
+        var isTarget = selectedPlayerId && !playerId
+        return (
+          <div
+            key={rank}
+            onClick={function() { onPlace(rank) }}
+            className={'flex items-center gap-2 px-2.5 py-1.5 rounded-md border cursor-pointer transition-colors ' +
+              (player ? 'bg-surface-container border-on-surface/15' :
+               isTarget ? 'bg-primary/[0.06] border-primary/30 border-dashed' :
+               'bg-white/[0.02] border-on-surface/8 border-dashed hover:border-on-surface/15')}
+          >
+            <span className={'cond text-xs font-bold w-5 text-center flex-shrink-0 ' + (rankColors[rank-1] || 'text-on-surface/25')}>{rank}</span>
+            {player ? (
+              <span className="text-xs text-on-surface/80 flex-1">{player.name}</span>
+            ) : (
+              <span className={'text-[10px] flex-1 ' + (isTarget ? 'text-primary/60 italic' : 'text-on-surface/20 italic')}>
+                {isTarget ? 'click to place' : 'empty'}
+              </span>
+            )}
+            {player && (
+              <Icon name="close" size={12} className="text-on-surface/20 hover:text-on-surface/50 flex-shrink-0" />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function LobbyCard(props) {
+  var players = props.players || []
+  var slots = props.slots || {}
+  var selectedPlayerId = props.selectedPlayerId
+  var onSelect = props.onSelect
+  var onPlace = props.onPlace
+
+  var usedIds = Object.values(slots).filter(Boolean)
+  var filledCount = usedIds.length
+
+  return (
+    <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-on-surface/8">
+        <span className="cond text-[9px] font-bold uppercase tracking-[0.12em] text-on-surface/50">Lobby A - {players.length} players</span>
+        <span className="cond text-[9px] font-bold text-secondary">{filledCount}/8 placed</span>
+      </div>
+      <div className="p-4 grid grid-cols-2 gap-4">
+        <PlayerPool players={players} selectedId={selectedPlayerId} usedIds={usedIds} onSelect={onSelect} />
+        <PlacementSlots players={players} slots={slots} selectedPlayerId={selectedPlayerId} onPlace={onPlace} />
+      </div>
+    </div>
+  )
+}
+
+function RoundControl(props) {
+  var players = props.players || []
+  var round = props.round
+  var totalRounds = props.totalRounds || 3
+  var pendingPlacements = props.pendingPlacements || {}
+  var selectedPlayer = props.selectedPlayer
+  var placementStack = props.placementStack || []
+  var onSelect = props.onSelect
+  var onPlace = props.onPlace
+  var onUndo = props.onUndo
+  var onConfirm = props.onConfirm
+  var onSaveDraft = props.onSaveDraft
+
+  var filledCount = Object.keys(pendingPlacements).filter(function(k) { return pendingPlacements[k] }).length
+  var allFilled = filledCount === 8
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon name="sports_esports" size={14} className="text-primary" />
+          <span className="cond text-[9px] font-bold uppercase tracking-[0.12em] text-on-surface/50">Round Control - Round {round}</span>
+        </div>
+        <span className="cond text-[8px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-red-400/10 text-red-400 border border-red-400/20">Live</span>
+      </div>
+
+      <LobbyCard
+        players={players}
+        slots={pendingPlacements}
+        selectedPlayerId={selectedPlayer ? selectedPlayer.id : null}
+        onSelect={onSelect}
+        onPlace={onPlace}
+      />
+
+      <div className="flex items-center gap-2 pt-1">
+        <Btn variant="ghost" size="sm" onClick={onUndo} disabled={placementStack.length === 0}>Undo Last</Btn>
+        <div className="flex-1"></div>
+        <Btn variant="ghost" size="sm" onClick={onSaveDraft}>Save Draft</Btn>
+        <Btn variant="secondary" size="sm" onClick={onConfirm} disabled={!allFilled}>
+          Confirm Round {round} &rarr;
+        </Btn>
+      </div>
+    </div>
+  )
+}
+
 // --- HostDashboardScreen ---
 export default function HostDashboardScreen() {
   var ctx = useApp();
@@ -98,6 +242,34 @@ export default function HostDashboardScreen() {
 
   var tournaments = hostTournaments || [];
   var setTournaments = setHostTournaments || function() {};
+
+  // Command Center state
+  var _selEvt = useState(tournaments.length > 0 ? tournaments[0].id : null)
+  var selectedEventId = _selEvt[0]
+  var setSelectedEventId = _selEvt[1]
+
+  var _ar = useState(1)
+  var activeRound = _ar[0]
+  var setActiveRound = _ar[1]
+
+  var _pending = useState({})
+  var pendingPlacements = _pending[0]
+  var setPendingPlacements = _pending[1]
+
+  var _selP = useState(null)
+  var selectedPlayer = _selP[0]
+  var setSelectedPlayer = _selP[1]
+
+  var _stack = useState([])
+  var placementStack = _stack[0]
+  var setPlacementStack = _stack[1]
+
+  var setTournamentState = ctx.setTournamentState
+  var tournamentState = ctx.tournamentState || {}
+
+  var activeEvent = tournaments.find(function(e) { return e.id === selectedEventId }) || null
+  var activeRoundLobbyPlayers = (players || []).slice(0, 8)
+  var totalRounds = 3
 
   // Load host profile from DB on mount
   useEffect(function() {
@@ -1144,10 +1316,206 @@ export default function HostDashboardScreen() {
           </div>
         )}
 
+        {/* Command Center tab */}
+        {tab === "commandcenter" && (
+          <div className="flex flex-col gap-4 lg:flex-row lg:gap-4 lg:items-start">
+
+            {/* Left column - event list + live stats */}
+            <div className="w-full lg:w-48 flex-shrink-0 flex flex-col gap-3">
+              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-on-surface/8">
+                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Your Events</span>
+                  {tournaments.some(function(e) { return e.status === 'live' }) && (
+                    <span className="cond text-[8px] font-bold uppercase text-red-400 px-1.5 py-0.5 bg-red-400/10 rounded">1 Live</span>
+                  )}
+                </div>
+                <div className="p-2 flex flex-col gap-1">
+                  {tournaments.length === 0 && (
+                    <div className="text-[11px] text-on-surface/30 text-center py-4">No events yet</div>
+                  )}
+                  {tournaments.map(function(ev) {
+                    var isActive = ev.id === selectedEventId
+                    return (
+                      <div
+                        key={ev.id}
+                        onClick={function() { setSelectedEventId(ev.id) }}
+                        className={'rounded-lg p-2 cursor-pointer border transition-colors ' +
+                          (isActive ? 'bg-primary/8 border-primary/25' : 'bg-white/[0.02] border-on-surface/8 hover:border-on-surface/15')}
+                      >
+                        <div className={'text-xs font-bold ' + (isActive ? 'text-primary' : 'text-on-surface/70')}>{ev.name}</div>
+                        <div className="text-[10px] text-on-surface/35 mt-0.5">Round {activeRound} / {totalRounds} - {ev.players || 0} players</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
+                <div className="px-3 py-2 border-b border-on-surface/8">
+                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Live Stats</span>
+                </div>
+                <div className="p-3 flex flex-col gap-2">
+                  {[
+                    ['Players', (activeEvent ? activeEvent.players : 0) + ' / ' + (activeEvent ? activeEvent.players : 0), 'text-primary'],
+                    ['Round', activeRound + ' / ' + totalRounds, 'text-secondary'],
+                    ['Lobbies', '1 active', 'text-on-surface/50'],
+                    ['Est. End', '~35 min', 'text-tertiary'],
+                  ].map(function(row) {
+                    return (
+                      <div key={row[0]} className="flex items-center justify-between">
+                        <span className="text-[10px] text-on-surface/35">{row[0]}</span>
+                        <span className={'cond text-[10px] font-bold ' + row[2]}>{row[1]}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Center column - round control + standings */}
+            <div className="flex-1 flex flex-col gap-3">
+              {activeEvent ? (
+                <RoundControl
+                  players={activeRoundLobbyPlayers}
+                  round={activeRound}
+                  totalRounds={totalRounds}
+                  pendingPlacements={pendingPlacements}
+                  selectedPlayer={selectedPlayer}
+                  placementStack={placementStack}
+                  onSelect={function(p) { setSelectedPlayer(p) }}
+                  onPlace={function(rank) {
+                    if (selectedPlayer) {
+                      var existing = pendingPlacements[rank]
+                      if (existing) {
+                        setPendingPlacements(function(prev) {
+                          var next = Object.assign({}, prev)
+                          delete next[rank]
+                          return next
+                        })
+                        setPlacementStack(function(s) { return s.filter(function(item) { return item.rank !== rank }) })
+                      } else {
+                        var newPlacements = Object.assign({}, pendingPlacements)
+                        newPlacements[rank] = selectedPlayer.id
+                        setPendingPlacements(newPlacements)
+                        setPlacementStack(function(s) { return s.concat([{ rank: rank, playerId: selectedPlayer.id }]) })
+                        setSelectedPlayer(null)
+                      }
+                    } else {
+                      var pid = pendingPlacements[rank]
+                      if (pid) {
+                        setPendingPlacements(function(prev) {
+                          var next = Object.assign({}, prev)
+                          delete next[rank]
+                          return next
+                        })
+                        setPlacementStack(function(s) { return s.filter(function(item) { return item.rank !== rank }) })
+                      }
+                    }
+                  }}
+                  onUndo={function() {
+                    if (placementStack.length === 0) return
+                    var last = placementStack[placementStack.length - 1]
+                    setPendingPlacements(function(prev) {
+                      var next = Object.assign({}, prev)
+                      delete next[last.rank]
+                      return next
+                    })
+                    setPlacementStack(function(s) { return s.slice(0, s.length - 1) })
+                  }}
+                  onConfirm={function() {
+                    setTournamentState(Object.assign({}, tournamentState, {
+                      lockedLobbies: (tournamentState.lockedLobbies || []).concat([{ round: activeRound, placements: pendingPlacements }])
+                    }))
+                    setActiveRound(activeRound + 1)
+                    setPendingPlacements({})
+                    setPlacementStack([])
+                    setSelectedPlayer(null)
+                    toast('Round ' + activeRound + ' confirmed!', 'success')
+                  }}
+                  onSaveDraft={function() {
+                    localStorage.setItem('tft-round-draft-' + (selectedEventId || 'default'), JSON.stringify(pendingPlacements))
+                    toast('Draft saved', 'success')
+                  }}
+                />
+              ) : (
+                <div className="bg-surface-container rounded-xl border border-on-surface/10 p-8 text-center">
+                  <Icon name="sports_esports" size={32} className="text-primary/30 mb-3" />
+                  <div className="text-sm text-on-surface/40 font-semibold">No event selected</div>
+                  <div className="text-xs text-on-surface/25 mt-1">Create an event first to use round control</div>
+                </div>
+              )}
+
+              {/* Live Standings */}
+              {activeEvent && (
+                <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
+                  <div className="px-3 py-2 border-b border-on-surface/8 flex items-center justify-between">
+                    <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Live Standings</span>
+                    <span className="text-[9px] text-on-surface/20">Updates after confirm</span>
+                  </div>
+                  <div className="p-3 flex flex-col gap-1">
+                    {activeRoundLobbyPlayers.slice(0, 5).map(function(p, i) {
+                      return (
+                        <div key={p.id} className="flex items-center gap-2.5 py-1.5">
+                          <span className="cond text-xs font-bold w-5 text-center text-on-surface/40">{'#' + (i+1)}</span>
+                          <span className="flex-1 text-xs text-on-surface/70">{p.name}</span>
+                          <span className="font-mono text-xs font-bold text-on-surface/50">{p.pts || 0} pts</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right column - players + activity */}
+            <div className="w-full lg:w-44 flex-shrink-0 flex flex-col gap-3">
+              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-on-surface/8">
+                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Players</span>
+                  <span className="cond text-[8px] font-bold text-secondary">{activeRoundLobbyPlayers.length}/8</span>
+                </div>
+                <div className="p-2 flex flex-col">
+                  {activeRoundLobbyPlayers.map(function(p) {
+                    return (
+                      <div key={p.id} className="flex items-center gap-2 py-1.5 border-b border-on-surface/[0.04] last:border-0">
+                        <div className="w-4 h-4 rounded-full bg-secondary/20 border border-secondary/30 flex-shrink-0"></div>
+                        <span className="flex-1 text-[10px] text-on-surface/70">{p.name}</span>
+                        <span className="cond text-[8px] font-bold uppercase text-secondary/70 bg-secondary/8 px-1.5 rounded">In</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
+                <div className="px-3 py-2 border-b border-on-surface/8">
+                  <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Activity</span>
+                </div>
+                <div className="p-3 flex flex-col gap-2">
+                  {[
+                    ['Round 1 confirmed by host', '5m', 'bg-secondary'],
+                    ['Lobby A started', '45m', 'bg-on-surface/20'],
+                    ['Event created', '1h', 'bg-on-surface/15'],
+                  ].map(function(item, i) {
+                    return (
+                      <div key={i} className="flex gap-2 items-start">
+                        <div className={'w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ' + item[2]}></div>
+                        <div className="flex-1 text-[9px] text-on-surface/40 leading-relaxed">{item[0]}</div>
+                        <div className="text-[8px] text-on-surface/20 flex-shrink-0">{item[1]}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
+
         {/* Secondary nav for sub-sections */}
         {tab !== "overview" && (
           <div className="flex flex-wrap gap-2 pt-4 border-t border-outline-variant/10">
-            {[["announce", "Announce"], ["branding", "Branding"], ["game-flow", "Game Flow"], ["registrations", "Players"]].map(function(arr) {
+            {[["commandcenter", "Round Control"], ["announce", "Announce"], ["branding", "Branding"], ["game-flow", "Game Flow"], ["registrations", "Players"]].map(function(arr) {
               return (
                 <button
                   key={arr[0]}
