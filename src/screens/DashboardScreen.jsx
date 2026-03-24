@@ -543,8 +543,8 @@ function ClashCard() {
   var tRound = tournamentState.round || 1
   var totalGames = tournamentState.totalGames || 3
 
-  var isRegistered = currentUser && (tournamentState.registeredIds || []).indexOf(currentUser.id) > -1
-  var isCheckedIn  = currentUser && (tournamentState.checkedInIds  || []).indexOf(currentUser.id) > -1
+  var isRegistered = currentUser && (tournamentState.registeredIds || []).indexOf(String(currentUser.id)) > -1
+  var isCheckedIn  = currentUser && (tournamentState.checkedInIds  || []).indexOf(String(currentUser.id)) > -1
 
   var myLobby = null
   var lobbies = tournamentState.lobbies || []
@@ -559,9 +559,16 @@ function ClashCard() {
       if (inLobby) { myLobby = lob; break; }
     }
   }
-  var lobbyNames = myLobby
-    ? (myLobby.players || []).map(function(p) { return typeof p === 'object' ? (p.name || p.username) : p }).join(' \u00b7 ')
-    : ''
+  var lobbyPlayerList = myLobby
+    ? (myLobby.players && myLobby.players.length > 0
+        ? myLobby.players
+        : (myLobby.playerIds || []).map(function(pid) {
+            var found = players.find(function(p) { return p.id === pid || String(p.id) === String(pid) })
+            return found ? { name: found.username || found.name } : null
+          }).filter(Boolean)
+      )
+    : []
+  var lobbyNames = lobbyPlayerList.map(function(p) { return typeof p === 'object' ? (p.name || p.username) : p }).join(' \u00b7 ')
   var lobbyNum = myLobby ? (myLobby.num || myLobby.number || myLobby.id || '?') : '?'
 
   var phaseTagMap = {
@@ -574,7 +581,8 @@ function ClashCard() {
   }
   var phaseTag = phaseTagMap[phase] || phaseTagMap.idle
 
-  var weekNum = Math.max(1, Math.ceil((new Date() - new Date(seasonConfig.startDate || '2025-01-01')) / (7 * 24 * 60 * 60 * 1000)))
+  var rawWeek = Math.ceil((new Date() - new Date(seasonConfig.startDate || '2026-01-03')) / (7 * 24 * 60 * 60 * 1000))
+  var weekNum = Number.isFinite(rawWeek) ? Math.max(1, rawWeek) : 1
   var weekLabel = seasonName + ' \u00b7 Week ' + weekNum
 
   return (
