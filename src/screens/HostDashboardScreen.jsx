@@ -346,6 +346,49 @@ export default function HostDashboardScreen() {
     }
   }
 
+  function exportTournamentCSV(tournament) {
+    var tournId = tournament.dbId || tournament.id;
+    if (!tournId) {
+      toast('No database ID for this tournament', 'error');
+      return;
+    }
+    supabase
+      .from('game_results')
+      .select('round, lobby_number, player_id, placement')
+      .eq('tournament_id', tournId)
+      .order('round', { ascending: true })
+      .order('placement', { ascending: true })
+      .then(function(res) {
+        if (res.error) {
+          toast('Export failed: ' + res.error.message, 'error');
+          return;
+        }
+        var rows = res.data || [];
+        if (rows.length === 0) {
+          toast('No results recorded for this tournament yet', 'info');
+          return;
+        }
+        var PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
+        var header = 'Player,Round,Lobby,Placement,Points';
+        var lines = rows.map(function(r) {
+          var player = (players || []).find(function(p) { return p.id === r.player_id; });
+          var playerName = player ? player.name : ('Player ' + r.player_id);
+          var lobbyLetter = String.fromCharCode(64 + (r.lobby_number || 1));
+          var pts = PTS[r.placement] || 0;
+          return [playerName, r.round, lobbyLetter, r.placement, pts].join(',');
+        });
+        var csv = [header].concat(lines).join('\n');
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = tournament.name.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '-results.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('CSV exported!', 'success');
+      });
+  }
+
   function submitWizard() {
     if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; }
     setWizCreating(true);
@@ -965,6 +1008,15 @@ export default function HostDashboardScreen() {
                         onClick={function() { navigate("/results"); }}
                       >
                         <Icon name="history_edu" size={18} />
+                      </button>
+                    )}
+                    {t.status === 'complete' && (
+                      <button
+                        onClick={function() { exportTournamentCSV(t); }}
+                        className="flex items-center gap-1 text-[10px] cond font-bold uppercase tracking-wide text-secondary hover:text-secondary/80 transition-colors bg-transparent border-0 cursor-pointer p-0"
+                      >
+                        <Icon name="file_download" size={12} />
+                        CSV
                       </button>
                     )}
                     <button
