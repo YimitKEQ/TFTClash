@@ -264,12 +264,42 @@ export default function HostDashboardScreen() {
   var placementStack = _stack[0]
   var setPlacementStack = _stack[1]
 
+  var _regs = useState([])
+  var eventRegistrants = _regs[0]
+  var setEventRegistrants = _regs[1]
+
+  var _regsLoading = useState(false)
+  var setEventRegistrantsLoading = _regsLoading[1]
+
   var setTournamentState = ctx.setTournamentState
   var tournamentState = ctx.tournamentState || {}
 
   var activeEvent = tournaments.find(function(e) { return e.id === selectedEventId }) || null
-  var activeRoundLobbyPlayers = (players || []).slice(0, 8)
-  var totalRounds = 3
+  var activeRoundLobbyPlayers = eventRegistrants.length > 0 ? eventRegistrants : (players || []).slice(0, 8)
+  var totalRounds = activeEvent ? (activeEvent.totalGames || 3) : 3
+
+  // Compute live standings from locked rounds
+  var CC_PTS = {1:8, 2:7, 3:6, 4:5, 5:4, 6:3, 7:2, 8:1}
+  var lockedLobbies = tournamentState.lockedLobbies || []
+  var standingsMap = {}
+  activeRoundLobbyPlayers.forEach(function(p) { standingsMap[p.id] = 0; })
+  lockedLobbies.forEach(function(lobby) {
+    var pls = lobby.placements || {}
+    Object.keys(pls).forEach(function(rank) {
+      var pid = pls[rank]
+      standingsMap[pid] = (standingsMap[pid] || 0) + (CC_PTS[parseInt(rank)] || 0)
+    })
+  })
+  var liveStandings = activeRoundLobbyPlayers.map(function(p) {
+    return Object.assign({}, p, { ccPts: standingsMap[p.id] || 0 })
+  }).sort(function(a, b) { return b.ccPts - a.ccPts })
+
+  // Activity feed from real locked rounds
+  var activityItems = lockedLobbies.slice().reverse().map(function(lb) {
+    return { label: 'Round ' + lb.round + ' confirmed', dot: 'bg-secondary' }
+  })
+  if (activeEvent) { activityItems = activityItems.concat([{ label: 'Event created', dot: 'bg-on-surface/15' }]) }
+  if (activityItems.length === 0) { activityItems = [{ label: 'Waiting for round 1...', dot: 'bg-on-surface/10' }] }
 
   // Load host profile from DB on mount
   useEffect(function() {
@@ -286,6 +316,26 @@ export default function HostDashboardScreen() {
       }
     });
   }, [currentUser]);
+
+  // Load registrants for the selected event from DB
+  useEffect(function() {
+    if (!selectedEventId || !supabase.from) { setEventRegistrants([]); return; }
+    var activeEvt = (hostTournaments || []).find(function(t) { return t.id === selectedEventId; });
+    var dbId = activeEvt ? (activeEvt.dbId || null) : null;
+    if (!dbId) { setEventRegistrants([]); return; }
+    setEventRegistrantsLoading(true);
+    supabase.from('registrations')
+      .select('player_id, status')
+      .eq('tournament_id', dbId)
+      .in('status', ['confirmed', 'registered', 'checked_in'])
+      .then(function(res) {
+        setEventRegistrantsLoading(false);
+        if (res.error || !res.data || res.data.length === 0) { setEventRegistrants([]); return; }
+        var regIds = res.data.map(function(r) { return r.player_id; });
+        var matched = (players || []).filter(function(p) { return regIds.indexOf(p.id) !== -1; });
+        setEventRegistrants(matched);
+      });
+  }, [selectedEventId, (hostTournaments || []).length]);
 
   // Load host tournaments from DB
   useEffect(function() {
@@ -1401,7 +1451,7 @@ export default function HostDashboardScreen() {
                           (isActive ? 'bg-primary/8 border-primary/25' : 'bg-white/[0.02] border-on-surface/8 hover:border-on-surface/15')}
                       >
                         <div className={'text-xs font-bold ' + (isActive ? 'text-primary' : 'text-on-surface/70')}>{ev.name}</div>
-                        <div className="text-[10px] text-on-surface/35 mt-0.5">Round {activeRound} / {totalRounds} - {ev.players || 0} players</div>
+                        <div className="text-[10px] text-on-surface/35 mt-0.5">{isActive ? (activeRoundLobbyPlayers.length + ' registered') : (ev.registered || ev.players || 0) + ' registered'}</div>
                       </div>
                     )
                   })}
@@ -1414,10 +1464,10 @@ export default function HostDashboardScreen() {
                 </div>
                 <div className="p-3 flex flex-col gap-2">
                   {[
-                    ['Players', (activeEvent ? activeEvent.players : 0) + ' / ' + (activeEvent ? activeEvent.players : 0), 'text-primary'],
+                    ['Players', activeRoundLobbyPlayers.length + ' / ' + (activeEvent ? (activeEvent.size || activeEvent.max_players || activeRoundLobbyPlayers.length) : 0), 'text-primary'],
                     ['Round', activeRound + ' / ' + totalRounds, 'text-secondary'],
-                    ['Lobbies', '1 active', 'text-on-surface/50'],
-                    ['Est. End', '~35 min', 'text-tertiary'],
+                    ['Lobbies', Math.max(1, Math.ceil(activeRoundLobbyPlayers.length / 8)) + ' active', 'text-on-surface/50'],
+                    ['Rounds done', lockedLobbies.length + ' / ' + totalRounds, 'text-tertiary'],
                   ].map(function(row) {
                     return (
                       <div key={row[0]} className="flex items-center justify-between">
@@ -1509,12 +1559,15 @@ export default function HostDashboardScreen() {
                     <span className="text-[9px] text-on-surface/20">Updates after confirm</span>
                   </div>
                   <div className="p-3 flex flex-col gap-1">
-                    {activeRoundLobbyPlayers.slice(0, 5).map(function(p, i) {
+                    {lockedLobbies.length === 0 && (
+                      <div className="text-[10px] text-on-surface/25 text-center py-2">Waiting for round 1...</div>
+                    )}
+                    {liveStandings.slice(0, 5).map(function(p, i) {
                       return (
                         <div key={p.id} className="flex items-center gap-2.5 py-1.5">
                           <span className="cond text-xs font-bold w-5 text-center text-on-surface/40">{'#' + (i+1)}</span>
-                          <span className="flex-1 text-xs text-on-surface/70">{p.name}</span>
-                          <span className="font-mono text-xs font-bold text-on-surface/50">{p.pts || 0} pts</span>
+                          <span className="flex-1 text-xs text-on-surface/70">{p.name || p.username}</span>
+                          <span className="font-mono text-xs font-bold text-on-surface/50">{p.ccPts} pts</span>
                         </div>
                       )
                     })}
@@ -1528,7 +1581,7 @@ export default function HostDashboardScreen() {
               <div className="bg-surface-container rounded-xl border border-on-surface/10 overflow-hidden">
                 <div className="flex items-center justify-between px-3 py-2 border-b border-on-surface/8">
                   <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Players</span>
-                  <span className="cond text-[8px] font-bold text-secondary">{activeRoundLobbyPlayers.length}/8</span>
+                  <span className="cond text-[8px] font-bold text-secondary">{activeRoundLobbyPlayers.length}/{activeEvent ? (activeEvent.size || activeEvent.max_players || 8) : 8}</span>
                 </div>
                 <div className="p-2 flex flex-col">
                   {activeRoundLobbyPlayers.map(function(p) {
@@ -1548,16 +1601,11 @@ export default function HostDashboardScreen() {
                   <span className="cond text-[8px] font-bold uppercase tracking-[0.12em] text-on-surface/40">Activity</span>
                 </div>
                 <div className="p-3 flex flex-col gap-2">
-                  {[
-                    ['Round 1 confirmed by host', '5m', 'bg-secondary'],
-                    ['Lobby A started', '45m', 'bg-on-surface/20'],
-                    ['Event created', '1h', 'bg-on-surface/15'],
-                  ].map(function(item, i) {
+                  {activityItems.map(function(item, i) {
                     return (
                       <div key={i} className="flex gap-2 items-start">
-                        <div className={'w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ' + item[2]}></div>
-                        <div className="flex-1 text-[9px] text-on-surface/40 leading-relaxed">{item[0]}</div>
-                        <div className="text-[8px] text-on-surface/20 flex-shrink-0">{item[1]}</div>
+                        <div className={'w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ' + item.dot}></div>
+                        <div className="flex-1 text-[9px] text-on-surface/40 leading-relaxed">{item.label}</div>
                       </div>
                     )
                   })}
