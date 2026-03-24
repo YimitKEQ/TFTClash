@@ -695,11 +695,20 @@ function ClashCard() {
         </div>
 
         {(phase === 'idle') && (
-          <div>
-            <p className="text-sm text-on-surface-variant mb-3">No clash scheduled yet. Check back Saturday.</p>
-            <div className="flex gap-2">
-              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/standings') }}>Standings</Btn>
-              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/results') }}>Past Results</Btn>
+          <div className="flex flex-col items-center text-center gap-3 py-2">
+            <div className="w-12 h-12 rounded-xl bg-primary/8 border border-primary/15 flex items-center justify-center">
+              <Icon name="swords" size={24} className="text-primary" />
+            </div>
+            <div>
+              <div className="font-display text-sm font-bold text-on-surface mb-1">No clash this week - yet</div>
+              <div className="text-xs text-on-surface/40 leading-relaxed max-w-[220px] mx-auto">Next clash is scheduled for Saturday night. Registration opens 24h before.</div>
+            </div>
+            <div className="cond text-[9px] font-bold uppercase tracking-widest text-on-surface/30 px-3 py-1.5 rounded-full border border-on-surface/10 bg-on-surface/[0.02]">
+              Next: Saturday - 20:00 CET
+            </div>
+            <div className="flex gap-2 w-full">
+              <Btn variant="primary" size="sm" className="flex-1" onClick={function() { navigate('/standings') }}>View Standings</Btn>
+              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/events') }}>Browse Events</Btn>
             </div>
           </div>
         )}
