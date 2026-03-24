@@ -61,8 +61,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   if (isLive) {
     actionBtn = (
       <button
-        className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
-        style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
+        className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all glass-panel"
         onClick={function() { navigate('/tournament/' + ev.id) }}
       >
         WATCH BROADCAST
@@ -71,8 +70,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   } else if (amRegistered) {
     actionBtn = (
       <button
-        className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest cursor-default"
-        style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
+        className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest cursor-default glass-panel"
       >
         REGISTERED
       </button>
@@ -80,8 +78,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   } else if (evFull) {
     actionBtn = (
       <button
-        className="w-full py-3 border border-outline-variant/30 text-on-surface/50 cursor-not-allowed font-label text-xs font-bold uppercase tracking-widest"
-        style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
+        className="w-full py-3 border border-outline-variant/30 text-on-surface/50 cursor-not-allowed font-label text-xs font-bold uppercase tracking-widest glass-panel"
       >
         FULL
       </button>
@@ -89,8 +86,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   } else if (!currentUser) {
     actionBtn = (
       <button
-        className="w-full py-3 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all"
-        style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}
+        className="w-full py-3 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all bg-gradient-to-br from-primary to-primary-fixed-dim"
         onClick={function(e) {
           e.stopPropagation()
           if (onAuthClick) onAuthClick('login')
@@ -102,8 +98,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   } else {
     actionBtn = (
       <button
-        className="w-full py-3 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all"
-        style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}
+        className="w-full py-3 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all bg-gradient-to-br from-primary to-primary-fixed-dim"
         onClick={function(e) {
           e.stopPropagation()
           if (onRegister) onRegister(ev)
@@ -261,24 +256,21 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
             <div className="flex flex-wrap gap-4">
               {!currentUser ? (
                 <button
-                  className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform"
-                  style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)', boxShadow: '0 40px 40px rgba(228, 225, 236, 0.06)' }}
+                  className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
                   onClick={function() { onAuthClick('login') }}
                 >
                   REGISTER NOW
                 </button>
               ) : (
                 <button
-                  className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform"
-                  style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)', boxShadow: '0 40px 40px rgba(228, 225, 236, 0.06)' }}
+                  className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
                   onClick={function() { navigate('/tournament/' + hero.id) }}
                 >
                   REGISTER NOW
                 </button>
               )}
               <button
-                className="px-8 py-4 border border-outline-variant/20 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-surface hover:bg-surface-variant/40 transition-colors"
-                style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
+                className="px-8 py-4 border border-outline-variant/20 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-surface hover:bg-surface-variant/40 transition-colors glass-panel"
                 onClick={function() { navigate('/tournament/' + hero.id) }}
               >
                 VIEW SCHEDULE
@@ -314,9 +306,8 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                 onClick={function() { setFilter(val) }}
                 className={'px-6 py-2 font-label text-xs font-bold uppercase tracking-tighter rounded-full transition-colors ' + (isActive
                   ? 'bg-primary text-on-primary'
-                  : 'text-on-surface/70 hover:text-on-surface'
+                  : 'text-on-surface/70 hover:text-on-surface glass-panel'
                 )}
-                style={isActive ? {} : { background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
               >
                 {label}
               </button>
@@ -374,8 +365,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
           <div className="bg-surface-container p-8 border border-outline-variant/10">
             <div className="flex items-center space-x-4 mb-6">
               <div
-                className="w-12 h-12 rounded-full flex items-center justify-center text-tertiary"
-                style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
+                className="w-12 h-12 rounded-full flex items-center justify-center text-tertiary glass-panel"
               >
                 <Icon name="verified_user" size={24} />
               </div>
@@ -436,15 +426,13 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
           <button
-            className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform"
-            style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)', boxShadow: '0 40px 40px rgba(228, 225, 236, 0.06)' }}
+            className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
             onClick={function() { navigate(currentUser ? '/host/apply' : '/signup') }}
           >
             Apply to Host
           </button>
           <button
-            className="px-8 py-4 border border-outline-variant/20 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-surface hover:bg-surface-variant/40 transition-colors"
-            style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
+            className="px-8 py-4 border border-outline-variant/20 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-surface hover:bg-surface-variant/40 transition-colors glass-panel"
             onClick={function() { navigate('/pricing') }}
           >
             View Host Plans
@@ -725,9 +713,8 @@ export default function EventsScreen() {
                   onClick={function() { navigate('/events/' + t.id) }}
                   className={'flex items-center gap-2 px-6 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 rounded-full ' + (isActive
                     ? 'bg-primary text-on-primary'
-                    : 'text-on-surface/60 hover:text-on-surface'
+                    : 'text-on-surface/60 hover:text-on-surface glass-panel'
                   )}
-                  style={isActive ? {} : { background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}
                 >
                   <Icon name={t.icon} size={16} className={isActive ? '' : 'opacity-60'} />
                   {t.label}

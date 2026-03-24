@@ -64,6 +64,15 @@ export default {
         "sans": ["Barlow Condensed", "sans-serif"],
         "body": ["Inter", "sans-serif"],
         "mono": ["JetBrains Mono", "monospace"],
+        // Design system aliases used across screens
+        "editorial": ["Playfair Display", "serif"],
+        "technical": ["Barlow Condensed", "sans-serif"],
+        "condensed": ["Barlow Condensed", "sans-serif"],
+        "sans-condensed": ["Barlow Condensed", "sans-serif"],
+        "stats": ["JetBrains Mono", "monospace"],
+        "label": ["Barlow Condensed", "sans-serif"],
+        "sans-cond": ["Barlow Condensed", "sans-serif"],
+        "nav": ["Barlow Condensed", "sans-serif"],
       },
       borderRadius: {
         DEFAULT: "0.125rem",

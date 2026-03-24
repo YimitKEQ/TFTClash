@@ -55,7 +55,7 @@ function PodiumCard({ player, rank, onClick }) {
           <div className="absolute -top-6 left-1/2 -translate-x-1/2">
             <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
           </div>
-          <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center" style={{ boxShadow: '0 0 25px 2px rgba(253, 186, 73, 0.25)' }}>
+          <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center gold-glow-boss">
             <span className="font-headline text-5xl font-bold text-primary">{initial}</span>
           </div>
           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-label font-bold px-6 py-2 rounded-sm text-sm shadow-xl uppercase tracking-widest whitespace-nowrap">
@@ -72,13 +72,14 @@ function PodiumCard({ player, rank, onClick }) {
   var borderClass = rank === 2 ? 'border-[#C0C0C0]/30' : 'border-[#CD7F32]/30'
   var labelBg = rank === 2 ? 'bg-[#C0C0C0]' : 'bg-[#CD7F32]'
   var imgFilter = rank === 2 ? 'grayscale opacity-80' : 'sepia-[.3]'
+  var glowClass = rank === 2 ? 'silver-glow-boss' : 'bronze-glow-boss'
   var heightClass = rank === 2 ? 'h-24' : 'h-20'
   var orderClass = rank === 2 ? 'order-2 md:order-1' : 'order-3'
 
   return (
     <div className={orderClass + ' flex flex-col items-center'}>
       <div className="relative group cursor-pointer mb-6" onClick={onClick}>
-        <div className={'w-24 h-24 rounded-full border-4 ' + borderClass + ' overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center'}>
+        <div className={'w-24 h-24 rounded-full border-4 ' + borderClass + ' ' + glowClass + ' overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center'}>
           <span className={'font-headline text-3xl font-bold ' + imgFilter} style={{ color: medalColor }}>{initial}</span>
         </div>
         <div className={'absolute -bottom-2 left-1/2 -translate-x-1/2 ' + labelBg + ' text-surface font-label font-bold px-3 py-1 rounded-sm text-xs uppercase tracking-widest'}>
@@ -102,8 +103,8 @@ function TableRow({ player, rank, isMe, onClick }) {
     return (
       <tr
         id="lb-me-row"
-        className="relative group cursor-pointer"
-        style={{ background: 'rgba(217,185,255,0.05)', boxShadow: 'inset 0 0 15px rgba(217, 185, 255, 0.15)' }}
+        className="relative group cursor-pointer bg-secondary/5"
+        style={{ boxShadow: 'inset 0 0 15px rgba(217, 185, 255, 0.15)' }}
         onClick={onClick}
       >
         <td className="px-8 py-5 font-mono text-secondary font-bold text-sm">{rankLabel}</td>
@@ -156,7 +157,7 @@ function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick })
     <div>
       <div className={divider.bg + ' ' + divider.border + ' px-8 py-3 flex items-center justify-between'}>
         <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
-        <span className="font-mono text-xs" style={{ color: 'currentColor', opacity: 0.4 }}>{divider.sub}</span>
+        <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
       </div>
       <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <table className="w-full text-left border-collapse">

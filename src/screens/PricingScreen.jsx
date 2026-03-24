@@ -174,7 +174,7 @@ export default function PricingScreen() {
             </div>
 
             {isPlayer && currentUser ? (
-              <div className="text-center py-3 text-sm font-bold" style={{ color: 'var(--color-success, #4caf50)' }}>
+              <div className="text-center py-3 text-sm font-bold text-success">
                 Current Plan
               </div>
             ) : (
@@ -220,14 +220,14 @@ export default function PricingScreen() {
             </div>
 
             {isPro ? (
-              <div className="text-center py-3 text-sm font-bold" style={{ color: 'var(--color-success, #4caf50)' }}>
+              <div className="text-center py-3 text-sm font-bold text-success">
                 Current Plan
               </div>
             ) : (
               <button
                 onClick={handleBecomePro}
-                className="w-full py-5 rounded-[20px] font-sans font-bold uppercase tracking-widest text-on-primary hover:scale-[1.02] transition-transform active:scale-95"
-                style={{ background: 'linear-gradient(to bottom right, #ffc66b, #e8a838)', boxShadow: '0 0 20px rgba(253,186,73,0.2)' }}
+                className="w-full py-5 rounded-[20px] font-sans font-bold uppercase tracking-widest text-on-primary hover:scale-[1.02] transition-transform active:scale-95 bg-gradient-to-br from-primary to-primary-fixed-dim"
+                style={{ boxShadow: '0 0 20px rgba(253,186,73,0.2)' }}
               >
                 Become A Pro
               </button>
@@ -259,7 +259,7 @@ export default function PricingScreen() {
             </div>
 
             {isHost ? (
-              <div className="text-center py-3 text-sm font-bold" style={{ color: 'var(--color-success, #4caf50)' }}>
+              <div className="text-center py-3 text-sm font-bold text-success">
                 Current Plan
               </div>
             ) : (

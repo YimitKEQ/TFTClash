@@ -26,7 +26,7 @@ export default function GearScreen() {
   return (
     <PageLayout showSidebar={false}>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-on-surface mb-1" style={{ fontFamily: "'Playfair Display',serif" }}>Gear</h2>
+        <h2 className="text-2xl font-editorial font-bold text-on-surface mb-1">Gear</h2>
         <div className="text-sm text-on-surface/40">Official TFT Clash merchandise and gear</div>
       </div>
 
@@ -50,12 +50,11 @@ export default function GearScreen() {
             return (
               <div key={cat}>
                 <div
-                  className="text-xs font-bold uppercase tracking-widest mb-3"
-                  style={{ color: '#9B72CF', fontFamily: "'Barlow Condensed',sans-serif", letterSpacing: '.1em' }}
+                  className="font-condensed text-xs font-bold uppercase tracking-widest mb-3 text-secondary"
                 >
                   {cat}
                 </div>
-                <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))' }}>
+                <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
                   {catItems.map(function(item) {
                     return (
                       <Panel key={item.id} className="p-0 overflow-hidden">
@@ -64,16 +63,12 @@ export default function GearScreen() {
                             <img
                               src={item.image_url}
                               alt={item.name}
-                              className="w-full object-cover"
-                              style={{ height: 140 }}
+                              className="w-full object-cover h-[140px]"
                             />
                           )
                           : (
-                            <div
-                              className="w-full flex items-center justify-center"
-                              style={{ height: 140, background: 'linear-gradient(135deg,rgba(155,114,207,.15),rgba(155,114,207,.05))' }}
-                            >
-                              <Icon name="shopping_bag" className="text-3xl opacity-40" style={{ color: '#9B72CF' }} />
+                            <div className="w-full flex items-center justify-center h-[140px] bg-gradient-to-br from-secondary/[0.15] to-secondary/[0.05]">
+                              <Icon name="shopping_bag" className="text-3xl opacity-40 text-secondary" />
                             </div>
                           )
                         }
@@ -82,15 +77,14 @@ export default function GearScreen() {
                           <div className="text-xs text-on-surface/60 mb-2 leading-relaxed">{item.description || ''}</div>
                           <div className="flex items-center justify-between">
                             {item.price && (
-                              <span className="text-sm font-bold" style={{ color: '#E8A838' }}>{item.price}</span>
+                              <span className="text-sm font-bold text-primary">{item.price}</span>
                             )}
                             {item.external_url && (
                               <a
                                 href={item.external_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs font-semibold"
-                                style={{ color: '#9B72CF', textDecoration: 'none' }}
+                                className="text-xs font-semibold text-secondary no-underline"
                               >
                                 View
                               </a>

@@ -116,11 +116,7 @@ function AnnouncementStrip({ text, variant }) {
   var isHost = variant === 'host'
   return (
     <div
-      className="flex items-center gap-2.5 rounded-sm px-4 py-2.5 mb-3"
-      style={{
-        background: isHost ? 'rgba(155,114,207,.05)' : 'rgba(232,168,56,.06)',
-        border: '1px solid ' + (isHost ? 'rgba(155,114,207,.2)' : 'rgba(232,168,56,.2)')
-      }}
+      className={'flex items-center gap-2.5 rounded-sm px-4 py-2.5 mb-3 border ' + (isHost ? 'bg-secondary/5 border-secondary/20' : 'bg-primary/[0.06] border-primary/20')}
     >
       <Icon name="campaign" size={16} className={isHost ? 'text-secondary flex-shrink-0' : 'text-primary flex-shrink-0'} />
       <span className={'font-semibold text-sm ' + (isHost ? 'text-secondary' : 'text-primary')}>{text}</span>
@@ -159,16 +155,13 @@ function PulseHeader({
   if (D > 0) countdownStr = D + 'd ' + countdownStr
 
   return (
-    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6"
-      style={{ background: 'rgba(52,52,60,0.6)', backdropFilter: 'blur(24px)', boxShadow: 'inset 0 0 20px rgba(217,185,255,0.15)' }}
+    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6 bg-surface-container/60 backdrop-blur-2xl"
+      style={{ boxShadow: 'inset 0 0 20px rgba(217,185,255,0.15)' }}
     >
       {/* Top-right countdown */}
       <div className="absolute top-0 right-0 p-4 text-right">
         <div className="flex items-center gap-2 justify-end">
-          <span
-            className="w-2 h-2 rounded-full bg-primary"
-            style={{ animation: 'pulse 2s infinite' }}
-          />
+          <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           <span className="font-condensed uppercase text-[10px] tracking-widest text-on-surface/40">
             {phaseLabel}
           </span>
@@ -436,8 +429,7 @@ function FlashTournamentBanner({ tournament, onView }) {
   if (!tournament) return null
   return (
     <div
-      className="flex items-center gap-3 p-4 rounded-lg border border-tertiary/20 mb-6 cursor-pointer hover:bg-surface-container transition-colors"
-      style={{ background: 'rgba(103,226,217,0.04)' }}
+      className="flex items-center gap-3 p-4 rounded-lg border border-tertiary/20 mb-6 cursor-pointer hover:bg-surface-container transition-colors bg-tertiary/[0.04]"
       onClick={onView}
     >
       <Icon name="bolt" fill size={18} className="text-tertiary flex-shrink-0" />
@@ -893,8 +885,7 @@ export default function DashboardScreen() {
           {/* Season Narrative */}
           {seasonNarrative && (
             <div
-              className="rounded-lg border border-secondary/10 p-5 flex items-start gap-4"
-              style={{ background: 'rgba(217,185,255,0.04)' }}
+              className="rounded-lg border border-secondary/10 p-5 flex items-start gap-4 bg-secondary/[0.04]"
             >
               <Icon name="auto_awesome" size={18} className="text-secondary flex-shrink-0 mt-0.5" />
               <p className="text-sm text-on-surface/70 font-medium leading-relaxed">{seasonNarrative}</p>
@@ -955,8 +946,7 @@ export default function DashboardScreen() {
 
           {/* Ad Space */}
           <div
-            className="rounded-lg border border-dashed border-outline-variant/20 p-6 flex flex-col items-center justify-center gap-2 min-h-[140px]"
-            style={{ background: 'rgba(255,255,255,0.01)' }}
+            className="rounded-lg border border-dashed border-outline-variant/20 p-6 flex flex-col items-center justify-center gap-2 min-h-[140px] bg-white/[0.01]"
           >
             <Icon name="ads_click" size={20} className="text-on-surface/20" />
             <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/20">Ad Space</span>
@@ -967,16 +957,14 @@ export default function DashboardScreen() {
       {/* Ticker */}
       {tickerItems.length > 0 && (
         <div
-          className="overflow-hidden rounded-sm mt-6"
-          style={{ background: 'rgba(155,114,207,.03)', border: '1px solid rgba(155,114,207,.08)' }}
+          className="overflow-hidden rounded-sm mt-6 bg-secondary/[0.03] border border-secondary/[0.08]"
         >
           <div className="ticker-scroll">
             {[].concat(tickerItems, tickerItems).map(function (item, i) {
               return (
                 <span
                   key={i}
-                  className="inline-flex items-center px-5 py-2 text-[11px] text-on-surface/60 font-semibold whitespace-nowrap"
-                  style={{ borderRight: '1px solid rgba(155,114,207,.08)' }}
+                  className="inline-flex items-center px-5 py-2 text-[11px] text-on-surface/60 font-semibold whitespace-nowrap border-r border-secondary/[0.08]"
                 >
                   {typeof item === 'object' ? item.text : item}
                 </span>

@@ -59,8 +59,7 @@ function HeroCountdown({ clashTimestamp, onRegister }) {
           </div>
         </div>
         <button
-          className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)]"
-          style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}
+          className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
           onClick={onRegister}
         >
           Register Your Team
@@ -113,8 +112,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
           Elite <span className="text-primary">Leaderboard</span>
         </h2>
         <button
-          className="font-label text-xs uppercase tracking-widest text-primary hover:underline underline-offset-4"
-          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+          className="font-label text-xs uppercase tracking-widest text-primary hover:underline underline-offset-4 bg-transparent border-0 cursor-pointer"
           onClick={onViewAll}
         >
           View All Standings
@@ -224,15 +222,13 @@ function PromotionFooter({ playerCount, onRules, onHowToPlay }) {
       </p>
       <div className="flex justify-center gap-4">
         <button
-          className="bg-surface-container-high px-6 py-2 rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors"
-          style={{ border: 'none', cursor: 'pointer', color: 'inherit' }}
+          className="bg-surface-container-high px-6 py-2 rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
           onClick={onRules}
         >
           Tournament Rules
         </button>
         <button
-          className="bg-surface-container-high px-6 py-2 rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors"
-          style={{ border: 'none', cursor: 'pointer', color: 'inherit' }}
+          className="bg-surface-container-high px-6 py-2 rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
           onClick={onHowToPlay}
         >
           How to Play
@@ -324,8 +320,7 @@ export default function HomeScreen() {
                     Join the Competition
                   </span>
                   <button
-                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)]"
-                    style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}
+                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim"
                     onClick={handleSignUp}
                   >
                     Create Free Account
@@ -359,17 +354,11 @@ export default function HomeScreen() {
 
       {/* ── FAB ───────────────────────────────────────────────────────────────── */}
       <button
-        className="fixed bottom-8 right-8 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden"
-        style={{
-          background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)',
-          boxShadow: '0 10px 30px rgba(232,168,56,0.4)',
-          border: 'none',
-          cursor: 'pointer',
-          zIndex: 50,
-        }}
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim"
+        style={{ boxShadow: '0 10px 30px rgba(232,168,56,0.4)' }}
         onClick={handleSignUp}
       >
-        <span className="material-symbols-outlined text-on-primary-fixed group-hover:scale-110 transition-transform" style={{ fontSize: '30px' }}>
+        <span className="material-symbols-outlined text-on-primary-fixed group-hover:scale-110 transition-transform text-3xl">
           add_circle
         </span>
       </button>

@@ -22,7 +22,7 @@ function ScrimSparkline(props) {
     return {x: (i / (last.length - 1)) * (w || 60), y: ((v - 1) / 7) * (h || 18) + 1, v: v};
   }).reduce(function(a, b) { return a.y < b.y ? a : b; });
   return (
-    <svg width={w || 60} height={(h || 20) + 2} style={{display: 'block', overflow: 'visible'}}>
+    <svg width={w || 60} height={(h || 20) + 2} className="block overflow-visible">
       <polyline points={pts} fill="none" stroke="#9B72CF" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.7"/>
       <circle cx={topPt.x} cy={topPt.y} r="2" fill="#E8A838"/>
     </svg>
@@ -564,7 +564,7 @@ export default function ScrimsScreen() {
 
           {/* Right column: Live Lobbies */}
           <div className="col-span-12 lg:col-span-8">
-            <div className="bg-surface-container-low rounded-sm overflow-hidden flex flex-col" style={{minHeight: 380}}>
+            <div className="bg-surface-container-low rounded-sm overflow-hidden flex flex-col min-h-[380px]">
               <div className="px-6 py-4 bg-surface-container flex justify-between items-center">
                 <h2 className="font-serif text-2xl font-bold">Live Lobbies</h2>
                 <div className="flex gap-2">
@@ -898,7 +898,7 @@ export default function ScrimsScreen() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-1" style={{minWidth: 400}}>
+              <table className="w-full border-separate border-spacing-1 min-w-[400px]">
                 <thead>
                   <tr>
                     <th className="p-4 bg-surface-container-lowest"/>
@@ -972,7 +972,7 @@ export default function ScrimsScreen() {
                       {sess.notes && <span className="text-xs text-on-surface-variant italic">{sess.notes}</span>}
                     </div>
                     <div className="overflow-x-auto">
-                      <table style={{width: '100%', borderCollapse: 'separate', borderSpacing: '2px', minWidth: 420}}>
+                      <table className="w-full border-separate border-spacing-0.5 min-w-[420px]">
                         <thead>
                           <tr>
                             <th className="p-3 text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest bg-surface-container-lowest whitespace-nowrap">Player</th>
@@ -1075,7 +1075,7 @@ export default function ScrimsScreen() {
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full border-separate border-spacing-1" style={{minWidth: 480}}>
+                <table className="w-full border-separate border-spacing-1 min-w-[480px]">
                   <thead>
                     <tr>
                       <th className="p-3 bg-surface-container-lowest text-left text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest">#</th>

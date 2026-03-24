@@ -645,7 +645,7 @@ export default function FlashTournamentScreen(props) {
           {'\u2190 Back to Tournaments'}
         </button>
 
-        <div className="rounded-2xl p-7 mb-5" style={{background: 'linear-gradient(135deg,rgba(155,114,207,.12),rgba(78,205,196,.08))', border: '1px solid rgba(155,114,207,.2)'}}>
+        <div className="rounded-2xl p-7 mb-5 bg-gradient-to-br from-secondary/[0.12] to-tertiary/[0.08] border border-secondary/20">
           <div className="flex items-center gap-2.5 mb-3 flex-wrap">
             <span
               className="text-[11px] font-bold uppercase tracking-wide bg-white/[.06] rounded-md px-2.5 py-[3px]"
@@ -707,13 +707,7 @@ export default function FlashTournamentScreen(props) {
               <button
                 key={t.id}
                 onClick={function() { setActiveTab(t.id); }}
-                className="shrink-0 whitespace-nowrap border-0 border-b-2 px-4 py-2 text-[13px] font-[inherit] cursor-pointer transition-all duration-150"
-                style={{
-                  background: active ? 'rgba(155,114,207,.15)' : 'transparent',
-                  borderBottomColor: active ? '#9B72CF' : 'transparent',
-                  fontWeight: active ? 700 : 500,
-                  color: active ? '#F2EDE4' : '#8896A8'
-                }}
+                className={'shrink-0 whitespace-nowrap border-0 border-b-2 px-4 py-2 text-[13px] font-[inherit] cursor-pointer transition-all duration-150 ' + (active ? 'bg-secondary/15 border-b-secondary font-bold text-on-surface' : 'bg-transparent border-b-transparent font-medium text-on-surface-variant')}
               >
                 {t.label}
               </button>
@@ -778,8 +772,7 @@ export default function FlashTournamentScreen(props) {
                       <span className="text-[13px] text-[#52C47C] font-semibold">{'\u2713 You reported: ' + myReport.reported_placement + (myReport.reported_placement === 1 ? 'st' : myReport.reported_placement === 2 ? 'nd' : myReport.reported_placement === 3 ? 'rd' : 'th') + ' place'}</span>
                       <button
                         onClick={function() { setMyPlacement(myReport.reported_placement); }}
-                        className="bg-transparent rounded-md px-2.5 py-1 text-[11px] text-primary cursor-pointer font-[inherit]"
-                        style={{border: '1px solid rgba(155,114,207,.3)'}}
+                        className="bg-transparent rounded-md px-2.5 py-1 text-[11px] text-primary cursor-pointer font-[inherit] border border-secondary/30"
                       >
                         Update
                       </button>
@@ -789,8 +782,7 @@ export default function FlashTournamentScreen(props) {
                         <select
                           value={myPlacement}
                           onChange={function(e) { setMyPlacement(parseInt(e.target.value) || 0); }}
-                          className="bg-white/[.06] rounded-md px-2.5 py-[7px] text-[13px] text-on-surface font-[inherit] outline-none"
-                          style={{border: '1px solid rgba(155,114,207,.3)'}}
+                          className="bg-white/[.06] rounded-md px-2.5 py-[7px] text-[13px] text-on-surface font-[inherit] outline-none border border-secondary/30"
                         >
                           {(myLobby.player_ids || []).map(function(_, i) {
                             return (<option key={i + 1} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
@@ -820,22 +812,20 @@ export default function FlashTournamentScreen(props) {
                 {myReport && !disputeForm.open && (
                   <button
                     onClick={function() { setDisputeForm({open: true, lobbyId: myLobby.id, claimed: myReport.reported_placement, reason: '', screenshotUrl: ''}); }}
-                    className="bg-transparent rounded-md px-3 py-[5px] text-[11px] text-[#F87171] cursor-pointer font-[inherit] mt-1"
-                    style={{border: '1px solid rgba(248,113,113,.3)'}}
+                    className="bg-transparent rounded-md px-3 py-[5px] text-[11px] text-[#F87171] cursor-pointer font-[inherit] mt-1 border border-[#F87171]/30"
                   >
                     {'Dispute this result'}
                   </button>
                 )}
                 {disputeForm.open && disputeForm.lobbyId === myLobby.id && (
-                  <div className="mt-3 p-[14px] rounded-[10px]" style={{background: 'rgba(248,113,113,.05)', border: '1px solid rgba(248,113,113,.2)'}}>
+                  <div className="mt-3 p-[14px] rounded-[10px] bg-[#F87171]/[0.05] border border-[#F87171]/20">
                     <div className="font-bold text-xs text-[#F87171] mb-2.5">Submit Dispute</div>
                     <div className="flex gap-2 mb-2 flex-wrap items-center">
                       <label className="text-xs text-on-surface-variant min-w-[80px]">My actual placement:</label>
                       <select
                         value={disputeForm.claimed}
                         onChange={function(e) { setDisputeForm(Object.assign({}, disputeForm, {claimed: parseInt(e.target.value) || 0})); }}
-                        className="bg-white/[.06] rounded-md px-2.5 py-[6px] text-xs text-on-surface font-[inherit] outline-none"
-                        style={{border: '1px solid rgba(248,113,113,.3)'}}
+                        className="bg-white/[.06] rounded-md px-2.5 py-[6px] text-xs text-on-surface font-[inherit] outline-none border border-[#F87171]/30"
                       >
                         <option value={0}>Select...</option>
                         {(myLobby.player_ids || []).map(function(_, i) {
@@ -848,15 +838,13 @@ export default function FlashTournamentScreen(props) {
                       value={disputeForm.reason}
                       onChange={function(e) { setDisputeForm(Object.assign({}, disputeForm, {reason: e.target.value})); }}
                       rows={2}
-                      className="w-full bg-white/[.05] rounded-md px-2.5 py-2 text-xs text-on-surface font-[inherit] outline-none resize-y mb-2"
-                      style={{border: '1px solid rgba(248,113,113,.2)', boxSizing: 'border-box'}}
+                      className="w-full bg-white/[.05] rounded-md px-2.5 py-2 text-xs text-on-surface font-[inherit] outline-none resize-y mb-2 border border-[#F87171]/20 box-border"
                     />
                     <input
                       placeholder="Screenshot URL (optional)"
                       value={disputeForm.screenshotUrl}
                       onChange={function(e) { setDisputeForm(Object.assign({}, disputeForm, {screenshotUrl: e.target.value})); }}
-                      className="w-full bg-white/[.05] rounded-md px-2.5 py-[7px] text-xs text-on-surface font-[inherit] outline-none mb-2.5"
-                      style={{border: '1px solid rgba(248,113,113,.2)', boxSizing: 'border-box'}}
+                      className="w-full bg-white/[.05] rounded-md px-2.5 py-[7px] text-xs text-on-surface font-[inherit] outline-none mb-2.5 border border-[#F87171]/20 box-border"
                     />
                     <div className="flex gap-2">
                       <Btn v="danger" s="sm" onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason}>Submit Dispute</Btn>
@@ -942,7 +930,7 @@ export default function FlashTournamentScreen(props) {
                   }}
                 >
                   {isLocked && (
-                    <div className="px-3 py-1 rounded-t-[10px] text-[11px] font-bold text-white text-center tracking-[.04em]" style={{background: 'linear-gradient(90deg,#52C47C,#3DA867)'}}>
+                    <div className="px-3 py-1 rounded-t-[10px] text-[11px] font-bold text-white text-center tracking-[.04em] bg-gradient-to-r from-[#52C47C] to-[#3DA867]">
                       {'\u2713 LOCKED'}
                     </div>
                   )}
@@ -978,12 +966,12 @@ export default function FlashTournamentScreen(props) {
                           </span>
                         )}
                         {isAdmin && lobbyDisputes.length > 0 && (
-                          <span className="text-[11px] font-bold text-[#F97316] bg-[rgba(249,115,22,.1)] rounded-md px-2 py-[3px]" style={{border: '1px solid rgba(249,115,22,.3)'}}>
+                          <span className="text-[11px] font-bold text-[#F97316] bg-[rgba(249,115,22,.1)] rounded-md px-2 py-[3px] border border-[#F97316]/30">
                             {lobbyDisputes.length + ' dispute' + (lobbyDisputes.length === 1 ? '' : 's')}
                           </span>
                         )}
                         {lobby.lobby_code && (
-                          <div className="bg-[rgba(232,168,56,.1)] rounded-lg px-[14px] py-1.5 font-mono text-[15px] font-bold text-[#E8A838] tracking-[2px]" style={{border: '1px solid rgba(232,168,56,.3)'}}>
+                          <div className="bg-[rgba(232,168,56,.1)] rounded-lg px-[14px] py-1.5 font-mono text-[15px] font-bold text-[#E8A838] tracking-[2px] border border-primary/30">
                             {lobby.lobby_code}
                           </div>
                         )}
@@ -1020,8 +1008,7 @@ export default function FlashTournamentScreen(props) {
                               <select
                                 defaultValue=""
                                 onChange={function(e) { var v = parseInt(e.target.value) || 0; if (v > 0) adminOverridePlacement(lobby.id, p.id, v); e.target.value = ''; }}
-                                className="bg-white/[.06] rounded text-[11px] text-primary font-[inherit] outline-none cursor-pointer px-1.5 py-[3px]"
-                                style={{border: '1px solid rgba(155,114,207,.2)'}}
+                                className="bg-white/[.06] rounded text-[11px] text-primary font-[inherit] outline-none cursor-pointer px-1.5 py-[3px] border border-secondary/20"
                               >
                                 <option value="">Override</option>
                                 {(lobby.player_ids || []).map(function(_, i) { return (<option key={i + 1} value={i + 1}>{i + 1}</option>); })}
@@ -1031,7 +1018,7 @@ export default function FlashTournamentScreen(props) {
                         })}
                       </div>
                     ) : (
-                      <div className="flex flex-col gap-1" style={{marginBottom: iAmHost && !lobby.lobby_code ? 12 : 0}}>
+                      <div className={'flex flex-col gap-1 ' + (iAmHost && !lobby.lobby_code ? 'mb-3' : '')}>
                         {lobbyPlayers.map(function(p, pi) {
                           var isHost = p.id === hostId;
                           var rc = rankColors[p.rank || 'Iron'] || '#8896A8';
@@ -1068,7 +1055,6 @@ export default function FlashTournamentScreen(props) {
                     {isAdmin && phase === 'in_progress' && !isLocked && (
                       <div
                         className="flex gap-2 items-center pt-2.5 flex-wrap border-t border-on-surface/[.06]"
-                        style={{opacity: isLocked ? 0.7 : 1, pointerEvents: isLocked ? 'none' : 'auto'}}
                       >
                         {hasDuplicate && <span className="text-[11px] text-[#F87171]">{'Duplicate placements - resolve before locking'}</span>}
                         <Btn v="success" s="sm" onClick={function() { lockLobby(lobby.id); }} disabled={!canLock}>{isLocked ? 'Locked' : canLock ? 'Lock Lobby' : 'Cannot Lock Yet'}</Btn>
@@ -1076,15 +1062,13 @@ export default function FlashTournamentScreen(props) {
                     )}
                     {iAmHost && !lobby.lobby_code && (
                       <div
-                        className="flex gap-2 items-center mt-2 pt-2.5 border-t border-on-surface/[.06]"
-                        style={{opacity: isLocked ? 0.7 : 1, pointerEvents: isLocked ? 'none' : 'auto'}}
+                        className={'flex gap-2 items-center mt-2 pt-2.5 border-t border-on-surface/[.06] ' + (isLocked ? 'opacity-70 pointer-events-none' : '')}
                       >
                         <input
                           placeholder="Enter lobby code..."
                           value={codeInput}
                           onChange={function(e) { var v = e.target.value; setLobbyCodeInputs(function(prev) { var next = Object.assign({}, prev); next[codeKey] = v; return next; }); }}
-                          className="flex-1 bg-white/[.05] rounded-md px-3 py-[7px] text-[13px] text-on-surface font-mono outline-none"
-                          style={{border: '1px solid rgba(155,114,207,.3)'}}
+                          className="flex-1 bg-white/[.05] rounded-md px-3 py-[7px] text-[13px] text-on-surface font-mono outline-none border border-secondary/30"
                         />
                         <Btn v="primary" s="sm" onClick={function() { submitLobbyCode(lobby.id, codeInput); }}>Save</Btn>
                       </div>
@@ -1180,7 +1164,7 @@ export default function FlashTournamentScreen(props) {
                   {'Standings - Game ' + (allGameNums.length > 0 ? allGameNums[allGameNums.length - 1] : currentGameNumber) + ' of ' + (tournament.round_count || 3)}
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[13px] min-w-[360px]" style={{borderCollapse: 'collapse', tableLayout: 'auto'}}>
+                  <table className="w-full text-[13px] min-w-[360px] border-collapse table-auto">
                     <thead>
                       <tr className="bg-white/[.03] border-b border-on-surface/[.08]">
                         <th className="py-2 pl-[18px] pr-2.5 text-left font-semibold text-[11px] text-on-surface-variant whitespace-nowrap sticky left-0 z-[3] bg-surface">#</th>
@@ -1274,7 +1258,7 @@ export default function FlashTournamentScreen(props) {
             <div className="flex items-center gap-2.5 mb-[14px] flex-wrap">
               <div className="font-bold text-sm text-[#F97316]">{'Disputes'}</div>
               {openDisputeCount > 0 && (
-                <span className="text-[11px] font-bold text-[#F97316] bg-[rgba(249,115,22,.15)] rounded-[20px] px-[9px] py-0.5" style={{border: '1px solid rgba(249,115,22,.3)'}}>
+                <span className="text-[11px] font-bold text-[#F97316] bg-[rgba(249,115,22,.15)] rounded-[20px] px-[9px] py-0.5 border border-[#F97316]/30">
                   {openDisputeCount + ' open'}
                 </span>
               )}
@@ -1340,11 +1324,12 @@ export default function FlashTournamentScreen(props) {
                 <Btn v="success" s="sm" onClick={generateLobbies} disabled={actionLoading}>{actionLoading ? 'Generating...' : 'Generate Lobbies'}</Btn>
               )}
               {phase === 'check_in' && lobbies.length > 0 && (
-                <span className="text-xs text-[#52C47C] px-2.5 py-1 bg-[rgba(82,196,124,.1)] rounded-md font-semibold" style={{border: '1px solid rgba(82,196,124,.2)'}}>
+                <span className="text-xs text-[#52C47C] px-2.5 py-1 bg-[rgba(82,196,124,.1)] rounded-md font-semibold border border-[#52C47C]/20">
                   {'\u2713 ' + lobbies.length + ' lobbies ready'}
                 </span>
               )}
               {(phase === 'check_in' || phase === 'registration') && <Btn v="dark" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
+
               {phase === 'in_progress' && allLobbiesLocked && !isLastGame && (
                 <Btn v="primary" s="sm" onClick={startNextGame}>{'Start Game ' + (currentGameNumber + 1)}</Btn>
               )}

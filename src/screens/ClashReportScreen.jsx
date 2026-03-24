@@ -63,33 +63,31 @@ export default function ClashReportScreen({ clashData, players }) {
           <Icon name="emoji_events" size={72} fill={true} className="text-primary" />
         </div>
         <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-3 italic"
-          style={{ fontFamily: "'Russo One', sans-serif", textShadow: '0 0 50px rgba(253,186,73,0.3)' }}>
+          style={{ textShadow: '0 0 50px rgba(253,186,73,0.3)' }}>
           {champion || 'TBD'}
         </h2>
         <p className="font-editorial text-xl md:text-2xl italic text-on-surface-variant max-w-xl mx-auto"
-          style={{ fontFamily: "'Playfair Display', serif" }}>
+          >
           {'"' + clashName + '" Grand Champion'}
         </p>
         <div className="mt-6 flex gap-4 flex-wrap justify-center">
           {sorted[0] && (
             <div className="bg-surface-container-high px-5 py-2 rounded-lg border border-outline-variant/10">
               <p className="font-technical text-xs text-on-surface-variant uppercase tracking-widest mb-0.5"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                >
                 Points Secured
               </p>
               <p className="font-stats text-2xl text-primary"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                >
                 {sorted[0].entry ? (sorted[0].entry.clashPts || sorted[0].entry.pts || 0) : 0}
               </p>
             </div>
           )}
           <div className="bg-surface-container-high px-5 py-2 rounded-lg border border-outline-variant/10">
-            <p className="font-technical text-xs text-on-surface-variant uppercase tracking-widest mb-0.5"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            <p className="font-technical text-xs text-on-surface-variant uppercase tracking-widest mb-0.5">
               Players
             </p>
-            <p className="font-stats text-2xl text-tertiary"
-              style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <p className="font-stats text-2xl text-tertiary">
               {sorted.length}
             </p>
           </div>
@@ -111,15 +109,15 @@ export default function ClashReportScreen({ clashData, players }) {
                 </div>
               </div>
               <h3 className="font-headline text-xl font-bold mb-0.5"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                >
                 {top3[1].name}
               </h3>
               <p className="font-technical text-xs text-outline tracking-widest uppercase mb-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                >
                 Silver Medalist
               </p>
               <div className="font-stats text-lg text-on-surface"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                >
                 {(top3[1].entry ? (top3[1].entry.clashPts || top3[1].entry.pts || 0) : 0) + ' PTS'}
               </div>
             </div>
@@ -137,21 +135,20 @@ export default function ClashReportScreen({ clashData, players }) {
                   style={{ boxShadow: '0 0 30px rgba(253,186,73,0.25)' }}>
                   <Icon name="person" size={48} className="text-primary" />
                 </div>
-                <div className="absolute -top-3 -right-3 bg-primary text-on-primary p-2 rounded-full"
-                  style={{ animation: 'pulse 2s infinite' }}>
+                <div className="absolute -top-3 -right-3 bg-primary text-on-primary p-2 rounded-full animate-pulse">
                   <Icon name="star" size={18} fill={true} className="text-on-primary" />
                 </div>
               </div>
               <h3 className="font-headline text-2xl font-black text-primary mb-0.5"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                >
                 {top3[0].name}
               </h3>
               <p className="font-technical text-xs text-primary tracking-widest uppercase mb-4"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                >
                 Clash Champion
               </p>
               <div className="font-stats text-3xl font-bold text-on-surface"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                >
                 {(top3[0].entry ? (top3[0].entry.clashPts || top3[0].entry.pts || 0) : 0) + ' PTS'}
               </div>
             </div>
@@ -159,28 +156,24 @@ export default function ClashReportScreen({ clashData, players }) {
 
           {/* 3rd Place */}
           {top3[2] ? (
-            <div className="order-3 bg-surface-container-low p-6 rounded-t-xl flex flex-col items-center md:translate-y-10"
-              style={{ borderTop: '4px solid rgba(205,127,50,0.3)' }}>
+            <div className="order-3 bg-surface-container-low p-6 rounded-t-xl flex flex-col items-center md:translate-y-10 border-t-4 border-t-[#CD7F32]/30">
               <div className="relative mb-4">
-                <div className="w-20 h-20 rounded-full border-4 bg-surface-container-highest flex items-center justify-center"
-                  style={{ borderColor: 'rgba(205,127,50,0.4)' }}>
+                <div className="w-20 h-20 rounded-full border-4 bg-surface-container-highest flex items-center justify-center border-[#CD7F32]/40">
                   <Icon name="person" size={36} className="text-on-surface-variant" />
                 </div>
-                <div className="absolute -bottom-2 -right-2 bg-surface-container-highest p-1.5 rounded-full"
-                  style={{ border: '1px solid rgba(205,127,50,0.2)' }}>
-                  <Icon name="military_tech" size={18} style={{ color: '#CD7F32' }} />
+                <div className="absolute -bottom-2 -right-2 bg-surface-container-highest p-1.5 rounded-full border border-[#CD7F32]/20">
+                  <Icon name="military_tech" size={18} className="text-[#CD7F32]" />
                 </div>
               </div>
               <h3 className="font-headline text-xl font-bold mb-0.5"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                >
                 {top3[2].name}
               </h3>
-              <p className="font-technical text-xs tracking-widest uppercase mb-2"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif", color: '#CD7F32' }}>
+              <p className="font-technical text-xs tracking-widest uppercase mb-2 text-[#CD7F32]">
                 Bronze Medalist
               </p>
               <div className="font-stats text-lg text-on-surface"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                >
                 {(top3[2].entry ? (top3[2].entry.clashPts || top3[2].entry.pts || 0) : 0) + ' PTS'}
               </div>
             </div>
@@ -195,24 +188,21 @@ export default function ClashReportScreen({ clashData, players }) {
         {/* Full Standings Table */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex justify-between items-end">
-            <h4 className="font-technical text-sm tracking-widest text-on-surface-variant uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            <h4 className="font-technical text-sm tracking-widest text-on-surface-variant uppercase">
               Final Standings
             </h4>
-            <span className="font-technical text-xs opacity-50 uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            <span className="font-technical text-xs opacity-50 uppercase">
               {sorted.length + ' Players'}
             </span>
           </div>
           <div className="bg-surface-container-low overflow-hidden rounded-sm">
-            <table className="w-full text-left border-collapse" style={{ minWidth: 400 }}>
+            <table className="w-full text-left border-collapse min-w-[400px]">
               <thead>
                 <tr className="bg-surface-container-lowest border-b border-outline-variant/10">
                   {['Rank', 'Player', 'R1', 'R2', 'R3', 'Finals', 'Points'].map(function(h) {
                     return (
                       <th key={h}
-                        className="px-4 py-3 font-technical text-xs tracking-widest uppercase text-on-surface-variant"
-                        style={{ fontFamily: "'Barlow Condensed', sans-serif", textAlign: h === 'Player' ? 'left' : 'right' }}>
+                        className={'px-4 py-3 font-technical text-xs tracking-widest uppercase text-on-surface-variant ' + (h === 'Player' ? 'text-left' : 'text-right')}>
                         {h}
                       </th>
                     )
@@ -230,15 +220,14 @@ export default function ClashReportScreen({ clashData, players }) {
                     <tr key={p.id || p.name}
                       className="hover:bg-surface-container-high transition-colors border-b border-outline-variant/5">
                       <td className="px-4 py-3 font-stats font-bold text-right"
-                        style={{ fontFamily: "'JetBrains Mono', monospace", color: rankColor }}>
+                        style={{ color: rankColor }}>
                         {rankStr}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-on-surface">{p.name}</span>
                           {p.name === mostImproved && (
-                            <span className="text-tertiary text-[10px] px-2 py-0.5 rounded border border-tertiary/20 font-technical uppercase"
-                              style={{ fontFamily: "'Barlow Condensed', sans-serif", background: 'rgba(103,226,217,0.1)' }}>
+                            <span className="text-tertiary text-[10px] px-2 py-0.5 rounded border border-tertiary/20 font-technical uppercase bg-tertiary/10">
                               Top 4
                             </span>
                           )}
@@ -251,7 +240,7 @@ export default function ClashReportScreen({ clashData, players }) {
                           <td key={rk} className="px-4 py-3 text-right">
                             {v
                               ? <span className="font-stats font-bold text-sm"
-                                  style={{ fontFamily: "'JetBrains Mono', monospace", color: valColor }}>
+                                  style={{ color: valColor }}>
                                   {'#' + v}
                                 </span>
                               : <span className="text-on-surface/25 text-xs">-</span>
@@ -261,7 +250,7 @@ export default function ClashReportScreen({ clashData, players }) {
                       })}
                       <td className="px-4 py-3 text-right">
                         <span className="font-stats font-bold text-sm text-primary"
-                          style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                          >
                           {'+' + clashPts}
                         </span>
                       </td>
@@ -276,14 +265,11 @@ export default function ClashReportScreen({ clashData, players }) {
         {/* AI Commentary + Awards Sidebar */}
         <div className="space-y-4">
           {/* Glass recap panel */}
-          <div className="p-6 rounded-xl border border-outline-variant/15 relative"
-            style={{ background: 'rgba(52,52,60,0.6)', backdropFilter: 'blur(24px)' }}>
-            <div className="absolute -top-3 left-5 bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-widest"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+          <div className="p-6 rounded-xl border border-outline-variant/15 relative bg-surface-container/60 backdrop-blur-2xl">
+            <div className="absolute -top-3 left-5 bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-widest font-condensed">
               Clash Recap
             </div>
-            <h4 className="font-editorial text-xl mb-3 italic mt-1"
-              style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h4 className="font-editorial text-xl mb-3 italic mt-1">
               {clashName}
             </h4>
             <p className="text-on-surface-variant leading-relaxed text-sm">
@@ -294,21 +280,21 @@ export default function ClashReportScreen({ clashData, players }) {
             <div className="mt-6 pt-5 border-t border-outline-variant/10 grid grid-cols-2 gap-4">
               <div className="flex flex-col">
                 <span className="text-[10px] font-technical text-on-surface-variant uppercase tracking-widest mb-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  >
                   Total Players
                 </span>
                 <span className="font-stats text-xl text-primary"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  >
                   {sorted.length}
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-[10px] font-technical text-on-surface-variant uppercase tracking-widest mb-1"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                  >
                   Season
                 </span>
                 <span className="font-stats text-xl text-secondary"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  >
                   {(clashData && clashData.season) || 'S1'}
                 </span>
               </div>
@@ -317,23 +303,21 @@ export default function ClashReportScreen({ clashData, players }) {
 
           {/* Awards */}
           <div className="space-y-3">
-            <h4 className="font-technical text-xs tracking-widest text-on-surface-variant uppercase"
-              style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            <h4 className="font-technical text-xs tracking-widest text-on-surface-variant uppercase">
               Match Awards
             </h4>
             {mostImproved && (
               <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded-sm">
-                <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(103,226,217,0.1)' }}>
+                <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 bg-tertiary/10">
                   <Icon name="trending_up" size={22} className="text-tertiary" />
                 </div>
                 <div>
                   <p className="font-headline text-sm font-bold mb-0.5"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    >
                     Most Improved
                   </p>
                   <p className="font-technical text-[10px] text-on-surface-variant uppercase tracking-widest"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    >
                     {mostImproved + ' - Above avg'}
                   </p>
                 </div>
@@ -341,17 +325,16 @@ export default function ClashReportScreen({ clashData, players }) {
             )}
             {biggestUpset && (
               <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded-sm">
-                <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(217,185,255,0.1)' }}>
+                <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 bg-secondary/10">
                   <Icon name="bolt" size={22} className="text-secondary" />
                 </div>
                 <div>
                   <p className="font-headline text-sm font-bold mb-0.5"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    >
                     Biggest Upset
                   </p>
                   <p className="font-technical text-[10px] text-on-surface-variant uppercase tracking-widest"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    >
                     {biggestUpset}
                   </p>
                 </div>
@@ -359,17 +342,16 @@ export default function ClashReportScreen({ clashData, players }) {
             )}
             {!mostImproved && !biggestUpset && (
               <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded-sm">
-                <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(255,198,107,0.1)' }}>
+                <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 bg-primary/10">
                   <Icon name="emoji_events" size={22} className="text-primary" />
                 </div>
                 <div>
                   <p className="font-headline text-sm font-bold mb-0.5"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                    >
                     Champion
                   </p>
                   <p className="font-technical text-[10px] text-on-surface-variant uppercase tracking-widest"
-                    style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                    >
                     {champion || 'TBD'}
                   </p>
                 </div>
@@ -382,7 +364,7 @@ export default function ClashReportScreen({ clashData, players }) {
       {/* Share and Actions footer */}
       <section className="mt-6 border-t border-outline-variant/10 pt-8 flex flex-col items-center">
         <h5 className="font-editorial text-lg italic mb-6 text-on-surface-variant"
-          style={{ fontFamily: "'Playfair Display', serif" }}>
+          >
           Immortalize your legacy
         </h5>
         <div className="flex flex-wrap justify-center gap-3">
@@ -396,21 +378,21 @@ export default function ClashReportScreen({ clashData, players }) {
               })
             }}
             className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            >
             <Icon name="share" size={16} className="text-on-surface-variant" />
             Share Summary
           </button>
           <button
             onClick={function() { toast('Export coming soon', 'info') }}
             className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-technical font-bold tracking-widest uppercase text-sm flex items-center gap-2 active:scale-95 transition-transform"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            >
             <Icon name="download" size={16} className="text-on-primary" />
             Export Highlights
           </button>
           <button
             onClick={function() { navigate('/bracket') }}
             className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
-            style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+            >
             <Icon name="sports_esports" size={16} className="text-on-surface-variant" />
             Join Next Clash
           </button>

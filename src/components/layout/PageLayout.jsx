@@ -1,7 +1,6 @@
 import { useAuth } from '../../hooks/useAuth'
 import Navbar from './Navbar'
 import Sidebar from './Sidebar'
-import MobileNav from './MobileNav'
 import Footer from './Footer'
 
 export default function PageLayout({ children, showSidebar = true, maxWidth = 'max-w-7xl' }) {
@@ -18,7 +17,6 @@ export default function PageLayout({ children, showSidebar = true, maxWidth = 'm
         </div>
       </main>
       <Footer />
-      {isLoggedIn && <MobileNav />}
     </div>
   )
 }

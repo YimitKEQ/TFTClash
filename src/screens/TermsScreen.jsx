@@ -122,15 +122,9 @@ export default function TermsScreen() {
                   <button
                     key={s.id}
                     onClick={function () { scrollTo(s.id) }}
-                    className="text-left px-4 py-2 text-xs transition-all hover:bg-white/5 rounded-sm"
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: isActive ? '#ffc66b' : '#9d8e7c'
-                    }}
+                    className={'text-left px-4 py-2 text-xs transition-all hover:bg-white/5 rounded-sm bg-transparent border-0 cursor-pointer ' + (isActive ? 'text-primary' : 'text-[#9d8e7c]')}
                   >
-                    <span className="font-mono mr-2" style={{ color: '#ffc66b', opacity: isActive ? 1 : 0.5 }}>{s.num}</span>
+                    <span className={'font-mono mr-2 text-primary ' + (isActive ? 'opacity-100' : 'opacity-50')}>{s.num}</span>
                     {s.title}
                   </button>
                 )

@@ -177,14 +177,7 @@ export default function SeasonRecapScreen() {
           </div>
           <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight leading-none mb-4">
             {seasonName + ' '}
-            <span
-              className="font-serif"
-              style={{
-                background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
+            <span className="font-serif gold-gradient-text">
               Recap
             </span>
           </h1>
@@ -198,12 +191,8 @@ export default function SeasonRecapScreen() {
 
           {/* Rank card */}
           <div
-            className="md:col-span-4 flex flex-col items-center justify-center p-8 bg-surface-container-low rounded-sm relative overflow-hidden"
-            style={{
-              background: 'rgba(52, 52, 60, 0.6)',
-              backdropFilter: 'blur(24px)',
-              boxShadow: '0 0 40px rgba(253, 186, 73, 0.15)',
-            }}
+            className="md:col-span-4 flex flex-col items-center justify-center p-8 rounded-sm relative overflow-hidden glass-panel"
+            style={{ boxShadow: '0 0 40px rgba(253, 186, 73, 0.15)' }}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
             <div className="relative mb-6">
@@ -301,12 +290,7 @@ export default function SeasonRecapScreen() {
 
           {/* Trophy visual */}
           <div className="md:col-span-12 lg:col-span-5 relative group overflow-hidden rounded-sm h-[300px] bg-surface-container-low">
-            <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(135deg, rgba(253,186,73,0.08) 0%, rgba(19,19,26,1) 100%)',
-              }}
-            />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] to-background" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
               <span

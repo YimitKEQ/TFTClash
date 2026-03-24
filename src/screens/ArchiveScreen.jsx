@@ -43,8 +43,7 @@ function SeasonHero(props) {
       {/* Large season number watermark */}
       <div className="absolute bottom-6 left-6">
         <div
-          className="font-serif text-7xl font-bold leading-none select-none"
-          style={{ color: isLegacy ? 'rgba(255,255,255,0.10)' : 'rgba(232,168,56,0.20)' }}
+          className={'font-serif text-7xl font-bold leading-none select-none ' + (isLegacy ? 'text-white/10' : 'text-primary/20')}
         >
           {season.number}
         </div>
@@ -140,8 +139,7 @@ function SeasonCard(props) {
               <Icon name={isLegacy ? 'database' : 'arrow_forward'} className="text-sm" />
             </button>
             <button
-              className={'px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full transition-all text-sm' + (isLegacy ? ' bg-surface-variant/30 text-on-surface-variant border border-white/5 hover:bg-surface-variant/50' : ' hover:scale-105')}
-              style={isLegacy ? {} : { background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)', color: '#281800' }}
+              className={'px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full transition-all text-sm' + (isLegacy ? ' bg-surface-variant/30 text-on-surface-variant border border-white/5 hover:bg-surface-variant/50' : ' bg-gradient-to-br from-primary to-primary-fixed-dim text-[#281800] hover:scale-105')}
               onClick={function() { navigate('/season-recap') }}
             >
               SEASON RECAP

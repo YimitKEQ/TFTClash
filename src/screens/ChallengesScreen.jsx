@@ -137,8 +137,8 @@ export default function ChallengesScreen() {
           </div>
           <div className="relative h-4 bg-surface-container-lowest rounded-full overflow-hidden">
             <div
-              className="absolute inset-y-0 left-0 shadow-[0_0_15px_rgba(253,186,73,0.3)]"
-              style={{ width: xpPct + '%', background: 'linear-gradient(135deg, #FFC66B 0%, #E8A838 100%)' }}
+              className="absolute inset-y-0 left-0 shadow-[0_0_15px_rgba(253,186,73,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim"
+              style={{ width: xpPct + '%' }}
             />
             <div
               className="absolute inset-y-0 w-1 bg-white animate-pulse"
@@ -283,7 +283,7 @@ export default function ChallengesScreen() {
               </div>
 
               {/* Stats Card */}
-              <div className="bg-surface-container-high p-6 border border-outline-variant/10" style={{ background: 'rgba(52, 52, 60, 0.6)', backdropFilter: 'blur(24px)' }}>
+              <div className="glass-panel p-6 border border-outline-variant/10">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <span className="font-condensed text-xs uppercase text-on-surface/50">COMPLETION RATE</span>

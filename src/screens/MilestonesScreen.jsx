@@ -417,7 +417,7 @@ export default function MilestonesScreen() {
                   var textCol = feedTextColors[idx] || 'text-on-surface-variant';
                   var timeLabel = feedTimeLabels[idx] || 'Recently';
                   return (
-                    <div key={a.id} className={'bg-surface-container p-4 flex gap-4 border-l-2 ' + borderCol} style={{ backdropFilter: 'blur(24px)' }}>
+                    <div key={a.id} className={'bg-surface-container p-4 flex gap-4 border-l-2 backdrop-blur-2xl ' + borderCol}>
                       <div className={'flex-shrink-0 w-10 h-10 flex items-center justify-center ' + TIER_COLORS[a.tier].bg + ' ' + TIER_COLORS[a.tier].text}>
                         <Icon name={mapIcon(a.icon)} fill={true} size={20} />
                       </div>
@@ -433,7 +433,7 @@ export default function MilestonesScreen() {
 
                 {/* Fallback feed items if no real data */}
                 {recentFeedItems.length < 3 && (
-                  <div className={'bg-surface-container p-4 flex gap-4 border-l-2 border-outline-variant/30'} style={{ backdropFilter: 'blur(24px)' }}>
+                  <div className="bg-surface-container p-4 flex gap-4 border-l-2 border-outline-variant/30 backdrop-blur-2xl">
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-surface-container-highest text-on-surface-variant">
                       <Icon name="emoji_events" size={20} />
                     </div>

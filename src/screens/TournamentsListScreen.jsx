@@ -62,10 +62,10 @@ function FeaturedSpotlight(props) {
       </div>
       <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-end min-h-[380px]">
         <div className="flex gap-3 mb-5">
-          <span className="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold font-['Barlow_Condensed'] uppercase rounded-sm">Featured</span>
-          <span className={'px-3 py-1 text-[10px] font-bold font-["Barlow_Condensed"] uppercase rounded-sm ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
+          <span className="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold font-condensed uppercase rounded-sm">Featured</span>
+          <span className={'px-3 py-1 text-[10px] font-bold font-condensed uppercase rounded-sm ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
         </div>
-        <h1 className="text-4xl lg:text-6xl font-black italic font-['Playfair_Display'] text-on-background uppercase leading-tight mb-3">{t.name}</h1>
+        <h1 className="text-4xl lg:text-6xl font-black italic font-editorial text-on-background uppercase leading-tight mb-3">{t.name}</h1>
         {t.description && (
           <p className="text-on-surface-variant max-w-xl text-base mb-6 leading-relaxed">{t.description}</p>
         )}
@@ -76,8 +76,8 @@ function FeaturedSpotlight(props) {
                 <Icon name="emoji_events" className="text-primary" size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-['Barlow_Condensed'] text-on-surface-variant uppercase">Prize Pool</p>
-                <p className="font-['JetBrains_Mono'] font-bold text-lg text-primary">{topPrize}</p>
+                <p className="text-[10px] font-condensed text-on-surface-variant uppercase">Prize Pool</p>
+                <p className="font-mono font-bold text-lg text-primary">{topPrize}</p>
               </div>
             </div>
           )}
@@ -87,8 +87,8 @@ function FeaturedSpotlight(props) {
                 <Icon name="schedule" className="text-primary" size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-['Barlow_Condensed'] text-on-surface-variant uppercase">Starts In</p>
-                <p className="font-['JetBrains_Mono'] font-bold text-lg">{countdown}</p>
+                <p className="text-[10px] font-condensed text-on-surface-variant uppercase">Starts In</p>
+                <p className="font-mono font-bold text-lg">{countdown}</p>
               </div>
             </div>
           )}
@@ -97,13 +97,13 @@ function FeaturedSpotlight(props) {
               <Icon name="group" className="text-primary" size={20} />
             </div>
             <div>
-              <p className="text-[10px] font-['Barlow_Condensed'] text-on-surface-variant uppercase">Capacity</p>
-              <p className="font-['JetBrains_Mono'] font-bold text-lg">{regCount + ' / ' + maxP}</p>
+              <p className="text-[10px] font-condensed text-on-surface-variant uppercase">Capacity</p>
+              <p className="font-mono font-bold text-lg">{regCount + ' / ' + maxP}</p>
             </div>
           </div>
           <button
             onClick={onView}
-            className="ml-auto bg-primary text-on-primary font-['Barlow_Condensed'] font-bold uppercase tracking-widest px-8 py-3 rounded-full shadow-[0_0_20px_rgba(255,198,107,0.25)] hover:scale-105 transition-all duration-200 text-sm"
+            className="ml-auto bg-primary text-on-primary font-condensed font-bold uppercase tracking-widest px-8 py-3 rounded-full shadow-[0_0_20px_rgba(255,198,107,0.25)] hover:scale-105 transition-all duration-200 text-sm"
           >
             View Tournament
           </button>
@@ -138,38 +138,38 @@ function TournamentCard(props) {
         <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,198,107,0.3) 0px, rgba(255,198,107,0.3) 1px, transparent 1px, transparent 10px)'}} />
         <Icon name="account_tree" className="text-on-surface-variant/20" size={48} />
         <div className="absolute top-3 left-3">
-          <span className={'text-[9px] font-bold px-2 py-1 rounded-sm uppercase font-["Barlow_Condensed"] ' + badgeClass}>{phaseLabel}</span>
+          <span className={'text-[9px] font-bold px-2 py-1 rounded-sm uppercase font-condensed ' + badgeClass}>{phaseLabel}</span>
         </div>
         {countdown && (
           <div className="absolute top-3 right-3">
-            <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-1 rounded-sm uppercase font-['Barlow_Condensed'] border border-primary/20">{countdown}</span>
+            <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-1 rounded-sm uppercase font-condensed border border-primary/20">{countdown}</span>
           </div>
         )}
       </div>
 
       <div className="flex flex-col flex-1 space-y-3">
         <div className="flex justify-between items-start gap-2">
-          <h3 className="text-base font-bold font-['Space_Grotesk'] leading-tight text-on-background group-hover:text-primary transition-colors">{t.name}</h3>
+          <h3 className="text-base font-bold leading-tight text-on-background group-hover:text-primary transition-colors">{t.name}</h3>
           {topPrize && (
-            <span className="text-xs font-['JetBrains_Mono'] text-primary flex-shrink-0">{topPrize}</span>
+            <span className="text-xs font-mono text-primary flex-shrink-0">{topPrize}</span>
           )}
         </div>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-3 border-t border-outline-variant/10">
           <div>
-            <p className="text-[9px] font-['Barlow_Condensed'] uppercase text-on-surface-variant/50 mb-0.5">Format</p>
+            <p className="text-[9px] font-condensed uppercase text-on-surface-variant/50 mb-0.5">Format</p>
             <p className="text-xs font-medium capitalize">{t.seeding_method || 'Snake'}</p>
           </div>
           <div>
-            <p className="text-[9px] font-['Barlow_Condensed'] uppercase text-on-surface-variant/50 mb-0.5">Games</p>
+            <p className="text-[9px] font-condensed uppercase text-on-surface-variant/50 mb-0.5">Games</p>
             <p className="text-xs font-medium">{(t.round_count || 3) + ' rounds'}</p>
           </div>
           <div>
-            <p className="text-[9px] font-['Barlow_Condensed'] uppercase text-on-surface-variant/50 mb-0.5">Slots</p>
+            <p className="text-[9px] font-condensed uppercase text-on-surface-variant/50 mb-0.5">Slots</p>
             <p className="text-xs font-medium">{regCount + ' / ' + maxP}</p>
           </div>
           <div>
-            <p className="text-[9px] font-['Barlow_Condensed'] uppercase text-on-surface-variant/50 mb-0.5">Date</p>
+            <p className="text-[9px] font-condensed uppercase text-on-surface-variant/50 mb-0.5">Date</p>
             <p className="text-xs font-medium">{dateStr}</p>
           </div>
         </div>
@@ -180,7 +180,7 @@ function TournamentCard(props) {
           </div>
         </div>
 
-        <button className="w-full py-2 bg-surface-container-high text-xs font-bold uppercase font-['Barlow_Condensed'] rounded-sm group-hover:bg-primary group-hover:text-on-primary transition-all duration-200 mt-auto">
+        <button className="w-full py-2 bg-surface-container-high text-xs font-bold uppercase font-condensed rounded-sm group-hover:bg-primary group-hover:text-on-primary transition-all duration-200 mt-auto">
           View Details
         </button>
       </div>
@@ -252,17 +252,18 @@ export default function TournamentsListScreen() {
 
   return (
     <PageLayout>
-      <div className="page wrap">
+      <div>
 
         <div className="mb-8">
-          <h1 className="text-2xl font-black font-['Playfair_Display'] italic text-on-background uppercase mb-1">Tournaments</h1>
-          <p className="text-on-surface-variant text-sm font-['Barlow_Condensed'] uppercase tracking-wide">Flash tournaments, competitive events, and community clashes. Free to enter, play to win.</p>
+          <span className="font-condensed text-xs uppercase tracking-widest text-primary font-bold">Events</span>
+          <h1 className="text-4xl font-black font-editorial italic text-on-surface uppercase mt-1 mb-2">Tournaments</h1>
+          <p className="text-on-surface-variant text-sm font-condensed uppercase tracking-wide">Flash tournaments, competitive events, and community clashes. Free to enter, play to win.</p>
         </div>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 gap-4 text-on-surface-variant">
             <Icon name="hourglass_empty" size={32} className="animate-spin opacity-50" />
-            <span className="font-['Barlow_Condensed'] uppercase tracking-widest text-sm">Loading Tournaments...</span>
+            <span className="font-condensed uppercase tracking-widest text-sm">Loading Tournaments...</span>
           </div>
         )}
 
@@ -285,7 +286,7 @@ export default function TournamentsListScreen() {
                       <button
                         key={tab.key}
                         onClick={function() { setActiveFilter(tab.key); }}
-                        className={'px-5 py-1.5 rounded-full text-[11px] font-["Barlow_Condensed"] font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
+                        className={'px-5 py-1.5 rounded-full text-[11px] font-condensed font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
                       >
                         {tab.label}
                       </button>
@@ -309,7 +310,7 @@ export default function TournamentsListScreen() {
                   {isAdmin && (
                     <button
                       onClick={function() { setScreen('admin'); }}
-                      className="flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-5 py-2 rounded-full text-[11px] font-bold uppercase font-['Barlow_Condensed'] hover:bg-primary hover:text-on-primary transition-all"
+                      className="flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-5 py-2 rounded-full text-[11px] font-bold uppercase font-condensed hover:bg-primary hover:text-on-primary transition-all"
                     >
                       <Icon name="add" size={14} />
                       Create Tournament
@@ -321,11 +322,11 @@ export default function TournamentsListScreen() {
               {gridItems.length === 0 && !featured && (
                 <div className="flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant bg-surface-container-low rounded-sm border border-outline-variant/5">
                   <Icon name="search_off" size={40} className="opacity-30" />
-                  <p className="font-['Barlow_Condensed'] uppercase tracking-wider text-sm">No tournaments found</p>
+                  <p className="font-condensed uppercase tracking-wider text-sm">No tournaments found</p>
                   {activeFilter !== 'all' && (
                     <button
                       onClick={function() { setActiveFilter('all'); setSearch(''); }}
-                      className="text-xs text-primary hover:underline font-['Barlow_Condensed'] uppercase"
+                      className="text-xs text-primary hover:underline font-condensed uppercase"
                     >
                       Clear filters
                     </button>

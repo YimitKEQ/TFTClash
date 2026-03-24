@@ -44,7 +44,7 @@ function Sparkline({ data, color, w, h }) {
     return x + ',' + y;
   }).join(' ');
   return (
-    <svg width={W} height={H} style={{ overflow: 'visible' }}>
+    <svg width={W} height={H} className="overflow-visible">
       <polyline points={pts} fill="none" stroke={color || '#ffc66b'} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
       <circle
         cx={(data.length - 1) / (data.length - 1) * W}
@@ -611,7 +611,7 @@ export default function AccountScreen() {
 
                       {/* Subscription status */}
                       {subscription ? (
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-sans-cond" style={{ background: subscription.plan === 'host' ? 'rgba(255,198,107,.12)' : 'rgba(155,114,207,.12)', border: '1px solid ' + (subscription.plan === 'host' ? 'rgba(255,198,107,.4)' : 'rgba(155,114,207,.4)'), color: subscription.plan === 'host' ? '#ffc66b' : '#d9b9ff' }}>
+                        <div className={'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-sans-cond border ' + (subscription.plan === 'host' ? 'bg-primary/[0.12] border-primary/40 text-primary' : 'bg-secondary/[0.12] border-secondary/40 text-secondary-container')}>
                           {subscription.plan === 'host' ? 'Host Plan' : 'Pro Plan'} - Active
                         </div>
                       ) : (
@@ -852,10 +852,7 @@ export default function AccountScreen() {
                       }
                       return (
                         <div key={i} className={'relative h-24 rounded-lg overflow-hidden border group ' + (item.active ? 'border-2 border-primary cursor-pointer' : 'border-outline-variant/20 cursor-pointer opacity-50')}>
-                          <div
-                            className="w-full h-full"
-                            style={{ background: i === 0 ? 'linear-gradient(135deg,#1a2a3a,#0e1f2f)' : 'linear-gradient(135deg,#2a1a3a,#1a0e2f)' }}
-                          />
+                          <div className={'w-full h-full ' + (i === 0 ? 'bg-gradient-to-br from-[#1a2a3a] to-[#0e1f2f]' : 'bg-gradient-to-br from-[#2a1a3a] to-[#1a0e2f]')} />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
                             <span className={'font-sans-cond text-[10px] uppercase tracking-widest ' + (item.active ? 'text-primary' : 'text-on-surface/60')}>{item.label}</span>
                           </div>
@@ -885,7 +882,7 @@ export default function AccountScreen() {
               <section className="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-primary/20">
                   <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Win Rate</div>
-                  <div className="font-mono text-3xl text-primary">{s.winRate + '%'}</div>
+                  <div className="font-mono text-3xl text-primary">{s.top1Rate + '%'}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-tertiary/20">
                   <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Top 4 Rate</div>
@@ -989,16 +986,11 @@ export default function AccountScreen() {
                       return (
                         <div
                           key={m.id}
-                          className="p-4 rounded-lg border flex flex-col gap-2"
-                          style={{
-                            background: reached ? 'rgba(255,198,107,.07)' : 'rgba(255,255,255,.02)',
-                            border: '1px solid ' + (reached ? 'rgba(255,198,107,.35)' : 'rgba(228,225,236,.06)'),
-                            opacity: reached ? 1 : 0.55,
-                          }}
+                          className={'p-4 rounded-lg border flex flex-col gap-2 ' + (reached ? 'bg-primary/[0.07] border-primary/35' : 'bg-white/[0.02] border-white/[0.06] opacity-[0.55]')}
                         >
                           <div className="flex items-center gap-2">
-                            <span style={{ color: reached ? '#ffc66b' : '#9AAABF' }}><Icon name={reached ? 'emoji_events' : 'military_tech'} size={18} /></span>
-                            <span className="font-sans-cond text-xs font-bold uppercase tracking-widest" style={{ color: reached ? '#ffc66b' : '#9AAABF' }}>{m.name}</span>
+                            <span className={reached ? 'text-primary' : 'text-on-surface-variant'}><Icon name={reached ? 'emoji_events' : 'military_tech'} size={18} /></span>
+                            <span className={'font-sans-cond text-xs font-bold uppercase tracking-widest ' + (reached ? 'text-primary' : 'text-on-surface-variant')}>{m.name}</span>
                           </div>
                           {m.pts && (
                             <div className="font-mono text-xs text-on-surface/40">{m.pts + ' pts required'}</div>
@@ -1077,22 +1069,18 @@ export default function AccountScreen() {
                       return (
                         <div
                           key={ch.id}
-                          className="p-4 rounded-lg border flex flex-col gap-2"
-                          style={{
-                            background: done ? 'rgba(103,226,217,.07)' : 'rgba(255,255,255,.02)',
-                            border: '1px solid ' + (done ? 'rgba(103,226,217,.35)' : 'rgba(228,225,236,.08)'),
-                          }}
+                          className={'p-4 rounded-lg border flex flex-col gap-2 ' + (done ? 'bg-tertiary/[0.07] border-tertiary/35' : 'bg-white/[0.02] border-white/[0.08]')}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              <span style={{ color: done ? '#67e2d9' : '#9AAABF' }}><Icon name="bolt" size={16} /></span>
-                              <span className="font-sans-cond text-xs font-bold uppercase tracking-widest" style={{ color: done ? '#67e2d9' : '#e4e1ec' }}>{ch.name}</span>
+                              <span className={done ? 'text-tertiary' : 'text-on-surface-variant'}><Icon name="bolt" size={16} /></span>
+                              <span className={'font-sans-cond text-xs font-bold uppercase tracking-widest ' + (done ? 'text-tertiary' : 'text-on-surface')}>{ch.name}</span>
                             </div>
-                            <span className="font-mono text-xs font-bold" style={{ color: '#ffc66b' }}>{'+' + ch.xp + ' XP'}</span>
+                            <span className="font-mono text-xs font-bold text-primary">{'+' + ch.xp + ' XP'}</span>
                           </div>
                           <p className="text-on-surface/50 text-xs font-body">{ch.desc}</p>
                           <div className="h-1 rounded-full bg-surface-container-highest">
-                            <div className="h-1 rounded-full transition-all" style={{ width: pct + '%', background: done ? '#67e2d9' : '#9B72CF' }} />
+                            <div className={'h-1 rounded-full transition-all ' + (done ? 'bg-tertiary' : 'bg-secondary')} style={{ width: pct + '%' }} />
                           </div>
                           <div className="text-on-surface/30 text-[10px] font-sans-cond uppercase tracking-widest">
                             {ch.progress + ' / ' + ch.goal}
@@ -1113,22 +1101,18 @@ export default function AccountScreen() {
                       return (
                         <div
                           key={ch.id}
-                          className="p-4 rounded-lg border flex flex-col gap-2"
-                          style={{
-                            background: done ? 'rgba(155,114,207,.07)' : 'rgba(255,255,255,.02)',
-                            border: '1px solid ' + (done ? 'rgba(155,114,207,.35)' : 'rgba(228,225,236,.08)'),
-                          }}
+                          className={'p-4 rounded-lg border flex flex-col gap-2 ' + (done ? 'bg-secondary/[0.07] border-secondary/35' : 'bg-white/[0.02] border-white/[0.08]')}
                         >
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
-                              <span style={{ color: done ? '#9B72CF' : '#9AAABF' }}><Icon name="calendar_month" size={16} /></span>
-                              <span className="font-sans-cond text-xs font-bold uppercase tracking-widest" style={{ color: done ? '#9B72CF' : '#e4e1ec' }}>{ch.name}</span>
+                              <span className={done ? 'text-secondary' : 'text-on-surface-variant'}><Icon name="calendar_month" size={16} /></span>
+                              <span className={'font-sans-cond text-xs font-bold uppercase tracking-widest ' + (done ? 'text-secondary' : 'text-on-surface')}>{ch.name}</span>
                             </div>
-                            <span className="font-mono text-xs font-bold" style={{ color: '#ffc66b' }}>{'+' + ch.xp + ' XP'}</span>
+                            <span className="font-mono text-xs font-bold text-primary">{'+' + ch.xp + ' XP'}</span>
                           </div>
                           <p className="text-on-surface/50 text-xs font-body">{ch.desc}</p>
                           <div className="h-1 rounded-full bg-surface-container-highest">
-                            <div className="h-1 rounded-full transition-all" style={{ width: pct + '%', background: done ? '#9B72CF' : '#ffc66b' }} />
+                            <div className={'h-1 rounded-full transition-all ' + (done ? 'bg-secondary' : 'bg-primary')} style={{ width: pct + '%' }} />
                           </div>
                           <div className="text-on-surface/30 text-[10px] font-sans-cond uppercase tracking-widest">
                             {ch.progress + ' / ' + ch.goal}
@@ -1183,12 +1167,7 @@ export default function AccountScreen() {
                       return (
                         <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-outline-variant/5 last:border-0">
                           <div
-                            className="w-9 h-9 rounded flex items-center justify-center text-sm font-bold flex-shrink-0 font-mono"
-                            style={{
-                              background: isFirst ? 'rgba(255,198,107,.12)' : isTop4 ? 'rgba(103,226,217,.08)' : 'rgba(255,255,255,.03)',
-                              border: '1px solid ' + (isFirst ? 'rgba(255,198,107,.4)' : isTop4 ? 'rgba(103,226,217,.25)' : 'rgba(228,225,236,.08)'),
-                              color: isFirst ? '#ffc66b' : isTop4 ? '#67e2d9' : '#9AAABF',
-                            }}
+                            className={'w-9 h-9 rounded flex items-center justify-center text-sm font-bold flex-shrink-0 font-mono border ' + (isFirst ? 'bg-primary/[0.12] border-primary/40 text-primary' : isTop4 ? 'bg-tertiary/[0.08] border-tertiary/25 text-tertiary' : 'bg-white/[0.03] border-white/[0.08] text-on-surface-variant')}
                           >
                             {'#' + place}
                           </div>

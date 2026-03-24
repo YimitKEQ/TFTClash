@@ -311,8 +311,7 @@ export default function ResultsScreen() {
             {/* Podium Section */}
             {sorted.length >= 3 && (
               <div
-                className="relative overflow-hidden rounded-[20px] p-6 md:p-8 border border-outline-variant/10"
-                style={{ background: 'var(--color-surface-container-low, #1b1b23)' }}
+                className="relative overflow-hidden rounded-[20px] p-6 md:p-8 border border-outline-variant/10 bg-surface-container-low"
               >
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
@@ -348,8 +347,7 @@ export default function ResultsScreen() {
                           </div>
                         )}
                         <div
-                          className={'rounded-full mb-3 object-cover flex items-center justify-center bg-surface-container-highest ' + avatarSize + ' ' + avatarBorder}
-                          style={{ flexShrink: 0 }}
+                          className={'rounded-full mb-3 object-cover flex items-center justify-center bg-surface-container-highest shrink-0 ' + avatarSize + ' ' + avatarBorder}
                         >
                           <span
                             className="font-display font-bold opacity-60"
@@ -374,11 +372,11 @@ export default function ResultsScreen() {
                               {p.name}
                             </p>
                             <div className="flex justify-center gap-2 mt-1">
-                              <span className={'font-mono font-bold text-xs ' + numColor} style={{ opacity: 0.8 }}>
+                              <span className={'font-mono font-bold text-xs opacity-80 ' + numColor}>
                                 {p.pts + ' pts'}
                               </span>
                             </div>
-                            <div className={'font-mono text-[10px] mt-0.5 ' + numColor} style={{ opacity: 0.6 }}>
+                            <div className={'font-mono text-[10px] mt-0.5 opacity-60 ' + numColor}>
                               {'avg ' + pStats.avgPlacement}
                             </div>
                           </div>
@@ -426,8 +424,7 @@ export default function ResultsScreen() {
 
                 {/* Column headers */}
                 <div
-                  className="grid px-6 py-2.5 bg-surface-container-lowest/50 border-b border-outline-variant/5"
-                  style={{ gridTemplateColumns: '52px 1fr 80px 70px 60px 70px 110px' }}
+                  className="grid px-6 py-2.5 bg-surface-container-lowest/50 border-b border-outline-variant/5 [grid-template-columns:52px_1fr_80px_70px_60px_70px_110px]"
                 >
                   {['Rank', 'Player', 'Points', 'Avg', 'Wins', 'T4%', 'Reward'].map(function(h) {
                     return (
@@ -451,9 +448,8 @@ export default function ResultsScreen() {
                       <div
                         key={p.id || p.name}
                         onClick={function() { openProfile(p) }}
-                        className="grid px-6 py-4 items-center cursor-pointer transition-colors hover:bg-white/[0.03]"
+                        className="grid px-6 py-4 items-center cursor-pointer transition-colors hover:bg-white/[0.03] [grid-template-columns:52px_1fr_80px_70px_60px_70px_110px]"
                         style={{
-                          gridTemplateColumns: '52px 1fr 80px 70px 60px 70px 110px',
                           background: i === 0
                             ? 'rgba(255,198,107,0.05)'
                             : i < 3
@@ -550,8 +546,7 @@ export default function ResultsScreen() {
                 </div>
 
                 <div
-                  className="flex items-center gap-4 p-4 rounded-[20px] flex-wrap border border-outline-variant/10"
-                  style={{ background: 'rgba(155,114,207,.06)' }}
+                  className="flex items-center gap-4 p-4 rounded-[20px] flex-wrap border border-outline-variant/10 bg-secondary/[0.06]"
                 >
                   <Icon name="redeem" size={24} className="text-secondary flex-shrink-0" />
                   <div className="flex-1">

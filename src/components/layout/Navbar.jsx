@@ -363,7 +363,7 @@ export default function Navbar() {
                 className="w-9 h-9 object-contain drop-shadow-[0_0_10px_rgba(155,114,207,0.55)]"
               />
               <div>
-                <div className="font-['Russo_One',sans-serif] text-base font-bold text-[#E8A838]">TFT Clash</div>
+                <div className="font-display text-base font-bold text-primary">TFT Clash</div>
                 <div className="text-xs text-[#BECBD9]">Season 1</div>
               </div>
             </div>
@@ -439,7 +439,7 @@ export default function Navbar() {
               className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(155,114,207,0.55)]"
             />
             <div>
-              <div className="gold-shimmer font-['Russo_One',sans-serif] text-sm font-bold leading-none tracking-[.06em]">
+              <div className="gold-shimmer font-display text-sm font-bold leading-none tracking-[.06em]">
                 TFT Clash
               </div>
               <div className="cond flex items-center gap-1 text-[10px] text-[#BECBD9] font-semibold tracking-[.06em]">
@@ -459,7 +459,7 @@ export default function Navbar() {
                   key={l.id}
                   onClick={function() { navTo(l.id); }}
                   data-active={isActive ? "true" : "false"}
-                  className={"border-none py-1.5 px-3 text-[12.5px] font-semibold cursor-pointer whitespace-nowrap shrink-0 rounded-lg transition-all duration-200 tracking-[.02em] font-['Chakra_Petch',sans-serif] " + (isLiveClash
+                  className={"border-none py-1.5 px-3 text-[12.5px] font-semibold cursor-pointer whitespace-nowrap shrink-0 rounded-lg transition-all duration-200 tracking-[.02em] font-condensed " + (isLiveClash
                     ? "bg-gradient-to-br from-[rgba(232,168,56,0.25)] to-[rgba(248,113,113,0.15)] text-[#E8A838] font-bold border border-[rgba(232,168,56,0.4)] shadow-[0_0_12px_rgba(232,168,56,0.3),0_0_24px_rgba(232,168,56,0.1)]"
                     : isActive
                       ? "bg-[rgba(232,168,56,0.1)] text-[#E8A838]"
@@ -585,7 +585,7 @@ export default function Navbar() {
                 if (item.id === "more") { setDrawer(true); }
                 else { navTo(item.id); }
               }}
-              className={"flex flex-col items-center gap-0.5 py-1 px-3 cursor-pointer relative bg-transparent border-none font-['Barlow_Condensed',sans-serif] " + (isActive ? "text-[#F2EDE4]" : "text-[#9AAABF]")}
+              className={"flex flex-col items-center gap-0.5 py-1 px-3 cursor-pointer relative bg-transparent border-none font-condensed " + (isActive ? "text-[#F2EDE4]" : "text-[#9AAABF]")}
             >
               {item.glow && (
                 <div className="absolute top-0.5 right-2 w-1.5 h-1.5 rounded-full bg-[#E8A838] shadow-[0_0_8px_#E8A838]" />

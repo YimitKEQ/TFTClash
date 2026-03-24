@@ -23,8 +23,8 @@ function Bar({ val, max, color, h }) {
   var pct = max > 0 ? Math.min(100, Math.round((val / max) * 100)) : 0;
   var height = h || 4;
   return (
-    <div style={{ height: height, background: "rgba(255,255,255,.06)", borderRadius: height, overflow: "hidden" }}>
-      <div style={{ width: pct + "%", height: "100%", background: color || "#ffc66b", borderRadius: height, transition: "width .4s" }} />
+    <div className="overflow-hidden bg-white/[0.06]" style={{ height: height, borderRadius: height }}>
+      <div className="h-full transition-[width] duration-[400ms]" style={{ width: pct + "%", background: color || "#ffc66b", borderRadius: height }} />
     </div>
   );
 }
@@ -375,8 +375,8 @@ export default function HostDashboardScreen() {
             onClick={function() { setWizData(function(d) { return Object.assign({}, d, { inviteOnly: !d.inviteOnly }); }); }}
             className="flex items-center gap-3 cursor-pointer select-none"
           >
-            <div className="w-9 h-5 rounded-full relative transition-all" style={{ background: wizData.inviteOnly ? "rgba(255,198,107,.25)" : "rgba(255,255,255,.08)", border: "1px solid " + (wizData.inviteOnly ? "rgba(255,198,107,.4)" : "rgba(255,255,255,.1)") }}>
-              <div className="w-3.5 h-3.5 rounded-full absolute top-0.5 transition-all" style={{ background: wizData.inviteOnly ? "#ffc66b" : "#9aaabf", left: wizData.inviteOnly ? "18px" : "2px" }} />
+            <div className={'w-9 h-5 rounded-full relative transition-all border ' + (wizData.inviteOnly ? 'bg-primary/25 border-primary/40' : 'bg-white/[0.08] border-white/10')}>
+              <div className={'w-3.5 h-3.5 rounded-full absolute top-0.5 transition-all ' + (wizData.inviteOnly ? 'bg-primary left-[18px]' : 'bg-on-surface-variant left-0.5')} />
             </div>
             <span className="text-sm text-on-surface-variant">Invite-only registration</span>
           </div>
@@ -526,13 +526,9 @@ export default function HostDashboardScreen() {
                   return (
                     <div
                       key={t.id || i}
-                      className="flex-grow rounded-t-sm"
+                      className={'flex-grow rounded-t-sm border-t-2 ' + (isLast ? 'bg-primary/25 border-t-primary/80' : 'bg-[rgba(30,30,40,0.6)] border-t-white/[0.04]')}
                       title={t.name + ': ' + (t.registered || 0) + '/' + (t.size || 0) + ' players'}
-                      style={{
-                        height: h + '%',
-                        background: isLast ? "rgba(255,198,107,.25)" : "rgba(30,30,40,.6)",
-                        borderTop: isLast ? "2px solid rgba(255,198,107,.8)" : "2px solid rgba(255,255,255,.04)"
-                      }}
+                      style={{ height: h + '%' }}
                     />
                   );
                 })}
@@ -618,22 +614,18 @@ export default function HostDashboardScreen() {
                     return (
                       <div key={i} className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
-                          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all" style={{
-                            background: wizStep === i ? "rgba(255,198,107,.2)" : wizStep > i ? "rgba(103,226,217,.15)" : "rgba(255,255,255,.06)",
-                            border: "1px solid " + (wizStep === i ? "rgba(255,198,107,.5)" : wizStep > i ? "rgba(103,226,217,.4)" : "rgba(255,255,255,.1)"),
-                            color: wizStep === i ? "#ffc66b" : wizStep > i ? "#67e2d9" : "#9aaabf"
-                          }}>
+                          <div className={'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all border ' + (wizStep === i ? 'bg-primary/20 border-primary/50 text-primary' : wizStep > i ? 'bg-tertiary/15 border-tertiary/40 text-tertiary' : 'bg-white/[0.06] border-white/10 text-on-surface-variant')}>
                             {wizStep > i ? <Icon name="check" size={12} /> : (i + 1)}
                           </div>
                           {wizStep === i && <span className="text-xs font-condensed text-primary hidden sm:inline">{label}</span>}
                         </div>
-                        {i < WIZ_STEPS.length - 1 && <div className="w-4 h-px" style={{ background: wizStep > i ? "rgba(103,226,217,.3)" : "rgba(255,255,255,.08)" }} />}
+                        {i < WIZ_STEPS.length - 1 && <div className={'w-4 h-px ' + (wizStep > i ? 'bg-tertiary/30' : 'bg-white/[0.08]')} />}
                       </div>
                     );
                   })}
                 </div>
               </div>
-              <div className="p-8 rounded-lg border border-outline-variant/5 space-y-8" style={{ background: "rgba(52,52,60,0.6)", backdropFilter: "blur(24px)" }}>
+              <div className="p-8 rounded-lg border border-outline-variant/5 space-y-8 bg-surface-container/60 backdrop-blur-2xl">
                 {renderWizardStep()}
               </div>
             </div>
@@ -882,7 +874,7 @@ export default function HostDashboardScreen() {
           <div className="space-y-6">
             <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Host Branding</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8 p-8 rounded-lg border border-outline-variant/5" style={{ background: "rgba(52,52,60,0.6)", backdropFilter: "blur(24px)" }}>
+              <div className="lg:col-span-2 space-y-8 p-8 rounded-lg border border-outline-variant/5 bg-surface-container/60 backdrop-blur-2xl">
                 <div className="space-y-2">
                   <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Org / Display Name</label>
                   <input
@@ -906,11 +898,10 @@ export default function HostDashboardScreen() {
                   <div className="flex items-center gap-3">
                     <input type="color" value={brandColor} onChange={function(e) { setBrandColor(e.target.value); }} className="w-9 h-8 rounded border border-outline-variant/20 bg-transparent cursor-pointer p-0.5" />
                     <input
-                      className="bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-2 font-mono text-sm"
+                      className="bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-2 font-mono text-sm max-w-[120px]"
                       value={brandColor}
                       onChange={function(e) { setBrandColor(e.target.value); }}
                       placeholder="#ffc66b"
-                      style={{ maxWidth: 120 }}
                     />
                   </div>
                 </div>

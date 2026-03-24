@@ -141,17 +141,15 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
     return (
       <div
         key={i}
-        className="flex items-center gap-4 px-6 py-4 border-b border-on-surface/5 hover:bg-surface-container-high transition-all"
-        style={{ background: place === 1 ? 'rgba(232,168,56,.03)' : 'transparent', opacity: isDropped ? 0.45 : 1 }}
+        className={'flex items-center gap-4 px-6 py-4 border-b border-on-surface/5 hover:bg-surface-container-high transition-all ' + (place === 1 ? 'bg-primary/[0.03]' : '') + (isDropped ? ' opacity-[0.45]' : '')}
       >
         <div
-          className="w-12 h-12 flex flex-col items-center justify-center rounded border flex-shrink-0"
-          style={{ background: place === 1 ? 'rgba(78,205,196,.1)' : 'rgba(255,255,255,.03)', borderColor: place === 1 ? 'rgba(78,205,196,.2)' : 'rgba(255,255,255,.07)' }}
+          className={'w-12 h-12 flex flex-col items-center justify-center rounded border flex-shrink-0 ' + (place === 1 ? 'bg-tertiary/10 border-tertiary/20' : 'bg-white/[0.03] border-white/[0.07]')}
         >
-          <span className="font-display text-xl" style={{ color: place === 1 ? '#67e2d9' : place <= 4 ? '#4ECDC4' : '#BECBD9', textDecoration: isDropped ? 'line-through' : 'none' }}>
+          <span className={'font-display text-xl ' + (place === 1 ? 'text-tertiary' : place <= 4 ? 'text-tertiary' : 'text-on-surface-variant') + (isDropped ? ' line-through' : '')}>
             {place}
           </span>
-          <span className="font-technical text-[8px] -mt-1 uppercase" style={{ color: place === 1 ? 'rgba(103,226,217,.6)' : 'rgba(255,255,255,.2)' }}>
+          <span className={'font-technical text-[8px] -mt-1 uppercase ' + (place === 1 ? 'text-tertiary/60' : 'text-white/20')}>
             {typeof place === 'number' ? ordinalSuffix(place) : ''}
           </span>
         </div>
@@ -159,14 +157,14 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
           <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
           <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
           <div className="flex gap-1 flex-wrap mt-1">
-            {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(155,114,207,.15)', color: '#C4B5FD', border: '1px solid rgba(155,114,207,.3)' }}>Clutch</span>}
-            {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(190,203,217,.1)', color: '#BECBD9', border: '1px solid rgba(190,203,217,.2)' }}>Dropped</span>}
-            {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(78,205,196,.1)', color: '#4ECDC4', border: '1px solid rgba(78,205,196,.25)' }}>Comeback +2</span>}
-            {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm" style={{ background: 'rgba(232,168,56,.1)', color: '#E8A838', border: '1px solid rgba(232,168,56,.25)' }}>{g.attendanceMilestone + '-Streak Bonus'}</span>}
+            {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-secondary/15 text-secondary-container border border-secondary/30">Clutch</span>}
+            {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-on-surface/10 text-on-surface-variant border border-on-surface/20">Dropped</span>}
+            {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-tertiary/10 text-tertiary border border-tertiary/25">Comeback +2</span>}
+            {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-primary/10 text-primary border border-primary/25">{g.attendanceMilestone + '-Streak Bonus'}</span>}
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className="font-stats text-base font-bold" style={{ color: isDropped ? '#BECBD9' : '#E8A838', textDecoration: isDropped ? 'line-through' : 'none' }}>
+          <div className={'font-stats text-base font-bold ' + (isDropped ? 'text-on-surface-variant line-through' : 'text-primary')}>
             {'+' + g.pts + 'pts'}
           </div>
           {(g.bonusPts || 0) > 0 && !isDropped && (
@@ -293,9 +291,9 @@ export default function PlayerProfileScreen() {
   return (
     <PageLayout>
       {/* Hero Banner */}
-      <div className="relative h-72 w-full overflow-hidden -mx-6 mb-8" style={{ width: 'calc(100% + 3rem)' }}>
-        <div className="absolute inset-0 opacity-20" style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}></div>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, #13131a, transparent)' }}></div>
+      <div className="relative h-72 w-[calc(100%+3rem)] overflow-hidden -mx-6 mb-8">
+        <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
         {pBanner && (
           <img
             src={pBanner}
@@ -309,12 +307,11 @@ export default function PlayerProfileScreen() {
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <div
-              className="w-32 h-32 md:w-40 md:h-40 border-4 border-primary p-1 rounded-full overflow-hidden relative z-10 flex items-center justify-center font-bold text-4xl"
+              className="w-32 h-32 md:w-40 md:h-40 border-4 border-primary p-1 rounded-full overflow-hidden relative z-10 flex items-center justify-center font-display font-bold text-4xl"
               style={{
                 background: pPic ? ('url(' + pPic + ') center/cover no-repeat') : 'linear-gradient(135deg, #34343c, #1f1f27)',
                 boxShadow: '0 0 30px rgba(253, 186, 73, 0.15)',
                 color: rankColor,
-                fontFamily: "'Russo One', sans-serif"
               }}
             >
               {!pPic && player.name.charAt(0)}
@@ -475,8 +472,8 @@ export default function PlayerProfileScreen() {
 
           {/* Champion Banner */}
           {isChampion && (
-            <div className="px-5 py-4 rounded-lg flex items-center gap-3" style={{ background: 'linear-gradient(90deg,rgba(232,168,56,.15),rgba(232,168,56,.05))', border: '1px solid rgba(232,168,56,.4)' }}>
-              <Icon className="text-2xl" style={{ color: '#E8A838' }}>emoji_events</Icon>
+            <div className="px-5 py-4 rounded-lg flex items-center gap-3 bg-gradient-to-r from-primary/15 to-primary/5 border border-primary/40">
+              <Icon className="text-2xl text-primary">emoji_events</Icon>
               <div className="flex-1">
                 <div className="font-bold text-sm text-primary">{champion.title}</div>
                 <div className="text-xs text-on-surface/60">{'Reigning champion since ' + champion.since}</div>
@@ -491,14 +488,14 @@ export default function PlayerProfileScreen() {
           {((player.currentStreak || 0) >= 3 || (player.tiltStreak || 0) >= 3) && (
             <div className="flex gap-3 flex-wrap">
               {(player.currentStreak || 0) >= 3 && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-primary" style={{ background: 'rgba(232,168,56,.1)', border: '1px solid rgba(232,168,56,.3)' }}>
-                  <Icon className="text-base" style={{ color: '#F97316' }}>local_fire_department</Icon>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-primary bg-primary/10 border border-primary/30">
+                  <Icon className="text-base text-[#F97316]">local_fire_department</Icon>
                   {'Hot Streak - ' + player.currentStreak + ' wins in a row'}
                 </div>
               )}
               {(player.tiltStreak || 0) >= 3 && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-[#93C5FD]" style={{ background: 'rgba(96,165,250,.1)', border: '1px solid rgba(96,165,250,.3)' }}>
-                  <Icon className="text-base" style={{ color: '#38BDF8' }}>ac_unit</Icon>
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-[#93C5FD] bg-[#60A5FA]/10 border border-[#60A5FA]/30">
+                  <Icon className="text-base text-[#38BDF8]">ac_unit</Icon>
                   {'Cold Streak - ' + player.tiltStreak + ' losses'}
                 </div>
               )}
@@ -542,7 +539,7 @@ export default function PlayerProfileScreen() {
             {/* Career Stats */}
             <div className="bg-surface-container-low p-8 rounded-lg">
               <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Career Stats</h3>
-              <div className="rounded-lg p-4 mb-6" style={{ background: 'rgba(232,168,56,.05)', border: '1px solid rgba(232,168,56,.15)' }}>
+              <div className="rounded-lg p-4 mb-6 bg-primary/[0.05] border border-primary/15">
                 <div className="text-[10px] font-technical text-on-surface/40 uppercase tracking-widest mb-3">Average Placement</div>
                 <div className="flex gap-6 flex-wrap">
                   <div className="flex-1">
@@ -611,7 +608,7 @@ export default function PlayerProfileScreen() {
                   <div className="flex flex-col gap-2">
                     {pTwitch && (
                       <a href={'https://twitch.tv/' + pTwitch} target="_blank" rel="noopener noreferrer" className="text-xs text-primary no-underline flex items-center gap-2 hover:underline">
-                        <Icon className="text-sm" style={{ color: '#9B72CF' }}>live_tv</Icon>
+                        <Icon className="text-sm text-secondary">live_tv</Icon>
                         {'twitch.tv/' + pTwitch}
                       </a>
                     )}
@@ -714,7 +711,7 @@ export default function PlayerProfileScreen() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             {[['R1', s.roundAvgs.r1, '#4ECDC4'], ['R2', s.roundAvgs.r2, '#9B72CF'], ['R3', s.roundAvgs.r3, '#EAB308'], ['Finals', s.roundAvgs.finals, '#E8A838']].map(function(row) {
               return (
-                <div key={row[0]} className="rounded-lg p-4 text-center" style={{ background: 'rgba(255,255,255,.03)', border: '1px solid rgba(242,237,228,.07)' }}>
+                <div key={row[0]} className="rounded-lg p-4 text-center bg-white/[0.03] border border-on-surface/[0.07]">
                   <div className="font-technical text-[10px] text-on-surface/40 uppercase tracking-widest mb-2">{row[0]}</div>
                   {row[1]
                     ? (
@@ -738,7 +735,7 @@ export default function PlayerProfileScreen() {
           )}
           {(player.clashHistory || []).slice(0, 6).map(function(g, i) {
             return (
-              <div key={i} className="grid items-center gap-2 py-3 border-b border-on-surface/5" style={{ gridTemplateColumns: '1fr 50px 50px 50px 50px 60px' }}>
+              <div key={i} className="grid items-center gap-2 py-3 border-b border-on-surface/5 [grid-template-columns:1fr_50px_50px_50px_50px_60px]">
                 <div>
                   <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
                   <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
@@ -764,7 +761,7 @@ export default function PlayerProfileScreen() {
       {/* History Tab */}
       {tab === 'history' && (
         <div className="bg-surface-container-low rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-on-surface/10 flex items-center justify-between flex-wrap gap-2" style={{ background: 'rgba(14,13,21,.6)' }}>
+          <div className="px-6 py-4 border-b border-on-surface/10 flex items-center justify-between flex-wrap gap-2 bg-[#0e0d15]/60">
             <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Clash History</h3>
             {seasonConfig && seasonConfig.dropWeeks > 0 && (
               <span className="font-technical text-xs text-primary">{'Drop Weeks: ' + seasonConfig.dropWeeks + ' worst excluded'}</span>
@@ -818,8 +815,7 @@ export default function PlayerProfileScreen() {
                   return (
                     <div
                       key={op.id}
-                      className="px-6 py-4 border-b border-on-surface/5"
-                      style={{ background: i % 2 === 0 ? 'rgba(255,255,255,.01)' : 'transparent' }}
+                      className={'px-6 py-4 border-b border-on-surface/5' + (i % 2 === 0 ? ' bg-white/[0.01]' : '')}
                     >
                       <div className="flex items-center gap-4 mb-2">
                         <div className="flex-1">
@@ -839,9 +835,9 @@ export default function PlayerProfileScreen() {
                           </div>
                         </div>
                       </div>
-                      <div className="flex gap-px h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,.05)' }}>
-                        <div style={{ width: (mW / total * 100) + '%', background: '#6EE7B7', borderRadius: '99px 0 0 99px', transition: 'width .6s' }} />
-                        <div style={{ flex: 1, background: 'rgba(248,113,113,.3)', borderRadius: '0 99px 99px 0' }} />
+                      <div className="flex gap-px h-1.5 rounded-full overflow-hidden bg-white/[0.05]">
+                        <div className="rounded-l-full bg-[#6EE7B7] transition-[width] duration-[600ms]" style={{ width: (mW / total * 100) + '%' }} />
+                        <div className="flex-1 bg-[#F87171]/30 rounded-r-full" />
                       </div>
                     </div>
                   );

@@ -567,7 +567,7 @@ function LobbyCard(props) {
             border: "1px solid " + (locked ? "rgba(82,196,124,.3)" : "rgba(232,168,56,.28)"),
             borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 12, fontWeight: 800, color: locked ? "#6EE7B7" : "#E8A838",
-            fontFamily: "'Chakra Petch',sans-serif", flexShrink: 0
+            fontFamily: "'Barlow Condensed',sans-serif", flexShrink: 0
           }}>
             {lbl}
           </div>
@@ -1056,7 +1056,7 @@ function ResultsScreen(props) {
   var MEDALS = ["military_tech", "military_tech", "military_tech"];
   var PODIUM_COLS = ["#E8A838", "#C0C0C0", "#CD7F32"];
 
-  if (!champ) return <div className="page wrap" style={{ textAlign: "center", color: "#BECBD9", paddingTop: 60 }}>Complete a clash first!</div>;
+  if (!champ) return <div className="text-center text-on-surface-variant pt-16">Complete a clash first!</div>;
 
   var top3 = [sorted[1], sorted[0], sorted[2]].filter(Boolean);
   var REWARDS = ["Clash Crown", "Icon", "Frame", "Loot Orb", "Loot Orb", "", "", ""];
@@ -1117,7 +1117,7 @@ function ResultsScreen(props) {
   }
 
   return (
-    <div className="page wrap">
+    <div>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
         <Btn v="dark" s="sm" onClick={function() { setScreen("home"); }}>{"<-"} Back</Btn>
@@ -1775,7 +1775,7 @@ function BracketScreen(props) {
   var effectiveHighlight = highlightLobby !== null ? highlightLobby : myLobbyAuto >= 0 ? myLobbyAuto : null;
 
   return (
-    <div className="page wrap">
+    <div>
       {showFinalizeConfirm && (
         <div className="fixed inset-0 flex items-center justify-center z-[1003] p-4" style={{ background: "rgba(0,0,0,.85)" }}>
           <Panel glow style={{ width: "100%", maxWidth: 420, padding: "28px" }}>
@@ -2068,7 +2068,7 @@ function ClashScreen(props) {
     var idlePlayers = props.players || [];
     var idleTop5 = [].concat(idlePlayers).sort(function(a, b) { return (b.pts || 0) - (a.pts || 0); }).slice(0, 5);
     return (
-      <div className="page fade-up" style={{ padding: "40px 20px", maxWidth: 600, margin: "0 auto" }}>
+      <div className="fade-up py-10 px-5 max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <Icon name="sports_esports" style={{ fontSize: 48, color: "#9B72CF", opacity: .35, display: "block", marginBottom: 12 }} />
           <h2 className="font-editorial text-on-surface mb-1.5" style={{ fontSize: 26 }}>No Active Clash</h2>
@@ -2154,7 +2154,7 @@ function ClashScreen(props) {
   var registeredPlayers = phase === "registration" ? (props.players || []).filter(function(p) { return p.registered || p.checkedIn; }) : [];
 
   return (
-    <div className="page fade-up">
+    <div className="fade-up">
       {/* Phase header bar */}
       <div className="relative overflow-hidden px-5 py-4 mx-4 mb-5 rounded-[14px]" style={{
         background: "rgba(17,24,39,.8)",

@@ -127,30 +127,21 @@ export default function HofScreen() {
           {/* Reigning Champion */}
           {king && kingStats ? (
             <div className="lg:col-span-7 relative group">
-              <div className="absolute -inset-1 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity" style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)' }}></div>
+              <div className="absolute -inset-1 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
               <div
-                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-8"
-                style={{
-                  background: '#1b1b23',
-                  borderLeft: '4px solid #ffc66b',
-                  boxShadow: '0 0 40px 10px rgba(253,186,73,0.15)',
-                  minHeight: '400px',
-                }}
+                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-8 bg-surface-container-low border-l-4 border-primary min-h-[400px]"
+                style={{ boxShadow: '0 0 40px 10px rgba(253,186,73,0.15)' }}
               >
                 {/* Trophy background icon */}
                 <Icon
                   name="emoji_events"
                   fill
                   size={160}
-                  className="absolute top-8 right-8 pointer-events-none"
-                  style={{ color: 'rgba(255,198,107,0.05)' }}
+                  className="absolute top-8 right-8 pointer-events-none text-primary/5"
                 />
 
                 <div className="relative z-10">
-                  <div
-                    className="inline-block px-4 py-1 font-technical font-bold text-xs tracking-widest mb-4"
-                    style={{ background: '#ffc66b', color: '#432c00' }}
-                  >
+                  <div className="inline-block px-4 py-1 font-technical font-bold text-xs tracking-widest mb-4 bg-primary text-on-primary">
                     SEASON 1 LEADER
                   </div>
                   <h2
@@ -182,14 +173,7 @@ export default function HofScreen() {
             </div>
           ) : (
             <div className="lg:col-span-7 relative">
-              <div
-                className="rounded-none overflow-hidden h-full flex flex-col items-center justify-center p-8"
-                style={{
-                  background: '#1b1b23',
-                  borderLeft: '4px solid rgba(255,198,107,0.2)',
-                  minHeight: '400px',
-                }}
-              >
+              <div className="rounded-none overflow-hidden h-full flex flex-col items-center justify-center p-8 bg-surface-container-low border-l-4 border-primary/20 min-h-[400px]">
                 <Icon name="emoji_events" size={64} className="text-primary/20 mb-4" />
                 <p className="font-technical text-on-surface-variant tracking-widest text-xs text-center">
                   A champion yet to be crowned
@@ -206,8 +190,7 @@ export default function HofScreen() {
 
             {challengers.length === 0 && (
               <div
-                className="flex-1 flex items-center justify-center p-6"
-                style={{ background: '#2a2931' }}
+                className="flex-1 flex items-center justify-center p-6 bg-surface-container-high"
               >
                 <p className="font-technical text-on-surface-variant/50 tracking-widest text-xs text-center">
                   Challengers will appear once more players have competed.
@@ -224,15 +207,13 @@ export default function HofScreen() {
               return (
                 <div
                   key={p.id || p.name}
-                  className="p-6 flex items-center justify-between cursor-pointer transition-colors"
-                  style={{ background: '#2a2931' }}
+                  className="p-6 flex items-center justify-between cursor-pointer transition-colors bg-surface-container-high hover:bg-surface-container-highest"
                   onClick={function() { openProfile(p.name) }}
                 >
                   <div className="flex items-center space-x-6">
                     <div className="relative flex-shrink-0">
                       <div
-                        className="w-14 h-14 flex items-center justify-center"
-                        style={{ background: '#1b1b23', border: '1px solid rgba(212,212,212,0.2)' }}
+                        className="w-14 h-14 flex items-center justify-center bg-surface-container-low border border-outline-variant/20"
                       >
                         <Icon
                           name={iconName}
@@ -242,8 +223,8 @@ export default function HofScreen() {
                         />
                       </div>
                       <span
-                        className="absolute -top-2 -right-2 text-background text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full"
-                        style={{ background: badgeColor, color: '#13131a' }}
+                        className="absolute -top-2 -right-2 text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full text-background"
+                        style={{ background: badgeColor }}
                       >
                         {i + 2}
                       </span>
@@ -260,7 +241,7 @@ export default function HofScreen() {
                       TOP4: {top4Rate > 0 ? top4Rate + '%' : '-'}
                     </p>
                     {king && (
-                      <p className="font-stats text-xs" style={{ color: '#f87171' }}>-{diff} pts</p>
+                      <p className="font-stats text-xs text-error">-{diff} pts</p>
                     )}
                   </div>
                 </div>
@@ -282,35 +263,21 @@ export default function HofScreen() {
                   <div
                     key={s.season}
                     onClick={function() { if (!isActive) openProfile(s.champion) }}
-                    className="relative overflow-hidden p-6 transition-all duration-200"
-                    style={{
-                      background: isActive ? '#1b1b23' : '#1f1f27',
-                      borderLeft: isActive ? '4px solid #ffc66b' : '4px solid rgba(255,198,107,0.15)',
-                      cursor: isActive ? 'default' : 'pointer',
-                      boxShadow: isActive ? '0 0 24px rgba(255,198,107,0.1)' : 'none',
-                    }}
+                    className={'relative overflow-hidden p-6 transition-all duration-200 border-l-4 ' + (isActive ? 'bg-surface-container-low border-l-primary cursor-default' : 'bg-surface-container border-l-primary/15 cursor-pointer')}
+                    style={isActive ? { boxShadow: '0 0 24px rgba(255,198,107,0.1)' } : undefined}
                   >
                     {isActive && (
-                      <div
-                        className="absolute top-0 left-0 right-0 h-px"
-                        style={{ background: 'linear-gradient(90deg,transparent,#ffc66b,transparent)' }}
-                      />
+                      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent" />
                     )}
                     <div className="flex items-center gap-2 mb-3">
                       <span
-                        className="font-technical text-[10px] font-bold px-2 py-0.5 tracking-widest"
-                        style={{
-                          color: isActive ? '#ffc66b' : '#9d8e7c',
-                          background: isActive ? 'rgba(255,198,107,0.15)' : 'rgba(255,255,255,0.05)',
-                          border: '1px solid ' + (isActive ? 'rgba(255,198,107,0.35)' : 'rgba(255,255,255,0.08)'),
-                        }}
+                        className={'font-technical text-[10px] font-bold px-2 py-0.5 tracking-widest border ' + (isActive ? 'text-primary bg-primary/15 border-primary/35' : 'text-on-surface/60 bg-white/5 border-white/[0.08]')}
                       >
                         {s.season}
                       </span>
                       {isActive && (
                         <span
-                          className="font-technical text-[9px] font-bold px-1.5 py-0.5 tracking-widest"
-                          style={{ background: 'rgba(110,231,183,0.1)', border: '1px solid rgba(110,231,183,0.25)', color: '#6ee7b7' }}
+                          className="font-technical text-[9px] font-bold px-1.5 py-0.5 tracking-widest bg-tertiary/10 border border-tertiary/25 text-tertiary"
                         >
                           LIVE
                         </span>
@@ -320,19 +287,12 @@ export default function HofScreen() {
                       name="emoji_events"
                       fill={isActive}
                       size={32}
-                      className="mb-3"
-                      style={{ color: isActive ? '#ffc66b' : 'rgba(228,225,236,0.4)' }}
+                      className={'mb-3 ' + (isActive ? 'text-primary' : 'text-on-surface/40')}
                     />
-                    <div
-                      className="font-editorial text-base font-bold leading-tight mb-1"
-                      style={{ color: isActive ? '#ffc66b' : '#e4e1ec' }}
-                    >
+                    <div className={'font-editorial text-base font-bold leading-tight mb-1 ' + (isActive ? 'text-primary' : 'text-on-surface')}>
                       {s.champion}
                     </div>
-                    <div
-                      className="font-stats text-lg font-bold"
-                      style={{ color: isActive ? '#ffc66b' : '#c8bfb0' }}
-                    >
+                    <div className={'font-stats text-lg font-bold ' + (isActive ? 'text-primary' : 'text-on-surface-variant')}>
                       {s.pts}
                       <span className="font-technical text-[10px] text-on-surface/40 font-normal ml-1">pts</span>
                     </div>
@@ -354,10 +314,9 @@ export default function HofScreen() {
 
           {hofRecs.length === 0 && (
             <div
-              className="p-12 text-center"
-              style={{ background: '#1f1f27', border: '1px solid rgba(80,69,53,0.1)' }}
+              className="p-12 text-center bg-surface-container border border-outline-variant/10"
             >
-              <Icon name="workspace_premium" size={48} className="mx-auto mb-4" style={{ color: 'rgba(228,225,236,0.2)' }} />
+              <Icon name="workspace_premium" size={48} className="mx-auto mb-4 text-on-surface/20" />
               <p className="font-technical text-on-surface-variant/50 tracking-widest text-xs">
                 Season records will be enshrined here.
               </p>
@@ -370,20 +329,7 @@ export default function HofScreen() {
                 return (
                   <div
                     key={r.id}
-                    className="p-8 group transition-all"
-                    style={{
-                      background: '#1f1f27',
-                      borderTop: '1px solid rgba(80,69,53,0.1)',
-                      borderLeft: '1px solid transparent',
-                      borderRight: '1px solid transparent',
-                      borderBottom: '1px solid transparent',
-                    }}
-                    onMouseEnter={function(e) {
-                      e.currentTarget.style.borderTopColor = 'rgba(255,198,107,0.4)'
-                    }}
-                    onMouseLeave={function(e) {
-                      e.currentTarget.style.borderTopColor = 'rgba(80,69,53,0.1)'
-                    }}
+                    className="p-8 group transition-all bg-surface-container border-t border-outline-variant/10 hover:border-t-primary/40"
                   >
                     <div className="flex justify-between items-start mb-6">
                       <Icon
@@ -403,21 +349,18 @@ export default function HofScreen() {
                     >
                       {r.holder}
                     </p>
-                    <div
-                      className="mt-4 pt-4"
-                      style={{ borderTop: '1px solid rgba(80,69,53,0.05)' }}
-                    >
+                    <div className="mt-4 pt-4 border-t border-outline-variant/5">
                       <p className="text-[11px] text-on-surface-variant/60">
                         {r.desc}
                       </p>
                       {r.runner.length > 0 && (
                         <div className="mt-3 space-y-1">
                           {r.runner.map(function(ru, i) {
-                            var runnerColors = ['#C0C0C0', '#CD7F32']
+                            var runnerClasses = ['text-[#C0C0C0]', 'text-[#CD7F32]']
                             var labels = ['2nd', '3rd']
                             return (
                               <div key={i} className="flex items-center gap-2 text-xs text-on-surface/50">
-                                <span className="font-technical text-[10px] font-bold min-w-[24px]" style={{ color: runnerColors[i] }}>
+                                <span className={'font-technical text-[10px] font-bold min-w-[24px] ' + runnerClasses[i]}>
                                   {labels[i]}
                                 </span>
                                 <span>{ru}</span>

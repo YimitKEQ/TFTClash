@@ -222,8 +222,7 @@ export default function RulesScreen() {
                             return (
                               <li key={i} className="flex items-start gap-3">
                                 <span
-                                  className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-xs font-bold font-condensed rounded"
-                                  style={{ background: 'rgba(232,168,56,.12)', color: '#E8A838' }}
+                                  className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-xs font-bold font-condensed rounded bg-primary/[0.12] text-primary"
                                 >
                                   {i + 1}
                                 </span>
@@ -247,14 +246,13 @@ export default function RulesScreen() {
 
             {/* Need Assistance glass panel */}
             <div
-              className="p-8 rounded-xl border border-white/5"
-              style={{ background: 'rgba(52,52,60,.6)', backdropFilter: 'blur(24px)' }}
+              className="p-8 rounded-xl border border-white/5 bg-surface-container/60 backdrop-blur-2xl"
             >
               <h4 className="font-condensed text-secondary uppercase tracking-widest text-xs mb-6">
                 Need Assistance?
               </h4>
               <div className="flex items-start gap-4 mb-6">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(92,52,141,.2)' }}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-secondary/20">
                   <span className="text-secondary">
                     <Icon name="support_agent" size={22} />
                   </span>
@@ -274,7 +272,7 @@ export default function RulesScreen() {
               <div className="absolute inset-0 bg-gradient-to-br from-surface-container-high to-surface-container-low" />
               <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent" />
               <div className="absolute bottom-6 left-6 right-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 mb-3" style={{ background: 'rgba(69,198,189,.1)', borderRadius: 2 }}>
+                <div className="inline-flex items-center gap-2 px-3 py-1 mb-3 bg-tertiary/10 rounded-sm">
                   <span className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse" />
                   <span className="font-condensed text-tertiary uppercase text-[10px] tracking-widest">Live Updates</span>
                 </div>
