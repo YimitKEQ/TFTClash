@@ -307,10 +307,12 @@ export default function ScrimsScreen() {
     if (!newName.trim()) { toast('Name required', 'error'); return; }
     if (!currentUser) { toast('Login required', 'error'); return; }
     var tgt = parseInt(newTarget) || 5;
-    createScrim(newName.trim(), currentUser.id, null, newNotes.trim(), tgt).then(function(res) {
+    var authId = currentUser.auth_user_id || currentUser.authUserId;
+    if (!authId) { toast('Auth session not found, please re-login', 'error'); return; }
+    createScrim(newName.trim(), authId, null, newNotes.trim(), tgt).then(function(res) {
       if (res.error) { toast('Failed to create: ' + res.error.message, 'error'); return; }
       var scrimId = res.data.id;
-      var pids = scrimRoster.map(function(p) { return typeof p.id === 'number' ? p.id : parseInt(p.id); }).filter(function(v) { return !isNaN(v); });
+      var pids = scrimRoster.map(function(p) { return p.id; }).filter(function(v) { return v; });
       if (pids.length > 0) {
         addScrimPlayers(scrimId, pids).then(function() { reloadScrims(); });
       } else {
