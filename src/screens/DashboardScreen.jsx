@@ -546,6 +546,11 @@ function ClashCard() {
   var isRegistered = currentUser && (tournamentState.registeredIds || []).indexOf(String(currentUser.id)) > -1
   var isCheckedIn  = currentUser && (tournamentState.checkedInIds  || []).indexOf(String(currentUser.id)) > -1
 
+  var server = tournamentState.server || 'EU'
+  var riotField = server === 'NA' ? 'riot_id_na' : 'riot_id_eu'
+  var linkedRiotId = currentUser ? (currentUser[riotField] || '') : ''
+  var canRegister = isRegistered || !!linkedRiotId
+
   var myLobby = null
   var lobbies = tournamentState.lobbies || []
   if (currentUser) {
@@ -657,18 +662,36 @@ function ClashCard() {
               </div>
             )}
             <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-3">
-              Until check-in closes &middot; {registeredCount}/{maxPlayers} registered
+              {registeredCount + '/' + maxPlayers + ' registered \u00b7 ' + server + ' week'}
             </div>
+            {linkedRiotId ? (
+              <div className="flex items-center gap-2 bg-tertiary/[0.05] border border-tertiary/15 rounded-lg p-2.5 mb-3">
+                <Icon name="sports_esports" size={16} className="text-tertiary flex-shrink-0" />
+                <div>
+                  <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant">{'Your ' + server + ' account'}</div>
+                  <div className="font-mono text-sm font-semibold">{linkedRiotId}</div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-primary/[0.06] border border-primary/20 rounded-lg p-2.5 mb-3">
+                <Icon name="warning" size={16} className="text-primary flex-shrink-0" />
+                <div className="text-[12px] text-primary">{'Link your ' + server + ' Riot ID in Account settings before registering.'}</div>
+              </div>
+            )}
             <div className="flex gap-2">
               <Btn
                 variant={isRegistered ? 'ghost' : 'primary'}
                 size="sm"
                 className="flex-[2]"
+                disabled={!canRegister}
                 onClick={function() { navigate('/clash') }}
               >
                 {isRegistered ? 'Already Registered' : 'Register Now'}
               </Btn>
-              <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Who&apos;s In</Btn>
+              {(!linkedRiotId && !isRegistered)
+                ? <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/account') }}>Go to Account</Btn>
+                : <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>{"Who's In"}</Btn>
+              }
             </div>
           </div>
         )}
