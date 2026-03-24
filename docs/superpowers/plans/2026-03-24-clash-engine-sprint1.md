@@ -49,8 +49,9 @@ ALTER TABLE players ADD COLUMN IF NOT EXISTS riot_id_eu text;
 ALTER TABLE players ADD COLUMN IF NOT EXISTS is_admin boolean DEFAULT false;
 UPDATE players SET is_admin = true WHERE id = 1;
 
--- 3. Add server column to tournament_state
-ALTER TABLE tournament_state ADD COLUMN IF NOT EXISTS server text DEFAULT 'EU';
+-- 3. NOTE: `server` is NOT a DB column — it lives inside the tournamentState JSON blob
+-- stored in site_settings (key='tournament_state'). No ALTER TABLE needed here.
+-- The admin sets it via setTournamentState({ server: 'EU' }) which AppContext auto-persists.
 
 -- 4. Create pending_results table
 CREATE TABLE IF NOT EXISTS pending_results (
@@ -70,15 +71,15 @@ CREATE INDEX IF NOT EXISTS pending_results_lookup
 
 ALTER TABLE pending_results ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "players insert own pending_results"
+CREATE POLICY "players insert own pending_results"
   ON pending_results FOR INSERT
   WITH CHECK (player_id = (SELECT id FROM players WHERE auth_user_id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "players read own pending_results"
+CREATE POLICY "players read own pending_results"
   ON pending_results FOR SELECT
   USING (player_id = (SELECT id FROM players WHERE auth_user_id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "admin full access pending_results"
+CREATE POLICY "admin full access pending_results"
   ON pending_results
   USING (EXISTS (
     SELECT 1 FROM players
@@ -372,20 +373,17 @@ In the dashboard tab (around line 537), find the tournament creation/scheduling 
 
 - [ ] **Step 4: Persist server when saving tournament state**
 
-Find where the admin saves/updates the tournament state (look for `supabase.from('tournament_state').update` calls or `setTournamentState` calls triggered by an admin save button). When the admin saves the tournament setup, include `server: serverVal` in the update:
+Find where the admin saves/updates the tournament state (look for `setTournamentState` calls triggered by an admin save button). When the admin saves the tournament setup, include `server: serverVal` in the state update:
 
 ```js
 // In the save/schedule function, add server to the tournamentState update:
 setTournamentState(function(ts) {
   return Object.assign({}, ts, { server: serverVal });
 });
-
-// And in the Supabase write:
-supabase.from('tournament_state').update({ server: serverVal })
-  .eq('id', 1)
-  .then(function(r) {
-    if (r.error) console.error('[TFT] Failed to save server:', r.error);
-  });
+// IMPORTANT: Do NOT call supabase.from('tournament_state') — that table does not exist.
+// AppContext automatically persists the full tournamentState JSON to
+// site_settings (key='tournament_state') via the useEffect at line ~588.
+// Calling setTournamentState() is the only write needed.
 ```
 
 - [ ] **Step 5: Display current server in the tournament info section**
@@ -482,6 +480,8 @@ Replace the registration phase JSX block. The current block starts with `{(phase
 ```
 
 Note: `\u00b7` is the `·` middle dot character (no backtick strings allowed). String concatenation used throughout.
+
+Note: The "Register Now" button navigates to `/clash` — this is intentional. The actual registration action (joining the `registered_players` list) lives on ClashScreen, which is the admin-visible registration hub. The Dashboard ClashCard is a launch point; navigating to `/clash` is how players register. The Riot ID gating ensures they can only proceed once their ID is linked.
 
 - [ ] **Step 3: Verify the registration flow still works end-to-end**
 
@@ -590,6 +590,8 @@ gameRows.forEach(function(row) {
   });
 });
 ```
+
+**`pts` vs `season_pts` note:** The DB column is `season_pts`. The `increment_player_stats` RPC updates `season_pts` in the DB (correct). The local `players` array in AppContext uses a `pts` field (renamed at load time for UI convenience). The local state update below uses `p.pts` — this is correct for the in-memory state. The RPC handles the DB column name separately.
 
 Also keep the local state update (for immediate UI refresh without re-fetch):
 
@@ -890,7 +892,15 @@ useEffect(function() {
 }, [isAdmin, tournamentState.id]);
 ```
 
-Expose `allPendingResults` via the context value.
+Expose both `pendingResults` and `allPendingResults` via the context value. Find the `value=` prop on the AppContext Provider (search for `value={{` or `value={contextValue}` — it's a large object near the bottom of AppContext). Add:
+
+```js
+// In the context value object, alongside the existing keys (players, tournamentState, etc.):
+pendingResults: pendingResults,
+allPendingResults: allPendingResults,
+```
+
+Also update the `useApp` hook destructuring docs/CLAUDE.md-style note: callers access these as `var app = useApp(); var allPendingResults = app.allPendingResults;`.
 
 - [ ] **Step 2: Add submission review panel component at module scope in ClashScreen.jsx**
 
@@ -985,27 +995,25 @@ function LobbySubmissionPanel(props) {
             )
       );
     }),
-    React.createElement('div', { className: 'flex gap-2 mt-3' },
+    React.createElement('div', { className: 'mt-3' },
       React.createElement(Btn, {
         variant: 'primary',
         size: 'sm',
-        className: 'flex-[2]',
+        className: 'w-full',
         disabled: !canConfirm,
         onClick: function() { onConfirmAll(lobbyNum, submissions); }
-      }, 'Confirm All'),
-      React.createElement(Btn, {
-        variant: 'ghost',
-        size: 'sm',
-        className: 'flex-1 text-error border-error/20',
-      }, 'Dispute')
+      }, 'Confirm All')
+      // Note: No separate "Dispute" footer button — per-row Override inline input covers all dispute use cases.
     )
   );
 }
 ```
 
-- [ ] **Step 3: Add `handleConfirmAll` function in ClashScreen (at module scope or as a named function inside the component)**
+- [ ] **Step 3: Add `handleConfirmAll` function INSIDE the ClashScreen component body**
 
-In ClashScreen, add the confirm all handler:
+`handleConfirmAll` needs access to `tournamentState`, `setTournamentState`, `setPlayers`, and `toast` — all of which come from the component's scope. Define it as a regular named function (not a component) inside the ClashScreen component body. This is allowed by CLAUDE.md (the rule is "no named function COMPONENTS inside component bodies"; regular functions are fine).
+
+In ClashScreen, inside the component function body, add:
 
 ```js
 function handleConfirmAll(lobbyNum, submissions) {
@@ -1071,15 +1079,14 @@ function handleConfirmAll(lobbyNum, submissions) {
           // All lobbies confirmed
           if (round >= (tournamentState.totalGames || 3)) {
             // Final round - complete
-            var nextState = Object.assign({}, tournamentState, { phase: 'complete' });
-            setTournamentState(nextState);
-            supabase.from('tournament_state').update({ phase: 'complete' }).eq('id', 1);
+            // IMPORTANT: Only call setTournamentState — AppContext auto-persists to site_settings.
+            // Do NOT call supabase.from('tournament_state') — that table does not exist.
+            setTournamentState(function(ts) { return Object.assign({}, ts, { phase: 'complete' }); });
           } else {
             // Advance round
             var nextRound = round + 1;
-            var nextState = Object.assign({}, tournamentState, { round: nextRound });
-            setTournamentState(nextState);
-            supabase.from('tournament_state').update({ round: nextRound }).eq('id', 1);
+            // IMPORTANT: Only call setTournamentState — AppContext auto-persists to site_settings.
+            setTournamentState(function(ts) { return Object.assign({}, ts, { round: nextRound }); });
           }
         }
         toast('Lobby ' + lobbyNum + ' results confirmed!', 'success');
