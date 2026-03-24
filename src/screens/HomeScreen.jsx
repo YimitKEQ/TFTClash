@@ -23,7 +23,7 @@ function pad2(n) {
 
 // ── HeroCountdown ─────────────────────────────────────────────────────────────
 
-function HeroCountdown({ clashTimestamp, onRegister }) {
+function HeroCountdown({ clashTimestamp, onRegister, onViewStandings }) {
   var initial = clashTimestamp ? getTimeLeft(clashTimestamp) : { days: 0, hours: 0, minutes: 0, seconds: 0 }
   var [timeLeft, setTimeLeft] = useState(initial)
 
@@ -62,8 +62,15 @@ function HeroCountdown({ clashTimestamp, onRegister }) {
           className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
           onClick={onRegister}
         >
-          Register Now
+          Sign Up Free
         </button>
+        <a
+          href="/standings"
+          className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
+          onClick={function(e) { e.preventDefault(); onViewStandings && onViewStandings(); }}
+        >
+          View Standings
+        </a>
       </div>
     </div>
   )
@@ -270,6 +277,10 @@ export default function HomeScreen() {
     setAuthScreen && setAuthScreen('signup')
   }
 
+  function handleViewStandings() {
+    navigate('/standings')
+  }
+
   function handleNavigate(path) {
     navigate(path)
   }
@@ -314,13 +325,13 @@ export default function HomeScreen() {
 
           {/* Tagline */}
           <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-60">
-            Weekly TFT Clash. Every Saturday.
+            The weekly TFT clash. Every Saturday night.
           </p>
 
           {/* Countdown or CTA */}
           {hasCountdown
             ? (
-              <HeroCountdown clashTimestamp={clashTimestamp} onRegister={handleSignUp} />
+              <HeroCountdown clashTimestamp={clashTimestamp} onRegister={handleSignUp} onViewStandings={handleViewStandings} />
             )
             : (
               <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
@@ -330,16 +341,34 @@ export default function HomeScreen() {
                     Join the Competition
                   </span>
                   <button
-                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim"
+                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
                     onClick={handleSignUp}
                   >
-                    Create Free Account
+                    Sign Up Free
                   </button>
+                  <a
+                    href="/standings"
+                    className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
+                    onClick={function(e) { e.preventDefault(); handleViewStandings(); }}
+                  >
+                    View Standings
+                  </a>
                 </div>
               </div>
             )
           }
         </section>
+
+        {/* ── Value Props ───────────────────────────────────────────────────── */}
+        <div className="flex flex-wrap justify-center gap-3">
+          {['Free to enter \u00b7 Always', 'EUW \u00b7 EUNE \u00b7 NA', 'Results every Saturday'].map(function(chip) {
+            return (
+              <span key={chip} className="px-4 py-1.5 rounded-full text-xs font-label tracking-widest uppercase border border-outline-variant/20 text-on-surface-variant bg-surface-container-low">
+                {chip}
+              </span>
+            );
+          })}
+        </div>
 
         {/* ── Season Stats Bar ──────────────────────────────────────────────── */}
         <SeasonStatsBar
@@ -369,12 +398,17 @@ export default function HomeScreen() {
 
       {/* ── FAB ───────────────────────────────────────────────────────────────── */}
       <button
-        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim"
-        style={{ boxShadow: '0 10px 30px rgba(232,168,56,0.4)' }}
-        onClick={handleSignUp}
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim shadow-[0_10px_30px_rgba(232,168,56,0.4)]"
+        onClick={function() {
+          if (currentUser) {
+            navigate('/');
+          } else {
+            handleSignUp();
+          }
+        }}
       >
         <span className="material-symbols-outlined text-on-primary-fixed group-hover:scale-110 transition-transform text-3xl">
-          add_circle
+          {currentUser ? 'dashboard' : 'add_circle'}
         </span>
       </button>
     </PageLayout>
