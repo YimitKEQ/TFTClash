@@ -182,10 +182,6 @@ export default function Navbar() {
   var drawer = _drawer[0];
   var setDrawer = _drawer[1];
 
-  var _desktopMore = useState(false);
-  var desktopMore = _desktopMore[0];
-  var setDesktopMore = _desktopMore[1];
-
   var dispCount = (disputes || []).length;
   var canScrims = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
 
@@ -241,49 +237,23 @@ export default function Navbar() {
 
   // Mobile bottom bar items (5 items)
   var PRIMARY = [
-    { id: "home", icon: "home", label: "Home" },
-    clashItem ? Object.assign({}, clashItem, { icon: "swords" }) : null,
+    clashItem ? Object.assign({}, clashItem, { icon: "swords" }) : { id: "clash", icon: "swords", label: "Clash" },
     { id: "standings", icon: "bar_chart", label: "Standings" },
-    { id: "profile", icon: "person", label: "Profile" },
+    { id: "hof", icon: "emoji_events", label: "HoF" },
+    { id: "pricing", icon: "sell", label: "Pricing" },
     { id: "more", icon: "more_horiz", label: "More" }
   ].filter(Boolean);
 
   // Desktop primary links
   var DESKTOP_PRIMARY = [
-    { id: "home", label: "Home" },
     clashItem ? {
       id: "clash",
       label: phase === "live" ? "\u25cf LIVE CLASH" : phase === "registration" ? "Clash - Register" : phase === "complete" ? "Clash - Results" : "Clash"
-    } : null,
+    } : { id: "clash", label: "Clash" },
     { id: "standings", label: "Standings" },
-    phase !== "live" ? { id: "events", label: "Events" } : null,
-    { id: "profile", label: "Profile" }
+    { id: "hof", label: "Hall of Fame" },
+    { id: "pricing", label: "Pricing" }
   ].filter(Boolean);
-
-  // Desktop "More" dropdown items
-  var DESKTOP_MORE = [
-    phase === "live" ? { id: "events", label: "Events" } : null,
-    canScrims ? { id: "scrims", label: "Scrims" } : null,
-    { id: "pricing", label: "Pricing" },
-    { id: "rules", label: "Rules" },
-    { id: "faq", label: "FAQ" },
-    { id: "host-apply", label: "Host" },
-    { id: "gear", label: "Gear" },
-    isAdmin ? { id: "admin", label: "Admin" } : null
-  ].filter(Boolean);
-
-  // "More" items for desktop dropdown with icons and descriptions
-  var moreItems = [
-    { id: "scrims", label: "Scrims", icon: "swords", desc: "Practice lobbies", show: canScrims },
-    { id: "pricing", label: "Pricing", icon: "diamond", desc: "Plans and features", show: true },
-    { id: "rules", label: "Rules", icon: "menu_book", desc: "Tournament rules", show: true },
-    { id: "faq", label: "FAQ", icon: "help", desc: "Common questions", show: true },
-    { id: "host-apply", label: "Host", icon: "workspace_premium", desc: "Apply or manage", show: !!currentUser },
-    { id: "gear", label: "Gear", icon: "shopping_bag", desc: "Merch and gear", show: true },
-    { id: "admin", label: "Admin", icon: "shield", desc: "Control panel", show: isAdmin }
-  ].filter(function(item) { return item.show; });
-
-  var desktopMoreActive = DESKTOP_MORE.some(function(l) { return l.id === screen; });
 
   // Profile completion indicator
   var navProfileFields = currentUser ? [
@@ -295,33 +265,35 @@ export default function Navbar() {
   var navProfileTotal = 3;
 
   // Drawer items
-  var DRAWER_ITEMS = [
-    { id: "home", icon: "home", label: "Home", section: "main" },
-    { id: "roster", icon: "groups", label: "Roster", section: "main" },
-    { id: "bracket", icon: "account_tree", label: "Bracket", section: "main" },
-    { id: "leaderboard", icon: "leaderboard", label: "Leaderboard", section: "main" },
-    { id: "results", icon: "assignment_turned_in", label: "Results", section: "main" }
+  var communityItems = [
+    { id: "archive", icon: "inventory_2", label: "Archive", section: "community" },
+    { id: "results", icon: "assignment_turned_in", label: "Results", section: "community" },
+    { id: "milestones", icon: "redeem", label: "Milestones", section: "community" },
+    { id: "challenges", icon: "star", label: "Challenges", section: "community" }
   ];
 
   if (canScrims) {
-    DRAWER_ITEMS.push({ id: "scrims", icon: "sports_esports", label: "Scrims", section: "main" });
-  }
-  if (isAdmin) {
-    DRAWER_ITEMS.push({ id: "admin", icon: "hexagon", label: "Admin Panel", section: "main" });
+    communityItems = communityItems.concat([
+      { id: "scrims", icon: "sports_esports", label: "Scrims", section: "community" }
+    ]);
   }
 
-  DRAWER_ITEMS = DRAWER_ITEMS.concat([
-    { id: "hof", icon: "emoji_events", label: "Hall of Fame", section: "explore" },
-    { id: "archive", icon: "inventory_2", label: "Archive", section: "explore" },
-    { id: "tournaments", icon: "bolt", label: "Tournaments", section: "explore" },
-    { id: "featured", icon: "star", label: "Featured Events", section: "explore" },
-    { id: "challenges", icon: "star", label: "Challenges & XP", section: "community" },
-    { id: "milestones", icon: "redeem", label: "Milestones & Rewards", section: "community" },
-    { id: "rules", icon: "menu_book", label: "Tournament Rules", section: "info" },
-    { id: "faq", icon: "help", label: "FAQ", section: "info" },
-    { id: "pricing", icon: "sell", label: "Pricing & Plans", section: "info" },
-    { id: "account", icon: "person", label: currentUser ? ("My Account - " + currentUser.username) : "Sign In / Sign Up", section: "account" }
-  ]);
+  var adminItems = isAdmin ? [
+    { id: "admin", icon: "shield", label: "Admin Panel", section: "admin" },
+    { id: "host-dashboard", icon: "workspace_premium", label: "Host Dashboard", section: "admin" }
+  ] : [];
+
+  var DRAWER_ITEMS = [
+    { id: "clash", icon: "swords", label: "Clash", section: "main" },
+    { id: "standings", icon: "bar_chart", label: "Standings", section: "main" },
+    { id: "leaderboard", icon: "leaderboard", label: "Leaderboard", section: "main" },
+    { id: "hof", icon: "emoji_events", label: "Hall of Fame", section: "main" }
+  ].concat(communityItems).concat([
+    { id: "account", icon: "person", label: currentUser ? ("Account - " + currentUser.username) : "Sign In / Sign Up", section: "account" },
+    { id: "pricing", icon: "sell", label: "Pricing", section: "account" },
+    { id: "rules", icon: "menu_book", label: "Rules", section: "account" },
+    { id: "faq", icon: "help", label: "FAQ", section: "account" }
+  ]).concat(adminItems);
 
   return (
     <>
@@ -420,14 +392,6 @@ export default function Navbar() {
       <nav className="top-nav" style={{ borderBottom: "1px solid rgba(155,114,207,.15)" }}>
         <div className="max-w-[1400px] mx-auto px-4 h-[54px] flex items-center gap-0">
 
-          {/* Hamburger button - mobile only */}
-          <button
-            className="mobile-hamburger bg-transparent border-none p-2 mr-2 cursor-pointer text-[#C8D4E0] text-[22px] flex items-center justify-center"
-            onClick={function() { setDrawer(function(d) { return !d; }); }}
-          >
-            <Icon name="menu" size={22} />
-          </button>
-
           {/* Logo */}
           <div
             onClick={function() { navTo("home"); }}
@@ -481,44 +445,18 @@ export default function Navbar() {
               );
             })}
 
-            {/* More dropdown */}
-            <div className="relative shrink-0">
-              <button
-                onClick={function() { setDesktopMore(function(o) { return !o; }); }}
-                className={"bg-transparent border-none py-2 px-[7px] text-[12.5px] font-semibold cursor-pointer whitespace-nowrap transition-all duration-200 -mb-px " + (desktopMoreActive ? "text-[#E8A838] border-b-2 border-b-[#E8A838]" : "text-[#C8D4E0] border-b-2 border-b-transparent")}
-              >
-                More &#x25BE;
-              </button>
-
-              {desktopMore && (
-                <>
-                  <div className="fixed inset-0 z-[98]" onClick={function() { setDesktopMore(false); }} />
-                  <div className="absolute left-0 top-[calc(100%+4px)] min-w-[240px] bg-gradient-to-br from-[#0F1828] to-[#0B1220] border border-[rgba(155,114,207,0.2)] rounded-xl shadow-[0_16px_48px_rgba(0,0,0,0.7)] z-[99] p-2">
-                    {moreItems.map(function(item) {
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={function() { navTo(item.id); setDesktopMore(false); }}
-                          className={"flex items-center gap-2.5 py-2.5 px-3 rounded-lg cursor-pointer w-full text-left border-none transition-colors duration-150 " + (screen === item.id ? "bg-[rgba(155,114,207,0.12)]" : "bg-transparent")}
-                        >
-                          <Icon name={item.icon} size={16} className="text-[#9B72CF] shrink-0" />
-                          <div>
-                            <div className={"text-[13px] font-semibold leading-tight " + (screen === item.id ? "text-[#9B72CF]" : "text-[#F2EDE4]")}>
-                              {item.label}
-                            </div>
-                            <div className="text-[10px] text-[#9AAABF] mt-0.5">{item.desc}</div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
           </div>
 
           {/* Right side actions */}
           <div className="flex items-center gap-1.5 ml-auto shrink-0">
+            {/* Hamburger — opens drawer on all screen sizes */}
+            <button
+              className="bg-transparent border border-[rgba(242,237,228,0.1)] rounded-lg p-1.5 cursor-pointer text-[#C8D4E0] hover:text-[#F2EDE4] flex items-center justify-center transition-colors duration-150"
+              onClick={function() { setDrawer(function(d) { return !d; }); }}
+            >
+              <Icon name="menu" size={20} />
+            </button>
+
             {/* Dispute badge */}
             {dispCount > 0 && (
               <button
