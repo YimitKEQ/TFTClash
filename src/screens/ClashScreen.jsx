@@ -287,7 +287,7 @@ function FileDisputeModal(props) {
             <Icon name="flag" style={{ fontSize: 14, marginRight: 4 }} />File Dispute
           </div>
           <div style={{ fontSize: 13, color: "#C8D4E0", marginBottom: 20 }}>
-            Flagging <span style={{ color: "#F2EDE4", fontWeight: 700 }}>{targetPlayer}</span> - claimed <span style={{ color: "#E8A838", fontWeight: 800, fontFamily: "monospace" }}>#{claimPlacement}</span>
+            Flagging <span style={{ color: "#F2EDE4", fontWeight: 700 }}>{targetPlayer}</span> - claimed <span style={{ color: "#E8A838", fontWeight: 800, fontFamily: "'Inter',sans-serif" }}>#{claimPlacement}</span>
           </div>
           <label style={{ display: "block", fontSize: 11, color: "#C8D4E0", marginBottom: 6, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em" }}>Reason <span style={{ color: "#F87171" }}>*</span></label>
           <Inp value={reason} onChange={setReason} placeholder="Why is this placement wrong?" style={{ marginBottom: 14 }} />
@@ -569,7 +569,7 @@ function LobbyCard(props) {
             border: "1px solid " + (locked ? "rgba(82,196,124,.3)" : "rgba(232,168,56,.28)"),
             borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 12, fontWeight: 800, color: locked ? "#6EE7B7" : "#E8A838",
-            fontFamily: "'Barlow Condensed',sans-serif", flexShrink: 0
+            fontFamily: "'Inter',sans-serif", flexShrink: 0
           }}>
             {lbl}
           </div>
@@ -1125,7 +1125,7 @@ function ResultsScreen(props) {
         <Btn v="dark" s="sm" onClick={function() { setScreen("home"); }}>{"<-"} Back</Btn>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="cond" style={{ fontSize: 11, fontWeight: 700, color: "#9B72CF", letterSpacing: ".18em", textTransform: "uppercase", marginBottom: 2 }}>Season 1</div>
-          <h1 style={{ fontFamily: "'Russo One',sans-serif", fontSize: "clamp(22px,3.5vw,34px)", fontWeight: 900, color: "#F2EDE4", lineHeight: 1 }}>{CLASH_NAME} - Final Results</h1>
+          <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(22px,3.5vw,34px)", fontWeight: 800, color: "#F2EDE4", lineHeight: 1.1 }}>{CLASH_NAME} - Final Results</h1>
           <div style={{ fontSize: 12, color: "#BECBD9", marginTop: 3 }}>{CLASH_DATE} - {sorted.length} players - {Math.ceil(sorted.length / 8)} lobbies</div>
         </div>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, flexWrap: "wrap" }}>
@@ -1164,7 +1164,7 @@ function ResultsScreen(props) {
           <div style={{ fontSize: 11, fontWeight: 700, color: "#E8A838", letterSpacing: ".16em", textTransform: "uppercase", marginBottom: 4 }}>
             <Icon name="emoji_events" style={{ fontSize: 11, color: "#E8A838", marginRight: 3 }} />Clash Champion
           </div>
-          <div style={{ fontFamily: "'Russo One',sans-serif", fontSize: "clamp(26px,4vw,44px)", fontWeight: 900, color: "#F2EDE4", lineHeight: 1, marginBottom: 6 }}>{champ.name}</div>
+          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: "clamp(26px,4vw,44px)", fontWeight: 800, color: "#F2EDE4", lineHeight: 1.1, marginBottom: 6 }}>{champ.name}</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <Tag color="#E8A838" size="sm">{champ.rank}</Tag>
             <Tag color="#4ECDC4" size="sm">{champ.region}</Tag>
@@ -1200,7 +1200,7 @@ function ResultsScreen(props) {
                   borderTop: "3px solid " + col, paddingTop: isGold ? 28 : 20
                 }}>
                 <div style={{ fontSize: 28, marginBottom: 8 }}><Icon name={MEDALS[actualRank]} style={{ color: PODIUM_COLS[actualRank] }} /></div>
-                <div style={{ fontFamily: "'Russo One',sans-serif", fontSize: isGold ? 17 : 14, fontWeight: 700, color: "#F2EDE4", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: isGold ? 17 : 14, fontWeight: 700, color: "#F2EDE4", marginBottom: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</div>
                 <div style={{ fontSize: 11, color: "#BECBD9", marginBottom: 10 }}>{p.rank} - {p.region}</div>
                 <div className="mono" style={{ fontSize: isGold ? 28 : 20, fontWeight: 800, color: col, lineHeight: 1 }}>{p.pts}</div>
                 <div style={{ fontSize: 10, color: "#BECBD9", fontWeight: 700, letterSpacing: ".08em", textTransform: "uppercase", marginTop: 3 }}>Season Pts</div>
@@ -1301,7 +1301,7 @@ function ResultsScreen(props) {
       {/* Clash Report */}
       {tab === "report" && (
         <Panel style={{ padding: "20px" }}>
-          <h3 style={{ fontFamily: "'Russo One',sans-serif", fontSize: 16, color: "#F2EDE4", marginBottom: 4 }}>{CLASH_NAME} - Round by Round</h3>
+          <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, color: "#F2EDE4", marginBottom: 4 }}>{CLASH_NAME} - Round by Round</h3>
           <p style={{ fontSize: 13, color: "#BECBD9", marginBottom: 20 }}>{CLASH_DATE} - {sorted.length} players</p>
           <ClashReport clashData={{
             id: "latest", name: CLASH_NAME, date: CLASH_DATE, season: "S1",

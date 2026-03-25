@@ -63,7 +63,7 @@ function NotificationBell(props) {
           <div className="fixed inset-0 z-[149]" onClick={function() { setOpen(false); }} />
           <div className="absolute right-0 top-[calc(100%+8px)] w-[300px] bg-[#1B1B23] border border-white/10 rounded-xl shadow-[0_20px_56px_rgba(0,0,0,0.7)] z-[150] overflow-hidden">
             <div className="px-4 py-3 border-b border-white/[0.06] flex justify-between items-center">
-              <span className="text-[13px] font-bold text-on-surface font-['Barlow_Condensed'] uppercase tracking-widest">Notifications</span>
+              <span className="text-[13px] font-bold text-on-surface font-sans uppercase tracking-widest">Notifications</span>
               {unread > 0 && (
                 <button onClick={function() { onMarkAllRead && onMarkAllRead(); }} className="text-primary text-[11px] font-semibold bg-transparent border-none cursor-pointer font-[inherit]">
                   Mark all read
@@ -196,7 +196,7 @@ export default function Navbar() {
             navTo(item.id);
             setDrawer(false);
           }}
-          className={'flex items-center gap-3.5 py-3 px-6 w-full text-left border-none cursor-pointer transition-all duration-150 text-[13px] font-["Barlow_Condensed"] uppercase tracking-widest font-semibold ' +
+          className={'flex items-center gap-3.5 py-3 px-6 w-full text-left border-none cursor-pointer transition-all duration-150 text-[13px] font-sans uppercase tracking-widest font-semibold ' +
             (isActive ? 'bg-primary/10 text-primary' : 'bg-transparent text-on-surface/50 hover:text-on-surface hover:bg-white/[0.04]')}
         >
           <Icon name={item.icon} size={18} className={isActive ? 'opacity-100' : 'opacity-60'} />
@@ -231,7 +231,7 @@ export default function Navbar() {
           <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm" onClick={function() { setDrawer(false); }} />
           <div className="fixed top-0 right-0 h-full w-72 bg-[#13131A] border-l border-white/[0.06] z-[61] flex flex-col overflow-y-auto">
             <div className="flex items-center justify-between px-6 h-20 border-b border-white/[0.06] shrink-0">
-              <span className="font-['Russo_One'] text-primary text-lg uppercase tracking-tight">Menu</span>
+              <span className="font-display text-primary text-lg uppercase tracking-tight">Menu</span>
               <button onClick={function() { setDrawer(false); }} className="p-2 text-on-surface/40 hover:text-on-surface bg-transparent border-none cursor-pointer">
                 <Icon name="close" size={20} />
               </button>
@@ -271,8 +271,8 @@ export default function Navbar() {
           >
             <img src="/icon-border.png" alt="TFT Clash" className="w-9 h-9 object-contain drop-shadow-[0_0_12px_rgba(155,114,207,0.6)]" />
             <div>
-              <div className="font-['Russo_One'] text-sm text-primary uppercase tracking-tight leading-none">TFT Clash</div>
-              <div className="font-['Barlow_Condensed'] text-[10px] text-on-surface/40 uppercase tracking-widest font-semibold mt-0.5">Season 1</div>
+              <div className="font-display font-bold text-sm text-primary uppercase tracking-tight leading-none">TFT Clash</div>
+              <div className="font-sans text-[10px] text-on-surface/40 uppercase tracking-widest font-semibold mt-0.5">Season 1</div>
             </div>
           </div>
 
@@ -288,7 +288,7 @@ export default function Navbar() {
                 <button
                   key={l.id}
                   onClick={function() { navTo(l.id); }}
-                  className={'px-4 py-1.5 border-none cursor-pointer transition-all duration-200 font-["Barlow_Condensed"] uppercase tracking-widest text-sm font-semibold rounded-sm relative ' +
+                  className={'px-4 py-1.5 border-none cursor-pointer transition-all duration-200 font-sans uppercase tracking-widest text-sm font-semibold rounded-sm relative ' +
                     (isLive
                       ? 'text-primary bg-primary/10'
                       : isActive
@@ -326,7 +326,7 @@ export default function Navbar() {
                     <Icon name="person" size={14} className="text-primary" />
                   </div>
                 )}
-                <span className="text-sm font-semibold text-primary font-['Barlow_Condensed'] uppercase tracking-wide hidden sm:block">{currentUser.username}</span>
+                <span className="text-sm font-semibold text-primary font-sans uppercase tracking-wide hidden sm:block">{currentUser.username}</span>
               </button>
             ) : (
               <div className="hidden md:flex gap-2">
@@ -366,7 +366,7 @@ export default function Navbar() {
               ) : (
                 <Icon name={item.icon} size={22} />
               )}
-              <span className="text-[9px] font-['Barlow_Condensed'] uppercase tracking-widest font-bold">{item.label}</span>
+              <span className="text-[9px] font-sans uppercase tracking-widest font-bold">{item.label}</span>
             </button>
           );
         })}
