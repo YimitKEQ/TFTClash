@@ -61,43 +61,41 @@ export default function LoginScreen() {
     setAuthScreen(null)
 
     if (user && supabase.from) {
-      var alreadyLocal = players.some(function (p) {
-        return (p.name && loginUser.username && p.name.toLowerCase() === loginUser.username.toLowerCase())
-          || (p.riotId && loginUser.riotId && p.riotId.toLowerCase() === loginUser.riotId.toLowerCase())
-      })
-      if (alreadyLocal) {
-        if (user.id) {
-          setPlayers(function (ps) {
-            return ps.map(function (p) {
-              var nameMatch = p.name && loginUser.username && p.name.toLowerCase() === loginUser.username.toLowerCase()
-              var riotMatch = p.riotId && loginUser.riotId && p.riotId.toLowerCase() === loginUser.riotId.toLowerCase()
-              if ((nameMatch || riotMatch) && !p.authUserId) return Object.assign({}, p, { authUserId: user.id })
-              return p
+      supabase.from('players').select('id').eq('auth_user_id', user.id).maybeSingle()
+        .then(function (res) {
+          if (res.data) {
+            // Player row exists in DB - just update authUserId on local state entries if needed
+            var dbId = res.data.id
+            setPlayers(function (ps) {
+              return ps.map(function (p) {
+                if (p.id === dbId && !p.authUserId) return Object.assign({}, p, { authUserId: user.id })
+                return p
+              })
             })
-          })
-        }
-      } else {
-        supabase.from('players').select('*').eq('auth_user_id', user.id).single()
-          .then(function (res) {
-            if (res.data) {
-              var r = res.data
-              var np = {
-                id: r.id, name: r.username, username: r.username,
-                riotId: r.riot_id || '', rank: r.rank || 'Iron', region: r.region || 'EUW',
-                bio: r.bio || '', authUserId: r.auth_user_id, auth_user_id: r.auth_user_id,
-                twitch: (r.social_links && r.social_links.twitch) || '',
-                twitter: (r.social_links && r.social_links.twitter) || '',
-                youtube: (r.social_links && r.social_links.youtube) || '',
-                pts: 0, wins: 0, top4: 0, games: 0, avg: '0',
-                banned: false, dnpCount: 0, notes: '', checkedIn: false,
-                clashHistory: [], sparkline: [], bestStreak: 0, currentStreak: 0,
-                tiltStreak: 0, bestHaul: 0, attendanceStreak: 0, lastClashId: null,
-                role: 'player', sponsor: null
-              }
-              setPlayers(function (ps) { return ps.concat([np]) })
-            }
-          })
-      }
+          } else {
+            // No player row found - fetch full row or create one
+            supabase.from('players').select('*').eq('auth_user_id', user.id).single()
+              .then(function (fullRes) {
+                if (fullRes.data) {
+                  var r = fullRes.data
+                  var np = {
+                    id: r.id, name: r.username, username: r.username,
+                    riotId: r.riot_id || '', rank: r.rank || 'Iron', region: r.region || 'EUW',
+                    bio: r.bio || '', authUserId: r.auth_user_id, auth_user_id: r.auth_user_id,
+                    twitch: (r.social_links && r.social_links.twitch) || '',
+                    twitter: (r.social_links && r.social_links.twitter) || '',
+                    youtube: (r.social_links && r.social_links.youtube) || '',
+                    pts: 0, wins: 0, top4: 0, games: 0, avg: '0',
+                    banned: false, dnpCount: 0, notes: '', checkedIn: false,
+                    clashHistory: [], sparkline: [], bestStreak: 0, currentStreak: 0,
+                    tiltStreak: 0, bestHaul: 0, attendanceStreak: 0, lastClashId: null,
+                    role: 'player', sponsor: null
+                  }
+                  setPlayers(function (ps) { return ps.concat([np]) })
+                }
+              })
+          }
+        })
     }
 
     toast('Welcome back, ' + (loginUser.username || 'player') + '!', 'success')

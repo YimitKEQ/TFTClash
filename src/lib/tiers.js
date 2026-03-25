@@ -13,6 +13,9 @@ export function getUserTier(subscriptions, userId) {
 }
 
 export function hasFeature(tier, feature) {
-  var features = TIER_FEATURES[tier] || TIER_FEATURES.free;
+  // Always fall back to free tier for null/undefined/unknown tiers - never crash
+  var safeTier = tier && TIER_FEATURES[tier] ? tier : 'free';
+  var features = TIER_FEATURES[safeTier];
+  if (!features) return false;
   return !!features[feature];
 }

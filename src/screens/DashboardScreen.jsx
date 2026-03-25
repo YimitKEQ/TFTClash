@@ -367,10 +367,10 @@ function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
 
 // --- ACTIVITY FEED (stitch-matched) ---
 
-function ActivityFeed({ items }) {
+function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
   var hasItems = items && items.length > 0
 
-  var displayItems = hasItems ? items.slice(0, 4).map(function (item) {
+  var displayItems = hasItems ? items.map(function (item) {
     return {
       id: item.id,
       icon: item.icon || 'notifications',
@@ -406,6 +406,15 @@ function ActivityFeed({ items }) {
             )
           })}
         </div>
+      )}
+      {hasMore && (
+        <button
+          onClick={onLoadMore}
+          disabled={loading}
+          className="mt-4 w-full text-center font-condensed text-xs uppercase tracking-widest text-on-surface/40 hover:text-on-surface/70 transition-colors disabled:opacity-40 bg-transparent border-0 cursor-pointer py-2"
+        >
+          {loading ? 'Loading...' : 'Load more'}
+        </button>
       )}
     </div>
   )
@@ -925,14 +934,49 @@ export default function DashboardScreen() {
   var activityFeed = _af[0]
   var setActivityFeed = _af[1]
 
+  var _afOffset = useState(0)
+  var afOffset = _afOffset[0]
+  var setAfOffset = _afOffset[1]
+
+  var _afHasMore = useState(false)
+  var afHasMore = _afHasMore[0]
+  var setAfHasMore = _afHasMore[1]
+
+  var _afLoading = useState(false)
+  var afLoading = _afLoading[0]
+  var setAfLoading = _afLoading[1]
+
   useEffect(function () {
+    setAfLoading(true)
     supabase.from('activity_feed').select('*')
       .order('created_at', { ascending: false })
-      .limit(8)
+      .limit(21)
       .then(function (res) {
-        if (res.data) setActivityFeed(res.data)
+        setAfLoading(false)
+        if (res.data) {
+          var capped = res.data.slice(0, 20)
+          setActivityFeed(capped)
+          setAfHasMore(res.data.length > 20)
+          setAfOffset(0)
+        }
       })
   }, [tick])
+
+  function handleLoadMoreActivity() {
+    var nextOffset = afOffset + 20
+    setAfLoading(true)
+    supabase.from('activity_feed').select('*')
+      .order('created_at', { ascending: false })
+      .range(nextOffset, nextOffset + 20)
+      .then(function (res) {
+        setAfLoading(false)
+        if (res.data) {
+          setActivityFeed(function (prev) { return prev.concat(res.data.slice(0, 20)) })
+          setAfHasMore(res.data.length > 20)
+          setAfOffset(nextOffset)
+        }
+      })
+  }
 
   // Derived values
   var linkedPlayer = useMemo(function () {
@@ -1347,7 +1391,7 @@ export default function DashboardScreen() {
             onViewPlayer={handleViewPlayer}
             onViewAll={function () { navigate('/standings') }}
           />
-          <ActivityFeed items={activityFeed} />
+          <ActivityFeed items={activityFeed} hasMore={afHasMore} onLoadMore={handleLoadMoreActivity} loading={afLoading} />
 
           {/* Ad Space */}
           <div

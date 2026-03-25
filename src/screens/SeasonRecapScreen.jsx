@@ -7,11 +7,18 @@ import { Icon } from '../components/ui'
 
 function buildNarrativeParts(player, s, position, totalPlayers, seasonName) {
   var name = player.name || 'You'
-  var winRate = s.top1Rate
-  var avp = s.avgPlacement
-  var wins = s.wins
-  var games = s.games
+  var winRate = s.top1Rate || 0
+  var avp = s.avgPlacement || '-'
+  var wins = s.wins || 0
+  var games = s.games || 0
   var sn = seasonName || 'Season 1'
+  if (!position || !totalPlayers || totalPlayers === 0) {
+    return [
+      { text: name + ' competed this season. ', italic: false },
+      { text: wins + ' wins', italic: true },
+      { text: ' recorded so far. Keep climbing.', italic: false },
+    ]
+  }
   if (position === 1) {
     return [
       { text: name + ' stood above every challenger this season. ', italic: false },
@@ -30,17 +37,21 @@ function buildNarrativeParts(player, s, position, totalPlayers, seasonName) {
       { text: ' across ' + games + ' games shows the consistency of an elite competitor. A force in every lobby they entered.', italic: false },
     ]
   }
+  var rawPct = Math.round(position / totalPlayers * 100)
+  var clampedPct = Math.min(100, Math.max(1, rawPct))
   return [
     { text: name + ' competed hard across ' + sn + ' - ', italic: false },
     { text: wins + ' wins', italic: true },
     { text: ' and a ', italic: false },
     { text: avp + ' average placement', italic: true },
-    { text: ' across ' + games + ' games. Top ' + Math.round(position / totalPlayers * 100) + '% overall. The grind continues.', italic: false },
+    { text: ' across ' + games + ' games. Top ' + clampedPct + '% overall. The grind continues.', italic: false },
   ]
 }
 
 function topPercentLabel(position, total) {
-  var pct = Math.round(position / total * 100)
+  if (!position || !total || total === 0) return 'UNRANKED'
+  var raw = Math.round(position / total * 100)
+  var pct = Math.min(100, Math.max(1, raw))
   if (pct <= 2) return 'TOP 2%'
   if (pct <= 5) return 'TOP 5%'
   if (pct <= 10) return 'TOP 10%'
@@ -244,7 +255,7 @@ export default function SeasonRecapScreen() {
             <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Total Clash Points
             </h3>
-            <div className="font-mono text-4xl font-bold text-primary">{player.pts.toLocaleString()}</div>
+            <div className="font-mono text-4xl font-bold text-primary">{(player.pts || 0).toLocaleString()}</div>
             <div className="mt-2 text-[10px] text-tertiary flex items-center justify-center gap-1 font-mono">
               <span
                 className="material-symbols-outlined"
