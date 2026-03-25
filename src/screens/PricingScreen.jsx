@@ -4,28 +4,52 @@ import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
 
 var PLAYER_FEATURES = [
-  { text: 'Unlimited Public Tournaments', locked: false },
-  { text: 'Global Rank Tracking', locked: false },
-  { text: 'Standard Match History', locked: false },
-  { text: 'Premium Prize Pools', locked: true },
+  { text: 'Compete in weekly clashes - always free', icon: 'sports_esports' },
+  { text: 'Global leaderboard', icon: 'leaderboard' },
+  { text: 'Basic match history (last 10)', icon: 'history' },
+  { text: 'Public profile page', icon: 'person' },
 ]
 
 var PRO_FEATURES = [
   { text: 'Auto check-in for weekly clash', icon: 'check_circle' },
   { text: 'Priority registration (10 min early)', icon: 'schedule' },
-  { text: 'Pro Badge on Profile', icon: 'verified' },
-  { text: 'Full career stats history', icon: 'bar_chart' },
-  { text: 'Exclusive Pro Discord role', icon: 'forum' },
+  { text: 'Pro badge on profile', icon: 'verified' },
+  { text: 'Extended match history (full career)', icon: 'history' },
+  { text: 'Advanced stat breakdowns (placement rates, avg by comp, etc.)', icon: 'bar_chart' },
+  { text: 'Custom profile banner', icon: 'wallpaper' },
+  { text: 'Scrim access - run private practice lobbies', icon: 'group' },
+  { text: 'Early access to new features', icon: 'new_releases' },
+  { text: 'Pro Discord role + exclusive channels', icon: 'forum' },
 ]
 
 var HOST_FEATURES = [
-  { text: 'Full Tournament Orchestration Tools', icon: 'account_tree' },
-  { text: 'Custom Prize Pool Management', icon: 'check_circle' },
-  { text: 'Brand Partnership Dashboard', icon: 'check_circle' },
-  { text: 'Support via Discord', icon: 'check_circle' },
+  { text: 'Custom branded tournament pages', icon: 'storefront' },
+  { text: 'Full tournament orchestration tools', icon: 'account_tree' },
+  { text: 'Up to 128-player brackets', icon: 'device_hub' },
+  { text: 'Custom prize pool management', icon: 'emoji_events' },
+  { text: 'Revenue sharing on prize pools', icon: 'payments' },
+  { text: 'Analytics dashboard', icon: 'insights' },
+  { text: 'Dedicated onboarding', icon: 'person_check' },
+  { text: 'Priority support channel', icon: 'support_agent' },
 ]
 
 var COMPARISON_ROWS = [
+  {
+    label: 'Weekly clash entry',
+    player: true,
+    pro: true,
+    host: true,
+    type: 'bool',
+  },
+  {
+    label: 'Match history',
+    player: 'Last 10',
+    pro: 'Full career',
+    host: 'Full career',
+    proHighlight: true,
+    hostHighlight: true,
+    type: 'text',
+  },
   {
     label: 'Auto check-in',
     player: false,
@@ -41,11 +65,31 @@ var COMPARISON_ROWS = [
     type: 'bool',
   },
   {
-    label: 'Career stats history',
-    player: 'Limited',
-    pro: 'Full',
-    host: 'Full',
-    proHighlight: true,
+    label: 'Advanced stat breakdowns',
+    player: false,
+    pro: true,
+    host: true,
+    type: 'bool',
+  },
+  {
+    label: 'Scrim lobbies',
+    player: false,
+    pro: true,
+    host: true,
+    type: 'bool',
+  },
+  {
+    label: 'Tournament hosting',
+    player: false,
+    pro: false,
+    host: true,
+    type: 'bool',
+  },
+  {
+    label: 'Max bracket size',
+    player: '-',
+    pro: '-',
+    host: '128 players',
     hostHighlight: true,
     type: 'text',
   },
@@ -53,12 +97,20 @@ var COMPARISON_ROWS = [
 
 var FAQ_ITEMS = [
   {
-    q: 'Can I upgrade/downgrade at any time?',
+    q: 'Can I upgrade or downgrade at any time?',
     a: 'Yes. Tier changes are applied immediately, and billing is prorated to your next cycle.',
   },
   {
     q: 'Do Pro members get an advantage in games?',
     a: 'Never. Membership provides cosmetic and analytical tools. We maintain strict competitive integrity - no pay-to-win mechanics exist in the Arena.',
+  },
+  {
+    q: 'How does Enterprise pricing work?',
+    a: 'Enterprise is custom-priced based on your community size and needs. Reach out and we will put together a package that fits.',
+  },
+  {
+    q: 'Can I trial the Host tools?',
+    a: 'Yes, approved hosts get a 14-day trial period before billing starts. No credit card required upfront.',
   },
 ]
 
@@ -97,6 +149,10 @@ export default function PricingScreen() {
     window.location.href = 'mailto:support@tftclash.com'
   }
 
+  function handleEnterpriseContact() {
+    window.location.href = 'mailto:hello@tftclash.com'
+  }
+
   var isPlayer = userTier === 'free'
   var isPro = userTier === 'pro'
   var isHost = userTier === 'host'
@@ -131,17 +187,11 @@ export default function PricingScreen() {
               </div>
             </div>
 
-            <div className="space-y-6 mb-12">
+            <div className="space-y-5 mb-12">
               {PLAYER_FEATURES.map(function(f) {
                 return (
-                  <div
-                    key={f.text}
-                    className={'flex items-center gap-3' + (f.locked ? ' opacity-30' : '')}
-                  >
-                    {f.locked
-                      ? <Icon name="lock" size={20} className="text-on-surface" />
-                      : <Icon name="check_circle" size={20} className="text-primary" />
-                    }
+                  <div key={f.text} className="flex items-start gap-3">
+                    <Icon name={f.icon} size={20} className="text-primary shrink-0 mt-0.5" />
                     <span className="text-sm">{f.text}</span>
                   </div>
                 )
@@ -183,12 +233,12 @@ export default function PricingScreen() {
               </div>
             </div>
 
-            <div className="space-y-6 mb-12">
+            <div className="space-y-5 mb-12">
               {PRO_FEATURES.map(function(f) {
                 return (
-                  <div key={f.text} className="flex items-center gap-3">
-                    <Icon name={f.icon} size={20} className="text-primary" />
-                    <span className={'text-sm' + (f.bold ? ' font-bold' : '')}>{f.text}</span>
+                  <div key={f.text} className="flex items-start gap-3">
+                    <Icon name={f.icon} size={20} className="text-primary shrink-0 mt-0.5" />
+                    <span className="text-sm">{f.text}</span>
                   </div>
                 )
               })}
@@ -205,24 +255,26 @@ export default function PricingScreen() {
             )}
           </div>
 
-          {/* Host Tier */}
-          <div className="bg-surface-container-low p-8 rounded-[4px] border-t-2 border-secondary/40 transition-all hover:bg-surface-container">
+          {/* Enterprise / Host Tier */}
+          <div className="bg-surface-container-low p-8 rounded-[4px] border-t-2 border-tertiary/50 transition-all hover:bg-surface-container ring-1 ring-tertiary/20">
             <div className="mb-10">
-              <span className="font-sans uppercase tracking-widest text-xs text-secondary font-bold">
-                Architect
+              <span className="font-sans uppercase tracking-widest text-xs text-tertiary font-bold">
+                Enterprise
               </span>
               <h3 className="font-serif text-4xl mt-2">Host</h3>
               <div className="flex items-baseline mt-4">
-                <span className="font-display text-5xl">$19.99</span>
-                <span className="font-mono text-sm ml-2 opacity-60">/MONTH</span>
+                <span className="font-display text-3xl text-tertiary">Custom Pricing</span>
               </div>
+              <p className="text-xs text-on-surface-variant mt-3 leading-relaxed">
+                For organisations, content creators and serious community builders who want to run their own branded TFT leagues.
+              </p>
             </div>
 
-            <div className="space-y-6 mb-12">
+            <div className="space-y-5 mb-12">
               {HOST_FEATURES.map(function(f) {
                 return (
-                  <div key={f.text} className="flex items-center gap-3">
-                    <Icon name={f.icon} size={20} className="text-secondary" />
+                  <div key={f.text} className="flex items-start gap-3">
+                    <Icon name={f.icon} size={20} className="text-tertiary shrink-0 mt-0.5" />
                     <span className="text-sm">{f.text}</span>
                   </div>
                 )
@@ -234,9 +286,12 @@ export default function PricingScreen() {
                 Current Plan
               </div>
             ) : (
-              <div className="w-full py-2.5 text-center rounded-lg bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
-                Coming Soon
-              </div>
+              <button
+                onClick={handleEnterpriseContact}
+                className="w-full py-4 rounded-[20px] font-sans font-bold uppercase tracking-widest bg-tertiary/10 border border-tertiary/30 text-tertiary hover:bg-tertiary/20 transition-all"
+              >
+                Get in Touch
+              </button>
             )}
           </div>
         </div>
@@ -259,7 +314,7 @@ export default function PricingScreen() {
               </div>
               <div className="flex items-center gap-2">
                 <Icon name="public" size={16} />
-                EUW · EUNE · NA
+                EUW - EUNE - NA
               </div>
               <div className="flex items-center gap-2">
                 <Icon name="groups" size={16} />
@@ -277,7 +332,7 @@ export default function PricingScreen() {
               <div className="col-span-1">Feature Sets</div>
               <div className="text-center">Player</div>
               <div className="text-center text-primary">Pro</div>
-              <div className="text-center text-secondary">Host</div>
+              <div className="text-center text-tertiary">Host</div>
             </div>
 
             <div className="space-y-4 py-8">
@@ -294,7 +349,7 @@ export default function PricingScreen() {
                       <>
                         <BoolCell value={row.player} colorClass="text-primary" />
                         <BoolCell value={row.pro} colorClass="text-primary" />
-                        <BoolCell value={row.host} colorClass="text-secondary" />
+                        <BoolCell value={row.host} colorClass="text-tertiary" />
                       </>
                     ) : (
                       <>
@@ -302,7 +357,7 @@ export default function PricingScreen() {
                         <div className={'font-mono text-center text-sm' + (row.proHighlight ? ' text-primary font-bold' : ' opacity-60')}>
                           {row.pro}
                         </div>
-                        <div className={'font-mono text-center text-sm' + (row.hostHighlight ? ' text-secondary font-bold' : ' opacity-60')}>
+                        <div className={'font-mono text-center text-sm' + (row.hostHighlight ? ' text-tertiary font-bold' : ' opacity-60')}>
                           {row.host}
                         </div>
                       </>
@@ -330,6 +385,12 @@ export default function PricingScreen() {
                 className="bg-surface-container-highest px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest border border-outline-variant/20 hover:bg-surface-variant transition-colors"
               >
                 Email Support
+              </button>
+              <button
+                onClick={handleEnterpriseContact}
+                className="bg-tertiary/10 border border-tertiary/30 text-tertiary px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest hover:bg-tertiary/20 transition-colors"
+              >
+                Enterprise Enquiry
               </button>
             </div>
           </div>
