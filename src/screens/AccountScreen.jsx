@@ -114,6 +114,8 @@ export default function AccountScreen() {
   var hostApps = ctx.hostApps;
   var toast = ctx.toast;
   var setScreen = ctx.setScreen;
+  var passwordRecovery = ctx.passwordRecovery;
+  var setPasswordRecovery = ctx.setPasswordRecovery;
   var navigate = useNavigate();
 
   var user = currentUser || {};
@@ -134,6 +136,15 @@ export default function AccountScreen() {
   var [secondRiotId, setSecondRiotId] = useState((user.user_metadata && user.user_metadata.secondRiotId) || user.secondRiotId || '');
   var [secondRegion, setSecondRegion] = useState((user.user_metadata && user.user_metadata.secondRegion) || user.secondRegion || 'EUW');
   var [subscription, setSubscription] = useState(null);
+
+  var _newPw = useState('');
+  var newPw = _newPw[0]; var setNewPw = _newPw[1];
+  var _confirmPw = useState('');
+  var confirmPw = _confirmPw[0]; var setConfirmPw = _confirmPw[1];
+  var _pwSaving = useState(false);
+  var pwSaving = _pwSaving[0]; var setPwSaving = _pwSaving[1];
+  var _pwError = useState('');
+  var pwError = _pwError[0]; var setPwError = _pwError[1];
 
   var _riotIdEu = useState(currentUser ? (currentUser.riot_id_eu || '') : '');
   var riotIdEu = _riotIdEu[0]; var setRiotIdEu = _riotIdEu[1];
@@ -268,6 +279,24 @@ export default function AccountScreen() {
     toast('Change request submitted - an admin will review it', 'success');
   }
 
+  async function handleSetNewPassword() {
+    setPwError('');
+    if (!newPw.trim()) { setPwError('Please enter a new password'); return; }
+    if (newPw.length < 6) { setPwError('Password must be at least 6 characters'); return; }
+    if (newPw !== confirmPw) { setPwError('Passwords do not match'); return; }
+    setPwSaving(true);
+    var res = await supabase.auth.updateUser({ password: newPw });
+    setPwSaving(false);
+    if (res.error) { setPwError('Failed to update password: ' + res.error.message); return; }
+    setPasswordRecovery(false);
+    setNewPw('');
+    setConfirmPw('');
+    toast('Password updated! Please sign in again.', 'success');
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+    navigate('/login');
+  }
+
   if (!user || !user.id) {
     return (
       <PageLayout>
@@ -287,6 +316,57 @@ export default function AccountScreen() {
   var avatarInitial = (user.username || 'U').charAt(0).toUpperCase();
   var riotIdDisplay = user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id);
   var riotRegionDisplay = user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region);
+
+  if (passwordRecovery) {
+    return (
+      <PageLayout>
+        <div className="max-w-md mx-auto px-8 py-24">
+          <Panel className="p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <Icon name="lock_reset" size={28} className="text-primary" />
+              <h2 className="font-serif text-2xl text-on-surface">Set New Password</h2>
+            </div>
+            <p className="text-sm text-on-surface/60 mb-6">
+              Enter a new password for your account. You will be signed out after saving.
+            </p>
+            <div className="space-y-4">
+              <div>
+                <label className="font-condensed text-xs uppercase tracking-widest text-on-surface/70 block mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={newPw}
+                  onChange={function(e) { setNewPw(e.target.value); if (pwError) setPwError(''); }}
+                  placeholder="Enter new password"
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+              <div>
+                <label className="font-condensed text-xs uppercase tracking-widest text-on-surface/70 block mb-2">Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPw}
+                  onChange={function(e) { setConfirmPw(e.target.value); if (pwError) setPwError(''); }}
+                  placeholder="Confirm new password"
+                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
+                />
+              </div>
+              {pwError && (
+                <p className="text-error text-xs font-condensed uppercase tracking-wide">{pwError}</p>
+              )}
+              <Btn
+                v="primary"
+                onClick={handleSetNewPassword}
+                disabled={pwSaving}
+                className="w-full"
+              >
+                {pwSaving ? 'Saving...' : 'Save New Password'}
+              </Btn>
+            </div>
+          </Panel>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>

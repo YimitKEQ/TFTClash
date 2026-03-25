@@ -102,14 +102,12 @@ export default function LoginScreen() {
   }
 
   async function handleForgotPassword() {
-    if (!email) { toast('Please enter your email first', 'error'); return }
-    try {
-      await supabase.auth.resetPasswordForEmail(email)
-      toast('Password reset email sent! Check your inbox', 'info')
-    } catch (err) {
-      console.error('[TFT] password reset failed:', err)
-      toast('Failed to send reset email', 'error')
-    }
+    if (!email.trim()) { toast('Please enter your email first', 'error'); return; }
+    var res = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: window.location.origin + '/account'
+    });
+    if (res.error) { toast('Failed to send reset email: ' + res.error.message, 'error'); return; }
+    toast('Password reset email sent! Check your inbox.', 'success');
   }
 
   async function handleDiscordLogin() {

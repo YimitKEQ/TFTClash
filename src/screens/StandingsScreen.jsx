@@ -25,6 +25,7 @@ var SORT_OPTIONS = [
 export default function StandingsScreen() {
   var ctx = useApp()
   var players = ctx.players || []
+  var isLoadingData = ctx.isLoadingData
   var { subRoute } = ctx
   var tab = subRoute || ''
   var navigate = useNavigate()
@@ -153,7 +154,14 @@ export default function StandingsScreen() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedPlayers.length === 0 && (
+                  {sortedPlayers.length === 0 && isLoadingData && (
+                    <tr>
+                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-condensed uppercase tracking-widest">
+                        Loading players...
+                      </td>
+                    </tr>
+                  )}
+                  {sortedPlayers.length === 0 && !isLoadingData && (
                     <tr>
                       <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-condensed uppercase tracking-widest">
                         No players found

@@ -186,6 +186,7 @@ export default function LeaderboardScreen(props) {
   var embedded = props.embedded || false
   var ctx = useApp()
   var players = ctx.players
+  var isLoadingData = ctx.isLoadingData
   var currentUser = ctx.currentUser
   var setProfilePlayer = ctx.setProfilePlayer
   var setScreen = ctx.setScreen
@@ -322,7 +323,14 @@ export default function LeaderboardScreen(props) {
         </div>
 
         {/* Table Container */}
-        {sorted.length === 0 && (
+        {isLoadingData && players.length === 0 && (
+          <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
+            <span className="material-symbols-outlined text-on-surface/20 text-5xl block mb-4 animate-pulse">hourglass_empty</span>
+            <div className="font-headline text-xl text-on-surface mb-2">Loading standings...</div>
+            <div className="text-sm text-on-surface-variant">Fetching player data from the arena.</div>
+          </div>
+        )}
+        {!isLoadingData && sorted.length === 0 && (
           <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
             <span className="material-symbols-outlined text-on-surface/20 text-5xl block mb-4">leaderboard</span>
             <div className="font-headline text-xl text-on-surface mb-2">No players found</div>

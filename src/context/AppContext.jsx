@@ -165,6 +165,10 @@ export function AppProvider(props) {
   var authScreen = _authScreen[0];
   var setAuthScreen = _authScreen[1];
 
+  var _passwordRecovery = useState(false);
+  var passwordRecovery = _passwordRecovery[0];
+  var setPasswordRecovery = _passwordRecovery[1];
+
   var _cookieConsent = useState(function(){try{return localStorage.getItem("tft-cookie-consent")==="1";}catch(e){return false;}});
   var cookieConsent = _cookieConsent[0];
   var setCookieConsent = _cookieConsent[1];
@@ -367,6 +371,7 @@ export function AppProvider(props) {
     }).catch(function(){setIsAuthLoading(false);});
 
     var authResult=supabase.auth.onAuthStateChange(function(_e,session){
+      if (_e === 'PASSWORD_RECOVERY') { setPasswordRecovery(true); }
       fetchAndSetCurrentUser(session&&session.user?session.user:null, null);
     });
     var subscription=authResult.data.subscription;
@@ -871,6 +876,7 @@ export function AppProvider(props) {
       authScreen: authScreen, setAuthScreen: setAuthScreen,
       cookieConsent: cookieConsent, setCookieConsent: setCookieConsent,
       showOnboarding: showOnboarding, setShowOnboarding: setShowOnboarding,
+      passwordRecovery: passwordRecovery, setPasswordRecovery: setPasswordRecovery,
 
       // Newsletter
       newsletterEmailRef: newsletterEmailRef,
@@ -899,7 +905,8 @@ export function AppProvider(props) {
     currentUser, isAuthLoading, isOffline,
     subscriptions, authScreen, cookieConsent,
     showOnboarding, newsletterSubmitted, clashRemindersOn,
-    userTier, pendingResults, allPendingResults
+    userTier, pendingResults, allPendingResults,
+    passwordRecovery
   ]);
 
   return React.createElement(AppContext.Provider, {value: value}, children);
