@@ -243,8 +243,11 @@ export function AppProvider(props) {
           };
         });
         // Enrich with game_results for detailed stats (clashHistory, streaks, etc.)
+        // Use freshly-fetched `mapped` array (not stale `players` state) to avoid race condition
+        var freshMapped=mapped;
         supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
           .order('tournament_id',{ascending:true}).order('round_number',{ascending:true}).order('game_number',{ascending:true})
+          .limit(500)
           .then(function(gr){
             if(!gr.error&&gr.data&&gr.data.length>0){
               var historyMap={};
@@ -253,7 +256,7 @@ export function AppProvider(props) {
                 if(!historyMap[pid])historyMap[pid]=[];
                 historyMap[pid].push({place:g.placement,placement:g.placement,points:g.points,round:g.round_number,tournamentId:g.tournament_id,gameNumber:g.game_number});
               });
-              mapped=mapped.map(function(p){
+              mapped=freshMapped.map(function(p){
                 var hist=historyMap[p.id];
                 if(!hist||!hist.length)return p;
                 var totalPts=hist.reduce(function(s,g){return s+(g.points||0);},0);
@@ -288,7 +291,7 @@ export function AppProvider(props) {
               });
             }
             setPlayers(mapped);
-          }).catch(function(e){ console.error("[TFT] game_results enrichment failed:", e); setPlayers(mapped); });
+          }).catch(function(e){ console.error("[TFT] game_results enrichment failed:", e); setPlayers(freshMapped); });
       });
   }
 
@@ -315,7 +318,7 @@ export function AppProvider(props) {
 
   // ── useEffect: load subscriptions ──
   useEffect(function(){
-    supabase.from("user_subscriptions").select("*").then(function(res){
+    supabase.from("user_subscriptions").select("*").limit(500).then(function(res){
       if(res.data){
         var map={};
         res.data.forEach(function(s){map[s.user_id]=s;});
@@ -715,7 +718,7 @@ export function AppProvider(props) {
   var playersLoadedCount=players.length;
   useEffect(function(){
     if(!supabase.from||!playersLoadedCount)return;
-    supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false})
+    supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false}).limit(50)
       .then(function(res){
         if(res.error){console.error("Failed to load tournaments:",res.error);return;}
         if(!res.data||!res.data.length){setPastClashes(PAST_CLASHES);return;}

@@ -470,19 +470,7 @@ function TFTClash(){
     toast(isRegistered?"Unregistered from next clash":"Registered for next clash!",isRegistered?"info":"success");
   }
 
-  function joinQuickClash(qcId,playerId){
-
-    setQuickClashes(function(qs){return qs.map(function(q){
-
-      if(q.id!==qcId||q.players.includes(playerId)) return q;
-
-      var np=q.players.concat([playerId]);
-
-      return Object.assign({},q,{players:np,status:np.length>=q.cap?"full":q.status});
-
-    });});
-
-  }
+  // joinQuickClash removed -- no UI renders quick clashes and no route reaches it
 
 
 

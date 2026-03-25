@@ -287,19 +287,19 @@ export default function AdminScreen() {
   }, [tournamentState && tournamentState.server])
 
   useEffect(function() {
-    supabase.from('tournaments').select('*').eq('type', 'flash_tournament').order('date', { ascending: false }).then(function(res) {
+    supabase.from('tournaments').select('*').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(100).then(function(res) {
       if (res.data) setFlashEvents(res.data)
     })
   }, [])
 
   useEffect(function() {
-    supabase.from('scheduled_events').select('*').order('created_at', { ascending: false }).then(function(res) {
+    supabase.from('scheduled_events').select('*').order('created_at', { ascending: false }).limit(100).then(function(res) {
       if (res.data && res.data.length > 0) setScheduledEvents(res.data)
     })
   }, [])
 
   useEffect(function() {
-    supabase.from('host_applications').select('*').order('created_at', { ascending: false }).then(function(res) {
+    supabase.from('host_applications').select('*').order('created_at', { ascending: false }).limit(100).then(function(res) {
       if (res.data && res.data.length > 0) {
         setHostApps(res.data.map(function(a) {
           return { id: a.id, userId: a.user_id, name: a.name, email: a.email, org: a.org || '', reason: a.reason || '', freq: a.freq || '', status: a.status || 'pending', submittedAt: a.submitted_at ? new Date(a.submitted_at).toLocaleDateString() : '', approvedAt: a.approved_at ? new Date(a.approved_at).toLocaleDateString() : '' }
