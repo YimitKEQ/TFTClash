@@ -366,10 +366,13 @@ export default function PlayerProfileScreen() {
               {!isOwnProfile && (
                 <button
                   className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
-                  onClick={function() { if (setComparePlayer) setComparePlayer(player); }}
+                  onClick={function() {
+                    if (setComparePlayer) setComparePlayer(player);
+                    if (toast) toast('Now comparing with ' + player.name + ' - check Leaderboard for rankings', 'info');
+                  }}
                 >
                   <Icon className="text-lg">person_add</Icon>
-                  <span className="font-technical text-xs tracking-widest uppercase">Follow</span>
+                  <span className="font-technical text-xs tracking-widest uppercase">Compare</span>
                 </button>
               )}
               {isOwnProfile && (

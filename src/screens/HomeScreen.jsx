@@ -87,29 +87,29 @@ function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig })
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
+      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Community</span>
-        <span className="font-mono text-xl text-primary">Free to Play</span>
+        <span className="font-mono text-lg sm:text-xl text-primary font-bold">Free to Play</span>
       </div>
-      <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
+      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Players</span>
-        <span className="font-mono text-xl text-on-surface">{playerCount}</span>
+        <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{playerCount}</span>
       </div>
-      <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
+      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Clashes Run</span>
-        <span className="font-mono text-xl text-on-surface">{clashCount}</span>
+        <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{clashCount}</span>
       </div>
-      <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/5">
+      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Status</span>
         {isLive
           ? (
-            <span className="flex items-center gap-2 font-mono text-xl text-tertiary">
+            <span className="flex items-center gap-2 font-mono text-lg sm:text-xl text-tertiary font-bold">
               <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
               LIVE
             </span>
           )
           : (
-            <span className="font-mono text-xl text-on-surface">{seasonName}</span>
+            <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{seasonName}</span>
           )
         }
       </div>
@@ -146,18 +146,18 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
             return (
               <div
                 key={player.id || player.name}
-                className="group relative overflow-hidden bg-surface-container-high p-4 rounded-lg flex items-center justify-between border-l-4 border-primary cursor-pointer"
+                className="group relative overflow-hidden bg-surface-container-high p-4 rounded-lg flex items-center justify-between border-l-4 border-primary cursor-pointer hover:bg-surface-container-highest transition-colors"
                 onClick={function() { onNavigate(playerPath) }}
               >
-                <div className="flex items-center gap-6">
-                  <span className="font-display text-2xl text-primary w-8">{RANK_LABELS[i]}</span>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center border border-primary/20">
+                <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+                  <span className="font-display text-2xl text-primary w-8 flex-shrink-0">{RANK_LABELS[i]}</span>
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-surface-container-highest flex items-center justify-center border border-primary/20 flex-shrink-0">
                       <Icon name="military_tech" size={20} className="text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-bold text-on-surface">{player.name}</h3>
-                      <div className="flex gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-on-surface truncate">{player.name}</h3>
+                      <div className="flex gap-2 flex-wrap">
                         <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded-sm uppercase tracking-tighter">
                           {player.rank || 'Challenger'}
                         </span>
@@ -168,12 +168,12 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-12 text-right">
+                <div className="flex gap-4 sm:gap-12 text-right flex-shrink-0 ml-2">
                   <div>
                     <span className="block font-label text-[10px] text-on-surface-variant uppercase tracking-widest">PTS</span>
-                    <span className="font-mono text-on-surface">{(player.pts || 0).toLocaleString()}</span>
+                    <span className="font-mono text-on-surface font-bold">{(player.pts || 0).toLocaleString()}</span>
                   </div>
-                  <div>
+                  <div className="hidden sm:block">
                     <span className="block font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Win Rate</span>
                     <span className="font-mono text-primary">{stats.top1Rate ? stats.top1Rate + '%' : (player.wins || 0) + 'W'}</span>
                   </div>
@@ -308,10 +308,10 @@ export default function HomeScreen() {
         }
       `}</style>
 
-      <main className="pt-12 pb-20 px-4 max-w-[880px] mx-auto space-y-12">
+      <main className="pt-8 sm:pt-12 pb-20 px-4 max-w-[880px] mx-auto space-y-8 sm:space-y-12">
 
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
-        <section className="relative text-center space-y-8">
+        <section className="relative text-center space-y-6 sm:space-y-8">
 
           {/* Season pill */}
           <div className="inline-block px-4 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary font-label text-xs tracking-[0.2em] uppercase">
@@ -319,7 +319,7 @@ export default function HomeScreen() {
           </div>
 
           {/* Main title */}
-          <h1 className="text-7xl font-display text-primary tracking-tighter uppercase leading-none">
+          <h1 className="text-5xl sm:text-7xl font-display text-primary tracking-tighter uppercase leading-none">
             TFT <span className="text-on-surface">CLASH</span>
           </h1>
 
@@ -401,7 +401,7 @@ export default function HomeScreen() {
         className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim shadow-[0_10px_30px_rgba(232,168,56,0.4)]"
         onClick={function() {
           if (currentUser) {
-            navigate('/');
+            navigate('/dashboard');
           } else {
             handleSignUp();
           }

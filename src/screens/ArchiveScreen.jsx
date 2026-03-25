@@ -268,11 +268,9 @@ export default function ArchiveScreen() {
                       <td colSpan={5} className="px-8 py-12 text-center">
                         {minorEvents.length === 0 ? (
                           <div>
-                            <div className="font-condensed text-on-surface/20 text-5xl mb-4 block">
-                              <Icon name="history" size={48} className="mx-auto text-on-surface/20" />
-                            </div>
+                            <Icon name="history" size={48} className="mx-auto text-on-surface/20 block mb-4" />
                             <p className="text-sm text-slate-500">
-                              Season archive coming soon - check back after Season 1 completes.
+                              No past clashes recorded yet. Results from each weekly clash will be archived here.
                             </p>
                           </div>
                         ) : (

@@ -153,6 +153,37 @@ export default function AccountScreen() {
   var _riotIdError = useState('');
   var riotIdError = _riotIdError[0]; var setRiotIdError = _riotIdError[1];
 
+  var _notifPrefs = useState(function() {
+    try {
+      var raw = localStorage.getItem('tft-notif-prefs');
+      return raw ? JSON.parse(raw) : { clashReminders: true, resultNotifs: true };
+    } catch(e) {
+      return { clashReminders: true, resultNotifs: true };
+    }
+  });
+  var notifPrefs = _notifPrefs[0]; var setNotifPrefsRaw = _notifPrefs[1];
+
+  function setNotifPref(key, val) {
+    setNotifPrefsRaw(function(prev) {
+      var next = Object.assign({}, prev);
+      next[key] = val;
+      try { localStorage.setItem('tft-notif-prefs', JSON.stringify(next)); } catch(e) {}
+      return next;
+    });
+  }
+
+  var _profileSaving = useState(false);
+  var profileSaving = _profileSaving[0]; var setProfileSaving = _profileSaving[1];
+
+  var _changePw = useState('');
+  var changePw = _changePw[0]; var setChangePw = _changePw[1];
+  var _changePwConfirm = useState('');
+  var changePwConfirm = _changePwConfirm[0]; var setChangePwConfirm = _changePwConfirm[1];
+  var _changePwError = useState('');
+  var changePwError = _changePwError[0]; var setChangePwError = _changePwError[1];
+  var _changePwSaving = useState(false);
+  var changePwSaving = _changePwSaving[0]; var setChangePwSaving = _changePwSaving[1];
+
   var usernameChanged = !!(user.user_metadata && user.user_metadata.username_changed);
   var riotIdSet = !!(user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id));
   var EU_NA = ['EUW', 'EUNE', 'NA'];
@@ -202,6 +233,10 @@ export default function AccountScreen() {
   }
 
   async function save() {
+    if (!usernameChanged && !usernameEdit.trim()) {
+      toast('Username cannot be empty', 'error');
+      return;
+    }
     var euErr = validateRiotId(riotIdEu);
     var naErr = validateRiotId(riotIdNa);
     var mainRiotIdErr = (!riotIdSet && riotId.trim()) ? validateRiotId(riotId) : '';
@@ -210,6 +245,7 @@ export default function AccountScreen() {
       return;
     }
     setRiotIdError('');
+    setProfileSaving(true);
 
     var meta = Object.assign({}, user.user_metadata || {}, {
       bio: bio,
@@ -238,12 +274,16 @@ export default function AccountScreen() {
       await supabase.auth.updateUser({ data: meta });
     } catch(e) {
       console.warn('Supabase update failed', e);
+      setProfileSaving(false);
       toast('Failed to save profile - please try again', 'error');
       return;
     }
 
     var socialLinks = { twitch: meta.twitch || '', twitter: meta.twitter || '', youtube: meta.youtube || '' };
     var playerUpdate = { bio: meta.bio || '', region: riotRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null };
+    if (!usernameChanged && meta.username) {
+      playerUpdate.username = meta.username;
+    }
     if (!riotIdSet && meta.riotId) {
       playerUpdate.riot_id = meta.riotId;
       playerUpdate.region = riotRegion;
@@ -252,6 +292,25 @@ export default function AccountScreen() {
       if (pRes.error) {
         console.error('[TFT] Players table update failed:', pRes.error);
         toast('Profile saved but some data may not have synced', 'error');
+      } else {
+        setPlayers(function(ps) {
+          return ps.map(function(p) {
+            if ((p.authUserId && p.authUserId === user.id) || (p.auth_user_id && p.auth_user_id === user.id)) {
+              return Object.assign({}, p, {
+                bio: playerUpdate.bio,
+                region: playerUpdate.region,
+                twitch: socialLinks.twitch,
+                twitter: socialLinks.twitter,
+                youtube: socialLinks.youtube,
+                riot_id_eu: playerUpdate.riot_id_eu,
+                riot_id_na: playerUpdate.riot_id_na,
+                username: playerUpdate.username || p.username,
+                name: playerUpdate.username || p.name,
+              });
+            }
+            return p;
+          });
+        });
       }
     });
 
@@ -269,6 +328,7 @@ export default function AccountScreen() {
       riot_id_na: riotIdNa.trim() || null,
     });
     setCurrentUser(updated);
+    setProfileSaving(false);
     setEdit(false);
     toast('Profile updated', 'success');
   }
@@ -295,6 +355,20 @@ export default function AccountScreen() {
     await supabase.auth.signOut();
     setCurrentUser(null);
     navigate('/login');
+  }
+
+  async function handleChangePassword() {
+    setChangePwError('');
+    if (!changePw.trim()) { setChangePwError('Please enter a new password'); return; }
+    if (changePw.length < 6) { setChangePwError('Password must be at least 6 characters'); return; }
+    if (changePw !== changePwConfirm) { setChangePwError('Passwords do not match'); return; }
+    setChangePwSaving(true);
+    var res = await supabase.auth.updateUser({ password: changePw });
+    setChangePwSaving(false);
+    if (res.error) { setChangePwError('Failed to update password: ' + res.error.message); return; }
+    setChangePw('');
+    setChangePwConfirm('');
+    toast('Password updated successfully', 'success');
   }
 
   if (!user || !user.id) {
@@ -514,14 +588,26 @@ export default function AccountScreen() {
                               if (res.error) { toast('Upload failed', 'error'); return; }
                               var url = supabase.storage.from('avatars').getPublicUrl(authId + '/avatar.png').data.publicUrl;
                               setProfilePic(url);
-                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', authId);
+                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', authId).then(function() {
+                                setPlayers(function(ps) {
+                                  return ps.map(function(p) {
+                                    if ((p.authUserId && p.authUserId === authId) || (p.auth_user_id && p.auth_user_id === authId)) {
+                                      return Object.assign({}, p, { profilePicUrl: url });
+                                    }
+                                    return p;
+                                  });
+                                });
+                              });
                               toast('Avatar updated!', 'success');
                             });
                         }}
                       />
                     </label>
                   ) : (
-                    <button className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all">
+                    <button
+                      onClick={function() { setEdit(true); }}
+                      className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all"
+                    >
                       <Icon name="edit" size={18} />
                     </button>
                   )}
@@ -685,7 +771,16 @@ export default function AccountScreen() {
                                           if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
                                           var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
                                           setProfilePic(urlResult.data.publicUrl);
-                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', authId2);
+                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', authId2).then(function() {
+                                            setPlayers(function(ps) {
+                                              return ps.map(function(p) {
+                                                if ((p.authUserId && p.authUserId === authId2) || (p.auth_user_id && p.auth_user_id === authId2)) {
+                                                  return Object.assign({}, p, { profilePicUrl: urlResult.data.publicUrl });
+                                                }
+                                                return p;
+                                              });
+                                            });
+                                          });
                                           toast('Photo uploaded!', 'success');
                                         });
                                       }}
@@ -784,9 +879,10 @@ export default function AccountScreen() {
                         </button>
                         <button
                           onClick={save}
-                          className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-2.5 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all"
+                          disabled={profileSaving}
+                          className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-2.5 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all disabled:opacity-60"
                         >
-                          Save Changes
+                          {profileSaving ? 'Saving...' : 'Save Changes'}
                         </button>
                       </div>
                     </div>
