@@ -113,10 +113,10 @@ export default function HofScreen(props) {
           <span className="font-technical text-primary tracking-[0.4em] uppercase text-sm mb-4 block">
             Seasonal Honors
           </span>
-          <h1 className="font-display text-6xl md:text-8xl text-primary leading-none tracking-tight drop-shadow-2xl">
+          <h1 className="font-display text-4xl sm:text-6xl md:text-8xl text-primary leading-none tracking-tight drop-shadow-2xl">
             HALL OF FAME
           </h1>
-          <p className="font-editorial italic text-2xl text-on-surface-variant mt-4 opacity-80">
+          <p className="font-editorial italic text-lg sm:text-2xl text-on-surface-variant mt-4 opacity-80">
             Celebrating the Architects of Victory
           </p>
         </div>
@@ -129,7 +129,7 @@ export default function HofScreen(props) {
             <div className="lg:col-span-7 relative group">
               <div className="absolute -inset-1 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
               <div
-                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-8 bg-surface-container-low border-l-4 border-primary min-h-[400px]"
+                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-6 sm:p-8 bg-surface-container-low border-l-4 border-primary min-h-[280px] sm:min-h-[400px]"
                 style={{ boxShadow: '0 0 40px 10px rgba(253,186,73,0.15)' }}
               >
                 {/* Trophy background icon */}
@@ -145,25 +145,25 @@ export default function HofScreen(props) {
                     SEASON 1 LEADER
                   </div>
                   <h2
-                    className="font-editorial text-5xl md:text-7xl text-on-surface mb-2 cursor-pointer hover:text-primary transition-colors"
+                    className="font-editorial text-3xl sm:text-5xl md:text-7xl text-on-surface mb-2 cursor-pointer hover:text-primary transition-colors"
                     onClick={function() { openProfile(king.name) }}
                   >
                     {king.name}
                   </h2>
-                  <div className="flex items-center space-x-8 mt-6 flex-wrap gap-y-4">
+                  <div className="flex items-center gap-6 sm:gap-8 mt-4 sm:mt-6 flex-wrap gap-y-4">
                     {kingStats && (
                       <>
                         <div className="text-center">
                           <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Win Rate</p>
-                          <p className="font-stats text-primary text-3xl font-bold">{kingStats.top1Rate}%</p>
+                          <p className="font-stats text-primary text-2xl sm:text-3xl font-bold">{kingStats.top1Rate}%</p>
                         </div>
                         <div className="text-center">
-                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Placement Avg</p>
-                          <p className="font-stats text-primary text-3xl font-bold">{kingStats.avgPlacement}</p>
+                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Avg Place</p>
+                          <p className="font-stats text-primary text-2xl sm:text-3xl font-bold">{kingStats.avgPlacement}</p>
                         </div>
                         <div className="text-center">
-                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Season Points</p>
-                          <p className="font-stats text-primary text-3xl font-bold">{king.pts}</p>
+                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Season Pts</p>
+                          <p className="font-stats text-primary text-2xl sm:text-3xl font-bold">{king.pts}</p>
                         </div>
                       </>
                     )}
@@ -342,7 +342,7 @@ export default function HofScreen(props) {
                 return (
                   <div
                     key={r.id}
-                    className="p-8 group transition-all bg-surface-container border-t border-outline-variant/10 hover:border-t-primary/40"
+                    className="p-6 sm:p-8 group transition-all bg-surface-container border-t border-outline-variant/10 hover:border-t-primary/40 hover:bg-surface-container-high"
                   >
                     <div className="flex justify-between items-start mb-6">
                       <Icon

@@ -190,15 +190,15 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
               className={'bg-surface-container-low p-4 rounded-lg flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer ' + opacity}
               onClick={function() { onNavigate(playerPath) }}
             >
-              <div className="flex items-center gap-6">
-                <span className="font-display text-2xl text-on-surface-variant w-8">{RANK_LABELS[i]}</span>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center">
+              <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+                <span className="font-display text-2xl text-on-surface-variant w-8 flex-shrink-0">{RANK_LABELS[i]}</span>
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded bg-surface-container-highest flex items-center justify-center flex-shrink-0">
                     <Icon name="person" size={20} className="text-on-surface-variant" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-on-surface">{player.name}</h3>
-                    <div className="flex gap-2">
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-on-surface truncate">{player.name}</h3>
+                    <div className="flex gap-2 flex-wrap">
                       <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded-sm uppercase tracking-tighter">
                         {player.rank || 'Master'}
                       </span>
@@ -209,12 +209,12 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-12 text-right">
+              <div className="flex gap-4 sm:gap-12 text-right flex-shrink-0 ml-2">
                 <div>
                   <span className="block font-label text-[10px] text-on-surface-variant uppercase tracking-widest">PTS</span>
-                  <span className="font-mono text-on-surface">{(player.pts || 0).toLocaleString()}</span>
+                  <span className="font-mono text-on-surface font-bold">{(player.pts || 0).toLocaleString()}</span>
                 </div>
-                <div>
+                <div className="hidden sm:block">
                   <span className="block font-label text-[10px] text-on-surface-variant uppercase tracking-widest">Win Rate</span>
                   <span className="font-mono text-on-surface">{stats.top1Rate ? stats.top1Rate + '%' : (player.wins || 0) + 'W'}</span>
                 </div>
@@ -237,15 +237,15 @@ function PromotionFooter({ playerCount, onRules, onHowToPlay }) {
       <p className="text-on-surface-variant text-sm">
         {countText}
       </p>
-      <div className="flex justify-center gap-4">
+      <div className="flex justify-center gap-4 flex-wrap">
         <button
-          className="bg-surface-container-high px-6 py-2 rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
+          className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
           onClick={onRules}
         >
           Tournament Rules
         </button>
         <button
-          className="bg-surface-container-high px-6 py-2 rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
+          className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
           onClick={onHowToPlay}
         >
           How to Play

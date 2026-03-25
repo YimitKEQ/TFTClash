@@ -296,7 +296,7 @@ export default function PlayerProfileScreen() {
   return (
     <PageLayout>
       {/* Hero Banner */}
-      <div className="relative h-72 w-[calc(100%+3rem)] overflow-hidden -mx-6 mb-8">
+      <div className="relative h-52 sm:h-72 w-[calc(100%+3rem)] overflow-hidden -mx-6 mb-8">
         <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
         {pBanner && (
@@ -308,7 +308,7 @@ export default function PlayerProfileScreen() {
         )}
 
         {/* Profile Info Overlay */}
-        <div className="absolute bottom-0 left-0 w-full px-6 pb-8 flex flex-col md:flex-row items-end gap-6">
+        <div className="absolute bottom-0 left-0 w-full px-4 sm:px-6 pb-6 sm:pb-8 flex flex-col md:flex-row items-start md:items-end gap-4 sm:gap-6">
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             <div
@@ -335,7 +335,7 @@ export default function PlayerProfileScreen() {
 
           <div className="flex-1 mb-2">
             <div className="flex items-center gap-4 mb-1 flex-wrap">
-              <h1 className="text-5xl font-editorial text-on-surface">{player.name}</h1>
+              <h1 className="text-3xl sm:text-5xl font-editorial text-on-surface">{player.name}</h1>
               {player.rank && (
                 <div className="bg-tertiary/10 text-tertiary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-tertiary/20">
                   {player.rank.toUpperCase()}
@@ -405,15 +405,15 @@ export default function PlayerProfileScreen() {
       </div>
 
       {/* 4-Column Stat Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {/* Stat 1: Total LP Points */}
-        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group hover:bg-surface-container transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Icon className="text-6xl">military_tech</Icon>
           </div>
-          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">Total LP Points</span>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-stats text-on-surface">{player.pts}</span>
+          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Total Pts</span>
+          <div className="flex items-end gap-2 flex-wrap">
+            <span className="text-3xl sm:text-4xl font-stats text-on-surface font-bold">{player.pts}</span>
             {ppg > 0 && (
               <span className="text-primary text-sm font-stats mb-1">{'+' + ppg + ' PPG'}</span>
             )}
@@ -421,44 +421,44 @@ export default function PlayerProfileScreen() {
         </div>
 
         {/* Stat 2: Total Wins */}
-        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group hover:bg-surface-container transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Icon className="text-6xl">workspace_premium</Icon>
           </div>
-          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">Total Wins</span>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-stats text-on-surface">{s.wins}</span>
-            <span className="text-on-surface/40 text-sm font-stats mb-1">{'/ ' + s.games + ' Games'}</span>
+          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Wins</span>
+          <div className="flex items-end gap-2 flex-wrap">
+            <span className="text-3xl sm:text-4xl font-stats text-on-surface font-bold">{s.wins}</span>
+            <span className="text-on-surface/40 text-sm font-stats mb-1">{'/ ' + s.games}</span>
           </div>
         </div>
 
         {/* Stat 3: Avg Placement */}
-        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group">
+        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group hover:bg-surface-container transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Icon className="text-6xl">analytics</Icon>
           </div>
-          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">Avg Placement</span>
+          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Avg Place</span>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-stats text-on-surface">{s.avgPlacement}</span>
-            <div className="w-12 h-1 bg-tertiary rounded-full mb-3"></div>
+            <span className="text-3xl sm:text-4xl font-stats text-on-surface font-bold">{s.avgPlacement}</span>
+            <div className="w-8 h-1 bg-tertiary rounded-full mb-3"></div>
           </div>
         </div>
 
         {/* Stat 4: Win Streak */}
-        <div className="bg-surface-container-low p-6 rounded-lg relative overflow-hidden group border-b-2 border-primary/20">
+        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group border-b-2 border-primary/20 hover:bg-surface-container transition-colors">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Icon className="text-primary text-6xl">local_fire_department</Icon>
           </div>
-          <span className="font-technical text-primary uppercase text-xs tracking-widest mb-4 block">Current Win Streak</span>
+          <span className="font-technical text-primary uppercase text-xs tracking-widest mb-3 block">Streak</span>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-stats text-primary">{player.currentStreak || 0}</span>
-            <span className="text-primary/60 text-sm font-technical uppercase tracking-widest mb-1">Matches</span>
+            <span className="text-3xl sm:text-4xl font-stats text-primary font-bold">{player.currentStreak || 0}</span>
+            <span className="text-primary/60 text-xs font-technical uppercase tracking-widest mb-1">Wins</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto pb-1 border-b border-outline-variant/20">
+      <div className="flex gap-1 mb-6 overflow-x-auto pb-px border-b border-outline-variant/20 -mx-4 px-4 sm:mx-0 sm:px-0">
         {tabs.map(function(t) {
           var label = t === 'h2h' ? 'H2H' : t === 'rounds' ? 'By Round' : t.charAt(0).toUpperCase() + t.slice(1);
           var isActive = tab === t;
@@ -466,7 +466,7 @@ export default function PlayerProfileScreen() {
             <button
               key={t}
               onClick={function() { setTab(t); }}
-              className={'flex-shrink-0 px-5 py-3 font-technical text-xs uppercase tracking-widest transition-all ' + (isActive ? 'text-primary border-b-2 border-primary -mb-px' : 'text-on-surface/40 hover:text-on-surface')}
+              className={'flex-shrink-0 px-4 sm:px-5 py-3 min-h-[44px] font-technical text-xs uppercase tracking-widest transition-all ' + (isActive ? 'text-primary border-b-2 border-primary -mb-px' : 'text-on-surface/40 hover:text-on-surface')}
             >
               {label}
             </button>

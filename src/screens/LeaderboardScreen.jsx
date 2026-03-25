@@ -108,21 +108,21 @@ function TableRow({ player, rank, isMe, onClick }) {
         style={{ boxShadow: 'inset 0 0 15px rgba(217, 185, 255, 0.15)' }}
         onClick={onClick}
       >
-        <td className="px-8 py-5 font-mono text-secondary font-bold text-sm">{rankLabel}</td>
-        <td className="px-8 py-5">
-          <div className="flex items-center gap-4">
+        <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-secondary font-bold text-sm">{rankLabel}</td>
+        <td className="px-4 sm:px-8 py-4 sm:py-5">
+          <div className="flex items-center gap-3 sm:gap-4">
             <div className="w-8 h-8 bg-secondary-container rounded-full border border-secondary/50 flex items-center justify-center flex-shrink-0">
               <span className="font-bold text-secondary text-sm">{(player.name || '?').charAt(0).toUpperCase()}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-secondary">{player.name}</span>
-              <span className="bg-secondary/20 text-secondary text-[10px] px-2 py-0.5 font-label tracking-tighter rounded-full uppercase">You</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-bold text-secondary truncate">{player.name}</span>
+              <span className="bg-secondary/20 text-secondary text-[10px] px-2 py-0.5 font-label tracking-tighter rounded-full uppercase flex-shrink-0">You</span>
             </div>
           </div>
         </td>
-        <td className="px-8 py-5 font-mono text-secondary text-sm">{(player.pts || 0) + ' pts'}</td>
-        <td className="px-8 py-5 font-mono text-secondary text-sm">{stats.avgPlacement}</td>
-        <td className="px-8 py-5 text-right">
+        <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-secondary text-sm font-bold">{(player.pts || 0) + ' pts'}</td>
+        <td className="hidden sm:table-cell px-8 py-5 font-mono text-secondary text-sm">{stats.avgPlacement}</td>
+        <td className="px-4 sm:px-8 py-4 sm:py-5 text-right">
           <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
         </td>
       </tr>
@@ -131,18 +131,18 @@ function TableRow({ player, rank, isMe, onClick }) {
 
   return (
     <tr className="hover:bg-white/5 transition-colors group cursor-pointer" onClick={onClick}>
-      <td className="px-8 py-5 font-mono text-on-surface text-sm">{rankLabel}</td>
-      <td className="px-8 py-5">
-        <div className="flex items-center gap-4">
+      <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-on-surface text-sm">{rankLabel}</td>
+      <td className="px-4 sm:px-8 py-4 sm:py-5">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center flex-shrink-0">
             <span className="font-bold text-on-surface/60 text-sm">{(player.name || '?').charAt(0).toUpperCase()}</span>
           </div>
-          <span className="font-bold text-on-surface">{player.name}</span>
+          <span className="font-bold text-on-surface truncate">{player.name}</span>
         </div>
       </td>
-      <td className="px-8 py-5 font-mono text-tertiary text-sm">{(player.pts || 0) + ' pts'}</td>
-      <td className="px-8 py-5 font-mono text-on-surface-variant text-sm">{stats.avgPlacement}</td>
-      <td className="px-8 py-5 text-right">
+      <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-tertiary text-sm font-bold">{(player.pts || 0) + ' pts'}</td>
+      <td className="hidden sm:table-cell px-8 py-5 font-mono text-on-surface-variant text-sm">{stats.avgPlacement}</td>
+      <td className="px-4 sm:px-8 py-4 sm:py-5 text-right">
         <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
       </td>
     </tr>
@@ -156,7 +156,7 @@ function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick })
 
   return (
     <div>
-      <div className={divider.bg + ' ' + divider.border + ' px-8 py-3 flex items-center justify-between'}>
+      <div className={divider.bg + ' ' + divider.border + ' px-4 sm:px-8 py-3 flex items-center justify-between'}>
         <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
         <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
       </div>
@@ -270,8 +270,8 @@ export default function LeaderboardScreen(props) {
         )}
 
         {/* Filters & Search */}
-        <div className="flex flex-col md:flex-row gap-6 mb-8 items-center justify-between">
-          <div className="flex gap-4">
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-8 items-stretch md:items-center justify-between">
+          <div className="flex gap-4 overflow-x-auto pb-1">
             <div className="relative">
               <select
                 value={regionFilter}
@@ -351,11 +351,11 @@ export default function LeaderboardScreen(props) {
               <table className="w-full text-left border-collapse">
                 <thead className="bg-surface-container-lowest/50">
                   <tr>
-                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Rank</th>
-                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Player</th>
-                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Points</th>
-                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Avg Placement</th>
-                    <th className="px-8 py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
+                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Rank</th>
+                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Player</th>
+                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Points</th>
+                    <th className="hidden sm:table-cell px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Avg Place</th>
+                    <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
                   </tr>
                 </thead>
               </table>

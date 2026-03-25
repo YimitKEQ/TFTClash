@@ -175,7 +175,7 @@ function PulseHeader({
       </div>
 
       {/* Player identity row */}
-      <div className="flex items-center gap-6 relative z-10">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 relative z-10 pr-24">
         {/* Avatar */}
         <div className="relative flex-shrink-0">
           <div
@@ -206,7 +206,7 @@ function PulseHeader({
 
         {/* Name + season label */}
         <div>
-          <h1 className="font-editorial text-4xl text-on-surface leading-none italic">{playerName}</h1>
+          <h1 className="font-editorial text-2xl sm:text-4xl text-on-surface leading-none italic">{playerName}</h1>
           <p className="font-condensed text-xs uppercase tracking-[0.2em] text-secondary mt-2">
             {linkedPlayer
               ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + (totalPlayers > 0 ? Math.max(1, Math.round((myRankIdx / totalPlayers) * 100)) : myRankIdx) + '%')
@@ -237,7 +237,7 @@ function SeasonTrajectoryCard({ linkedPlayer, s2, clashHistory, pointsTrend, las
     : 0
 
   return (
-    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
+    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
       {/* Header */}
       <div className="flex justify-between items-end mb-6">
         <div>
@@ -273,7 +273,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
   var recent = (clashHistory || []).slice(-5)
 
   return (
-    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
+    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40">
           Recent Form (Last {recent.length})
@@ -318,7 +318,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
 
 function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
   return (
-    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10">
+    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
       <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">
         Clash Standings
       </h3>
@@ -382,7 +382,7 @@ function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
   }) : []
 
   return (
-    <div className="surface-container-low p-6 rounded-lg border border-outline-variant/10 overflow-hidden relative">
+    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 overflow-hidden relative">
       {/* Decorative blur */}
       <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-secondary/5 rounded-full blur-3xl" />
       <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">Live Activity</h3>
@@ -1263,7 +1263,7 @@ export default function DashboardScreen() {
       {/* Season Stats Row */}
       {linkedPlayer && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="sports_esports" size={18} className="text-secondary" />
             </div>
@@ -1272,7 +1272,7 @@ export default function DashboardScreen() {
               <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Total Games</div>
             </div>
           </div>
-          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-tertiary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="trending_up" size={18} className="text-tertiary" />
             </div>
@@ -1281,7 +1281,7 @@ export default function DashboardScreen() {
               <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Top-4 Rate</div>
             </div>
           </div>
-          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="emoji_events" size={18} className="text-primary" />
             </div>
@@ -1290,7 +1290,7 @@ export default function DashboardScreen() {
               <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Best Place</div>
             </div>
           </div>
-          <div className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3">
+          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="local_fire_department" size={18} className="text-secondary" />
             </div>
@@ -1343,7 +1343,7 @@ export default function DashboardScreen() {
 
           {/* Upcoming Event */}
           {nextEvent && (
-            <div className="surface-container-low rounded-lg border border-outline-variant/10 p-5">
+            <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-5">
               <div className="font-condensed uppercase text-[10px] tracking-widest text-on-surface/40 mb-3">Upcoming Event</div>
               <div className="flex items-center justify-between gap-4">
                 <div>
@@ -1361,24 +1361,24 @@ export default function DashboardScreen() {
           <div className="grid grid-cols-3 gap-3">
             <button
               onClick={function () { handleViewProfile() }}
-              className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex flex-col items-center gap-2 hover:border-secondary/30 hover:bg-secondary/5 transition-all group"
+              className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 min-h-[72px] flex flex-col items-center justify-center gap-2 hover:border-secondary/30 hover:bg-secondary/5 transition-all group"
             >
               <Icon name="person" size={20} className="text-on-surface/40 group-hover:text-secondary transition-colors" />
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors">My Profile</span>
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">My Profile</span>
             </button>
             <button
               onClick={function () { navigate('/events') }}
-              className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex flex-col items-center gap-2 hover:border-primary/30 hover:bg-primary/5 transition-all group"
+              className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 min-h-[72px] flex flex-col items-center justify-center gap-2 hover:border-primary/30 hover:bg-primary/5 transition-all group"
             >
               <Icon name="calendar_month" size={20} className="text-on-surface/40 group-hover:text-primary transition-colors" />
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors">Browse Events</span>
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">Events</span>
             </button>
             <button
               onClick={function () { navigate('/standings') }}
-              className="surface-container-low rounded-lg border border-outline-variant/10 p-4 flex flex-col items-center gap-2 hover:border-tertiary/30 hover:bg-tertiary/5 transition-all group"
+              className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 min-h-[72px] flex flex-col items-center justify-center gap-2 hover:border-tertiary/30 hover:bg-tertiary/5 transition-all group"
             >
               <Icon name="leaderboard" size={20} className="text-on-surface/40 group-hover:text-tertiary transition-colors" />
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors">Standings</span>
+              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">Standings</span>
             </button>
           </div>
         </div>
