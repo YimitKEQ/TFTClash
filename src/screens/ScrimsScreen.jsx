@@ -314,7 +314,10 @@ export default function ScrimsScreen() {
       var scrimId = res.data.id;
       var pids = scrimRoster.map(function(p) { return p.id; }).filter(function(v) { return v; });
       if (pids.length > 0) {
-        addScrimPlayers(scrimId, pids).then(function() { reloadScrims(); });
+        addScrimPlayers(scrimId, pids).then(function(r) {
+          if (r && r.error) { toast('Scrim created but failed to add players: ' + r.error.message, 'error'); }
+          reloadScrims();
+        });
       } else {
         reloadScrims();
       }

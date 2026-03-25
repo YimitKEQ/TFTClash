@@ -162,7 +162,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
 
 // ── Featured (live/upcoming community events) tab ─────────────────────────────
 
-function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthClick, navigate }) {
+function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthClick, navigate, toast }) {
   var [filter, setFilter] = useState('all')
   var [sortBy, setSortBy] = useState('date')
   var allEvents = featuredEvents || []
@@ -202,7 +202,20 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
   })
 
   function handleRegister(ev) {
-    if (!setFeaturedEvents) return
+    if (!currentUser) { if (onAuthClick) { onAuthClick('login') } return }
+    if (!setFeaturedEvents) {
+      if (toast) toast('Registration opens soon', 'info')
+      return
+    }
+    var evRegIds = ev.registeredIds || []
+    if (evRegIds.indexOf(currentUser.username) !== -1) {
+      if (toast) toast('You are already registered', 'info')
+      return
+    }
+    if (ev.registered >= ev.size) {
+      if (toast) toast('This event is full', 'error')
+      return
+    }
     setFeaturedEvents(function(evts) {
       return evts.map(function(evt) {
         if (evt.id !== ev.id) return evt
@@ -212,6 +225,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
         })
       })
     })
+    if (toast) toast('Registered for ' + ev.name, 'success')
   }
 
   var hero = live.length > 0 ? live[0] : upcoming.length > 0 ? upcoming[0] : null
@@ -264,7 +278,13 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
               ) : (
                 <button
                   className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
-                  onClick={function() { navigate('/tournament/' + hero.id) }}
+                  onClick={function() {
+                    var evRegIds = hero.registeredIds || []
+                    var alreadyIn = evRegIds.indexOf(currentUser.username) !== -1
+                    if (alreadyIn) { navigate('/tournament/' + hero.id); return; }
+                    if (hero.registered >= hero.size) { navigate('/tournament/' + hero.id); return; }
+                    handleRegister(hero)
+                  }}
                 >
                   REGISTER NOW
                 </button>
@@ -684,7 +704,7 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
 export default function EventsScreen() {
   var { sub } = useParams()
   var navigate = useNavigate()
-  var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer } = useApp()
+  var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer, toast } = useApp()
 
   var activeTab = sub || 'featured'
 
@@ -731,6 +751,7 @@ export default function EventsScreen() {
             currentUser={currentUser}
             onAuthClick={handleAuthClick}
             navigate={navigate}
+            toast={toast}
           />
         )}
         {activeTab === 'tournaments' && (

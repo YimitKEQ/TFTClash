@@ -376,11 +376,35 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
             Share Summary
           </button>
           <button
-            onClick={function() { toast('Export coming soon', 'info') }}
+            onClick={function() {
+              var rows = [['Place', 'Player', 'Points', 'R1', 'R2', 'R3', 'Finals']]
+              sorted.forEach(function(p, i) {
+                var rp = (p.entry && p.entry.roundPlacements) || {}
+                var clashPts = (p.entry && (p.entry.clashPts || p.entry.pts)) || 0
+                rows.push([
+                  i + 1,
+                  p.name || p.username || '',
+                  clashPts,
+                  rp.r1 || '',
+                  rp.r2 || '',
+                  rp.r3 || '',
+                  rp.finals || ''
+                ])
+              })
+              var csv = rows.map(function(r) { return r.join(',') }).join('\n')
+              var blob = new Blob([csv], {type: 'text/csv'})
+              var url = URL.createObjectURL(blob)
+              var a = document.createElement('a')
+              a.href = url
+              a.download = (clashName ? clashName.replace(/\s+/g, '-').toLowerCase() : 'clash') + '-results.csv'
+              a.click()
+              URL.revokeObjectURL(url)
+              toast('Results exported', 'success')
+            }}
             className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-technical font-bold tracking-widest uppercase text-sm flex items-center gap-2 active:scale-95 transition-transform"
             >
             <Icon name="download" size={16} className="text-on-primary" />
-            Export Highlights
+            Export Results
           </button>
           <button
             onClick={function() { navigate('/bracket') }}
