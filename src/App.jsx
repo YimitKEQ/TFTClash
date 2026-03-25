@@ -6,38 +6,38 @@ import { DATA_VERSION, dbg } from './lib/constants.js';
 import { createNotification } from './lib/notifications.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext.jsx';
-import LoginScreenNew from './screens/LoginScreen';
-import SignUpScreenNew from './screens/SignUpScreen';
-import GuestHomeScreen from './screens/HomeScreen';
-import DashboardScreen from './screens/DashboardScreen';
-import LeaderboardScreenNew from './screens/LeaderboardScreen';
-import PlayerProfileScreenNew from './screens/PlayerProfileScreen';
-import StandingsScreenNew from './screens/StandingsScreen';
-import BracketScreenNew from './screens/BracketScreen';
-import PricingScreenNew from './screens/PricingScreen';
-import EventsScreenNew from './screens/EventsScreen';
-import ResultsScreenNew from './screens/ResultsScreen';
-import SeasonRecapScreenNew from './screens/SeasonRecapScreen';
-import ArchiveScreenNew from './screens/ArchiveScreen';
-import MilestonesScreenNew from './screens/MilestonesScreen';
-import ChallengesScreenNew from './screens/ChallengesScreen';
-import RulesScreenNew from './screens/RulesScreen';
-import FAQScreenNew from './screens/FAQScreen';
-import AccountScreenNew from './screens/AccountScreen';
-import PrivacyScreenNew from './screens/PrivacyScreen';
-import TermsScreenNew from './screens/TermsScreen';
-import ScrimsScreenNew from './screens/ScrimsScreen';
-import HostApplyScreenNew from './screens/HostApplyScreen';
-import HostDashboardScreenNew from './screens/HostDashboardScreen';
-import FlashTournamentScreenNew from './screens/FlashTournamentScreen';
-import TournamentDetailScreenNew from './screens/TournamentDetailScreen';
-import TournamentsListScreenNew from './screens/TournamentsListScreen';
-import AdminScreenNew from './screens/AdminScreen';
-import HofScreenNew from './screens/HofScreen';
-import GearScreenNew from './screens/GearScreen';
+var LoginScreenNew = React.lazy(function(){ return import('./screens/LoginScreen'); });
+var SignUpScreenNew = React.lazy(function(){ return import('./screens/SignUpScreen'); });
+var GuestHomeScreen = React.lazy(function(){ return import('./screens/HomeScreen'); });
+var DashboardScreen = React.lazy(function(){ return import('./screens/DashboardScreen'); });
+var LeaderboardScreenNew = React.lazy(function(){ return import('./screens/LeaderboardScreen'); });
+var PlayerProfileScreenNew = React.lazy(function(){ return import('./screens/PlayerProfileScreen'); });
+var StandingsScreenNew = React.lazy(function(){ return import('./screens/StandingsScreen'); });
+var BracketScreenNew = React.lazy(function(){ return import('./screens/BracketScreen'); });
+var PricingScreenNew = React.lazy(function(){ return import('./screens/PricingScreen'); });
+var EventsScreenNew = React.lazy(function(){ return import('./screens/EventsScreen'); });
+var ResultsScreenNew = React.lazy(function(){ return import('./screens/ResultsScreen'); });
+var SeasonRecapScreenNew = React.lazy(function(){ return import('./screens/SeasonRecapScreen'); });
+var ArchiveScreenNew = React.lazy(function(){ return import('./screens/ArchiveScreen'); });
+var MilestonesScreenNew = React.lazy(function(){ return import('./screens/MilestonesScreen'); });
+var ChallengesScreenNew = React.lazy(function(){ return import('./screens/ChallengesScreen'); });
+var RulesScreenNew = React.lazy(function(){ return import('./screens/RulesScreen'); });
+var FAQScreenNew = React.lazy(function(){ return import('./screens/FAQScreen'); });
+var AccountScreenNew = React.lazy(function(){ return import('./screens/AccountScreen'); });
+var PrivacyScreenNew = React.lazy(function(){ return import('./screens/PrivacyScreen'); });
+var TermsScreenNew = React.lazy(function(){ return import('./screens/TermsScreen'); });
+var ScrimsScreenNew = React.lazy(function(){ return import('./screens/ScrimsScreen'); });
+var HostApplyScreenNew = React.lazy(function(){ return import('./screens/HostApplyScreen'); });
+var HostDashboardScreenNew = React.lazy(function(){ return import('./screens/HostDashboardScreen'); });
+var FlashTournamentScreenNew = React.lazy(function(){ return import('./screens/FlashTournamentScreen'); });
+var TournamentDetailScreenNew = React.lazy(function(){ return import('./screens/TournamentDetailScreen'); });
+var TournamentsListScreenNew = React.lazy(function(){ return import('./screens/TournamentsListScreen'); });
+var AdminScreenNew = React.lazy(function(){ return import('./screens/AdminScreen'); });
+var HofScreenNew = React.lazy(function(){ return import('./screens/HofScreen'); });
+var GearScreenNew = React.lazy(function(){ return import('./screens/GearScreen'); });
 import PageLayout from './components/layout/PageLayout';
-import ClashScreenNew from './screens/ClashScreen';
-import NotFoundScreen from './screens/NotFoundScreen';
+var ClashScreenNew = React.lazy(function(){ return import('./screens/ClashScreen'); });
+var NotFoundScreen = React.lazy(function(){ return import('./screens/NotFoundScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -483,7 +483,7 @@ function TFTClash(){
 
     <>
 
-      <LoginScreenNew/>
+      <React.Suspense fallback={null}><LoginScreenNew/></React.Suspense>
 
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -499,7 +499,7 @@ function TFTClash(){
 
     <>
 
-      <SignUpScreenNew/>
+      <React.Suspense fallback={null}><SignUpScreenNew/></React.Suspense>
 
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -544,38 +544,15 @@ function TFTClash(){
       )}
 
       {(isLoadingData||isAuthLoading)&&(
-        <div style={{position:"fixed",inset:0,background:"#08080F",zIndex:9999,overflow:"hidden"}}>
-          {/* Skeleton navbar */}
-          <div style={{height:56,background:"#111827",borderBottom:"1px solid rgba(242,237,228,.06)",display:"flex",alignItems:"center",padding:"0 20px",gap:16}}>
-            <Skeleton width={120} height={20} radius={6}/>
-            <div style={{flex:1}}/>
-            <Skeleton width={60} height={14} radius={4}/>
-            <Skeleton width={60} height={14} radius={4}/>
-            <Skeleton width={60} height={14} radius={4}/>
-          </div>
-          {/* Skeleton content */}
-          <div style={{maxWidth:1200,margin:"0 auto",padding:"32px 24px",display:"grid",gridTemplateColumns:"1fr 340px",gap:24}}>
-            <div style={{display:"flex",flexDirection:"column",gap:16}}>
-              <Skeleton height={140} radius={12}/>
-              <Skeleton height={24} width={200} radius={6}/>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
-                <Skeleton height={80} radius={10}/>
-                <Skeleton height={80} radius={10}/>
-                <Skeleton height={80} radius={10}/>
-              </div>
-              <Skeleton height={200} radius={12}/>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",gap:14}}>
-              <Skeleton height={180} radius={12}/>
-              <Skeleton height={120} radius={12}/>
-              <Skeleton height={100} radius={12}/>
+        <div style={{position:"fixed",inset:0,background:"#13131a",zIndex:9999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:32}}>
+          <img src="/icon-border.png" alt="TFT Clash" style={{width:72,height:72,opacity:0.9}}/>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:800,fontStyle:"italic",color:"#E8A838",letterSpacing:"-0.02em",marginBottom:8}}>TFT CLASH</div>
+            <div style={{width:160,height:2,background:"rgba(232,168,56,0.15)",borderRadius:2,overflow:"hidden",margin:"0 auto"}}>
+              <div style={{height:"100%",background:"linear-gradient(90deg,transparent,#E8A838,transparent)",animation:"tft-scan 1.4s ease-in-out infinite"}}/>
             </div>
           </div>
-          {/* Loading indicator */}
-          <div style={{position:"fixed",bottom:40,left:"50%",transform:"translateX(-50%)",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:20,height:20,border:"2px solid rgba(155,114,207,.2)",borderTopColor:"#9B72CF",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-            <div style={{fontFamily:"'Inter',sans-serif",fontSize:12,color:"#6B7280",letterSpacing:"0.1em"}}>Loading TFT Clash...</div>
-          </div>
+          <style>{"@keyframes tft-scan{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}"}</style>
         </div>
       )}
 
@@ -589,6 +566,7 @@ function TFTClash(){
 
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
 
+        <React.Suspense fallback={null}>
         <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
         {screen==="home"&&!currentUser&&<GuestHomeScreen/>}
@@ -647,6 +625,7 @@ function TFTClash(){
         {screen==="not-found"&&<NotFoundScreen/>}
 
         </ScreenBoundary>
+        </React.Suspense>
 
       </div>
 
