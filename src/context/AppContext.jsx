@@ -260,9 +260,30 @@ export function AppProvider(props) {
                 var wins=hist.filter(function(g){return g.placement===1;}).length;
                 var top4=hist.filter(function(g){return g.placement<=4;}).length;
                 var avgP=hist.reduce(function(s,g){return s+g.placement;},0)/hist.length;
+                // Count distinct tournaments attended
+                var tournamentSet={};
+                hist.forEach(function(g){if(g.tournamentId)tournamentSet[g.tournamentId]=true;});
+                var totalClashes=Object.keys(tournamentSet).length||hist.length;
+                // Compute win streaks from history (consecutive wins from most recent)
+                var curStreak=0;
+                for(var ci=hist.length-1;ci>=0;ci--){
+                  if(hist[ci].placement===1)curStreak++;
+                  else break;
+                }
+                // Compute best win streak across entire history
+                var bestStr=0, runStr=0;
+                for(var bi=0;bi<hist.length;bi++){
+                  if(hist[bi].placement===1){runStr++;if(runStr>bestStr)bestStr=runStr;}
+                  else{runStr=0;}
+                }
+                // Attendance streak: consecutive tournaments with results (last N)
+                var tidList=Object.keys(tournamentSet).sort();
+                var attStreak=tidList.length;
                 return Object.assign({},p,{
                   pts:totalPts,wins:wins,top4:top4,games:hist.length,
-                  avg:avgP.toFixed(1),clashHistory:hist
+                  avg:avgP.toFixed(1),clashHistory:hist,
+                  currentStreak:curStreak,bestStreak:bestStr,
+                  attendanceStreak:attStreak,totalClashes:totalClashes
                 });
               });
             }

@@ -72,8 +72,19 @@ export default function ChallengesScreen() {
   var currentUser = ctx.currentUser;
   var players = ctx.players || [];
   var challengeCompletions = ctx.challengeCompletions || {};
+  var setChallengeCompletions = ctx.setChallengeCompletions;
+  var toast = ctx.toast;
   var seasonConfig = ctx.seasonConfig;
   var seasonName = (seasonConfig && seasonConfig.seasonName) || 'Season Battlepass';
+
+  function markComplete(challenge) {
+    if (!currentUser) { toast('Sign in to track challenge progress', 'error'); return; }
+    if (challengeCompletions[challenge.id]) return;
+    var newCompletions = Object.assign({}, challengeCompletions);
+    newCompletions[challenge.id] = { completedAt: new Date().toISOString(), xp: challenge.xp };
+    setChallengeCompletions(newCompletions);
+    toast('+' + challenge.xp + ' XP: ' + challenge.name + ' completed!', 'success');
+  }
 
   var [questTab, setQuestTab] = useState('daily');
   var [mainTab, setMainTab] = useState('active');
@@ -252,9 +263,19 @@ export default function ChallengesScreen() {
                           style={Object.assign({ width: pct + '%' }, progressStyle)}
                         />
                       </div>
-                      <div className="flex justify-between mt-2 font-mono text-[10px] text-on-surface/30">
-                        <span>PROGRESS</span>
-                        <span>{c.progress + ' / ' + c.goal + ' COMPLETED'}</span>
+                      <div className="flex justify-between items-center mt-2">
+                        <div className="font-mono text-[10px] text-on-surface/30 flex gap-4">
+                          <span>PROGRESS</span>
+                          <span>{c.progress + ' / ' + c.goal + ' COMPLETED'}</span>
+                        </div>
+                        {!done && currentUser && (
+                          <button
+                            onClick={function() { markComplete(c); }}
+                            className="font-mono text-[10px] uppercase tracking-widest text-primary/70 hover:text-primary border border-primary/20 hover:border-primary/50 px-2 py-0.5 transition-colors"
+                          >
+                            Mark Done
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

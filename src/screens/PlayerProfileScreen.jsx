@@ -190,7 +190,11 @@ export default function PlayerProfileScreen() {
   var setComparePlayer = ctx.setComparePlayer;
   var toast = ctx.toast;
 
-  var player = players.find(function(p) { return p.name === params.name; }) || ctx.profilePlayer;
+  var subRoute = ctx.subRoute || '';
+  var urlName = params.name || subRoute;
+  var player = ctx.profilePlayer
+    || (urlName && players.find(function(p) { return p.name === urlName || p.username === urlName; }))
+    || null;
 
   var _tab = useState('overview');
   var tab = _tab[0];

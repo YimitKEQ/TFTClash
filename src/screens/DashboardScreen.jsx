@@ -257,20 +257,8 @@ function SeasonTrajectoryCard({ linkedPlayer, s2, clashHistory, pointsTrend, las
       {pointsTrend.length >= 2 ? (
         <SparklineBars data={pointsTrend} />
       ) : (
-        <div className="h-24 w-full flex items-end gap-1 overflow-hidden">
-          {[20, 25, 45, 40, 60, 55, 80, 75, 90].map(function (pct, i) {
-            var isLast = i === 8
-            return (
-              <div
-                key={i}
-                className={'w-full rounded-t-sm ' + (!isLast ? 'bg-secondary/' + (10 + i * 10) : '')}
-                style={{
-                  height: pct + '%',
-                  background: isLast ? 'linear-gradient(to top, rgba(217,185,255,0.4), rgba(217,185,255,1))' : undefined
-                }}
-              />
-            )
-          })}
+        <div className="h-24 w-full flex items-center justify-center">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface/20">Play your first clash to see trajectory</span>
         </div>
       )}
     </div>
