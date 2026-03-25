@@ -269,11 +269,8 @@ export default function Navbar() {
             onClick={function() { navTo('home'); }}
             className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
           >
-            <img src="/icon-border.png" alt="TFT Clash" className="w-9 h-9 object-contain drop-shadow-[0_0_12px_rgba(155,114,207,0.6)]" />
-            <div>
-              <div className="font-display font-bold text-sm text-primary uppercase tracking-tight leading-none">TFT Clash</div>
-              <div className="font-sans text-[10px] text-on-surface/40 uppercase tracking-widest font-semibold mt-0.5">Season 1</div>
-            </div>
+            <img src="/icon-border.png" alt="TFT Clash" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(232,168,56,0.4)]" />
+            <span className="font-display font-black italic text-xl text-primary uppercase tracking-tighter leading-none">TFT CLASH</span>
           </div>
 
           {/* Desktop nav links */}
