@@ -455,6 +455,13 @@ export function AppProvider(props) {
   // ── useEffect: sync isAdmin from currentUser.is_admin (DB source of truth only) ──
   useEffect(function(){
     setIsAdmin(!!(currentUser && currentUser.is_admin === true));
+    // Ensure user_roles entry exists for admins so RLS policies work correctly
+    if(currentUser && currentUser.is_admin === true && currentUser.auth_user_id && supabase.from){
+      supabase.from('user_roles').upsert(
+        {user_id: currentUser.auth_user_id, role: 'admin'},
+        {onConflict: 'user_id,role'}
+      );
+    }
   }, [currentUser]);
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);

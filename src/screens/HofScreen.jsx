@@ -251,6 +251,19 @@ export default function HofScreen(props) {
         </div>
 
         {/* Season Champions Wall */}
+        {SEASON_CHAMPS.length === 0 && (
+          <div>
+            <h3 className="font-technical text-primary tracking-[0.4em] text-xs mb-8">
+              SEASON CHAMPIONS
+            </h3>
+            <div className="p-12 text-center bg-surface-container border border-outline-variant/10">
+              <Icon name="workspace_premium" size={48} className="mx-auto mb-4 text-on-surface/20" />
+              <p className="font-technical text-on-surface-variant/50 tracking-widest text-xs">
+                No champions yet - be the first!
+              </p>
+            </div>
+          </div>
+        )}
         {SEASON_CHAMPS.length > 0 && (
           <div>
             <h3 className="font-technical text-primary tracking-[0.4em] text-xs mb-8">

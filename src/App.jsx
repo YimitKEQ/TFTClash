@@ -37,6 +37,7 @@ import HofScreenNew from './screens/HofScreen';
 import GearScreenNew from './screens/GearScreen';
 import PageLayout from './components/layout/PageLayout';
 import ClashScreenNew from './screens/ClashScreen';
+import NotFoundScreen from './screens/NotFoundScreen';
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -209,6 +210,8 @@ function TFTClash(){
     if(segs[0]==="standings"&&segs[1]){navSourceRef.current="router";setScreen("standings");setSubRoute(segs[1]);return;}
     // Events sub-routes
     if(segs[0]==="events"&&segs[1]){navSourceRef.current="router";setScreen("events");setSubRoute(segs[1]);return;}
+    // No match - 404
+    navSourceRef.current="router";setScreen("not-found");
   },[location.pathname]);
   var players=ctx.players, setPlayers=ctx.setPlayers;
   var isLoadingData=ctx.isLoadingData;
@@ -640,6 +643,8 @@ function TFTClash(){
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreenNew/>}
 
         {screen==="admin"&&<AdminScreenNew/>}
+
+        {screen==="not-found"&&<NotFoundScreen/>}
 
         </ScreenBoundary>
 

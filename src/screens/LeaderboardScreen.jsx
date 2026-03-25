@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import { REGIONS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
+import { Icon } from '../components/ui'
 
 var MEDAL_COLORS = ['#E8A838', '#C0C0C0', '#CD7F32']
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
@@ -53,7 +54,7 @@ function PodiumCard({ player, rank, onClick }) {
       <div className="order-1 md:order-2 flex flex-col items-center -translate-y-8">
         <div className="relative group cursor-pointer mb-6" onClick={onClick}>
           <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-            <span className="material-symbols-outlined text-primary text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+            <Icon name="workspace_premium" fill size={48} className="text-primary" />
           </div>
           <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center gold-glow-boss">
             <span className="font-headline text-5xl font-bold text-primary">{initial}</span>
@@ -122,7 +123,7 @@ function TableRow({ player, rank, isMe, onClick }) {
         <td className="px-8 py-5 font-mono text-secondary text-sm">{(player.pts || 0) + ' pts'}</td>
         <td className="px-8 py-5 font-mono text-secondary text-sm">{stats.avgPlacement}</td>
         <td className="px-8 py-5 text-right">
-          <span className={'material-symbols-outlined align-middle ' + trendColor}>{trendIcon}</span>
+          <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
         </td>
       </tr>
     )
@@ -142,7 +143,7 @@ function TableRow({ player, rank, isMe, onClick }) {
       <td className="px-8 py-5 font-mono text-tertiary text-sm">{(player.pts || 0) + ' pts'}</td>
       <td className="px-8 py-5 font-mono text-on-surface-variant text-sm">{stats.avgPlacement}</td>
       <td className="px-8 py-5 text-right">
-        <span className={'material-symbols-outlined align-middle ' + trendColor}>{trendIcon}</span>
+        <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
       </td>
     </tr>
   )
@@ -282,7 +283,7 @@ export default function LeaderboardScreen(props) {
                   return <option key={r} value={r}>{r}</option>
                 })}
               </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">expand_more</span>
+              <Icon name="expand_more" size={18} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline" />
             </div>
             <div className="relative">
               <select
@@ -294,13 +295,13 @@ export default function LeaderboardScreen(props) {
                   return <option key={t} value={t}>{t === 'All' ? 'All Tiers' : t}</option>
                 })}
               </select>
-              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">expand_more</span>
+              <Icon name="expand_more" size={18} className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline" />
             </div>
           </div>
 
           <div className="flex items-center gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-96 group">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors text-lg">search</span>
+              <Icon name="search" size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" />
               <input
                 type="text"
                 value={search}
@@ -315,7 +316,7 @@ export default function LeaderboardScreen(props) {
                 onClick={handleMyPosition}
                 className="flex-shrink-0 flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed px-4 py-3 rounded-full font-label font-bold tracking-widest uppercase text-xs shadow-xl active:scale-95 transition-all whitespace-nowrap"
               >
-                <span className="material-symbols-outlined text-sm">my_location</span>
+                <Icon name="my_location" size={14} />
                 {'#' + (myIdx + 1)}
               </button>
             )}
@@ -325,14 +326,14 @@ export default function LeaderboardScreen(props) {
         {/* Table Container */}
         {isLoadingData && players.length === 0 && (
           <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
-            <span className="material-symbols-outlined text-on-surface/20 text-5xl block mb-4 animate-pulse">hourglass_empty</span>
+            <Icon name="hourglass_empty" size={48} className="text-on-surface/20 block mb-4 animate-pulse mx-auto" />
             <div className="font-headline text-xl text-on-surface mb-2">Loading standings...</div>
             <div className="text-sm text-on-surface-variant">Fetching player data from the arena.</div>
           </div>
         )}
         {!isLoadingData && sorted.length === 0 && (
           <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
-            <span className="material-symbols-outlined text-on-surface/20 text-5xl block mb-4">leaderboard</span>
+            <Icon name="leaderboard" size={48} className="text-on-surface/20 block mb-4 mx-auto" />
             <div className="font-headline text-xl text-on-surface mb-2">No players found</div>
             <div className="text-sm text-on-surface-variant">
               {search || regionFilter !== 'All' || tierFilter !== 'All'

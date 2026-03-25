@@ -207,12 +207,7 @@ export default function SeasonRecapScreen() {
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
             <div className="relative mb-6">
-              <span
-                className="material-symbols-outlined text-primary"
-                style={{ fontSize: 96, fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48" }}
-              >
-                military_tech
-              </span>
+              <Icon name="military_tech" fill size={96} className="text-primary" />
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-surface px-4 py-1 rounded-full border border-primary/30 shadow-xl whitespace-nowrap">
                 <span className="font-mono text-primary font-bold text-sm">{topPct}</span>
               </div>
@@ -228,12 +223,7 @@ export default function SeasonRecapScreen() {
 
           {/* Narrative performance summary */}
           <div className="md:col-span-8 p-10 bg-surface-container-low rounded-sm flex flex-col justify-center">
-            <span
-              className="material-symbols-outlined text-primary mb-4"
-              style={{ fontSize: 32, fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
-            >
-              format_quote
-            </span>
+            <Icon name="format_quote" fill size={32} className="text-primary mb-4" />
             <p className="text-2xl font-serif text-on-surface leading-snug">
               {narrativeParts.map(function(part, idx) {
                 if (part.italic) {
@@ -257,12 +247,7 @@ export default function SeasonRecapScreen() {
             </h3>
             <div className="font-mono text-4xl font-bold text-primary">{(player.pts || 0).toLocaleString()}</div>
             <div className="mt-2 text-[10px] text-tertiary flex items-center justify-center gap-1 font-mono">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 12, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 12" }}
-              >
-                trending_up
-              </span>
+              <Icon name="trending_up" size={12} />
               {'#' + position + ' overall'}
             </div>
           </div>
@@ -304,12 +289,7 @@ export default function SeasonRecapScreen() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] to-background" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <span
-                className="material-symbols-outlined text-primary opacity-20 group-hover:opacity-30 transition-opacity duration-500"
-                style={{ fontSize: 160, fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48" }}
-              >
-                trophy
-              </span>
+              <Icon name="trophy" fill size={160} className="text-primary opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
             </div>
             <div className="absolute bottom-8 left-8 z-20">
               <h4 className="font-serif text-3xl font-bold">The Obsidian Trophy</h4>
@@ -318,12 +298,7 @@ export default function SeasonRecapScreen() {
               </p>
             </div>
             <div className="absolute top-8 right-8 z-20">
-              <span
-                className="material-symbols-outlined text-primary/20"
-                style={{ fontSize: 64, fontVariationSettings: "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48" }}
-              >
-                trophy
-              </span>
+              <Icon name="trophy" size={64} className="text-primary/20" />
             </div>
           </div>
 

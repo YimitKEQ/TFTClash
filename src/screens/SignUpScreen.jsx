@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
+import { Icon } from '../components/ui'
 
 export default function SignUpScreen() {
   var ctx = useApp()
@@ -195,9 +196,7 @@ export default function SignUpScreen() {
                       onChange={function (e) { setEmail(e.target.value); if (emailErr) setEmailErr('') }}
                       className={inputClass}
                     />
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 text-lg select-none">
-                      alternate_email
-                    </span>
+                    <Icon name="alternate_email" size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 select-none" />
                   </div>
                   {emailErr && <p className="text-error text-xs font-condensed uppercase tracking-wide mt-1">{emailErr}</p>}
                 </div>
@@ -215,9 +214,7 @@ export default function SignUpScreen() {
                       onChange={function (e) { setUsername(e.target.value); if (usernameErr) setUsernameErr('') }}
                       className={inputClass}
                     />
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 text-lg select-none">
-                      person
-                    </span>
+                    <Icon name="person" size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 select-none" />
                   </div>
                   {usernameErr && <p className="text-error text-xs font-condensed uppercase tracking-wide mt-1">{usernameErr}</p>}
                 </div>
@@ -235,9 +232,7 @@ export default function SignUpScreen() {
                       onChange={function (e) { setPw(e.target.value); if (pwErr) setPwErr('') }}
                       className={inputClass}
                     />
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 text-lg select-none">
-                      lock
-                    </span>
+                    <Icon name="lock" size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 select-none" />
                   </div>
                   {pwErr && <p className="text-error text-xs font-condensed uppercase tracking-wide mt-1">{pwErr}</p>}
                 </div>
@@ -256,9 +251,7 @@ export default function SignUpScreen() {
                       onKeyDown={function (e) { if (e.key === 'Enter') handleSubmit() }}
                       className={inputClass}
                     />
-                    <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 text-lg select-none">
-                      lock_reset
-                    </span>
+                    <Icon name="lock_reset" size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface/20 select-none" />
                   </div>
                   {pw2Err && <p className="text-error text-xs font-condensed uppercase tracking-wide mt-1">{pw2Err}</p>}
                 </div>

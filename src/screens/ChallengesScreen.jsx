@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { DAILY_CHALLENGES, WEEKLY_CHALLENGES, estimateXp, getXpProgress } from '../lib/stats.js'
 import PageLayout from '../components/layout/PageLayout'
+import { Icon } from '../components/ui'
 
 var MATERIAL_ICON_MAP = {
   'fire': 'local_fire_department',
@@ -237,12 +238,7 @@ export default function ChallengesScreen() {
                     className={'bg-surface-container-low p-6 flex items-center gap-6 group hover:bg-surface-container transition-colors ' + borderAccent}
                   >
                     <div className="w-16 h-16 bg-surface-container-high flex items-center justify-center border border-outline-variant/20 flex-shrink-0">
-                      <span
-                        className={'material-symbols-outlined text-3xl ' + accentColor}
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        {iconName}
-                      </span>
+                      <Icon name={iconName} fill size={28} className={accentColor} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-2">
@@ -357,7 +353,7 @@ export default function ChallengesScreen() {
 
             {completedChallenges.length === 0 ? (
               <div className="bg-surface-container-low p-12 text-center">
-                <span className="material-symbols-outlined text-on-surface/20 text-6xl block mb-4">workspace_premium</span>
+                <Icon name="workspace_premium" size={56} className="text-on-surface/20 block mb-4 mx-auto" />
                 <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No completed challenges yet</p>
                 <p className="text-xs text-on-surface/30 mt-2 font-body">Keep playing to unlock rewards</p>
               </div>
@@ -367,9 +363,7 @@ export default function ChallengesScreen() {
                   return (
                     <div key={c.id} className="bg-surface-container-low p-5 flex items-center gap-5 border-l-4 border-tertiary/50">
                       <div className="w-12 h-12 bg-surface-container-high flex items-center justify-center border border-tertiary/20 flex-shrink-0">
-                        <span className="material-symbols-outlined text-tertiary text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-                          check_circle
-                        </span>
+                        <Icon name="check_circle" fill size={22} className="text-tertiary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-serif text-lg text-tertiary">{c.name}</h3>
@@ -391,7 +385,7 @@ export default function ChallengesScreen() {
               <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
             </div>
             <div className="bg-surface-container-low p-12 text-center">
-              <span className="material-symbols-outlined text-on-surface/20 text-6xl block mb-4">history</span>
+              <Icon name="history" size={56} className="text-on-surface/20 block mb-4 mx-auto" />
               <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No XP history yet</p>
               <p className="text-xs text-on-surface/30 mt-2 font-body">Complete challenges to build your XP history</p>
             </div>

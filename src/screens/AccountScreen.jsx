@@ -1301,12 +1301,12 @@ export default function AccountScreen() {
                           opacity: unlocked ? 1 : 0.5,
                         }}
                       >
-                        <span
-                          className="material-symbols-outlined flex-shrink-0"
-                          style={{ color: unlocked ? col : '#9AAABF', fontSize: 22 }}
-                        >
-                          {a.icon === 'trophy' ? 'emoji_events' : a.icon === 'fire' || a.icon === 'flame' ? 'local_fire_department' : a.icon === 'star' ? 'star' : a.icon === 'shield' ? 'shield' : a.icon === 'target' || a.icon === 'bullseye' ? 'my_location' : 'military_tech'}
-                        </span>
+                        <Icon
+                          name={a.icon === 'trophy' ? 'emoji_events' : a.icon === 'fire' || a.icon === 'flame' ? 'local_fire_department' : a.icon === 'star' ? 'star' : a.icon === 'shield' ? 'shield' : a.icon === 'target' || a.icon === 'bullseye' ? 'my_location' : 'military_tech'}
+                          size={22}
+                          className="flex-shrink-0"
+                          style={{ color: unlocked ? col : '#9AAABF' }}
+                        />
                         <div className="min-w-0">
                           <div className="font-sans-cond text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : '#9AAABF' }}>{a.name}</div>
                           <div className="text-on-surface/40 text-xs font-body mt-0.5">{a.desc}</div>

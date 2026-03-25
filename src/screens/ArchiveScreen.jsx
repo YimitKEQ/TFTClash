@@ -265,8 +265,19 @@ export default function ArchiveScreen() {
                 <tbody className="divide-y divide-white/5">
                   {filteredMinor.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-8 py-10 text-center text-sm text-slate-500">
-                        No events match your search.
+                      <td colSpan={5} className="px-8 py-12 text-center">
+                        {minorEvents.length === 0 ? (
+                          <div>
+                            <div className="font-condensed text-on-surface/20 text-5xl mb-4 block">
+                              <Icon name="history" size={48} className="mx-auto text-on-surface/20" />
+                            </div>
+                            <p className="text-sm text-slate-500">
+                              Season archive coming soon - check back after Season 1 completes.
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-500">No events match your search.</p>
+                        )}
                       </td>
                     </tr>
                   )}

@@ -153,7 +153,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                   <span className="font-display text-2xl text-primary w-8">{RANK_LABELS[i]}</span>
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center border border-primary/20">
-                      <span className="material-symbols-outlined text-primary">military_tech</span>
+                      <Icon name="military_tech" size={20} className="text-primary" />
                     </div>
                     <div>
                       <h3 className="font-bold text-on-surface">{player.name}</h3>
@@ -194,7 +194,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                 <span className="font-display text-2xl text-on-surface-variant w-8">{RANK_LABELS[i]}</span>
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded bg-surface-container-highest flex items-center justify-center">
-                    <span className="material-symbols-outlined text-on-surface-variant">person</span>
+                    <Icon name="person" size={20} className="text-on-surface-variant" />
                   </div>
                   <div>
                     <h3 className="font-bold text-on-surface">{player.name}</h3>
@@ -407,9 +407,7 @@ export default function HomeScreen() {
           }
         }}
       >
-        <span className="material-symbols-outlined text-on-primary-fixed group-hover:scale-110 transition-transform text-3xl">
-          {currentUser ? 'dashboard' : 'add_circle'}
-        </span>
+        <Icon name={currentUser ? 'dashboard' : 'add_circle'} size={30} className="text-on-primary-fixed group-hover:scale-110 transition-transform" />
       </button>
     </PageLayout>
   )
