@@ -79,7 +79,7 @@ button:active:not(:disabled){transform:scale(0.97);}
 
 select option{background:#1C2030;color:#F2EDE4;}
 
-h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-spacing:.01em;}
+h1,h2,h3,h4{font-weight:700;letter-spacing:.01em;}
 
 /* ── readability: dim text never goes below 55% opacity ─────── */
 /* Tailwind /30 and /40 are nearly invisible on dark surfaces    */
@@ -92,9 +92,9 @@ h1,h2,h3,h4{font-family:'Playfair Display',Georgia,serif;font-weight:700;letter-
 .text-\[10px\]{font-size:11px!important;}
 .text-\[11px\]{font-size:11.5px!important;}
 
-.mono{font-family:'Inter',sans-serif!important;}
+.mono{font-family:'JetBrains Mono',monospace!important;}
 
-.cond{font-family:'Inter',sans-serif!important;}
+.cond{font-family:'Barlow Condensed',sans-serif!important;}
 
 
 
