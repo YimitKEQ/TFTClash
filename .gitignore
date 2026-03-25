@@ -6,3 +6,15 @@ dist
 **/.env.*
 .DS_Store
 *.log
+
+# Design assets
+stitch.zip
+stitch/
+stitch_raw.txt
+
+# Supabase temp
+supabase/.temp/
+
+# Local tool configs
+.claude/
+.superpowers/
