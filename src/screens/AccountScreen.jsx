@@ -513,33 +513,85 @@ export default function AccountScreen() {
 
                         {isPro ? (
                           <div className="space-y-4">
-                            <div className="space-y-1">
-                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Picture URL</label>
-                              <input
-                                type="text"
-                                value={profilePic}
-                                onChange={function(e) { setProfilePic(e.target.value); }}
-                                placeholder="https://i.imgur.com/your-pic.png"
-                                className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
-                              />
-                              {profilePic && (
-                                <div className="flex items-center gap-3 mt-2">
-                                  <div className="w-10 h-10 rounded-lg border border-outline-variant/30" style={{ background: 'url(' + profilePic + ') center/cover' }} />
-                                  <span className="text-[11px] text-tertiary">Preview</span>
+                            <div className="space-y-2">
+                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Picture</label>
+                              <div className="flex items-center gap-4">
+                                <div
+                                  className="w-16 h-16 rounded-lg border-2 border-outline-variant/30 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
+                                  style={{ background: profilePic ? ('url(' + profilePic + ') center/cover no-repeat') : ('linear-gradient(135deg,' + rankColor + '44,' + rankColor + '11)') }}
+                                >
+                                  {!profilePic && <span className="text-2xl font-black" style={{ color: rankColor }}>{avatarInitial}</span>}
+                                  <label className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-lg">
+                                    <Icon name="photo_camera" size={20} className="text-white" />
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={function(e) {
+                                        var file = e.target.files[0];
+                                        if (!file) return;
+                                        if (file.size > 2 * 1024 * 1024) { toast('Max 2MB per file', 'error'); return; }
+                                        var ext = file.name.split('.').pop();
+                                        var path = user.id + '/avatar.' + ext;
+                                        supabase.storage.from('avatars').upload(path, file, { upsert: true }).then(function(res) {
+                                          if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
+                                          var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
+                                          setProfilePic(urlResult.data.publicUrl);
+                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', user.id);
+                                          toast('Photo uploaded!', 'success');
+                                        });
+                                      }}
+                                    />
+                                  </label>
                                 </div>
-                              )}
+                                <div className="flex-1 space-y-1">
+                                  <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/30">Or paste URL</label>
+                                  <input
+                                    type="text"
+                                    value={profilePic}
+                                    onChange={function(e) { setProfilePic(e.target.value); }}
+                                    placeholder="https://i.imgur.com/your-pic.png"
+                                    className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
+                                  />
+                                </div>
+                              </div>
                             </div>
-                            <div className="space-y-1">
-                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Banner Image URL</label>
-                              <input
-                                type="text"
-                                value={bannerUrl}
-                                onChange={function(e) { setBannerUrl(e.target.value); }}
-                                placeholder="https://i.imgur.com/your-banner.png"
-                                className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
-                              />
-                              <p className="text-[11px] text-on-surface/30">Recommended: 1500x500 or similar wide aspect ratio.</p>
-                              {bannerUrl && <div className="mt-2 h-12 rounded border border-outline-variant/20" style={{ background: 'url(' + bannerUrl + ') center/cover' }} />}
+                            <div className="space-y-2">
+                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Banner Image</label>
+                              {bannerUrl && <div className="h-16 rounded border border-outline-variant/20" style={{ background: 'url(' + bannerUrl + ') center/cover' }} />}
+                              <label className="flex items-center gap-3 bg-surface-container border border-outline-variant/20 rounded px-4 py-3 cursor-pointer hover:bg-surface-container-high transition-colors">
+                                <Icon name="photo_camera" size={18} className="text-on-surface/60" />
+                                <span className="font-sans-cond text-xs uppercase tracking-widest text-on-surface/60">Upload Banner</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={function(e) {
+                                    var file = e.target.files[0];
+                                    if (!file) return;
+                                    if (file.size > 5 * 1024 * 1024) { toast('Max 5MB per banner', 'error'); return; }
+                                    var ext = file.name.split('.').pop();
+                                    var path = user.id + '/banner.' + ext;
+                                    supabase.storage.from('avatars').upload(path, file, { upsert: true }).then(function(res) {
+                                      if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
+                                      var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
+                                      setBannerUrl(urlResult.data.publicUrl);
+                                      toast('Banner uploaded!', 'success');
+                                    });
+                                  }}
+                                />
+                              </label>
+                              <div className="space-y-1">
+                                <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/30">Or paste URL</label>
+                                <input
+                                  type="text"
+                                  value={bannerUrl}
+                                  onChange={function(e) { setBannerUrl(e.target.value); }}
+                                  placeholder="https://i.imgur.com/your-banner.png"
+                                  className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
+                                />
+                                <p className="text-[11px] text-on-surface/30">Recommended: 1500x500 or similar wide aspect ratio.</p>
+                              </div>
                             </div>
                             <div className="space-y-2">
                               <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Accent Color</label>

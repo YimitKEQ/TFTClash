@@ -94,7 +94,7 @@ export default function PricingScreen() {
   }
 
   function handleContactSupport() {
-    navigate('/faq')
+    window.location.href = 'mailto:support@tftclash.com'
   }
 
   var isPlayer = userTier === 'free'
@@ -329,7 +329,7 @@ export default function PricingScreen() {
                 onClick={handleContactSupport}
                 className="bg-surface-container-highest px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest border border-outline-variant/20 hover:bg-surface-variant transition-colors"
               >
-                Contact Support
+                Email Support
               </button>
             </div>
           </div>

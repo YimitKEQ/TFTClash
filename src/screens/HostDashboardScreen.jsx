@@ -365,11 +365,12 @@ export default function HostDashboardScreen() {
     var setUploading = type === "logo" ? setUploadingLogo : setUploadingBanner;
     var setUrl = type === "logo" ? setBrandLogoUrl : setBrandBannerUrl;
     setUploading(true);
-    var path = "host-images/" + (currentUser ? currentUser.id : "anon") + "/" + type + "-" + Date.now() + "-" + file.name;
-    supabase.storage.from("host-assets").upload(path, file, { cacheControl: "3600", upsert: true }).then(function(res) {
+    var ext = file.name.split('.').pop();
+    var path = "host-" + (currentUser ? currentUser.id : "anon") + "/" + type + "." + ext;
+    supabase.storage.from("avatars").upload(path, file, { cacheControl: "3600", upsert: true }).then(function(res) {
       setUploading(false);
       if (res.error) { toast("Upload failed: " + res.error.message, "error"); return; }
-      var url = supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
+      var url = supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
       setUrl(url);
       toast((type === "logo" ? "Logo" : "Banner") + " uploaded!", "success");
     });
