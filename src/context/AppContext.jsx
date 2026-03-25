@@ -238,7 +238,7 @@ export function AppProvider(props) {
             pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
             avg:r.avg_placement?String(r.avg_placement):"0",
             banned:!!r.banned,dnpCount:r.dnp_count||0,notes:r.notes||'',checkedIn:!!r.checked_in,
-            profilePicUrl:r.profile_pic_url||'',
+            profilePicUrl:r.avatar_url||r.profile_pic_url||'',
             clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
             tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
             role:r.role||"player",sponsor:r.sponsor_json||null,
