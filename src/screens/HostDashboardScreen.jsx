@@ -479,33 +479,43 @@ export default function HostDashboardScreen() {
         }]);
       });
     }
+    var savedWizData = Object.assign({}, wizData);
     if (supabase.from) {
       supabase.from("tournaments").insert({
-        name: wizData.name,
-        date: wizData.date,
-        type: wizData.type,
-        total_games: wizData.totalGames,
-        max_players: wizData.maxPlayers,
+        name: savedWizData.name,
+        date: savedWizData.date,
+        type: savedWizData.type,
+        total_games: savedWizData.totalGames,
+        max_players: savedWizData.maxPlayers,
+        status: "upcoming",
+        created_by: currentUser ? currentUser.id : null,
         host_id: currentUser ? currentUser.id : null,
-        branding_json: { accent_color: wizData.accentColor }
+        branding_json: { accent_color: savedWizData.accentColor }
       }).select().single().then(function(res) {
         setWizCreating(false);
-        if (res && res.error) { console.error("[TFT] wizard tournament create failed:", res.error); }
-        else if (res && res.data) {
+        if (res && res.error) {
+          toast("Failed to create tournament: " + res.error.message, "error");
+          return;
+        }
+        if (res && res.data) {
           var dbId = res.data.id;
-          setTournaments(function(ts) { return ts.map(function(t) { return t.name === wizData.name && !t.dbId ? Object.assign({}, t, { dbId: dbId }) : t; }); });
+          setTournaments(function(ts) { return ts.map(function(t) { return t.name === savedWizData.name && !t.dbId ? Object.assign({}, t, { dbId: dbId }) : t; }); });
           if (setFeaturedEvents) {
-            setFeaturedEvents(function(evts) { return evts.map(function(ev) { return ev.name === wizData.name && !ev.dbTournamentId ? Object.assign({}, ev, { dbTournamentId: dbId }) : ev; }); });
+            setFeaturedEvents(function(evts) { return evts.map(function(ev) { return ev.name === savedWizData.name && !ev.dbTournamentId ? Object.assign({}, ev, { dbTournamentId: dbId }) : ev; }); });
           }
         }
+        setShowCreate(false);
+        setWizStep(0);
+        setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
+        toast(savedWizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
       });
     } else {
       setWizCreating(false);
+      setShowCreate(false);
+      setWizStep(0);
+      setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
+      toast(savedWizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
     }
-    setShowCreate(false);
-    setWizStep(0);
-    setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
-    toast(wizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
   }
 
   function saveBranding() {

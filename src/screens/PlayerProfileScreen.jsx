@@ -201,7 +201,8 @@ export default function PlayerProfileScreen() {
 
   var pBio = player ? (player.bio || (userMeta && userMeta.bio) || '') : '';
   var pTwitch = player ? (player.twitch || (userMeta && userMeta.twitch) || '') : '';
-  var pTwitter = player ? (player.twitter || (userMeta && userMeta.twitter) || '') : '';
+  var pTwitterRaw = player ? (player.twitter || (userMeta && userMeta.twitter) || '') : '';
+  var pTwitter = pTwitterRaw.charAt(0) === '@' ? pTwitterRaw.slice(1) : pTwitterRaw;
   var pYoutube = player ? (player.youtube || (userMeta && userMeta.youtube) || '') : '';
   var pPic = player ? (player.profile_pic_url || (userMeta && userMeta.profilePic) || player.profilePic || '') : '';
   var pBanner = player ? ((userMeta && userMeta.bannerUrl) || player.bannerUrl || '') : '';

@@ -270,6 +270,14 @@ export default function AdminScreen() {
   var auditSource = _auditSource[0]
   var setAuditSource = _auditSource[1]
 
+  var _disputes = useState([])
+  var disputes = _disputes[0]
+  var setDisputes = _disputes[1]
+
+  var _disputesLoading = useState(false)
+  var disputesLoading = _disputesLoading[0]
+  var setDisputesLoading = _disputesLoading[1]
+
   var _serverVal = useState(tournamentState && tournamentState.server || 'EU')
   var serverVal = _serverVal[0]
   var setServerVal = _serverVal[1]
@@ -307,6 +315,15 @@ export default function AdminScreen() {
       }
     })
   }, [])
+
+  useEffect(function() {
+    if (tab !== 'disputes') return
+    setDisputesLoading(true)
+    supabase.from('disputes').select('*, players!player_id(username)').order('created_at', { ascending: false }).limit(50).then(function(res) {
+      setDisputesLoading(false)
+      if (res.data) setDisputes(res.data)
+    })
+  }, [tab])
 
   if (!isAdmin) {
     return (
@@ -433,6 +450,7 @@ export default function AdminScreen() {
       { id: 'ticker', label: 'Ticker' },
     ]},
     { label: 'SYSTEM', items: [
+      { id: 'disputes', label: 'Disputes' + (disputes.filter(function(d) { return d.status === 'pending' }).length > 0 ? ' (' + disputes.filter(function(d) { return d.status === 'pending' }).length + ')' : '') },
       { id: 'audit', label: 'Audit Log' },
       { id: 'settings', label: 'Settings' },
     ]},
@@ -448,6 +466,7 @@ export default function AdminScreen() {
     hosts: 'Review host applications submitted via the Pricing page. Approved hosts get lobby management access.',
     season: 'Season name, health rules, and Danger Zone.',
     sponsorships: 'Assign org sponsors to players.',
+    disputes: 'Player-submitted disputes and reports. Resolve or dismiss each one.',
     audit: 'Full chronological log of every admin action.',
     settings: 'Role permission reference and admin quickstart guide.',
     featured: 'Manage featured events shown on the Featured Events page.',
@@ -1371,6 +1390,77 @@ export default function AdminScreen() {
                   setSpForm({ name: '', logo: '', color: '', playerId: '' })
                 }}>Add Sponsorship</Btn>
               </Panel>
+            </div>
+          )}
+
+          {/* ── DISPUTES ── */}
+          {tab === 'disputes' && (
+            <div>
+              <div className="flex items-center gap-3 mb-4">
+                <h2 className="text-on-surface font-bold text-base">Player Disputes</h2>
+                {disputes.filter(function(d) { return d.status === 'pending' }).length > 0 && (
+                  <span className="px-2 py-0.5 rounded-sm text-[11px] font-bold bg-error/10 border border-error/30 text-error">
+                    {disputes.filter(function(d) { return d.status === 'pending' }).length} pending
+                  </span>
+                )}
+              </div>
+              {disputesLoading && (
+                <div className="text-center py-12 text-on-surface/40 text-sm">Loading disputes...</div>
+              )}
+              {!disputesLoading && disputes.length === 0 && (
+                <Panel>
+                  <div className="text-center py-10 text-on-surface/40 text-sm">No disputes on record.</div>
+                </Panel>
+              )}
+              {!disputesLoading && disputes.length > 0 && (
+                <Panel className="overflow-hidden p-0">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-outline-variant/10">
+                        <th className="text-left px-4 py-2.5 text-[10px] font-bold text-on-surface/40 uppercase tracking-widest">Player</th>
+                        <th className="text-left px-4 py-2.5 text-[10px] font-bold text-on-surface/40 uppercase tracking-widest">Type</th>
+                        <th className="text-left px-4 py-2.5 text-[10px] font-bold text-on-surface/40 uppercase tracking-widest">Description</th>
+                        <th className="text-left px-4 py-2.5 text-[10px] font-bold text-on-surface/40 uppercase tracking-widest">Status</th>
+                        <th className="text-left px-4 py-2.5 text-[10px] font-bold text-on-surface/40 uppercase tracking-widest">Date</th>
+                        <th className="px-4 py-2.5"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {disputes.map(function(d) {
+                        var playerName = (d.players && d.players.username) ? d.players.username : 'Unknown'
+                        var dateStr = d.created_at ? new Date(d.created_at).toLocaleDateString() : '-'
+                        var isPending = d.status === 'pending'
+                        return (
+                          <tr key={d.id} className="border-b border-outline-variant/5 hover:bg-white/[.015]">
+                            <td className="px-4 py-3 font-semibold text-on-surface">{playerName}</td>
+                            <td className="px-4 py-3 text-on-surface/70 capitalize">{d.type || '-'}</td>
+                            <td className="px-4 py-3 text-on-surface/60 max-w-[280px] truncate">{d.description || '-'}</td>
+                            <td className="px-4 py-3">
+                              <span className={'px-2 py-0.5 rounded-sm text-[11px] font-bold ' + (isPending ? 'bg-error/10 border border-error/30 text-error' : 'bg-success/10 border border-success/30 text-success')}>
+                                {d.status || 'pending'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-on-surface/40 text-xs font-mono">{dateStr}</td>
+                            <td className="px-4 py-3">
+                              {isPending && (
+                                <Btn variant="ghost" size="sm" onClick={function() {
+                                  var dId = d.id
+                                  supabase.from('disputes').update({ status: 'resolved' }).eq('id', dId).then(function(res) {
+                                    if (res.error) { toast('Failed to resolve: ' + res.error.message, 'error'); return }
+                                    setDisputes(function(ds) { return ds.map(function(x) { return x.id === dId ? Object.assign({}, x, { status: 'resolved' }) : x }) })
+                                    addAudit('ACTION', 'Dispute resolved: ' + dId)
+                                    toast('Dispute resolved', 'success')
+                                  })
+                                }}>Resolve</Btn>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </Panel>
+              )}
             </div>
           )}
 
