@@ -90,7 +90,15 @@ function validateRiotId(val) {
   if (!val || !val.trim()) return '';
   var parts = val.trim().split('#');
   if (parts.length !== 2 || !parts[0] || !parts[1]) {
-    return 'Use the format Username#Tag';
+    return 'Format: GameName#TAG (e.g. Levitate#EUW)';
+  }
+  var name = parts[0];
+  var tag = parts[1];
+  if (name.length < 3 || name.length > 16) {
+    return 'Game name must be 3-16 characters';
+  }
+  if (!/^[a-zA-Z0-9]+$/.test(tag) || tag.length < 3 || tag.length > 5) {
+    return 'TAG must be 3-5 alphanumeric characters';
   }
   return '';
 }
@@ -185,8 +193,9 @@ export default function AccountScreen() {
   async function save() {
     var euErr = validateRiotId(riotIdEu);
     var naErr = validateRiotId(riotIdNa);
-    if (euErr || naErr) {
-      setRiotIdError(euErr || naErr);
+    var mainRiotIdErr = (!riotIdSet && riotId.trim()) ? validateRiotId(riotId) : '';
+    if (euErr || naErr || mainRiotIdErr) {
+      setRiotIdError(euErr || naErr || mainRiotIdErr);
       return;
     }
     setRiotIdError('');
@@ -331,6 +340,52 @@ export default function AccountScreen() {
 
         {/* ── ACCOUNT TAB ──────────────────────────────────────────────────────── */}
         {tab === 'account' && (
+          <div className="space-y-6">
+
+          {/* Subscription Status Card */}
+          {subscription ? (
+            <div className={'flex items-center gap-4 p-4 rounded-lg border ' + (subscription.plan === 'host' ? 'bg-primary/8 border-primary/30' : 'bg-secondary/8 border-secondary/30')}>
+              <div className={'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ' + (subscription.plan === 'host' ? 'bg-primary/20' : 'bg-secondary/20')}>
+                <Icon name={subscription.plan === 'host' ? 'shield_person' : 'star'} size={20} className={subscription.plan === 'host' ? 'text-primary' : 'text-secondary'} fill={true} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={'font-condensed font-bold uppercase tracking-widest text-sm ' + (subscription.plan === 'host' ? 'text-primary' : 'text-secondary')}>
+                    {subscription.plan === 'host' ? 'Host Plan' : 'Pro Plan'}
+                  </span>
+                  <span className="bg-success/20 text-success rounded-full px-2 py-0.5 font-condensed text-[10px] font-bold uppercase tracking-widest">Active</span>
+                </div>
+                <p className="text-on-surface/50 text-xs font-body mt-0.5">
+                  {subscription.plan === 'host' ? 'Full tournament hosting access + all Pro features' : 'Custom profile, Pro badge, and premium features'}
+                </p>
+              </div>
+              <button
+                onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
+                className="flex-shrink-0 font-condensed text-xs uppercase tracking-widest text-on-surface/50 hover:text-on-surface transition-colors"
+              >
+                Manage
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-4 p-4 rounded-lg border border-outline-variant/20 bg-surface-container-low">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-surface-container">
+                <Icon name="person" size={20} className="text-on-surface/40" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-condensed font-bold uppercase tracking-widest text-sm text-on-surface">Free Plan</span>
+                </div>
+                <p className="text-on-surface/50 text-xs font-body mt-0.5">Compete in weekly clashes. Upgrade for custom profiles and hosting.</p>
+              </div>
+              <button
+                onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
+                className="flex-shrink-0 bg-primary text-on-primary px-4 py-2 rounded font-condensed text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
+              >
+                Upgrade
+              </button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
             {/* Profile Identity Card */}
@@ -467,17 +522,25 @@ export default function AccountScreen() {
                             </button>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-[1fr_100px] gap-2">
-                            <input
-                              type="text"
-                              value={riotId}
-                              onChange={function(e) { setRiotId(e.target.value); }}
-                              placeholder="GameName#TAG"
-                              className="bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
-                            />
-                            <Sel value={riotRegion} onChange={setRiotRegion}>
-                              {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
-                            </Sel>
+                          <div>
+                            <div className="grid grid-cols-[1fr_100px] gap-2">
+                              <input
+                                type="text"
+                                value={riotId}
+                                onChange={function(e) { setRiotId(e.target.value); if (riotIdError) setRiotIdError(''); }}
+                                placeholder="GameName#TAG"
+                                className={'bg-surface-container-lowest border-0 border-b focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm ' + (riotIdError && riotId.trim() ? 'border-error focus:border-error' : 'border-outline-variant/30 focus:border-primary')}
+                              />
+                              <Sel value={riotRegion} onChange={setRiotRegion}>
+                                {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
+                              </Sel>
+                            </div>
+                            {riotIdError && riotId.trim() && (
+                              <p className="text-error text-[11px] mt-1">{riotIdError}</p>
+                            )}
+                            {!riotIdError && (
+                              <p className="text-[11px] text-on-surface/40 mt-1">Format: GameName#TAG (e.g. Levitate#EUW)</p>
+                            )}
                           </div>
                         )}
                         <p className="text-[11px] text-on-surface/40">EU and NA accounts only. Cannot be changed without admin approval.</p>
@@ -1081,6 +1144,7 @@ export default function AccountScreen() {
               </div>
             </section>
 
+          </div>
           </div>
         )}
 

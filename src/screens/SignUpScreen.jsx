@@ -47,6 +47,10 @@ export default function SignUpScreen() {
   var pw2Err = _pw2Err[0]
   var setPw2Err = _pw2Err[1]
 
+  function isValidEmail(addr) {
+    return addr.indexOf('@') > 0 && addr.indexOf('.') > addr.indexOf('@');
+  }
+
   async function handleSubmit(e) {
     if (e) e.preventDefault()
     var ok = true
@@ -56,6 +60,7 @@ export default function SignUpScreen() {
     setPw2Err('')
 
     if (!email.trim()) { setEmailErr('Email required'); ok = false }
+    else if (!isValidEmail(email.trim())) { setEmailErr('Please enter a valid email address'); ok = false }
     if (!username.trim()) { setUsernameErr('Username required'); ok = false }
     if (!pw.trim() || pw.length < 6) {
       setPwErr(!pw.trim() ? 'Password required' : 'Must be 6+ characters')

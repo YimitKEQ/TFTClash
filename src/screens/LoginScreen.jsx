@@ -31,6 +31,10 @@ export default function LoginScreen() {
   var pwErr = _pwErr[0]
   var setPwErr = _pwErr[1]
 
+  function isValidEmail(email) {
+    return email.indexOf('@') > 0 && email.indexOf('.') > email.indexOf('@');
+  }
+
   async function handleSubmit(e) {
     if (e) e.preventDefault()
     var ok = true
@@ -38,6 +42,7 @@ export default function LoginScreen() {
     setPwErr('')
 
     if (!email.trim()) { setEmailErr('Email required'); ok = false }
+    else if (!isValidEmail(email.trim())) { setEmailErr('Please enter a valid email address'); ok = false }
     if (!pw.trim()) { setPwErr('Password required'); ok = false }
     if (!ok) return
 
