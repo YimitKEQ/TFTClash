@@ -1289,40 +1289,124 @@ export default function AccountScreen() {
               </section>
             ) : null}
 
+            {/* Notification Preferences */}
+            <section className="md:col-span-6 bg-surface-container-low rounded-lg p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <Icon name="notifications" size={20} className="text-primary" />
+                <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Notification Preferences</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between py-3 border-b border-outline-variant/10">
+                  <div>
+                    <div className="font-body text-sm text-on-surface">Clash Reminders</div>
+                    <div className="text-xs text-on-surface/40 mt-0.5">Remind me before weekly clashes start</div>
+                  </div>
+                  <button
+                    onClick={function() { setNotifPref('clashReminders', !notifPrefs.clashReminders); toast(notifPrefs.clashReminders ? 'Clash reminders off' : 'Clash reminders on', 'info'); }}
+                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors ' + (notifPrefs.clashReminders ? 'bg-primary' : 'bg-surface-container-highest')}
+                  >
+                    <span className={'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ' + (notifPrefs.clashReminders ? 'translate-x-6' : 'translate-x-1')} />
+                  </button>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <div className="font-body text-sm text-on-surface">Result Notifications</div>
+                    <div className="text-xs text-on-surface/40 mt-0.5">Notify me when tournament results are posted</div>
+                  </div>
+                  <button
+                    onClick={function() { setNotifPref('resultNotifs', !notifPrefs.resultNotifs); toast(notifPrefs.resultNotifs ? 'Result notifications off' : 'Result notifications on', 'info'); }}
+                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors ' + (notifPrefs.resultNotifs ? 'bg-primary' : 'bg-surface-container-highest')}
+                  >
+                    <span className={'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ' + (notifPrefs.resultNotifs ? 'translate-x-6' : 'translate-x-1')} />
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* Change Password */}
+            <section className="md:col-span-6 bg-surface-container-low rounded-lg p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <Icon name="lock_reset" size={20} className="text-primary" />
+                <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Change Password</h3>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">New Password</label>
+                  <input
+                    type="password"
+                    value={changePw}
+                    onChange={function(e) { setChangePw(e.target.value); if (changePwError) setChangePwError(''); }}
+                    placeholder="Enter new password"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">Confirm Password</label>
+                  <input
+                    type="password"
+                    value={changePwConfirm}
+                    onChange={function(e) { setChangePwConfirm(e.target.value); if (changePwError) setChangePwError(''); }}
+                    placeholder="Confirm new password"
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded px-4 py-3 text-sm text-on-surface placeholder:text-on-surface/30 focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+                {changePwError && (
+                  <p className="text-error text-xs font-sans-cond uppercase tracking-wide">{changePwError}</p>
+                )}
+                <button
+                  onClick={handleChangePassword}
+                  disabled={changePwSaving || !changePw}
+                  className="w-full bg-surface-container border border-outline-variant/30 rounded py-3 font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-40"
+                >
+                  {changePwSaving ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </section>
+
             {/* Danger Zone */}
             <section className="md:col-span-12">
               <div className="bg-error/5 border border-error/20 rounded-lg p-5">
                 <div className="font-sans-cond text-xs font-bold uppercase tracking-widest text-error mb-1">Danger Zone</div>
-                <p className="text-on-surface/40 text-xs mb-3">Permanently delete your account and all data. This cannot be undone.</p>
-                <button
-                  onClick={async function() {
-                    if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
-                    try {
-                      if (supabase.from) {
-                        await supabase.from('registrations').delete().eq('player_id', user.id).catch(function() {});
-                        await supabase.from('notifications').delete().eq('user_id', user.id).catch(function() {});
-                        await supabase.from('player_achievements').delete().eq('player_id', user.id).catch(function() {});
-                        await supabase.from('players').delete().eq('auth_user_id', user.id).catch(function() {});
-                      }
-                      if (setPlayers) {
-                        setPlayers(function(ps) {
-                          return ps.filter(function(p) {
-                            return p.authUserId !== user.id && (p.name || '').toLowerCase() !== (user.username || '').toLowerCase();
+                <p className="text-on-surface/40 text-xs mb-3">Sign out of your account or permanently delete all your data.</p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface/70 hover:text-on-surface transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                  <button
+                    onClick={async function() {
+                      if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
+                      try {
+                        if (supabase.from) {
+                          await supabase.from('registrations').delete().eq('player_id', user.id).catch(function() {});
+                          await supabase.from('notifications').delete().eq('user_id', user.id).catch(function() {});
+                          await supabase.from('player_achievements').delete().eq('player_id', user.id).catch(function() {});
+                          await supabase.from('players').delete().eq('auth_user_id', user.id).catch(function() {});
+                        }
+                        if (setPlayers) {
+                          setPlayers(function(ps) {
+                            return ps.filter(function(p) {
+                              return p.authUserId !== user.id && (p.name || '').toLowerCase() !== (user.username || '').toLowerCase();
+                            });
                           });
-                        });
+                        }
+                        await supabase.auth.signOut();
+                        setCurrentUser(null);
+                        navigate('/');
+                        toast('Account deleted', 'info');
+                      } catch(e) {
+                        await supabase.auth.signOut();
+                        setCurrentUser(null);
+                        navigate('/');
                       }
-                      await supabase.auth.signOut();
-                      handleLogout();
-                      toast('Account deleted - signed out', 'success');
-                    } catch(e) {
-                      await supabase.auth.signOut();
-                      handleLogout();
-                    }
-                  }}
-                  className="px-4 py-2 bg-error/10 border border-error/40 rounded font-sans-cond text-xs font-bold uppercase tracking-widest text-error hover:bg-error/20 transition-colors"
-                >
-                  Delete Account
-                </button>
+                    }}
+                    className="px-4 py-2 bg-error/10 border border-error/40 rounded font-sans-cond text-xs font-bold uppercase tracking-widest text-error hover:bg-error/20 transition-colors"
+                  >
+                    Delete Account
+                  </button>
+                </div>
               </div>
             </section>
 
