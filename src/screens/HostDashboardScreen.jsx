@@ -366,7 +366,8 @@ export default function HostDashboardScreen() {
     var setUrl = type === "logo" ? setBrandLogoUrl : setBrandBannerUrl;
     setUploading(true);
     var ext = file.name.split('.').pop();
-    var path = "host-" + (currentUser ? currentUser.id : "anon") + "/" + type + "." + ext;
+    var authUid = currentUser ? (currentUser.auth_user_id || currentUser.authUserId || currentUser.id) : "anon";
+    var path = "host-" + authUid + "/" + type + "." + ext;
     supabase.storage.from("avatars").upload(path, file, { cacheControl: "3600", upsert: true }).then(function(res) {
       setUploading(false);
       if (res.error) { toast("Upload failed: " + res.error.message, "error"); return; }

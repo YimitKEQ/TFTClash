@@ -238,7 +238,10 @@ export default function AccountScreen() {
       playerUpdate.region = riotRegion;
     }
     supabase.from('players').update(playerUpdate).eq('auth_user_id', user.id).then(function(pRes) {
-      if (pRes.error) console.error('[TFT] Players table update failed:', pRes.error);
+      if (pRes.error) {
+        console.error('[TFT] Players table update failed:', pRes.error);
+        toast('Profile saved but some data may not have synced', 'error');
+      }
     });
 
     var updated = Object.assign({}, user, meta, {
@@ -425,12 +428,13 @@ export default function AccountScreen() {
                           var file = e.target.files[0];
                           if (!file) return;
                           if (file.size > 2 * 1024 * 1024) { toast('Max 2MB', 'error'); return; }
-                          supabase.storage.from('avatars').upload(user.id + '/avatar.png', file, { upsert: true })
+                          var authId = user.auth_user_id || user.authUserId || user.id;
+                          supabase.storage.from('avatars').upload(authId + '/avatar.png', file, { upsert: true })
                             .then(function(res) {
                               if (res.error) { toast('Upload failed', 'error'); return; }
-                              var url = supabase.storage.from('avatars').getPublicUrl(user.id + '/avatar.png').data.publicUrl;
+                              var url = supabase.storage.from('avatars').getPublicUrl(authId + '/avatar.png').data.publicUrl;
                               setProfilePic(url);
-                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', user.id);
+                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', authId);
                               toast('Avatar updated!', 'success');
                             });
                         }}
@@ -595,12 +599,13 @@ export default function AccountScreen() {
                                         if (!file) return;
                                         if (file.size > 2 * 1024 * 1024) { toast('Max 2MB per file', 'error'); return; }
                                         var ext = file.name.split('.').pop();
-                                        var path = user.id + '/avatar.' + ext;
+                                        var authId2 = user.auth_user_id || user.authUserId || user.id;
+                                        var path = authId2 + '/avatar.' + ext;
                                         supabase.storage.from('avatars').upload(path, file, { upsert: true }).then(function(res) {
                                           if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
                                           var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
                                           setProfilePic(urlResult.data.publicUrl);
-                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', user.id);
+                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', authId2);
                                           toast('Photo uploaded!', 'success');
                                         });
                                       }}
@@ -634,7 +639,8 @@ export default function AccountScreen() {
                                     if (!file) return;
                                     if (file.size > 5 * 1024 * 1024) { toast('Max 5MB per banner', 'error'); return; }
                                     var ext = file.name.split('.').pop();
-                                    var path = user.id + '/banner.' + ext;
+                                    var authId3 = user.auth_user_id || user.authUserId || user.id;
+                                    var path = authId3 + '/banner.' + ext;
                                     supabase.storage.from('avatars').upload(path, file, { upsert: true }).then(function(res) {
                                       if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
                                       var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
