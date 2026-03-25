@@ -81,8 +81,11 @@ export default function SignUpScreen() {
       auth_user_id: authUserId
     }).select().single()
 
-    if (dbInsert.error && dbInsert.error.code !== '23505') {
+    if (dbInsert.error) {
       console.error('[TFT] Failed to create player row:', dbInsert.error)
+      if (dbInsert.error.code !== '23505') {
+        toast('Account created but profile setup failed. Please contact support.', 'error')
+      }
     }
 
     var newPlayer = {

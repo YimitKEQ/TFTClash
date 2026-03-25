@@ -235,9 +235,10 @@ export default function TournamentsListScreen() {
       });
   }, [tournaments]);
 
-  var featured = tournaments.length > 0
-    ? (tournaments.find(function(t) { return t.phase === 'registration' || t.phase === 'in_progress'; }) || tournaments[0])
-    : null;
+  var activeTournament = tournaments.find(function(t) {
+    return t.phase === 'registration' || t.phase === 'in_progress' || t.phase === 'live' || t.status === 'upcoming';
+  });
+  var featured = activeTournament || null;
 
   var filtered = tournaments.filter(function(t) {
     if (activeFilter !== 'all' && t.phase !== activeFilter) return false;
@@ -275,6 +276,13 @@ export default function TournamentsListScreen() {
                 regCount={regCounts[featured.id] || 0}
                 onView={function() { setScreen('flash-' + featured.id); }}
               />
+            )}
+            {!featured && tournaments.length > 0 && (
+              <section className="mb-10 relative overflow-hidden rounded-xl border border-outline-variant/10 bg-surface-container-low p-8 lg:p-12 flex flex-col items-center justify-center min-h-[200px] text-center">
+                <Icon name="event_busy" size={40} className="text-on-surface-variant/30 mb-4" />
+                <p className="font-condensed uppercase tracking-widest text-on-surface-variant text-sm">No active tournaments right now</p>
+                <p className="text-xs text-on-surface-variant/50 mt-2">Check back soon for upcoming events.</p>
+              </section>
             )}
 
             <section className="space-y-6">

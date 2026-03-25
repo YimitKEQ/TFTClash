@@ -5,8 +5,12 @@ function BroadcastOverlay(props) {
   var tournamentState = props.tournamentState;
   var players = props.players;
   var params = props.params || {};
-  var type = params.type || "standings";
-  var bg = params.bg || "dark";
+  var ALLOWED_TYPES = ['standings', 'bracket', 'results', 'players', 'lobbies'];
+  var rawType = params.type || "standings";
+  var type = ALLOWED_TYPES.indexOf(rawType) !== -1 ? rawType : "standings";
+  var KNOWN_BG_KEYWORDS = ['dark', 'transparent'];
+  var rawBg = params.bg || "dark";
+  var bg = /^#[0-9a-fA-F]{3,6}$/.test(rawBg) || KNOWN_BG_KEYWORDS.indexOf(rawBg) !== -1 ? rawBg : "dark";
   var size = params.size || "compact";
 
   var _liveData = useState(players);

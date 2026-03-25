@@ -22,6 +22,9 @@ function OnboardingFlow(props) {
   var _linking = useState(false);
   var linking = _linking[0];
   var setLinking = _linking[1];
+  var _linkError = useState('');
+  var linkError = _linkError[0];
+  var setLinkError = _linkError[1];
 
   // Screen 1: Welcome cinematic
   if (step === 1) {
@@ -71,18 +74,23 @@ function OnboardingFlow(props) {
             onClick={function() {
               if (!riotId.includes("#")) return;
               setLinking(true);
+              setLinkError('');
               supabase
                 .from("players")
                 .update({ riot_id: riotId, region: region })
                 .eq("auth_user_id", currentUser.auth_user_id || currentUser.id)
-                .then(function() {
+                .then(function(res) {
                   setLinking(false);
+                  if (res.error) { setLinkError('Failed to save: ' + res.error.message); return; }
                   setStep(3);
                 });
             }}
           >
             {linking ? "Linking..." : "Link Account"}
           </Btn>
+          {linkError && (
+            <div className="mt-2 text-xs text-red-400">{linkError}</div>
+          )}
           <div
             className="mt-3 text-xs text-on-surface-variant cursor-pointer hover:text-on-surface transition-colors"
             onClick={function() { setStep(3); }}

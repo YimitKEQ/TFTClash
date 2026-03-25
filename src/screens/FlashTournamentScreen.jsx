@@ -34,6 +34,7 @@ export default function FlashTournamentScreen(props) {
 
   function loadTournament() {
     return supabase.from('tournaments').select('*').eq('id', tournamentId).single().then(function(res) {
+      if (res.error) { console.error('[Flash] Failed to load tournament:', res.error); return res; }
       if (res.data) setTournament(res.data);
       return res;
     });
@@ -154,7 +155,8 @@ export default function FlashTournamentScreen(props) {
           setActionLoading(false);
           if (lRes.error) { toast('Failed: ' + lRes.error.message, 'error'); return; }
           supabase.from('tournaments').update({phase: 'in_progress', started_at: new Date().toISOString(), current_round: 1})
-            .eq('id', tournamentId).then(function() {
+            .eq('id', tournamentId).then(function(tRes) {
+              if (tRes.error) { console.error('[Flash] Failed to start tournament:', tRes.error); toast && toast('Error: ' + tRes.error.message, 'error'); return; }
               setTournament(Object.assign({}, tournament, {phase: 'in_progress', current_round: 1}));
             });
           toast(result.lobbies.length + ' lobbies generated!', 'success');
@@ -356,7 +358,8 @@ export default function FlashTournamentScreen(props) {
     });
     supabase.from('game_results').insert(gameRows).then(function(res) {
       if (res.error) { toast('Failed to lock: ' + res.error.message, 'error'); return; }
-      supabase.from('lobbies').update({status: 'locked', reports_complete: true}).eq('id', lobbyId).then(function() {
+      supabase.from('lobbies').update({status: 'locked', reports_complete: true}).eq('id', lobbyId).then(function(luRes) {
+        if (luRes.error) { console.error('[Flash] Failed to lock lobby:', luRes.error); toast && toast('Error: ' + luRes.error.message, 'error'); return; }
         toast('Lobby locked!', 'success');
         broadcastUpdate('lobby_locked');
         loadLobbies();
@@ -444,7 +447,8 @@ export default function FlashTournamentScreen(props) {
               game_number: nextGame
             };
           });
-          supabase.from('lobbies').insert(lobbyRows).select().then(function() {
+          supabase.from('lobbies').insert(lobbyRows).select().then(function(lRes) {
+            if (lRes.error) { console.error('[Flash] Failed to create lobbies for next game:', lRes.error); toast && toast('Error: ' + lRes.error.message, 'error'); return; }
             setTournament(Object.assign({}, tournament, {current_round: nextGame}));
             loadLobbies();
             loadReports();
@@ -464,7 +468,8 @@ export default function FlashTournamentScreen(props) {
               game_number: nextGame
             };
           });
-          supabase.from('lobbies').insert(newLobbies).select().then(function() {
+          supabase.from('lobbies').insert(newLobbies).select().then(function(lRes) {
+            if (lRes.error) { console.error('[Flash] Failed to create lobbies for next game:', lRes.error); toast && toast('Error: ' + lRes.error.message, 'error'); return; }
             setTournament(Object.assign({}, tournament, {current_round: nextGame}));
             loadLobbies();
             loadReports();
