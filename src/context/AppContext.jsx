@@ -45,7 +45,7 @@ export function AppProvider(props) {
   var isLoadingData = _isLoadingData[0];
   var setIsLoadingData = _isLoadingData[1];
 
-  var _isAdmin = useState(function(){try{return localStorage.getItem("tft-admin")==="1";}catch(e){return false;}});
+  var _isAdmin = useState(false);
   var isAdmin = _isAdmin[0];
   var setIsAdmin = _isAdmin[1];
 
@@ -212,10 +212,15 @@ export function AppProvider(props) {
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
         if(res.error){console.error("[TFT] Failed to load players:",res.error);
-          if(supabase.from){supabase.from('players').upsert(SEED,{onConflict:'id'}).then(function(){setPlayers(SEED);}).catch(function(){setPlayers(SEED);});}else{setPlayers(SEED);}
+          // On error, keep whatever is already in state -- do NOT overwrite with SEED
           return;}
         if(!res.data||!res.data.length){
-          if(supabase.from){supabase.from('players').upsert(SEED,{onConflict:'id'}).then(function(){setPlayers(SEED);}).catch(function(){setPlayers(SEED);});}else{setPlayers(SEED);}
+          // Only seed if the table is truly empty (count check)
+          supabase.from('players').select('id',{count:'exact',head:true}).then(function(countRes){
+            if(countRes.count===0){
+              if(supabase.from){supabase.from('players').upsert(SEED,{onConflict:'id'}).then(function(){setPlayers(SEED);}).catch(function(){setPlayers(SEED);});}else{setPlayers(SEED);}
+            }
+          }).catch(function(){/* leave state as-is if count fails */});
           return;}
         var mapped=res.data.map(function(r){
           return{
@@ -416,15 +421,11 @@ export function AppProvider(props) {
   // ── localStorage sync (fast cache) ──
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-players",JSON.stringify(players));}catch(e){}},300);return function(){clearTimeout(t);};},[players]);
 
-  useEffect(function(){try{localStorage.setItem("tft-admin",isAdmin?"1":"0");}catch(e){}},[isAdmin]);
+  // isAdmin is derived solely from currentUser.is_admin (DB field) -- no localStorage write
 
-  // ── useEffect: sync isAdmin from currentUser.is_admin (DB source of truth) ──
+  // ── useEffect: sync isAdmin from currentUser.is_admin (DB source of truth only) ──
   useEffect(function(){
-    if (currentUser && currentUser.is_admin === true) {
-      setIsAdmin(true);
-    } else if (currentUser && currentUser.is_admin === false) {
-      setIsAdmin(false);
-    }
+    setIsAdmin(!!(currentUser && currentUser.is_admin === true));
   }, [currentUser]);
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);

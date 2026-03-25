@@ -72,9 +72,9 @@ function OnboardingFlow(props) {
               if (!riotId.includes("#")) return;
               setLinking(true);
               supabase
-                .from("user_profiles")
-                .update({ riot_id: riotId, region: region, onboarding_step: 3 })
-                .eq("user_id", currentUser.id)
+                .from("players")
+                .update({ riot_id: riotId, region: region })
+                .eq("auth_user_id", currentUser.auth_user_id || currentUser.id)
                 .then(function() {
                   setLinking(false);
                   setStep(3);
@@ -133,7 +133,7 @@ function OnboardingFlow(props) {
           <Btn
             v="dark"
             onClick={function() {
-              supabase.from("user_profiles").update({ onboarding_complete: true, onboarding_step: 4 }).eq("user_id", currentUser.id);
+              try { localStorage.setItem('tft-onboarding-done', '1'); } catch(e) {}
               if (onComplete) onComplete();
             }}
           >
@@ -142,7 +142,7 @@ function OnboardingFlow(props) {
           <Btn
             v="primary"
             onClick={function() {
-              supabase.from("user_profiles").update({ onboarding_complete: true, onboarding_step: 4 }).eq("user_id", currentUser.id);
+              try { localStorage.setItem('tft-onboarding-done', '1'); } catch(e) {}
               if (onRegister) onRegister();
               if (onComplete) onComplete();
             }}

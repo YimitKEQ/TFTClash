@@ -83,18 +83,31 @@ function TickerAdminPanel({ tickerOverrides, setTickerOverrides, toast, addAudit
   var setNewItem = _newItem[1]
   var items = tickerOverrides || []
 
+  function saveToDb(newItems) {
+    supabase.from('site_settings').upsert(
+      { key: 'ticker_overrides', value: JSON.stringify(newItems) },
+      { onConflict: 'key' }
+    ).then(function(res) {
+      if (res.error) { console.error('[TFT] Failed to save ticker_overrides:', res.error); }
+    });
+  }
+
   function add() {
     var t = newItem.trim()
     if (!t) { toast('Enter ticker text', 'error'); return }
     if (items.includes(t)) { toast('Already exists', 'error'); return }
-    setTickerOverrides(items.concat([t]))
+    var newItems = items.concat([t])
+    setTickerOverrides(newItems)
+    saveToDb(newItems)
     addAudit('BROADCAST', 'Admin added ticker item: ' + t)
     setNewItem('')
     toast('Ticker item added')
   }
 
   function remove(item) {
-    setTickerOverrides(items.filter(function(x) { return x !== item }))
+    var newItems = items.filter(function(x) { return x !== item })
+    setTickerOverrides(newItems)
+    saveToDb(newItems)
     addAudit('ACTION', 'Admin removed ticker item: ' + item)
     toast('Removed')
   }
