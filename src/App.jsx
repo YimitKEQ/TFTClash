@@ -634,16 +634,6 @@ function TFTClash(){
 
 
 
-      {/* Newsletter + Weekly Recap  -  before footer */}
-      {screen==="home"&&(
-        <div className="wrap" style={{maxWidth:1200,margin:"0 auto",padding:"24px 16px",display:"grid",gridTemplateColumns:"1fr 1fr",gap:20}}>
-          <WeeklyRecapCard players={players} pastClashes={pastClashes}/>
-          <div style={{display:"flex",flexDirection:"column",gap:16}}>
-            <NewsletterSignup toast={toast} emailRef={newsletterEmailRef} submitted={newsletterSubmitted} setSubmitted={setNewsletterSubmitted}/>
-            <ClashReminderBtn toast={toast} nextClash={scheduledEvents&&scheduledEvents[0]&&scheduledEvents[0].date} enabled={clashRemindersOn} setEnabled={setClashRemindersOn}/>
-          </div>
-        </div>
-      )}
 
       {/* Cookie Consent */}
       {!cookieConsent&&(

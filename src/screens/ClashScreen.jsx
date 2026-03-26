@@ -2266,7 +2266,7 @@ function ClashIdleView(props) {
   nextSaturday.setHours(20, 0, 0, 0)
 
   var top3 = lastClash && lastClash.top8 ? lastClash.top8.slice(0, 3) : []
-  var top3Colors = ['text-primary', 'text-on-surface/60', 'text-tertiary']
+  var top3Colors = ['text-primary', 'text-on-surface', 'text-tertiary']
   var top3Labels = ['1st', '2nd', '3rd']
 
   return (
@@ -2295,9 +2295,9 @@ function ClashIdleView(props) {
             {top3.map(function(entry, i) {
               return (
                 <div key={i} className="flex-1 text-center bg-white/[0.03] rounded-lg p-3 border border-on-surface/10">
-                  <div className={'cond text-[8px] font-bold uppercase tracking-widest mb-1 ' + top3Colors[i]}>{top3Labels[i]}</div>
+                  <div className={'cond text-xs font-bold uppercase tracking-wider mb-1 ' + top3Colors[i]}>{top3Labels[i]}</div>
                   <div className={'font-bold text-sm ' + top3Colors[i]}>{entry.name}</div>
-                  <div className="text-[10px] text-on-surface/40 mt-0.5">{entry.pts} pts</div>
+                  <div className="text-xs text-on-surface/60 mt-0.5">{entry.pts} pts</div>
                 </div>
               )
             })}
