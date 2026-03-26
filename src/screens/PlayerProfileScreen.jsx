@@ -180,6 +180,65 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
   });
 }
 
+// ─── DEEP STATS HELPERS ───────────────────────────────────────────────────────
+function renderDeepScoreCards(deepStats, deepGr) {
+  var consistency_s = parseFloat(deepStats.consistency_score);
+  var clutch_s = parseFloat(deepStats.clutch_factor);
+  var stddev_s = parseFloat(deepStats.stddev_placement);
+  var last10 = (deepGr || []).slice(-10);
+  var last10Avg = last10.length > 0
+    ? last10.reduce(function(s, r) { return s + parseFloat(r.placement); }, 0) / last10.length
+    : null;
+  var formGrade = last10Avg === null ? '-'
+    : last10Avg <= 2.0 ? 'A+'
+    : last10Avg <= 3.0 ? 'A'
+    : last10Avg <= 4.0 ? 'B'
+    : last10Avg <= 5.0 ? 'C'
+    : 'D';
+  var formColor = (formGrade === 'A+' || formGrade === 'A') ? 'text-success'
+    : formGrade === 'B' ? 'text-primary'
+    : formGrade === 'C' ? 'text-secondary'
+    : 'text-error';
+  var scoreCards = [
+    { label: 'Consistency', value: consistency_s.toFixed(1), suffix: '/100', color: consistency_s >= 80 ? 'text-success' : consistency_s >= 60 ? 'text-primary' : 'text-error' },
+    { label: 'Clutch Factor', value: clutch_s.toFixed(1) + '%', suffix: '', color: clutch_s >= 60 ? 'text-success' : clutch_s >= 40 ? 'text-primary' : 'text-error' },
+    { label: 'Current Form', value: formGrade, suffix: '', color: formColor },
+    { label: 'Volatility (SD)', value: stddev_s.toFixed(2), suffix: '', color: stddev_s <= 1.5 ? 'text-success' : stddev_s <= 2.5 ? 'text-primary' : 'text-error' },
+  ];
+  return scoreCards.map(function(sc) {
+    return (
+      <div key={sc.label} className="bg-surface-container p-3 rounded-lg">
+        <div className="font-technical text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{sc.label}</div>
+        <div className={'font-display text-xl font-bold ' + sc.color}>{sc.value}<span className="text-sm text-on-surface/30 ml-0.5">{sc.suffix}</span></div>
+      </div>
+    );
+  });
+}
+
+function renderDeepPlacementBars(deepGr) {
+  var grData = deepGr || [];
+  var counts = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0 };
+  var total = grData.length || 1;
+  grData.forEach(function(r) {
+    var p = parseInt(r.placement);
+    if (p >= 1 && p <= 8) counts[p]++;
+  });
+  var barColors = ['#E8A838','#48C774','#48C774','#4890C7','#BECBD9','#BECBD9','#F14668','#F14668'];
+  return [1,2,3,4,5,6,7,8].map(function(n) {
+    var pct = Math.round((counts[n] / total) * 100);
+    var color = barColors[n - 1];
+    return (
+      <div key={n} className="flex items-center gap-3 mb-2">
+        <span className="font-technical text-xs text-on-surface/50 w-6 text-right shrink-0">{'#' + n}</span>
+        <div className="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
+          <div className="h-full rounded-full transition-all" style={{ width: pct + '%', backgroundColor: color }} />
+        </div>
+        <span className="font-stats text-xs text-on-surface/60 w-8 text-right shrink-0">{pct + '%'}</span>
+      </div>
+    );
+  });
+}
+
 // ─── MAIN SCREEN ─────────────────────────────────────────────────────────────
 export default function PlayerProfileScreen() {
   var params = useParams();
@@ -959,68 +1018,14 @@ export default function PlayerProfileScreen() {
               <div className="bg-surface-container-low rounded-lg p-6">
                 <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Performance Scores</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {(function() {
-                    var consistency_s = parseFloat(deepStats.consistency_score);
-                    var clutch_s = parseFloat(deepStats.clutch_factor);
-                    var stddev_s = parseFloat(deepStats.stddev_placement);
-                    var last10 = (deepGr || []).slice(-10);
-                    var last10Avg = last10.length > 0
-                      ? last10.reduce(function(s, r) { return s + parseFloat(r.placement); }, 0) / last10.length
-                      : null;
-                    var formGrade = last10Avg === null ? '-'
-                      : last10Avg <= 2.0 ? 'A+'
-                      : last10Avg <= 3.0 ? 'A'
-                      : last10Avg <= 4.0 ? 'B'
-                      : last10Avg <= 5.0 ? 'C'
-                      : 'D';
-                    var formColor = (formGrade === 'A+' || formGrade === 'A') ? 'text-success'
-                      : formGrade === 'B' ? 'text-primary'
-                      : formGrade === 'C' ? 'text-secondary'
-                      : 'text-error';
-                    var scoreCards = [
-                      { label: 'Consistency', value: consistency_s.toFixed(1), suffix: '/100', color: consistency_s >= 80 ? 'text-success' : consistency_s >= 60 ? 'text-primary' : 'text-error' },
-                      { label: 'Clutch Factor', value: clutch_s.toFixed(1) + '%', suffix: '', color: clutch_s >= 60 ? 'text-success' : clutch_s >= 40 ? 'text-primary' : 'text-error' },
-                      { label: 'Current Form', value: formGrade, suffix: '', color: formColor },
-                      { label: 'Volatility (SD)', value: stddev_s.toFixed(2), suffix: '', color: stddev_s <= 1.5 ? 'text-success' : stddev_s <= 2.5 ? 'text-primary' : 'text-error' },
-                    ];
-                    return scoreCards.map(function(sc) {
-                      return (
-                        <div key={sc.label} className="bg-surface-container p-3 rounded-lg">
-                          <div className="font-technical text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{sc.label}</div>
-                          <div className={'font-display text-xl font-bold ' + sc.color}>{sc.value}<span className="text-sm text-on-surface/30 ml-0.5">{sc.suffix}</span></div>
-                        </div>
-                      );
-                    });
-                  })()}
+                  {renderDeepScoreCards(deepStats, deepGr)}
                 </div>
               </div>
 
               {/* Placement Distribution (per-placement bars) */}
               <div className="bg-surface-container-low rounded-lg p-6">
                 <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Placement Distribution</h3>
-                {(function() {
-                  var grData = deepGr || [];
-                  var counts = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0 };
-                  var total = grData.length || 1;
-                  grData.forEach(function(r) {
-                    var p = parseInt(r.placement);
-                    if (p >= 1 && p <= 8) counts[p]++;
-                  });
-                  var barColors = ['#E8A838','#48C774','#48C774','#4890C7','#BECBD9','#BECBD9','#F14668','#F14668'];
-                  return [1,2,3,4,5,6,7,8].map(function(n) {
-                    var pct = Math.round((counts[n] / total) * 100);
-                    var color = barColors[n - 1];
-                    return (
-                      <div key={n} className="flex items-center gap-3 mb-2">
-                        <span className="font-technical text-xs text-on-surface/50 w-6 text-right shrink-0">{'#' + n}</span>
-                        <div className="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
-                          <div className="h-full rounded-full transition-all" style={{ width: pct + '%', backgroundColor: color }} />
-                        </div>
-                        <span className="font-stats text-xs text-on-surface/60 w-8 text-right shrink-0">{pct + '%'}</span>
-                      </div>
-                    );
-                  });
-                })()}
+              {renderDeepPlacementBars(deepGr)}
               </div>
 
               {/* H2H Record */}

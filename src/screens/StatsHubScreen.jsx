@@ -304,6 +304,53 @@ function H2HPanel(props) {
   );
 }
 
+// ─── RANKINGS TABLE BODY RENDERER ─────────────────────────────────────────────
+function renderRankingsBody(data, page, PER_PAGE, scoreKey, scoreSuffix, scoreLabel, setPage) {
+  var total = data.length;
+  var pages = Math.ceil(total / PER_PAGE);
+  var start = page * PER_PAGE;
+  var slice = data.slice(start, start + PER_PAGE);
+  return (
+    <div className="p-4">
+      <div className="grid grid-cols-[28px_1fr_44px_44px_72px] gap-2 px-2 pb-2 mb-1 border-b border-white/[0.04]">
+        {['#', 'Player', 'GP', 'Avg', scoreLabel].map(function(h, i) {
+          return <span key={h} className={'text-[10px] font-label uppercase tracking-widest text-on-surface/30' + (i >= 2 ? ' text-center' : '')}>{h}</span>;
+        })}
+      </div>
+      {slice.map(function(p, i) {
+        var rank = start + i + 1;
+        var val = parseFloat(p[scoreKey] || 0);
+        return (
+          <div key={p.player_id} className="grid grid-cols-[28px_1fr_44px_44px_72px] gap-2 px-2 py-2.5 border-b border-white/[0.03] last:border-0 items-center">
+            <span className="text-[10px] font-mono text-on-surface/30">{'#' + rank}</span>
+            <span className="text-sm font-label font-semibold text-on-surface truncate">{p.username}</span>
+            <span className="text-xs font-mono text-on-surface/50 text-center">{p.games_played}</span>
+            <span className="text-xs font-mono text-on-surface/50 text-center">{parseFloat(p.avg_placement).toFixed(1)}</span>
+            <div className="flex justify-center">
+              <ScorePill value={val} suffix={scoreSuffix} />
+            </div>
+          </div>
+        );
+      })}
+      {pages > 1 && (
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.04]">
+          <button
+            onClick={function() { setPage(function(p) { return Math.max(0, p - 1); }); }}
+            disabled={page === 0}
+            className="text-xs font-label uppercase tracking-widest text-on-surface/40 hover:text-on-surface disabled:opacity-20 border-none bg-transparent cursor-pointer transition-colors"
+          >Prev</button>
+          <span className="text-[11px] font-mono text-on-surface/30">{(page + 1) + ' / ' + pages}</span>
+          <button
+            onClick={function() { setPage(function(p) { return Math.min(pages - 1, p + 1); }); }}
+            disabled={page === pages - 1}
+            className="text-xs font-label uppercase tracking-widest text-on-surface/40 hover:text-on-surface disabled:opacity-20 border-none bg-transparent cursor-pointer transition-colors"
+          >Next</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── RANKINGS TABLE ───────────────────────────────────────────────────────────
 function RankingsTable(props) {
   var title = props.title;
@@ -330,51 +377,7 @@ function RankingsTable(props) {
       </div>
       {(!data || data.length === 0) ? (
         <div className="p-4"><Empty /></div>
-      ) : (function() {
-        var total = data.length;
-        var pages = Math.ceil(total / PER_PAGE);
-        var start = page * PER_PAGE;
-        var slice = data.slice(start, start + PER_PAGE);
-        return (
-          <div className="p-4">
-            <div className="grid grid-cols-[28px_1fr_44px_44px_72px] gap-2 px-2 pb-2 mb-1 border-b border-white/[0.04]">
-              {['#', 'Player', 'GP', 'Avg', scoreLabel].map(function(h, i) {
-                return <span key={h} className={'text-[10px] font-label uppercase tracking-widest text-on-surface/30' + (i >= 2 ? ' text-center' : '')}>{h}</span>;
-              })}
-            </div>
-            {slice.map(function(p, i) {
-              var rank = start + i + 1;
-              var val = parseFloat(p[scoreKey] || 0);
-              return (
-                <div key={p.player_id} className="grid grid-cols-[28px_1fr_44px_44px_72px] gap-2 px-2 py-2.5 border-b border-white/[0.03] last:border-0 items-center">
-                  <span className="text-[10px] font-mono text-on-surface/30">{'#' + rank}</span>
-                  <span className="text-sm font-label font-semibold text-on-surface truncate">{p.username}</span>
-                  <span className="text-xs font-mono text-on-surface/50 text-center">{p.games_played}</span>
-                  <span className="text-xs font-mono text-on-surface/50 text-center">{parseFloat(p.avg_placement).toFixed(1)}</span>
-                  <div className="flex justify-center">
-                    <ScorePill value={val} suffix={scoreSuffix} />
-                  </div>
-                </div>
-              );
-            })}
-            {pages > 1 && (
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/[0.04]">
-                <button
-                  onClick={function() { setPage(function(p) { return Math.max(0, p - 1); }); }}
-                  disabled={page === 0}
-                  className="text-xs font-label uppercase tracking-widest text-on-surface/40 hover:text-on-surface disabled:opacity-20 border-none bg-transparent cursor-pointer transition-colors"
-                >Prev</button>
-                <span className="text-[11px] font-mono text-on-surface/30">{(page + 1) + ' / ' + pages}</span>
-                <button
-                  onClick={function() { setPage(function(p) { return Math.min(pages - 1, p + 1); }); }}
-                  disabled={page === pages - 1}
-                  className="text-xs font-label uppercase tracking-widest text-on-surface/40 hover:text-on-surface disabled:opacity-20 border-none bg-transparent cursor-pointer transition-colors"
-                >Next</button>
-              </div>
-            )}
-          </div>
-        );
-      })()}
+      ) : renderRankingsBody(data, page, PER_PAGE, scoreKey, scoreSuffix, scoreLabel, setPage)}
     </Panel>
   );
 }
