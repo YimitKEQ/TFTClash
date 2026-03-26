@@ -1,4 +1,4 @@
-# Admin Panel Rebuild - Design Spec
+# Admin Panel + Events & Host Dashboard - Design Spec
 
 **Date:** 2026-03-26
 **Status:** Approved
@@ -7,7 +7,10 @@
 
 ## Goal
 
-Rebuild `AdminScreen.jsx` from a 1,777-line monolith into a modular, fully-wired 7-tab admin panel. All existing functionality is preserved and reorganized. Three genuine upgrades over the current panel: score overrides move into the player edit modal, disputes move into Players, and the audit log becomes server-side.
+Three parallel workstreams:
+1. Rebuild `AdminScreen.jsx` from a 1,777-line monolith into a modular, fully-wired 7-tab admin panel.
+2. Fix six confirmed bugs in `EventsScreen.jsx` and `TournamentDetailScreen.jsx`.
+3. Fix four confirmed bugs in `HostDashboardScreen.jsx` and close design gaps in tournament detail presentation.
 
 ---
 
@@ -223,9 +226,81 @@ Code style: `var` declarations, `function(){}` callbacks, no arrow functions, no
 
 ---
 
+---
+
+## Part 2: EventsScreen Fixes
+
+### File: `src/screens/EventsScreen.jsx`
+
+**Fix 1 - Featured registrations loaded on mount**
+
+`FeaturedTab` currently relies on optimistic local state for `registeredIds`. On page refresh, registrations vanish. Fix: on mount, query `event_registrations` for `player_username = currentUser.username` and merge matched event IDs into `featuredEvents` so the "Registered" state persists.
+
+```
+SELECT event_id FROM event_registrations WHERE player_username = currentUser.username
+```
+
+**Fix 2 - Filter pills wired to real event types**
+
+The Community / Official / Regional pills filter by `ev.type` but featured events never have this field set, so they always show all. Two options: (a) remove the pills and replace with a single Live/Upcoming toggle which is actually useful, or (b) keep pills but derive filter from `ev.tags` array which IS populated. Use option (b) - filter checks if `ev.tags` includes the filter value (case-insensitive). "All Events" always shows everything.
+
+**Fix 3 - Archive links navigate to specific clash**
+
+`ArchiveTab` hardcodes `navigate('/results')` for every item. Fix: navigate to `/results?clash=${clash.id}` (or the closest specific route). If a specific results route doesn't exist for that clash, link to `/results` with the clash name passed as state so `ResultsScreen` can filter. The key fix is not all items pointing to the same generic page.
+
+**Fix 4 - Tournaments tab cards get inline register button**
+
+`TournamentsTab` cards navigate on click but have no register action. Add a "Register" button at the bottom of each card (same pattern as `TournamentCard` in FeaturedTab) that calls `supabase.from('registrations').upsert(...)` for the flash tournament. Show "Registered" state if already registered. Requires loading current user's registrations on mount.
+
+**Fix 5 - "WATCH BROADCAST" ID mismatch**
+
+`TournamentCard` navigates to `/tournament/${ev.id}` but `featuredEvents` use a numeric local ID, not the DB tournament UUID. Fix: use `ev.dbTournamentId` if present, fall back to `ev.id`. This ensures the link reaches the correct `TournamentDetailScreen`.
+
+---
+
+## Part 3: TournamentDetailScreen Fixes
+
+### File: `src/screens/TournamentDetailScreen.jsx`
+
+**Fix 6 - Rules read from `rules_text` column**
+
+The Overview tab shows four hardcoded generic rules. Fix: if `event.rulesText` or `event.rules_text` is present, render it as preformatted text in the rules panel. If null, show the generic fallback rules. The host sets `rules_text` in the tournament wizard.
+
+**Fix 7 - Prize distribution uses real data**
+
+The prize bar section uses hardcoded `PRIZE_BARS` with fixed 50%/30%/20% widths. Fix: if `event.prize_pool_json` (array of `{placement, prize}`) exists, render each entry as a row with its placement and prize value. Remove the fake percentage bars. If no prize data, hide the section entirely rather than showing misleading placeholder bars.
+
+**Fix 8 - "Manage Tournament" link uses DB ID**
+
+The manage link only renders when `event.hostTournamentId && event.host === currentUser.username` - both fragile in-memory checks. Fix: render the link when `event.dbTournamentId` is present and `currentUser.id` matches `event.host_id` (or fall back to the username check). Navigate to `/host/dashboard` instead of using `setScreen`.
+
+---
+
+## Part 4: HostDashboardScreen Fixes
+
+### File: `src/screens/HostDashboardScreen.jsx`
+
+**Fix 9 - Image uploads use `host-assets` bucket**
+
+`uploadImage()` uploads to the `avatars` bucket. Migration 024 created `host-assets` for this purpose. Change `supabase.storage.from("avatars")` to `supabase.storage.from("host-assets")` in both the upload call and the `getPublicUrl` call.
+
+**Fix 10 - Tournament query uses auth user ID**
+
+`.eq("host_id", currentUser.id)` uses the profile row ID. The `tournaments.host_id` column stores the Supabase auth UUID. Fix: use `currentUser.auth_user_id || currentUser.id` consistently, matching how other screens resolve auth identity. Also update `submitWizard` to write `host_id: currentUser.auth_user_id || currentUser.id`.
+
+**Fix 11 - Host-created tournaments appear in Tournaments tab**
+
+`submitWizard` creates with `type: savedWizData.type` (swiss/standard). `TournamentsTab` in `EventsScreen` queries `type = 'flash_tournament'`. Fix: write `type: 'flash_tournament'` for all host-created tournaments regardless of format. The format/type distinction (swiss vs standard) is stored separately in the `type` or `total_games` columns and doesn't need to pollute the top-level `type` field.
+
+**Fix 12 - Announcements write to `notifications` table**
+
+`sendAnnouncement()` only updates local state. Fix: insert a row into `notifications` with `type = 'host_announce'`, `body = announceMsg`, `target_user_id = null` (broadcast to all tournament registrants). Also write to `site_settings` key `host_announcement_{tournamentId}` so it persists across refresh.
+
+---
+
 ## What Is Not In Scope
 
 - Stripe integration (explicitly skipped per project rules)
 - AI commentary wiring (separate task)
-- Discord bot (separate system)
+- Discord bot commands (separate system)
 - Playwright E2E tests (separate phase)
