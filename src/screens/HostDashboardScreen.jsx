@@ -548,12 +548,6 @@ export default function HostDashboardScreen() {
     if (setHostAnnouncements) setHostAnnouncements(newArr);
     setAnnounceMsg("");
     if (supabase.from) {
-      supabase.from('notifications').insert({
-        type: 'announcement',
-        message: msg,
-        target_audience: announceTo,
-        created_by: currentUser ? (currentUser.auth_user_id || currentUser.id) : null
-      }).then(function(r) { if (r.error) console.error('[TFT] notification insert failed:', r.error) })
       supabase.from('site_settings').upsert(
         { key: 'announcement', value: msg },
         { onConflict: 'key' }

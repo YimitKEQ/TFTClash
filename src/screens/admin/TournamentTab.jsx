@@ -99,26 +99,22 @@ export default function TournamentTab() {
 
   function addScheduledEvent() {
     if (!newEvent.name.trim() || !newEvent.date.trim()) { toast('Name and date required', 'error'); return }
-    supabase.from('scheduled_events').insert({
+    var ev = {
+      id: Date.now(),
       name: newEvent.name.trim(), type: newEvent.type, date: newEvent.date,
       time: newEvent.time, cap: parseInt(newEvent.cap) || 8, format: newEvent.format || 'Swiss'
-    }).select().single().then(function(res) {
-      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
-      setScheduledEvents(function(evs) { return (evs || []).concat([res.data]) })
-      addAudit('ACTION', 'Scheduled event added: ' + newEvent.name.trim())
-      toast('Event scheduled!', 'success')
-      setNewEvent({ name: '', type: 'SCHEDULED', date: '', time: '', cap: '8', format: 'Swiss' })
-    })
+    }
+    setScheduledEvents(function(evs) { return (evs || []).concat([ev]) })
+    addAudit('ACTION', 'Scheduled event added: ' + ev.name)
+    toast('Event scheduled!', 'success')
+    setNewEvent({ name: '', type: 'SCHEDULED', date: '', time: '', cap: '8', format: 'Swiss' })
   }
 
   function cancelScheduledEvent(id) {
     if (!window.confirm('Cancel this event?')) return
-    supabase.from('scheduled_events').delete().eq('id', id).then(function(r) {
-      if (r.error) { toast('Failed: ' + r.error.message, 'error'); return }
-      setScheduledEvents(function(evs) { return (evs || []).filter(function(e) { return e.id !== id }) })
-      addAudit('ACTION', 'Scheduled event cancelled: #' + id)
-      toast('Event cancelled', 'success')
-    })
+    setScheduledEvents(function(evs) { return (evs || []).filter(function(e) { return e.id !== id }) })
+    addAudit('ACTION', 'Scheduled event cancelled: #' + id)
+    toast('Event cancelled', 'success')
   }
 
   function createFlashTournament() {
