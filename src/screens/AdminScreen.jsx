@@ -23,13 +23,14 @@ var TABS = [
 export default function AdminScreen() {
   var ctx = useApp()
   var currentUser = ctx.currentUser
+  var isAdmin = ctx.isAdmin
   var hostApps = ctx.hostApps
 
   var _tab = useState('overview')
   var tab = _tab[0]
   var setTab = _tab[1]
 
-  if (!currentUser || currentUser.role !== 'admin') {
+  if (!currentUser || !isAdmin) {
     return (
       <PageLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
