@@ -1146,6 +1146,16 @@ export default function AccountScreen() {
 
                   {riotIdError && <div className="text-[11px] text-error">{riotIdError}</div>}
 
+                  <div className="flex justify-end pt-2">
+                    <button
+                      onClick={save}
+                      disabled={profileSaving}
+                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all disabled:opacity-60"
+                    >
+                      {profileSaving ? 'Saving...' : 'Save Riot IDs'}
+                    </button>
+                  </div>
+
                 </div>
               </Panel>
             </section>
