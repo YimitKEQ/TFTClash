@@ -24,7 +24,7 @@ function pad2(n) {
 
 // ── HeroCountdown ─────────────────────────────────────────────────────────────
 
-function HeroCountdown({ clashTimestamp, onRegister, onViewStandings }) {
+function HeroCountdown({ clashTimestamp, onRegister, onViewStandings, isLoggedIn }) {
   var initial = clashTimestamp ? getTimeLeft(clashTimestamp) : { days: 0, hours: 0, minutes: 0, seconds: 0 }
   var [timeLeft, setTimeLeft] = useState(initial)
 
@@ -63,7 +63,7 @@ function HeroCountdown({ clashTimestamp, onRegister, onViewStandings }) {
           className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
           onClick={onRegister}
         >
-          Sign Up Free
+          {isLoggedIn ? 'Go to Dashboard' : 'Sign Up Free'}
         </button>
         <a
           href="/standings"
@@ -332,7 +332,36 @@ export default function HomeScreen() {
           {/* Countdown or CTA */}
           {hasCountdown
             ? (
-              <HeroCountdown clashTimestamp={clashTimestamp} onRegister={handleSignUp} onViewStandings={handleViewStandings} />
+              <HeroCountdown
+                clashTimestamp={clashTimestamp}
+                onRegister={currentUser ? function() { navigate('/dashboard'); } : handleSignUp}
+                onViewStandings={handleViewStandings}
+                isLoggedIn={!!currentUser}
+              />
+            )
+            : currentUser
+            ? (
+              <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+                <div className="relative z-10 space-y-4">
+                  <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
+                    {'Welcome back, ' + (currentUser.username || 'Challenger')}
+                  </span>
+                  <button
+                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
+                    onClick={function() { navigate('/dashboard'); }}
+                  >
+                    Go to Dashboard
+                  </button>
+                  <a
+                    href="/standings"
+                    className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
+                    onClick={function(e) { e.preventDefault(); handleViewStandings(); }}
+                  >
+                    View Current Standings
+                  </a>
+                </div>
+              </div>
             )
             : (
               <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
@@ -370,6 +399,29 @@ export default function HomeScreen() {
             );
           })}
         </div>
+
+        {/* ── Logged-in quick actions ───────────────────────────────────────── */}
+        {currentUser && (
+          <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+              { label: 'My Stats', icon: 'bar_chart', path: '/player/' + (currentUser.username || '') },
+              { label: 'Standings', icon: 'leaderboard', path: '/standings' },
+              { label: 'Events', icon: 'event', path: '/events' },
+            ].map(function(item) {
+              return (
+                <button
+                  key={item.label}
+                  onClick={function() { navigate(item.path); }}
+                  className="flex flex-col items-center gap-2 p-4 bg-surface-container-low rounded-lg border border-outline-variant/10 hover:bg-surface-container hover:border-primary/20 transition-all cursor-pointer group"
+                >
+                  <Icon name={item.icon} size={22} className="text-primary group-hover:scale-110 transition-transform" />
+                  <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{item.label}</span>
+                </button>
+              );
+            })}
+          </section>
+        )}
 
         {/* ── Ad Banner ─────────────────────────────────────────────────────── */}
         <AdBanner size="banner" className="w-full" />

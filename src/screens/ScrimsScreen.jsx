@@ -403,7 +403,8 @@ export default function ScrimsScreen() {
   }
 
   // Access guard — scrimAccess holds player names (strings)
-  var hasAccess = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.name));
+  var currentUsername = currentUser && (currentUser.username || currentUser.name || '');
+  var hasAccess = isAdmin || (currentUser && (scrimAccess || []).includes(currentUsername));
   if (!hasAccess) {
     return (
       <PageLayout>

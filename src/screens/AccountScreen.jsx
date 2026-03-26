@@ -185,7 +185,10 @@ export default function AccountScreen() {
   var changePwSaving = _changePwSaving[0]; var setChangePwSaving = _changePwSaving[1];
 
   var usernameChanged = !!(user.user_metadata && user.user_metadata.username_changed);
-  var riotIdSet = !!(user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id));
+  var riotIdSet = !!(
+    (user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id)) ||
+    riotIdEu
+  );
   var EU_NA = ['EUW', 'EUNE', 'NA'];
 
   var linkedPlayer = players.find(function(p) {
@@ -239,9 +242,8 @@ export default function AccountScreen() {
     }
     var euErr = validateRiotId(riotIdEu);
     var naErr = validateRiotId(riotIdNa);
-    var mainRiotIdErr = (!riotIdSet && riotId.trim()) ? validateRiotId(riotId) : '';
-    if (euErr || naErr || mainRiotIdErr) {
-      setRiotIdError(euErr || naErr || mainRiotIdErr);
+    if (euErr || naErr) {
+      setRiotIdError(euErr || naErr);
       return;
     }
     setRiotIdError('');
@@ -264,9 +266,9 @@ export default function AccountScreen() {
       meta.username_changed = true;
     }
 
-    if (!riotIdSet && riotId.trim()) {
-      meta.riotId = riotId.trim();
-      meta.riotRegion = riotRegion;
+    // Use EU Riot ID as the primary Riot ID for the verification section
+    if (riotIdEu.trim()) {
+      meta.riotId = riotIdEu.trim();
       meta.riotIdSet = true;
     }
 
@@ -389,8 +391,8 @@ export default function AccountScreen() {
     : null;
 
   var avatarInitial = (user.username || 'U').charAt(0).toUpperCase();
-  var riotIdDisplay = user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id);
-  var riotRegionDisplay = user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region);
+  var riotIdDisplay = riotIdEu || (user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id));
+  var riotRegionDisplay = riotIdEu ? 'EUW' : (user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region));
 
   if (passwordRecovery) {
     return (
@@ -675,65 +677,6 @@ export default function AccountScreen() {
                         </div>
                       </div>
 
-                      {/* Riot ID */}
-                      <div className="space-y-1">
-                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">
-                          Main Riot ID {riotIdSet && <span className="text-primary/60">(locked)</span>}
-                        </label>
-                        {riotIdSet ? (
-                          <div className="flex gap-2 items-center">
-                            <div className="flex-1 bg-surface-container-lowest border border-primary/15 rounded p-3 text-primary text-sm font-mono font-bold">
-                              {(user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id))} - {(user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region)) || 'EUW'}
-                            </div>
-                            <button
-                              onClick={function() { requestChange('riotId'); }}
-                              className="px-3 py-2 bg-surface-container border border-outline-variant/30 rounded font-sans-cond text-xs uppercase tracking-widest text-on-surface/60 hover:text-on-surface transition-colors flex-shrink-0"
-                            >
-                              Request
-                            </button>
-                          </div>
-                        ) : (
-                          <div>
-                            <div className="grid grid-cols-[1fr_100px] gap-2">
-                              <input
-                                type="text"
-                                value={riotId}
-                                onChange={function(e) { setRiotId(e.target.value); if (riotIdError) setRiotIdError(''); }}
-                                placeholder="GameName#TAG"
-                                className={'bg-surface-container-lowest border-0 border-b focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm ' + (riotIdError && riotId.trim() ? 'border-error focus:border-error' : 'border-outline-variant/30 focus:border-primary')}
-                              />
-                              <Sel value={riotRegion} onChange={setRiotRegion}>
-                                {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
-                              </Sel>
-                            </div>
-                            {riotIdError && riotId.trim() && (
-                              <p className="text-error text-[11px] mt-1">{riotIdError}</p>
-                            )}
-                            {!riotIdError && (
-                              <p className="text-[11px] text-on-surface/40 mt-1">Format: GameName#TAG (e.g. Levitate#EUW)</p>
-                            )}
-                          </div>
-                        )}
-                        <p className="text-[11px] text-on-surface/40">EU and NA accounts only. Cannot be changed without admin approval.</p>
-                      </div>
-
-                      {/* Secondary Riot ID */}
-                      <div className="space-y-1">
-                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Secondary Riot ID <span className="text-on-surface/30">(optional)</span></label>
-                        <div className="grid grid-cols-[1fr_100px] gap-2">
-                          <input
-                            type="text"
-                            value={secondRiotId}
-                            onChange={function(e) { setSecondRiotId(e.target.value); }}
-                            placeholder="SecondName#TAG"
-                            className="bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-body p-3 transition-colors text-sm"
-                          />
-                          <Sel value={secondRegion} onChange={setSecondRegion}>
-                            {EU_NA.map(function(r) { return <option key={r} value={r}>{r}</option>; })}
-                          </Sel>
-                        </div>
-                      </div>
-
                       {/* Appearance - Pro only */}
                       <div className="pt-4 border-t border-outline-variant/10">
                         <div className="flex items-center gap-2 mb-4">
@@ -980,10 +923,12 @@ export default function AccountScreen() {
                     <Icon name="shield_person" size={24} className="text-tertiary" />
                   </div>
                   <div>
-                    <div className="font-mono text-lg text-on-surface">
-                      {riotIdDisplay ? (riotIdDisplay + (riotRegionDisplay ? '#' + riotRegionDisplay : '')) : 'Not linked'}
+                    <div className="font-mono text-sm text-on-surface space-y-0.5">
+                      {riotIdEu ? <div>{riotIdEu} <span className="text-tertiary text-[10px]">EU</span></div> : null}
+                      {riotIdNa ? <div>{riotIdNa} <span className="text-primary text-[10px]">NA</span></div> : null}
+                      {!riotIdEu && !riotIdNa ? <span className="text-on-surface/40">Not linked</span> : null}
                     </div>
-                    <div className="text-[10px] font-sans-cond text-on-surface/40 uppercase">
+                    <div className="text-[10px] font-sans-cond text-on-surface/40 uppercase mt-1">
                       {linkedPlayer && linkedPlayer.rank ? linkedPlayer.rank : (riotIdSet ? 'Linked' : 'No account linked')}
                     </div>
                   </div>
