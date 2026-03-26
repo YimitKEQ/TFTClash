@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
+import AdBanner from '../components/shared/AdBanner'
 
 // ── Countdown logic ──────────────────────────────────────────────────────────
 
@@ -230,7 +231,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
 // ── PromotionFooter ───────────────────────────────────────────────────────────
 
 function PromotionFooter({ playerCount, onRules, onHowToPlay }) {
-  var countText = playerCount > 0 ? 'Join ' + playerCount.toLocaleString() + ' players competing for glory and rewards.' : 'Join our growing community and compete for glory and rewards.'
+  var countText = playerCount > 0 ? playerCount.toLocaleString() + ' players are already on the leaderboard. Your spot is free.' : 'Your spot on the leaderboard is free. Sign up and compete this week.'
 
   return (
     <footer className="pt-12 border-t border-outline-variant/10 text-center space-y-4">
@@ -325,7 +326,7 @@ export default function HomeScreen() {
 
           {/* Tagline */}
           <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-60">
-            The weekly TFT clash. Every Saturday night.
+            The ranked TFT league for you. Compete weekly, climb the ladder.
           </p>
 
           {/* Countdown or CTA */}
@@ -338,20 +339,20 @@ export default function HomeScreen() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
                 <div className="relative z-10 space-y-4">
                   <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
-                    Join the Competition
+                    Free to compete, forever
                   </span>
                   <button
                     className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
                     onClick={handleSignUp}
                   >
-                    Sign Up Free
+                    Enter the Arena - Free
                   </button>
                   <a
                     href="/standings"
                     className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
                     onClick={function(e) { e.preventDefault(); handleViewStandings(); }}
                   >
-                    View Standings
+                    View Current Standings
                   </a>
                 </div>
               </div>
@@ -361,7 +362,7 @@ export default function HomeScreen() {
 
         {/* ── Value Props ───────────────────────────────────────────────────── */}
         <div className="flex flex-wrap justify-center gap-3">
-          {['Free to enter \u00b7 Always', 'EUW \u00b7 EUNE \u00b7 NA', 'Results every Saturday'].map(function(chip) {
+          {['Free to compete, always', 'EUW \u00b7 EUNE \u00b7 NA', 'Results every week', 'Full stats + career history'].map(function(chip) {
             return (
               <span key={chip} className="px-4 py-1.5 rounded-full text-xs font-label tracking-widest uppercase border border-outline-variant/20 text-on-surface-variant bg-surface-container-low">
                 {chip}
@@ -369,6 +370,9 @@ export default function HomeScreen() {
             );
           })}
         </div>
+
+        {/* ── Ad Banner ─────────────────────────────────────────────────────── */}
+        <AdBanner size="banner" className="w-full" />
 
         {/* ── Season Stats Bar ──────────────────────────────────────────────── */}
         <SeasonStatsBar

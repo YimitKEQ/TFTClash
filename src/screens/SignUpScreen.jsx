@@ -144,7 +144,7 @@ export default function SignUpScreen() {
             <h1 className="text-[#E8A838] text-4xl font-black tracking-tighter uppercase font-headline italic">
               TFT CLASH
             </h1>
-            <p className="font-serif text-lg italic text-on-surface/60">Join the Obsidian Arena</p>
+            <p className="font-serif text-lg italic text-on-surface/60">Your Saturday leaderboard spot is free.</p>
           </div>
 
           {/* Auth card */}
@@ -156,7 +156,7 @@ export default function SignUpScreen() {
               {/* Form header */}
               <div className="space-y-1">
                 <h2 className="font-serif text-3xl font-bold">Create Account</h2>
-                <p className="text-xs font-condensed uppercase tracking-widest text-on-surface/40">Establish your competitive profile</p>
+                <p className="text-xs font-condensed uppercase tracking-widest text-on-surface/40">Free to compete, every week</p>
               </div>
 
               {/* Discord quick signup */}

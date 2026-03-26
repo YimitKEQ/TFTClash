@@ -13,6 +13,7 @@ var PLAYER_FEATURES = [
 var PRO_FEATURES = [
   { text: 'Auto check-in for weekly clash', icon: 'check_circle' },
   { text: 'Priority registration (10 min early)', icon: 'schedule' },
+  { text: 'Ad-free - compete without interruptions', icon: 'block' },
   { text: 'Pro badge on profile', icon: 'verified' },
   { text: 'Extended match history (full career)', icon: 'history' },
   { text: 'Advanced stat breakdowns (placement rates, avg by comp, etc.)', icon: 'bar_chart' },
@@ -59,6 +60,13 @@ var COMPARISON_ROWS = [
   },
   {
     label: 'Priority registration',
+    player: false,
+    pro: true,
+    host: true,
+    type: 'bool',
+  },
+  {
+    label: 'Ad-free browsing',
     player: false,
     pro: true,
     host: true,
@@ -164,10 +172,10 @@ export default function PricingScreen() {
         {/* Header */}
         <header className="text-center mb-20">
           <h1 className="font-serif text-6xl md:text-8xl mb-6 text-on-surface">
-            Choose Your Path
+            Competing is always free.
           </h1>
-          <p className="font-sans text-xl uppercase tracking-[0.3em] text-primary opacity-80">
-            Battle. Ascend. Dominate.
+          <p className="font-sans text-base uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">
+            Pro gives you the edge. Host lets you run your own league.
           </p>
         </header>
 
@@ -231,6 +239,9 @@ export default function PricingScreen() {
                 <span className="font-display text-5xl">$4.99</span>
                 <span className="font-mono text-sm ml-2 opacity-60">/MONTH</span>
               </div>
+              <p className="text-xs text-on-surface-variant/60 mt-2 leading-relaxed">
+                Priority registration locks your spot 10 min before the field opens. Never miss a clash because it filled up.
+              </p>
             </div>
 
             <div className="space-y-5 mb-12">
@@ -249,8 +260,11 @@ export default function PricingScreen() {
                 Current Plan
               </div>
             ) : (
-              <div className="w-full py-2.5 text-center rounded-lg bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
-                Coming Soon
+              <div>
+                <div className="w-full py-2.5 text-center rounded-lg bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+                  Coming Soon
+                </div>
+                <p className="text-center text-[11px] text-on-surface-variant/40 mt-2">Founding member pricing locks in at launch.</p>
               </div>
             )}
           </div>

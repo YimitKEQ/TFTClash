@@ -8,6 +8,7 @@ import LeaderboardScreen from './LeaderboardScreen'
 import HofScreen from './HofScreen'
 import { rc } from '../lib/utils.js'
 import { RANKS } from '../lib/constants.js'
+import AdBanner from '../components/shared/AdBanner'
 
 var TABS = [
   { id: '', label: 'Leaderboard', icon: 'emoji_events' },
@@ -101,6 +102,8 @@ export default function StandingsScreen() {
           )
         })}
       </div>
+
+      <AdBanner size="banner" className="w-full mb-6" />
 
       {tab === '' && <LeaderboardScreen embedded={true} />}
 

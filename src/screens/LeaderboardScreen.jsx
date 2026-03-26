@@ -5,6 +5,7 @@ import { getStats } from '../lib/stats.js'
 import { REGIONS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
+import AdBanner from '../components/shared/AdBanner'
 
 var MEDAL_COLORS = ['#E8A838', '#C0C0C0', '#CD7F32']
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
@@ -268,6 +269,9 @@ export default function LeaderboardScreen(props) {
             <PodiumCard player={top3[2]} rank={3} onClick={function() { openPlayer(top3[2]) }} />
           </section>
         )}
+
+        {/* Ad Banner (standalone only — StandingsScreen injects its own when embedded) */}
+        {!embedded && <AdBanner size="banner" className="w-full mb-8" />}
 
         {/* Filters & Search */}
         <div className="flex flex-col md:flex-row gap-4 md:gap-6 mb-8 items-stretch md:items-center justify-between">
