@@ -1,6 +1,6 @@
 # Advanced Stats — Design Spec
 **Date:** 2026-03-26
-**Status:** Draft
+**Status:** Revised v2
 
 ---
 
@@ -17,7 +17,7 @@ Deliver a meaningful statistics layer on top of existing `game_results` data. Tw
 - Deep Stats tab on `PlayerProfileScreen.jsx` — additive change
 - `player_h2h_stats` SQL view — head-to-head records computed from `game_results`
 - `player_consistency_stats` SQL view — per-player consistency + clutch metrics
-- Stats nav pill added to `DESKTOP_PRIMARY` in `Navbar.jsx`
+- Stats nav pill added to `DESKTOP_LINKS` (desktop nav) and `mainItems` (hamburger drawer) in `Navbar.jsx`
 - `/stats` route added to `App.jsx`
 
 **Out of scope:**
@@ -86,8 +86,12 @@ JOIN game_results b
   ON  a.lobby_id = b.lobby_id
   AND a.round_number = b.round_number
   AND a.player_id <> b.player_id
-JOIN profiles pa ON pa.id = LEAST(a.player_id, b.player_id)
-JOIN profiles pb ON pb.id = GREATEST(a.player_id, b.player_id)
+JOIN players pa ON pa.id = LEAST(a.player_id, b.player_id)
+JOIN players pb ON pb.id = GREATEST(a.player_id, b.player_id)
+WHERE a.placement BETWEEN 1 AND 8
+  AND b.placement BETWEEN 1 AND 8
+  AND (a.is_dnp = false OR a.is_dnp IS NULL)
+  AND (b.is_dnp = false OR b.is_dnp IS NULL)
 GROUP BY
   LEAST(a.player_id, b.player_id),
   GREATEST(a.player_id, b.player_id),
@@ -123,30 +127,48 @@ Per-player aggregation of placement standard deviation and clutch factor.
 
 **Approximate SQL shape:**
 ```sql
+-- Step 1: pre-compute per-player average in a CTE to avoid window-function-inside-aggregate error
 CREATE OR REPLACE VIEW player_consistency_stats AS
+WITH base AS (
+  SELECT
+    p.id         AS player_id,
+    p.username,
+    gr.placement,
+    gr.id        AS result_id
+  FROM players p
+  JOIN game_results gr ON gr.player_id = p.id
+  WHERE gr.placement BETWEEN 1 AND 8
+    AND (gr.is_dnp = false OR gr.is_dnp IS NULL)
+),
+player_avgs AS (
+  SELECT player_id, AVG(placement) AS avg_placement
+  FROM base
+  GROUP BY player_id
+)
 SELECT
-  p.id                                            AS player_id,
-  p.username,
-  COUNT(gr.id)                                    AS games_played,
-  AVG(gr.placement)                               AS avg_placement,
-  STDDEV_POP(gr.placement)                        AS stddev_placement,
+  b.player_id,
+  b.username,
+  COUNT(b.result_id)                                        AS games_played,
+  ROUND(pa.avg_placement, 2)                                AS avg_placement,
+  ROUND(STDDEV_POP(b.placement), 2)                         AS stddev_placement,
   GREATEST(0, LEAST(100,
-    100 - (STDDEV_POP(gr.placement) * 10)
-  ))                                              AS consistency_score,
+    100 - (STDDEV_POP(b.placement) * 10)
+  ))                                                        AS consistency_score,
+  -- clutch_factor: % of games where placement <= floor(personal avg) — inclusive of floor tie
   ROUND(
-    100.0 * SUM(CASE WHEN gr.placement <= AVG(gr.placement) OVER (PARTITION BY p.id)
-                     THEN 1 ELSE 0 END) / COUNT(gr.id), 2
-  )                                               AS clutch_factor,
-  ROUND(100.0 * SUM(CASE WHEN gr.placement = 1 THEN 1 ELSE 0 END) / COUNT(gr.id), 2) AS win_rate,
-  ROUND(100.0 * SUM(CASE WHEN gr.placement <= 4 THEN 1 ELSE 0 END) / COUNT(gr.id), 2) AS top4_rate,
-  ROUND(100.0 * SUM(CASE WHEN gr.placement >= 5 THEN 1 ELSE 0 END) / COUNT(gr.id), 2) AS bot4_rate,
-  ROUND(100.0 * SUM(CASE WHEN gr.placement = 8 THEN 1 ELSE 0 END) / COUNT(gr.id), 2) AS eighth_rate,
-  MIN(gr.placement)                               AS best_finish,
-  MAX(gr.placement)                               AS worst_finish
-FROM profiles p
-JOIN game_results gr ON gr.player_id = p.id
-GROUP BY p.id, p.username
-HAVING COUNT(gr.id) >= 3;
+    100.0 * SUM(CASE WHEN b.placement <= FLOOR(pa.avg_placement) THEN 1 ELSE 0 END)
+           / COUNT(b.result_id), 2
+  )                                                         AS clutch_factor,
+  ROUND(100.0 * SUM(CASE WHEN b.placement = 1 THEN 1 ELSE 0 END) / COUNT(b.result_id), 2) AS win_rate,
+  ROUND(100.0 * SUM(CASE WHEN b.placement <= 4 THEN 1 ELSE 0 END) / COUNT(b.result_id), 2) AS top4_rate,
+  ROUND(100.0 * SUM(CASE WHEN b.placement >= 5 THEN 1 ELSE 0 END) / COUNT(b.result_id), 2) AS bot4_rate,
+  ROUND(100.0 * SUM(CASE WHEN b.placement = 8 THEN 1 ELSE 0 END) / COUNT(b.result_id), 2) AS eighth_rate,
+  MIN(b.placement)                                          AS best_finish,
+  MAX(b.placement)                                          AS worst_finish
+FROM base b
+JOIN player_avgs pa ON pa.player_id = b.player_id
+GROUP BY b.player_id, b.username, pa.avg_placement
+HAVING COUNT(b.result_id) >= 3;
 ```
 
 ---
@@ -178,19 +200,19 @@ Four auto-detected highlight cards displayed in a 4-column responsive row (2x2 o
 |---|---|---|---|
 | Most Consistent | "Most Consistent Player" | Highest `consistency_score` in `player_consistency_stats` | Player name + score badge |
 | Biggest Rivalry | "Biggest Rivalry" | Most `meetings` in `player_h2h_stats` | "Player A vs Player B — N meetings" |
-| Hottest Streak | "Hottest Streak" | Longest consecutive top-4 streak from `game_results` (computed client-side from ordered results) | Player name + streak count |
+| Hottest Streak | "Hottest Streak" | Longest consecutive top-4 streak from `game_results` (computed client-side from ordered results). Tie-break: highest `top4_rate` from `player_consistency_stats`; if still equal, most recent top-4 finish. | Player name + streak count |
 | Clutch King | "Clutch King" | Highest `clutch_factor` in `player_consistency_stats` | Player name + percentage |
 
 Each card uses a `<Panel>` with an `<Icon>` (Material Symbols), stat value in `font-display` (Playfair Display), and label in `font-label` (Barlow Condensed). Accent colour matches card type (primary / secondary / tertiary / success).
 
 ### 4.4 H2H Panel
 
-**Default view (< 20 total players):**
+**Default view (< 20 players with at least 1 game_result):**
 - Dropdown to select a player
 - On selection: fetch all rows from `player_h2h_stats` where `player_a_id = selected` OR `player_b_id = selected`
 - Render table sorted by `meetings DESC`, top 8 rows visible, "Show all" expander
 
-**At scale (>= 20 players):**
+**At scale (>= 20 players with at least 1 game_result):**
 - Search input (debounced 300ms) to find player
 - Same table output
 
@@ -230,6 +252,8 @@ Header row: placement numbers 1-8. First column: player name.
 
 "Next 20" / "Prev 20" pagination controls below the grid.
 
+**Mobile:** The heatmap is hidden on mobile (screen width < 768px). In its place, render a simple "Top 10 by Games Played" list with avg placement only (single-column, no grid).
+
 ### 4.8 Top Rivalries
 
 List of top 10 matchups by `meetings` from `player_h2h_stats`.
@@ -238,11 +262,12 @@ Each row: `Player A vs Player B` with a record pill `(A wins - B wins)` and meet
 
 ### 4.9 Season Trend
 
-Per-player sparkline: avg placement per clash event over time.
+Per-player sparkline: avg placement per tournament over time.
 
-- X axis: clash events in chronological order (derived from `game_results` grouped by `event_id` or `clash_date`)
+- X axis: tournaments in chronological order, grouped by `tournament_id` and joined to the `tournaments` table for name and date (order by `tournaments.created_at ASC`)
 - Y axis: avg placement (inverted — lower is better, so 1st is at top)
 - Display top 5 players by games played; remaining players selectable via a dropdown
+- If a player has fewer than 2 tournament data points, their sparkline is omitted and a "Not enough data" note appears in the legend instead
 
 Sparklines rendered as inline SVG paths — no external chart library. One polyline per player, colour-coded. Legend below the chart.
 
@@ -315,6 +340,8 @@ Rendered as simple `<div>` elements with Tailwind width utilities — no SVG nee
 
 Table of all opponents this player has faced, pulled from `player_h2h_stats` filtered by `player_id`.
 
+If a sort `<select>` is needed (e.g. sort by meetings vs wins), check whether `PlayerProfileScreen.jsx` already defines a local `Sel` component. If it does not, define one locally at module scope in that file — do not import from shared UI.
+
 **Columns:** Opponent | Meetings | Wins | Losses | Avg Placement vs Them | Result
 
 "Result" column: coloured pill — "Winning" (success) if wins > losses, "Losing" (error) if losses > wins, "Even" (muted) if equal.
@@ -339,14 +366,21 @@ Label above grid: "Last N Games" where N = actual count.
 
 ## 6. Navigation Changes
 
-### 6.1 Navbar — DESKTOP_PRIMARY
+### 6.1 Navbar — Desktop and Drawer
 
-Add "Stats" pill between "Events" and "Hall of Fame" in the `DESKTOP_PRIMARY` navigation array in `src/components/layout/Navbar.jsx`.
+Add "Stats" in two places in `src/components/layout/Navbar.jsx`:
 
-```
-Current: [..., Events, Hall of Fame, ...]
-After:   [..., Events, Stats, Hall of Fame, ...]
-```
+1. **`DESKTOP_LINKS` array** — insert between "Events" and "Hall of Fame":
+   ```
+   Current: [..., Events, Hall of Fame, ...]
+   After:   [..., Events, Stats, Hall of Fame, ...]
+   ```
+
+2. **`mainItems` array (hamburger drawer)** — insert between "Events" and "Hall of Fame" (mirror the desktop order):
+   ```
+   Current: [..., events item, hof item, ...]
+   After:   [..., events item, stats item, hof item, ...]
+   ```
 
 Route: `/stats`
 Icon: `bar_chart` (Material Symbols)
@@ -385,7 +419,7 @@ No `UP`/`DOWN` separation needed — views are fully replaceable.
 |---|---|---|
 | `src/screens/StatsHubScreen.jsx` | New file | Stats Hub page — all sections |
 | `src/screens/PlayerProfileScreen.jsx` | Modified | Add Deep Stats tab and tab content |
-| `src/components/layout/Navbar.jsx` | Modified | Add Stats pill to DESKTOP_PRIMARY |
+| `src/components/layout/Navbar.jsx` | Modified | Add Stats pill to DESKTOP_LINKS and mainItems drawer |
 | `src/App.jsx` | Modified | Add `/stats` route + import |
 | `supabase/migrations/043_advanced_stats_views.sql` | New file | Two SQL views |
 
@@ -434,9 +468,9 @@ return <ActualContent />
 
 ## 11. Open Questions
 
-1. **Clutch factor definition** — currently "% of games at or above personal average." Should ties (placement = floor(avg)) count as clutch or not? Recommended: count them (placement <= avg).
+1. ~~**Clutch factor definition**~~ — **CLOSED.** Clutch counts games where `placement <= FLOOR(avg_placement)`. Ties at the floor value are counted as clutch. SQL uses `FLOOR(pa.avg_placement)` from the pre-computed CTE average.
 2. **Season scope** — should views filter by current season only, or lifetime? Current spec is lifetime. If season-scoped, add `WHERE season_id = current_season_id` filter.
-3. **Sparkline data granularity** — "per clash event" assumes a clash groups multiple rounds. If `event_id` is not on `game_results`, derive from `clash_date` grouping instead.
+3. ~~**Sparkline data granularity**~~ — **CLOSED.** Group by `tournament_id`, join to `tournaments` table for ordering by `created_at`. `event_id` and `clash_date` do not exist on `game_results`.
 4. **Minimum games threshold** — currently 3 games for inclusion in consistency rankings. Adjust after seeing real data distribution.
 5. **H2H at scale** — the self-join on `game_results` is O(n^2) in the number of rows per lobby. For large datasets, consider materialising the view or adding a `game_results(lobby_id, round_number)` composite index.
 
