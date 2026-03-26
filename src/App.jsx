@@ -106,7 +106,8 @@ class ScreenBoundary extends Component {
         <div className="page wrap" style={{textAlign:"center",paddingTop:80,maxWidth:440,margin:"0 auto"}}>
           <div style={{fontSize:42,marginBottom:16,color:"#E8A838"}}>&#9888;</div>
           <h2 style={{color:"#F2EDE4",marginBottom:8,fontFamily:"'Playfair Display',serif"}}>{"Something went wrong"}</h2>
-          <div style={{fontSize:14,color:"#9AAABF",marginBottom:20,lineHeight:1.6}}>{"This screen ran into an error. Your data is safe."}</div>
+          <div style={{fontSize:14,color:"#9AAABF",marginBottom:8,lineHeight:1.6}}>{"This screen ran into an error. Your data is safe."}</div>
+          {this.state.error&&<div style={{fontSize:11,color:"#F87171",background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:6,padding:"8px 12px",marginBottom:16,textAlign:"left",fontFamily:"monospace",wordBreak:"break-all",maxHeight:120,overflow:"auto"}}>{String(this.state.error)}</div>}
           <div style={{display:"flex",gap:10,justifyContent:"center"}}>
             <button onClick={function(){self.setState({hasError:false,error:null});}} style={{padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:14}}>Try Again</button>
             <button onClick={function(){self.setState({hasError:false,error:null});if(self.props.onHome)self.props.onHome();}} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:13}}>Go Home</button>
