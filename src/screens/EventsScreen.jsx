@@ -62,7 +62,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
     actionBtn = (
       <button
         className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all glass-panel"
-        onClick={function() { navigate('/tournament/' + ev.id) }}
+        onClick={function() { navigate('/tournament/' + (ev.dbTournamentId || ev.id)) }}
       >
         WATCH BROADCAST
       </button>
@@ -165,6 +165,33 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
 function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthClick, navigate, toast }) {
   var [filter, setFilter] = useState('all')
   var [sortBy, setSortBy] = useState('date')
+
+  useEffect(function() {
+    if (!currentUser || !featuredEvents || featuredEvents.length === 0) return
+    var ids = featuredEvents.map(function(e) { return e.id })
+    supabase
+      .from('event_registrations')
+      .select('event_id')
+      .eq('player_id', currentUser.id)
+      .in('event_id', ids)
+      .then(function(res) {
+        if (res.error || !res.data || res.data.length === 0) return
+        var regEventIds = res.data.map(function(r) { return r.event_id })
+        if (setFeaturedEvents) {
+          setFeaturedEvents(function(evts) {
+            return evts.map(function(evt) {
+              if (regEventIds.indexOf(evt.id) === -1) return evt
+              var username = currentUser.username || ''
+              if ((evt.registeredIds || []).indexOf(username) !== -1) return evt
+              return Object.assign({}, evt, {
+                registeredIds: (evt.registeredIds || []).concat([username])
+              })
+            })
+          })
+        }
+      })
+  }, [currentUser ? currentUser.id : null])
+
   var allEvents = featuredEvents || []
   var live = allEvents.filter(function(e) { return e.status === 'live' })
   var upcoming = allEvents.filter(function(e) { return e.status === 'upcoming' })
@@ -178,7 +205,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
     filtered = live
   } else {
     filtered = active.filter(function(e) {
-      return !e.type || e.type === filter
+      return Array.isArray(e.tags) && e.tags.indexOf(filter) !== -1
     })
   }
 
@@ -472,10 +499,11 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
 
 // ── Tournaments tab (flash tournaments from DB) ────────────────────────────────
 
-function TournamentsTab({ navigate }) {
+function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
   var [tournaments, setTournaments] = useState([])
   var [loading, setLoading] = useState(true)
   var [regCounts, setRegCounts] = useState({})
+  var [myRegIds, setMyRegIds] = useState([])
 
   useEffect(function() {
     supabase
@@ -504,7 +532,34 @@ function TournamentsTab({ navigate }) {
         })
         setRegCounts(counts)
       })
+    if (!currentUser) return
+    supabase
+      .from('registrations')
+      .select('tournament_id')
+      .eq('player_id', currentUser.id)
+      .in('tournament_id', ids)
+      .then(function(res) {
+        if (res.data) setMyRegIds(res.data.map(function(r) { return r.tournament_id }))
+      })
   }, [tournaments])
+
+  function handleRegister(t) {
+    if (!currentUser) { if (onAuthClick) onAuthClick('login'); return }
+    var maxP = t.max_players || 128
+    var regCount = regCounts[t.id] || 0
+    if (regCount >= maxP) { if (toast) toast('Tournament is full', 'error'); return }
+    if (myRegIds.indexOf(t.id) !== -1) { if (toast) toast('Already registered', 'info'); return }
+    supabase.from('registrations').upsert({
+      tournament_id: t.id,
+      player_id: currentUser.id,
+      player_username: currentUser.username
+    }, { onConflict: 'tournament_id,player_id' }).then(function(res) {
+      if (res.error) { if (toast) toast('Registration failed: ' + res.error.message, 'error'); return }
+      setMyRegIds(function(ids) { return ids.concat([t.id]) })
+      setRegCounts(function(c) { return Object.assign({}, c, { [t.id]: (c[t.id] || 0) + 1 }) })
+      if (toast) toast('Registered for ' + t.name, 'success')
+    })
+  }
 
   var phaseLabels = {
     draft: 'Draft',
@@ -642,9 +697,36 @@ function TournamentsTab({ navigate }) {
                   </div>
                 </div>
 
-                <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider">
+                <div className="text-xs text-on-surface-variant font-label uppercase tracking-wider mb-4">
                   {(t.round_count || 3) + ' games - ' + (t.seeding_method || 'snake') + ' seeding'}
                 </div>
+
+                {t.phase === 'in_progress' && (
+                  <button
+                    className="w-full py-2.5 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+                    onClick={function(e) { e.stopPropagation(); navigate('/flash/' + t.id) }}
+                  >
+                    WATCH LIVE
+                  </button>
+                )}
+                {t.phase !== 'in_progress' && myRegIds.indexOf(t.id) !== -1 && (
+                  <button className="w-full py-2.5 border border-success/30 text-success font-label text-xs font-bold uppercase tracking-widest cursor-default">
+                    REGISTERED
+                  </button>
+                )}
+                {t.phase !== 'in_progress' && myRegIds.indexOf(t.id) === -1 && regCount >= maxP && (
+                  <button className="w-full py-2.5 border border-outline-variant/30 text-on-surface/40 cursor-not-allowed font-label text-xs font-bold uppercase tracking-widest">
+                    FULL
+                  </button>
+                )}
+                {t.phase !== 'in_progress' && myRegIds.indexOf(t.id) === -1 && regCount < maxP && (
+                  <button
+                    className="w-full py-2.5 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all bg-gradient-to-br from-primary to-primary-fixed-dim"
+                    onClick={function(e) { e.stopPropagation(); handleRegister(t) }}
+                  >
+                    REGISTER NOW
+                  </button>
+                )}
               </div>
             </article>
           )
@@ -676,7 +758,7 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
           <div
             key={clash.id || idx}
             className="bg-surface-container-low border border-outline-variant/10 px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
-            onClick={function() { navigate('/results') }}
+            onClick={function() { navigate('/results', { state: { clash: clash } }) }}
           >
             <div className="flex-shrink-0 w-10 h-10 bg-surface-container-high border border-outline-variant/20 flex items-center justify-center font-bold text-primary font-stats text-sm">
               {'#' + (clashes.length - idx)}
@@ -763,7 +845,7 @@ export default function EventsScreen() {
           />
         )}
         {activeTab === 'tournaments' && (
-          <TournamentsTab navigate={navigate} />
+          <TournamentsTab navigate={navigate} currentUser={currentUser} onAuthClick={handleAuthClick} toast={toast} />
         )}
         {activeTab === 'archive' && (
           <ArchiveTab

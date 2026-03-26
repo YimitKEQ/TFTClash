@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { Icon } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
@@ -113,6 +114,7 @@ function RoundCard(props) {
 }
 
 export default function TournamentDetailScreen() {
+  var navigate = useNavigate()
   var ctx = useApp()
   var featuredEvents = ctx.featuredEvents
   var setFeaturedEvents = ctx.setFeaturedEvents
@@ -430,17 +432,18 @@ export default function TournamentDetailScreen() {
               </div>
 
               {/* Prize Distribution */}
-              {event.prizePool && (
+              {Array.isArray(event.prize_pool_json) && event.prize_pool_json.length > 0 && (
                 <div className="bg-surface-container-low p-8">
                   <h2 className="font-serif text-3xl italic font-bold mb-6">Prize Distribution</h2>
                   <div className="space-y-3">
-                    {PRIZE_BARS.map(function(pb) {
+                    {event.prize_pool_json.map(function(p, i) {
+                      var pb = PRIZE_BARS[i] || PRIZE_BARS[PRIZE_BARS.length - 1]
                       return (
-                        <div key={pb.label} className="relative h-12 flex items-center bg-surface-container-lowest">
+                        <div key={i} className="relative h-12 flex items-center bg-surface-container-lowest">
                           <div className={'absolute inset-y-0 left-0 border-r-2 ' + pb.barBg + ' ' + pb.barBorder} style={{ width: pb.pct }}></div>
                           <div className="relative z-10 w-full flex justify-between px-4 font-mono">
-                            <span className={pb.textColor + ' font-bold text-sm'}>{pb.label}</span>
-                            <span className={pb.textColor + ' text-sm'}>{event.prizePool}</span>
+                            <span className={pb.textColor + ' font-bold text-sm'}>{'#' + p.placement}</span>
+                            <span className={pb.textColor + ' text-sm'}>{p.prize}</span>
                           </div>
                         </div>
                       )
@@ -450,10 +453,10 @@ export default function TournamentDetailScreen() {
               )}
 
               {/* Host-only management link */}
-              {currentUser && event.hostTournamentId && event.host === currentUser.username && (
+              {currentUser && event.dbTournamentId && currentUser.id === event.host_id && (
                 <div>
                   <button
-                    onClick={function() { setScreen('host-dashboard') }}
+                    onClick={function() { navigate('/host/dashboard') }}
                     className="inline-flex items-center gap-2 bg-secondary/10 border border-secondary/20 text-secondary font-sans font-bold text-sm uppercase tracking-wider px-6 py-3 rounded-sm hover:bg-secondary/20 transition-colors"
                   >
                     <Icon name="manage_accounts" className="text-base" />
@@ -677,15 +680,15 @@ export default function TournamentDetailScreen() {
               </div>
 
               {/* Tournament-specific rules */}
-              {event.rules && (
-                <div className="bg-surface-container-low p-8 border-l-4 border-tertiary">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="font-serif text-3xl italic font-bold">Tournament Rules</h2>
-                    <Icon name="description" className="text-tertiary text-2xl" />
-                  </div>
-                  <div className="text-sm text-on-surface/70 font-body leading-relaxed whitespace-pre-wrap">{event.rules}</div>
+              <div className="bg-surface-container-low p-8 border-l-4 border-tertiary">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-serif text-3xl italic font-bold">Tournament Rules</h2>
+                  <Icon name="description" className="text-tertiary text-2xl" />
                 </div>
-              )}
+                <div className="text-sm text-on-surface/70 font-body leading-relaxed whitespace-pre-wrap">
+                  {event.rulesText || event.rules_text || event.rules || 'Standard TFT Clash ruleset applies. All participants must adhere to the code of conduct and Riot Terms of Service.'}
+                </div>
+              </div>
             </div>
 
             {/* Rules sidebar */}

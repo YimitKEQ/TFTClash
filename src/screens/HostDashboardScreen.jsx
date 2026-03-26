@@ -341,7 +341,7 @@ export default function HostDashboardScreen() {
   useEffect(function() {
     if (!currentUser || !supabase.from) return;
     supabase.from("tournaments").select("id, name, date, max_players, host_id")
-      .eq("host_id", currentUser.id)
+      .eq("host_id", currentUser.auth_user_id || currentUser.id)
       .order("date", { ascending: false })
       .then(function(res) {
         if (res.data && setHostTournaments) {
@@ -368,10 +368,10 @@ export default function HostDashboardScreen() {
     var ext = file.name.split('.').pop();
     var authUid = currentUser ? (currentUser.auth_user_id || currentUser.authUserId || currentUser.id) : "anon";
     var path = "host-" + authUid + "/" + type + "." + ext;
-    supabase.storage.from("avatars").upload(path, file, { cacheControl: "3600", upsert: true }).then(function(res) {
+    supabase.storage.from("host-assets").upload(path, file, { cacheControl: "3600", upsert: true }).then(function(res) {
       setUploading(false);
       if (res.error) { toast("Upload failed: " + res.error.message, "error"); return; }
-      var url = supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+      var url = supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
       setUrl(url);
       toast((type === "logo" ? "Logo" : "Banner") + " uploaded!", "success");
     });
@@ -486,12 +486,13 @@ export default function HostDashboardScreen() {
       supabase.from("tournaments").insert({
         name: savedWizData.name,
         date: savedWizData.date,
-        type: savedWizData.type,
+        type: "flash_tournament",
+        format_type: savedWizData.type,
         total_games: savedWizData.totalGames,
         max_players: savedWizData.maxPlayers,
         status: "upcoming",
-        created_by: currentUser ? currentUser.id : null,
-        host_id: currentUser ? currentUser.id : null,
+        created_by: currentUser ? (currentUser.auth_user_id || currentUser.id) : null,
+        host_id: currentUser ? (currentUser.auth_user_id || currentUser.id) : null,
         branding_json: { accent_color: savedWizData.accentColor }
       }).select().single().then(function(res) {
         setWizCreating(false);
@@ -540,11 +541,24 @@ export default function HostDashboardScreen() {
 
   function sendAnnouncement() {
     if (!announceMsg.trim()) { toast("Write a message first", "error"); return; }
-    var a = { id: Date.now(), to: announceTo, msg: announceMsg.trim(), sentAt: new Date().toLocaleString() };
+    var msg = announceMsg.trim();
+    var a = { id: Date.now(), to: announceTo, msg: msg, sentAt: new Date().toLocaleString() };
     var newArr = [a].concat(announcements);
     setAnnouncements(function() { return newArr; });
     if (setHostAnnouncements) setHostAnnouncements(newArr);
     setAnnounceMsg("");
+    if (supabase.from) {
+      supabase.from('notifications').insert({
+        type: 'announcement',
+        message: msg,
+        target_audience: announceTo,
+        created_by: currentUser ? (currentUser.auth_user_id || currentUser.id) : null
+      }).then(function(r) { if (r.error) console.error('[TFT] notification insert failed:', r.error) })
+      supabase.from('site_settings').upsert(
+        { key: 'announcement', value: msg },
+        { onConflict: 'key' }
+      ).then(function(r) { if (r.error) console.error('[TFT] site_settings announcement failed:', r.error) })
+    }
     toast("Announcement sent to " + (announceTo === "all" ? "all players" : announceTo + " players"), "success");
   }
 
