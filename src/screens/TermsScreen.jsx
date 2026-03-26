@@ -75,6 +75,7 @@ var TERMS_SECTIONS = [
 export default function TermsScreen() {
   var [activeSection, setActiveSection] = useState(null)
   var navigate = useNavigate()
+  var lastUpdated = new Date('2026-03-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
 
   function scrollTo(id) {
     var el = document.getElementById('terms-' + id)
@@ -112,7 +113,7 @@ export default function TermsScreen() {
 
             <div className="mt-8 p-5 bg-surface-container-low rounded-sm border border-outline-variant/15">
               <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">Last Updated</span>
-              <p className="font-mono text-sm mt-1 text-on-surface">MARCH 2026</p>
+              <p className="font-mono text-sm mt-1 text-on-surface">{lastUpdated}</p>
             </div>
 
             <div className="mt-4 flex flex-col gap-1">

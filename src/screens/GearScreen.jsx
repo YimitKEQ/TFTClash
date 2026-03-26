@@ -74,20 +74,24 @@ export default function GearScreen() {
                         }
                         <div className="p-3">
                           <div className="text-sm font-bold text-on-surface mb-1">{item.name}</div>
-                          <div className="text-xs text-on-surface/60 mb-2 leading-relaxed">{item.description || ''}</div>
-                          <div className="flex items-center justify-between">
-                            {item.price && (
-                              <span className="text-sm font-bold text-primary">{item.price}</span>
+                          <div className="text-xs text-on-surface/60 mb-3 leading-relaxed">{item.description || ''}</div>
+                          <div className="flex items-center justify-between gap-2">
+                            {item.price > 0 && (
+                              <span className="text-sm font-bold font-mono text-primary">{'€' + Number(item.price).toFixed(2)}</span>
                             )}
-                            {item.external_url && (
+                            {item.shop_url ? (
                               <a
-                                href={item.external_url}
+                                href={item.shop_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-xs font-semibold text-secondary no-underline"
+                                className="px-3 py-1 bg-primary/10 border border-primary/20 rounded text-xs font-condensed uppercase tracking-wider text-primary hover:bg-primary/20 transition-colors no-underline"
                               >
-                                View
+                                Buy Now
                               </a>
+                            ) : (
+                              <span className="px-3 py-1 bg-surface-variant/20 rounded text-xs font-condensed uppercase tracking-wider text-on-surface/30">
+                                Coming Soon
+                              </span>
                             )}
                           </div>
                         </div>
