@@ -7,6 +7,7 @@ import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Badge, Tag, StatCard } from '../components/ui'
 import RankBadge from '../components/shared/RankBadge'
+import supabase from '../lib/supabase'
 
 // ─── PLACEMENT DISTRIBUTION BAR CHART ────────────────────────────────────────
 function PlacementDistribution({ history }) {
@@ -225,6 +226,55 @@ export default function PlayerProfileScreen() {
     }
   }, [player && player.id]);
 
+  // Deep Stats data
+  var _deepStats = useState(null);
+  var deepStats = _deepStats[0];
+  var setDeepStats = _deepStats[1];
+
+  var _deepH2h = useState(null);
+  var deepH2h = _deepH2h[0];
+  var setDeepH2h = _deepH2h[1];
+
+  var _deepGr = useState(null);
+  var deepGr = _deepGr[0];
+  var setDeepGr = _deepGr[1];
+
+  var _deepLoading = useState(false);
+  var deepLoading = _deepLoading[0];
+  var setDeepLoading = _deepLoading[1];
+
+  var _deepError = useState(null);
+  var deepError = _deepError[0];
+  var setDeepError = _deepError[1];
+
+  useEffect(function() {
+    if (tab !== 'deep-stats' || !player || !player.id) return;
+    if (deepStats !== null) return; // already loaded
+    setDeepLoading(true);
+    setDeepError(null);
+    Promise.all([
+      supabase.from('player_consistency_stats').select('*').eq('player_id', player.id).single(),
+      supabase.from('player_h2h_stats').select('*').or('player_a_id.eq.' + player.id + ',player_b_id.eq.' + player.id),
+      supabase.from('game_results').select('placement, tournament_id').eq('player_id', player.id).gte('placement', 1).lte('placement', 8).order('tournament_id'),
+    ]).then(function(results) {
+      var sRes = results[0];
+      var hRes = results[1];
+      var grRes = results[2];
+      if (hRes.error || grRes.error) {
+        setDeepError((hRes.error || grRes.error).message || 'Failed to load deep stats');
+        setDeepLoading(false);
+        return;
+      }
+      setDeepStats(sRes.data || null);
+      setDeepH2h(hRes.data || []);
+      setDeepGr(grRes.data || []);
+      setDeepLoading(false);
+    }).catch(function(e) {
+      setDeepError(e.message || 'Failed to load');
+      setDeepLoading(false);
+    });
+  }, [tab, player && player.id]);
+
   if (!player) {
     return (
       <PageLayout>
@@ -291,7 +341,7 @@ export default function PlayerProfileScreen() {
     shareToTwitter(buildShareText('profile', { name: player.name, rank: ppRank, pts: player.pts }));
   }
 
-  var tabs = ['overview', 'rounds', 'history', 'h2h', 'achievements'];
+  var tabs = ['overview', 'rounds', 'history', 'h2h', 'achievements', 'deep-stats'];
 
   return (
     <PageLayout>
@@ -460,7 +510,7 @@ export default function PlayerProfileScreen() {
       {/* Tabs */}
       <div className="flex gap-1 mb-6 overflow-x-auto pb-px border-b border-outline-variant/20 -mx-4 px-4 sm:mx-0 sm:px-0">
         {tabs.map(function(t) {
-          var label = t === 'h2h' ? 'H2H' : t === 'rounds' ? 'By Round' : t.charAt(0).toUpperCase() + t.slice(1);
+          var label = t === 'h2h' ? 'H2H' : t === 'rounds' ? 'By Round' : t === 'deep-stats' ? 'Deep Stats' : t.charAt(0).toUpperCase() + t.slice(1);
           var isActive = tab === t;
           return (
             <button
@@ -853,6 +903,182 @@ export default function PlayerProfileScreen() {
               </div>
             )
           }
+        </div>
+      )}
+
+      {/* Deep Stats Tab */}
+      {tab === 'deep-stats' && (
+        <div>
+          {deepLoading && (
+            <div className="space-y-4">
+              {[0,1,2].map(function(i) { return <div key={i} className="h-32 bg-surface-variant/30 animate-pulse rounded-lg" />; })}
+            </div>
+          )}
+          {deepError && (
+            <div className="py-12 text-center">
+              <Icon className="text-3xl text-error/60 mb-2">error_outline</Icon>
+              <p className="text-on-surface/40 text-sm font-technical">{deepError}</p>
+            </div>
+          )}
+          {!deepLoading && !deepError && !deepStats && (
+            <div className="py-12 text-center">
+              <Icon className="text-4xl text-on-surface/20 mb-3">sports_esports</Icon>
+              <p className="text-on-surface/40 text-sm font-technical uppercase tracking-widest">Need at least 3 games for stats</p>
+            </div>
+          )}
+          {!deepLoading && !deepError && deepStats && (
+            <div className="space-y-6">
+
+              {/* Season Breakdown */}
+              <div className="bg-surface-container-low rounded-lg p-6">
+                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Season Breakdown</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: 'Games', value: deepStats.games_played },
+                    { label: 'Avg Placement', value: parseFloat(deepStats.avg_placement).toFixed(2) },
+                    { label: 'Win Rate', value: parseFloat(deepStats.win_rate).toFixed(1) + '%', green: true },
+                    { label: 'Top-4 Rate', value: parseFloat(deepStats.top4_rate).toFixed(1) + '%', green: true },
+                    { label: 'Bot-4 Rate', value: parseFloat(deepStats.bot4_rate).toFixed(1) + '%', red: true },
+                    { label: '8th Rate', value: parseFloat(deepStats.eighth_rate).toFixed(1) + '%', red: true },
+                    { label: 'Best Finish', value: '#' + deepStats.best_finish },
+                    { label: 'Worst Finish', value: '#' + deepStats.worst_finish },
+                  ].map(function(stat) {
+                    return (
+                      <div key={stat.label} className="bg-surface-container p-3 rounded-lg">
+                        <div className="font-technical text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{stat.label}</div>
+                        <div className={'font-display text-xl font-bold ' + (stat.green ? 'text-success' : stat.red ? 'text-error' : 'text-on-surface')}>
+                          {stat.value}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Performance Scores */}
+              <div className="bg-surface-container-low rounded-lg p-6">
+                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Performance Scores</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {(function() {
+                    var consistency_s = parseFloat(deepStats.consistency_score);
+                    var clutch_s = parseFloat(deepStats.clutch_factor);
+                    var stddev_s = parseFloat(deepStats.stddev_placement);
+                    var last10 = (deepGr || []).slice(-10);
+                    var last10Avg = last10.length > 0
+                      ? last10.reduce(function(s, r) { return s + parseFloat(r.placement); }, 0) / last10.length
+                      : null;
+                    var formGrade = last10Avg === null ? '-'
+                      : last10Avg <= 2.0 ? 'A+'
+                      : last10Avg <= 3.0 ? 'A'
+                      : last10Avg <= 4.0 ? 'B'
+                      : last10Avg <= 5.0 ? 'C'
+                      : 'D';
+                    var formColor = (formGrade === 'A+' || formGrade === 'A') ? 'text-success'
+                      : formGrade === 'B' ? 'text-primary'
+                      : formGrade === 'C' ? 'text-secondary'
+                      : 'text-error';
+                    var scoreCards = [
+                      { label: 'Consistency', value: consistency_s.toFixed(1), suffix: '/100', color: consistency_s >= 80 ? 'text-success' : consistency_s >= 60 ? 'text-primary' : 'text-error' },
+                      { label: 'Clutch Factor', value: clutch_s.toFixed(1) + '%', suffix: '', color: clutch_s >= 60 ? 'text-success' : clutch_s >= 40 ? 'text-primary' : 'text-error' },
+                      { label: 'Current Form', value: formGrade, suffix: '', color: formColor },
+                      { label: 'Volatility (SD)', value: stddev_s.toFixed(2), suffix: '', color: stddev_s <= 1.5 ? 'text-success' : stddev_s <= 2.5 ? 'text-primary' : 'text-error' },
+                    ];
+                    return scoreCards.map(function(sc) {
+                      return (
+                        <div key={sc.label} className="bg-surface-container p-3 rounded-lg">
+                          <div className="font-technical text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{sc.label}</div>
+                          <div className={'font-display text-xl font-bold ' + sc.color}>{sc.value}<span className="text-sm text-on-surface/30 ml-0.5">{sc.suffix}</span></div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              {/* Placement Distribution (per-placement bars) */}
+              <div className="bg-surface-container-low rounded-lg p-6">
+                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Placement Distribution</h3>
+                {(function() {
+                  var grData = deepGr || [];
+                  var counts = { 1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0 };
+                  var total = grData.length || 1;
+                  grData.forEach(function(r) {
+                    var p = parseInt(r.placement);
+                    if (p >= 1 && p <= 8) counts[p]++;
+                  });
+                  var barColors = ['#E8A838','#48C774','#48C774','#4890C7','#BECBD9','#BECBD9','#F14668','#F14668'];
+                  return [1,2,3,4,5,6,7,8].map(function(n) {
+                    var pct = Math.round((counts[n] / total) * 100);
+                    var color = barColors[n - 1];
+                    return (
+                      <div key={n} className="flex items-center gap-3 mb-2">
+                        <span className="font-technical text-xs text-on-surface/50 w-6 text-right shrink-0">{'#' + n}</span>
+                        <div className="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: pct + '%', backgroundColor: color }} />
+                        </div>
+                        <span className="font-stats text-xs text-on-surface/60 w-8 text-right shrink-0">{pct + '%'}</span>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+
+              {/* H2H Record */}
+              {deepH2h && deepH2h.length > 0 && (
+                <div className="bg-surface-container-low rounded-lg p-6">
+                  <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Head-to-Head Record</h3>
+                  <div className="space-y-0">
+                    {deepH2h.slice().sort(function(a, b) { return b.meetings - a.meetings; }).map(function(r) {
+                      var isA = r.player_a_id === player.id;
+                      var opponent = isA ? r.player_b_name : r.player_a_name;
+                      var myWins = parseInt(isA ? r.player_a_wins : r.player_b_wins);
+                      var oppWins = parseInt(isA ? r.player_b_wins : r.player_a_wins);
+                      var resultLabel = myWins > oppWins ? 'Winning' : oppWins > myWins ? 'Losing' : 'Even';
+                      var resultColor = myWins > oppWins ? 'text-success bg-success/10 border-success/20'
+                        : oppWins > myWins ? 'text-error bg-error/10 border-error/20'
+                        : 'text-on-surface/50 bg-white/5 border-white/10';
+                      return (
+                        <div key={opponent} className="flex items-center gap-3 py-2.5 border-b border-on-surface/5 last:border-0">
+                          <span className="font-technical font-semibold text-sm text-on-surface flex-1">{opponent}</span>
+                          <span className="font-stats text-xs text-on-surface/50">{r.meetings + ' games'}</span>
+                          <span className="font-mono text-xs text-on-surface/70">{myWins + 'W - ' + oppWins + 'L'}</span>
+                          <span className={'text-[11px] font-technical px-2 py-0.5 rounded border ' + resultColor}>{resultLabel}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Game Timeline */}
+              {deepGr && deepGr.length > 0 && (
+                <div className="bg-surface-container-low rounded-lg p-6">
+                  <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">
+                    {'Last ' + Math.min(deepGr.length, 50) + ' Games'}
+                  </h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {deepGr.slice(-50).reverse().map(function(r, i) {
+                      var p = parseInt(r.placement);
+                      var bg = p === 1 ? 'bg-yellow-400/80'
+                             : p <= 4 ? 'bg-success/70'
+                             : p <= 7 ? 'bg-surface-variant'
+                             : 'bg-error/70';
+                      return (
+                        <div
+                          key={i}
+                          className={'w-7 h-7 rounded flex items-center justify-center font-mono text-[10px] font-bold text-on-surface/80 cursor-default ' + bg}
+                          title={'Place #' + p}
+                        >
+                          {p}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
         </div>
       )}
 

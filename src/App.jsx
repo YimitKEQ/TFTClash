@@ -38,6 +38,7 @@ var GearScreenNew = React.lazy(function(){ return import('./screens/GearScreen')
 import PageLayout from './components/layout/PageLayout';
 var ClashScreenNew = React.lazy(function(){ return import('./screens/ClashScreen'); });
 var NotFoundScreen = React.lazy(function(){ return import('./screens/NotFoundScreen'); });
+var StatsHubScreenNew = React.lazy(function(){ return import('./screens/StatsHubScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -185,7 +186,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -617,6 +618,8 @@ function TFTClash(){
 
         {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap text-center pt-20"><div className="text-4xl mb-4">&#128274;</div><h2 className="text-on-surface mb-2">Host Access Required</h2><p className="text-on-surface/60 text-sm mb-5">Your host application is pending review. You will be notified once approved.</p><Btn variant="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
+
+        {screen==="stats"      &&<StatsHubScreenNew/>}
 
         {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreenNew/>}
 

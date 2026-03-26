@@ -11,13 +11,14 @@ var SCREEN_TO_ROUTE = {
   archive: '/archive', recap: '/season-recap', rules: '/rules', faq: '/faq',
   account: '/account', 'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
   admin: '/admin', privacy: '/privacy', terms: '/terms', clash: '/clash',
-  tournaments: '/tournaments', gear: '/gear'
+  tournaments: '/tournaments', gear: '/gear', stats: '/stats'
 };
 
 var DESKTOP_LINKS = [
   { id: 'clash',      label: 'Clash' },
   { id: 'standings',  label: 'Standings' },
   { id: 'events',     label: 'Events' },
+  { id: 'stats',      label: 'Stats' },
   { id: 'hof',        label: 'Hall of Fame' },
   { id: 'pricing',    label: 'Pricing' },
 ];
@@ -158,6 +159,7 @@ export default function Navbar() {
     { id: 'standings',  icon: 'bar_chart',         label: 'Standings' },
     { id: 'leaderboard',icon: 'emoji_events',      label: 'Leaderboard' },
     { id: 'events',     icon: 'calendar_month',    label: 'Events' },
+    { id: 'stats',      icon: 'bar_chart',         label: 'Stats' },
     { id: 'hof',        icon: 'workspace_premium', label: 'Hall of Fame' },
   ];
   var communityItems = [
