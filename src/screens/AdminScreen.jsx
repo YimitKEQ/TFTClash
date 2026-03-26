@@ -282,6 +282,25 @@ export default function AdminScreen() {
   var serverVal = _serverVal[0]
   var setServerVal = _serverVal[1]
 
+  var _evName = useState('')
+  var evName = _evName[0]
+  var setEvName = _evName[1]
+  var _evHost = useState('')
+  var evHost = _evHost[0]
+  var setEvHost = _evHost[1]
+  var _evDate = useState('')
+  var evDate = _evDate[0]
+  var setEvDate = _evDate[1]
+  var _evStatus = useState('upcoming')
+  var evStatus = _evStatus[0]
+  var setEvStatus = _evStatus[1]
+  var _evFormat = useState('')
+  var evFormat = _evFormat[0]
+  var setEvFormat = _evFormat[1]
+  var _evSize = useState('')
+  var evSize = _evSize[0]
+  var setEvSize = _evSize[1]
+
   useEffect(function() {
     if (tournamentState && tournamentState.server) setServerVal(tournamentState.server)
   }, [tournamentState && tournamentState.server])
@@ -398,6 +417,31 @@ export default function AdminScreen() {
     if (supabase.from && id) { supabase.from('players').delete().eq('id', id).then(function(r) { if (r.error) console.error('[TFT] Player delete failed:', r.error) }) }
     addAudit('ACTION', 'Removed: ' + name)
     toast(name + ' removed', 'success')
+  }
+
+  function addFeaturedEvent() {
+    if (!evName.trim() || !evHost.trim() || !evDate.trim()) {
+      toast('Event name, host, and date are required', 'error')
+      return
+    }
+    supabase.from('featured_events').insert({
+      name: evName.trim(),
+      host: evHost.trim(),
+      date: evDate.trim(),
+      status: evStatus,
+      format: evFormat.trim() || 'Swiss',
+      size: evSize ? parseInt(evSize, 10) : 16
+    }).select().single().then(function(res) {
+      if (res.error) { toast('Failed to add event: ' + res.error.message, 'error'); return }
+      toast('Event added!', 'success')
+      setEvName('')
+      setEvHost('')
+      setEvDate('')
+      setEvStatus('upcoming')
+      setEvFormat('')
+      setEvSize('')
+      addAudit('ACTION', 'Featured event added: ' + evName.trim())
+    })
   }
 
   function saveNote() {
@@ -1622,15 +1666,14 @@ export default function AdminScreen() {
                   <span className="font-bold text-sm text-on-surface">Add Featured Event</span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Event Name</label><Inp placeholder="Tournament name..." onChange={function() {}} /></div>
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Host</label><Inp placeholder="Host org..." onChange={function() {}} /></div>
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Date</label><Inp placeholder="Mar 22 2026" onChange={function() {}} /></div>
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Status</label><Sel value="upcoming" onChange={function() {}}><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option></Sel></div>
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Format</label><Inp placeholder="Swiss" onChange={function() {}} /></div>
-                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Size</label><Inp type="number" placeholder="16" onChange={function() {}} /></div>
+                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Event Name</label><Inp value={evName} placeholder="Tournament name..." onChange={function(e) { setEvName(typeof e === 'string' ? e : e.target.value) }} /></div>
+                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Host</label><Inp value={evHost} placeholder="Host org..." onChange={function(e) { setEvHost(typeof e === 'string' ? e : e.target.value) }} /></div>
+                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Date</label><Inp value={evDate} placeholder="Mar 22 2026" onChange={function(e) { setEvDate(typeof e === 'string' ? e : e.target.value) }} /></div>
+                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Status</label><Sel value={evStatus} onChange={function(v) { setEvStatus(v) }}><option value="upcoming">Upcoming</option><option value="live">Live</option><option value="completed">Completed</option></Sel></div>
+                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Format</label><Inp value={evFormat} placeholder="Swiss" onChange={function(e) { setEvFormat(typeof e === 'string' ? e : e.target.value) }} /></div>
+                  <div><label className="block text-[11px] text-on-surface/60 mb-1 font-bold uppercase tracking-wider">Size</label><Inp type="number" value={evSize} placeholder="16" onChange={function(e) { setEvSize(typeof e === 'string' ? e : e.target.value) }} /></div>
                 </div>
-                <div className="text-xs text-on-surface/30 mb-2">Note: Featured event form uses refs in the original - use the form fields and click Add Event.</div>
-                <Btn variant="primary">Add Event</Btn>
+                <Btn variant="primary" onClick={addFeaturedEvent}>Add Event</Btn>
               </Panel>
             </div>
           )}

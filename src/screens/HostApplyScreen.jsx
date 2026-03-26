@@ -38,10 +38,26 @@ export default function HostApplyScreen() {
   var [vision, setVision] = useState("");
   var [submitted, setSubmitted] = useState(false);
 
-  function submit() {
+  async function submit() {
     if (!org.trim() || !reason.trim()) {
       toast("Organization name and reason are required", "error");
       return;
+    }
+    if (currentUser) {
+      var slug = org.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      var res = await supabase.from("host_profiles").upsert({
+        user_id: currentUser.id,
+        org_name: org.trim(),
+        slug: slug,
+        bio: reason.trim(),
+        status: "pending",
+        social_links: { freq: freq, discord: discord.trim() },
+        vision: vision.trim()
+      }, { onConflict: 'user_id' }).select().single();
+      if (res.error) {
+        toast("Failed to submit application: " + res.error.message, "error");
+        return;
+      }
     }
     var app = {
       id: Date.now(),
@@ -53,21 +69,7 @@ export default function HostApplyScreen() {
       status: "pending",
       submittedAt: new Date().toLocaleDateString()
     };
-    setHostApps && setHostApps(function(apps) { return [app].concat(apps); });
-    if (supabase.from && currentUser) {
-      var slug = org.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      supabase.from("host_profiles").upsert({
-        user_id: currentUser.id,
-        org_name: org.trim(),
-        slug: slug,
-        bio: reason.trim(),
-        status: "pending",
-        social_links: { freq: freq, discord: discord.trim() },
-        vision: vision.trim()
-      }, { onConflict: 'user_id' }).then(function(res) {
-        if (res.error) console.error("[TFT] host_profiles insert failed:", res.error);
-      });
-    }
+    if (setHostApps) setHostApps(function(apps) { return [app].concat(apps); });
     setSubmitted(true);
     toast("Application submitted! We will review it within 48h", "success");
   }

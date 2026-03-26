@@ -265,27 +265,6 @@ export default function LoginScreen() {
             </div>
           </div>
 
-          {/* Technical metadata */}
-          <div className="flex justify-between items-center px-4">
-            <div className="flex space-x-6">
-              <div className="space-y-1">
-                <p className="font-condensed text-[10px] uppercase tracking-tighter text-on-surface/30">Region</p>
-                <p className="font-mono text-[10px] text-tertiary">EUW_ARENA_BETA</p>
-              </div>
-              <div className="space-y-1">
-                <p className="font-condensed text-[10px] uppercase tracking-tighter text-on-surface/30">Latency</p>
-                <p className="font-mono text-[10px] text-tertiary">24 MS</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="font-condensed text-[10px] uppercase tracking-tighter text-on-surface/30">System Status</p>
-              <div className="flex items-center justify-end space-x-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-tertiary" />
-                <p className="font-mono text-[10px] text-on-surface/60 uppercase">Operational</p>
-              </div>
-            </div>
-          </div>
-
           {/* Guest access */}
           <div className="text-center pb-4">
             <p className="text-xs font-condensed tracking-widest uppercase text-on-surface/40">
