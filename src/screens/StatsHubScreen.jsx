@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Icon } from '../components/ui'
-import supabase from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 
 // ─── LOCAL SELECT WRAPPER ────────────────────────────────────────────────────
 function Sel(props) {

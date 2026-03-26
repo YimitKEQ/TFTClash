@@ -7,7 +7,7 @@ import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Badge, Tag, StatCard } from '../components/ui'
 import RankBadge from '../components/shared/RankBadge'
-import supabase from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 
 // ─── PLACEMENT DISTRIBUTION BAR CHART ────────────────────────────────────────
 function PlacementDistribution({ history }) {
