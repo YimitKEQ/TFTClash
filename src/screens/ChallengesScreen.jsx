@@ -165,8 +165,8 @@ export default function ChallengesScreen() {
 
         {/* Main tab selector */}
         <div className="flex gap-4 mb-8">
-          {['active', 'completed'].map(function(t) {
-            var label = t.charAt(0).toUpperCase() + t.slice(1);
+          {['active', 'completed', 'xp-log'].map(function(t) {
+            var label = t === 'xp-log' ? 'XP Log' : t.charAt(0).toUpperCase() + t.slice(1);
             var isActive = mainTab === t;
             return (
               <button
@@ -180,14 +180,6 @@ export default function ChallengesScreen() {
               </button>
             );
           })}
-          {/* TODO: XP Log tab — hidden until XP system is built */}
-          {false && (
-            <button
-              className="font-condensed text-xs py-1 px-4 rounded-full border border-on-surface/10 text-on-surface/40"
-            >
-              XP LOG
-            </button>
-          )}
         </div>
 
         {/* Active Tab */}
@@ -378,8 +370,7 @@ export default function ChallengesScreen() {
           </div>
         )}
 
-        {/* TODO: XP Log tab — hidden until XP system is built */}
-        {false && mainTab === 'xp-log' && (
+        {mainTab === 'xp-log' && (
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>

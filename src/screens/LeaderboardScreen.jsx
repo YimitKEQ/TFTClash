@@ -187,7 +187,7 @@ function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick })
 export default function LeaderboardScreen(props) {
   var embedded = props.embedded || false
   var ctx = useApp()
-  var players = ctx.players
+  var players = ctx.players || []
   var isLoadingData = ctx.isLoadingData
   var currentUser = ctx.currentUser
   var setProfilePlayer = ctx.setProfilePlayer

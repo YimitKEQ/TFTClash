@@ -203,10 +203,6 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
 
   function handleRegister(ev) {
     if (!currentUser) { if (onAuthClick) { onAuthClick('login') } return }
-    if (!setFeaturedEvents) {
-      if (toast) toast('Registration opens soon', 'info')
-      return
-    }
     var evRegIds = ev.registeredIds || []
     if (evRegIds.indexOf(currentUser.username) !== -1) {
       if (toast) toast('You are already registered', 'info')
@@ -216,16 +212,28 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
       if (toast) toast('This event is full', 'error')
       return
     }
-    setFeaturedEvents(function(evts) {
-      return evts.map(function(evt) {
-        if (evt.id !== ev.id) return evt
-        return Object.assign({}, evt, {
-          registeredIds: (evt.registeredIds || []).concat([currentUser.username]),
-          registered: (evt.registered || 0) + 1,
+    supabase.from('event_registrations').upsert({
+      event_id: ev.id,
+      player_username: currentUser.username,
+      player_id: currentUser.id
+    }, { onConflict: 'event_id,player_username' }).then(function(res) {
+      if (res.error) {
+        if (toast) toast('Registration failed: ' + res.error.message, 'error')
+        return
+      }
+      if (setFeaturedEvents) {
+        setFeaturedEvents(function(evts) {
+          return evts.map(function(evt) {
+            if (evt.id !== ev.id) return evt
+            return Object.assign({}, evt, {
+              registeredIds: (evt.registeredIds || []).concat([currentUser.username]),
+              registered: (evt.registered || 0) + 1,
+            })
+          })
         })
-      })
+      }
+      if (toast) toast('Registered for ' + ev.name, 'success')
     })
-    if (toast) toast('Registered for ' + ev.name, 'success')
   }
 
   var hero = live.length > 0 ? live[0] : upcoming.length > 0 ? upcoming[0] : null
