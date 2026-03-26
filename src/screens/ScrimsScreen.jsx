@@ -348,7 +348,7 @@ export default function ScrimsScreen() {
     if (!trimmed) return;
     var fromPlayers = players.find(function(p) { return p.name.toLowerCase() === trimmed.toLowerCase(); });
     if (scrimRoster.find(function(p) { return p.name.toLowerCase() === trimmed.toLowerCase(); })) { toast('Already added', 'error'); return; }
-    var np = fromPlayers || {id: 'c' + Date.now(), name: trimmed, rank: 'Gold', pts: 0};
+    var np = fromPlayers || {id: crypto.randomUUID(), name: trimmed, rank: 'Gold', pts: 0};
     setScrimRoster(function(r) { return r.concat([np]); });
     setCustomName('');
   }
