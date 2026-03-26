@@ -79,9 +79,9 @@ export default function GearScreen() {
                             {item.price > 0 && (
                               <span className="text-sm font-bold font-mono text-primary">{'€' + Number(item.price).toFixed(2)}</span>
                             )}
-                            {item.shop_url ? (
+                            {item.external_url ? (
                               <a
-                                href={item.shop_url}
+                                href={item.external_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="px-3 py-1 bg-primary/10 border border-primary/20 rounded text-xs font-condensed uppercase tracking-wider text-primary hover:bg-primary/20 transition-colors no-underline"

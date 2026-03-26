@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
+import { supabase } from '../lib/supabase.js'
 import { DAILY_CHALLENGES, WEEKLY_CHALLENGES, estimateXp, getXpProgress } from '../lib/stats.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
@@ -89,6 +90,22 @@ export default function ChallengesScreen() {
 
   var [questTab, setQuestTab] = useState('daily');
   var [mainTab, setMainTab] = useState('active');
+  var [xpLog, setXpLog] = useState([]);
+  var [xpLogLoading, setXpLogLoading] = useState(false);
+
+  useEffect(function() {
+    if (mainTab !== 'xp-log' || !currentUser) return;
+    setXpLogLoading(true);
+    supabase.from('xp_events')
+      .select('*')
+      .eq('player_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(function(res) {
+        if (res.data) setXpLog(res.data);
+        setXpLogLoading(false);
+      });
+  }, [mainTab, currentUser && currentUser.id]);
 
   var dailyReset = getDailyReset();
   var weeklyReset = getWeeklyReset();
@@ -375,11 +392,31 @@ export default function ChallengesScreen() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
             </div>
-            <div className="bg-surface-container-low p-12 text-center">
-              <Icon name="history" size={56} className="text-on-surface/20 block mb-4 mx-auto" />
-              <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No XP history yet</p>
-              <p className="text-xs text-on-surface/30 mt-2 font-body">Complete challenges to build your XP history</p>
-            </div>
+            {xpLogLoading && (
+              <div className="text-center py-10 text-on-surface/40 text-sm">Loading...</div>
+            )}
+            {!xpLogLoading && xpLog.length === 0 && (
+              <div className="bg-surface-container-low p-12 text-center">
+                <Icon name="history" size={56} className="text-on-surface/20 block mb-4 mx-auto" />
+                <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No XP history yet</p>
+                <p className="text-xs text-on-surface/30 mt-2 font-body">Complete challenges to build your XP history</p>
+              </div>
+            )}
+            {!xpLogLoading && xpLog.length > 0 && (
+              <div className="space-y-2">
+                {xpLog.map(function(entry) {
+                  return (
+                    <div key={entry.id} className="flex items-center justify-between px-4 py-3 bg-surface-container-low border border-outline-variant/10 rounded">
+                      <div>
+                        <div className="text-sm font-semibold text-on-surface">{entry.reason}</div>
+                        <div className="text-xs text-on-surface/40 font-mono mt-0.5">{new Date(entry.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                      </div>
+                      <span className="font-mono text-tertiary font-bold text-sm flex-shrink-0">{'+' + entry.amount + ' XP'}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
