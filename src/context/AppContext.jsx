@@ -195,6 +195,7 @@ export function AppProvider(props) {
   // ── Refs for realtime tracking ──
   var rtRef = useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_host_access:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
   var announcementInitRef = useRef(false);
+  var settingsLoadedRef = useRef(false); // true once site_settings are fetched — guards sync useEffects from overwriting DB on mount
   var navSourceRef = useRef("user");
 
   // ── Helper functions ──
@@ -527,6 +528,7 @@ export function AppProvider(props) {
         });
 
         announcementInitRef.current=true;
+        settingsLoadedRef.current=true;
 
         // Reconcile registrations from DB
         setTournamentState(function(ts){
@@ -680,36 +682,43 @@ export function AppProvider(props) {
   },[orgSponsors]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.scheduled_events){rtRef.current.scheduled_events=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[scheduledEvents]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.audit_log){rtRef.current.audit_log=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[auditLog]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.host_apps){rtRef.current.host_apps=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[hostApps]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_host_access){rtRef.current.scrim_host_access=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_host_access',value:JSON.stringify(scrimHostAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[scrimHostAccess]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[scrimAccess]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_data){rtRef.current.scrim_data=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[scrimSessions]);
 
   useEffect(function(){
+    if(!settingsLoadedRef.current)return;
     if(rtRef.current.ticker_overrides){rtRef.current.ticker_overrides=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[tickerOverrides]);
