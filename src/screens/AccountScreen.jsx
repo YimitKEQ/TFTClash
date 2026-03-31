@@ -192,7 +192,11 @@ export default function AccountScreen() {
   var EU_NA = ['EUW', 'EUNE', 'NA'];
 
   var linkedPlayer = players.find(function(p) {
-    return (p.authUserId && p.authUserId === user.id) || (p.id === user.linkedPlayerId) || (p.name === user.username);
+    if (user.auth_user_id && p.auth_user_id && p.auth_user_id === user.auth_user_id) return true;
+    if (p.authUserId && p.authUserId === user.id) return true;
+    if (p.id === user.linkedPlayerId) return true;
+    if (p.name && user.username && p.name.toLowerCase() === user.username.toLowerCase()) return true;
+    return false;
   });
 
   var s = linkedPlayer ? getStats(linkedPlayer) : null;
@@ -296,9 +300,11 @@ export default function AccountScreen() {
         console.error('[TFT] Players table update failed:', pRes.error);
         toast('Profile saved but some data may not have synced', 'error');
       } else {
+        var newUsername = playerUpdate.username || user.username;
+        setUsernameEdit(newUsername);
         setPlayers(function(ps) {
           return ps.map(function(p) {
-            if ((p.authUserId && p.authUserId === user.id) || (p.auth_user_id && p.auth_user_id === user.id)) {
+            if ((p.auth_user_id && user.auth_user_id && p.auth_user_id === user.auth_user_id) || (p.authUserId && p.authUserId === user.id)) {
               return Object.assign({}, p, {
                 bio: playerUpdate.bio,
                 region: playerUpdate.region,
@@ -307,8 +313,8 @@ export default function AccountScreen() {
                 youtube: socialLinks.youtube,
                 riot_id_eu: playerUpdate.riot_id_eu,
                 riot_id_na: playerUpdate.riot_id_na,
-                username: playerUpdate.username || p.username,
-                name: playerUpdate.username || p.name,
+                username: newUsername,
+                name: newUsername,
               });
             }
             return p;
