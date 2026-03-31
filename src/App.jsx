@@ -563,6 +563,7 @@ function TFTClash(){
         currentUser:currentUser,
         onComplete:function(){setShowOnboarding(false);},
         onRegister:function(){setScreen("home");},
+        onRiotLinked:function(riotId,region){setCurrentUser(function(u){return Object.assign({},u,{riotId:riotId,riot_id:riotId,region:region});});},
         nextClash:(tournamentState&&tournamentState.clashDate)||"Saturday",
         playerCount:players.length
       })}

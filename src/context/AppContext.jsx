@@ -393,7 +393,7 @@ export function AppProvider(props) {
       .then(function(res){
         if(res.error){console.error("[TFT] player check failed:",res.error);return;}
         if(res.data){
-          setCurrentUser(res.data);
+          setCurrentUser(Object.assign({}, res.data, { riotId: res.data.riot_id || '' }));
           loadPlayersFromTable();
           return;
         }
@@ -411,7 +411,7 @@ export function AppProvider(props) {
             console.error("[TFT] auto-create player failed:",ins.error);
             return;
           }
-          if(ins.data)setCurrentUser(ins.data);
+          if(ins.data)setCurrentUser(Object.assign({}, ins.data, { riotId: ins.data.riot_id || '' }));
           loadPlayersFromTable();
         });
       });

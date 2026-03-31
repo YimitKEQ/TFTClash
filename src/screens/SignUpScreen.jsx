@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '../context/AppContext'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -11,6 +11,16 @@ export default function SignUpScreen() {
   var setAuthScreen = ctx.setAuthScreen
   var setPlayers = ctx.setPlayers
   var setShowOnboarding = ctx.setShowOnboarding
+  var currentUser = ctx.currentUser
+
+  // If the user is already logged in (e.g. Discord OAuth returning an existing user),
+  // close the signup screen immediately and show a welcome-back toast.
+  useEffect(function() {
+    if (currentUser) {
+      toast('Welcome back, ' + (currentUser.username || 'player') + '! You are already signed in.', 'info')
+      setAuthScreen(null)
+    }
+  }, [currentUser && currentUser.id])
 
   var _email = useState('')
   var email = _email[0]

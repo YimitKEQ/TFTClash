@@ -7,6 +7,7 @@ function OnboardingFlow(props) {
   var currentUser = props.currentUser;
   var onComplete = props.onComplete;
   var onRegister = props.onRegister;
+  var onRiotLinked = props.onRiotLinked;
   var nextClash = props.nextClash;
   var playerCount = props.playerCount || 0;
 
@@ -82,6 +83,7 @@ function OnboardingFlow(props) {
                 .then(function(res) {
                   setLinking(false);
                   if (res.error) { setLinkError('Failed to save: ' + res.error.message); return; }
+                  if (onRiotLinked) onRiotLinked(riotId, region);
                   setStep(3);
                 });
             }}
