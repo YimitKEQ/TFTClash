@@ -19,6 +19,8 @@ export default function PlayersTab() {
   var setPlayers = ctx.setPlayers
   var scrimAccess = ctx.scrimAccess
   var setScrimAccess = ctx.setScrimAccess
+  var scrimHostAccess = ctx.scrimHostAccess
+  var setScrimHostAccess = ctx.setScrimHostAccess
   var setAuditLog = ctx.setAuditLog
   var currentUser = ctx.currentUser
   var toast = ctx.toast
@@ -46,6 +48,10 @@ export default function PlayersTab() {
   var _newScrimUser = useState('')
   var newScrimUser = _newScrimUser[0]
   var setNewScrimUser = _newScrimUser[1]
+
+  var _newScrimHostUser = useState('')
+  var newScrimHostUser = _newScrimHostUser[0]
+  var setNewScrimHostUser = _newScrimHostUser[1]
 
   var _disputes = useState([])
   var disputes = _disputes[0]
@@ -152,6 +158,22 @@ export default function PlayersTab() {
     setScrimAccess(function(a) { return (a || []).filter(function(x) { return x !== u }) })
     addAudit('ACTION', 'Scrims access removed: ' + u)
     toast(u + ' removed from scrims access', 'success')
+  }
+
+  function addScrimHostUser() {
+    var u = newScrimHostUser.trim()
+    if (!u) { toast('Enter a username', 'error'); return }
+    if ((scrimHostAccess || []).includes(u)) { toast('Already a host', 'error'); return }
+    setScrimHostAccess(function(a) { return (a || []).concat([u]) })
+    addAudit('ACTION', 'Scrim host access granted: ' + u)
+    setNewScrimHostUser('')
+    toast(u + ' added as scrim host', 'success')
+  }
+
+  function removeScrimHostUser(u) {
+    setScrimHostAccess(function(a) { return (a || []).filter(function(x) { return x !== u }) })
+    addAudit('ACTION', 'Scrim host access removed: ' + u)
+    toast(u + ' removed from scrim host access', 'success')
   }
 
   function resolveDispute(id) {
@@ -357,7 +379,7 @@ export default function PlayersTab() {
           <Icon name="swords" size={16} className="text-secondary" />
           <span className="font-bold text-sm text-on-surface">Scrims Access</span>
         </div>
-        <div className="text-xs text-on-surface/40 mb-3">Players in this list can access The Lab. Use exact usernames (case-sensitive).</div>
+        <div className="text-xs text-on-surface/40 mb-3">Scrimmers can view sessions, stats and history. Use exact usernames (case-sensitive).</div>
         <div className="flex gap-2 mb-3">
           <Inp value={newScrimUser} onChange={function(e) { setNewScrimUser(typeof e === 'string' ? e : e.target.value) }} placeholder="Username" onKeyDown={function(e) { if (e.key === 'Enter') addScrimUser() }} />
           <Btn variant="primary" size="sm" onClick={addScrimUser}>Add</Btn>
@@ -371,6 +393,32 @@ export default function PlayersTab() {
                 <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded-sm">
                   <span className="text-sm font-semibold text-primary">{u}</span>
                   <button onClick={function() { removeScrimUser(u) }} className="bg-transparent border-0 text-error cursor-pointer text-base leading-none px-1">x</button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </Panel>
+
+      <Panel>
+        <div className="flex items-center gap-2 mb-3">
+          <Icon name="manage_accounts" size={16} className="text-primary" />
+          <span className="font-bold text-sm text-on-surface">Scrim Host Access</span>
+        </div>
+        <div className="text-xs text-on-surface/40 mb-3">Hosts can create sessions, enter placements and lock games. Use exact usernames (case-sensitive).</div>
+        <div className="flex gap-2 mb-3">
+          <Inp value={newScrimHostUser} onChange={function(e) { setNewScrimHostUser(typeof e === 'string' ? e : e.target.value) }} placeholder="Username" onKeyDown={function(e) { if (e.key === 'Enter') addScrimHostUser() }} />
+          <Btn variant="primary" size="sm" onClick={addScrimHostUser}>Add</Btn>
+        </div>
+        {(!scrimHostAccess || scrimHostAccess.length === 0) ? (
+          <div className="text-center py-4 text-on-surface/40 text-sm">No hosts added yet.</div>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            {(scrimHostAccess || []).map(function(u) {
+              return (
+                <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded-sm">
+                  <span className="text-sm font-semibold text-primary">{u}</span>
+                  <button onClick={function() { removeScrimHostUser(u) }} className="bg-transparent border-0 text-error cursor-pointer text-base leading-none px-1">x</button>
                 </div>
               )
             })}

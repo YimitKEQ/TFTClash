@@ -5,65 +5,80 @@ import { PTS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
 
-// ── Helper: ScrimSparkline ────────────────────────────────────────────────────
-
-function ScrimSparkline(props) {
+// ── Bar Trend (replaces line sparkline) ──────────────────────────────────────
+function ScrimTrend(props) {
   var placements = props.placements;
-  var w = props.w;
-  var h = props.h;
-  if (!placements || placements.length < 2) return null;
-  var last = placements.slice(-12);
-  var pts = last.map(function(v, i) {
-    var x = (i / (last.length - 1)) * (w || 60);
-    var y = ((v - 1) / 7) * (h || 18) + 1;
-    return x + ',' + y;
-  }).join(' ');
-  var topPt = last.map(function(v, i) {
-    return {x: (i / (last.length - 1)) * (w || 60), y: ((v - 1) / 7) * (h || 18) + 1, v: v};
-  }).reduce(function(a, b) { return a.y < b.y ? a : b; });
+  if (!placements || placements.length === 0) return null;
+  var last = placements.slice(-8);
+  var maxH = 28;
   return (
-    <svg width={w || 60} height={(h || 20) + 2} className="block overflow-visible">
-      <polyline points={pts} fill="none" stroke="#9B72CF" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" opacity="0.7"/>
-      <circle cx={topPt.x} cy={topPt.y} r="2" fill="#E8A838"/>
-    </svg>
+    <div className="flex items-end gap-px flex-shrink-0" style={{height: maxH + 'px'}}>
+      {last.map(function(pl, i) {
+        var barH = Math.max(3, Math.round(((9 - pl) / 8) * maxH));
+        var c = pl === 1 ? '#E8A838' : pl === 2 ? '#C0C0C0' : pl === 3 ? '#CD7F32' : pl <= 4 ? '#4ECDC4' : pl <= 6 ? '#facc15' : '#f87171';
+        return (
+          <div key={i} style={{
+            width: '5px', height: barH + 'px', background: c,
+            opacity: 0.35 + (i / Math.max(last.length - 1, 1)) * 0.65,
+            borderRadius: '2px 2px 0 0'
+          }}/>
+        );
+      })}
+    </div>
   );
 }
 
-// ── Helper: PlacementBoard ────────────────────────────────────────────────────
-
+// ── Placement Board ───────────────────────────────────────────────────────────
 function PlacementBoard(props) {
   var roster = props.roster;
   var results = props.results;
   var onPlace = props.onPlace;
+  var comps = props.comps || {};
+  var onComp = props.onComp;
   var PLACES = [1, 2, 3, 4, 5, 6, 7, 8];
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       {roster.map(function(p) {
         var selected = results[p.id];
+        var c = selected === 1 ? '#E8A838' : selected === 2 ? '#C0C0C0' : selected === 3 ? '#CD7F32' : selected <= 4 ? '#4ECDC4' : '#F87171';
         return (
-          <div key={p.id} className="flex items-center gap-2">
-            <div className="w-24 text-sm font-bold text-on-surface truncate flex-shrink-0">{p.name}</div>
-            <div className="flex gap-1 flex-wrap">
-              {PLACES.map(function(place) {
-                var c = place === 1 ? '#E8A838' : place === 2 ? '#C0C0C0' : place === 3 ? '#CD7F32' : place <= 4 ? '#4ECDC4' : '#F87171';
-                var isSelected = selected === place;
-                return (
-                  <button
-                    key={place}
-                    onClick={function() { onPlace(p.id, place); }}
-                    className="w-7 h-7 rounded text-xs font-bold font-mono transition-all"
-                    style={{
-                      background: isSelected ? c + '44' : 'rgba(255,255,255,0.04)',
-                      border: isSelected ? '1px solid ' + c : '1px solid rgba(255,255,255,0.08)',
-                      color: isSelected ? c : 'rgba(255,255,255,0.4)',
-                      transform: isSelected ? 'scale(1.15)' : 'scale(1)'
-                    }}
-                  >
-                    {place}
-                  </button>
-                );
-              })}
+          <div key={p.id} className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-24 font-bold text-sm text-on-surface truncate flex-shrink-0">{p.name}</div>
+              <div className="flex gap-1 flex-wrap flex-1">
+                {PLACES.map(function(place) {
+                  var pc = place === 1 ? '#E8A838' : place === 2 ? '#C0C0C0' : place === 3 ? '#CD7F32' : place <= 4 ? '#4ECDC4' : '#F87171';
+                  var isSelected = selected === place;
+                  return (
+                    <button key={place} onClick={function() { onPlace(p.id, place); }}
+                      className="w-7 h-7 rounded text-xs font-bold font-mono transition-all"
+                      style={{
+                        background: isSelected ? pc + '44' : 'rgba(255,255,255,0.04)',
+                        border: isSelected ? '1px solid ' + pc : '1px solid rgba(255,255,255,0.08)',
+                        color: isSelected ? pc : 'rgba(255,255,255,0.35)',
+                        transform: isSelected ? 'scale(1.12)' : 'scale(1)'
+                      }}>{place}</button>
+                  );
+                })}
+              </div>
+              {selected && (
+                <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-mono text-xs font-bold"
+                  style={{background: c + '33', border: '1px solid ' + c + '66', color: c}}>
+                  {selected}
+                </div>
+              )}
             </div>
+            {onComp && (
+              <div className="flex items-center gap-2 pl-26" style={{paddingLeft: '104px'}}>
+                <input
+                  type="text"
+                  value={comps[p.id] || ''}
+                  onChange={function(e) { onComp(p.id, e.target.value); }}
+                  placeholder="Comp played (optional)"
+                  className="flex-1 bg-surface-container-highest/50 border-0 border-b border-outline-variant/20 focus:border-primary text-on-surface-variant font-mono text-[11px] px-0 py-1 outline-none placeholder-on-surface-variant/30 transition-colors"
+                />
+              </div>
+            )}
           </div>
         );
       })}
@@ -72,19 +87,17 @@ function PlacementBoard(props) {
 }
 
 // ── DB helpers ────────────────────────────────────────────────────────────────
-
-function createScrim(name, createdBy, tag, notes, targetGames) {
+function createScrim(name, createdBy, notes, targetGames) {
   return supabase.from('scrims').insert({
-    name: name, created_by: createdBy, tag: tag || null, notes: notes || null,
+    name: name, created_by: createdBy, notes: notes || null,
     target_games: targetGames || 5, status: 'active'
   }).select().single();
 }
 
 function addScrimPlayers(scrimId, playerIds) {
-  var rows = playerIds.map(function(pid) {
-    return {scrim_id: scrimId, player_id: pid};
-  });
-  return supabase.from('scrim_players').insert(rows);
+  return supabase.from('scrim_players').insert(
+    playerIds.map(function(pid) { return {scrim_id: scrimId, player_id: pid}; })
+  );
 }
 
 function submitScrimResult(scrimId, gameNumber, results, tag, note, duration) {
@@ -95,36 +108,34 @@ function submitScrimResult(scrimId, gameNumber, results, tag, note, duration) {
     if (res.error) return res;
     var gameId = res.data.id;
     var rows = results.map(function(r) {
-      return {scrim_game_id: gameId, player_id: r.playerId, placement: r.placement, points: PTS[r.placement] || 0};
+      return {scrim_game_id: gameId, player_id: r.playerId, placement: r.placement, points: PTS[r.placement] || 0, comp: r.comp || null};
     });
-    return supabase.from('scrim_results').insert(rows).then(function(insRes) {
-      if (insRes.error) return insRes;
-      return {data: Object.assign({}, res.data, {scrim_results: rows}), error: null};
+    return supabase.from('scrim_results').insert(rows).then(function(ins) {
+      return ins.error ? ins : {data: res.data, error: null};
     });
   });
+}
+
+function updateScrimGame(gameId, note, tag) {
+  return supabase.from('scrim_games').update({note: note || null, tag: tag || 'standard'}).eq('id', gameId);
 }
 
 function loadScrims() {
   return supabase.from('scrims')
     .select('*, scrim_players(player_id), scrim_games(*, scrim_results(*))')
-    .order('created_at', {ascending: false})
-    .limit(50);
+    .order('created_at', {ascending: false}).limit(50);
 }
 
-function endScrimDb(scrimId) {
-  return supabase.from('scrims').update({status: 'ended'}).eq('id', scrimId);
+function endScrimDb(id) { return supabase.from('scrims').update({status: 'ended'}).eq('id', id); }
+function deleteScrimGameDb(id) { return supabase.from('scrim_games').delete().eq('id', id); }
+function deleteScrimDb(id) { return supabase.from('scrims').delete().eq('id', id); }
+
+// ── Placement color helper ────────────────────────────────────────────────────
+function placeColor(p) {
+  return p === 1 ? '#E8A838' : p === 2 ? '#C0C0C0' : p === 3 ? '#CD7F32' : p <= 4 ? '#4ECDC4' : p <= 6 ? '#facc15' : '#f87171';
 }
 
-function deleteScrimGameDb(gameId) {
-  return supabase.from('scrim_games').delete().eq('id', gameId);
-}
-
-function deleteScrimDb(scrimId) {
-  return supabase.from('scrims').delete().eq('id', scrimId);
-}
-
-// ── ScrimsScreen ─────────────────────────────────────────────────────────────
-
+// ── ScrimsScreen ──────────────────────────────────────────────────────────────
 export default function ScrimsScreen() {
   var ctx = useApp();
   var players = ctx.players;
@@ -132,80 +143,48 @@ export default function ScrimsScreen() {
   var currentUser = ctx.currentUser;
   var isAdmin = ctx.isAdmin;
   var scrimAccess = ctx.scrimAccess;
+  var scrimHostAccess = ctx.scrimHostAccess || [];
 
-  var _tab = useState('lobbies');
-  var tab = _tab[0];
-  var setTab = _tab[1];
+  var _tab = useState('lobbies'); var tab = _tab[0]; var setTab = _tab[1];
+  var _statsTab = useState('players'); var statsTab = _statsTab[0]; var setStatsTab = _statsTab[1];
+  var _activeId = useState(null); var activeId = _activeId[0]; var setActiveId = _activeId[1];
 
-  var _activeId = useState(null);
-  var activeId = _activeId[0];
-  var setActiveId = _activeId[1];
+  // Create form
+  var _newName = useState(''); var newName = _newName[0]; var setNewName = _newName[1];
+  var _newNotes = useState(''); var newNotes = _newNotes[0]; var setNewNotes = _newNotes[1];
+  var _newTarget = useState('5'); var newTarget = _newTarget[0]; var setNewTarget = _newTarget[1];
+  var _scrimRoster = useState([]); var scrimRoster = _scrimRoster[0]; var setScrimRoster = _scrimRoster[1];
 
-  var _newName = useState('');
-  var newName = _newName[0];
-  var setNewName = _newName[1];
-
-  var _newNotes = useState('');
-  var newNotes = _newNotes[0];
-  var setNewNotes = _newNotes[1];
-
-  var _newTarget = useState('5');
-  var newTarget = _newTarget[0];
-  var setNewTarget = _newTarget[1];
-
-  var _newRegion = useState('EUW');
-  var newRegion = _newRegion[0];
-  var setNewRegion = _newRegion[1];
-
-  var _newFormat = useState('BO3');
-  var newFormat = _newFormat[0];
-  var setNewFormat = _newFormat[1];
-
-  // scrimRoster: players selected for the *create form* only
-  var _scrimRoster = useState([]);
-  var scrimRoster = _scrimRoster[0];
-  var setScrimRoster = _scrimRoster[1];
-
-  var _customName = useState('');
-  var customName = _customName[0];
-  var setCustomName = _customName[1];
-
-  var _scrimResults = useState({});
-  var scrimResults = _scrimResults[0];
-  var setScrimResults = _scrimResults[1];
-
-  var _gameNote = useState('');
-  var gameNote = _gameNote[0];
-  var setGameNote = _gameNote[1];
-
-  var _gameTag = useState('standard');
-  var gameTag = _gameTag[0];
-  var setGameTag = _gameTag[1];
-
-  var _timer = useState(0);
-  var timer = _timer[0];
-  var setTimer = _timer[1];
-
-  var _timerActive = useState(false);
-  var timerActive = _timerActive[0];
-  var setTimerActive = _timerActive[1];
-
-  var _confirmDelete = useState(null);
-  var confirmDelete = _confirmDelete[0];
-  var setConfirmDelete = _confirmDelete[1];
-
+  // Record game
+  var _scrimResults = useState({}); var scrimResults = _scrimResults[0]; var setScrimResults = _scrimResults[1];
+  var _gameComps = useState({}); var gameComps = _gameComps[0]; var setGameComps = _gameComps[1];
+  var _gameNote = useState(''); var gameNote = _gameNote[0]; var setGameNote = _gameNote[1];
+  var _gameTag = useState('standard'); var gameTag = _gameTag[0]; var setGameTag = _gameTag[1];
+  var _timer = useState(0); var timer = _timer[0]; var setTimer = _timer[1];
+  var _timerActive = useState(false); var timerActive = _timerActive[0]; var setTimerActive = _timerActive[1];
   var timerRef = useRef(null);
 
-  var _dbScrims = useState([]);
-  var dbScrims = _dbScrims[0];
-  var setDbScrims = _dbScrims[1];
+  // Edit game
+  var _editGame = useState(null); var editGame = _editGame[0]; var setEditGame = _editGame[1];
 
-  var _dbLoading = useState(true);
-  var dbLoading = _dbLoading[0];
-  var setDbLoading = _dbLoading[1];
+  // Delete confirm
+  var _confirmDelete = useState(null); var confirmDelete = _confirmDelete[0]; var setConfirmDelete = _confirmDelete[1];
 
-  // Load scrims from DB on mount
+  // History expand
+  var _expandedSession = useState(null); var expandedSession = _expandedSession[0]; var setExpandedSession = _expandedSession[1];
+
+  // DB
+  var _dbScrims = useState([]); var dbScrims = _dbScrims[0]; var setDbScrims = _dbScrims[1];
+  var _dbLoading = useState(true); var dbLoading = _dbLoading[0]; var setDbLoading = _dbLoading[1];
+
   useEffect(function() {
+    if (timerActive) { timerRef.current = setInterval(function() { setTimer(function(t) { return t + 1; }); }, 1000); }
+    else clearInterval(timerRef.current);
+    return function() { clearInterval(timerRef.current); };
+  }, [timerActive]);
+
+  useEffect(function() {
+    if (!currentUser) { setDbScrims([]); setDbLoading(false); return; }
     var cancelled = false;
     setDbLoading(true);
     loadScrims().then(function(res) {
@@ -215,43 +194,34 @@ export default function ScrimsScreen() {
       setDbLoading(false);
     });
     return function() { cancelled = true; };
-  }, []);
+  }, [currentUser]);
 
   function reloadScrims() {
-    loadScrims().then(function(res) {
-      if (!res.error) setDbScrims(res.data || []);
-    });
+    if (!currentUser) return;
+    loadScrims().then(function(res) { if (!res.error) setDbScrims(res.data || []); });
   }
 
-  useEffect(function() {
-    if (timerActive) { timerRef.current = setInterval(function() { setTimer(function(t) { return t + 1; }); }, 1000); }
-    else clearInterval(timerRef.current);
-    return function() { clearInterval(timerRef.current); };
-  }, [timerActive]);
+  var fmt = function(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
 
-  var fmt = function(s) {
-    return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
-  };
-
-  // Convert DB scrims to UI shape (sessions with .games array)
+  // Convert DB shape → UI shape
   var safeSessions = dbScrims.map(function(sc) {
     var games = (sc.scrim_games || []).map(function(g) {
-      var results = {};
-      (g.scrim_results || []).forEach(function(r) { results[r.player_id] = r.placement; });
-      return {id: g.id, results: results, note: g.note || '', tag: g.tag || 'standard', duration: g.duration || 0, ts: new Date(g.created_at).getTime(), gameNumber: g.game_number};
+      var results = {}; var comps = {};
+      (g.scrim_results || []).forEach(function(r) {
+        results[r.player_id] = r.placement;
+        if (r.comp) comps[r.player_id] = r.comp;
+      });
+      return {id: g.id, results: results, comps: comps, note: g.note || '', tag: g.tag || 'standard', duration: g.duration || 0, ts: new Date(g.created_at).getTime(), gameNumber: g.game_number};
     }).sort(function(a, b) { return a.gameNumber - b.gameNumber; });
     return {
       id: sc.id, name: sc.name, notes: sc.notes || '', targetGames: sc.target_games || 5,
       games: games, createdAt: new Date(sc.created_at).toLocaleDateString(),
-      active: sc.status === 'active', tag: sc.tag, createdBy: sc.created_by,
+      active: sc.status === 'active', createdBy: sc.created_by,
       playerIds: (sc.scrim_players || []).map(function(sp) { return sp.player_id; })
     };
   });
 
   var session = safeSessions.find(function(s) { return s.id === activeId; });
-
-  // Derive the roster for the currently active session in Play mode.
-  // Prefer players from DB scrim_players; fall back to the create-form scrimRoster if the session is brand new.
   var sessionRoster = (function() {
     if (!session) return scrimRoster;
     if (session.playerIds.length > 0) {
@@ -261,159 +231,169 @@ export default function ScrimsScreen() {
     }
     return scrimRoster;
   }());
-
+  var rosterForGame = sessionRoster.length > 0 ? sessionRoster : scrimRoster;
   var allGames = safeSessions.flatMap(function(s) { return s.games; });
-  var allPlayers = players;
+  var placedCount = Object.keys(scrimResults).length;
+  var allPlaced = rosterForGame.length > 0 && placedCount >= rosterForGame.length;
 
-  // Per-player stats across all sessions
-  var scrimStats = allPlayers.map(function(p) {
+  // Per-player stats
+  var scrimStats = players.map(function(p) {
     var pGames = allGames.filter(function(g) { return g.results[p.id] != null || g.results[String(p.id)] != null; });
     if (pGames.length === 0) return null;
     var placements = pGames.map(function(g) { return g.results[p.id] != null ? g.results[p.id] : g.results[String(p.id)]; });
     var wins = placements.filter(function(x) { return x === 1; }).length;
     var top4 = placements.filter(function(x) { return x <= 4; }).length;
-    var avgPlacement = (placements.reduce(function(s, v) { return s + v; }, 0) / placements.length).toFixed(2);
     var pts = placements.reduce(function(s, v) { return s + (PTS[v] || 0); }, 0);
-    var best = Math.min.apply(null, placements);
-    var worst = Math.max.apply(null, placements);
+    var avgPlacement = (placements.reduce(function(s, v) { return s + v; }, 0) / placements.length).toFixed(2);
     var recent = pGames.slice().sort(function(a, b) { return b.ts - a.ts; }).map(function(g) { return g.results[p.id] != null ? g.results[p.id] : g.results[String(p.id)]; });
     var streak = 0;
     for (var si = 0; si < recent.length; si++) { if (recent[si] <= 4) streak++; else break; }
-    var mean = placements.reduce(function(s, v) { return s + v; }, 0) / placements.length;
-    var variance = placements.reduce(function(s, v) { return s + Math.pow(v - mean, 2); }, 0) / placements.length;
-    var eighths = placements.filter(function(x) { return x === 8; }).length;
     return Object.assign({}, p, {
       pts: pts, wins: wins, top4: top4, games: pGames.length, avg: avgPlacement,
-      best: best, worst: worst, streak: streak, placements: placements,
-      variance: variance, eighths: eighths,
+      best: Math.min.apply(null, placements), worst: Math.max.apply(null, placements),
+      streak: streak, placements: placements,
       top4Rate: ((top4 / pGames.length) * 100).toFixed(0),
-      winRate: ((wins / pGames.length) * 100).toFixed(0)
+      winRate: ((wins / pGames.length) * 100).toFixed(0),
+      ppg: (pts / pGames.length).toFixed(1)
     });
   }).filter(Boolean).sort(function(a, b) { return parseFloat(a.avg) - parseFloat(b.avg); });
 
-  // H2H matrix
-  var h2hData = {};
-  if (scrimStats.length >= 2) {
-    allGames.forEach(function(g) {
-      var ids = Object.keys(g.results);
-      for (var ii = 0; ii < ids.length; ii++) {
-        for (var jj = ii + 1; jj < ids.length; jj++) {
-          var a = ids[ii], b = ids[jj];
-          var pa = g.results[a], pb = g.results[b];
-          if (!h2hData[a]) h2hData[a] = {};
-          if (!h2hData[b]) h2hData[b] = {};
-          if (!h2hData[a][b]) h2hData[a][b] = {wins: 0, total: 0};
-          if (!h2hData[b][a]) h2hData[b][a] = {wins: 0, total: 0};
-          h2hData[a][b].total++;
-          h2hData[b][a].total++;
-          if (pa < pb) h2hData[a][b].wins++;
-          else if (pb < pa) h2hData[b][a].wins++;
-        }
-      }
+  // Comp stats
+  var compMap = {};
+  allGames.forEach(function(g) {
+    Object.keys(g.results).forEach(function(pid) {
+      var comp = g.comps && g.comps[pid];
+      if (!comp || !comp.trim()) return;
+      var key = comp.trim();
+      if (!compMap[key]) compMap[key] = {name: key, games: 0, wins: 0, top4: 0, ptsTotal: 0};
+      compMap[key].games++;
+      var place = g.results[pid];
+      if (place === 1) compMap[key].wins++;
+      if (place <= 4) compMap[key].top4++;
+      compMap[key].ptsTotal += PTS[place] || 0;
     });
-  }
+  });
+  var compList = Object.values(compMap).sort(function(a, b) { return b.games - a.games; });
 
-  var activeLobbyCount = safeSessions.filter(function(s) { return s.active; }).length;
-
+  // Fns
   function createSession() {
     if (!newName.trim()) { toast('Name required', 'error'); return; }
     if (!currentUser) { toast('Login required', 'error'); return; }
-    var tgt = parseInt(newTarget) || 5;
-    // MUST use auth_user_id (the auth UUID) not the players.id integer
     var authId = currentUser.auth_user_id;
-    if (!authId) { toast('Auth session not found, please re-login', 'error'); return; }
-    createScrim(newName.trim(), authId, null, newNotes.trim(), tgt).then(function(res) {
-      if (res.error) { toast('Failed to create: ' + res.error.message, 'error'); return; }
+    if (!authId) { toast('Auth session not found', 'error'); return; }
+    createScrim(newName.trim(), authId, newNotes.trim(), parseInt(newTarget) || 5).then(function(res) {
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       var scrimId = res.data.id;
-      // player IDs are UUID strings from players.id - do NOT parseInt
-      var pids = scrimRoster.map(function(p) { return p.id; }).filter(function(v) { return v; });
+      var pids = scrimRoster.map(function(p) { return p.id; }).filter(Boolean);
       if (pids.length > 0) {
-        addScrimPlayers(scrimId, pids).then(function(r) {
-          if (r && r.error) { toast('Scrim created but failed to add players: ' + r.error.message, 'error'); }
-          reloadScrims();
-        });
-      } else {
-        reloadScrims();
-      }
+        addScrimPlayers(scrimId, pids).then(function() { reloadScrims(); });
+      } else { reloadScrims(); }
       setActiveId(scrimId);
       setNewName(''); setNewNotes(''); setNewTarget('5');
-      // Keep scrimRoster for the Play tab since the DB hasn't reloaded yet
-      toast('Lobby created - switch to Play to record games', 'success');
-      setTab('play');
+      toast('Session created', 'success');
+      setTab('record');
     });
   }
 
-  function addPlayerToRoster(name) {
-    var trimmed = (name || '').trim();
-    if (!trimmed) return;
-    var fromPlayers = players.find(function(p) { return p.name.toLowerCase() === trimmed.toLowerCase(); });
-    if (scrimRoster.find(function(p) { return p.name.toLowerCase() === trimmed.toLowerCase(); })) { toast('Already added', 'error'); return; }
-    var np = fromPlayers || {id: crypto.randomUUID(), name: trimmed, rank: 'Gold', pts: 0};
-    setScrimRoster(function(r) { return r.concat([np]); });
-    setCustomName('');
-  }
-
-  // Number of placements filled vs roster size for current session
-  var rosterForGame = sessionRoster.length > 0 ? sessionRoster : scrimRoster;
-  var placedCount = Object.keys(scrimResults).length;
-  var allPlaced = rosterForGame.length > 0 && placedCount >= rosterForGame.length;
 
   function lockGame() {
-    if (!activeId) { toast('Select or create a lobby first', 'error'); return; }
-    if (rosterForGame.length === 0) { toast('Add players to the roster first', 'error'); return; }
-    if (!allPlaced) { toast('Set placement for every player first', 'error'); return; }
+    if (!activeId) { toast('Select a session first', 'error'); return; }
+    if (!allPlaced) { toast('Set all placements first', 'error'); return; }
     var gameNum = session ? session.games.length + 1 : 1;
-    // player IDs are UUID strings - do NOT parseInt
     var resultRows = Object.keys(scrimResults).map(function(pid) {
-      return {playerId: pid, placement: scrimResults[pid]};
+      return {playerId: pid, placement: scrimResults[pid], comp: gameComps[pid] || null};
     });
     submitScrimResult(activeId, gameNum, resultRows, gameTag, gameNote, timer).then(function(res) {
-      if (res.error) { toast('Failed to save game: ' + res.error.message, 'error'); return; }
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims();
-      setScrimResults({}); setGameNote(''); setTimer(0); setTimerActive(false);
+      setScrimResults({}); setGameComps({}); setGameNote(''); setTimer(0); setTimerActive(false);
       toast('Game locked', 'success');
     });
   }
 
   function stopSession(id) {
     endScrimDb(id).then(function(res) {
-      if (res.error) { toast('Failed to end session: ' + res.error.message, 'error'); return; }
-      reloadScrims();
-      toast('Session ended, results saved', 'success');
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
+      reloadScrims(); toast('Session ended', 'success');
+    });
+  }
+
+  function saveEditGame() {
+    if (!editGame) return;
+    updateScrimGame(editGame.id, editGame.note, editGame.tag).then(function(res) {
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
+      reloadScrims(); setEditGame(null); toast('Game updated', 'success');
     });
   }
 
   function deleteGame(gameId) {
     deleteScrimGameDb(gameId).then(function(res) {
-      if (res.error) { toast('Failed to delete game: ' + res.error.message, 'error'); return; }
-      reloadScrims();
-      setConfirmDelete(null);
-      toast('Game deleted', 'success');
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
+      reloadScrims(); setConfirmDelete(null); toast('Game deleted', 'success');
     });
   }
 
   function deleteSession(sessionId) {
     deleteScrimDb(sessionId).then(function(res) {
-      if (res.error) { toast('Failed to delete session: ' + res.error.message, 'error'); return; }
+      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims();
       if (activeId === sessionId) { setActiveId(null); setScrimRoster([]); setScrimResults({}); }
-      setConfirmDelete(null);
-      toast('Session deleted', 'success');
+      setConfirmDelete(null); toast('Session deleted', 'success');
     });
   }
 
-  // Access guard — scrimAccess holds player names (strings)
-  var currentUsername = currentUser && (currentUser.username || currentUser.name || '');
-  var hasAccess = isAdmin || (currentUser && (scrimAccess || []).includes(currentUsername));
+  function exportCSV() {
+    var rows = [['Session', 'Game', 'Player', 'Placement', 'Points', 'Comp', 'Tag', 'Note']];
+    safeSessions.forEach(function(sess) {
+      sess.games.forEach(function(g) {
+        Object.keys(g.results).forEach(function(pid) {
+          var p = players.find(function(pl) { return String(pl.id) === String(pid); });
+          var name = p ? p.name : pid;
+          var place = g.results[pid];
+          rows.push([sess.name, 'G' + g.gameNumber, name, place, PTS[place] || 0, g.comps[pid] || '', g.tag, g.note]);
+        });
+      });
+    });
+    var csv = rows.map(function(r) { return r.map(function(v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+    var blob = new Blob([csv], {type: 'text/csv'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'scrims.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function copyText() {
+    var lines = ['TFT SCRIMS EXPORT', ''];
+    safeSessions.forEach(function(sess) {
+      lines.push('=== ' + sess.name + ' (' + sess.createdAt + ') ===');
+      if (sess.notes) lines.push('Notes: ' + sess.notes);
+      sess.games.forEach(function(g) {
+        lines.push('  G' + g.gameNumber + (g.tag !== 'standard' ? ' [' + g.tag + ']' : '') + (g.note ? ' - ' + g.note : ''));
+        var sorted = Object.entries(g.results).sort(function(a, b) { return a[1] - b[1]; });
+        sorted.forEach(function(entry) {
+          var pname = (players.find(function(pl) { return String(pl.id) === String(entry[0]); }) || {}).name || entry[0];
+          var comp = g.comps[entry[0]] ? ' (' + g.comps[entry[0]] + ')' : '';
+          lines.push('    #' + entry[1] + ' ' + pname + comp);
+        });
+      });
+      lines.push('');
+    });
+    navigator.clipboard.writeText(lines.join('\n')).then(function() { toast('Copied to clipboard', 'success'); });
+  }
+
+  // Access guard
+  var currentUsername = (currentUser && (currentUser.username || currentUser.name)) || '';
+  var isScrimHost = !!(currentUsername && scrimHostAccess.includes(currentUsername));
+  var isScrimmer = !!(currentUsername && (scrimAccess || []).includes(currentUsername));
+  var hasAccess = isAdmin || isScrimHost || isScrimmer;
+  var canManage = isAdmin || isScrimHost;
   if (!hasAccess) {
     return (
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-32 text-center">
-          <div className="w-16 h-16 bg-surface-container-high flex items-center justify-center mb-6">
-            <Icon name="lock" size={28} className="text-on-surface-variant"/>
-          </div>
+          <Icon name="lock" size={32} className="text-on-surface-variant mb-4 opacity-40"/>
           <div className="font-serif text-2xl font-bold text-on-surface mb-2">Friends Only</div>
-          <div className="text-sm text-on-surface-variant max-w-xs">Ask an admin to grant you access to the Practice Arena.</div>
+          <div className="text-sm text-on-surface-variant">Ask an admin to grant access.</div>
         </div>
       </PageLayout>
     );
@@ -421,866 +401,837 @@ export default function ScrimsScreen() {
 
   return (
     <PageLayout>
-      <div className="space-y-6">
+      <div className="space-y-5">
 
-        {/* ── HEADER SECTION ── */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Header */}
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-serif text-5xl font-black text-on-surface tracking-tight mb-2">Practice Arena</h1>
-            <p className="text-on-surface-variant max-w-xl font-body text-sm">Manage high-stakes scrims, monitor player performance, and analyze head-to-head dominance.</p>
+            <h1 className="font-serif text-5xl font-black text-on-surface tracking-tight">Practice Arena</h1>
+            <p className="text-on-surface-variant text-sm mt-1">{allGames.length} games logged across {safeSessions.length} sessions</p>
           </div>
-          <div className="flex gap-4">
-            <div className="bg-surface-container-low p-4 rounded-sm flex items-center gap-4">
-              <div className="text-right">
-                <div className="text-[10px] font-sans-condensed text-on-surface-variant tracking-widest uppercase">Global Lobby Status</div>
-                <div className="font-mono text-tertiary text-lg font-bold">{activeLobbyCount} ACTIVE</div>
-              </div>
-              <div className="w-2 h-10 bg-tertiary/20 rounded-full relative">
-                <div
-                  className="absolute bottom-0 w-full bg-tertiary rounded-full"
-                  style={{height: activeLobbyCount > 0 ? '75%' : '10%'}}
-                />
-              </div>
-            </div>
+          <div className="flex gap-2 flex-shrink-0">
+            {[
+              {id: 'lobbies', icon: 'dashboard', label: 'Lobbies'},
+              ...(canManage ? [{id: 'record', icon: 'sports_esports', label: 'Record'}] : []),
+              {id: 'stats', icon: 'analytics', label: 'Statistics'},
+              {id: 'history', icon: 'history', label: 'History'}
+            ].map(function(t) {
+              return (
+                <button key={t.id} onClick={function() { setTab(t.id); }}
+                  className={'flex items-center gap-1.5 px-3 py-2 font-sans-condensed text-xs uppercase tracking-widest transition-all ' + (tab === t.id ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant hover:text-on-surface')}>
+                  <Icon name={t.icon} size={13} className="text-current"/>{t.label}
+                </button>
+              );
+            })}
           </div>
-        </section>
-
-        {/* ── TAB NAVIGATION BAR ── */}
-        <div className="flex gap-1 border-b border-outline-variant/20">
-          {[
-            {id: 'lobbies', label: 'Lobbies', icon: 'groups'},
-            {id: 'play', label: 'Record Game', icon: 'sports_esports'},
-            {id: 'stats', label: 'Statistics', icon: 'analytics'},
-            {id: 'history', label: 'History', icon: 'history'}
-          ].map(function(t) {
-            return (
-              <button
-                key={t.id}
-                onClick={function() { setTab(t.id); }}
-                className={'flex items-center gap-2 px-4 py-3 font-sans-condensed text-xs uppercase tracking-widest transition-colors border-b-2 -mb-px ' + (tab === t.id ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface')}
-              >
-                <Icon name={t.icon} size={14} className="text-current"/>
-                {t.label}
-              </button>
-            );
-          })}
         </div>
 
-        {/* ── LOBBIES TAB ── */}
+        {/* ════════════ LOBBIES TAB ════════════ */}
         {tab === 'lobbies' && (
-          <div className="grid grid-cols-12 gap-6">
-
-            {/* Left column: Create form + stat card */}
-            <div className="col-span-12 lg:col-span-4 space-y-6">
-
-              {/* Initialize Scrim */}
-              <div className="bg-surface-container-low p-6 rounded-sm relative overflow-hidden group">
-                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <Icon name="add_circle" size={64} className="text-on-surface"/>
+          <div className="grid grid-cols-12 gap-5">
+            {/* Create form */}
+            {canManage && (
+            <div className="col-span-12 lg:col-span-4">
+              <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                <div className="px-5 py-4 bg-surface-container">
+                  <h2 className="font-serif text-xl font-bold">New Session</h2>
                 </div>
-                <h2 className="font-serif text-2xl font-bold mb-6">Initialize Scrim</h2>
-                <div className="space-y-4">
+                <div className="p-5 space-y-4">
                   <div>
-                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1">Lobby Name</label>
-                    <input
-                      type="text"
-                      value={newName}
-                      onChange={function(e) { setNewName(e.target.value); }}
+                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Session Name</label>
+                    <input type="text" value={newName} onChange={function(e) { setNewName(e.target.value); }}
                       onKeyDown={function(e) { if (e.key === 'Enter') createSession(); }}
-                      placeholder="e.g. SET 10 MASTERS DRILL"
-                      className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1">Region</label>
-                      <select
-                        value={newRegion}
-                        onChange={function(e) { setNewRegion(e.target.value); }}
-                        className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                      >
-                        <option>NA</option>
-                        <option>EUW</option>
-                        <option>KR</option>
-                        <option>EUNE</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1">Target Games</label>
-                      <select
-                        value={newTarget}
-                        onChange={function(e) { setNewTarget(e.target.value); }}
-                        className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                      >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 10, 12].map(function(n) {
-                          return <option key={n} value={n}>{n} games</option>;
-                        })}
-                      </select>
-                    </div>
+                      placeholder="e.g. FRIDAY GRIND"
+                      className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary"/>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1">Notes</label>
-                    <input
-                      type="text"
-                      value={newNotes}
-                      onChange={function(e) { setNewNotes(e.target.value); }}
-                      placeholder="Optional notes..."
-                      className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                    />
+                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Notes / Goal</label>
+                    <input type="text" value={newNotes} onChange={function(e) { setNewNotes(e.target.value); }}
+                      placeholder="Focus area, comps to test..."
+                      className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary"/>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">Roster</label>
+                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Target Games</label>
+                    <select value={newTarget} onChange={function(e) { setNewTarget(e.target.value); }}
+                      className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary">
+                      {[1,2,3,4,5,6,7,8,10,12].map(function(n) { return <option key={n} value={n}>{n} games</option>; })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Roster</label>
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       {players.map(function(p) {
                         var inRoster = scrimRoster.find(function(r) { return r.id === p.id; });
                         return (
-                          <button
-                            key={p.id}
-                            onClick={function() {
-                              if (inRoster) {
-                                setScrimRoster(function(r) { return r.filter(function(x) { return x.id !== p.id; }); });
-                              } else {
-                                setScrimRoster(function(r) { return r.concat([p]); });
-                              }
-                            }}
-                            className={'text-[10px] font-sans-condensed uppercase px-2 py-1 rounded-sm border transition-colors ' + (inRoster ? 'bg-secondary/10 text-secondary border-secondary/30' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20 hover:text-on-surface')}
-                          >
+                          <button key={p.id} onClick={function() {
+                            if (inRoster) setScrimRoster(function(r) { return r.filter(function(x) { return x.id !== p.id; }); });
+                            else setScrimRoster(function(r) { return r.concat([p]); });
+                          }} className={'text-[10px] font-sans-condensed uppercase px-2 py-1 border transition-colors ' + (inRoster ? 'bg-primary/10 text-primary border-primary/30' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20 hover:text-on-surface')}>
                             {p.name}
                           </button>
                         );
                       })}
-                    </div>
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={customName}
-                        onChange={function(e) { setCustomName(e.target.value); }}
-                        onKeyDown={function(e) { if (e.key === 'Enter') addPlayerToRoster(customName); }}
-                        placeholder="Add custom player name"
-                        className="flex-1 bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-2.5 outline-none"
-                      />
-                      <button
-                        onClick={function() { addPlayerToRoster(customName); }}
-                        className="px-4 py-2.5 bg-surface-container-highest text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors"
-                      >
-                        Add
-                      </button>
                     </div>
                     {scrimRoster.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {scrimRoster.map(function(p) {
                           return (
-                            <div key={p.id} className="flex items-center gap-1.5 px-2 py-1 bg-primary/10 border border-primary/20 rounded-sm">
+                            <div key={p.id} className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20">
                               <span className="text-[11px] font-mono text-primary">{p.name}</span>
-                              <button
-                                onClick={function() { setScrimRoster(function(r) { return r.filter(function(x) { return x.id !== p.id; }); }); }}
-                                className="text-primary/40 hover:text-primary text-sm leading-none bg-transparent border-0 cursor-pointer p-0"
-                              >
-                                x
-                              </button>
+                              <button onClick={function() { setScrimRoster(function(r) { return r.filter(function(x) { return x.id !== p.id; }); }); }}
+                                className="text-primary/40 hover:text-error transition-colors text-sm leading-none bg-transparent border-0 cursor-pointer p-0 ml-0.5">x</button>
                             </div>
                           );
                         })}
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={createSession}
-                    className="w-full py-4 mt-2 bg-surface-variant text-on-surface font-sans-condensed font-bold uppercase tracking-widest rounded-full hover:bg-primary hover:text-on-primary transition-all duration-300 flex items-center justify-center gap-2 border border-outline-variant/20"
-                    type="button"
-                  >
-                    <Icon name="rocket_launch" size={16} className="text-current"/>
-                    Create Lobby
+                  <button onClick={createSession}
+                    className="w-full py-3 bg-primary text-on-primary font-sans-condensed font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                    <Icon name="add" size={16} className="text-current"/>Create Session
                   </button>
                 </div>
               </div>
-
-              {/* Win Rate Stat Card */}
-              {scrimStats.length > 0 && (
-                <div className="bg-surface-container-low p-6 rounded-sm flex justify-between items-center">
-                  <div>
-                    <div className="text-[10px] font-sans-condensed text-on-surface-variant tracking-widest uppercase mb-1">
-                      {scrimStats[0].name} Win Rate
-                    </div>
-                    <div className="font-display text-4xl text-primary">
-                      {scrimStats[0].winRate}%
-                    </div>
-                    <div className="text-[10px] font-sans-condensed text-on-surface-variant mt-1">{scrimStats[0].games} games played</div>
-                  </div>
-                  <div className="w-16 h-16 rounded-full border-4 border-surface-container-highest border-t-primary rotate-45"/>
-                </div>
-              )}
-
             </div>
+            )}
 
-            {/* Right column: Lobbies list */}
-            <div className="col-span-12 lg:col-span-8">
-              <div className="bg-surface-container-low rounded-sm overflow-hidden flex flex-col min-h-[380px]">
-                <div className="px-6 py-4 bg-surface-container flex justify-between items-center">
-                  <h2 className="font-serif text-2xl font-bold">Live Lobbies</h2>
-                  <button
-                    onClick={reloadScrims}
-                    className="p-2 bg-surface-container-highest rounded-sm hover:text-primary transition-colors"
-                    title="Refresh"
-                  >
-                    <Icon name="refresh" size={16} className="text-current"/>
-                  </button>
+            {/* Sessions list */}
+            <div className={"col-span-12 " + (canManage ? "lg:col-span-8" : "") + " space-y-3"}>
+              {dbLoading ? (
+                <div className="bg-surface-container-low p-12 rounded-sm text-center text-on-surface-variant/40 font-sans-condensed text-xs uppercase tracking-widest">Loading...</div>
+              ) : safeSessions.length === 0 ? (
+                <div className="bg-surface-container-low p-16 rounded-sm flex flex-col items-center justify-center gap-3">
+                  <Icon name="sports_esports" size={40} className="text-on-surface-variant opacity-20"/>
+                  <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No sessions yet - create one to get started</div>
                 </div>
-
-                {dbLoading ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">Loading...</div>
-                  </div>
-                ) : safeSessions.filter(function(s) { return s.active; }).length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center gap-3 p-8">
-                    <Icon name="sports_esports" size={40} className="text-on-surface-variant opacity-30"/>
-                    <div className="text-sm font-sans-condensed text-on-surface-variant uppercase tracking-widest">No active lobbies</div>
-                    <div className="text-xs text-on-surface-variant/60 text-center">Initialize a scrim on the left to get started.</div>
-                  </div>
-                ) : (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
-                      var isFull = s.games.length >= s.targetGames;
-                      var playerCount = s.playerIds.length;
-                      var statusLabel = isFull ? 'Full' : s.games.length > 0 ? 'Live' : 'Recruiting';
-                      var statusColor = isFull ? 'text-primary-container' : s.games.length > 0 ? 'text-tertiary' : 'text-primary';
-                      var statusBg = isFull ? 'bg-primary-container/20' : s.games.length > 0 ? 'bg-tertiary/10' : 'bg-primary/10';
-                      var iconName = s.games.length > 0 ? 'groups' : 'public';
-                      return (
-                        <div
-                          key={s.id}
-                          className={'bg-surface-container-high p-4 flex items-center justify-between group hover:translate-x-1 transition-transform cursor-pointer' + (activeId === s.id ? ' ring-1 ring-primary/40' : '')}
-                          onClick={function() { setActiveId(s.id); }}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-surface-container-lowest flex items-center justify-center border border-outline-variant/10 flex-shrink-0">
-                              <Icon name={iconName} size={20} className="text-tertiary"/>
-                            </div>
-                            <div>
-                              <div className="font-mono text-sm text-on-surface font-bold uppercase">{s.name}</div>
-                              <div className="flex items-center gap-3 mt-1">
-                                <span className={'text-[10px] font-sans-condensed px-2 py-0.5 rounded-sm uppercase tracking-widest ' + statusBg + ' ' + statusColor}>{statusLabel}</span>
-                                <span className="text-[10px] font-sans-condensed text-on-surface-variant tracking-widest uppercase">{s.games.length}/{s.targetGames} GAMES</span>
-                                {playerCount > 0 && (
-                                  <span className="text-[10px] font-sans-condensed text-on-surface-variant tracking-widest uppercase">{playerCount} PLAYERS</span>
-                                )}
+              ) : (
+                <>
+                  {/* Active */}
+                  {safeSessions.filter(function(s) { return s.active; }).length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2 px-1">Active</div>
+                      {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
+                        var progress = Math.min(s.games.length / s.targetGames, 1);
+                        return (
+                          <div key={s.id} className={'rounded-sm overflow-hidden mb-2 ' + (activeId === s.id ? 'ring-1 ring-primary/50' : '')}>
+                            <div className="bg-surface-container-low p-4 flex items-center gap-4">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"/>
+                                  <span className="font-mono text-sm font-bold text-on-surface uppercase">{s.name}</span>
+                                  <span className="text-[10px] font-sans-condensed text-on-surface-variant">{s.createdAt}</span>
+                                </div>
+                                {s.notes && <div className="text-xs text-on-surface-variant/60 mb-2">{s.notes}</div>}
+                                <div className="flex items-center gap-3">
+                                  <div className="flex-1 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+                                    <div className="h-full bg-tertiary rounded-full transition-all" style={{width: (progress * 100) + '%'}}/>
+                                  </div>
+                                  <span className="font-mono text-xs text-on-surface-variant flex-shrink-0">{s.games.length}/{s.targetGames}</span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 flex-shrink-0">
+                                {canManage && (
+                                <button onClick={function() { setActiveId(s.id); setScrimResults({}); setTab('record'); }}
+                                  className="px-4 py-2 bg-primary text-on-primary font-sans-condensed text-xs font-bold uppercase tracking-wide hover:opacity-90 transition-opacity">Record</button>
+                              )}
+                              {canManage && (
+                                <button onClick={function() { stopSession(s.id); }}
+                                  className="px-3 py-2 border border-error/30 text-error font-sans-condensed text-xs uppercase hover:bg-error/10 transition-colors">End</button>
+                              )}
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 flex-shrink-0">
-                            <div className="hidden sm:block text-right">
-                              <div className="text-[9px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">Created</div>
-                              <div className="font-mono text-sm">{s.createdAt}</div>
-                            </div>
-                            <button
-                              onClick={function(e) { e.stopPropagation(); setActiveId(s.id); setScrimResults({}); setTab('play'); }}
-                              className="px-4 py-2 rounded-full bg-primary text-on-primary font-sans-condensed font-bold text-xs uppercase hover:scale-105 transition-all"
-                            >
-                              Play
-                            </button>
-                            {isFull && (
-                              <button
-                                onClick={function(e) { e.stopPropagation(); stopSession(s.id); }}
-                                className="px-4 py-2 rounded-full border border-error/30 text-error font-sans-condensed font-bold text-xs uppercase hover:bg-error/10 transition-all"
-                              >
-                                End
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Completed sessions section */}
-              {safeSessions.filter(function(s) { return !s.active; }).length > 0 && (
-                <div className="bg-surface-container-low rounded-sm overflow-hidden mt-4">
-                  <div className="px-6 py-4 bg-surface-container flex justify-between items-center">
-                    <h2 className="font-serif text-lg font-bold text-on-surface-variant">Completed Sessions</h2>
-                    <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{safeSessions.filter(function(s) { return !s.active; }).length} ended</span>
-                  </div>
-                  <div className="p-4 space-y-2">
-                    {safeSessions.filter(function(s) { return !s.active; }).map(function(s) {
-                      return (
-                        <div
-                          key={s.id}
-                          className="bg-surface-container-high p-4 flex items-center justify-between opacity-70 hover:opacity-90 transition-opacity cursor-pointer"
-                          onClick={function() { setActiveId(s.id); setTab('history'); }}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-surface-container-lowest flex items-center justify-center border border-outline-variant/10 flex-shrink-0">
-                              <Icon name="check_circle" size={16} className="text-on-surface-variant"/>
-                            </div>
-                            <div>
-                              <div className="font-mono text-sm text-on-surface-variant font-bold uppercase">{s.name}</div>
-                              <div className="flex items-center gap-3 mt-1">
-                                <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{s.games.length} games - {s.createdAt}</span>
+                        );
+                      })}
+                    </div>
+                  )}
+                  {/* Completed */}
+                  {safeSessions.filter(function(s) { return !s.active; }).length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2 px-1">Completed</div>
+                      {safeSessions.filter(function(s) { return !s.active; }).map(function(s) {
+                        return (
+                          <div key={s.id} className="bg-surface-container-low rounded-sm p-4 flex items-center gap-4 mb-2 opacity-70 hover:opacity-100 transition-opacity">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <span className="font-mono text-sm font-bold text-on-surface uppercase">{s.name}</span>
+                                <span className="text-[10px] font-sans-condensed text-on-surface-variant">{s.createdAt}</span>
                               </div>
+                              <span className="font-mono text-xs text-on-surface-variant">{s.games.length} games recorded</span>
+                            </div>
+                            <div className="flex gap-2 flex-shrink-0">
+                              <button onClick={function() { setTab('history'); setExpandedSession(s.id); }}
+                                className="px-3 py-2 bg-surface-container-high text-on-surface-variant font-sans-condensed text-xs uppercase hover:text-on-surface transition-colors">View</button>
+                              {isAdmin && (
+                                <button onClick={function() { setConfirmDelete({type: 'session', id: s.id}); }}
+                                  className="px-3 py-2 border border-error/20 text-error/50 font-sans-condensed text-xs uppercase hover:text-error hover:border-error/40 transition-colors">Del</button>
+                              )}
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={function(e) { e.stopPropagation(); setTab('history'); }}
-                              className="px-3 py-1.5 rounded-full border border-outline-variant/30 text-on-surface-variant font-sans-condensed font-bold text-xs uppercase hover:text-on-surface transition-colors"
-                            >
-                              Review
-                            </button>
-                            {(isAdmin || (currentUser && s.createdBy === currentUser.auth_user_id)) && (
-                              <button
-                                onClick={function(e) { e.stopPropagation(); setConfirmDelete({type: 'session', id: s.id, name: s.name}); }}
-                                className="p-1.5 text-error/40 hover:text-error transition-colors"
-                                title="Delete session"
-                              >
-                                <Icon name="delete" size={14} className="text-current"/>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         )}
 
-        {/* ── PLAY TAB ── */}
-        {tab === 'play' && (
-          <div className="bg-surface-container-low rounded-sm overflow-hidden">
-            <div className="px-6 py-4 bg-surface-container flex justify-between items-center">
-              <h2 className="font-serif text-2xl font-bold">Record Game</h2>
-              <button
-                onClick={function() { setTab('lobbies'); }}
-                className="p-2 bg-surface-container-highest rounded-sm hover:text-primary transition-colors"
-              >
-                <Icon name="close" size={16} className="text-current"/>
-              </button>
-            </div>
-            <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="space-y-4">
+        {/* ════════════ RECORD TAB ════════════ */}
+        {tab === 'record' && (
+          <div className="grid grid-cols-12 gap-5">
+            <div className="col-span-12 xl:col-span-7 space-y-4">
+              {/* Session selector */}
+              <div className="bg-surface-container-low rounded-sm p-5">
+                <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">Session</label>
+                <select value={activeId || ''} onChange={function(e) { var v = e.target.value || null; setActiveId(v); setScrimResults({}); setGameComps({}); if (v) setScrimRoster([]); }}
+                  className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary">
+                  <option value="">- Select session -</option>
+                  {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
+                    return <option key={s.id} value={s.id}>{s.name} ({s.games.length}/{s.targetGames})</option>;
+                  })}
+                </select>
+                {!activeId && (
+                  <p className="text-[10px] font-sans-condensed text-on-surface-variant mt-2">No active session? <button onClick={function() { setTab('lobbies'); }} className="text-primary underline underline-offset-2 bg-transparent border-0 cursor-pointer p-0 font-sans-condensed text-[10px]">Create one in Lobbies.</button></p>
+                )}
+              </div>
 
-                {/* Lobby selector */}
-                <div>
-                  <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">Active Lobby</label>
-                  <select
-                    value={activeId || ''}
-                    onChange={function(e) {
-                      var val = e.target.value || null;
-                      setActiveId(val);
-                      setScrimResults({});
-                      // When selecting an existing lobby, clear the create-form roster
-                      // so sessionRoster will derive from DB players
-                      if (val) setScrimRoster([]);
-                    }}
-                    className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                  >
-                    <option value="">- Select lobby -</option>
-                    {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
-                      return <option key={s.id} value={s.id}>{s.name} ({s.games.length}/{s.targetGames})</option>;
-                    })}
-                  </select>
-                </div>
-
-                {/* Roster display/editor */}
-                {activeId && (
-                  <div>
-                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">
-                      Roster ({rosterForGame.length} players)
-                    </label>
-                    {/* Pill list of players from the context */}
-                    <div className="flex flex-wrap gap-1.5 mb-2">
+              {activeId && (
+                <>
+                  {/* Roster */}
+                  <div className="bg-surface-container-low rounded-sm p-5">
+                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Roster ({rosterForGame.length} players)</label>
+                    <div className="flex flex-wrap gap-1.5 mb-3">
                       {players.map(function(p) {
                         var inRoster = rosterForGame.find(function(r) { return String(r.id) === String(p.id); });
                         return (
-                          <button
-                            key={p.id}
-                            onClick={function() {
-                              if (inRoster) {
-                                // If roster is from DB, we need to work with scrimRoster override
-                                if (session && session.playerIds.length > 0) {
-                                  // Build a local override from the session roster minus this player
-                                  var overrideRoster = rosterForGame.filter(function(r) { return String(r.id) !== String(p.id); });
-                                  setScrimRoster(overrideRoster);
-                                } else {
-                                  setScrimRoster(function(r) { return r.filter(function(x) { return String(x.id) !== String(p.id); }); });
-                                }
-                                // Clear any placement result for this player
-                                setScrimResults(function(prev) {
-                                  var next = Object.assign({}, prev);
-                                  delete next[p.id];
-                                  return next;
-                                });
-                              } else {
-                                if (session && session.playerIds.length > 0 && scrimRoster.length === 0) {
-                                  // Initialize override from existing session roster
-                                  setScrimRoster(rosterForGame.concat([p]));
-                                } else {
-                                  setScrimRoster(function(r) { return r.concat([p]); });
-                                }
-                              }
-                            }}
-                            className={'text-[10px] font-sans-condensed uppercase px-2 py-1 rounded-sm border transition-colors ' + (inRoster ? 'bg-primary/10 text-primary border-primary/30' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20 hover:text-on-surface')}
-                          >
+                          <button key={p.id} onClick={function() {
+                            if (inRoster) {
+                              var override = rosterForGame.filter(function(r) { return String(r.id) !== String(p.id); });
+                              setScrimRoster(override);
+                              setScrimResults(function(prev) { var n = Object.assign({}, prev); delete n[p.id]; return n; });
+                            } else {
+                              setScrimRoster(session && session.playerIds.length > 0 && scrimRoster.length === 0 ? rosterForGame.concat([p]) : function(r) { return r.concat([p]); });
+                            }
+                          }} className={'text-[10px] font-sans-condensed uppercase px-2.5 py-1.5 border transition-colors ' + (inRoster ? 'bg-primary/10 text-primary border-primary/30' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20 hover:text-on-surface')}>
                             {p.name}
                           </button>
                         );
                       })}
                     </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={customName}
-                        onChange={function(e) { setCustomName(e.target.value); }}
-                        onKeyDown={function(e) { if (e.key === 'Enter') addPlayerToRoster(customName); }}
-                        placeholder="Add custom player name"
-                        className="flex-1 bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-2.5 outline-none"
-                      />
-                      <button
-                        onClick={function() { addPlayerToRoster(customName); }}
-                        className="px-4 py-2.5 bg-surface-container-highest text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors"
-                      >
-                        Add
-                      </button>
-                    </div>
                   </div>
-                )}
 
-                {rosterForGame.length >= 2 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                      <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">
+                  {/* Game controls */}
+                  <div className="bg-surface-container-low rounded-sm p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="font-mono text-sm text-on-surface-variant">
                         Game {session ? session.games.length + 1 : 1}{session ? ' / ' + session.targetGames : ''}
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={'font-mono text-base font-bold w-14 ' + (timerActive ? 'text-primary' : 'text-on-surface-variant/40')}>{fmt(timer)}</div>
-                        <button
-                          onClick={function() { setTimerActive(function(t) { return !t; }); }}
-                          className="px-3 py-1.5 bg-surface-container-highest text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors"
-                        >
-                          {timerActive ? 'Pause' : 'Start'}
-                        </button>
-                        <button
-                          onClick={function() { setTimer(0); setTimerActive(false); }}
-                          className="px-3 py-1.5 bg-surface-container-highest text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors"
-                        >
-                          Reset
-                        </button>
+                        <button onClick={function() { setTimerActive(function(t) { return !t; }); }}
+                          className="px-3 py-1.5 bg-surface-container-highest text-on-surface font-sans-condensed text-xs uppercase hover:text-primary transition-colors">{timerActive ? 'Pause' : 'Start'}</button>
+                        <button onClick={function() { setTimer(0); setTimerActive(false); }}
+                          className="px-3 py-1.5 bg-surface-container-highest text-on-surface font-sans-condensed text-xs uppercase hover:text-primary transition-colors">Reset</button>
                       </div>
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1">Tag</label>
-                        <select
-                          value={gameTag}
-                          onChange={function(e) { setGameTag(e.target.value); }}
-                          className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                        >
-                          {['standard', 'draft comp', 'test run', 'ranked sim', 'meta test'].map(function(t) {
-                            return <option key={t} value={t}>{t}</option>;
-                          })}
+                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Tag</label>
+                        <select value={gameTag} onChange={function(e) { setGameTag(e.target.value); }}
+                          className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-2.5 outline-none">
+                          {['standard','draft comp','test run','ranked sim','meta test'].map(function(t) { return <option key={t} value={t}>{t}</option>; })}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1">Note</label>
-                        <input
-                          type="text"
-                          value={gameNote}
-                          onChange={function(e) { setGameNote(e.target.value); }}
-                          placeholder="comp, pivot, notes..."
-                          className="w-full bg-surface-container-lowest border-0 focus:ring-1 focus:ring-primary text-on-surface font-mono text-sm p-3 outline-none"
-                        />
+                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Note</label>
+                        <input type="text" value={gameNote} onChange={function(e) { setGameNote(e.target.value); }}
+                          placeholder="comps, pivots, highlights..."
+                          className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-2.5 outline-none"/>
                       </div>
                     </div>
+                  </div>
 
-                    <div>
-                      <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">
-                        Placements ({placedCount}/{rosterForGame.length} set)
-                      </label>
-                      <PlacementBoard
-                        roster={rosterForGame}
-                        results={scrimResults}
-                        onPlace={function(pid, place) { setScrimResults(function(r) { return Object.assign({}, r, {[pid]: place}); }); }}
-                      />
-                    </div>
-
-                    <button
-                      onClick={lockGame}
-                      disabled={!allPlaced}
-                      className="w-full py-4 bg-primary text-on-primary font-sans-condensed font-bold uppercase tracking-widest rounded-full hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      <Icon name="lock" size={16} className="text-current"/>
-                      Lock Game - {placedCount}/{rosterForGame.length} placed
-                    </button>
-
-                    {session && session.active && (
-                      <button
-                        onClick={function() { stopSession(session.id); }}
-                        className="w-full py-3 border border-error/30 text-error font-sans-condensed font-bold uppercase tracking-widest rounded-full hover:bg-error/10 transition-colors text-sm"
-                      >
-                        End Session
+                  {rosterForGame.length >= 2 && (
+                    <div className="bg-surface-container-low rounded-sm p-5 space-y-5">
+                      <div>
+                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Placements — {placedCount}/{rosterForGame.length} set</label>
+                        <PlacementBoard roster={rosterForGame} results={scrimResults}
+                          onPlace={function(pid, place) { setScrimResults(function(r) { return Object.assign({}, r, {[pid]: place}); }); }}
+                          comps={gameComps} onComp={function(pid, val) { setGameComps(function(c) { return Object.assign({}, c, {[pid]: val}); }); }}/>
+                      </div>
+                      <button onClick={lockGame} disabled={!allPlaced}
+                        className="w-full py-3.5 bg-primary text-on-primary font-sans-condensed font-bold uppercase tracking-widest text-sm hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2">
+                        <Icon name="lock" size={15} className="text-current"/>Lock Game
                       </button>
-                    )}
-                  </div>
-                )}
-
-                {activeId && rosterForGame.length < 2 && (
-                  <div className="bg-surface-container-high p-6 text-center rounded-sm">
-                    <Icon name="group_add" size={28} className="text-on-surface-variant opacity-40 mb-2"/>
-                    <div className="text-xs text-on-surface-variant font-sans-condensed uppercase tracking-widest">Add at least 2 players to the roster above</div>
-                  </div>
-                )}
-
-                {!activeId && (
-                  <div className="bg-surface-container-high p-6 text-center rounded-sm">
-                    <Icon name="sports_esports" size={28} className="text-on-surface-variant opacity-40 mb-2"/>
-                    <div className="text-xs text-on-surface-variant font-sans-condensed uppercase tracking-widest">Select a lobby above to start recording</div>
-                  </div>
-                )}
-
-              </div>
-
-              {/* Recent games sidebar */}
-              <div>
-                <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-4">
-                  {session ? session.name + ' - Games' : 'Recent Games'}
-                </div>
-                {(session ? session.games : allGames).length === 0 ? (
-                  <div className="bg-surface-container-high p-8 text-center">
-                    <Icon name="sports_esports" size={32} className="text-on-surface-variant opacity-30 mb-3"/>
-                    <div className="text-xs text-on-surface-variant font-sans-condensed uppercase tracking-widest">No games logged yet</div>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-[560px] overflow-y-auto">
-                    {(session ? session.games.slice().reverse() : allGames.slice().reverse()).slice(0, 10).map(function(g, gi) {
-                      var sorted = Object.entries(g.results).sort(function(a, b) { return a[1] - b[1]; });
-                      return (
-                        <div key={g.id} className="bg-surface-container-high p-4">
-                          <div className="flex justify-between items-center mb-3">
-                            <div className="flex gap-2 items-center">
-                              <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber || (gi + 1)}</span>
-                              {g.tag !== 'standard' && (
-                                <span className="text-[10px] font-sans-condensed bg-secondary/10 text-secondary px-2 py-0.5 rounded-sm uppercase">{g.tag}</span>
-                              )}
-                              {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant">{fmt(g.duration)}</span>}
-                            </div>
-                            {(isAdmin || (currentUser && session && session.createdBy === currentUser.auth_user_id)) && (
-                              <button
-                                onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
-                                className="text-error/30 hover:text-error transition-colors p-1"
-                                title="Delete game"
-                              >
-                                <Icon name="delete" size={12} className="text-current"/>
-                              </button>
-                            )}
-                          </div>
-                          {g.note && <div className="text-[10px] text-on-surface-variant mb-2 italic">"{g.note}"</div>}
-                          <div className="space-y-1">
-                            {sorted.map(function(entry) {
-                              var pid = entry[0], place = entry[1];
-                              var p = allPlayers.find(function(pl) { return String(pl.id) === String(pid); });
-                              if (!p) return null;
-                              var c = place === 1 ? '#E8A838' : place === 2 ? '#C0C0C0' : place === 3 ? '#CD7F32' : place <= 4 ? '#4ECDC4' : '#F87171';
-                              return (
-                                <div key={pid} className="flex items-center justify-between">
-                                  <span className="text-xs truncate flex-1" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
-                                  <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 ml-2" style={{background: c + '22', border: '1px solid ' + c + '55'}}>
-                                    <span className="font-mono text-[11px] font-bold" style={{color: c}}>{place}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
+                      {session && session.active && (
+                        <button onClick={function() { stopSession(session.id); }}
+                          className="w-full py-2.5 border border-error/30 text-error font-sans-condensed text-xs uppercase tracking-widest hover:bg-error/10 transition-colors">
+                          End Session
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          </div>
-        )}
 
-        {/* ── H2H PERFORMANCE MATRIX ── */}
-        {tab === 'stats' && scrimStats.length >= 2 && (
-          <div className="bg-surface-container-low p-8 rounded-sm">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <h2 className="font-serif text-3xl font-black mb-1">H2H Performance Matrix</h2>
-                <p className="text-xs font-sans-condensed uppercase tracking-widest text-on-surface-variant">Player Matchups &amp; Win/Loss Ratios</p>
+            {/* Recent games sidebar */}
+            <div className="col-span-12 xl:col-span-5">
+              <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">
+                {session ? session.name + ' - Games' : 'Recent Games'}
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-tertiary"/>
-                  <span className="text-[10px] font-sans-condensed uppercase text-on-surface-variant">Positive</span>
+              {(session ? session.games.slice().reverse() : allGames.slice().reverse()).slice(0, 8).length === 0 ? (
+                <div className="bg-surface-container-low p-10 rounded-sm text-center">
+                  <Icon name="sports_esports" size={32} className="text-on-surface-variant opacity-20 mb-3"/>
+                  <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No games yet</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-error"/>
-                  <span className="text-[10px] font-sans-condensed uppercase text-on-surface-variant">Negative</span>
-                </div>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-separate border-spacing-1 min-w-[400px]">
-                <thead>
-                  <tr>
-                    <th className="p-4 bg-surface-container-lowest"/>
-                    {scrimStats.map(function(p) {
-                      return (
-                        <th key={p.id} className="p-4 bg-surface-container-lowest text-center">
-                          <div className="font-sans-condensed uppercase text-[10px] text-on-surface-variant tracking-tighter">Player</div>
-                          <div className="font-mono text-sm">{p.name}</div>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                </thead>
-                <tbody>
-                  {scrimStats.map(function(rowP) {
+              ) : (
+                <div className="space-y-2">
+                  {(session ? session.games.slice().reverse() : allGames.slice().reverse()).slice(0, 8).map(function(g, gi) {
+                    var sorted = Object.entries(g.results).sort(function(a, b) { return a[1] - b[1]; });
                     return (
-                      <tr key={rowP.id}>
-                        <td className="p-4 bg-surface-container-lowest font-mono text-sm font-bold whitespace-nowrap">{rowP.name}</td>
-                        {scrimStats.map(function(colP) {
-                          if (String(rowP.id) === String(colP.id)) {
-                            return <td key={colP.id} className="p-4 bg-surface-container-highest/50 text-center text-on-surface-variant">-</td>;
-                          }
-                          var rowKey = String(rowP.id), colKey = String(colP.id);
-                          var rec = h2hData[rowKey] && h2hData[rowKey][colKey];
-                          if (!rec || rec.total === 0) {
-                            return <td key={colP.id} className="p-4 bg-surface-container-high text-center text-on-surface-variant/40 text-xs">-</td>;
-                          }
-                          var wr = rec.wins / rec.total;
-                          var isPositive = wr >= 0.6;
-                          var isNegative = wr <= 0.4;
-                          var bgClass = isPositive ? 'bg-tertiary/10 border border-tertiary/20' : isNegative ? 'bg-error/10 border border-error/20' : 'bg-surface-container-high';
-                          var textColor = isPositive ? 'text-tertiary' : isNegative ? 'text-error' : 'text-on-surface-variant';
-                          var subColor = isPositive ? 'text-tertiary/60' : isNegative ? 'text-error/60' : 'text-on-surface-variant/60';
-                          return (
-                            <td key={colP.id} className={'p-4 text-center ' + bgClass}>
-                              <div className={'font-mono font-bold text-sm ' + textColor}>{rec.wins}-{rec.total - rec.wins}</div>
-                              <div className={'text-[10px] ' + subColor}>{Math.round(wr * 100)}% WR</div>
-                            </td>
-                          );
-                        })}
-                      </tr>
+                      <div key={g.id} className="bg-surface-container-low rounded-sm p-3.5">
+                        <div className="flex justify-between items-center mb-2">
+                          <div className="flex gap-2 items-center">
+                            <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber || (gi + 1)}</span>
+                            {g.tag !== 'standard' && <span className="text-[9px] font-sans-condensed bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
+                            {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
+                          </div>
+                          {isAdmin && (
+                            <div className="flex gap-1">
+                              <button onClick={function() { setEditGame({id: g.id, note: g.note, tag: g.tag}); }}
+                                className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name="edit" size={12} className="text-current"/></button>
+                              <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
+                                className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                            </div>
+                          )}
+                        </div>
+                        {g.note && <div className="text-[10px] text-on-surface-variant/50 mb-2 italic">"{g.note}"</div>}
+                        <div className="space-y-1">
+                          {sorted.map(function(entry) {
+                            var pid = entry[0]; var place = entry[1];
+                            var p = players.find(function(pl) { return String(pl.id) === String(pid); });
+                            if (!p) return null;
+                            var c = placeColor(place);
+                            return (
+                              <div key={pid} className="flex items-center justify-between gap-2">
+                                <span className="text-xs truncate" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
+                                {g.comps && g.comps[pid] && <span className="text-[9px] font-sans-condensed text-on-surface-variant/40 truncate flex-1 text-center">{g.comps[pid]}</span>}
+                                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 font-mono text-[10px] font-bold" style={{background: c + '25', border: '1px solid ' + c + '55', color: c}}>{place}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* ── STATS PANEL ── */}
-        {tab === 'stats' && scrimStats.length > 0 && (
-          <div className="bg-surface-container-low rounded-sm overflow-hidden">
-            <div className="px-6 py-4 bg-surface-container">
-              <h2 className="font-serif text-2xl font-bold">Player Statistics</h2>
+        {/* ════════════ STATISTICS TAB ════════════ */}
+        {tab === 'stats' && (
+          <div className="space-y-4">
+            {/* Sub-tabs */}
+            <div className="flex gap-1">
+              {[{id:'players',label:'Players'},{id:'comps',label:'Comps'}].map(function(t) {
+                return (
+                  <button key={t.id} onClick={function() { setStatsTab(t.id); }}
+                    className={'px-5 py-2 font-sans-condensed text-xs uppercase tracking-widest border-b-2 transition-colors ' + (statsTab === t.id ? 'text-primary border-primary' : 'text-on-surface-variant border-transparent hover:text-on-surface')}>
+                    {t.label}
+                  </button>
+                );
+              })}
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                {[
-                  {label: 'Games Logged', val: allGames.length, color: 'text-secondary'},
-                  {label: 'Sessions', val: safeSessions.length, color: 'text-primary'},
-                  {label: 'Players Tracked', val: scrimStats.length, color: 'text-tertiary'},
-                  {label: 'Avg Game Time', val: allGames.length > 0 ? fmt(Math.round(allGames.reduce(function(s, g) { return s + g.duration; }, 0) / allGames.length)) : '-', color: 'text-on-surface'}
-                ].map(function(item) {
-                  return (
-                    <div key={item.label} className="bg-surface-container-high p-4 text-center">
-                      <div className={'font-mono text-2xl font-bold ' + item.color}>{item.val}</div>
-                      <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-1">{item.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full border-separate border-spacing-1 min-w-[480px]">
-                  <thead>
-                    <tr>
-                      <th className="p-3 bg-surface-container-lowest text-left text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest">#</th>
-                      <th className="p-3 bg-surface-container-lowest text-left text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest">Player</th>
-                      {['AVG', 'WIN%', 'TOP4%', 'BEST', 'WORST', 'PTS'].map(function(h) {
-                        return <th key={h} className="p-3 bg-surface-container-lowest text-center text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest">{h}</th>;
-                      })}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scrimStats.map(function(p, i) {
-                      var avgC = parseFloat(p.avg) < 3 ? 'text-emerald-400' : parseFloat(p.avg) <= 5 ? 'text-yellow-400' : 'text-rose-400';
-                      var rankColor = i === 0 ? '#E8A838' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'rgba(255,255,255,0.3)';
+            {statsTab === 'players' && scrimStats.length === 0 && (
+              <div className="bg-surface-container-low p-16 rounded-sm text-center">
+                <Icon name="analytics" size={40} className="text-on-surface-variant opacity-20 mb-4"/>
+                <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">Record games to unlock statistics</div>
+              </div>
+            )}
+
+            {statsTab === 'players' && scrimStats.length > 0 && (
+              <>
+                {/* Hero strip */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                  {(function() {
+                    var bestAvg = scrimStats[0];
+                    var bestWR = scrimStats.slice().sort(function(a, b) { return parseFloat(b.winRate) - parseFloat(a.winRate); })[0];
+                    var bestTop4 = scrimStats.slice().sort(function(a, b) { return parseFloat(b.top4Rate) - parseFloat(a.top4Rate); })[0];
+                    var bestPts = scrimStats.slice().sort(function(a, b) { return b.pts - a.pts; })[0];
+                    var bestStreak = scrimStats.slice().sort(function(a, b) { return b.streak - a.streak; })[0];
+                    return [
+                      {label: 'Games Logged',   val: allGames.length,               sub: safeSessions.length + ' sessions',      color: '#C4B5FD'},
+                      {label: 'Best Avg',        val: bestAvg.avg,                   sub: bestAvg.name,                           color: '#4ade80'},
+                      {label: 'Top Win Rate',    val: bestWR.winRate + '%',          sub: bestWR.name,                            color: '#E8A838'},
+                      {label: 'Top Top-4 Rate',  val: bestTop4.top4Rate + '%',       sub: bestTop4.name,                          color: '#4ECDC4'},
+                      {label: 'Most Points',     val: bestPts.pts + ' pts',          sub: bestStreak.streak + ' streak ' + bestStreak.name, color: '#f97316'},
+                    ].map(function(item) {
                       return (
-                        <tr key={p.id} className={i === 0 ? 'bg-primary/5' : ''}>
-                          <td className="p-3 font-mono text-sm font-bold text-center" style={{color: rankColor}}>{i + 1}</td>
-                          <td className="p-3 bg-surface-container-high">
-                            <div className="font-bold text-sm text-on-surface">{p.name}</div>
-                            <div className="text-[10px] text-on-surface-variant font-sans-condensed">{p.games}g</div>
-                            <div className="flex gap-0.5 flex-wrap mt-1">
-                              {p.placements.slice(-8).map(function(pl, pi) {
-                                var c = pl === 1 ? '#E8A838' : pl === 2 ? '#C0C0C0' : pl === 3 ? '#CD7F32' : pl <= 4 ? '#4ECDC4' : '#F87171';
-                                return (
-                                  <div key={pi} className="w-4 h-4 flex items-center justify-center" style={{background: c + '22', border: '1px solid ' + c + '55'}}>
-                                    <span className="font-mono text-[9px] font-bold" style={{color: c}}>{pl}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </td>
-                          <td className={'p-3 font-mono text-sm font-bold text-center bg-surface-container-high ' + avgC}>{p.avg}</td>
-                          <td className="p-3 font-mono text-xs font-semibold text-center bg-surface-container-high text-emerald-400">{p.winRate}%</td>
-                          <td className="p-3 font-mono text-xs font-semibold text-center bg-surface-container-high text-secondary">{p.top4Rate}%</td>
-                          <td className="p-3 font-mono text-xs font-semibold text-center bg-surface-container-high text-tertiary">#{p.best}</td>
-                          <td className="p-3 font-mono text-xs font-semibold text-center bg-surface-container-high text-rose-400">#{p.worst}</td>
-                          <td className="p-3 font-mono text-xs font-bold text-center bg-surface-container-high text-primary">{p.pts}</td>
-                        </tr>
+                        <div key={item.label} className="bg-surface-container-low p-4 border-t-2 space-y-0.5" style={{borderColor: item.color + '55'}}>
+                          <div className="font-mono text-2xl font-black leading-none" style={{color: item.color}}>{item.val}</div>
+                          <div className="text-[9px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{item.label}</div>
+                          <div className="text-[10px] text-on-surface-variant/50 truncate">{item.sub}</div>
+                        </div>
                       );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
+                    });
+                  }())}
+                </div>
 
-        {tab === 'stats' && scrimStats.length === 0 && (
-          <div className="bg-surface-container-low p-12 rounded-sm text-center">
-            <Icon name="analytics" size={40} className="text-on-surface-variant opacity-30 mb-4"/>
-            <div className="text-sm font-sans-condensed text-on-surface-variant uppercase tracking-widest">No stats yet - record some games first</div>
-          </div>
-        )}
+                {/* Leaderboard */}
+                <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                  <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
+                    <div>
+                      <h2 className="font-serif text-2xl font-bold">Player Leaderboard</h2>
+                      <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Sorted by average placement</p>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-separate border-spacing-0 min-w-[680px]">
+                      <thead>
+                        <tr style={{background: 'rgba(255,255,255,0.03)'}}>
+                          {['#','Player','AVG','WIN%','TOP4%','PTS','PPG','BEST','WORST','STREAK','TREND'].map(function(h, hi) {
+                            return <th key={h} className={'py-3 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-4' : 'text-center px-3')}>{h}</th>;
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scrimStats.map(function(p, i) {
+                          var avgV = parseFloat(p.avg);
+                          var avgColor = avgV < 3 ? '#4ade80' : avgV <= 5 ? '#facc15' : '#f87171';
+                          var rankColor = i === 0 ? '#E8A838' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'rgba(255,255,255,0.2)';
+                          return (
+                            <tr key={p.id} style={{borderBottom: '1px solid rgba(255,255,255,0.04)', background: i === 0 ? 'rgba(232,168,56,0.03)' : 'transparent'}}>
+                              <td className="px-4 py-4 w-10 text-center">
+                                <span className="font-mono font-black text-base" style={{color: rankColor}}>{i + 1}</span>
+                              </td>
+                              <td className="px-4 py-4 min-w-[160px]">
+                                <div className="font-bold text-sm text-on-surface">{p.name}</div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[10px] font-sans-condensed text-on-surface-variant">{p.games}g</span>
+                                  {p.streak >= 2 && <span className="text-[10px] font-mono text-orange-400">{'\uD83D\uDD25'}{p.streak}</span>}
+                                  <div className="flex gap-px">
+                                    {p.placements.slice(-5).map(function(pl, pi) {
+                                      return <div key={pi} className="w-4 h-4 flex items-center justify-center text-[9px] font-mono font-bold" style={{background: placeColor(pl) + '25', color: placeColor(pl)}}>{pl}</div>;
+                                    })}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <span className="font-mono text-xl font-black" style={{color: avgColor}}>{p.avg}</span>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <div className="font-mono text-sm font-bold text-emerald-400">{p.winRate}%</div>
+                                <div className="w-10 h-0.5 bg-surface-container-highest mx-auto mt-1 rounded-full overflow-hidden">
+                                  <div className="h-full bg-emerald-400" style={{width: p.winRate + '%'}}/>
+                                </div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <div className="font-mono text-sm font-bold text-secondary">{p.top4Rate}%</div>
+                                <div className="w-10 h-0.5 bg-surface-container-highest mx-auto mt-1 rounded-full overflow-hidden">
+                                  <div className="h-full bg-secondary" style={{width: p.top4Rate + '%'}}/>
+                                </div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <span className="font-mono text-sm font-bold text-primary">{p.pts}</span>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <span className="font-mono text-xs text-on-surface-variant">{p.ppg}</span>
+                                <div className="text-[9px] font-sans-condensed text-on-surface-variant/40 uppercase">pts/g</div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <div className="w-6 h-6 flex items-center justify-center mx-auto font-mono text-[10px] font-bold" style={{background: '#E8A83822', border: '1px solid #E8A83844', color: '#E8A838'}}>#{p.best}</div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <div className="w-6 h-6 flex items-center justify-center mx-auto font-mono text-[10px] font-bold" style={{background: '#f8717122', border: '1px solid #f8717144', color: '#f87171'}}>#{p.worst}</div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                {p.streak > 0 ? (
+                                  <div className="inline-flex items-center gap-1 px-2 py-0.5" style={{background: p.streak >= 3 ? '#f9731620' : 'rgba(255,255,255,0.04)', border: '1px solid ' + (p.streak >= 3 ? '#f9731640' : 'rgba(255,255,255,0.06)')}}>
+                                    <span className="font-mono text-xs font-bold" style={{color: p.streak >= 3 ? '#f97316' : 'rgba(255,255,255,0.35)'}}>{p.streak}</span>
+                                  </div>
+                                ) : <span className="text-on-surface-variant/20 text-xs">-</span>}
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <ScrimTrend placements={p.placements}/>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
 
-        {/* ── HISTORY PANEL ── */}
-        {tab === 'history' && (
-          <div className="bg-surface-container-low rounded-sm overflow-hidden">
-            <div className="px-6 py-4 bg-surface-container flex justify-between items-center">
-              <h2 className="font-serif text-2xl font-bold">Session History</h2>
-              <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{safeSessions.length} sessions</span>
-            </div>
-            {allGames.length === 0 ? (
-              <div className="p-12 text-center">
-                <Icon name="history" size={40} className="text-on-surface-variant opacity-30 mb-4"/>
-                <div className="text-sm font-sans-condensed text-on-surface-variant uppercase tracking-widest">No games recorded yet</div>
-              </div>
-            ) : (
-              <div className="p-6 space-y-8">
-                {safeSessions.map(function(sess) {
-                  if (sess.games.length === 0) return null;
-                  // Collect all unique player IDs from the session's game results
-                  var sessPlayerIds = sess.games.flatMap(function(g) { return Object.keys(g.results); }).filter(function(pid, idx, arr) { return arr.indexOf(pid) === idx; });
-                  return (
-                    <div key={sess.id}>
-                      <div className="flex items-center gap-3 flex-wrap mb-4">
-                        <h3 className="font-mono text-sm font-bold text-on-surface uppercase">{sess.name}</h3>
-                        <span className={'text-[10px] font-sans-condensed px-2 py-0.5 rounded-sm uppercase tracking-widest ' + (sess.active ? 'bg-tertiary/10 text-tertiary' : 'bg-on-surface-variant/10 text-on-surface-variant')}>{sess.active ? 'Active' : 'Ended'}</span>
-                        <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{sess.games.length} games - {sess.createdAt}</span>
-                        {sess.notes && <span className="text-xs text-on-surface-variant italic">{sess.notes}</span>}
-                      </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full border-separate border-spacing-0.5 min-w-[420px]">
-                          <thead>
-                            <tr>
-                              <th className="p-3 text-left text-[10px] font-bold text-on-surface-variant uppercase tracking-widest bg-surface-container-lowest whitespace-nowrap">Player</th>
-                              {sess.games.map(function(g, gi) {
+                {/* Placement heatmap */}
+                <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                  <div className="px-6 py-4 bg-surface-container">
+                    <h2 className="font-serif text-2xl font-bold">Placement Distribution</h2>
+                    <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Frequency heatmap — brighter = more occurrences</p>
+                  </div>
+                  <div className="p-6 overflow-x-auto">
+                    <table className="border-separate border-spacing-1 min-w-[480px]">
+                      <thead>
+                        <tr>
+                          <th className="text-left text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest pr-4 w-28"/>
+                          {[1,2,3,4,5,6,7,8].map(function(n) {
+                            return <th key={n} className="text-center text-xs font-mono font-bold w-10" style={{color: placeColor(n)}}>#{n}</th>;
+                          })}
+                          <th className="text-center text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest pl-2">GP</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scrimStats.map(function(p) {
+                          var counts = [1,2,3,4,5,6,7,8].map(function(n) { return p.placements.filter(function(x) { return x === n; }).length; });
+                          var maxC = Math.max.apply(null, counts) || 1;
+                          return (
+                            <tr key={p.id}>
+                              <td className="pr-4 py-1 font-bold text-xs text-on-surface">{p.name}</td>
+                              {counts.map(function(count, ci) {
+                                var n = ci + 1;
+                                var c = placeColor(n);
+                                var alpha = count > 0 ? Math.round((0.15 + (count / maxC) * 0.6) * 255).toString(16).padStart(2, '0') : '00';
                                 return (
-                                  <th key={g.id} className="p-3 text-center text-[10px] font-bold text-on-surface-variant uppercase tracking-widest bg-surface-container-lowest whitespace-nowrap">
-                                    G{gi + 1}
-                                    {g.tag !== 'standard' && <div className="text-[8px] text-secondary normal-case tracking-normal font-normal">{g.tag}</div>}
-                                  </th>
+                                  <td key={n} className="text-center py-1">
+                                    <div className="w-10 h-10 flex items-center justify-center mx-auto font-mono text-xs font-bold"
+                                      style={{background: count > 0 ? c + alpha : 'rgba(255,255,255,0.03)', border: '1px solid ' + (count > 0 ? c + '44' : 'rgba(255,255,255,0.05)'), color: count > 0 ? c : 'rgba(255,255,255,0.15)'}}>
+                                      {count > 0 ? count : ''}
+                                    </div>
+                                  </td>
                                 );
                               })}
-                              <th className="p-3 text-center text-[10px] font-bold uppercase tracking-widest bg-surface-container-lowest text-primary">Avg</th>
-                              <th className="p-3 text-center text-[10px] font-bold uppercase tracking-widest bg-surface-container-lowest text-tertiary">Pts</th>
+                              <td className="pl-2 text-center font-mono text-xs text-on-surface-variant">{p.games}</td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {sessPlayerIds.map(function(pid, pidIdx) {
-                              var p = allPlayers.find(function(pl) { return String(pl.id) === String(pid); });
-                              if (!p) return null;
-                              var placements = sess.games.map(function(g) { return g.results[pid]; });
-                              var validPl = placements.filter(function(v) { return v != null; });
-                              var avg = validPl.length > 0 ? (validPl.reduce(function(s, v) { return s + v; }, 0) / validPl.length).toFixed(2) : '-';
-                              var pts = validPl.reduce(function(s, v) { return s + (PTS[v] || 0); }, 0);
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Session breakdown */}
+                {safeSessions.length >= 2 && (
+                  <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                    <div className="px-6 py-4 bg-surface-container">
+                      <h2 className="font-serif text-2xl font-bold">Session Breakdown</h2>
+                      <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Avg placement per session - track improvement over time</p>
+                    </div>
+                    <div className="p-6 overflow-x-auto">
+                      <table className="border-separate border-spacing-1" style={{minWidth: 180 + safeSessions.length * 120 + 'px'}}>
+                        <thead>
+                          <tr>
+                            <th className="text-left text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest pr-4 w-28"/>
+                            {safeSessions.map(function(sess) {
                               return (
-                                <tr key={pid} className={'border-b border-outline-variant/5' + (pidIdx % 2 === 0 ? ' bg-surface-container-high/30' : '')}>
-                                  <td className="p-3">
-                                    <span className="font-mono text-sm font-bold text-on-surface">{p.name}</span>
-                                  </td>
-                                  {placements.map(function(place, pi) {
-                                    var c = place == null ? 'rgba(255,255,255,0.2)' : place === 1 ? '#E8A838' : place === 2 ? '#C0C0C0' : place === 3 ? '#CD7F32' : place <= 4 ? '#4ECDC4' : '#F87171';
-                                    return (
-                                      <td key={pi} className="p-1.5 text-center">
-                                        {place != null ? (
-                                          <div className="w-7 h-7 inline-flex items-center justify-center mx-auto" style={{background: c + '22', border: '1px solid ' + c + '55'}}>
-                                            <span className="font-mono text-xs font-bold" style={{color: c}}>{place}</span>
-                                          </div>
-                                        ) : <span className="text-on-surface/20 text-xs">-</span>}
-                                      </td>
-                                    );
-                                  })}
-                                  <td className="p-3 text-center">
-                                    <span className="font-mono text-sm font-bold" style={{color: parseFloat(avg) < 3 ? '#4ade80' : parseFloat(avg) <= 5 ? '#facc15' : '#f87171'}}>{avg}</span>
-                                  </td>
-                                  <td className="p-3 text-center">
-                                    <span className="font-mono text-sm font-bold text-primary">{pts}</span>
-                                  </td>
-                                </tr>
+                                <th key={sess.id} className="text-center min-w-[110px]">
+                                  <div className="font-mono text-[10px] font-bold text-on-surface truncate max-w-[110px]">{sess.name}</div>
+                                  <div className="text-[9px] font-sans-condensed text-on-surface-variant uppercase">{sess.games.length}g{sess.active ? ' · LIVE' : ''}</div>
+                                </th>
                               );
                             })}
-                          </tbody>
-                          <tfoot>
-                            <tr className="bg-surface-container-highest/50 border-t border-outline-variant/10">
-                              <td className="p-3 text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">Notes</td>
-                              {sess.games.map(function(g) {
-                                return (
-                                  <td key={g.id} className="p-2 text-center text-[10px] text-secondary max-w-[60px]">
-                                    {g.note || '-'}
-                                  </td>
-                                );
-                              })}
-                              <td/><td/>
-                            </tr>
-                          </tfoot>
-                        </table>
+                            <th className="text-center pl-2 text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">Overall</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {scrimStats.map(function(p) {
+                            return (
+                              <tr key={p.id}>
+                                <td className="pr-4 py-1 font-bold text-xs text-on-surface">{p.name}</td>
+                                {safeSessions.map(function(sess) {
+                                  var pGames = sess.games.filter(function(g) { return g.results[p.id] != null || g.results[String(p.id)] != null; });
+                                  if (pGames.length === 0) return <td key={sess.id} className="text-center py-1"><div className="w-14 h-8 flex items-center justify-center mx-auto text-on-surface-variant/20 text-xs" style={{background: 'rgba(255,255,255,0.02)'}}>-</div></td>;
+                                  var pls = pGames.map(function(g) { return g.results[p.id] != null ? g.results[p.id] : g.results[String(p.id)]; });
+                                  var avg = (pls.reduce(function(s, v) { return s + v; }, 0) / pls.length).toFixed(2);
+                                  var c = parseFloat(avg) < 3 ? '#4ade80' : parseFloat(avg) <= 5 ? '#facc15' : '#f87171';
+                                  return (
+                                    <td key={sess.id} className="text-center py-1">
+                                      <div className="w-14 h-8 flex items-center justify-center mx-auto font-mono text-sm font-bold" style={{background: c + '18', border: '1px solid ' + c + '33', color: c}}>{avg}</div>
+                                    </td>
+                                  );
+                                })}
+                                <td className="pl-2 text-center py-1 font-mono text-sm font-bold" style={{color: parseFloat(p.avg) < 3 ? '#4ade80' : parseFloat(p.avg) <= 5 ? '#facc15' : '#f87171'}}>{p.avg}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Comps sub-tab */}
+            {statsTab === 'comps' && (
+              <div className="space-y-4">
+                {compList.length === 0 ? (
+                  <div className="bg-surface-container-low p-16 rounded-sm text-center space-y-3">
+                    <Icon name="category" size={40} className="text-on-surface-variant opacity-20"/>
+                    <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No comp data yet</div>
+                    <div className="text-xs text-on-surface-variant/50 max-w-xs mx-auto">When recording games, fill in the comp field below each player's placements to track comp performance here.</div>
+                  </div>
+                ) : (
+                  <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                    <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
+                      <div>
+                        <h2 className="font-serif text-2xl font-bold">Comp Performance</h2>
+                        <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">{compList.length} comps tracked across {allGames.length} games</p>
                       </div>
                     </div>
-                  );
-                })}
+                    <div className="overflow-x-auto">
+                      <table className="w-full border-separate border-spacing-0 min-w-[520px]">
+                        <thead>
+                          <tr style={{background: 'rgba(255,255,255,0.03)'}}>
+                            {['#','Comp','Games','Play Rate','Win%','Top4%','Avg Place'].map(function(h, hi) {
+                              return <th key={h} className={'py-3 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-5' : 'text-center px-4')}>{h}</th>;
+                            })}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {compList.map(function(c, i) {
+                            var winPct = Math.round((c.wins / c.games) * 100);
+                            var top4Pct = Math.round((c.top4 / c.games) * 100);
+                            var avgPl = (c.ptsTotal / c.games);
+                            var playRate = Math.round((c.games / allGames.length) * 100);
+                            var avgPlace = (c.ptsTotal > 0 ? (allGames.length > 0 ? (c.games > 0 ? '' : '') : '') : '');
+                            // Recompute avg placement from source
+                            var totalPlacement = 0; var plCount = 0;
+                            allGames.forEach(function(g) {
+                              Object.keys(g.results).forEach(function(pid) {
+                                if (g.comps && g.comps[pid] && g.comps[pid].trim() === c.name) {
+                                  totalPlacement += g.results[pid]; plCount++;
+                                }
+                              });
+                            });
+                            var avgPlStr = plCount > 0 ? (totalPlacement / plCount).toFixed(2) : '-';
+                            var avgPlV = parseFloat(avgPlStr);
+                            var avgPlColor = avgPlV < 3 ? '#4ade80' : avgPlV <= 5 ? '#facc15' : '#f87171';
+                            return (
+                              <tr key={c.name} style={{borderBottom: '1px solid rgba(255,255,255,0.04)'}}>
+                                <td className="px-5 py-4 font-mono text-sm font-bold text-on-surface-variant/40 w-10">{i + 1}</td>
+                                <td className="px-5 py-4">
+                                  <div className="font-bold text-sm text-on-surface">{c.name}</div>
+                                  <div className="text-[10px] text-on-surface-variant font-sans-condensed">{c.games} games</div>
+                                </td>
+                                <td className="px-4 py-4 text-center font-mono text-sm text-on-surface-variant">{c.games}</td>
+                                <td className="px-4 py-4 text-center">
+                                  <div className="font-mono text-sm font-bold text-on-surface">{playRate}%</div>
+                                  <div className="w-12 h-0.5 bg-surface-container-highest mx-auto mt-1 overflow-hidden">
+                                    <div className="h-full bg-on-surface-variant/40" style={{width: playRate + '%'}}/>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                  <div className="font-mono text-sm font-bold" style={{color: winPct >= 25 ? '#4ade80' : winPct >= 12 ? '#facc15' : '#f87171'}}>{winPct}%</div>
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                  <div className="font-mono text-sm font-bold" style={{color: top4Pct >= 50 ? '#4ECDC4' : top4Pct >= 35 ? '#facc15' : '#f87171'}}>{top4Pct}%</div>
+                                </td>
+                                <td className="px-4 py-4 text-center">
+                                  <span className="font-mono text-lg font-black" style={{color: avgPlColor}}>{avgPlStr}</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         )}
 
-        {/* ── CONFIRM DELETE MODAL ── */}
-        {confirmDelete && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-            <div className="bg-surface-container-low p-8 rounded-sm max-w-sm w-full mx-4 shadow-2xl">
-              <div className="font-serif text-xl font-bold text-on-surface mb-3">
-                {confirmDelete.type === 'game' ? 'Delete Game?' : 'Delete Session?'}
+        {/* ════════════ HISTORY TAB ════════════ */}
+        {tab === 'history' && (
+          <div className="space-y-4">
+            {/* Export bar */}
+            {allGames.length > 0 && (
+              <div className="flex items-center justify-between bg-surface-container-low rounded-sm px-5 py-3">
+                <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{allGames.length} games across {safeSessions.length} sessions</span>
+                <div className="flex gap-2">
+                  <button onClick={copyText} className="flex items-center gap-1.5 px-3 py-2 bg-surface-container-high text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors">
+                    <Icon name="content_copy" size={13} className="text-current"/>Copy Text
+                  </button>
+                  <button onClick={exportCSV} className="flex items-center gap-1.5 px-3 py-2 bg-surface-container-high text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors">
+                    <Icon name="download" size={13} className="text-current"/>CSV
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-on-surface-variant mb-6">
-                {confirmDelete.type === 'game'
-                  ? 'This will permanently delete the game and all its results.'
-                  : 'This will permanently delete the session "' + confirmDelete.name + '" and all its games.'}
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={function() { setConfirmDelete(null); }}
-                  className="px-5 py-2.5 font-sans-condensed text-xs uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={function() {
-                    if (confirmDelete.type === 'game') deleteGame(confirmDelete.id);
-                    else deleteSession(confirmDelete.id);
-                  }}
-                  className="px-5 py-2.5 bg-error text-on-error font-sans-condensed text-xs uppercase tracking-widest font-bold rounded-sm hover:opacity-90 transition-opacity"
-                >
-                  Delete
-                </button>
+            )}
+
+            {safeSessions.length === 0 ? (
+              <div className="bg-surface-container-low p-16 rounded-sm text-center">
+                <Icon name="history" size={40} className="text-on-surface-variant opacity-20 mb-4"/>
+                <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No history yet</div>
+              </div>
+            ) : (
+              safeSessions.map(function(sess) {
+                var isExpanded = expandedSession === sess.id;
+                var sessPlayers = {};
+                sess.games.forEach(function(g) {
+                  Object.keys(g.results).forEach(function(pid) {
+                    if (!sessPlayers[pid]) sessPlayers[pid] = [];
+                    sessPlayers[pid].push(g.results[pid]);
+                  });
+                });
+                var sessStats = Object.keys(sessPlayers).map(function(pid) {
+                  var pl = sessPlayers[pid];
+                  var avg = (pl.reduce(function(s, v) { return s + v; }, 0) / pl.length).toFixed(2);
+                  var pobj = players.find(function(p) { return String(p.id) === String(pid); });
+                  return {name: pobj ? pobj.name : pid, avg: avg, games: pl.length, wins: pl.filter(function(x) { return x === 1; }).length, pts: pl.reduce(function(s, v) { return s + (PTS[v] || 0); }, 0)};
+                }).sort(function(a, b) { return parseFloat(a.avg) - parseFloat(b.avg); });
+
+                return (
+                  <div key={sess.id} className="bg-surface-container-low rounded-sm overflow-hidden">
+                    {/* Session header */}
+                    <button onClick={function() { setExpandedSession(isExpanded ? null : sess.id); }}
+                      className="w-full px-5 py-4 flex items-center gap-4 hover:bg-surface-container transition-colors text-left">
+                      <Icon name={isExpanded ? 'expand_less' : 'expand_more'} size={18} className="text-on-surface-variant flex-shrink-0"/>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <span className="font-mono text-sm font-bold text-on-surface uppercase">{sess.name}</span>
+                          <span className={'text-[9px] font-sans-condensed px-2 py-0.5 uppercase tracking-widest ' + (sess.active ? 'bg-tertiary/15 text-tertiary' : 'bg-surface-container-highest text-on-surface-variant')}>{sess.active ? 'Live' : 'Ended'}</span>
+                          <span className="text-[10px] font-sans-condensed text-on-surface-variant">{sess.games.length} games · {sess.createdAt}</span>
+                          {sess.notes && <span className="text-[10px] text-on-surface-variant/50 italic truncate">{sess.notes}</span>}
+                        </div>
+                      </div>
+                      {/* Mini summary */}
+                      {sessStats.length > 0 && (
+                        <div className="hidden md:flex gap-3 flex-shrink-0">
+                          {sessStats.slice(0, 3).map(function(s, si) {
+                            var c = placeColor(Math.round(parseFloat(s.avg)));
+                            return (
+                              <div key={s.name} className="text-right">
+                                <div className="font-mono text-xs font-bold" style={{color: c}}>{s.avg}</div>
+                                <div className="text-[9px] font-sans-condensed text-on-surface-variant/50">{s.name}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </button>
+
+                    {isExpanded && (
+                      <div className="border-t border-outline-variant/10">
+                        {/* Session summary stats */}
+                        {sessStats.length > 0 && (
+                          <div className="px-5 py-4 border-b border-outline-variant/10">
+                            <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Session Standings</div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full min-w-[400px]">
+                                <thead>
+                                  <tr>
+                                    {['#','Player','Games','Avg','Win%','Pts'].map(function(h, hi) {
+                                      return <th key={h} className={'py-1.5 text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left pr-4' : 'text-center px-3')}>{h}</th>;
+                                    })}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {sessStats.map(function(s, si) {
+                                    var c = placeColor(Math.round(parseFloat(s.avg)));
+                                    return (
+                                      <tr key={s.name} style={{borderTop: '1px solid rgba(255,255,255,0.04)'}}>
+                                        <td className="py-2 pr-2 font-mono text-xs font-bold text-on-surface-variant/40 w-6">{si + 1}</td>
+                                        <td className="py-2 pr-4 font-bold text-xs text-on-surface">{s.name}</td>
+                                        <td className="py-2 text-center font-mono text-xs text-on-surface-variant">{s.games}</td>
+                                        <td className="py-2 text-center font-mono text-sm font-bold" style={{color: c}}>{s.avg}</td>
+                                        <td className="py-2 text-center font-mono text-xs text-emerald-400">{s.games > 0 ? Math.round((s.wins / s.games) * 100) : 0}%</td>
+                                        <td className="py-2 text-center font-mono text-sm font-bold text-primary">{s.pts}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Game list */}
+                        <div className="p-5 space-y-2">
+                          <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Games</div>
+                          {sess.games.map(function(g) {
+                            var isEditing = editGame && editGame.id === g.id;
+                            var sorted = Object.entries(g.results).sort(function(a, b) { return a[1] - b[1]; });
+                            return (
+                              <div key={g.id} className="bg-surface-container-high rounded-sm p-4">
+                                <div className="flex items-start justify-between gap-3 mb-3">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber}</span>
+                                    {g.tag !== 'standard' && <span className="text-[9px] font-sans-condensed bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
+                                    {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
+                                    {!isEditing && g.note && <span className="text-[10px] text-on-surface-variant/50 italic">"{g.note}"</span>}
+                                  </div>
+                                  {isAdmin && (
+                                  <div className="flex gap-1 flex-shrink-0">
+                                    <button onClick={function() { setEditGame(isEditing ? null : {id: g.id, note: g.note, tag: g.tag}); }}
+                                      className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name={isEditing ? 'close' : 'edit'} size={12} className="text-current"/></button>
+                                    <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
+                                      className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                                  </div>
+                                  )}
+                                </div>
+
+                                {isEditing && (
+                                  <div className="flex gap-2 mb-3">
+                                    <select value={editGame.tag} onChange={function(e) { setEditGame(Object.assign({}, editGame, {tag: e.target.value})); }}
+                                      className="bg-surface-container-lowest border-0 text-on-surface font-mono text-xs p-2 outline-none focus:ring-1 focus:ring-primary">
+                                      {['standard','draft comp','test run','ranked sim','meta test'].map(function(t) { return <option key={t} value={t}>{t}</option>; })}
+                                    </select>
+                                    <input type="text" value={editGame.note} onChange={function(e) { setEditGame(Object.assign({}, editGame, {note: e.target.value})); }}
+                                      placeholder="Game note..."
+                                      className="flex-1 bg-surface-container-lowest border-0 text-on-surface font-mono text-xs p-2 outline-none focus:ring-1 focus:ring-primary"/>
+                                    <button onClick={saveEditGame}
+                                      className="px-3 py-2 bg-primary text-on-primary font-sans-condensed text-xs uppercase hover:opacity-90 transition-opacity">Save</button>
+                                  </div>
+                                )}
+
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                  {sorted.map(function(entry) {
+                                    var pid = entry[0]; var place = entry[1];
+                                    var p = players.find(function(pl) { return String(pl.id) === String(pid); });
+                                    if (!p) return null;
+                                    var c = placeColor(place);
+                                    return (
+                                      <div key={pid} className="flex items-center gap-2 px-2 py-1.5" style={{background: c + '0d', border: '1px solid ' + c + '22'}}>
+                                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 font-mono text-[10px] font-bold" style={{color: c, background: c + '25'}}>#{place}</div>
+                                        <div className="min-w-0">
+                                          <div className="font-bold text-xs text-on-surface truncate">{p.name}</div>
+                                          {g.comps && g.comps[pid] && <div className="text-[9px] font-sans-condensed text-on-surface-variant/50 truncate">{g.comps[pid]}</div>}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* Confirm delete modal */}
+        {confirmDelete && (
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-surface-container-low rounded-sm p-6 max-w-sm w-full">
+              <div className="font-serif text-lg font-bold text-on-surface mb-2">Delete {confirmDelete.type}?</div>
+              <div className="text-sm text-on-surface-variant mb-5">This cannot be undone.</div>
+              <div className="flex gap-3">
+                <button onClick={function() { setConfirmDelete(null); }}
+                  className="flex-1 py-2.5 bg-surface-container-high text-on-surface font-sans-condensed text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors">Cancel</button>
+                <button onClick={function() { if (confirmDelete.type === 'game') deleteGame(confirmDelete.id); else deleteSession(confirmDelete.id); }}
+                  className="flex-1 py-2.5 bg-error text-on-error font-sans-condensed text-xs uppercase tracking-widest hover:opacity-90 transition-opacity">Delete</button>
               </div>
             </div>
           </div>

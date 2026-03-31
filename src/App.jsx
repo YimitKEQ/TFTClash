@@ -219,6 +219,7 @@ function TFTClash(){
   var isLoadingData=ctx.isLoadingData;
   var isAdmin=ctx.isAdmin, setIsAdmin=ctx.setIsAdmin;
   var scrimAccess=ctx.scrimAccess, setScrimAccess=ctx.setScrimAccess;
+  var scrimHostAccess=ctx.scrimHostAccess||[];
   var tickerOverrides=ctx.tickerOverrides, setTickerOverrides=ctx.setTickerOverrides;
   var scrimSessions=ctx.scrimSessions, setScrimSessions=ctx.setScrimSessions;
   var notifications=ctx.notifications, setNotifications=ctx.setNotifications;
@@ -322,7 +323,7 @@ function TFTClash(){
     var base=parts[0];
     var sr=sub||parts[1]||"";
     if(base==="admin"&&!isAdmin){toast("Admin access required","error");return;}
-    var canScrims=isAdmin||(currentUser&&scrimAccess.includes(currentUser.username));
+    var canScrims=isAdmin||(currentUser&&(scrimAccess.includes(currentUser.username)||scrimHostAccess.includes(currentUser.username)));
     if(base==="scrims"&&!canScrims){toast("Access restricted","error");return;}
     setScreen(base);
     setSubRoute(sr);
@@ -339,7 +340,7 @@ function TFTClash(){
       navigate("/"+base+(sr?"/"+sr:""));
     }
     // profilePlayer is set by the caller before navigating; do not clear it here
-  },[isAdmin,currentUser,scrimAccess,toast,navigate]);
+  },[isAdmin,currentUser,scrimAccess,scrimHostAccess,toast,navigate]);
 
   useEffect(function(){
     var params=new URLSearchParams(window.location.search);
@@ -622,7 +623,7 @@ function TFTClash(){
 
         {screen==="stats"      &&<StatsHubScreenNew/>}
 
-        {screen==="scrims"     &&(isAdmin||(currentUser&&scrimAccess.includes(currentUser.username)))&&<ScrimsScreenNew/>}
+        {screen==="scrims"     &&<ScrimsScreenNew/>}
 
         {screen==="admin"&&<AdminScreenNew/>}
 

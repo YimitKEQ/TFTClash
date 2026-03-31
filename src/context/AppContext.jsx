@@ -53,6 +53,10 @@ export function AppProvider(props) {
   var scrimAccess = _scrimAccess[0];
   var setScrimAccess = _scrimAccess[1];
 
+  var _scrimHostAccess = useState([]);
+  var scrimHostAccess = _scrimHostAccess[0];
+  var setScrimHostAccess = _scrimHostAccess[1];
+
   var _tickerOverrides = useState([]);
   var tickerOverrides = _tickerOverrides[0];
   var setTickerOverrides = _tickerOverrides[1];
@@ -189,7 +193,7 @@ export function AppProvider(props) {
   var setClashRemindersOn = _clashRemindersOn[1];
 
   // ── Refs for realtime tracking ──
-  var rtRef = useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
+  var rtRef = useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_host_access:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
   var announcementInitRef = useRef(false);
   var navSourceRef = useRef("user");
 
@@ -484,7 +488,7 @@ export function AppProvider(props) {
 
     // Settings/config: load from site_settings
     supabase.from('site_settings').select('key,value')
-      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps','scrim_access','scrim_data','ticker_overrides','host_tournaments','host_branding','host_announcements','featured_events','challenge_completions'])
+      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps','scrim_host_access','scrim_access','scrim_data','ticker_overrides','host_tournaments','host_branding','host_announcements','featured_events','challenge_completions'])
       .then(function(res){
 
         if(!res.data){setIsLoadingData(false);return;}
@@ -502,6 +506,7 @@ export function AppProvider(props) {
               if(row.key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
               if(row.key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
               if(row.key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
+              if(row.key==='scrim_host_access'&&Array.isArray(val)){rtRef.current.scrim_host_access=true;setScrimHostAccess(val);}
               if(row.key==='scrim_access'&&Array.isArray(val)){rtRef.current.scrim_access=true;setScrimAccess(val);}
               if(row.key==='ticker_overrides'&&Array.isArray(val)){rtRef.current.ticker_overrides=true;setTickerOverrides(val);}
               if(row.key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
@@ -561,6 +566,7 @@ export function AppProvider(props) {
           if(key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
           if(key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
           if(key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
+          if(key==='scrim_host_access'&&Array.isArray(val)){rtRef.current.scrim_host_access=true;setScrimHostAccess(val);}
           if(key==='scrim_access'&&Array.isArray(val)){rtRef.current.scrim_access=true;setScrimAccess(val);}
           if(key==='ticker_overrides'&&Array.isArray(val)){rtRef.current.ticker_overrides=true;setTickerOverrides(val);}
           if(key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
@@ -680,6 +686,11 @@ export function AppProvider(props) {
     if(rtRef.current.host_apps){rtRef.current.host_apps=false;return;}
     if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[hostApps]);
+
+  useEffect(function(){
+    if(rtRef.current.scrim_host_access){rtRef.current.scrim_host_access=false;return;}
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_host_access',value:JSON.stringify(scrimHostAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+  },[scrimHostAccess]);
 
   useEffect(function(){
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
@@ -851,6 +862,7 @@ export function AppProvider(props) {
       isLoadingData: isLoadingData,
       isAdmin: isAdmin, setIsAdmin: setIsAdmin,
       scrimAccess: scrimAccess, setScrimAccess: setScrimAccess,
+      scrimHostAccess: scrimHostAccess, setScrimHostAccess: setScrimHostAccess,
       tickerOverrides: tickerOverrides, setTickerOverrides: setTickerOverrides,
       scrimSessions: scrimSessions, setScrimSessions: setScrimSessions,
       notifications: notifications, setNotifications: setNotifications,
