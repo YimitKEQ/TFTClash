@@ -383,8 +383,30 @@ export default function PricingScreen() {
           </div>
         </section>
 
+        {/* Donate Section */}
+        <section className="mt-24">
+          <div className="border border-outline-variant/10 rounded-sm p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-lg">
+              <h4 className="font-sans uppercase tracking-widest text-xs text-secondary mb-2">Support the Platform</h4>
+              <h2 className="font-serif text-3xl mb-3">Buy us a coffee</h2>
+              <p className="text-sm text-on-surface-variant leading-relaxed">
+                TFT Clash is free to compete on, always. If you enjoy the platform and want to help keep it running, fund prize pools, or just show some love, any contribution goes a long way.
+              </p>
+            </div>
+            <a
+              href="https://paypal.me/monkelodie"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 flex items-center gap-3 bg-secondary/10 border border-secondary/30 text-secondary px-8 py-4 rounded-sm font-sans font-bold text-sm uppercase tracking-widest hover:bg-secondary/20 transition-colors"
+            >
+              <Icon name="volunteer_activism" size={18} />
+              Donate via PayPal
+            </a>
+          </div>
+        </section>
+
         {/* FAQ Section */}
-        <section className="mt-32 grid grid-cols-1 md:grid-cols-2 gap-12">
+        <section className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
             <h4 className="font-sans uppercase tracking-widest text-xs text-primary mb-2">
               Inquiries
