@@ -291,7 +291,7 @@ export default function AccountScreen() {
       playerUpdate.region = riotRegion;
     }
     var authUid = user.auth_user_id || user.id;
-    supabase.from('players').upsert(Object.assign({}, playerUpdate, { auth_user_id: authUid, username: playerUpdate.username || user.username }), { onConflict: 'auth_user_id', ignoreDuplicates: false }).then(function(pRes) {
+    supabase.from('players').update(playerUpdate).eq('auth_user_id', authUid).then(function(pRes) {
       if (pRes.error) {
         console.error('[TFT] Players table update failed:', pRes.error);
         toast('Profile saved but some data may not have synced', 'error');
