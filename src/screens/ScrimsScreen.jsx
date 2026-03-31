@@ -135,10 +135,70 @@ function placeColor(p) {
   return p === 1 ? '#E8A838' : p === 2 ? '#C0C0C0' : p === 3 ? '#CD7F32' : p <= 4 ? '#4ECDC4' : p <= 6 ? '#facc15' : '#f87171';
 }
 
+// ── Player search + guest add ─────────────────────────────────────────────────
+function PlayerSearch(props) {
+  var allPlayers = props.players;
+  var roster = props.roster;
+  var onAdd = props.onAdd;
+  var onAddGuest = props.onAddGuest;
+  var _q = useState(''); var q = _q[0]; var setQ = _q[1];
+  var _open = useState(false); var open = _open[0]; var setOpen = _open[1];
+  var inputRef = useRef(null);
+  var qtrim = q.trim();
+  var filtered = qtrim ? allPlayers.filter(function(p) {
+    var alreadyIn = roster.find(function(r) { return String(r.id) === String(p.id); });
+    return !alreadyIn && (p.name || '').toLowerCase().indexOf(qtrim.toLowerCase()) !== -1;
+  }).slice(0, 8) : [];
+  var exactMatch = allPlayers.find(function(p) { return (p.name || '').toLowerCase() === qtrim.toLowerCase(); });
+  var canAddGuest = qtrim.length > 0 && !exactMatch;
+  function pick(p) { onAdd(p); setQ(''); setOpen(false); if (inputRef.current) inputRef.current.focus(); }
+  function addGuest() { if (!qtrim) return; onAddGuest(qtrim); setQ(''); setOpen(false); }
+  return (
+    <div className="relative">
+      <input
+        ref={inputRef}
+        type="text" value={q}
+        onChange={function(e) { setQ(e.target.value); setOpen(true); }}
+        onFocus={function() { if (q) setOpen(true); }}
+        onBlur={function() { setTimeout(function() { setOpen(false); }, 150); }}
+        onKeyDown={function(e) {
+          if (e.key === 'Enter') { if (filtered.length > 0) pick(filtered[0]); else if (canAddGuest) addGuest(); e.preventDefault(); }
+          if (e.key === 'Escape') { setOpen(false); setQ(''); }
+        }}
+        placeholder="Search players..."
+        className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary"
+      />
+      {open && (filtered.length > 0 || canAddGuest) && (
+        <div className="absolute left-0 right-0 top-full z-20 bg-surface-container-high border border-outline-variant/20 shadow-xl max-h-52 overflow-y-auto">
+          {filtered.map(function(p) {
+            return (
+              <button key={p.id} onMouseDown={function(e) { e.preventDefault(); pick(p); }}
+                className="w-full text-left px-4 py-2.5 flex items-center gap-3 hover:bg-surface-container transition-colors border-0 bg-transparent cursor-pointer">
+                <span className="font-bold text-sm text-on-surface">{p.name}</span>
+                {p.role === 'guest' && <span className="text-[9px] font-sans-condensed text-on-surface-variant uppercase tracking-widest px-1.5 py-0.5 bg-surface-container-highest">guest</span>}
+                {p.rank && p.role !== 'guest' && <span className="text-[10px] font-sans-condensed text-on-surface-variant">{p.rank}</span>}
+              </button>
+            );
+          })}
+          {canAddGuest && (
+            <button onMouseDown={function(e) { e.preventDefault(); addGuest(); }}
+              className={'w-full text-left px-4 py-2.5 flex items-center gap-2 hover:bg-primary/10 transition-colors border-0 bg-transparent cursor-pointer' + (filtered.length > 0 ? ' border-t border-outline-variant/10' : '')}>
+              <Icon name="person_add" size={14} className="text-primary flex-shrink-0"/>
+              <span className="font-mono text-sm text-primary font-bold">{qtrim}</span>
+              <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-wide">add as guest</span>
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ScrimsScreen ──────────────────────────────────────────────────────────────
 export default function ScrimsScreen() {
   var ctx = useApp();
   var players = ctx.players;
+  var setPlayers = ctx.setPlayers;
   var toast = ctx.toast;
   var currentUser = ctx.currentUser;
   var isAdmin = ctx.isAdmin;
@@ -342,6 +402,22 @@ export default function ScrimsScreen() {
     });
   }
 
+  function addGuestPlayer(name) {
+    var existing = players.find(function(p) { return (p.name || '').toLowerCase() === name.toLowerCase(); });
+    if (existing) {
+      var alreadyIn = scrimRoster.find(function(r) { return String(r.id) === String(existing.id); });
+      if (!alreadyIn) setScrimRoster(function(r) { return r.concat([existing]); });
+      return;
+    }
+    supabase.from('players').insert({username: name, role: 'guest'}).select().single().then(function(res) {
+      if (res.error) { toast('Failed to add guest: ' + res.error.message, 'error'); return; }
+      var np = {id: res.data.id, name: res.data.username || name, role: 'guest', rank: null, pts: 0, wins: 0, games: 0, top4: 0, avg: '0'};
+      setPlayers(function(prev) { return prev.concat([np]); });
+      setScrimRoster(function(r) { return r.concat([np]); });
+      toast(name + ' added as guest', 'success');
+    });
+  }
+
   function exportCSV() {
     var rows = [['Session', 'Game', 'Player', 'Placement', 'Points', 'Comp', 'Tag', 'Note']];
     safeSessions.forEach(function(sess) {
@@ -459,19 +535,12 @@ export default function ScrimsScreen() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-1.5">Roster</label>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {players.map(function(p) {
-                        var inRoster = scrimRoster.find(function(r) { return r.id === p.id; });
-                        return (
-                          <button key={p.id} onClick={function() {
-                            if (inRoster) setScrimRoster(function(r) { return r.filter(function(x) { return x.id !== p.id; }); });
-                            else setScrimRoster(function(r) { return r.concat([p]); });
-                          }} className={'text-[10px] font-sans-condensed uppercase px-2 py-1 border transition-colors ' + (inRoster ? 'bg-primary/10 text-primary border-primary/30' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20 hover:text-on-surface')}>
-                            {p.name}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <PlayerSearch
+                      players={players}
+                      roster={scrimRoster}
+                      onAdd={function(p) { setScrimRoster(function(r) { return r.concat([p]); }); }}
+                      onAddGuest={addGuestPlayer}
+                    />
                     {scrimRoster.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {scrimRoster.map(function(p) {
@@ -602,24 +671,35 @@ export default function ScrimsScreen() {
                   {/* Roster */}
                   <div className="bg-surface-container-low rounded-sm p-5">
                     <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Roster ({rosterForGame.length} players)</label>
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {players.map(function(p) {
-                        var inRoster = rosterForGame.find(function(r) { return String(r.id) === String(p.id); });
-                        return (
-                          <button key={p.id} onClick={function() {
-                            if (inRoster) {
-                              var override = rosterForGame.filter(function(r) { return String(r.id) !== String(p.id); });
-                              setScrimRoster(override);
-                              setScrimResults(function(prev) { var n = Object.assign({}, prev); delete n[p.id]; return n; });
-                            } else {
-                              setScrimRoster(session && session.playerIds.length > 0 && scrimRoster.length === 0 ? rosterForGame.concat([p]) : function(r) { return r.concat([p]); });
-                            }
-                          }} className={'text-[10px] font-sans-condensed uppercase px-2.5 py-1.5 border transition-colors ' + (inRoster ? 'bg-primary/10 text-primary border-primary/30' : 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20 hover:text-on-surface')}>
-                            {p.name}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <PlayerSearch
+                      players={players}
+                      roster={rosterForGame}
+                      onAdd={function(p) {
+                        if (session && session.playerIds.length > 0 && scrimRoster.length === 0) {
+                          setScrimRoster(rosterForGame.concat([p]));
+                        } else {
+                          setScrimRoster(function(r) { return r.concat([p]); });
+                        }
+                      }}
+                      onAddGuest={addGuestPlayer}
+                    />
+                    {rosterForGame.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {rosterForGame.map(function(p) {
+                          return (
+                            <div key={p.id} className="flex items-center gap-1 px-2 py-1 bg-primary/10 border border-primary/20">
+                              <span className="text-[11px] font-mono text-primary">{p.name}</span>
+                              {p.role === 'guest' && <span className="text-[9px] font-sans-condensed text-on-surface-variant/50 uppercase">guest</span>}
+                              <button onClick={function() {
+                                var override = rosterForGame.filter(function(r) { return String(r.id) !== String(p.id); });
+                                setScrimRoster(override);
+                                setScrimResults(function(prev) { var n = Object.assign({}, prev); delete n[p.id]; return n; });
+                              }} className="text-primary/40 hover:text-error transition-colors text-sm leading-none bg-transparent border-0 cursor-pointer p-0 ml-0.5">x</button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Game controls */}
