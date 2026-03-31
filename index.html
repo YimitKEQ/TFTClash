@@ -31,55 +31,88 @@
   "@context": "https://schema.org",
   "@graph": [
     {
-      "@type": "SportsOrganization",
-      "@id": "https://tftclash.com/#org",
-      "name": "TFT Clash",
+      "@type": "WebSite",
+      "@id": "https://tftclash.com/#website",
       "url": "https://tftclash.com",
-      "logo": "https://tftclash.com/icon-border.png",
-      "description": "Free weekly Teamfight Tactics tournament league. Compete every Saturday across EUW, EUNE, and NA.",
-      "sport": "Teamfight Tactics"
+      "name": "TFT Clash",
+      "description": "Free weekly Teamfight Tactics tournaments with seasonal standings, leaderboards, Hall of Fame, and career stats.",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {"@type": "EntryPoint", "urlTemplate": "https://tftclash.com/player/{search_term_string}"},
+        "query-input": "required name=search_term_string"
+      }
     },
     {
-      "@type": "WebApplication",
+      "@type": "Organization",
+      "@id": "https://tftclash.com/#organization",
+      "name": "TFT Clash",
+      "url": "https://tftclash.com",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://tftclash.com/icon-border.png",
+        "width": 512,
+        "height": 512
+      },
+      "description": "TFT Clash is a free competitive platform for Teamfight Tactics. Weekly tournaments every Saturday, seasonal leaderboard, Hall of Fame, and career stats for every player.",
+      "foundingDate": "2025",
+      "areaServed": ["EUW", "EUNE", "NA"],
+      "knowsAbout": ["Teamfight Tactics", "TFT tournaments", "esports", "competitive gaming"]
+    },
+    {
+      "@type": "SoftwareApplication",
       "@id": "https://tftclash.com/#app",
       "name": "TFT Clash",
       "url": "https://tftclash.com",
-      "description": "Free weekly TFT tournament platform with seasonal standings, brackets, stats, and Hall of Fame.",
+      "description": "Free weekly TFT tournament platform with seasonal standings, live brackets, player profiles, Hall of Fame, and career stats.",
       "applicationCategory": "GameApplication",
       "operatingSystem": "Any",
+      "browserRequirements": "Requires JavaScript",
+      "offers": [
+        {"@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "EUR", "description": "Compete in weekly clashes, view standings, access player profiles"},
+        {"@type": "Offer", "name": "Pro", "price": "4.99", "priceCurrency": "EUR", "billingIncrement": "P1M", "description": "Profile customization, extended stats, exclusive badges"},
+        {"@type": "Offer", "name": "Host", "price": "19.99", "priceCurrency": "EUR", "billingIncrement": "P1M", "description": "Branded tournament pages, unlimited creation, image uploads"}
+      ]
+    },
+    {
+      "@type": "SportsEvent",
+      "name": "TFT Clash Weekly Tournament",
+      "description": "Free weekly Teamfight Tactics tournament. Players compete in 8-player lobbies and earn points (1st = 8pts to 8th = 1pt) that accumulate across the season leaderboard.",
+      "sport": "Teamfight Tactics",
+      "eventSchedule": {
+        "@type": "Schedule",
+        "repeatFrequency": "P1W",
+        "byDay": "https://schema.org/Saturday",
+        "scheduleTimezone": "Europe/London"
+      },
+      "organizer": {"@type": "Organization", "name": "TFT Clash", "url": "https://tftclash.com"},
+      "location": {"@type": "VirtualLocation", "url": "https://tftclash.com"},
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD",
-        "description": "Free to compete"
+        "priceCurrency": "EUR",
+        "availability": "https://schema.org/InStock",
+        "url": "https://tftclash.com/signup",
+        "description": "Free to enter, always"
       }
     },
     {
       "@type": "FAQPage",
-      "@id": "https://tftclash.com/faq#faqpage",
+      "@id": "https://tftclash.com/#faqpage",
       "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is TFT Clash?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "TFT Clash is a free competitive platform for Teamfight Tactics players. It runs weekly tournaments every Saturday, tracks seasonal standings on a live leaderboard, and maintains a permanent Hall of Fame for past champions. Players sign up with Discord and compete in 8-player lobbies for points that accumulate across the season."
+          }
+        },
         {
           "@type": "Question",
           "name": "How do I join TFT Clash?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Sign up for a free account, enter your Riot ID, and register for that week's clash. It's free to compete."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "When do TFT Clash tournaments happen?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Every Saturday night. Results are posted the same day."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "What regions does TFT Clash support?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "EUW, EUNE, and NA are supported."
+            "text": "Go to tftclash.com and click Sign Up. Use your Discord account to sign in instantly. Then register for the next Saturday clash from the events page. No email verification required."
           }
         },
         {
@@ -87,7 +120,71 @@
           "name": "Is TFT Clash free to enter?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. Competing in weekly clashes is always free. No pay-to-win mechanics exist."
+            "text": "Yes. Competing in weekly TFT Clash tournaments is always free. No entry fee, no paywall, no pay-to-win. Pro and Host tiers exist for extra features but are not required to compete."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "When do TFT Clash tournaments happen?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "TFT Clash tournaments run every Saturday. Check tftclash.com/events for the exact time and to register your spot."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How are points calculated in TFT Clash?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Points follow the official EMEA Esports Rulebook: 1st = 8 pts, 2nd = 7 pts, 3rd = 6 pts, 4th = 5 pts, 5th = 4 pts, 6th = 3 pts, 7th = 2 pts, 8th = 1 pt. Points accumulate across all clashes in the season."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What regions does TFT Clash support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "EUW, EUNE, and NA players can all compete. Link your Riot ID on your profile to display your in-game rank alongside your clash stats."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do tiebreakers work in TFT Clash?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tiebreakers are applied in order: (1) total season points, (2) wins plus top 4 finishes with wins counting double, (3) placement distribution starting from most 1st places, (4) most recent game result."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I host my own TFT tournament on TFT Clash?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. Basic hosting for a friend group is free. The Host tier at $19.99/month adds branded tournament pages, image uploads, and unlimited custom tournament creation."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does TFT Clash have a leaderboard?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The live seasonal leaderboard at tftclash.com/leaderboard shows all players ranked by cumulative season points with tiebreakers automatically applied."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does TFT Clash have a Hall of Fame?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The Hall of Fame at tftclash.com/hall-of-fame permanently records every season champion, their stats, and notable records."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is TFT Clash affiliated with Riot Games?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. TFT Clash is an independent community platform and is not affiliated with, endorsed by, or sponsored by Riot Games."
           }
         }
       ]

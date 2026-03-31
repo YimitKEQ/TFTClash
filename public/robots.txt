@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tft-clash.vercel.app/sitemap.xml
+Sitemap: https://tftclash.com/sitemap.xml

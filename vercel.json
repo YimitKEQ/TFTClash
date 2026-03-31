@@ -25,6 +25,20 @@
       ]
     },
     {
+      "source": "/:file(.*\\.html)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" },
+        { "key": "X-Robots-Tag", "value": "index, follow" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600" },
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         { "key": "X-Frame-Options", "value": "DENY" },
@@ -44,6 +58,7 @@
     "api/stripe-webhook.js":  { "memory": 256, "maxDuration": 10 },
     "api/check-admin.js":     { "memory": 128, "maxDuration": 5  },
     "api/health.js":          { "memory": 128, "maxDuration": 5  },
-    "api/ai-commentary.js":   { "memory": 128, "maxDuration": 10 }
+    "api/ai-commentary.js":       { "memory": 128, "maxDuration": 10 },
+    "api/ping-search-engines.js": { "memory": 128, "maxDuration": 15 }
   }
 }
