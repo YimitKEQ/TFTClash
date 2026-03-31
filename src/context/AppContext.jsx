@@ -389,32 +389,39 @@ export function AppProvider(props) {
     if(!currentUser||!currentUser.id)return;
     // If currentUser already has player table fields (rank, pts), skip re-fetch
     if(currentUser.auth_user_id)return;
-    supabase.from('players').select('*').eq('auth_user_id',currentUser.id).maybeSingle()
-      .then(function(res){
-        if(res.error){console.error("[TFT] player check failed:",res.error);return;}
-        if(res.data){
-          setCurrentUser(Object.assign({}, res.data, { riotId: res.data.riot_id || '' }));
-          loadPlayersFromTable();
-          return;
-        }
-        var username=currentUser.username||currentUser.email&&currentUser.email.split('@')[0]||"Player";
-        var riotId=currentUser.riotId||"";
-        var region=currentUser.region||"EUW";
-        supabase.from('players').insert({
-          username:username,
-          riot_id:riotId,
-          region:region,
-          rank:'Iron',
-          auth_user_id:currentUser.id
-        }).select().single().then(function(ins){
-          if(ins.error&&ins.error.code!=='23505'){
-            console.error("[TFT] auto-create player failed:",ins.error);
+    // Wait for a confirmed session before hitting the DB — Discord OAuth can fire
+    // onAuthStateChange before the JWT is fully set in the client, causing auth.uid()
+    // to return null server-side and silently fail the RLS check on insert.
+    supabase.auth.getSession().then(function(sessionRes){
+      if(!sessionRes.data||!sessionRes.data.session)return;
+      supabase.from('players').select('*').eq('auth_user_id',currentUser.id).maybeSingle()
+        .then(function(res){
+          if(res.error){console.error("[TFT] player check failed:",res.error);return;}
+          if(res.data){
+            setCurrentUser(Object.assign({}, res.data, { riotId: res.data.riot_id || '' }));
+            loadPlayersFromTable();
             return;
           }
-          if(ins.data)setCurrentUser(Object.assign({}, ins.data, { riotId: ins.data.riot_id || '' }));
-          loadPlayersFromTable();
+          var username=currentUser.username||currentUser.email&&currentUser.email.split('@')[0]||"Player";
+          var riotId=currentUser.riotId||"";
+          var region=currentUser.region||"EUW";
+          supabase.from('players').insert({
+            username:username,
+            riot_id:riotId,
+            region:region,
+            rank:'Iron',
+            auth_user_id:currentUser.id
+          }).select().single().then(function(ins){
+            if(ins.error){
+              console.error("[TFT] auto-create player failed:",ins.error);
+              if(ins.error.code==='23505'){loadPlayersFromTable();}
+              return;
+            }
+            if(ins.data)setCurrentUser(Object.assign({}, ins.data, { riotId: ins.data.riot_id || '' }));
+            loadPlayersFromTable();
+          });
         });
-      });
+    });
   },[currentUser&&currentUser.id]);
 
   // ── useEffect: monitor realtime connection status for offline banner ──
