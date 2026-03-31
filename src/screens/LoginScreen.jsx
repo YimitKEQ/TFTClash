@@ -105,7 +105,7 @@ export default function LoginScreen() {
   async function handleForgotPassword() {
     if (!email.trim()) { toast('Please enter your email first', 'error'); return; }
     var res = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: window.location.origin + '/account'
+      redirectTo: CANONICAL_ORIGIN + '/account'
     });
     if (res.error) { toast('Failed to send reset email: ' + res.error.message, 'error'); return; }
     toast('Password reset email sent! Check your inbox.', 'success');

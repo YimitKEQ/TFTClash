@@ -63,8 +63,8 @@ export default function SignUpScreen() {
     if (!email.trim()) { setEmailErr('Email required'); ok = false }
     else if (!isValidEmail(email.trim())) { setEmailErr('Please enter a valid email address'); ok = false }
     if (!username.trim()) { setUsernameErr('Username required'); ok = false }
-    if (!pw.trim() || pw.length < 6) {
-      setPwErr(!pw.trim() ? 'Password required' : 'Must be 6+ characters')
+    if (!pw.trim() || pw.length < 8) {
+      setPwErr(!pw.trim() ? 'Password required' : 'Must be 8+ characters')
       ok = false
     }
     if (pw !== pw2) { setPw2Err("Passwords don't match"); ok = false }
