@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { C, F, COST_COLOR, TRAIT_COLOR } from "../d17.js";
 import ChampIcon from "../components/ChampIcon.jsx";
 import TraitBadge from "../components/TraitBadge.jsx";
+import ItemIcon from "../components/ItemIcon.jsx";
 
 function scoreComp(comp, selectedKeys, allChamps) {
   let score = 0;
@@ -279,14 +280,21 @@ function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys,
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
               <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>BIS Items</div>
-              {comp.items && Object.values(comp.items).map(function(items, gi) {
-                return items.map(function(item, i) {
-                  return (
-                    <div key={gi + "_" + i} style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, paddingLeft: 10, borderLeft: "2px solid " + accentCol + "55", marginBottom: 4, lineHeight: 1.4 }}>
-                      {item}
+              {comp.items && Object.entries(comp.items).map(function(entry) {
+                const champKey = entry[0];
+                const itemKeys = entry[1];
+                return (
+                  <div key={champKey} style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 8, fontFamily: F.label, color: accentCol, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
+                      {champKey}
                     </div>
-                  );
-                });
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                      {itemKeys.map(function(itemKey, ii) {
+                        return <ItemIcon key={ii} itemKey={itemKey} size={28} showName={true} />;
+                      })}
+                    </div>
+                  </div>
+                );
               })}
             </div>
             <div>

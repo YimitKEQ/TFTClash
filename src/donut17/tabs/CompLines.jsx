@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { C, F, COST_COLOR } from "../d17.js";
 import ChampIcon from "../components/ChampIcon.jsx";
+import ItemIcon from "../components/ItemIcon.jsx";
 
 const STRATEGY_COLOR = {
   "FAST 8":   "#8dcdff",
@@ -53,6 +54,15 @@ function CompLines({ compLines, champions }) {
                   </div>
                   <p style={{ fontFamily: F.body, fontSize: 10, color: C.textDim, margin: 0 }}>{comp.desc}</p>
                 </div>
+
+                {/* Carry BIS items mini preview */}
+                {comp.items && comp.carry && comp.items[comp.carry] && (
+                  <div style={{ display: "flex", gap: 2, alignItems: "center", flexShrink: 0, borderLeft: "1px solid " + C.border, paddingLeft: 10, marginLeft: 4 }}>
+                    {comp.items[comp.carry].map(function(itemKey, ii) {
+                      return <ItemIcon key={ii} itemKey={itemKey} size={24} />;
+                    })}
+                  </div>
+                )}
 
                 {/* Core portraits */}
                 <div style={{ display: "flex", gap: 3, alignItems: "center", flexShrink: 0 }}>
@@ -109,15 +119,25 @@ function CompLines({ compLines, champions }) {
 
                   {/* Right: items + plan + god */}
                   <div style={{ padding: "16px" }}>
-                    {comp.items && (
+                    {comp.items && Object.keys(comp.items).length > 0 && (
                       <div style={{ marginBottom: 14 }}>
-                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>BIS Items</div>
-                        {Object.values(comp.items).map(function(items, gi) {
-                          return items.map(function(item, i) {
-                            return (
-                              <div key={gi + "_" + i} style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, paddingLeft: 10, borderLeft: "2px solid " + comp.color + "66", marginBottom: 5, lineHeight: 1.5 }}>{item}</div>
-                            );
-                          });
+                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>BIS Items</div>
+                        {Object.entries(comp.items).map(function(entry) {
+                          const champKey = entry[0];
+                          const itemKeys = entry[1];
+                          const ch = champions.find(function(c) { return c.key === champKey; });
+                          return (
+                            <div key={champKey} style={{ marginBottom: 10 }}>
+                              <div style={{ fontSize: 8, fontFamily: F.label, color: comp.color, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+                                {ch ? ch.name : champKey}
+                              </div>
+                              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                                {itemKeys.map(function(itemKey, ii) {
+                                  return <ItemIcon key={ii} itemKey={itemKey} size={36} showName={true} />;
+                                })}
+                              </div>
+                            </div>
+                          );
                         })}
                       </div>
                     )}

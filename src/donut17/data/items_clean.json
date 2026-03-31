@@ -1,0 +1,1570 @@
+[
+  {
+    "apiName": "TFT_Item_BFSword",
+    "key": "bfsword",
+    "name": "B.F. Sword",
+    "tags": [
+      "ad"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_bfsword.tft_set13.png",
+    "desc": "%i:scaleAD% +X% Attack Damage"
+  },
+  {
+    "apiName": "TFT_Item_RecurveBow",
+    "key": "recurvebow",
+    "name": "Recurve Bow",
+    "tags": [
+      "as"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_recurvebow.tft_set13.png",
+    "desc": "%i:scaleAS% +X% Attack Speed"
+  },
+  {
+    "apiName": "TFT_Item_NeedlesslyLargeRod",
+    "key": "nlrod",
+    "name": "Needlessly Large Rod",
+    "tags": [
+      "ap"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_needlesslylargerod.tft_set13.png",
+    "desc": "%i:scaleAP% +X Ability Power"
+  },
+  {
+    "apiName": "TFT_Item_TearOfTheGoddess",
+    "key": "tear",
+    "name": "Tear of the Goddess",
+    "tags": [
+      "mana"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_tearofthegoddess.tft_set13.png",
+    "desc": "%i:TFTManaRegen% +X Mana Regen"
+  },
+  {
+    "apiName": "TFT_Item_ChainVest",
+    "key": "chainvest",
+    "name": "Chain Vest",
+    "tags": [
+      "armor"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_chainvest.tft_set13.png",
+    "desc": "%i:scaleArmor% +X Armor"
+  },
+  {
+    "apiName": "TFT_Item_NegatronCloak",
+    "key": "negatroncloak",
+    "name": "Negatron Cloak",
+    "tags": [
+      "mr"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_negatroncloak.tft_set13.png",
+    "desc": "%i:scaleMR% +X Magic Resist"
+  },
+  {
+    "apiName": "TFT_Item_GiantsBelt",
+    "key": "giantsbelt",
+    "name": "Giant's Belt",
+    "tags": [
+      "hp"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_giantsbelt.tft_set13.png",
+    "desc": "%i:scaleHealth% +X Health"
+  },
+  {
+    "apiName": "TFT_Item_SparringGloves",
+    "key": "sparringgloves",
+    "name": "Sparring Gloves",
+    "tags": [
+      "crit"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_sparringgloves.tft_set13.png",
+    "desc": "+X Critical Strike Chance"
+  },
+  {
+    "apiName": "TFT_Item_Spatula",
+    "key": "spatula",
+    "name": "Spatula",
+    "tags": [
+      "special"
+    ],
+    "category": "component",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_spatula.tft_set13.png",
+    "desc": "It must do something..."
+  },
+  {
+    "apiName": "TFT_Item_Deathblade",
+    "key": "deathblade",
+    "name": "Deathblade",
+    "acronym": "DB",
+    "tags": [
+      "ad"
+    ],
+    "recipe": [
+      "bfsword",
+      "bfsword"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_deathblade.tft_set13.png",
+    "desc": "Perfect peace and calm for the holder - and all who face it. X"
+  },
+  {
+    "apiName": "TFT_Item_GuinsoosRageblade",
+    "key": "guinsoosrageblade",
+    "name": "Guinsoo's Rageblade",
+    "acronym": "RB",
+    "tags": [
+      "ad",
+      "ap"
+    ],
+    "recipe": [
+      "bfsword",
+      "recurvebow"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_guinsoosrageblade.tft_set13.png",
+    "desc": "Gain X% stacking Attack Speed every second."
+  },
+  {
+    "apiName": "TFT_Item_RunaansHurricane",
+    "key": "krakensfury",
+    "name": "Kraken's Fury",
+    "acronym": "RFC",
+    "tags": [
+      "ad",
+      "as"
+    ],
+    "recipe": [
+      "recurvebow",
+      "recurvebow"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_krakenslayer.tft_tft14_5.png",
+    "desc": "Attacks grant X% stacking Attack Damage, up to X attacks. After X attacks, gain X% Attack Speed."
+  },
+  {
+    "apiName": "TFT_Item_InfinityEdge",
+    "key": "infinityedge",
+    "name": "Infinity Edge",
+    "acronym": "IE",
+    "tags": [
+      "ad",
+      "crit"
+    ],
+    "recipe": [
+      "bfsword",
+      "sparringgloves"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_infinityedge.tft_set13.png",
+    "desc": "Gain Precision . {{TFT_Keyword_Precision}}"
+  },
+  {
+    "apiName": "TFT_Item_LastWhisper",
+    "key": "lastwhisper",
+    "name": "Last Whisper",
+    "acronym": "LW",
+    "tags": [
+      "ad",
+      "arpen"
+    ],
+    "recipe": [
+      "recurvebow",
+      "bfsword"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_lastwhisper.tft_set13.png",
+    "desc": "Damage from attacks and Abilities X% Sunder the target for X seconds. This effect does not stack. Sunder : Reduce Armor"
+  },
+  {
+    "apiName": "TFT_Item_MadredsBloodrazor",
+    "key": "giantslayer",
+    "name": "Giant Slayer",
+    "acronym": "GS",
+    "tags": [
+      "ad"
+    ],
+    "recipe": [
+      "bfsword",
+      "recurvebow"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_madredsbloodrazor.tft_set13.png",
+    "desc": "Gain X% additional Damage Amp against Tanks."
+  },
+  {
+    "apiName": "TFT_Item_Bloodthirster",
+    "key": "bloodthirster",
+    "name": "Bloodthirster",
+    "acronym": "BT",
+    "tags": [
+      "ad",
+      "life"
+    ],
+    "recipe": [
+      "bfsword",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_bloodthirster.tft_set13.png",
+    "desc": "Once per combat at X% Health, gain a X% max Health Shield that lasts up to X seconds."
+  },
+  {
+    "apiName": "TFT_Item_SpearOfShojin",
+    "key": "spearofshojin",
+    "name": "Spear of Shojin",
+    "acronym": "SoS",
+    "tags": [
+      "ad",
+      "mana"
+    ],
+    "recipe": [
+      "bfsword",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_spearofshojin.tft_set13.png",
+    "desc": "Attacks grant X bonus Mana."
+  },
+  {
+    "apiName": "TFT_Item_YoumuusGhostblade",
+    "key": "youmuus",
+    "name": "Youmuu's Ghostblade",
+    "acronym": "YG",
+    "tags": [
+      "ad"
+    ],
+    "recipe": [
+      "bfsword",
+      "negatroncloak"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/tft_item_youmuusghostblade.png",
+    "desc": "The holder is also an Assassin. [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_RabadonsDeathcap",
+    "key": "rabadons",
+    "name": "Rabadon's Deathcap",
+    "acronym": "Rabadon",
+    "tags": [
+      "ap"
+    ],
+    "recipe": [
+      "nlrod",
+      "nlrod"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_rabadonsdeathcap.tft_set13.png",
+    "desc": "This humble hat can help you make, or unmake, the world itself. X"
+  },
+  {
+    "apiName": "TFT_Item_JeweledGauntlet",
+    "key": "jeweledgauntlet",
+    "name": "Jeweled Gauntlet",
+    "acronym": "JG",
+    "tags": [
+      "ap",
+      "crit"
+    ],
+    "recipe": [
+      "nlrod",
+      "sparringgloves"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_jeweledgauntlet.tft_set13.png",
+    "desc": "Gain Precision . {{TFT_Keyword_Precision}}"
+  },
+  {
+    "apiName": "TFT_Item_SeraphsEmbrace",
+    "key": "bluebuff",
+    "name": "Blue Buff",
+    "acronym": "BB",
+    "tags": [
+      "ap",
+      "mana"
+    ],
+    "recipe": [
+      "nlrod",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/standard/blue_buff.png",
+    "desc": "Gain X Mana after casting. When the holder gets a takedown, they deal X% more damage for X seconds. [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_ArchangelsStaff",
+    "key": "archangels",
+    "name": "Archangel's Staff",
+    "acronym": "AA",
+    "tags": [
+      "ap",
+      "mana"
+    ],
+    "recipe": [
+      "nlrod",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_archangelsstaff.tft_set13.png",
+    "desc": "Combat start: Gain X% Ability Power every X seconds in combat."
+  },
+  {
+    "apiName": "TFT_Item_Leviathan",
+    "key": "nashors",
+    "name": "Nashor's Tooth",
+    "acronym": "NT",
+    "tags": [
+      "ap",
+      "as"
+    ],
+    "recipe": [
+      "nlrod",
+      "recurvebow"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_leviathan.tft_set13.png",
+    "desc": "Attacks grant X bonus Mana, increased to X if they critically strike."
+  },
+  {
+    "apiName": "TFT_Item_IonicSpark",
+    "key": "ionicspark",
+    "name": "Ionic Spark",
+    "acronym": "IS",
+    "tags": [
+      "ap",
+      "mr"
+    ],
+    "recipe": [
+      "nlrod",
+      "negatroncloak"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_ionicspark.tft_set13.png",
+    "desc": "X% Shred enemies within X hexes. When enemies cast an Ability, deal magic damage equal to X% of the Mana spent Shred : Reduce Magic Resist"
+  },
+  {
+    "apiName": "TFT_Item_Morellonomicon",
+    "key": "morellonomicon",
+    "name": "Morellonomicon",
+    "acronym": "Morellos",
+    "tags": [
+      "ap"
+    ],
+    "recipe": [
+      "nlrod",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_morellonomicon.tft_set13.png",
+    "desc": "Attacks and Abilities deal X% Burn and X% Wound to enemies for X seconds. Burn : Deals a percent of the target's max Health as true damage every second Wound : Reduces healing received"
+  },
+  {
+    "apiName": "TFT_Item_StatikkShiv",
+    "key": "voidstaff",
+    "name": "Void Staff",
+    "acronym": "VS",
+    "tags": [
+      "ap",
+      "mppen"
+    ],
+    "recipe": [
+      "nlrod",
+      "recurvebow"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_voidstaff.tft_tft14_5.png",
+    "desc": "Damage from attacks and Abilities X% Shred the target for X seconds. This effect does not stack. Shred : Reduce Magic Resist"
+  },
+  {
+    "apiName": "TFT_Item_WarmogsArmor",
+    "key": "warmogsarmor",
+    "name": "Warmog's Armor",
+    "acronym": "Warmog",
+    "tags": [
+      "tank",
+      "hp"
+    ],
+    "recipe": [
+      "giantsbelt",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_warmogsarmor.tft_set13.png",
+    "desc": "Gain X% max Health."
+  },
+  {
+    "apiName": "TFT_Item_GargoyleStoneplate",
+    "key": "gargoyle",
+    "name": "Gargoyle Stoneplate",
+    "acronym": "Garg",
+    "tags": [
+      "tank"
+    ],
+    "recipe": [
+      "chainvest",
+      "negatroncloak"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_gargoylestoneplate.tft_set13.png",
+    "desc": "Gain X Armor and X Magic Resist for each enemy targeting the holder."
+  },
+  {
+    "apiName": "TFT_Item_BrambleVest",
+    "key": "bramblevest",
+    "name": "Bramble Vest",
+    "acronym": "BV",
+    "tags": [
+      "tank",
+      "armor"
+    ],
+    "recipe": [
+      "chainvest",
+      "chainvest"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_bramblevest.tft_set13.png",
+    "desc": "Gain X% max health. Take X% reduced damage from attacks. When struck by any attack, deal X magic damage to all adjacent enemies. Cooldown: X seconds"
+  },
+  {
+    "apiName": "TFT_Item_DragonsClaw",
+    "key": "dragonsclaw",
+    "name": "Dragon's Claw",
+    "acronym": "DC",
+    "tags": [
+      "tank",
+      "mr"
+    ],
+    "recipe": [
+      "negatroncloak",
+      "negatroncloak"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_dragonsclaw.tft_set13.png",
+    "desc": "Gain X% max health. Every X seconds, heal X% max Health."
+  },
+  {
+    "apiName": "TFT_Item_TitansResolve",
+    "key": "titansresolve",
+    "name": "Titan's Resolve",
+    "acronym": "TR",
+    "tags": [
+      "tank",
+      "ad"
+    ],
+    "recipe": [
+      "chainvest",
+      "recurvebow"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_titansresolve.tft_set13.png",
+    "desc": "Gain X% Attack Damage and X% Ability Power when attacking or taking damage, stacking up to X times. At full stacks, gain X% Damage Amp and gain immunity to crowd control."
+  },
+  {
+    "apiName": "TFT_Item_RedBuff",
+    "key": "sunfirecape",
+    "name": "Sunfire Cape",
+    "acronym": "SC",
+    "tags": [
+      "tank",
+      "burn"
+    ],
+    "recipe": [
+      "chainvest",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_redbuff.tft_set13.png",
+    "desc": "Gain X% max Health. Every X seconds, deal X% Burn and X% Wound to an enemy within X hexes for X seconds. Burn : Deals a percent of the target's max Health as true damage every second Wound : Reduces healing received"
+  },
+  {
+    "apiName": "TFT_Item_SteraksGage",
+    "key": "steraksgage",
+    "name": "Sterak's Gage",
+    "acronym": "Sterak",
+    "tags": [
+      "tank",
+      "hp"
+    ],
+    "recipe": [
+      "chainvest",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_steraksgage.tft_set13.png",
+    "desc": "At X% Health, gain a Shield equal to X% of the wearer's maximum Health that rapidly decays over X seconds."
+  },
+  {
+    "apiName": "TFT_Item_AdaptiveHelm",
+    "key": "adaptivehelm",
+    "name": "Adaptive Helm",
+    "acronym": "AH",
+    "tags": [
+      "tank",
+      "mr"
+    ],
+    "recipe": [
+      "negatroncloak",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_adaptivehelm.tft_set13.png",
+    "desc": "Gain an additional X% Mana from all sources. The holder gains an additional bonus based on their Role: Tanks and Fighters: Gain X Armor and Magic Resistance. Other Roles: Gain X% Attack Damage and Ability Power."
+  },
+  {
+    "apiName": "TFT_Item_LocketOfTheIronSolari",
+    "key": "locket",
+    "name": "Locket of the Iron Solari",
+    "acronym": "Locket",
+    "tags": [
+      "utility"
+    ],
+    "recipe": [
+      "chainvest",
+      "nlrod"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_locketoftheironsolari.tft_set13.png",
+    "desc": "Combat start: The holder and allies within X hexes in the same row gain a X Shield, X Armor, and X Magic Resist for X seconds. ​​ [Support item]"
+  },
+  {
+    "apiName": "TFT_Item_Redemption",
+    "key": "spiritvisage",
+    "name": "Spirit Visage",
+    "acronym": "Redemp",
+    "tags": [
+      "utility",
+      "hp"
+    ],
+    "recipe": [
+      "tear",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_spiritvisagerr.tft_tft14_5.png",
+    "desc": "Regenerate X% of missing Health each second."
+  },
+  {
+    "apiName": "TFT_Item_UnstableConcoction",
+    "key": "handofjustice",
+    "name": "Hand of Justice",
+    "acronym": "HoJ",
+    "tags": [
+      "utility",
+      "ad",
+      "ap"
+    ],
+    "recipe": [
+      "sparringgloves",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_unstableconcoction.tft_set13.png",
+    "desc": "Gain 2 effects: X% Attack Damage and X% Ability Power. X% Omnivamp. While above X% health, double the Attack Damage and Ability Power. While below X% Health, double the Omnivamp."
+  },
+  {
+    "apiName": "TFT_Item_GuardianAngel",
+    "key": "edgeofnight",
+    "name": "Edge of Night",
+    "acronym": "EoN",
+    "tags": [
+      "utility",
+      "ad"
+    ],
+    "recipe": [
+      "chainvest",
+      "bfsword"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_guardianangel.tft_set13.png",
+    "desc": "At X% Health, briefly become untargetable, shed negative effects, and heal X% missing health."
+  },
+  {
+    "apiName": "TFT_Item_KnightsVow",
+    "key": "knightsvow",
+    "name": "Knight's Vow",
+    "acronym": "KV",
+    "tags": [
+      "utility"
+    ],
+    "recipe": [
+      "chainvest",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/tft_item_knightsvow.png",
+    "desc": "Extra %i:scaleArmor% +X Holder is also a Knight [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_ZekesHerald",
+    "key": "zekesherald",
+    "name": "Zeke's Herald",
+    "acronym": "Zeke",
+    "tags": [
+      "utility",
+      "as"
+    ],
+    "recipe": [
+      "bfsword",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_zekesherald.tft_set13.png",
+    "desc": "Combat start: Grant %i:scaleAS% X% Attack Speed to the holder and allies within 2 hexes in the same row. ​​ [Support item]"
+  },
+  {
+    "apiName": "TFT_Item_Chalice",
+    "key": "chalice",
+    "name": "Chalice of Power",
+    "acronym": "Chalice",
+    "tags": [
+      "utility",
+      "ap"
+    ],
+    "recipe": [
+      "nlrod",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_chalice.tft_set13.png",
+    "desc": "Combat start: Grant X Ability Power and X Mana to the holder and allies within 2 hexes in the same row. ​​ [Support item]"
+  },
+  {
+    "apiName": "TFT_Item_Quicksilver",
+    "key": "quicksilver",
+    "name": "Quicksilver",
+    "acronym": "QSS",
+    "tags": [
+      "utility",
+      "mr"
+    ],
+    "recipe": [
+      "negatroncloak",
+      "sparringgloves"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_quicksilver.tft_set13.png",
+    "desc": "Combat Start: Gain immunity to crowd control for X seconds. Gain X% stacking Attack Speed every second."
+  },
+  {
+    "apiName": "TFT_Item_Zephyr",
+    "key": "zephyr",
+    "name": "Zephyr",
+    "acronym": "Zephyr",
+    "tags": [
+      "utility"
+    ],
+    "recipe": [
+      "negatroncloak",
+      "giantsbelt"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_zephyr.tft_set13.png",
+    "desc": "Combat start: Summon a whirlwind on the opposite side of the arena that removes the closest enemy from combat for X seconds. Your team gains X% Attack Speed. [Support item] [Ignores crowd control immunity.] [Unique - onl"
+  },
+  {
+    "apiName": "TFT_Item_BansheesVeil",
+    "key": "bansheesveil",
+    "name": "Banshee's Veil",
+    "acronym": "BV",
+    "tags": [
+      "utility",
+      "mr"
+    ],
+    "recipe": [
+      "negatroncloak",
+      "nlrod"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_bansheesveil.tft_set13.png",
+    "desc": "Combat start: Grant the holder and allies within X hexes in the same row immunity to crowd control and X% Attack Speed for X seconds. [Support item] [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_Crownguard",
+    "key": "crownguard",
+    "name": "Crownguard",
+    "acronym": "CG",
+    "tags": [
+      "utility",
+      "ap"
+    ],
+    "recipe": [
+      "chainvest",
+      "nlrod"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_crownguard.tft_set13.png",
+    "desc": "Combat Start: Gain a X% max Health Shield for X seconds. When the Shield expires, gain X% Ability Power."
+  },
+  {
+    "apiName": "TFT_Item_Moonstone",
+    "key": "moonstone",
+    "name": "Moonstone Renewer",
+    "acronym": "MS",
+    "tags": [
+      "utility"
+    ],
+    "recipe": [
+      "chainvest",
+      "tear"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_moonstone.tft_set13.png",
+    "desc": "Every X seconds, grant a X-X Shield (based on Stage) to the X lowest percent health allies for X seconds. ​​ [Support item]"
+  },
+  {
+    "apiName": "TFT_Item_NightHarvester",
+    "key": "steadfastheart",
+    "name": "Steadfast Heart",
+    "acronym": "SH",
+    "tags": [
+      "utility",
+      "hp"
+    ],
+    "recipe": [
+      "giantsbelt",
+      "sparringgloves"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_nightharvester.tft_set13.png",
+    "desc": "Gain X% Durability. While above X% Health, instead gain X% Durability. X"
+  },
+  {
+    "apiName": "TFT_Item_ThiefsGloves",
+    "key": "thiefsgloves",
+    "name": "Thief's Gloves",
+    "acronym": "TG",
+    "tags": [
+      "special"
+    ],
+    "recipe": [
+      "sparringgloves",
+      "sparringgloves"
+    ],
+    "category": "combined",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_thiefsgloves.tft_set13.png",
+    "desc": "Each round: Equip 2 random items. [Consumes 3 item slots.] X"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_LesserMirroredPersona",
+    "key": "lessermirroredpersona",
+    "name": "Lesser Mirrored Persona",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_lessermirroredpersona.tft_set16.png",
+    "desc": "Share X% of the holder's bonus Attack Damage, Ability Power, Attack Speed, Armor, Magic Resist, and Health with other Mirrored Persona holders. Can't be Reforged Unique: one per champion"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_InnervatingLocket",
+    "key": "innervatinglocket",
+    "name": "Innervating Locket",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_innervatinglocket.tft_set13.png",
+    "desc": "The holder gains X% of their total Mana whenever they're hit by an attack. Each cast restores X% of the holder's max Health over X seconds."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_TheIndomitable",
+    "key": "theindomitable",
+    "name": "The Indomitable",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_theindomitable.tft_tft14_5.png",
+    "desc": "The holder's Move Speed is drastically reduced. Gain X% max Health, stun immunity, and pull the current target into melee range."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_ShadowPuppet",
+    "key": "shadowpuppet",
+    "name": "Shadow Puppet",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_shadowpuppet.tft_set16.png",
+    "desc": "Spawn a clone that copies the holder's items. The clone has X% max Health and deals X% damage. [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_WitheringRelic",
+    "key": "witheringrelic",
+    "name": "Withered Relic",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_witheringrelic.tft_set16.png",
+    "desc": "Combat Start: Increase the holder's max Health by X but keep their current Health the same."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_EternalPact",
+    "key": "eternalpact",
+    "name": "Eternal Pact",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_eternalpact.tft_set16.png",
+    "desc": "Combat start: Form a pact with the highest Health allied champion, if they die, gain X Mana regen and X% Ability Power. When the ally uses their ability, gain X Mana. Every X seconds, shield your ally for X% of the holde"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_HellfireHatchet",
+    "key": "hellfirehatchet",
+    "name": "Hellfire Hatchet",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_hellfirehatchet.tft_set16.png",
+    "desc": "Attacks deal X% of the holder's max Health as bonus physical damage. For every X% missing Health, gain X% Attack Speed."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_LichBane",
+    "key": "lichbane",
+    "name": "Lich Bane",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/ornn_items/tft_item_artifact_lichbane.png",
+    "desc": "The holder's first attack after each Ability cast deals X bonus magic damage. Damage increases based on Stage."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_ForbiddenIdol",
+    "key": "forbiddenidol",
+    "name": "Forbidden Idol",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_forbiddenidol.tft_set13.png",
+    "desc": "Shields have X% of their value converted to max Health instead."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_MirroredPersona",
+    "key": "mirroredpersona",
+    "name": "Mirrored Persona",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_mirroredpersona.tft_set16.png",
+    "desc": "Every X player combats gain a lesser copy of Mirrored Persona&nbsp;(X/X). Share X% of the holder's bonus Attack Damage, Ability Power, Attack Speed, Armor, Magic Resist, and Health with other Mirrored Persona holders. Ca"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_Fishbones",
+    "key": "fishbones",
+    "name": "Fishbones",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_fishbones.tft_set13.png",
+    "desc": "The holder's attacks target random enemies."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_TitanicHydra",
+    "key": "titanichydra",
+    "name": "Titanic Hydra",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_titanichydra.tft_tft14_5.png",
+    "desc": "Attacks deal X% of the holder's max Health plus X% of their Attack Damage as bonus physical damage to the target and adjacent enemies."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_AegisOfDusk",
+    "key": "aegisofdusk",
+    "name": "Aegis of Dusk",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_aegisofdusk.tft_set16.png",
+    "desc": "Every X seconds, steal X Magic Resist from enemies within 1 hex and deal X% of the holder's Magic Resist as magic damage. If Aegis of Dawn is also equipped, trigger this item's effect every X seconds instead. Damage incr"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_UnendingDespair",
+    "key": "unendingdespair",
+    "name": "Unending Despair",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_unendingdespair.tft_set13.png",
+    "desc": "Whenever a Shield on the holder breaks, X% of that Shield's initial value is dealt to the nearest enemy as magic damage."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_MendingEchoes",
+    "key": "mendingechoes",
+    "name": "Mending Echoes",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_mendingechoes.tft_set16.png",
+    "desc": "Increase healing on the holder by X%. When the holder gives or receives a heal, grant X% of the heals value to the lowest health ally as well."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_CursedBlade",
+    "key": "cursedblade",
+    "name": "Cursed Blade",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/ornn_items/tft_item_artifact_cursedblade.png",
+    "desc": "Attacks reduce the target's max Health by X%. X attacks on the same target reduces their star level by 1."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_LudensTempest",
+    "key": "ludenstempest",
+    "name": "Luden's Tempest",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_ludenstempest.tft_set13.png",
+    "desc": "X% of overkill damage plus X is dealt as magic damage to the three enemies nearest the target."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_SpectralCutlass",
+    "key": "spectralcutlass",
+    "name": "Spectral Cutlass",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_spectralcutlass.tft_set13.png",
+    "desc": "Combat start: Teleport the holder to the mirrored hex on the enemy's side of the board. After X seconds, the holder returns to their original location."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_RapidFirecannon",
+    "key": "rapidfirecannon",
+    "name": "Rapid Firecannon",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_rapidfirecannon.tft_set13.png",
+    "desc": "Gain +1 Attack Range, increased by 1 whenever the holder kills an enemy."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_StatikkShiv",
+    "key": "statikkshiv",
+    "name": "Statikk Shiv",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_stattikshiv.tft_tft14_5.png",
+    "desc": "Every 3rd attack deals X + X% of the holder's Ability Power as additional magic damage to 4 enemies."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_AegisOfDawn",
+    "key": "aegisofdawn",
+    "name": "Aegis of Dawn",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_aegisofdawn.tft_set16.png",
+    "desc": "Every X seconds, steal X Armor from enemies within 1-hex and heal X% of the holder's Armor. If Aegis of Dusk is also equipped, trigger this item's effect every X seconds instead. Healing increases based on Stage."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_Dawncore",
+    "key": "dawncore",
+    "name": "Dawncore",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_dawncore.tft_set15.png",
+    "desc": "Reduce the holder's max Mana by X. Subsequent spellcasts reduce max Mana by X%, to a minimum of X."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_LightshieldCrest",
+    "key": "lightshieldcrest",
+    "name": "Lightshield Crest",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_lightshieldcrest.tft_set13.png",
+    "desc": "Every X seconds, Shields the lowest percent Health ally for X% of the holder's combined Armor and Magic Resist for X seconds. On death grants this shield to all allies."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_BlightingJewel",
+    "key": "blightingjewel",
+    "name": "Blighting Jewel",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_blightingjewel.tft_set13.png",
+    "desc": "Dealing magic damage reduces the target's Magic Resist by X. If their Magic Resist is 0, grant the holder X Mana instead. Ability damage can only trigger on each enemy once every X seconds."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_TalismanOfAscension",
+    "key": "talismanofascension",
+    "name": "Talisman Of Ascension",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_talismanofascension.tft_set13.png",
+    "desc": "After X seconds gain X% max Health and X% Damage Amp for the rest of combat."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_SuspiciousTrenchCoat",
+    "key": "suspicioustrenchcoat",
+    "name": "Suspicious Trench Coat",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_suspicioustrenchcoat.tft_set13.png",
+    "desc": "Once per combat at X% Health, the holder splits into 3 copies of themself each with X% of their max Health. [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_Mittens",
+    "key": "mittens",
+    "name": "Mittens",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_mittens.tft_set13.png",
+    "desc": "Shrinks the holder, granting them increased movement speed and immunity to Slow , Burn , and Wound . {{TFT_Keyword_Chill}} {{TFT_Keyword_Burn}} {{TFT_Keyword_Wound}}"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_NavoriFlickerblades",
+    "key": "navoriflickerblades",
+    "name": "Flickerblades",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_navoriflickerplade.tft_tft14_5.png",
+    "desc": "Attacks grant X% stacking Attack Speed. Every X attacks also grant X% Attack Damage and X% Ability Power."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_CursedVampiricScepter",
+    "key": "cursedvampiricscepter",
+    "name": "Corrupt Vampiric Scepter",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_cursedvampiricscepter.tft_set13.png",
+    "desc": "Attacks deal an additional X% Attack Damage %i:scaleAD% as physical damage and heal the holder for the damage dealt. The holder cannot cast their Ability or gain Mana."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_WitsEnd",
+    "key": "witsend",
+    "name": "Wit's End",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_witsend.tft_set13.png",
+    "desc": "Attacks deal X bonus magic damage. Heals the holder for X% of all magic damage dealt. Damage increases based on Stage."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_HorizonFocus",
+    "key": "horizonfocus",
+    "name": "Horizon Focus",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_horizonfocus.tft_set13.png",
+    "desc": "Stunning an enemy causes lightning to strike them, dealing X% of their max Health as magic damage."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_ProwlersClaw",
+    "key": "prowlersclaw",
+    "name": "Prowler's Claw",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_prowlersclaw.tft_set13.png",
+    "desc": "After killing a target, shed negative effects and dash to the farthest target within X hexes. The next 2 critical attacks deal X% bonus Critical Strike Damage."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_VoidGauntlet",
+    "key": "voidgauntlet",
+    "name": "Void Gauntlet",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_voidgauntlet.tft_set16.png",
+    "desc": "Combat start: Store X% max Health and X% more every second. On death, unleash the stored Health as magic damage split between enemies within X-hexes. [Unique - only 1 per champion]"
+  },
+  {
+    "apiName": "TFT_Item_Artifact_SilvermereDawn",
+    "key": "silvermeredawn",
+    "name": "Silvermere Dawn",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_silvermeredawn.tft_set13.png",
+    "desc": "Grants immunity to Stuns and the holder's attacks Stun the target for X seconds. The holder's Attack Speed is locked at X."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_SeekersArmguard",
+    "key": "seekersarmguard",
+    "name": "Seeker's Armguard",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft_item_artifact_seekersarmguard.tft_set13.png",
+    "desc": "Takedowns increase the holder's Armor, Magic Resist, and Ability Power by X."
+  },
+  {
+    "apiName": "TFT_Item_Artifact_CappaJuice",
+    "key": "cappajuice",
+    "name": "Cappa Juice",
+    "tags": [
+      "artifact"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft16_artifact_kappajuice.tft_set16.png",
+    "desc": "The holder dons a Hat on each takedown. The holder gains X% Attack Damage and Ability Power per Hat. On death lose X% of all Hats.&nbsp;(Hats:&nbsp;X)"
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_ZekesHeraldShadow",
+    "key": "goditemzekesheraldshadow",
+    "name": "Zeke's Bleak Herald",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/shadow/s_zekes_herald.png",
+    "desc": "When combat begins, the holder reduces the Attack Speed of all allies within X hexes in the same row by %i:scaleAS% X%. The holder then gains %i:scaleAS% X% Attack Speed for each affected ally."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_EkkoArtifact",
+    "key": "goditemekkoartifact",
+    "name": "Ekko's Patience",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_ekkopatience.tft_set17.png",
+    "desc": "Total Ability damage is increased by X%, but is dealt over X seconds instead."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_YasuoArtifact",
+    "key": "goditemyasuoartifact",
+    "name": "Yasuo's Bladework",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_yasuobladework.tft_set17.png",
+    "desc": "Every X seconds, your next attack is a double attack."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_ThreshLantern",
+    "key": "goditemthreshlantern",
+    "name": "Thresh's Lantern",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_threshlantern.tft_set17.png",
+    "desc": "After X seconds of combat, pull the leftmost benched unit onto the battlefield. While that unit lives, X% of all damage the holder would take is redirected to them. Traits of champions flung onto the board do not become "
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_KayleArtifact",
+    "key": "goditemkayleartifact",
+    "name": "Kayle's Exaltation",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_kaylegreatsword.tft_set17.png",
+    "desc": "After X seconds of combat, this and all completed items on the holder become Radiant."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_EvelynnArtifact",
+    "key": "goditemevelynnartifact",
+    "name": "Evelynn's Instinct",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_evelynnfang.tft_set17.png",
+    "desc": "When switching targets, blink to the next target. Attacks and Abilities execute the holder's target below X% of their Health. Kills grant the holder X% Attack Speed decaying over X seconds."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_SorakaArtifact",
+    "key": "goditemsorakaartifact",
+    "name": "Soraka's Miracle",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_sorakamiracle.tft_set17.png",
+    "desc": "The first X times the holder drops below X% Health, a Miracle occurs, healing them for X% of their max Health. If the holder survives player combat, gain X player Health for each Miracle this combat."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_VarusArtifact",
+    "key": "goditemvarusartifact",
+    "name": "Varus's Obsession",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_varusobsession.tft_set17.png",
+    "desc": "Combat Start: Your strongest Tank becomes the Soulmate. For each second they are alive, the holder gains X% stacking Attack Damage and Ability Power. The Soulmate heals for X% of damage the holder deals."
+  },
+  {
+    "apiName": "TFT17_Item_Artifact_AhriArtifact",
+    "key": "goditemahriartifact",
+    "name": "Ahri's Aura",
+    "tags": [
+      "artifact",
+      "set17"
+    ],
+    "category": "artifact",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_item_artifact_ahrirhythm.tft_set17.png",
+    "desc": "The holder is orbited by 3 foxfires. Each one deals X&nbsp;(%i:scaleAP%) magic damage and the orbit expands to hit the holder's current target. For every X Mana the holder spends, foxfires travel X% faster for the rest o"
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_ChemicalCapacitorMod",
+    "key": "psyopschemicalcapacitormod",
+    "name": "Malware Matrix",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_chemicalcapacitormod.tft_set17.png",
+    "desc": "Dealing physical damage to an enemy reduces the target's Armor by X. (Cooldown X seconds) Recommended users: Master Yi and Pyke."
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_TargetlockMod",
+    "key": "psyopstargetlockmod",
+    "name": "Target-Lock Optics",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_targetlockmod.tft_set17.png",
+    "desc": "The holder's first attack on each enemy deals X&nbsp;(%i:scaleAD%) additional damage. Recommended users: Pyke and Master Yi"
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_DroneMod",
+    "key": "psyopsdronemod",
+    "name": "Drone Uplink",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_dronemod.tft_set17.png",
+    "desc": "A drone repeats X% of damage from the holder's attacks and Abilities to the same targets every X seconds. Recommended users: Sona and Viktor."
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_SemiconductorMod",
+    "key": "psyopssemiconductormod",
+    "name": "Semiconductor",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_semiconductormod.tft_set17.png",
+    "desc": "Every X attacks and every X times being attacked, zap the X nearest enemies, dealing X% of enemy Health as magic damage. Recommended users: Gragas and Master Yi."
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_SympatheticImplantMod",
+    "key": "psyopssympatheticimplantmod",
+    "name": "Sympathetic Implant",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_sympatheticimplantmod.tft_set17.png",
+    "desc": "Every X seconds, gain X additional Mana Regen. Recommended users: Sona and Viktor."
+  },
+  {
+    "apiName": "TFT17_Item_PsyOps_GrenadeMod",
+    "key": "psyopsgrenademod",
+    "name": "Biomatter Preserver",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_psyops_mod_grenademod.tft_set17.png",
+    "desc": "Gain X% max Health and deploy X Life Orbs. Every X seconds of combat, one drops restoring X% of the holder's missing Health. Recommended user: Gragas."
+  },
+  {
+    "apiName": "TFT17_Item_PsyOpsEmblemItem",
+    "key": "psyopsemblemitem",
+    "name": "Psionic Emblem",
+    "tags": [
+      "set17",
+      "psyops"
+    ],
+    "category": "set17",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_psyops.tft_set17.png",
+    "desc": "The holder gains the Psionic trait."
+  },
+  {
+    "apiName": "TFT17_Item_FavoredEmblemItem",
+    "key": "favoredemblemitem",
+    "name": "Arbiter Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_arbiter.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_RangedTraitEmblemItem",
+    "key": "rangedtraitemblemitem",
+    "name": "Sniper Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_sniper.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_ShieldTankEmblemItem",
+    "key": "shieldtankemblemitem",
+    "name": "Vanguard Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_vanguard.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_AnimaSquadEmblemItem",
+    "key": "animasquademblemitem",
+    "name": "Anima Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_animatech.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_PulsefireEmblemItem",
+    "key": "pulsefireemblemitem",
+    "name": "Timebreaker Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_timebreaker.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_DRXEmblemItem",
+    "key": "drxemblemitem",
+    "name": "N.O.V.A. Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_nova.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_AstronautEmblemItem",
+    "key": "astronautemblemitem",
+    "name": "Meeple Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_meeple.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_SummonTraitEmblemItem",
+    "key": "summontraitemblemitem",
+    "name": "Shepherd Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_sheperd.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_PsyOpsEmblemItem",
+    "key": "psyopsemblemitem",
+    "name": "Psionic Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_psyops.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_HPTankEmblemItem",
+    "key": "hptankemblemitem",
+    "name": "Brawler Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_brawler.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_AssassinTraitEmblemItem",
+    "key": "assassintraitemblemitem",
+    "name": "Rogue Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_rogue.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_ASTraitEmblemItem",
+    "key": "astraitemblemitem",
+    "name": "Challenger Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_challenger.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_DarkStarEmblemItem",
+    "key": "darkstaremblemitem",
+    "name": "Dark Star Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_darkstar.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_StargazerEmblemItem",
+    "key": "stargazeremblemitem",
+    "name": "Stargazer Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_stargazer.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_MeleeTraitEmblemItem",
+    "key": "meleetraitemblemitem",
+    "name": "Marauder Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_marauder.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_SpaceGrooveEmblemItem",
+    "key": "spacegrooveemblemitem",
+    "name": "Space Groove Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_spacegroove.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_ResistTankEmblemItem",
+    "key": "resisttankemblemitem",
+    "name": "Bastion Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_bastion.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_FlexTraitEmblemItem",
+    "key": "flextraitemblemitem",
+    "name": "Voyager Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_voyager.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  },
+  {
+    "apiName": "TFT17_Item_PrimordianEmblemItem",
+    "key": "primordianemblemitem",
+    "name": "Primordian Emblem",
+    "tags": [
+      "emblem",
+      "spatula"
+    ],
+    "category": "emblem",
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/particles/tft/item_icons/traits/spatula/set17/tft17_emblem_primordian.tft_set17.png",
+    "desc": "Grants the holder this trait."
+  }
+]

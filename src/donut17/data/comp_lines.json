@@ -18,11 +18,15 @@
       "bard"
     ],
     "items": {
-      "carry": [
-        "Jhin: IE + Last Whisper + Giant Slayer"
+      "jhin": [
+        "infinityedge",
+        "lastwhisper",
+        "giantslayer"
       ],
-      "tank": [
-        "Cho'Gath: Warmog's + Sunfire + Morellonomicon"
+      "chogath": [
+        "warmogsarmor",
+        "sunfirecape",
+        "morellonomicon"
       ]
     },
     "god": "Varus",
@@ -50,11 +54,15 @@
       "shen"
     ],
     "items": {
-      "carry": [
-        "Kindred: Runaan's + Rageblade + Hurricane"
+      "kindred": [
+        "krakensfury",
+        "guinsoosrageblade",
+        "krakensfury"
       ],
-      "tank": [
-        "Aatrox: Warmog's + Gargoyle + Dragon's Claw"
+      "aatrox": [
+        "warmogsarmor",
+        "gargoyle",
+        "dragonsclaw"
       ]
     },
     "god": "Kayle",
@@ -81,11 +89,14 @@
       "maokai"
     ],
     "items": {
-      "carry": [
-        "Aurora: Jeweled Gauntlet + Rabadon's + Blue Buff"
+      "aurora": [
+        "jeweledgauntlet",
+        "rabadons",
+        "bluebuff"
       ],
-      "support": [
-        "Illaoi: Warmog's + Gargoyle"
+      "illaoi": [
+        "warmogsarmor",
+        "gargoyle"
       ]
     },
     "god": "Evelynn",
@@ -112,11 +123,14 @@
       "kindred"
     ],
     "items": {
-      "carry": [
-        "Nunu: Warmog's + Titan's Resolve + Gargoyle"
+      "nunu": [
+        "warmogsarmor",
+        "titansresolve",
+        "gargoyle"
       ],
-      "flex": [
-        "Lulu: Redemption + Locket"
+      "lulu": [
+        "spiritvisage",
+        "locket"
       ]
     },
     "god": "Yasuo",
@@ -144,11 +158,15 @@
       "leona"
     ],
     "items": {
-      "carry": [
-        "Blitzcrank: Warmog's + Titan's + Gargoyle"
+      "blitzcrank": [
+        "warmogsarmor",
+        "titansresolve",
+        "gargoyle"
       ],
-      "flex": [
-        "Ornn: Sunfire + Dragon's Claw + Redemption"
+      "ornn": [
+        "sunfirecape",
+        "dragonsclaw",
+        "spiritvisage"
       ]
     },
     "god": "Soraka",
@@ -176,11 +194,14 @@
       "diana"
     ],
     "items": {
-      "carry": [
-        "Riven: Bloodthirster + Last Whisper + Rageblade"
+      "riven": [
+        "bloodthirster",
+        "lastwhisper",
+        "guinsoosrageblade"
       ],
-      "flex": [
-        "Gwen: Warmog's + Gargoyle"
+      "gwen": [
+        "warmogsarmor",
+        "gargoyle"
       ]
     },
     "god": "Evelynn",
@@ -209,11 +230,15 @@
       "ivernminion"
     ],
     "items": {
-      "carry": [
-        "Bard: IE + Runaan's + Hurricane"
+      "bard": [
+        "infinityedge",
+        "krakensfury",
+        "krakensfury"
       ],
-      "tank": [
-        "Poppy: Warmog's + Gargoyle + Sunfire"
+      "poppy": [
+        "warmogsarmor",
+        "gargoyle",
+        "sunfirecape"
       ]
     },
     "god": "Aurelion Sol",
@@ -240,11 +265,14 @@
       "sona"
     ],
     "items": {
-      "carry": [
-        "Aurelion Sol: Blue Buff + Jeweled Gauntlet + Rabadon's"
+      "aurelionsol": [
+        "bluebuff",
+        "jeweledgauntlet",
+        "rabadons"
       ],
-      "flex": [
-        "Bard: IE + Runaan's"
+      "bard": [
+        "infinityedge",
+        "krakensfury"
       ]
     },
     "god": "Ekko",
@@ -271,11 +299,15 @@
       "shen"
     ],
     "items": {
-      "carry": [
-        "Blitzcrank: Warmog's + Titan's + Redemption"
+      "blitzcrank": [
+        "warmogsarmor",
+        "titansresolve",
+        "spiritvisage"
       ],
-      "flex": [
-        "Leona: Sunfire + Dragon's Claw + Gargoyle"
+      "leona": [
+        "sunfirecape",
+        "dragonsclaw",
+        "gargoyle"
       ]
     },
     "god": "Soraka",
@@ -301,11 +333,14 @@
       "corki"
     ],
     "items": {
-      "carry": [
-        "Jhin: IE + Last Whisper + Giant Slayer"
+      "jhin": [
+        "infinityedge",
+        "lastwhisper",
+        "giantslayer"
       ],
-      "flex": [
-        "Samira: Rageblade + Runaan's"
+      "samira": [
+        "guinsoosrageblade",
+        "krakensfury"
       ]
     },
     "god": "Thresh",

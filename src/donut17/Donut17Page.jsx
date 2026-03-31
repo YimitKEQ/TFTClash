@@ -10,21 +10,27 @@ import SynergyGrid from "./tabs/SynergyGrid.jsx";
 import Champions from "./tabs/Champions.jsx";
 import CompLines from "./tabs/CompLines.jsx";
 import Gods from "./tabs/Gods.jsx";
+import Items from "./tabs/Items.jsx";
+import TeamBuilder from "./tabs/TeamBuilder.jsx";
 
 const TABS = [
-  { id: "opener", label: "Opener Advisor", icon: "grid_view" },
-  { id: "grid",   label: "Synergy Grid",   icon: "hub" },
-  { id: "champs", label: "Champions",      icon: "group" },
-  { id: "comps",  label: "Comp Lines",     icon: "bar_chart" },
-  { id: "gods",   label: "Gods",           icon: "military_tech" },
+  { id: "opener",  label: "Opener Advisor", icon: "grid_view" },
+  { id: "builder", label: "Team Builder",   icon: "dashboard" },
+  { id: "grid",    label: "Synergy Grid",   icon: "hub" },
+  { id: "champs",  label: "Champions",      icon: "group" },
+  { id: "comps",   label: "Comp Lines",     icon: "bar_chart" },
+  { id: "items",   label: "Items",          icon: "shield" },
+  { id: "gods",    label: "Gods",           icon: "military_tech" },
 ];
 
 const ACCENTCOLORS = {
-  opener: C.primary,
-  grid:   C.secondary,
-  champs: C.primary,
-  comps:  C.tertiary,
-  gods:   C.tertiary,
+  opener:  C.primary,
+  builder: C.primary,
+  grid:    C.secondary,
+  champs:  C.primary,
+  comps:   C.tertiary,
+  items:   C.secondary,
+  gods:    C.tertiary,
 };
 
 function MSIcon({ name, size = 20, style: extra }) {
@@ -155,7 +161,7 @@ function Donut17Page() {
             >
               <MSIcon name={t.icon} size={18} />
               <span style={{ fontSize: 7, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
-                {t.id === "opener" ? "HUD" : t.id === "grid" ? "GRID" : t.id === "champs" ? "UNITS" : t.id === "comps" ? "COMPS" : "GODS"}
+                {t.id === "opener" ? "HUD" : t.id === "builder" ? "BUILD" : t.id === "grid" ? "GRID" : t.id === "champs" ? "UNITS" : t.id === "comps" ? "COMPS" : t.id === "items" ? "ITEMS" : "GODS"}
               </span>
             </button>
           );
@@ -166,11 +172,13 @@ function Donut17Page() {
       <main style={{ marginLeft: 64, paddingTop: 72, paddingBottom: 48, minHeight: "100vh", position: "relative", zIndex: 1 }}>
         <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 24px" }}>
           <React.Suspense fallback={null}>
-            {tab === "opener" && <OpenerAdvisor champions={championsData} traits={traitsData} compLines={compLinesData} />}
-            {tab === "grid"   && <SynergyGrid   champions={championsData} traits={traitsData} />}
-            {tab === "champs" && <Champions      champions={championsData} traits={traitsData} />}
-            {tab === "comps"  && <CompLines      compLines={compLinesData} champions={championsData} />}
-            {tab === "gods"   && <Gods           gods={godsData} />}
+            {tab === "opener"  && <OpenerAdvisor champions={championsData} traits={traitsData} compLines={compLinesData} />}
+            {tab === "builder" && <TeamBuilder   champions={championsData} traits={traitsData} />}
+            {tab === "grid"    && <SynergyGrid   champions={championsData} traits={traitsData} />}
+            {tab === "champs"  && <Champions      champions={championsData} traits={traitsData} />}
+            {tab === "comps"   && <CompLines      compLines={compLinesData} champions={championsData} />}
+            {tab === "items"   && <Items />}
+            {tab === "gods"    && <Gods           gods={godsData} />}
           </React.Suspense>
         </div>
         <footer style={{ marginTop: 48, borderTop: "1px solid " + C.border, padding: "16px 24px 16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
