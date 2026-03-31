@@ -1,10 +1,23 @@
 import React, { useState, useMemo } from "react";
+import { C, F, COST_COLOR, TRAIT_COLOR } from "../d17.js";
 import ChampIcon from "../components/ChampIcon.jsx";
-import TraitBadge from "../components/TraitBadge.jsx";
-import CostBadge from "../components/CostBadge.jsx";
 
-const COST_COLORS = { 1: "#9ca3af", 2: "#22c55e", 3: "#3b82f6", 4: "#a855f7", 5: "#eab308" };
 const COST_NAMES = { 1: "1-Cost", 2: "2-Cost", 3: "3-Cost", 4: "4-Cost", 5: "5-Cost" };
+
+function StatBar({ label, value, max, color }) {
+  const pct = Math.min(100, max > 0 ? (value / max) * 100 : 0);
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+        <span style={{ fontSize: 9, color: C.textDim, fontFamily: F.label, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</span>
+        <span style={{ fontSize: 9, color: C.textMuted, fontFamily: F.label, fontWeight: 600 }}>{typeof value === "number" ? (Number.isInteger(value) ? value : value.toFixed(2)) : value}</span>
+      </div>
+      <div style={{ height: 3, background: C.border }}>
+        <div style={{ height: "100%", width: pct + "%", background: color, transition: "width 0.3s" }} />
+      </div>
+    </div>
+  );
+}
 
 function Champions({ champions, traits }) {
   const [search, setSearch] = useState("");
@@ -29,83 +42,104 @@ function Champions({ champions, traits }) {
   }, [champions, costFilter, search]);
 
   const byCost = useMemo(function() {
-    const groups = {};
+    const g = {};
     filtered.forEach(function(c) {
-      if (!groups[c.cost]) groups[c.cost] = [];
-      groups[c.cost].push(c);
+      if (!g[c.cost]) g[c.cost] = [];
+      g[c.cost].push(c);
     });
-    return groups;
+    return g;
   }, [filtered]);
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <input
-          value={search}
-          onChange={function(e) { setSearch(e.target.value); }}
-          placeholder="Search champion or trait..."
-          style={{ flex: 1, minWidth: 160, padding: "7px 12px", borderRadius: 6, border: "1px solid #1e293b", background: "#0f1629", color: "#e2e8f0", fontFamily: "'Chakra Petch', sans-serif", fontSize: 12, outline: "none" }}
-        />
-        <button
-          onClick={function() { setCostFilter(null); }}
-          style={{ padding: "6px 12px", borderRadius: 5, border: "1px solid " + (costFilter === null ? "#a78bfa" : "#1e293b"), background: costFilter === null ? "rgba(167,139,250,0.15)" : "transparent", color: costFilter === null ? "#a78bfa" : "#475569", fontSize: 11, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif" }}
-        >
-          All
-        </button>
-        {[1, 2, 3, 4, 5].map(function(c) {
-          const color = COST_COLORS[c];
-          const active = costFilter === c;
-          return (
-            <button
-              key={c}
-              onClick={function() { setCostFilter(active ? null : c); }}
-              style={{ padding: "6px 12px", borderRadius: 5, border: "1px solid " + (active ? color : "#1e293b"), background: active ? color + "22" : "transparent", color: active ? color : "#475569", fontSize: 11, cursor: "pointer", fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700 }}
-            >
-              {c}g
-            </button>
-          );
-        })}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
+        <div>
+          <h2 style={{ fontFamily: F.headline, fontSize: 24, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: C.text, borderLeft: "4px solid " + C.primary, paddingLeft: 12, margin: 0, lineHeight: 1 }}>
+            Champions
+          </h2>
+          <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, marginTop: 6, paddingLeft: 16 }}>All 57 Set 17 units. Click to expand stats and ability.</p>
+        </div>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          <input
+            value={search}
+            onChange={function(e) { setSearch(e.target.value); }}
+            placeholder="Search unit or trait..."
+            style={{ padding: "6px 10px", background: C.surfaceLow, border: "1px solid " + C.border, color: C.text, fontSize: 11, fontFamily: F.label, outline: "none", width: 160 }}
+          />
+          <button
+            onClick={function() { setCostFilter(null); }}
+            style={{ padding: "6px 10px", border: "1px solid " + (costFilter === null ? C.primary : C.border), background: costFilter === null ? C.primary + "22" : "transparent", color: costFilter === null ? C.primary : C.textDim, fontSize: 9, fontFamily: F.label, fontWeight: 700, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
+          >
+            ALL
+          </button>
+          {[1, 2, 3, 4, 5].map(function(c) {
+            const col = COST_COLOR[c];
+            const active = costFilter === c;
+            return (
+              <button
+                key={c}
+                onClick={function() { setCostFilter(active ? null : c); }}
+                style={{ width: 28, height: 28, border: "1px solid " + (active ? col : C.border), background: active ? col + "22" : "transparent", color: active ? col : C.textDim, fontSize: 10, fontFamily: F.label, fontWeight: 700, cursor: "pointer" }}
+              >
+                {c}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {Object.keys(byCost).sort(function(a, b) { return a - b; }).map(function(cost) {
-        const color = COST_COLORS[parseInt(cost, 10)];
-        const label = COST_NAMES[parseInt(cost, 10)];
+        const costInt = parseInt(cost, 10);
+        const col = COST_COLOR[costInt];
+        const label = COST_NAMES[costInt] || (cost + "-cost");
         return (
           <div key={cost} style={{ marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <div style={{ height: 1, flex: 1, background: color + "33" }} />
-              <span style={{ fontFamily: "'Orbitron', monospace", fontSize: 11, color: color, fontWeight: 700, letterSpacing: 1 }}>
-                {label}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <div style={{ height: 1, width: 12, background: col + "66" }} />
+              <span style={{ fontFamily: F.label, fontSize: 9, color: col, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
+                {label} — {byCost[cost].length} units
               </span>
-              <div style={{ height: 1, flex: 1, background: color + "33" }} />
+              <div style={{ height: 1, flex: 1, background: col + "22" }} />
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 2 }}>
               {byCost[cost].map(function(champ) {
                 const isExp = expanded === champ.key;
                 return (
                   <div
                     key={champ.key}
-                    style={{ border: "1px solid " + (isExp ? color : "#1e293b"), borderRadius: 8, overflow: "hidden", background: "rgba(15,22,41,0.6)", cursor: "pointer", width: isExp ? "100%" : "auto" }}
+                    style={{ background: isExp ? C.surface : C.surfaceLow, borderLeft: "3px solid " + col, cursor: "pointer", transition: "background 0.15s", gridColumn: isExp ? "1 / -1" : "auto" }}
                     onClick={function() { setExpanded(isExp ? null : champ.key); }}
                   >
                     {!isExp ? (
-                      <div style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
-                        <ChampIcon champ={champ} size={36} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 12, color: "#e2e8f0", fontFamily: "'Chakra Petch', sans-serif", fontWeight: 600, whiteSpace: "nowrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 0, height: 60 }}>
+                        <div style={{ width: 60, height: 60, flexShrink: 0, overflow: "hidden" }}>
+                          {champ.assets && champ.assets.face_lg && (
+                            <img src={champ.assets.face_lg} alt={champ.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={function(e) { e.target.style.display = "none"; }} />
+                          )}
+                        </div>
+                        <div style={{ flex: 1, padding: "6px 10px", minWidth: 0 }}>
+                          <div style={{ fontFamily: F.headline, fontSize: 12, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
                             {champ.name}
                           </div>
-                          <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 2 }}>
-                            {champ.traits.map(function(t) {
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                            {champ.traits.filter(function(t) { return t !== "Choose Trait"; }).map(function(t) {
                               const trait = traitMap[t];
-                              if (!trait) return null;
-                              return <TraitBadge key={t} trait={trait} />;
+                              if (!trait || trait.type === "unique") return null;
+                              const tcol = TRAIT_COLOR[trait.type] || C.borderLight;
+                              return (
+                                <span key={t} style={{ fontSize: 8, fontFamily: F.label, color: tcol, background: tcol + "15", padding: "1px 5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
+                              );
+                            })}
+                            {champ.traits.filter(function(t) { return traitMap[t] && traitMap[t].type === "unique" && t !== "Choose Trait"; }).map(function(t) {
+                              return (
+                                <span key={t} style={{ fontSize: 8, fontFamily: F.label, color: C.tertiary, background: C.tertiary + "15", padding: "1px 5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
+                              );
                             })}
                           </div>
                         </div>
                       </div>
                     ) : (
-                      <ChampDetail champ={champ} traitMap={traitMap} color={color} />
+                      <ChampDetail champ={champ} traitMap={traitMap} color={col} />
                     )}
                   </div>
                 );
@@ -118,64 +152,46 @@ function Champions({ champions, traits }) {
   );
 }
 
-function StatBar({ label, value, max, color }) {
-  const pct = Math.min(100, (value / max) * 100);
-  return (
-    <div style={{ marginBottom: 5 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-        <span style={{ fontSize: 10, color: "#64748b", fontFamily: "'Chakra Petch', sans-serif" }}>{label}</span>
-        <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "'JetBrains Mono', monospace" }}>{value}</span>
-      </div>
-      <div style={{ height: 4, background: "#1e293b", borderRadius: 2, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: pct + "%", background: color, borderRadius: 2, transition: "width 0.3s" }} />
-      </div>
-    </div>
-  );
-}
-
 function ChampDetail({ champ, traitMap, color }) {
   return (
-    <div style={{ padding: 14 }}>
-      <div style={{ display: "flex", gap: 14, marginBottom: 14 }}>
-        <div style={{ flexShrink: 0 }}>
-          <ChampIcon champ={champ} size={72} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <span style={{ fontFamily: "'Orbitron', monospace", fontSize: 16, color: color, fontWeight: 700 }}>
-              {champ.name.toUpperCase()}
-            </span>
-            <CostBadge cost={champ.cost} />
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
-            {champ.traits.map(function(t) {
-              const trait = traitMap[t];
-              if (!trait) return null;
-              return <TraitBadge key={t} trait={trait} size="lg" />;
-            })}
-          </div>
-          {champ.ability && champ.ability.name && (
-            <div>
-              <div style={{ fontSize: 11, color: "#a78bfa", fontFamily: "'Chakra Petch', sans-serif", fontWeight: 700, marginBottom: 2 }}>
-                {champ.ability.name}
-              </div>
-              <div style={{ fontSize: 11, color: "#94a3b8", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1.5 }}>
-                {champ.ability.desc || "No description available."}
-              </div>
-            </div>
-          )}
-        </div>
+    <div style={{ display: "flex", gap: 0 }}>
+      <div style={{ width: 120, height: 120, flexShrink: 0, overflow: "hidden" }}>
+        {champ.assets && champ.assets.face_lg && (
+          <img src={champ.assets.face_lg} alt={champ.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={function(e) { e.target.style.display = "none"; }} />
+        )}
       </div>
-      {champ.stats && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
-          <StatBar label="HP" value={champ.stats.hp} max={1500} color={color} />
-          <StatBar label="Armor" value={champ.stats.armor} max={100} color={color} />
-          <StatBar label="Attack" value={champ.stats.damage} max={100} color={color} />
-          <StatBar label="Magic Resist" value={champ.stats.magicResist} max={100} color={color} />
-          <StatBar label="Atk Speed" value={Math.round(champ.stats.attackSpeed * 100) / 100} max={1.5} color={color} />
-          <StatBar label="Range" value={champ.stats.range} max={6} color={color} />
+      <div style={{ flex: 1, padding: "14px 16px", minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <span style={{ fontFamily: F.headline, fontSize: 18, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: -0.5 }}>{champ.name}</span>
+          <span style={{ fontSize: 9, background: color + "22", color: color, padding: "2px 7px", fontFamily: F.label, fontWeight: 700, letterSpacing: 1 }}>{champ.cost}G</span>
         </div>
-      )}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
+          {champ.traits.filter(function(t) { return t !== "Choose Trait"; }).map(function(t) {
+            const trait = traitMap[t];
+            if (!trait) return null;
+            const tcol = TRAIT_COLOR[trait.type] || C.borderLight;
+            return (
+              <span key={t} style={{ fontSize: 9, fontFamily: F.label, color: tcol, background: tcol + "18", padding: "2px 7px", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, borderLeft: "2px solid " + tcol }}>{t}</span>
+            );
+          })}
+        </div>
+        {champ.ability && champ.ability.name && (
+          <div style={{ marginBottom: 10 }}>
+            <span style={{ fontSize: 10, color: C.primary, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, marginRight: 8 }}>{champ.ability.name}</span>
+            <span style={{ fontSize: 10, color: C.textMuted, fontFamily: F.body, lineHeight: 1.5 }}>{champ.ability.desc ? champ.ability.desc.replace(/<[^>]+>/g, "").replace(/@[^@]+@/g, "X").slice(0, 120) : ""}</span>
+          </div>
+        )}
+        {champ.stats && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0 16px" }}>
+            <StatBar label="HP" value={champ.stats.hp} max={1800} color={color} />
+            <StatBar label="Armor" value={champ.stats.armor} max={80} color={color} />
+            <StatBar label="MR" value={champ.stats.magicResist} max={80} color={color} />
+            <StatBar label="AD" value={champ.stats.damage} max={100} color={color} />
+            <StatBar label="AS" value={champ.stats.attackSpeed} max={1.2} color={color} />
+            <StatBar label="Range" value={champ.stats.range} max={5} color={color} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

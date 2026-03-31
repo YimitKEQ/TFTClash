@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { C, F } from "./d17.js";
 import championsData from "./data/champions.json";
 import traitsData from "./data/traits.json";
 import godsData from "./data/gods.json";
 import compLinesData from "./data/comp_lines.json";
+
 import OpenerAdvisor from "./tabs/OpenerAdvisor.jsx";
 import SynergyGrid from "./tabs/SynergyGrid.jsx";
 import Champions from "./tabs/Champions.jsx";
@@ -10,137 +12,172 @@ import CompLines from "./tabs/CompLines.jsx";
 import Gods from "./tabs/Gods.jsx";
 
 const TABS = [
-  { id: "opener", label: "OPENER ADVISOR", icon: "&#127775;" },
-  { id: "grid", label: "SYNERGY GRID", icon: "&#9783;" },
-  { id: "champs", label: "CHAMPIONS", icon: "&#9876;" },
-  { id: "comps", label: "COMP LINES", icon: "&#128202;" },
-  { id: "gods", label: "GODS", icon: "&#128293;" },
+  { id: "opener", label: "Opener Advisor", icon: "grid_view" },
+  { id: "grid",   label: "Synergy Grid",   icon: "hub" },
+  { id: "champs", label: "Champions",      icon: "group" },
+  { id: "comps",  label: "Comp Lines",     icon: "bar_chart" },
+  { id: "gods",   label: "Gods",           icon: "military_tech" },
 ];
 
-const D17_STYLES = {
-  "--d17-bg-deep": "#080c18",
-  "--d17-bg-surface": "#0f1629",
-  "--d17-bg-card": "rgba(15, 23, 42, 0.5)",
-  "--d17-border": "#1e293b",
-  "--d17-text-primary": "#e2e8f0",
-  "--d17-text-secondary": "#94a3b8",
-  "--d17-text-muted": "#475569",
-  "--d17-accent-purple": "#a78bfa",
-  "--d17-accent-blue": "#60a5fa",
+const ACCENTCOLORS = {
+  opener: C.primary,
+  grid:   C.secondary,
+  champs: C.primary,
+  comps:  C.tertiary,
+  gods:   C.tertiary,
 };
 
-function Donut17Page() {
-  const [activeTab, setActiveTab] = useState("opener");
+function MSIcon({ name, size = 20, style: extra }) {
+  return (
+    <span
+      className="material-symbols-outlined"
+      style={{ fontSize: size, lineHeight: 1, display: "inline-block", ...extra }}
+    >
+      {name}
+    </span>
+  );
+}
 
-  // Load custom fonts for this page only
+function Donut17Page() {
+  const [tab, setTab] = useState("opener");
+
   useEffect(function() {
-    const id = "donut17-fonts";
-    if (document.getElementById(id)) return;
-    const link = document.createElement("link");
-    link.id = id;
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Chakra+Petch:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap";
-    document.head.appendChild(link);
-    return function() {
-      // Leave font loaded - no harm in keeping it
-    };
+    const fontId = "d17-fonts";
+    if (!document.getElementById(fontId)) {
+      const link = document.createElement("link");
+      link.id = fontId;
+      link.rel = "stylesheet";
+      link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap";
+      document.head.appendChild(link);
+    }
+    const iconId = "d17-msymbols";
+    if (!document.getElementById(iconId)) {
+      const link2 = document.createElement("link");
+      link2.id = iconId;
+      link2.rel = "stylesheet";
+      link2.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200";
+      document.head.appendChild(link2);
+    }
   }, []);
 
-  const rootStyle = Object.assign({
-    minHeight: "100vh",
-    background: "#080c18",
-    fontFamily: "'Chakra Petch', sans-serif",
-    color: "#e2e8f0",
-    position: "relative",
-    overflow: "hidden",
-  }, D17_STYLES);
+  const accentColor = ACCENTCOLORS[tab] || C.primary;
 
   return (
-    <div style={rootStyle}>
-      {/* Starfield background */}
-      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 20% 20%, rgba(167,139,250,0.08) 0%, transparent 60%)" }} />
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at 80% 80%, rgba(96,165,250,0.06) 0%, transparent 60%)" }} />
-      </div>
+    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
 
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 1100, margin: "0 auto", padding: "0 16px 40px" }}>
+      {/* Nebula bg */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
+        background: "radial-gradient(circle at 40% 30%, rgba(205,189,255,0.07) 0%, transparent 55%), radial-gradient(circle at 80% 70%, rgba(141,205,255,0.05) 0%, transparent 45%)"
+      }} />
 
-        {/* Header */}
-        <div style={{ paddingTop: 24, paddingBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.05)", marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-            <div>
-              <div style={{ fontFamily: "'Orbitron', monospace", fontWeight: 900, fontSize: 22, letterSpacing: 2, color: "#a78bfa", lineHeight: 1 }}>
-                DONUT17
-              </div>
-              <div style={{ fontSize: 11, color: "#475569", fontFamily: "'Chakra Petch', sans-serif", marginTop: 4, letterSpacing: 1 }}>
-                TFT SET 17: SPACE GODS - PREP TOOL
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ fontSize: 10, color: "#334155", fontFamily: "'JetBrains Mono', monospace", textAlign: "right" }}>
-                <div>{championsData.length} champions</div>
-                <div>{traitsData.length} traits</div>
-              </div>
-              <div style={{ width: 1, height: 28, background: "#1e293b" }} />
-              <div style={{ fontSize: 10, color: "#334155", fontFamily: "'JetBrains Mono', monospace" }}>
-                PBE data
-              </div>
-            </div>
+      {/* Fixed header */}
+      <header style={{
+        position: "fixed", top: 0, left: 0, right: 0, height: 56, zIndex: 50,
+        background: C.bg + "e8", backdropFilter: "blur(16px)",
+        borderBottom: "1px solid " + C.border,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        padding: "0 24px 0 80px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <div style={{ fontFamily: F.headline, fontWeight: 700, fontSize: 16, letterSpacing: 2, color: C.text, textTransform: "uppercase" }}>
+            DONUT<span style={{ color: C.primary }}>17</span>
           </div>
+          <nav style={{ display: "flex", alignItems: "stretch", height: 56, gap: 0 }}>
+            {TABS.map(function(t) {
+              const active = tab === t.id;
+              const col = ACCENTCOLORS[t.id];
+              return (
+                <button
+                  key={t.id}
+                  onClick={function() { setTab(t.id); }}
+                  style={{
+                    padding: "0 16px",
+                    background: active ? col + "0d" : "transparent",
+                    border: "none",
+                    borderBottom: active ? ("2px solid " + col) : "2px solid transparent",
+                    color: active ? col : C.textDim,
+                    fontFamily: F.headline,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    transition: "color 0.15s, border-color 0.15s",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </nav>
         </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 10, fontFamily: F.label, color: C.textDim, letterSpacing: 1 }}>
+          <span style={{ color: C.border }}>|</span>
+          <span>{championsData.length} CHAMPIONS</span>
+          <span style={{ color: C.border }}>|</span>
+          <span>{traitsData.length} TRAITS</span>
+          <span style={{ color: C.border }}>|</span>
+          <span style={{ color: accentColor }}>PBE DATA</span>
+        </div>
+      </header>
 
-        {/* Tab nav */}
-        <div style={{ display: "flex", gap: 2, marginBottom: 20, overflowX: "auto", paddingBottom: 2 }}>
-          {TABS.map(function(tab) {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={function() { setActiveTab(tab.id); }}
-                style={{
-                  padding: "8px 14px",
-                  borderRadius: 6,
-                  border: "1px solid " + (active ? "#a78bfa44" : "#1e293b"),
-                  background: active ? "rgba(167,139,250,0.12)" : "transparent",
-                  color: active ? "#a78bfa" : "#475569",
-                  fontFamily: "'Orbitron', monospace",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 0.5,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "all 0.15s",
-                }}
-              >
-                <span dangerouslySetInnerHTML={{ __html: tab.icon }} /> {tab.label}
-              </button>
-            );
-          })}
-        </div>
+      {/* Fixed left sidebar */}
+      <aside style={{
+        position: "fixed", top: 0, left: 0, bottom: 0, width: 64, zIndex: 40,
+        background: C.surfaceLow + "f0", backdropFilter: "blur(12px)",
+        borderRight: "1px solid " + C.border,
+        display: "flex", flexDirection: "column", alignItems: "center",
+        paddingTop: 72, gap: 4,
+      }}>
+        {TABS.map(function(t) {
+          const active = tab === t.id;
+          const col = ACCENTCOLORS[t.id];
+          return (
+            <button
+              key={t.id}
+              onClick={function() { setTab(t.id); }}
+              title={t.label}
+              style={{
+                width: "100%",
+                padding: "10px 0",
+                background: active ? col + "15" : "transparent",
+                border: "none",
+                borderLeft: active ? ("3px solid " + col) : "3px solid transparent",
+                color: active ? col : C.textDim,
+                cursor: "pointer",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+                transition: "all 0.15s",
+              }}
+            >
+              <MSIcon name={t.icon} size={18} />
+              <span style={{ fontSize: 7, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
+                {t.id === "opener" ? "HUD" : t.id === "grid" ? "GRID" : t.id === "champs" ? "UNITS" : t.id === "comps" ? "COMPS" : "GODS"}
+              </span>
+            </button>
+          );
+        })}
+      </aside>
 
-        {/* Tab content */}
-        <div style={{ background: "rgba(15,22,41,0.5)", border: "1px solid #1e293b", borderRadius: 10, padding: "18px 16px" }}>
-          {activeTab === "opener" && (
-            <OpenerAdvisor champions={championsData} traits={traitsData} compLines={compLinesData} />
-          )}
-          {activeTab === "grid" && (
-            <SynergyGrid champions={championsData} traits={traitsData} />
-          )}
-          {activeTab === "champs" && (
-            <Champions champions={championsData} traits={traitsData} />
-          )}
-          {activeTab === "comps" && (
-            <CompLines compLines={compLinesData} champions={championsData} />
-          )}
-          {activeTab === "gods" && (
-            <Gods gods={godsData} />
-          )}
+      {/* Main content */}
+      <main style={{ marginLeft: 64, paddingTop: 72, paddingBottom: 48, minHeight: "100vh", position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 24px" }}>
+          <React.Suspense fallback={null}>
+            {tab === "opener" && <OpenerAdvisor champions={championsData} traits={traitsData} compLines={compLinesData} />}
+            {tab === "grid"   && <SynergyGrid   champions={championsData} traits={traitsData} />}
+            {tab === "champs" && <Champions      champions={championsData} traits={traitsData} />}
+            {tab === "comps"  && <CompLines      compLines={compLinesData} champions={championsData} />}
+            {tab === "gods"   && <Gods           gods={godsData} />}
+          </React.Suspense>
         </div>
-
-        <div style={{ marginTop: 24, textAlign: "center", fontSize: 10, color: "#1e293b", fontFamily: "'JetBrains Mono', monospace" }}>
-          donut17 - not affiliated with riot games - for the homies only
-        </div>
-      </div>
+        <footer style={{ marginTop: 48, borderTop: "1px solid " + C.border, padding: "16px 24px 16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontFamily: F.headline, fontWeight: 700, fontSize: 12, color: C.border, letterSpacing: 2, textTransform: "uppercase" }}>DONUT17</span>
+          <span style={{ fontFamily: F.label, fontSize: 9, color: C.border, letterSpacing: 1, textTransform: "uppercase" }}>v17 PBE — for the homies only — not affiliated with riot</span>
+        </footer>
+      </main>
     </div>
   );
 }

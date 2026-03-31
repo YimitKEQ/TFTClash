@@ -1,143 +1,148 @@
 import React, { useState } from "react";
+import { C, F, COST_COLOR } from "../d17.js";
 import ChampIcon from "../components/ChampIcon.jsx";
+
+const STRATEGY_COLOR = {
+  "FAST 8":   "#8dcdff",
+  "FAST 7":   "#8dcdff",
+  "FAST 9":   "#8dcdff",
+  "REROLL 6": "#cdbdff",
+  "REROLL 7": "#cdbdff",
+  "FLEX":     "#958da2",
+};
 
 function CompLines({ compLines, champions }) {
   const [expanded, setExpanded] = useState(null);
 
   return (
     <div>
-      <h2 style={{ fontFamily: "'Orbitron', monospace", fontSize: 16, color: "#a78bfa", margin: "0 0 6px", fontWeight: 700, letterSpacing: 1 }}>
-        COMP LINES
+      <h2 style={{ fontFamily: F.headline, fontSize: 24, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: C.text, borderLeft: "4px solid " + C.tertiary, paddingLeft: 12, margin: "0 0 6px" }}>
+        Directives: Comp Lines
       </h2>
-      <p style={{ fontSize: 11, color: "#475569", fontFamily: "'Chakra Petch', sans-serif", margin: "0 0 16px" }}>
-        10 theorycrafted comps with carries, items, and stage-by-stage game plans.
+      <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, marginBottom: 20, paddingLeft: 16 }}>
+        10 theorycrafted comps — core board, BIS items, game plan, and recommended god.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {compLines.map(function(comp) {
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {compLines.map(function(comp, idx) {
           const isExp = expanded === comp.id;
+          const stratCol = STRATEGY_COLOR[comp.strategy] || C.borderLight;
           return (
             <div
               key={comp.id}
-              style={{ border: "1px solid " + (isExp ? comp.color : "#1e293b"), borderRadius: 10, overflow: "hidden", background: "rgba(8,12,24,0.7)", boxShadow: isExp ? ("0 0 16px " + comp.color + "22") : "none", transition: "all 0.2s" }}
+              style={{ background: isExp ? C.surface : C.surfaceLow, borderTop: "2px solid " + comp.color, position: "relative", transition: "background 0.15s" }}
             >
               <div
-                style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", cursor: "pointer" }}
+                style={{ padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 }}
                 onClick={function() { setExpanded(isExp ? null : comp.id); }}
               >
-                <div style={{ width: 5, height: 42, borderRadius: 3, background: comp.color, flexShrink: 0 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 14, color: comp.color, fontWeight: 900, letterSpacing: 0.5, marginBottom: 3 }}>
-                    {comp.name.toUpperCase()}
-                  </div>
-                  <div style={{ fontSize: 11, color: "#64748b", fontFamily: "'Chakra Petch', sans-serif" }}>
-                    {comp.desc}
-                  </div>
+                {/* Rank number */}
+                <div style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid " + C.border, flexShrink: 0 }}>
+                  <span style={{ fontFamily: F.label, fontSize: 11, fontWeight: 700, color: C.textDim }}>{idx + 1}</span>
                 </div>
-                <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-                  {comp.core.slice(0, 5).map(function(key) {
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3, flexWrap: "wrap" }}>
+                    <span style={{ fontFamily: F.headline, fontSize: 16, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: -0.3 }}>{comp.name}</span>
+                    <span style={{ fontSize: 8, padding: "1px 6px", background: comp.color + "22", color: comp.color, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: "1px solid " + comp.color + "44" }}>{comp.strategy}</span>
+                    {comp.carry && (
+                      <span style={{ fontSize: 8, color: C.textDim, fontFamily: F.label, letterSpacing: 1, textTransform: "uppercase" }}>
+                        carry: <span style={{ color: comp.color }}>{(function() { const ch = champions.find(function(c) { return c.key === comp.carry; }); return ch ? ch.name : comp.carry; })()}</span>
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontFamily: F.body, fontSize: 10, color: C.textDim, margin: 0 }}>{comp.desc}</p>
+                </div>
+
+                {/* Core portraits */}
+                <div style={{ display: "flex", gap: 3, alignItems: "center", flexShrink: 0 }}>
+                  {comp.core.map(function(key) {
                     const ch = champions.find(function(c) { return c.key === key; });
                     if (!ch) return null;
-                    return <ChampIcon key={key} champ={ch} size={34} />;
+                    return (
+                      <div key={key} style={{ position: "relative" }}>
+                        <ChampIcon champ={ch} size={36} />
+                        {key === comp.carry && (
+                          <div style={{ position: "absolute", top: -3, right: -3, width: 10, height: 10, background: comp.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 6, fontWeight: 900, fontFamily: F.label, color: "#000" }}>C</div>
+                        )}
+                      </div>
+                    );
                   })}
-                  {comp.core.length > 5 && (
-                    <div style={{ width: 34, height: 34, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#64748b", border: "1px solid #1e293b" }}>
-                      +{comp.core.length - 5}
-                    </div>
-                  )}
                 </div>
-                <span style={{ color: "#475569", fontSize: 12 }}>{isExp ? "▲" : "▼"}</span>
+
+                <span style={{ color: C.textDim, fontSize: 11, flexShrink: 0 }}>{isExp ? "▲" : "▼"}</span>
               </div>
 
               {isExp && (
-                <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", padding: 16 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-                    <div>
-                      <SectionLabel text="CORE BOARD" color={comp.color} />
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {comp.core.map(function(key) {
-                          const ch = champions.find(function(c) { return c.key === key; });
-                          if (!ch) return null;
-                          const isCarry = key === comp.carry;
-                          return (
-                            <div key={key} style={{ position: "relative" }}>
-                              <ChampIcon champ={ch} size={44} showName={true} />
-                              {isCarry && (
-                                <div style={{ position: "absolute", top: -4, right: -4, width: 14, height: 14, borderRadius: "50%", background: comp.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#000", fontWeight: 900, fontFamily: "'Chakra Petch', sans-serif" }}>
-                                  C
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                <div style={{ borderTop: "1px solid " + C.border, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
+                  {/* Left: boards */}
+                  <div style={{ padding: "16px", borderRight: "1px solid " + C.border }}>
+                    <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Core Board</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+                      {comp.core.map(function(key) {
+                        const ch = champions.find(function(c) { return c.key === key; });
+                        if (!ch) return null;
+                        return (
+                          <div key={key} style={{ position: "relative" }}>
+                            <ChampIcon champ={ch} size={48} showName={true} />
+                            {key === comp.carry && (
+                              <div style={{ position: "absolute", top: -4, right: -4, width: 13, height: 13, background: comp.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, fontWeight: 900, fontFamily: F.label, color: "#000" }}>C</div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div>
-                      <SectionLabel text="FLEX UNITS" color="#475569" />
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {(comp.flex || []).map(function(key) {
-                          const ch = champions.find(function(c) { return c.key === key; });
-                          if (!ch) return null;
-                          return <ChampIcon key={key} champ={ch} size={36} showName={true} />;
-                        })}
-                        {(!comp.flex || comp.flex.length === 0) && (
-                          <span style={{ fontSize: 11, color: "#475569", fontFamily: "'Chakra Petch', sans-serif" }}>Situational</span>
-                        )}
+
+                    {comp.flex && comp.flex.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Flex Units</div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                          {comp.flex.map(function(key) {
+                            const ch = champions.find(function(c) { return c.key === key; });
+                            if (!ch) return null;
+                            return <ChampIcon key={key} champ={ch} size={36} showName={true} />;
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
 
-                  {comp.items && Object.keys(comp.items).length > 0 && (
-                    <div style={{ marginBottom: 14 }}>
-                      <SectionLabel text="BIS ITEMS" color={comp.color} />
-                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        {Object.entries(comp.items).map(function([role, items]) {
+                  {/* Right: items + plan + god */}
+                  <div style={{ padding: "16px" }}>
+                    {comp.items && (
+                      <div style={{ marginBottom: 14 }}>
+                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>BIS Items</div>
+                        {Object.values(comp.items).map(function(items, gi) {
                           return items.map(function(item, i) {
                             return (
-                              <div key={role + i} style={{ fontSize: 11, color: "#cbd5e1", fontFamily: "'Chakra Petch', sans-serif", padding: "4px 10px", background: "rgba(255,255,255,0.02)", borderRadius: 5, borderLeft: "3px solid " + comp.color + "66" }}>
-                                {item}
-                              </div>
+                              <div key={gi + "_" + i} style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, paddingLeft: 10, borderLeft: "2px solid " + comp.color + "66", marginBottom: 5, lineHeight: 1.5 }}>{item}</div>
                             );
                           });
                         })}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {comp.gameplan && (
-                    <div style={{ marginBottom: 14 }}>
-                      <SectionLabel text="GAME PLAN" color={comp.color} />
-                      <div style={{ fontSize: 12, color: "#94a3b8", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1.7, padding: "8px 12px", background: "rgba(255,255,255,0.02)", borderRadius: 6 }}>
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Tactical Plan</div>
+                      <p style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, margin: 0, lineHeight: 1.7, background: C.surfaceLow, padding: "8px 10px" }}>
                         {comp.gameplan}
-                      </div>
+                      </p>
                     </div>
-                  )}
 
-                  {comp.god && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", background: "rgba(167,139,250,0.05)", borderRadius: 6, border: "1px solid rgba(167,139,250,0.15)" }}>
-                      <span style={{ fontSize: 10, color: "#475569", fontFamily: "'Chakra Petch', sans-serif" }}>Recommended God</span>
-                      <span style={{ fontSize: 13, color: "#a78bfa", fontWeight: 700, fontFamily: "'Orbitron', monospace" }}>{comp.god.toUpperCase()}</span>
-                      {comp.godWhy && (
-                        <span style={{ fontSize: 11, color: "#64748b", fontFamily: "'Chakra Petch', sans-serif" }}>
-                          - {comp.godWhy}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                    {comp.god && (
+                      <div style={{ background: C.tertiary + "0d", border: "1px solid " + C.tertiary + "33", padding: "8px 10px" }}>
+                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.tertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>Recommended God</div>
+                        <div style={{ fontFamily: F.headline, fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 3 }}>{comp.god}</div>
+                        {comp.godWhy && <div style={{ fontSize: 10, fontFamily: F.body, color: C.textDim }}>{comp.godWhy}</div>}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function SectionLabel({ text, color }) {
-  return (
-    <div style={{ fontSize: 9, color: color, fontFamily: "'Orbitron', monospace", letterSpacing: 1, marginBottom: 8, fontWeight: 700 }}>
-      {text}
     </div>
   );
 }

@@ -1,74 +1,133 @@
 import React, { useState } from "react";
-import GodCard from "../components/GodCard.jsx";
+import { C, F } from "../d17.js";
 
 function Gods({ gods }) {
   const [selected, setSelected] = useState(null);
-  const activeGod = selected !== null ? gods[selected] : null;
 
   return (
     <div>
-      <h2 style={{ fontFamily: "'Orbitron', monospace", fontSize: 16, color: "#a78bfa", margin: "0 0 6px", fontWeight: 700, letterSpacing: 1 }}>
-        REALM OF THE GODS
-      </h2>
-      <p style={{ fontSize: 11, color: "#475569", fontFamily: "'Chakra Petch', sans-serif", margin: "0 0 16px" }}>
-        Each run you choose one God. Your God's offerings unlock at stages 2, 3, and 4. The 4-7 blessing is always active.
-      </p>
+      <div style={{ textAlign: "center", marginBottom: 32 }}>
+        <div style={{ fontSize: 9, fontFamily: F.label, color: C.tertiary, letterSpacing: 4, textTransform: "uppercase", marginBottom: 8 }}>Celestial Entities</div>
+        <h2 style={{ fontFamily: F.headline, fontSize: 36, fontWeight: 700, textTransform: "uppercase", letterSpacing: -1, color: C.text, margin: "0 0 12px" }}>
+          The Space Gods
+        </h2>
+        <div style={{ width: 48, height: 2, background: C.tertiary, margin: "0 auto 12px" }} />
+        <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, maxWidth: 480, margin: "0 auto" }}>
+          Choose one God each run. Their blessings and offerings unlock at stages 2, 3, and 4. Your 4-7 blessing is always active.
+        </p>
+      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 8, marginBottom: 20 }}>
+      {/* God portrait row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 6, marginBottom: 24 }}>
         {gods.map(function(god, idx) {
-          const isActive = selected === idx;
-          return (
-            <GodPortrait
-              key={god.key}
-              god={god}
-              active={isActive}
-              onClick={function() { setSelected(isActive ? null : idx); }}
-            />
-          );
+          const active = selected === idx;
+          return <GodPortrait key={god.key} god={god} active={active} onClick={function() { setSelected(active ? null : idx); }} />;
         })}
       </div>
 
-      {activeGod ? (
-        <div>
-          <GodCard god={activeGod} />
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {gods.map(function(god) {
-            return <GodCard key={god.key} god={god} />;
-          })}
-        </div>
-      )}
+      {/* God cards */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {(selected !== null ? [gods[selected]] : gods).map(function(god) {
+          return <GodFullCard key={god.key} god={god} />;
+        })}
+      </div>
     </div>
   );
 }
 
 function GodPortrait({ god, active, onClick }) {
-  const [imgError, setImgError] = useState(false);
+  const [err, setErr] = useState(false);
   return (
     <div
-      style={{ border: "2px solid " + (active ? god.color : god.color + "44"), borderRadius: 8, overflow: "hidden", cursor: "pointer", background: active ? god.color + "15" : "rgba(15,22,41,0.5)", transition: "all 0.15s", position: "relative" }}
       onClick={onClick}
+      style={{ cursor: "pointer", border: "2px solid " + (active ? god.color : god.color + "44"), background: active ? god.color + "15" : C.surfaceLow, transition: "all 0.15s" }}
     >
-      {!imgError && god.image ? (
-        <img
-          src={god.image}
-          alt={god.name}
-          style={{ width: "100%", height: 80, objectFit: "cover", objectPosition: "top", display: "block" }}
-          onError={function() { setImgError(true); }}
-        />
-      ) : (
-        <div style={{ height: 80, background: god.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
-          {god.name.slice(0, 1)}
+      <div style={{ height: 72, overflow: "hidden" }}>
+        {!err && god.image ? (
+          <img src={god.image} alt={god.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }} onError={function() { setErr(true); }} />
+        ) : (
+          <div style={{ height: "100%", background: god.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>
+            {god.name.slice(0, 1)}
+          </div>
+        )}
+      </div>
+      <div style={{ padding: "5px 7px" }}>
+        <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, color: active ? god.color : C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{god.name}</div>
+        <div style={{ fontSize: 8, color: C.textDim, fontFamily: F.label, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{god.title}</div>
+      </div>
+    </div>
+  );
+}
+
+function GodFullCard({ god }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div style={{ background: C.surface, display: "flex", overflow: "hidden" }}>
+      {/* Portrait */}
+      <div style={{ width: 200, minHeight: 200, flexShrink: 0, overflow: "hidden", position: "relative" }}>
+        {!err && god.image ? (
+          <img src={god.image} alt={god.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block", minHeight: 200 }} onError={function() { setErr(true); }} />
+        ) : (
+          <div style={{ height: 200, background: god.color + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56 }}>
+            {god.name.slice(0, 1)}
+          </div>
+        )}
+        {/* Gradient overlay */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, transparent 50%, " + C.surface + " 100%)", pointerEvents: "none" }} />
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, padding: "20px 24px", minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontFamily: F.headline, fontSize: 26, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: god.color, lineHeight: 1 }}>{god.name}</div>
+            <div style={{ fontFamily: F.label, fontSize: 9, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginTop: 4 }}>{god.title}</div>
+          </div>
+          {god.blessing && (
+            <div style={{ background: god.color + "0d", border: "1px solid " + god.color + "44", padding: "8px 12px", maxWidth: 280, flexShrink: 1 }}>
+              <div style={{ fontSize: 8, fontFamily: F.label, color: god.color, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>4-7 Blessing</div>
+              <div style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted }}>{god.blessing}</div>
+            </div>
+          )}
         </div>
-      )}
-      <div style={{ padding: "6px 8px" }}>
-        <div style={{ fontFamily: "'Orbitron', monospace", fontSize: 10, color: god.color, fontWeight: 700, letterSpacing: 0.5 }}>
-          {god.name.toUpperCase()}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, borderTop: "1px solid " + C.border + "44", paddingTop: 16 }}>
+          {["stage2", "stage3", "stage4"].map(function(stage, i) {
+            const labels = ["Stage 2 Offerings", "Stage 3 Offerings", "Stage 4 Offerings"];
+            const offerings = god.offerings && god.offerings[stage] ? god.offerings[stage] : [];
+            return (
+              <div key={stage}>
+                <div style={{ fontSize: 9, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>{labels[i]}</div>
+                <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                  {offerings.map(function(offer, oi) {
+                    return (
+                      <li key={oi} style={{ display: "flex", gap: 6, marginBottom: 5, alignItems: "flex-start" }}>
+                        <span style={{ color: god.color, fontSize: 8, marginTop: 2, flexShrink: 0 }}>&#9632;</span>
+                        <span style={{ fontSize: 10, fontFamily: F.body, color: C.textMuted, lineHeight: 1.4 }}>{offer}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })}
         </div>
-        <div style={{ fontSize: 9, color: "#64748b", fontFamily: "'Chakra Petch', sans-serif", lineHeight: 1.3, marginTop: 2 }}>
-          {god.title}
-        </div>
+
+        {god.tip && (
+          <div style={{ marginTop: 14, borderTop: "1px solid " + C.border + "44", paddingTop: 12, display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 9, fontFamily: F.label, color: god.color, letterSpacing: 1, textTransform: "uppercase", flexShrink: 0, paddingTop: 1 }}>Tip</span>
+            <span style={{ fontSize: 11, fontFamily: F.body, color: C.textDim, fontStyle: "italic", lineHeight: 1.5 }}>{god.tip}</span>
+            {god.bestComps && (
+              <div style={{ marginLeft: "auto", display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                {god.bestComps.map(function(comp, ci) {
+                  return (
+                    <span key={ci} style={{ fontSize: 8, background: god.color + "15", color: god.color, padding: "1px 6px", fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{comp}</span>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

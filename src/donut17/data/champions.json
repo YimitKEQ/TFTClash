@@ -451,50 +451,6 @@
     "bis": []
   },
   {
-    "apiName": "TFT_BlueGolem",
-    "key": "bluegolem",
-    "name": "Golem",
-    "cost": 1,
-    "traits": [],
-    "stats": {
-      "hp": 600.0,
-      "mana": 100,
-      "initialMana": 30.0,
-      "damage": 55.0,
-      "armor": 40.0,
-      "magicResist": 40.0,
-      "attackSpeed": 0.550000011920929,
-      "range": 1.0
-    },
-    "ability": {
-      "name": "Golem Smash",
-      "desc": "Slam the target dealing <magicDamage>@ModifiedDamage@&nbsp;(%i:scaleAP%)</magicDamage> magic damage.",
-      "variables": [
-        {
-          "name": "Damage",
-          "value": [
-            100.0,
-            300.0,
-            480.0,
-            750.0,
-            1125.0,
-            100.0,
-            100.0
-          ]
-        }
-      ]
-    },
-    "assets": {
-      "face": "https://ap.tft.tools/img/new17/face/tft17_bluegolem.jpg?w=36",
-      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_bluegolem.jpg?w=64",
-      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_BlueGolem.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_BlueGolem.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft_bluegolem.tex"
-    },
-    "role": "",
-    "bis": []
-  },
-  {
     "apiName": "TFT17_Leona",
     "key": "leona",
     "name": "Leona",
@@ -828,37 +784,6 @@
     "bis": []
   },
   {
-    "apiName": "TFT9_SLIME_Crab",
-    "key": "slime_crab",
-    "name": "Rift Scuttler",
-    "cost": 1,
-    "traits": [],
-    "stats": {
-      "hp": null,
-      "mana": 100,
-      "initialMana": 0,
-      "damage": 20.0,
-      "armor": 10.0,
-      "magicResist": 10.0,
-      "attackSpeed": 0.800000011920929,
-      "range": 1.0
-    },
-    "ability": {
-      "name": "Swimming Speed",
-      "desc": "<spellPassive>Passive:</spellPassive> Occasionally dash around the board.",
-      "variables": []
-    },
-    "assets": {
-      "face": "https://ap.tft.tools/img/new17/face/tft17_slime_crab.jpg?w=36",
-      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_slime_crab.jpg?w=64",
-      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_SLIME_Crab.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_SLIME_Crab.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft_scuttlecrab.tft_set13.tex"
-    },
-    "role": "",
-    "bis": []
-  },
-  {
     "apiName": "TFT17_Talon",
     "key": "talon",
     "name": "Talon",
@@ -1044,37 +969,6 @@
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Teemo.jpg?w=290",
       "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Teemo.png?w=22",
       "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_teemo/skins/base/images/tft17_teemo_splash_centered_47.tft_set17.tex"
-    },
-    "role": "",
-    "bis": []
-  },
-  {
-    "apiName": "TFT_TrainingDummy",
-    "key": "trainingdummy",
-    "name": "Training Dummy",
-    "cost": 1,
-    "traits": [],
-    "stats": {
-      "hp": 550.0,
-      "mana": 0.0,
-      "initialMana": 0,
-      "damage": 50.0,
-      "armor": 40.0,
-      "magicResist": 40.0,
-      "attackSpeed": 0.5,
-      "range": 1.0
-    },
-    "ability": {
-      "name": "On Duty!",
-      "desc": "The Training Dummy cannot move or attack. It is also dressed like a devilishly handsome Yordle.",
-      "variables": []
-    },
-    "assets": {
-      "face": "https://ap.tft.tools/img/new17/face/tft17_trainingdummy.jpg?w=36",
-      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_trainingdummy.jpg?w=64",
-      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_TrainingDummy.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TrainingDummy.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tftdebug_dummy.tex"
     },
     "role": "",
     "bis": []

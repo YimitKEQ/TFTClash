@@ -1,45 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
+import { TRAIT_COLOR, C, F } from "../d17.js";
 
-const TYPE_COLORS = {
-  origin: "#a78bfa",
-  class: "#60a5fa",
-  unique: "#f59e0b",
-};
-
-function TraitBadge({ trait, count = 0, showCount = false, size = "sm" }) {
-  const [imgError, setImgError] = useState(false);
-  const color = TYPE_COLORS[trait.type] || "#94a3b8";
-  const isLarge = size === "lg";
-  const iconSize = isLarge ? 18 : 14;
-
+function TraitBadge({ trait, count = 0, showCount = false, compact = false }) {
+  const color = TRAIT_COLOR[trait.type] || C.borderLight;
   return (
     <span
+      title={trait.desc || trait.name}
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: isLarge ? 5 : 3,
-        padding: isLarge ? "3px 8px" : "2px 5px",
-        borderRadius: 4,
-        background: "rgba(255,255,255,0.06)",
-        border: "1px solid " + color + "44",
-        fontSize: isLarge ? 12 : 10,
-        fontFamily: "'Chakra Petch', sans-serif",
-        color: color,
+        gap: compact ? 3 : 5,
+        padding: compact ? "1px 6px 1px 0" : "2px 8px 2px 0",
+        background: C.surfaceHighest,
+        fontSize: compact ? 9 : 10,
+        fontFamily: F.label,
+        fontWeight: 600,
+        color: C.textMuted,
+        letterSpacing: 0.5,
+        textTransform: "uppercase",
         whiteSpace: "nowrap",
+        borderLeft: "3px solid " + color,
+        paddingLeft: compact ? 5 : 7,
       }}
-      title={trait.desc || trait.name}
     >
-      {trait.icon && !imgError && (
-        <img
-          src={trait.icon}
-          alt=""
-          style={{ width: iconSize, height: iconSize, opacity: 0.9, filter: "brightness(1.2)" }}
-          onError={() => setImgError(true)}
-        />
-      )}
       {trait.name}
       {showCount && count > 0 && (
-        <span style={{ fontWeight: 700, color: "#fff", background: color + "44", borderRadius: 3, padding: "0 3px", fontSize: isLarge ? 11 : 9 }}>
+        <span style={{ background: color + "33", color: color, fontSize: compact ? 8 : 9, padding: "0 4px", fontWeight: 700 }}>
           {count}
         </span>
       )}
