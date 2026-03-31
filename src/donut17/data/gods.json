@@ -1,0 +1,275 @@
+[
+  {
+    "name": "Ahri",
+    "key": "ahri",
+    "title": "God of Opulence",
+    "color": "#f472b6",
+    "blessing": "Gain 2 gold, 2 XP, and 2 rerolls each round",
+    "offerings": {
+      "stage2": [
+        "6 gold",
+        "8 XP",
+        "5 rerolls",
+        "6 gold (maybe +1)"
+      ],
+      "stage3": [
+        "8 gold",
+        "7 rerolls",
+        "10 XP",
+        "8 gold (maybe +2)"
+      ],
+      "stage4": [
+        "12 gold",
+        "8 rerolls",
+        "12 gold (maybe +3)"
+      ]
+    },
+    "tip": "Best for fast 8/9 strategies. Pair with Timebreaker econ.",
+    "bestComps": [
+      "Fast 9",
+      "High Cost Flex"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/ahri.png?w=400"
+  },
+  {
+    "name": "Aurelion Sol",
+    "key": "aurelionsol",
+    "title": "God of Wonders",
+    "color": "#a78bfa",
+    "blessing": "Choose one of three trials to prove yourself",
+    "offerings": {
+      "stage2": [
+        "Reach 50g -> comp anvil + 4g",
+        "Field 6 traits -> emblem + reforger"
+      ],
+      "stage3": [
+        "Star up a unit -> 10g",
+        "Field 6 traits -> emblem + reforger"
+      ],
+      "stage4": [
+        "Reach lvl 9 -> 20g"
+      ]
+    },
+    "tip": "Needs strong opener. Great with emblem-heavy comps.",
+    "bestComps": [
+      "Emblem Vertical",
+      "6-Trait Flex"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/aurelionsol.png?w=400"
+  },
+  {
+    "name": "Ekko",
+    "key": "ekko",
+    "title": "God of Time",
+    "color": "#34d399",
+    "blessing": "Gain the Anomaly item with unique role-based bonuses",
+    "offerings": {
+      "stage2": [
+        "Scuttle Puddle (orb + 3g)",
+        "Blessing at 30HP",
+        "Spat in 4 rounds",
+        "Artifact in 8 rounds",
+        "4-cost in 3 rounds"
+      ],
+      "stage3": [
+        "Scuttle Puddle (orb + 4g)",
+        "Implant (20% AS)",
+        "2x 5-cost in 4 rounds",
+        "Comp anvil in 3 rounds"
+      ],
+      "stage4": [
+        "Artifact in 5 rounds",
+        "Completed anvil in 4 rounds",
+        "2g every turn",
+        "Full 5-cost shop in 3 rounds"
+      ]
+    },
+    "tip": "Flexible scaling. Anomaly item is always useful.",
+    "bestComps": [
+      "Any - universally good"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/ekko.png?w=400"
+  },
+  {
+    "name": "Evelynn",
+    "key": "evelynn",
+    "title": "God of Temptation",
+    "color": "#f87171",
+    "blessing": "Team gains 10% Durability. Lose 1 extra HP on loss.",
+    "offerings": {
+      "stage2": [
+        "8g (lose 1HP/round)",
+        "2-star 2-cost (-1HP)",
+        "2x dupe (no shop 2 rounds)"
+      ],
+      "stage3": [
+        "11g (lose 1HP/round)",
+        "Random emblem (-3HP)",
+        "15g (no shop 2 rounds)",
+        "2-star 3-cost (-2HP)"
+      ],
+      "stage4": [
+        "14g (lose 1HP/round)",
+        "2-star 4-cost (-3HP)",
+        "Completed item (-5HP)",
+        "18g (no shop 2 rounds)"
+      ]
+    },
+    "tip": "High risk. Best with reroll comps or lose streak openers.",
+    "bestComps": [
+      "Reroll",
+      "Anima Lose Streak"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/evelynn.png?w=400"
+  },
+  {
+    "name": "Kayle",
+    "key": "kayle",
+    "title": "God of Order",
+    "color": "#fbbf24",
+    "blessing": "Upgrade a random completed item to Radiant",
+    "offerings": {
+      "stage2": [
+        "Sparring Glove",
+        "Recurve Bow",
+        "Tear",
+        "Random component"
+      ],
+      "stage3": [
+        "BF Sword",
+        "Chain Vest",
+        "Rod",
+        "Negatron",
+        "Random component"
+      ],
+      "stage4": [
+        "Full component selection available"
+      ]
+    },
+    "tip": "Most consistent god. Guaranteed Radiant item is huge.",
+    "bestComps": [
+      "Any item-reliant carry"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/kayle.png?w=400"
+  },
+  {
+    "name": "Soraka",
+    "key": "soraka",
+    "title": "God of Stars",
+    "color": "#a3e635",
+    "blessing": "+2 HP per missing tactician HP, +1 current and max HP per round",
+    "offerings": {
+      "stage2": [
+        "8 HP (maybe 3g)",
+        "12 HP",
+        "Giant's Belt"
+      ],
+      "stage3": [
+        "8 HP (maybe 5g)",
+        "12 HP",
+        "Giant's Belt",
+        "Implant (350 HP)"
+      ],
+      "stage4": [
+        "8 HP (maybe 5g)",
+        "12 HP",
+        "Giant's Belt",
+        "Implant (350 HP)"
+      ]
+    },
+    "tip": "Stabilizer god. Great for lose streak recovery.",
+    "bestComps": [
+      "Slow Roll",
+      "Lose Streak to Win"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/soraka.png?w=400"
+  },
+  {
+    "name": "Thresh",
+    "key": "thresh",
+    "title": "God of Pacts",
+    "color": "#38bdf8",
+    "blessing": "After each player combat, roll a die. Gain rewards based on result.",
+    "offerings": {
+      "stage2": [
+        "Random + 2g",
+        "Random loot (EV ~7g)"
+      ],
+      "stage3": [
+        "Random + 3g",
+        "Random loot (EV ~9g)"
+      ],
+      "stage4": [
+        "Random + 5g",
+        "Random loot (EV ~10g)"
+      ]
+    },
+    "tip": "Pure gambling. High variance, can highroll hard.",
+    "bestComps": [
+      "Any - just pray"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/thresh.png?w=400"
+  },
+  {
+    "name": "Varus",
+    "key": "varus",
+    "title": "God of Love",
+    "color": "#e879f9",
+    "blessing": "+10 HP per total star level in army. +4% five-cost odds.",
+    "offerings": {
+      "stage2": [
+        "2 & 3-cost pair",
+        "Owned 3-cost",
+        "2 tiny dupes",
+        "3-cost shop"
+      ],
+      "stage3": [
+        "3 & 4-cost pair",
+        "Lesser dupe",
+        "Owned 3-cost",
+        "4-cost shop"
+      ],
+      "stage4": [
+        "4 & 5-cost pair",
+        "Lesser dupe + 3g",
+        "1 lesser + 5 tiny dupes",
+        "Owned 4-cost"
+      ]
+    },
+    "tip": "Best for reroll comps and 5-cost hunting at level 8-9.",
+    "bestComps": [
+      "Reroll",
+      "5-Cost Fast 9"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/varus.png?w=400"
+  },
+  {
+    "name": "Yasuo",
+    "key": "yasuo",
+    "title": "God of the Abyss",
+    "color": "#94a3b8",
+    "blessing": "+50% hex power. If only 2 hexes, gain 12 gold instead.",
+    "offerings": {
+      "stage2": [
+        "Fire Hex (18% dmg, burn/wound)",
+        "Wood Hex (10% + 30HP)",
+        "Wind Hex (30% AS)",
+        "Ice Hex (15% heal)",
+        "Electric Hex (2s stun)",
+        "Socialite Hex (2 mana regen)"
+      ],
+      "stage3": [
+        "Same hex options"
+      ],
+      "stage4": [
+        "Same hex options"
+      ]
+    },
+    "tip": "Positioning-dependent. Wind/Fire hexes strongest. Synergizes with Stargazer.",
+    "bestComps": [
+      "Stargazer",
+      "Hex-focused boards"
+    ],
+    "image": "https://ap.tft.tools/img/new17/gods/yasuo.png?w=400"
+  }
+]

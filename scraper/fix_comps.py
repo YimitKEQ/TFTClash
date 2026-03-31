@@ -1,0 +1,184 @@
+"""Fix comp lines to use actual Set 17 champion keys."""
+import json
+
+comp_lines = [
+    {
+        "id": "darkstar-vertical",
+        "name": "Dark Star Vertical",
+        "color": "#7c3aed",
+        "carry": "jhin",
+        "desc": "Stack Dark Star for Black Hole damage scaling. Jhin 5-cost carry with massive range.",
+        "core": ["chogath", "lissandra", "kaisa", "karma", "jhin"],
+        "flex": ["gragas", "maokai", "bard"],
+        "items": {
+            "carry": ["Jhin: IE + Last Whisper + Giant Slayer"],
+            "tank": ["Cho'Gath: Warmog's + Sunfire + Morellonomicon"]
+        },
+        "god": "Varus",
+        "godWhy": "+4% 5-cost odds makes hitting Jhin much faster",
+        "gameplan": "Cho+Liss Dark Star 2 -> Kai'Sa 2 -> roll 8 for Karma+Jhin -> cap at 9"
+    },
+    {
+        "id": "nova-bastion",
+        "name": "N.O.V.A. + Bastion",
+        "color": "#06b6d4",
+        "carry": "kindred",
+        "desc": "Frontline Bastion tanks absorb everything while Kindred and Akali deal damage from behind.",
+        "core": ["aatrox", "caitlyn", "poppy", "akali", "maokai", "kindred"],
+        "flex": ["jax", "ornn", "shen"],
+        "items": {
+            "carry": ["Kindred: Runaan's + Rageblade + Hurricane"],
+            "tank": ["Aatrox: Warmog's + Gargoyle + Dragon's Claw"]
+        },
+        "god": "Kayle",
+        "godWhy": "Radiant item on Kindred or Aatrox frontline is game-ending",
+        "gameplan": "Aatrox+Poppy Bastion 2 early -> add Akali for N.O.V.A. -> roll 7 for Maokai/Kindred"
+    },
+    {
+        "id": "anima-reroll",
+        "name": "Anima Reroll",
+        "color": "#ec4899",
+        "carry": "aurora",
+        "desc": "Anima Squad grow stronger with each round they survive. Aurora 2-star AP carry.",
+        "core": ["briar", "jinx", "aurora", "illaoi", "fiora"],
+        "flex": ["aatrox", "poppy", "maokai"],
+        "items": {
+            "carry": ["Aurora: Jeweled Gauntlet + Rabadon's + Blue Buff"],
+            "support": ["Illaoi: Warmog's + Gargoyle"]
+        },
+        "god": "Evelynn",
+        "godWhy": "Lose streak to build gold then stabilize with bonus HP",
+        "gameplan": "Briar+Jinx Anima 2 -> lose streak 1-3 -> stabilize -> find Aurora 2 at 6 -> roll for Fiora at 8"
+    },
+    {
+        "id": "stargazer-stack",
+        "name": "Stargazer Stack",
+        "color": "#f59e0b",
+        "carry": "nunu",
+        "desc": "Stack Stargazer trait for compounding star power. Nunu 4-cost carry.",
+        "core": ["talon", "twistedfate", "jax", "lulu", "nunu"],
+        "flex": ["aatrox", "poppy", "kindred"],
+        "items": {
+            "carry": ["Nunu: Warmog's + Titan's Resolve + Gargoyle"],
+            "flex": ["Lulu: Redemption + Locket"]
+        },
+        "god": "Yasuo",
+        "godWhy": "Wind Hex 30% AS directly empowers Stargazer scaling",
+        "gameplan": "Talon+TF Stargazer 2 -> Jax for 3 -> roll 7 for Lulu/Nunu 2 -> push to 8"
+    },
+    {
+        "id": "space-groove-6",
+        "name": "Space Groove 6",
+        "color": "#a855f7",
+        "carry": "blitzcrank",
+        "desc": "Full Space Groove board with Blitzcrank 5-cost as the hook machine.",
+        "core": ["nasus", "teemo", "gwen", "ornn", "nami", "blitzcrank"],
+        "flex": ["samira", "poppy", "leona"],
+        "items": {
+            "carry": ["Blitzcrank: Warmog's + Titan's + Gargoyle"],
+            "flex": ["Ornn: Sunfire + Dragon's Claw + Redemption"]
+        },
+        "god": "Soraka",
+        "godWhy": "HP stacking synergizes perfectly with bulky frontline",
+        "gameplan": "Nasus+Teemo Space Groove 2 -> Gwen for 3 -> push Groove 6 at 8 for Blitz"
+    },
+    {
+        "id": "rogue-assassin",
+        "name": "Rogue Assassin",
+        "color": "#10b981",
+        "carry": "riven",
+        "desc": "Rogue units jump to the backline. Riven 4-cost bruiser carry that deletes supports.",
+        "core": ["briar", "talon", "gwen", "fizz", "kaisa", "riven"],
+        "flex": ["akali", "samira", "diana"],
+        "items": {
+            "carry": ["Riven: Bloodthirster + Last Whisper + Rageblade"],
+            "flex": ["Gwen: Warmog's + Gargoyle"]
+        },
+        "god": "Evelynn",
+        "godWhy": "Lose streak to build gold then roll for Riven 2 at level 6",
+        "gameplan": "Briar+Talon Rogue 2 -> add Gwen/Fizz -> roll 7 for Riven 2 -> cap with Kaisa"
+    },
+    {
+        "id": "meeple-6",
+        "name": "Meeple 6",
+        "color": "#84cc16",
+        "carry": "bard",
+        "desc": "Meeple augments board items. Bard 5-cost carry that gets stronger the more items he has.",
+        "core": ["poppy", "veigar", "gnar", "ivernminion", "fizz", "corki", "rammus", "bard"],
+        "flex": ["teemo", "bluegolem"],
+        "items": {
+            "carry": ["Bard: IE + Runaan's + Hurricane"],
+            "tank": ["Poppy: Warmog's + Gargoyle + Sunfire"]
+        },
+        "god": "Aurelion Sol",
+        "godWhy": "Field 6 traits easily for emblem + reforger reward",
+        "gameplan": "Poppy+Veigar Meeple 2 -> Gnar+Fizz for 4 -> push Meeple 6 at 8 for Bard"
+    },
+    {
+        "id": "channeler-ap",
+        "name": "Channeler AP",
+        "color": "#0ea5e9",
+        "carry": "aurelionsol",
+        "desc": "Channeler mana engine powering Aurelion Sol and Bard as AP carries.",
+        "core": ["zoe", "viktor", "aurelionsol", "bard"],
+        "flex": ["gragas", "pyke", "masteryi", "sona"],
+        "items": {
+            "carry": ["Aurelion Sol: Blue Buff + Jeweled Gauntlet + Rabadon's"],
+            "flex": ["Bard: IE + Runaan's"]
+        },
+        "god": "Ekko",
+        "godWhy": "Anomaly item scales perfectly with AP carries",
+        "gameplan": "Zoe+Viktor Channeler 2 -> Aurelion Sol at 7 -> slow roll for Bard at 8/9"
+    },
+    {
+        "id": "vanguard-frontline",
+        "name": "Vanguard Control",
+        "color": "#f97316",
+        "carry": "blitzcrank",
+        "desc": "Vanguard shield wall controls fight positioning. Blitzcrank as the teamfight centerpiece.",
+        "core": ["leona", "nasus", "illaoi", "nunu", "blitzcrank"],
+        "flex": ["poppy", "ornn", "shen"],
+        "items": {
+            "carry": ["Blitzcrank: Warmog's + Titan's + Redemption"],
+            "flex": ["Leona: Sunfire + Dragon's Claw + Gargoyle"]
+        },
+        "god": "Soraka",
+        "godWhy": "Tank boards benefit massively from the HP scaling",
+        "gameplan": "Leona+Nasus Vanguard 2 -> add Illaoi for 3 -> roll 7 for Nunu -> push 8 for Blitz"
+    },
+    {
+        "id": "sniper-backline",
+        "name": "Sniper Backline",
+        "color": "#ca8a04",
+        "carry": "jhin",
+        "desc": "Spread your board to maximize Sniper trait damage bonus. Jhin shreds from the corner.",
+        "core": ["ezreal", "gnar", "samira", "jhin"],
+        "flex": ["jinx", "caitlyn", "corki"],
+        "items": {
+            "carry": ["Jhin: IE + Last Whisper + Giant Slayer"],
+            "flex": ["Samira: Rageblade + Runaan's"]
+        },
+        "god": "Thresh",
+        "godWhy": "Random loot can snowball early - dice gods willing",
+        "gameplan": "Ezreal+Gnar Sniper 2 -> Samira 2 at 6 -> push 8 for Jhin -> spread board for Sniper bonus"
+    },
+]
+
+with open("src/donut17/data/comp_lines.json", "w") as f:
+    json.dump(comp_lines, f, indent=2)
+
+# Verify all keys exist
+champs = json.load(open("src/donut17/data/champions.json"))
+champ_keys = {c["key"] for c in champs}
+
+all_ok = True
+for comp in comp_lines:
+    missing = [k for k in comp["core"] + comp["flex"] if k not in champ_keys]
+    if missing:
+        print("MISSING in", comp["name"], ":", missing)
+        all_ok = False
+    else:
+        print("OK:", comp["name"])
+
+if all_ok:
+    print("\nAll comp lines valid!")

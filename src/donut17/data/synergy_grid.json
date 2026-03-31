@@ -1,0 +1,450 @@
+{
+  "N.O.V.A.|Bastion": [
+    "aatrox"
+  ],
+  "Bastion|N.O.V.A.": [
+    "aatrox"
+  ],
+  "Anima|Primordian": [
+    "briar"
+  ],
+  "Anima|Rogue": [
+    "briar"
+  ],
+  "Primordian|Anima": [
+    "briar"
+  ],
+  "Primordian|Rogue": [
+    "briar"
+  ],
+  "Rogue|Anima": [
+    "briar"
+  ],
+  "Rogue|Primordian": [
+    "briar"
+  ],
+  "N.O.V.A.|Fateweaver": [
+    "caitlyn"
+  ],
+  "Fateweaver|N.O.V.A.": [
+    "caitlyn"
+  ],
+  "Dark Star|Brawler": [
+    "chogath"
+  ],
+  "Brawler|Dark Star": [
+    "chogath"
+  ],
+  "Timebreaker|Sniper": [
+    "ezreal"
+  ],
+  "Sniper|Timebreaker": [
+    "ezreal"
+  ],
+  "Arbiter|Vanguard": [
+    "leona"
+  ],
+  "Vanguard|Arbiter": [
+    "leona"
+  ],
+  "Dark Star|Shepherd": [
+    "lissandra"
+  ],
+  "Dark Star|Replicator": [
+    "lissandra"
+  ],
+  "Shepherd|Dark Star": [
+    "lissandra"
+  ],
+  "Shepherd|Replicator": [
+    "lissandra"
+  ],
+  "Replicator|Dark Star": [
+    "lissandra"
+  ],
+  "Replicator|Shepherd": [
+    "lissandra"
+  ],
+  "Space Groove|Vanguard": [
+    "nasus",
+    "blitzcrank"
+  ],
+  "Vanguard|Space Groove": [
+    "nasus",
+    "blitzcrank"
+  ],
+  "Meeple|Bastion": [
+    "poppy",
+    "rammus"
+  ],
+  "Bastion|Meeple": [
+    "poppy",
+    "rammus"
+  ],
+  "Stargazer|Rogue": [
+    "talon"
+  ],
+  "Rogue|Stargazer": [
+    "talon"
+  ],
+  "Space Groove|Shepherd": [
+    "teemo"
+  ],
+  "Shepherd|Space Groove": [
+    "teemo"
+  ],
+  "Stargazer|Fateweaver": [
+    "twistedfate"
+  ],
+  "Fateweaver|Stargazer": [
+    "twistedfate"
+  ],
+  "Meeple|Replicator": [
+    "veigar"
+  ],
+  "Replicator|Meeple": [
+    "veigar"
+  ],
+  "N.O.V.A.|Marauder": [
+    "akali"
+  ],
+  "Marauder|N.O.V.A.": [
+    "akali"
+  ],
+  "Primordian|Challenger": [
+    "belveth"
+  ],
+  "Primordian|Marauder": [
+    "belveth"
+  ],
+  "Challenger|Primordian": [
+    "belveth"
+  ],
+  "Challenger|Marauder": [
+    "belveth"
+  ],
+  "Marauder|Primordian": [
+    "belveth"
+  ],
+  "Marauder|Challenger": [
+    "belveth"
+  ],
+  "Meeple|Sniper": [
+    "gnar"
+  ],
+  "Sniper|Meeple": [
+    "gnar"
+  ],
+  "Psionic|Brawler": [
+    "gragas"
+  ],
+  "Brawler|Psionic": [
+    "gragas"
+  ],
+  "Space Groove|Rogue": [
+    "gwen"
+  ],
+  "Rogue|Space Groove": [
+    "gwen"
+  ],
+  "Stargazer|Bastion": [
+    "jax"
+  ],
+  "Bastion|Stargazer": [
+    "jax"
+  ],
+  "Anima|Challenger": [
+    "jinx"
+  ],
+  "Challenger|Anima": [
+    "jinx"
+  ],
+  "Meeple|Shepherd": [
+    "ivernminion"
+  ],
+  "Meeple|Voyager": [
+    "ivernminion"
+  ],
+  "Shepherd|Meeple": [
+    "ivernminion"
+  ],
+  "Shepherd|Voyager": [
+    "ivernminion"
+  ],
+  "Voyager|Meeple": [
+    "ivernminion"
+  ],
+  "Voyager|Shepherd": [
+    "ivernminion"
+  ],
+  "Timebreaker|Fateweaver": [
+    "milio"
+  ],
+  "Fateweaver|Timebreaker": [
+    "milio"
+  ],
+  "Timebreaker|Brawler": [
+    "pantheon"
+  ],
+  "Timebreaker|Replicator": [
+    "pantheon"
+  ],
+  "Brawler|Timebreaker": [
+    "pantheon"
+  ],
+  "Brawler|Replicator": [
+    "pantheon"
+  ],
+  "Replicator|Timebreaker": [
+    "pantheon"
+  ],
+  "Replicator|Brawler": [
+    "pantheon"
+  ],
+  "Psionic|Voyager": [
+    "pyke"
+  ],
+  "Voyager|Psionic": [
+    "pyke"
+  ],
+  "Arbiter|Channeler": [
+    "zoe"
+  ],
+  "Channeler|Arbiter": [
+    "zoe"
+  ],
+  "Anima|Voyager": [
+    "aurora"
+  ],
+  "Voyager|Anima": [
+    "aurora"
+  ],
+  "Arbiter|Challenger": [
+    "diana"
+  ],
+  "Challenger|Arbiter": [
+    "diana"
+  ],
+  "Meeple|Rogue": [
+    "fizz"
+  ],
+  "Rogue|Meeple": [
+    "fizz"
+  ],
+  "Anima|Vanguard": [
+    "illaoi"
+  ],
+  "Anima|Shepherd": [
+    "illaoi"
+  ],
+  "Vanguard|Anima": [
+    "illaoi"
+  ],
+  "Vanguard|Shepherd": [
+    "illaoi"
+  ],
+  "Shepherd|Anima": [
+    "illaoi"
+  ],
+  "Shepherd|Vanguard": [
+    "illaoi"
+  ],
+  "Dark Star|Rogue": [
+    "kaisa"
+  ],
+  "Rogue|Dark Star": [
+    "kaisa"
+  ],
+  "Stargazer|Replicator": [
+    "lulu"
+  ],
+  "Replicator|Stargazer": [
+    "lulu"
+  ],
+  "N.O.V.A.|Brawler": [
+    "maokai"
+  ],
+  "Brawler|N.O.V.A.": [
+    "maokai"
+  ],
+  "Gun Goddess|Choose Trait": [
+    "missfortune"
+  ],
+  "Choose Trait|Gun Goddess": [
+    "missfortune"
+  ],
+  "Space Groove|Bastion": [
+    "ornn"
+  ],
+  "Bastion|Space Groove": [
+    "ornn"
+  ],
+  "Space Groove|Sniper": [
+    "samira"
+  ],
+  "Sniper|Space Groove": [
+    "samira"
+  ],
+  "Mecha|Brawler": [
+    "urgot"
+  ],
+  "Mecha|Marauder": [
+    "urgot"
+  ],
+  "Brawler|Mecha": [
+    "urgot"
+  ],
+  "Brawler|Marauder": [
+    "urgot"
+  ],
+  "Marauder|Mecha": [
+    "urgot"
+  ],
+  "Marauder|Brawler": [
+    "urgot"
+  ],
+  "Psionic|Channeler": [
+    "viktor"
+  ],
+  "Channeler|Psionic": [
+    "viktor"
+  ],
+  "Mecha|Channeler": [
+    "aurelionsol"
+  ],
+  "Channeler|Mecha": [
+    "aurelionsol"
+  ],
+  "Meeple|Fateweaver": [
+    "corki"
+  ],
+  "Fateweaver|Meeple": [
+    "corki"
+  ],
+  "Dark Star|Voyager": [
+    "karma"
+  ],
+  "Voyager|Dark Star": [
+    "karma"
+  ],
+  "N.O.V.A.|Challenger": [
+    "kindred"
+  ],
+  "Challenger|N.O.V.A.": [
+    "kindred"
+  ],
+  "Arbiter|Shepherd": [
+    "leblanc"
+  ],
+  "Shepherd|Arbiter": [
+    "leblanc"
+  ],
+  "Psionic|Marauder": [
+    "masteryi"
+  ],
+  "Marauder|Psionic": [
+    "masteryi"
+  ],
+  "Space Groove|Replicator": [
+    "nami"
+  ],
+  "Replicator|Space Groove": [
+    "nami"
+  ],
+  "Stargazer|Vanguard": [
+    "nunu"
+  ],
+  "Vanguard|Stargazer": [
+    "nunu"
+  ],
+  "Timebreaker|Rogue": [
+    "riven"
+  ],
+  "Rogue|Timebreaker": [
+    "riven"
+  ],
+  "Mecha|Voyager": [
+    "galio"
+  ],
+  "Voyager|Mecha": [
+    "galio"
+  ],
+  "Meeple|Channeler": [
+    "bard"
+  ],
+  "Channeler|Meeple": [
+    "bard"
+  ],
+  "Party Animal|Space Groove": [
+    "blitzcrank"
+  ],
+  "Party Animal|Vanguard": [
+    "blitzcrank"
+  ],
+  "Space Groove|Party Animal": [
+    "blitzcrank"
+  ],
+  "Vanguard|Party Animal": [
+    "blitzcrank"
+  ],
+  "Divine Duelist|Anima": [
+    "fiora"
+  ],
+  "Divine Duelist|Marauder": [
+    "fiora"
+  ],
+  "Anima|Divine Duelist": [
+    "fiora"
+  ],
+  "Anima|Marauder": [
+    "fiora"
+  ],
+  "Marauder|Divine Duelist": [
+    "fiora"
+  ],
+  "Marauder|Anima": [
+    "fiora"
+  ],
+  "Dark Star|Eradicator": [
+    "jhin"
+  ],
+  "Dark Star|Sniper": [
+    "jhin"
+  ],
+  "Eradicator|Dark Star": [
+    "jhin"
+  ],
+  "Eradicator|Sniper": [
+    "jhin"
+  ],
+  "Sniper|Dark Star": [
+    "jhin"
+  ],
+  "Sniper|Eradicator": [
+    "jhin"
+  ],
+  "Bulwark|Bastion": [
+    "shen"
+  ],
+  "Bastion|Bulwark": [
+    "shen"
+  ],
+  "Commander|Psionic": [
+    "sona"
+  ],
+  "Commander|Shepherd": [
+    "sona"
+  ],
+  "Psionic|Commander": [
+    "sona"
+  ],
+  "Psionic|Shepherd": [
+    "sona"
+  ],
+  "Shepherd|Commander": [
+    "sona"
+  ],
+  "Shepherd|Psionic": [
+    "sona"
+  ]
+}
