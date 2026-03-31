@@ -160,7 +160,7 @@ function Donut17Page() {
               }}
             >
               <MSIcon name={t.icon} size={18} />
-              <span style={{ fontSize: 7, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
+              <span style={{ fontSize: 9, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
                 {t.id === "opener" ? "HUD" : t.id === "builder" ? "BUILD" : t.id === "grid" ? "GRID" : t.id === "champs" ? "UNITS" : t.id === "comps" ? "COMPS" : t.id === "items" ? "ITEMS" : "GODS"}
               </span>
             </button>

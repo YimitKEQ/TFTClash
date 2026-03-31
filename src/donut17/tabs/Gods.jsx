@@ -7,7 +7,7 @@ function Gods({ gods }) {
   return (
     <div>
       <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 9, fontFamily: F.label, color: C.tertiary, letterSpacing: 4, textTransform: "uppercase", marginBottom: 8 }}>Celestial Entities</div>
+        <div style={{ fontSize: 11, fontFamily: F.label, color: C.tertiary, letterSpacing: 4, textTransform: "uppercase", marginBottom: 8 }}>Celestial Entities</div>
         <h2 style={{ fontFamily: F.headline, fontSize: 36, fontWeight: 700, textTransform: "uppercase", letterSpacing: -1, color: C.text, margin: "0 0 12px" }}>
           The Space Gods
         </h2>
@@ -53,7 +53,7 @@ function GodPortrait({ god, active, onClick }) {
       </div>
       <div style={{ padding: "5px 7px" }}>
         <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, color: active ? god.color : C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{god.name}</div>
-        <div style={{ fontSize: 8, color: C.textDim, fontFamily: F.label, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{god.title}</div>
+        <div style={{ fontSize: 10, color: C.textDim, fontFamily: F.label, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{god.title}</div>
       </div>
     </div>
   );
@@ -81,11 +81,11 @@ function GodFullCard({ god }) {
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
           <div>
             <div style={{ fontFamily: F.headline, fontSize: 26, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: god.color, lineHeight: 1 }}>{god.name}</div>
-            <div style={{ fontFamily: F.label, fontSize: 9, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginTop: 4 }}>{god.title}</div>
+            <div style={{ fontFamily: F.label, fontSize: 11, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginTop: 4 }}>{god.title}</div>
           </div>
           {god.blessing && (
             <div style={{ background: god.color + "0d", border: "1px solid " + god.color + "44", padding: "8px 12px", maxWidth: 280, flexShrink: 1 }}>
-              <div style={{ fontSize: 8, fontFamily: F.label, color: god.color, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>4-7 Blessing</div>
+              <div style={{ fontSize: 10, fontFamily: F.label, color: god.color, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>4-7 Blessing</div>
               <div style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted }}>{god.blessing}</div>
             </div>
           )}
@@ -97,7 +97,7 @@ function GodFullCard({ god }) {
             const offerings = god.offerings && god.offerings[stage] ? god.offerings[stage] : [];
             return (
               <div key={stage}>
-                <div style={{ fontSize: 9, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>{labels[i]}</div>
+                <div style={{ fontSize: 11, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>{labels[i]}</div>
                 <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                   {offerings.map(function(offer, oi) {
                     return (
@@ -115,13 +115,13 @@ function GodFullCard({ god }) {
 
         {god.tip && (
           <div style={{ marginTop: 14, borderTop: "1px solid " + C.border + "44", paddingTop: 12, display: "flex", gap: 8, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 9, fontFamily: F.label, color: god.color, letterSpacing: 1, textTransform: "uppercase", flexShrink: 0, paddingTop: 1 }}>Tip</span>
+            <span style={{ fontSize: 11, fontFamily: F.label, color: god.color, letterSpacing: 1, textTransform: "uppercase", flexShrink: 0, paddingTop: 1 }}>Tip</span>
             <span style={{ fontSize: 11, fontFamily: F.body, color: C.textDim, fontStyle: "italic", lineHeight: 1.5 }}>{god.tip}</span>
             {god.bestComps && (
               <div style={{ marginLeft: "auto", display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
                 {god.bestComps.map(function(comp, ci) {
                   return (
-                    <span key={ci} style={{ fontSize: 8, background: god.color + "15", color: god.color, padding: "1px 6px", fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{comp}</span>
+                    <span key={ci} style={{ fontSize: 10, background: god.color + "15", color: god.color, padding: "1px 7px", fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>{comp}</span>
                   );
                 })}
               </div>

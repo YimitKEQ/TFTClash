@@ -9,8 +9,8 @@ function StatBar({ label, value, max, color }) {
   return (
     <div style={{ marginBottom: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-        <span style={{ fontSize: 9, color: C.textDim, fontFamily: F.label, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</span>
-        <span style={{ fontSize: 9, color: C.textMuted, fontFamily: F.label, fontWeight: 600 }}>{typeof value === "number" ? (Number.isInteger(value) ? value : value.toFixed(2)) : value}</span>
+        <span style={{ fontSize: 11, color: C.textDim, fontFamily: F.label, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</span>
+        <span style={{ fontSize: 11, color: C.textMuted, fontFamily: F.label, fontWeight: 600 }}>{typeof value === "number" ? (Number.isInteger(value) ? value : value.toFixed(2)) : value}</span>
       </div>
       <div style={{ height: 3, background: C.border }}>
         <div style={{ height: "100%", width: pct + "%", background: color, transition: "width 0.3s" }} />
@@ -68,7 +68,7 @@ function Champions({ champions, traits }) {
           />
           <button
             onClick={function() { setCostFilter(null); }}
-            style={{ padding: "6px 10px", border: "1px solid " + (costFilter === null ? C.primary : C.border), background: costFilter === null ? C.primary + "22" : "transparent", color: costFilter === null ? C.primary : C.textDim, fontSize: 9, fontFamily: F.label, fontWeight: 700, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
+            style={{ padding: "6px 10px", border: "1px solid " + (costFilter === null ? C.primary : C.border), background: costFilter === null ? C.primary + "22" : "transparent", color: costFilter === null ? C.primary : C.textDim, fontSize: 11, fontFamily: F.label, fontWeight: 700, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
           >
             ALL
           </button>
@@ -96,7 +96,7 @@ function Champions({ champions, traits }) {
           <div key={cost} style={{ marginBottom: 24 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
               <div style={{ height: 1, width: 12, background: col + "66" }} />
-              <span style={{ fontFamily: F.label, fontSize: 9, color: col, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
+              <span style={{ fontFamily: F.label, fontSize: 11, color: col, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
                 {label} — {byCost[cost].length} units
               </span>
               <div style={{ height: 1, flex: 1, background: col + "22" }} />
@@ -127,12 +127,12 @@ function Champions({ champions, traits }) {
                               if (!trait || trait.type === "unique") return null;
                               const tcol = TRAIT_COLOR[trait.type] || C.borderLight;
                               return (
-                                <span key={t} style={{ fontSize: 8, fontFamily: F.label, color: tcol, background: tcol + "15", padding: "1px 5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
+                                <span key={t} style={{ fontSize: 10, fontFamily: F.label, color: tcol, background: tcol + "15", padding: "1px 6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
                               );
                             })}
                             {champ.traits.filter(function(t) { return traitMap[t] && traitMap[t].type === "unique" && t !== "Choose Trait"; }).map(function(t) {
                               return (
-                                <span key={t} style={{ fontSize: 8, fontFamily: F.label, color: C.tertiary, background: C.tertiary + "15", padding: "1px 5px", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
+                                <span key={t} style={{ fontSize: 10, fontFamily: F.label, color: C.tertiary, background: C.tertiary + "15", padding: "1px 6px", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
                               );
                             })}
                           </div>
@@ -163,7 +163,7 @@ function ChampDetail({ champ, traitMap, color }) {
       <div style={{ flex: 1, padding: "14px 16px", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
           <span style={{ fontFamily: F.headline, fontSize: 18, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: -0.5 }}>{champ.name}</span>
-          <span style={{ fontSize: 9, background: color + "22", color: color, padding: "2px 7px", fontFamily: F.label, fontWeight: 700, letterSpacing: 1 }}>{champ.cost}G</span>
+          <span style={{ fontSize: 11, background: color + "22", color: color, padding: "2px 8px", fontFamily: F.label, fontWeight: 700, letterSpacing: 1 }}>{champ.cost}G</span>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10 }}>
           {champ.traits.filter(function(t) { return t !== "Choose Trait"; }).map(function(t) {
@@ -171,7 +171,7 @@ function ChampDetail({ champ, traitMap, color }) {
             if (!trait) return null;
             const tcol = TRAIT_COLOR[trait.type] || C.borderLight;
             return (
-              <span key={t} style={{ fontSize: 9, fontFamily: F.label, color: tcol, background: tcol + "18", padding: "2px 7px", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, borderLeft: "2px solid " + tcol }}>{t}</span>
+              <span key={t} style={{ fontSize: 11, fontFamily: F.label, color: tcol, background: tcol + "18", padding: "2px 8px", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, borderLeft: "2px solid " + tcol }}>{t}</span>
             );
           })}
         </div>

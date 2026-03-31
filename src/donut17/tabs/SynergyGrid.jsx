@@ -56,7 +56,7 @@ function SynergyGrid({ champions, traits }) {
         <table style={{ borderCollapse: "collapse", minWidth: 700 }}>
           <thead>
             <tr style={{ background: C.surfaceHigh }}>
-              <th style={{ padding: "8px 12px", textAlign: "left", fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", position: "sticky", left: 0, background: C.surfaceHigh, zIndex: 2, whiteSpace: "nowrap", borderBottom: "1px solid " + C.border, minWidth: 100 }}>
+              <th style={{ padding: "8px 12px", textAlign: "left", fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", position: "sticky", left: 0, background: C.surfaceHigh, zIndex: 2, whiteSpace: "nowrap", borderBottom: "1px solid " + C.border, minWidth: 100 }}>
                 Origin / Class
               </th>
               {classes.map(function(cl) {
@@ -66,7 +66,7 @@ function SynergyGrid({ champions, traits }) {
                     key={cl.name}
                     onMouseEnter={function() { setHoverCol(cl.name); }}
                     onMouseLeave={function() { setHoverCol(null); }}
-                    style={{ padding: "6px 8px", textAlign: "center", fontSize: 9, fontFamily: F.label, fontWeight: 700, color: hl ? C.secondary : C.textDim, letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid " + C.border, cursor: "default", background: hl ? C.secondary + "0d" : C.surfaceHigh, transition: "all 0.1s", whiteSpace: "nowrap" }}
+                    style={{ padding: "6px 8px", textAlign: "center", fontSize: 11, fontFamily: F.label, fontWeight: 700, color: hl ? C.secondary : C.textDim, letterSpacing: 1, textTransform: "uppercase", borderBottom: "1px solid " + C.border, cursor: "default", background: hl ? C.secondary + "0d" : C.surfaceHigh, transition: "all 0.1s", whiteSpace: "nowrap" }}
                   >
                     {cl.name}
                   </th>
@@ -112,7 +112,7 @@ function SynergyGrid({ champions, traits }) {
                               );
                             })}
                             {champs.length > 4 && (
-                              <div style={{ width: 20, height: 20, background: C.surfaceHighest, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, color: C.textDim, fontFamily: F.label, fontWeight: 700 }}>
+                              <div style={{ width: 20, height: 20, background: C.surfaceHighest, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: C.textDim, fontFamily: F.label, fontWeight: 700 }}>
                                 +{champs.length - 4}
                               </div>
                             )}
@@ -130,7 +130,7 @@ function SynergyGrid({ champions, traits }) {
 
       {selectedCell && cellChamps.length > 0 && (
         <div style={{ background: C.surface, border: "1px solid " + C.secondary + "44", borderLeft: "3px solid " + C.secondary, padding: "12px 14px", marginBottom: 24 }}>
-          <div style={{ fontSize: 9, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>
+          <div style={{ fontSize: 11, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>
             {selectedCell.o} + {selectedCell.c} — {cellChamps.length} unit{cellChamps.length !== 1 ? "s" : ""}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -143,13 +143,13 @@ function SynergyGrid({ champions, traits }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <div>
-          <div style={{ fontSize: 9, fontFamily: F.label, color: C.primary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Origins — {origins.length}</div>
+          <div style={{ fontSize: 11, fontFamily: F.label, color: C.primary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Origins — {origins.length}</div>
           {origins.map(function(t) {
             return <TraitLegendRow key={t.name} trait={t} champList={traitChamps[t.name] || []} open={openTrait === t.name} onToggle={function() { setOpenTrait(openTrait === t.name ? null : t.name); }} />;
           })}
         </div>
         <div>
-          <div style={{ fontSize: 9, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Classes — {classes.length}</div>
+          <div style={{ fontSize: 11, fontFamily: F.label, color: C.secondary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Classes — {classes.length}</div>
           {classes.map(function(t) {
             return <TraitLegendRow key={t.name} trait={t} champList={traitChamps[t.name] || []} open={openTrait === t.name} onToggle={function() { setOpenTrait(openTrait === t.name ? null : t.name); }} />;
           })}
@@ -157,14 +157,14 @@ function SynergyGrid({ champions, traits }) {
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <div style={{ fontSize: 9, fontFamily: F.label, color: C.tertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Unique / Hero Traits</div>
+        <div style={{ fontSize: 11, fontFamily: F.label, color: C.tertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>Unique / Hero Traits</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           {uniques.map(function(t) {
             const champs = traitChamps[t.name] || [];
             if (!champs.length) return null;
             return (
               <div key={t.name} style={{ display: "flex", alignItems: "center", gap: 6, background: C.surfaceLow, border: "1px solid " + C.tertiary + "22", borderLeft: "3px solid " + C.tertiary, padding: "4px 10px 4px 7px" }}>
-                <span style={{ fontSize: 9, fontFamily: F.label, fontWeight: 700, color: C.tertiary, textTransform: "uppercase", letterSpacing: 0.5 }}>{t.name}</span>
+                <span style={{ fontSize: 11, fontFamily: F.label, fontWeight: 700, color: C.tertiary, textTransform: "uppercase", letterSpacing: 0.5 }}>{t.name}</span>
                 {champs.map(function(ch) { return <ChampIcon key={ch.key} champ={ch} size={22} />; })}
               </div>
             );
@@ -188,7 +188,7 @@ function TraitLegendRow({ trait, champList, open, onToggle }) {
         <span style={{ flex: 1, fontSize: 10, fontFamily: F.label, fontWeight: 700, color: open ? color : C.textMuted, textTransform: "uppercase", letterSpacing: 0.5 }}>{trait.name}</span>
         <div style={{ display: "flex", gap: 2 }}>
           {breakpoints.map(function(bp, i) {
-            return <span key={i} style={{ fontSize: 8, padding: "0 4px", background: color + "22", color: color, fontFamily: F.label, fontWeight: 700 }}>{bp}</span>;
+            return <span key={i} style={{ fontSize: 10, padding: "0 5px", background: color + "22", color: color, fontFamily: F.label, fontWeight: 700 }}>{bp}</span>;
           })}
         </div>
         <span style={{ fontSize: 10, color: C.textDim }}>{open ? "▲" : "▼"}</span>

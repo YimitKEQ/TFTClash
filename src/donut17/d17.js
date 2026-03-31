@@ -1,21 +1,26 @@
-// Donut17 design tokens — Stitch-inspired cosmic tactical aesthetic
+// Donut17 design tokens — Cosmic Tactical v2
 
 export const C = {
-  bg:              '#0f131f',
-  surface:         '#1b1f2c',
-  surfaceLow:      '#171b28',
-  surfaceHigh:     '#262a37',
-  surfaceHighest:  '#303442',
-  border:          '#494456',
-  borderLight:     '#958da2',
-  primary:         '#cdbdff',   // lavender
-  secondary:       '#8dcdff',  // sky blue
-  tertiary:        '#e9c400',  // gold
-  text:            '#dfe2f4',
-  textMuted:       '#cbc3d9',
-  textDim:         '#958da2',
+  bg:              '#0c1018',
+  surface:         '#161b27',
+  surfaceLow:      '#111622',
+  surfaceHigh:     '#1f2535',
+  surfaceHighest:  '#283046',
+  border:          '#3a3650',
+  borderLight:     '#5a5472',
+  primary:         '#c8b8ff',   // lavender
+  primaryDim:      '#9b8fcc',
+  secondary:       '#7dc8ff',  // sky blue
+  secondaryDim:    '#5ea0cc',
+  tertiary:        '#f0cc00',  // gold
+  tertiaryDim:     '#b89e00',
+  text:            '#eceef8',
+  textMuted:       '#d4d0e8',  // was cbc3d9 — now readable
+  textDim:         '#a8a3be',  // was 958da2 — now readable
+  textSub:         '#7e7a96',  // for non-critical meta only
   success:         '#4ade80',
   error:           '#f87171',
+  warn:            '#fbbf24',
 };
 
 export const F = {
@@ -25,15 +30,23 @@ export const F = {
 };
 
 export const COST_COLOR = {
-  1: '#6b7280',
-  2: '#22c55e',
-  3: '#3b82f6',
-  4: '#a855f7',
-  5: '#e9c400',
+  1: '#9ca3af',
+  2: '#34d058',
+  3: '#60a5fa',
+  4: '#c084fc',
+  5: '#f0cc00',
+};
+
+export const COST_GLOW = {
+  1: 'rgba(156,163,175,0.25)',
+  2: 'rgba(52,208,88,0.3)',
+  3: 'rgba(96,165,250,0.3)',
+  4: 'rgba(192,132,252,0.35)',
+  5: 'rgba(240,204,0,0.4)',
 };
 
 export const TRAIT_COLOR = {
-  origin: '#cdbdff',
-  class:  '#8dcdff',
-  unique: '#e9c400',
+  origin: '#c8b8ff',
+  class:  '#7dc8ff',
+  unique: '#f0cc00',
 };

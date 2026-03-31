@@ -90,7 +90,7 @@ function ComponentTile({ item, expanded, onToggle }) {
           </div>
         )}
       </div>
-      <span style={{ fontSize: 8, fontFamily: F.label, color: expanded ? col : C.textDim, textAlign: "center", lineHeight: 1.2, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.3 }}>
+      <span style={{ fontSize: 9, fontFamily: F.label, color: expanded ? col : C.textDim, textAlign: "center", lineHeight: 1.2, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.3 }}>
         {item.name}
       </span>
     </div>
@@ -108,7 +108,7 @@ function ComponentDetailPanel({ items, expanded }) {
         {(item.tags || []).map(function(t) {
           const tc = TAG_COLOR[t] || "#494456";
           return (
-            <span key={t} style={{ fontSize: 8, background: tc + "18", color: tc, padding: "1px 5px", fontFamily: F.label, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
+            <span key={t} style={{ fontSize: 10, background: tc + "18", color: tc, padding: "1px 6px", fontFamily: F.label, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
           );
         })}
       </div>
@@ -174,14 +174,14 @@ function ItemCard({ item, expanded, onToggle }) {
           <div style={{ fontFamily: F.headline, fontSize: 11, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: 0.3, marginBottom: 3 }}>
             {item.name}
             {item.acronym && (
-              <span style={{ fontFamily: F.label, fontSize: 8, color: C.textDim, marginLeft: 5, letterSpacing: 1 }}>({item.acronym})</span>
+              <span style={{ fontFamily: F.label, fontSize: 10, color: C.textDim, marginLeft: 5, letterSpacing: 1 }}>({item.acronym})</span>
             )}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
             {(item.tags || []).slice(0, 4).map(function(t) {
               const tc = TAG_COLOR[t] || "#494456";
               return (
-                <span key={t} style={{ fontSize: 7, background: tc + "18", color: tc, padding: "1px 5px", fontFamily: F.label, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
+                <span key={t} style={{ fontSize: 9, background: tc + "18", color: tc, padding: "1px 6px", fontFamily: F.label, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5 }}>{t}</span>
               );
             })}
           </div>
@@ -247,7 +247,7 @@ function Items() {
                 border: "1px solid " + (active ? col : C.border),
                 color: active ? col : C.textDim,
                 fontFamily: F.label,
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: 700,
                 letterSpacing: 1,
                 textTransform: "uppercase",

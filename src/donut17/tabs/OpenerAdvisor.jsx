@@ -104,7 +104,7 @@ function OpenerAdvisor({ champions, traits, compLines }) {
             {selected.length > 0 && (
               <button
                 onClick={function() { setSelected([]); }}
-                style={{ padding: "0 10px", height: 28, border: "1px solid " + C.error + "66", background: C.error + "11", color: C.error, fontSize: 9, fontFamily: F.label, fontWeight: 700, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
+                style={{ padding: "0 10px", height: 28, border: "1px solid " + C.error + "66", background: C.error + "11", color: C.error, fontSize: 11, fontFamily: F.label, fontWeight: 700, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase" }}
               >
                 CLEAR {selected.length}
               </button>
@@ -118,7 +118,7 @@ function OpenerAdvisor({ champions, traits, compLines }) {
           const col = COST_COLOR[cost];
           return (
             <div key={cost} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 8, fontFamily: F.label, color: col, letterSpacing: 2, marginBottom: 5, textTransform: "uppercase", fontWeight: 700 }}>
+              <div style={{ fontSize: 10, fontFamily: F.label, color: col, letterSpacing: 2, marginBottom: 5, textTransform: "uppercase", fontWeight: 700 }}>
                 {cost}G  — {group.length} units
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -143,7 +143,7 @@ function OpenerAdvisor({ champions, traits, compLines }) {
       {/* Active traits */}
       {selected.length > 0 && Object.keys(activeTraitCounts).length > 0 && (
         <div style={{ background: C.surface, border: "1px solid " + C.primary + "33", borderLeft: "3px solid " + C.primary, padding: "10px 14px", marginBottom: 16 }}>
-          <div style={{ fontSize: 9, fontFamily: F.label, color: C.primary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Active Synergies</div>
+          <div style={{ fontSize: 11, fontFamily: F.label, color: C.primary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Active Synergies</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {Object.entries(activeTraitCounts).sort(function(a, b) { return b[1] - a[1]; }).map(function(entry) {
               const name = entry[0];
@@ -160,9 +160,9 @@ function OpenerAdvisor({ champions, traits, compLines }) {
                   style={{ display: "flex", alignItems: "center", gap: 6, background: active ? col + "18" : C.surfaceHigh, border: "1px solid " + (active ? col + "55" : C.border), borderLeft: "3px solid " + (active ? col : C.border), padding: "3px 8px 3px 6px" }}
                 >
                   <span style={{ fontSize: 10, fontFamily: F.label, fontWeight: 700, color: active ? col : C.textDim, letterSpacing: 0.5, textTransform: "uppercase" }}>{name}</span>
-                  <span style={{ fontSize: 9, fontFamily: F.label, color: active ? col : C.textDim, fontWeight: 700 }}>{count}</span>
+                  <span style={{ fontSize: 11, fontFamily: F.label, color: active ? col : C.textDim, fontWeight: 700 }}>{count}</span>
                   {breakpoints.length > 0 && (
-                    <span style={{ fontSize: 8, color: C.textDim, fontFamily: F.label }}>
+                    <span style={{ fontSize: 10, color: C.textDim, fontFamily: F.label }}>
                       {breakpoints.map(function(bp, i) {
                         return (
                           <span key={i} style={{ color: bp <= count ? col : C.border, fontWeight: bp <= count ? 700 : 400, marginRight: 1 }}>{bp}</span>
@@ -171,7 +171,7 @@ function OpenerAdvisor({ champions, traits, compLines }) {
                     </span>
                   )}
                   {nextBp && (
-                    <span style={{ fontSize: 8, color: C.textDim, fontFamily: F.label }}>need {nextBp - count} more</span>
+                    <span style={{ fontSize: 10, color: C.textDim, fontFamily: F.label }}>need {nextBp - count} more</span>
                   )}
                 </div>
               );
@@ -182,7 +182,7 @@ function OpenerAdvisor({ champions, traits, compLines }) {
 
       {/* Comp cards */}
       <div style={{ marginBottom: 6 }}>
-        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
           {selected.length === 0 ? "All Comp Lines" : "Ranked by Match Score"}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -223,11 +223,11 @@ function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys,
               <span style={{ fontFamily: F.headline, fontSize: 14, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: -0.3 }}>
                 {comp.name}
               </span>
-              <span style={{ fontSize: 8, padding: "1px 6px", background: accentCol + "22", color: accentCol, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: "1px solid " + accentCol + "44" }}>
+              <span style={{ fontSize: 10, padding: "1px 8px", background: accentCol + "22", color: accentCol, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: "1px solid " + accentCol + "44" }}>
                 {comp.strategy}
               </span>
               {isBest && (
-                <span style={{ fontSize: 8, padding: "1px 6px", background: C.success + "22", color: C.success, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
+                <span style={{ fontSize: 10, padding: "1px 8px", background: C.success + "22", color: C.success, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
                   BEST MATCH
                 </span>
               )}
@@ -237,7 +237,7 @@ function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys,
           {score > 0 && (
             <div style={{ textAlign: "right", flexShrink: 0 }}>
               <div style={{ fontSize: 18, fontFamily: F.headline, fontWeight: 700, color: accentCol, lineHeight: 1 }}>{pct}<span style={{ fontSize: 10 }}>%</span></div>
-              <div style={{ fontSize: 8, color: C.textDim, fontFamily: F.label, letterSpacing: 1 }}>MATCH</div>
+              <div style={{ fontSize: 10, color: C.textDim, fontFamily: F.label, letterSpacing: 1 }}>MATCH</div>
             </div>
           )}
         </div>
@@ -279,13 +279,13 @@ function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys,
         <div style={{ borderTop: "1px solid " + C.border, padding: "12px 14px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>BIS Items</div>
+              <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>BIS Items</div>
               {comp.items && Object.entries(comp.items).map(function(entry) {
                 const champKey = entry[0];
                 const itemKeys = entry[1];
                 return (
                   <div key={champKey} style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 8, fontFamily: F.label, color: accentCol, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
+                    <div style={{ fontSize: 11, fontFamily: F.label, color: accentCol, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
                       {champKey}
                     </div>
                     <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
@@ -298,11 +298,11 @@ function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys,
               })}
             </div>
             <div>
-              <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Tactical Plan</div>
+              <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Tactical Plan</div>
               <p style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, margin: "0 0 10px", lineHeight: 1.6 }}>{comp.gameplan}</p>
               {comp.god && (
                 <div style={{ background: C.surfaceLow, border: "1px solid " + C.tertiary + "33", padding: "6px 10px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 9, color: C.textDim, fontFamily: F.label, letterSpacing: 1, textTransform: "uppercase" }}>God:</span>
+                  <span style={{ fontSize: 11, color: C.textDim, fontFamily: F.label, letterSpacing: 1, textTransform: "uppercase" }}>God:</span>
                   <span style={{ fontSize: 12, fontFamily: F.headline, fontWeight: 700, color: C.tertiary }}>{comp.god}</span>
                   {comp.godWhy && <span style={{ fontSize: 10, color: C.textDim, fontFamily: F.body }}>{comp.godWhy}</span>}
                 </div>

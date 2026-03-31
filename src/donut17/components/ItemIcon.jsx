@@ -62,7 +62,7 @@ function ItemIcon({ itemKey, size, showName, style: extra }) {
       </div>
       {showName && (
         <span style={{
-          fontSize: 7,
+          fontSize: 9,
           fontFamily: F.label,
           color: C.textDim,
           textAlign: "center",

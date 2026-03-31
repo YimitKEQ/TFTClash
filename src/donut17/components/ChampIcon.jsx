@@ -39,14 +39,14 @@ function ChampIcon({ champ, size = 40, showName = false, selected = false, onCli
           </div>
         )}
         {overlay && (
-          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.75)", fontSize: 8, color: color, fontFamily: "'Inter', sans-serif", textAlign: "center", padding: "1px 0", fontWeight: 700 }}>
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.75)", fontSize: 10, color: color, fontFamily: "'Inter', sans-serif", textAlign: "center", padding: "1px 0", fontWeight: 700 }}>
             {overlay}
           </div>
         )}
         <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: color }} />
       </div>
       {showName && (
-        <span style={{ fontSize: 8, color: C.textDim, fontFamily: "'Inter', sans-serif", textAlign: "center", lineHeight: 1, maxWidth: size + 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.3 }}>
+        <span style={{ fontSize: 10, color: C.textDim, fontFamily: "'Inter', sans-serif", textAlign: "center", lineHeight: 1, maxWidth: size + 8, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: 0.3 }}>
           {champ.name}
         </span>
       )}

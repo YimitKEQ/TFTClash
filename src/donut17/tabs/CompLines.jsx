@@ -45,9 +45,9 @@ function CompLines({ compLines, champions }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3, flexWrap: "wrap" }}>
                     <span style={{ fontFamily: F.headline, fontSize: 16, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: -0.3 }}>{comp.name}</span>
-                    <span style={{ fontSize: 8, padding: "1px 6px", background: comp.color + "22", color: comp.color, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: "1px solid " + comp.color + "44" }}>{comp.strategy}</span>
+                    <span style={{ fontSize: 10, padding: "1px 8px", background: comp.color + "22", color: comp.color, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: "1px solid " + comp.color + "44" }}>{comp.strategy}</span>
                     {comp.carry && (
-                      <span style={{ fontSize: 8, color: C.textDim, fontFamily: F.label, letterSpacing: 1, textTransform: "uppercase" }}>
+                      <span style={{ fontSize: 10, color: C.textDim, fontFamily: F.label, letterSpacing: 1, textTransform: "uppercase" }}>
                         carry: <span style={{ color: comp.color }}>{(function() { const ch = champions.find(function(c) { return c.key === comp.carry; }); return ch ? ch.name : comp.carry; })()}</span>
                       </span>
                     )}
@@ -87,7 +87,7 @@ function CompLines({ compLines, champions }) {
                 <div style={{ borderTop: "1px solid " + C.border, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0 }}>
                   {/* Left: boards */}
                   <div style={{ padding: "16px", borderRight: "1px solid " + C.border }}>
-                    <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Core Board</div>
+                    <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Core Board</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
                       {comp.core.map(function(key) {
                         const ch = champions.find(function(c) { return c.key === key; });
@@ -105,7 +105,7 @@ function CompLines({ compLines, champions }) {
 
                     {comp.flex && comp.flex.length > 0 && (
                       <div>
-                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Flex Units</div>
+                        <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Flex Units</div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                           {comp.flex.map(function(key) {
                             const ch = champions.find(function(c) { return c.key === key; });
@@ -121,14 +121,14 @@ function CompLines({ compLines, champions }) {
                   <div style={{ padding: "16px" }}>
                     {comp.items && Object.keys(comp.items).length > 0 && (
                       <div style={{ marginBottom: 14 }}>
-                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>BIS Items</div>
+                        <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>BIS Items</div>
                         {Object.entries(comp.items).map(function(entry) {
                           const champKey = entry[0];
                           const itemKeys = entry[1];
                           const ch = champions.find(function(c) { return c.key === champKey; });
                           return (
                             <div key={champKey} style={{ marginBottom: 10 }}>
-                              <div style={{ fontSize: 8, fontFamily: F.label, color: comp.color, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
+                              <div style={{ fontSize: 11, fontFamily: F.label, color: comp.color, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>
                                 {ch ? ch.name : champKey}
                               </div>
                               <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
@@ -143,7 +143,7 @@ function CompLines({ compLines, champions }) {
                     )}
 
                     <div style={{ marginBottom: 12 }}>
-                      <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Tactical Plan</div>
+                      <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Tactical Plan</div>
                       <p style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, margin: 0, lineHeight: 1.7, background: C.surfaceLow, padding: "8px 10px" }}>
                         {comp.gameplan}
                       </p>
@@ -151,7 +151,7 @@ function CompLines({ compLines, champions }) {
 
                     {comp.god && (
                       <div style={{ background: C.tertiary + "0d", border: "1px solid " + C.tertiary + "33", padding: "8px 10px" }}>
-                        <div style={{ fontSize: 9, fontFamily: F.label, color: C.tertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>Recommended God</div>
+                        <div style={{ fontSize: 11, fontFamily: F.label, color: C.tertiary, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>Recommended God</div>
                         <div style={{ fontFamily: F.headline, fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 3 }}>{comp.god}</div>
                         {comp.godWhy && <div style={{ fontSize: 10, fontFamily: F.body, color: C.textDim }}>{comp.godWhy}</div>}
                       </div>
