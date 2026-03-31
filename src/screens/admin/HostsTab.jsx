@@ -34,7 +34,7 @@ export default function HostsTab() {
       if (applicantId) {
         supabase.from('user_roles').upsert(
           { user_id: applicantId, role: 'host', granted_by: currentUser && currentUser.id },
-          { onConflict: 'user_id' }
+          { onConflict: 'user_id,role' }
         ).then(function(r2) {
           if (r2.error) console.error('[TFT] user_roles upsert failed:', r2.error)
         })

@@ -103,11 +103,12 @@ export default function SignUpScreen() {
         return
       } else {
         toast('Account created but profile setup failed. Please contact support.', 'error')
+        setLoading(false)
       }
     }
 
     var newPlayer = {
-      id: dbInsert.data ? dbInsert.data.id : (Date.now() % 100000),
+      id: dbInsert.data ? dbInsert.data.id : ('temp-' + Date.now() + '-' + Math.random().toString(36).slice(2)),
       name: username.trim(), username: username.trim(),
       riotId: '', rank: 'Iron', region: 'EUW',
       bio: '', authUserId: authUserId,
@@ -239,7 +240,7 @@ export default function SignUpScreen() {
                   <div className="relative">
                     <input
                       type="password"
-                      placeholder="6+ CHARACTERS"
+                      placeholder="8+ CHARACTERS"
                       value={pw}
                       onChange={function (e) { setPw(e.target.value); if (pwErr) setPwErr('') }}
                       className={inputClass}

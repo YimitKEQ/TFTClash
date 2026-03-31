@@ -100,7 +100,7 @@ export function AppProvider(props) {
   var quickClashes = _quickClashes[0];
   var setQuickClashes = _quickClashes[1];
 
-  var _orgSponsors = useState(function(){try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):{};}catch(e){return {};}});
+  var _orgSponsors = useState(function(){try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):[];}catch(e){return [];}});
   var orgSponsors = _orgSponsors[0];
   var setOrgSponsors = _orgSponsors[1];
 
@@ -844,7 +844,7 @@ export function AppProvider(props) {
     }
     return null;
   },[players,seasonConfig]);
-  setSeasonChampion(computedChampion);
+  useEffect(function(){ setSeasonChampion(computedChampion); },[computedChampion]);
 
   // ── Compute user tier ──
   var userTier=currentUser?getUserTier(subscriptions,currentUser.id):"free";

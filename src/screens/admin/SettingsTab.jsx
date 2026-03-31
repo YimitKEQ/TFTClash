@@ -148,8 +148,9 @@ export default function SettingsTab() {
   }
 
   function saveSeasonName() {
-    setSeasonConfig(function(c) { return Object.assign({}, c, { seasonName: seasonName }) })
-    upsertSetting('season_name', seasonName).then(function(r) {
+    var updated = Object.assign({}, seasonConfig, { seasonName: seasonName })
+    setSeasonConfig(updated)
+    upsertSetting('season_config', JSON.stringify(updated)).then(function(r) {
       if (r.error) { toast('Save failed', 'error'); return }
       addAudit('ACTION', 'Season name set: ' + seasonName)
       toast('Season name saved', 'success')
@@ -158,16 +159,18 @@ export default function SettingsTab() {
 
   function toggleReg(val) {
     setRegOpen(val)
-    setSeasonConfig(function(c) { return Object.assign({}, c, { registrationOpen: val }) })
-    upsertSetting('registration_open', String(val))
+    var updated = Object.assign({}, seasonConfig, { registrationOpen: val })
+    setSeasonConfig(updated)
+    upsertSetting('season_config', JSON.stringify(updated))
     addAudit('ACTION', 'Registration ' + (val ? 'opened' : 'closed'))
     toast('Registration ' + (val ? 'open' : 'closed'), 'success')
   }
 
   function toggleSeason(val) {
     setSeasonActive(val)
-    setSeasonConfig(function(c) { return Object.assign({}, c, { seasonActive: val }) })
-    upsertSetting('season_active', String(val))
+    var updated = Object.assign({}, seasonConfig, { seasonActive: val })
+    setSeasonConfig(updated)
+    upsertSetting('season_config', JSON.stringify(updated))
     addAudit('ACTION', 'Season ' + (val ? 'activated' : 'deactivated'))
     toast('Season ' + (val ? 'active' : 'inactive'), 'success')
   }

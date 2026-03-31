@@ -339,7 +339,7 @@ export default function ScrimsScreen() {
   function createSession() {
     if (!newName.trim()) { toast('Name required', 'error'); return; }
     if (!currentUser) { toast('Login required', 'error'); return; }
-    var authId = currentUser.auth_user_id;
+    var authId = currentUser.auth_user_id || currentUser.id;
     if (!authId) { toast('Auth session not found', 'error'); return; }
     createScrim(newName.trim(), authId, newNotes.trim(), parseInt(newTarget) || 5).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
@@ -459,8 +459,9 @@ export default function ScrimsScreen() {
 
   // Access guard
   var currentUsername = (currentUser && (currentUser.username || currentUser.name)) || '';
-  var isScrimHost = !!(currentUsername && scrimHostAccess.includes(currentUsername));
-  var isScrimmer = !!(currentUsername && (scrimAccess || []).includes(currentUsername));
+  var currentUsernameLower = currentUsername.toLowerCase();
+  var isScrimHost = !!(currentUsername && scrimHostAccess.some(function(u) { return u.toLowerCase() === currentUsernameLower; }));
+  var isScrimmer = !!(currentUsername && (scrimAccess || []).some(function(u) { return u.toLowerCase() === currentUsernameLower; }));
   var hasAccess = isAdmin || isScrimHost || isScrimmer;
   var canManage = isAdmin || isScrimHost;
   if (!hasAccess) {

@@ -87,40 +87,66 @@ export default function ResultsTab() {
       if (!window.confirm('This lobby is already published. Override?')) return
     }
     if (!validate()) return
+    var tId = ts.activeTournamentId || null
     var rows = lobbyPlayers.map(function(p) {
       var place = parseInt(getPlace(p.id))
-      return { player_id: p.id, placement: place, pts_earned: PTS[place] || 0, lobby: lobby, tournament_id: ts.activeTournamentId || null }
+      return { player_id: p.id, placement: place, pts_earned: PTS[place] || 0, lobby: lobby, tournament_id: tId }
     })
-    supabase.from('game_results').insert(rows).then(function(r) {
-      if (r.error) { toast('Publish failed: ' + r.error.message, 'error'); return }
-      setPlayers(function(ps) {
-        return ps.map(function(p) {
-          var row = rows.find(function(r) { return r.player_id === p.id })
-          if (!row) return p
-          return Object.assign({}, p, {
-            pts: (p.pts || 0) + row.pts_earned,
-            games: (p.games || 0) + 1,
-            wins: row.placement === 1 ? (p.wins || 0) + 1 : (p.wins || 0),
-            top4: row.placement <= 4 ? (p.top4 || 0) + 1 : (p.top4 || 0)
+
+    // On override: delete old results first to prevent double-counting in DB and local state
+    var deleteStep = isPublished
+      ? supabase.from('game_results').delete().eq('lobby', lobby).eq('tournament_id', tId)
+      : Promise.resolve({ error: null })
+
+    deleteStep.then(function(delRes) {
+      if (delRes.error) { toast('Failed to clear existing results: ' + delRes.error.message, 'error'); return }
+      supabase.from('game_results').insert(rows).then(function(r) {
+        if (r.error) { toast('Publish failed: ' + r.error.message, 'error'); return }
+        if (isPublished) {
+          // Override: reload stats from DB so we don't double-count (refresh_player_stats trigger recalculates)
+          supabase.from('players').select('id, season_pts, wins, top4, games, avg_placement').then(function(freshRes) {
+            if (!freshRes.error && freshRes.data) {
+              setPlayers(function(ps) {
+                return ps.map(function(p) {
+                  var fresh = freshRes.data.find(function(f) { return f.id === p.id })
+                  if (!fresh) return p
+                  return Object.assign({}, p, { pts: fresh.season_pts || 0, wins: fresh.wins || 0, top4: fresh.top4 || 0, games: fresh.games || 0 })
+                })
+              })
+            }
           })
-        })
-      })
-      rows.forEach(function(row) {
-        if (row.pts_earned > 0) {
-          supabase.rpc('increment_season_pts', { player_id_arg: row.player_id, pts_arg: row.pts_earned }).then(function(r2) {
-            if (r2.error) {
-              supabase.from('players').select('season_pts').eq('id', row.player_id).single().then(function(cur) {
-                if (!cur.error && cur.data) {
-                  supabase.from('players').update({ season_pts: (cur.data.season_pts || 0) + row.pts_earned }).eq('id', row.player_id)
+        } else {
+          // Fresh publish: update local state immediately
+          setPlayers(function(ps) {
+            return ps.map(function(p) {
+              var row = rows.find(function(rw) { return rw.player_id === p.id })
+              if (!row) return p
+              return Object.assign({}, p, {
+                pts: (p.pts || 0) + row.pts_earned,
+                games: (p.games || 0) + 1,
+                wins: row.placement === 1 ? (p.wins || 0) + 1 : (p.wins || 0),
+                top4: row.placement <= 4 ? (p.top4 || 0) + 1 : (p.top4 || 0)
+              })
+            })
+          })
+          rows.forEach(function(row) {
+            if (row.pts_earned > 0) {
+              supabase.rpc('increment_season_pts', { player_id_arg: row.player_id, pts_arg: row.pts_earned }).then(function(r2) {
+                if (r2.error) {
+                  supabase.from('players').select('season_pts').eq('id', row.player_id).single().then(function(cur) {
+                    if (!cur.error && cur.data) {
+                      supabase.from('players').update({ season_pts: (cur.data.season_pts || 0) + row.pts_earned }).eq('id', row.player_id)
+                    }
+                  })
                 }
               })
             }
           })
         }
+        setPublished(function(pub) { return pub.concat([lobbyKey]) })
+        addAudit('ACTION', 'Results ' + (isPublished ? 'overridden' : 'published') + ': Lobby ' + lobby + ', ' + rows.length + ' players')
+        toast('Results ' + (isPublished ? 'updated' : 'published') + ' for Lobby ' + lobby + '!', 'success')
       })
-      setPublished(function(pub) { return pub.concat([lobbyKey]) })
-      addAudit('ACTION', 'Results published: Lobby ' + lobby + ', ' + rows.length + ' players')
-      toast('Results published for Lobby ' + lobby + '!', 'success')
     })
   }
 
