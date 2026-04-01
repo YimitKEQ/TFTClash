@@ -223,6 +223,146 @@ function TabHero({ eyebrow, title, sub, accentColor }) {
   );
 }
 
+function RecipeResult({ item }) {
+  const [err, setErr] = useState(false);
+  const col = TAG_COLOR[primaryTag(item)] || "#494456";
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 8,
+      background: C.surface, border: "1px solid " + col + "44",
+      borderLeft: "3px solid " + col,
+      padding: "8px 10px",
+    }}>
+      <div style={{ width: 36, height: 36, flexShrink: 0, border: "1px solid " + col + "55", background: C.surfaceHigh, overflow: "hidden" }}>
+        {!err && item.icon ? (
+          <img src={item.icon} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={function() { setErr(true); }} />
+        ) : (
+          <div style={{ width: "100%", height: "100%", background: col + "22", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: col, fontFamily: F.label, fontWeight: 700 }}>
+            {(item.acronym || item.name).slice(0, 2).toUpperCase()}
+          </div>
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: F.headline, fontSize: 12, fontWeight: 700, color: col, textTransform: "uppercase", letterSpacing: 0.3 }}>{item.name}</div>
+        {item.desc && <div style={{ fontFamily: F.body, fontSize: 10, color: C.textDim, lineHeight: 1.4, marginTop: 2 }}>{item.desc.slice(0, 80)}{item.desc.length > 80 ? "..." : ""}</div>}
+      </div>
+    </div>
+  );
+}
+
+function RecipeBuilder() {
+  const components = itemsData.filter(function(x) { return x.category === "component"; });
+  const combined   = itemsData.filter(function(x) { return x.category === "combined"; });
+  const [slot1, setSlot1] = useState(null);
+  const [slot2, setSlot2] = useState(null);
+
+  const results = useMemo(function() {
+    if (!slot1 && !slot2) return [];
+    return combined.filter(function(item) {
+      if (!item.recipe || item.recipe.length < 2) return false;
+      if (slot1 && slot2) {
+        return (item.recipe[0] === slot1 && item.recipe[1] === slot2) ||
+               (item.recipe[0] === slot2 && item.recipe[1] === slot1);
+      }
+      const picked = slot1 || slot2;
+      return item.recipe.includes(picked);
+    });
+  }, [slot1, slot2, combined]);
+
+  return (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+        <div style={{ height: 1, width: 20, background: C.secondary + "66" }} />
+        <span style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, color: C.secondary, letterSpacing: 3, textTransform: "uppercase" }}>Recipe Finder</span>
+      </div>
+      <div style={{ background: C.surfaceLow, border: "1px solid " + C.border, padding: "14px 16px", marginBottom: 14 }}>
+        <div style={{ fontFamily: F.body, fontSize: 11, color: C.textDim, marginBottom: 12 }}>
+          Pick up to 2 components to see what you can craft.
+        </div>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 14 }}>
+          {[slot1, slot2].map(function(slotKey, si) {
+            const comp = slotKey ? itemsData.find(function(x) { return x.key === slotKey; }) : null;
+            const col = C.secondary;
+            return (
+              <div
+                key={si}
+                onClick={function() { if (si === 0) setSlot1(null); else setSlot2(null); }}
+                style={{
+                  width: 52, height: 52,
+                  border: "2px solid " + (comp ? col + "88" : C.border),
+                  background: comp ? col + "12" : C.surfaceHigh,
+                  overflow: "hidden",
+                  cursor: comp ? "pointer" : "default",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}
+                title={comp ? comp.name + " (click to remove)" : ("Slot " + (si + 1))}
+              >
+                {comp && comp.icon ? (
+                  <img src={comp.icon} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <span style={{ fontSize: 22, color: C.border }}>+</span>
+                )}
+              </div>
+            );
+          })}
+          <span style={{ fontSize: 18, color: C.textSub }}>+</span>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {components.map(function(comp) {
+              const active = slot1 === comp.key || slot2 === comp.key;
+              return (
+                <div
+                  key={comp.key}
+                  title={comp.name}
+                  onClick={function() {
+                    if (active) {
+                      if (slot1 === comp.key) setSlot1(null);
+                      else setSlot2(null);
+                    } else if (!slot1) {
+                      setSlot1(comp.key);
+                    } else if (!slot2) {
+                      setSlot2(comp.key);
+                    }
+                  }}
+                  style={{
+                    width: 28, height: 28,
+                    border: "1px solid " + (active ? C.secondary + "88" : C.border),
+                    background: active ? C.secondary + "22" : C.surfaceHighest,
+                    overflow: "hidden", cursor: "pointer", flexShrink: 0,
+                    outline: active ? ("2px solid " + C.secondary + "55") : "none",
+                    outlineOffset: 1,
+                  }}
+                >
+                  {comp.icon ? (
+                    <img src={comp.icon} alt={comp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      {results.length > 0 && (
+        <div>
+          <div style={{ fontFamily: F.label, fontSize: 10, color: C.textSub, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 8 }}>
+            {results.length} result{results.length !== 1 ? "s" : ""}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 4 }}>
+            {results.map(function(item) {
+              return <RecipeResult key={item.key} item={item} />;
+            })}
+          </div>
+        </div>
+      )}
+      {(slot1 || slot2) && results.length === 0 && (
+        <div style={{ fontFamily: F.label, fontSize: 11, color: C.textSub, textAlign: "center", padding: "20px 0", letterSpacing: 1 }}>
+          No combined items found for this combination.
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Items() {
   const [category, setCategory] = useState("combined");
   const [search, setSearch] = useState("");
@@ -288,6 +428,8 @@ function Items() {
           }}
         />
       </div>
+
+      {category === "component" && <RecipeBuilder />}
 
       {category === "component" ? (
         <ComponentGrid items={filtered} expanded={expanded} setExpanded={setExpanded} />
