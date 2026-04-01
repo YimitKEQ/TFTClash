@@ -5590,5 +5590,340 @@
       "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Morgana.png?w=22",
       "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_morgana/skins/base/images/tft17_morgana_splash_centered_50.tft_set17.tex"
     }
+  },
+  {
+    "apiName": "TFT17_Reksai",
+    "key": "reksai",
+    "name": "Rek'Sai",
+    "cost": 1,
+    "traits": [
+      "Primordian",
+      "Brawler"
+    ],
+    "stats": {
+      "hp": 700,
+      "mana": 110,
+      "initialMana": 50,
+      "damage": 50,
+      "armor": 45,
+      "magicResist": 45,
+      "attackSpeed": 0.6,
+      "range": 1
+    },
+    "ability": {
+      "name": "Upheaval",
+      "desc": "Heal <scaleHealth>@TotalHealing@&nbsp;(%i:scaleHealth%%i:scaleAP%)</scaleHealth>, then briefly knock up adjacent enemies and deal <magicDamage>@ModifiedDamage@&nbsp;(%i:scaleAP%)</magicDamage>&nbsp;magic damage.",
+      "variables": [
+        {
+          "name": "PercentMaximumHealthHealing",
+          "value": [0, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06]
+        },
+        {
+          "name": "APHealing",
+          "value": [90, 185, 200, 215, 240, 90, 90]
+        },
+        {
+          "name": "Damage",
+          "value": [0, 80, 120, 180, 315, 0, 0]
+        },
+        {
+          "name": "StunDuration",
+          "value": [1, 1, 1, 1, 1, 1, 1]
+        }
+      ]
+    },
+    "assets": {
+      "face": "https://ap.tft.tools/img/new17/face/tft17_reksai.jpg?w=36",
+      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_reksai.jpg?w=64",
+      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Reksai.jpg?w=290",
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Reksai.png?w=22",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_reksai/skins/base/images/tft17_reksai_splash_tile_26.tft_set17.tex"
+    }
+  },
+  {
+    "apiName": "TFT17_Mordekaiser",
+    "key": "mordekaiser",
+    "name": "Mordekaiser",
+    "cost": 2,
+    "traits": [
+      "Dark Star",
+      "Channeler",
+      "Vanguard"
+    ],
+    "stats": {
+      "hp": 950,
+      "mana": 100,
+      "initialMana": 40,
+      "damage": 40,
+      "armor": 45,
+      "magicResist": 45,
+      "attackSpeed": 0.6,
+      "range": 1
+    },
+    "ability": {
+      "name": "Indestructible",
+      "desc": "Gain <TFTBonus>@ModifiedInitialShield@&nbsp;(%i:scaleAP%)</TFTBonus> Shield. Each second for the next @Duration@ seconds, gain <TFTBonus>@ModifiedShieldPerProc@&nbsp;(%i:scaleAP%)</TFTBonus> more Shield and deal <magicDamage>@ModifiedDamagePerProc@&nbsp;(%i:scaleAP%)</magicDamage> magic damage to adjacent enemies. When this ability ends, consume the remaining Shield and heal for <scaleHealth>@HealRefund*100@%</scaleHealth> of its value.",
+      "variables": [
+        {
+          "name": "InitialShield",
+          "value": [0, 250, 325, 475, 575, 200, 240]
+        },
+        {
+          "name": "ShieldPerProc",
+          "value": [0, 75, 90, 105, 120, 0, 0]
+        },
+        {
+          "name": "DamagePerProc",
+          "value": [0, 45, 70, 100, 170, 0, 0]
+        },
+        {
+          "name": "HealRefund",
+          "value": [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
+        },
+        {
+          "name": "Duration",
+          "value": [4, 4, 4, 4, 4, 4, 4]
+        }
+      ]
+    },
+    "assets": {
+      "face": "https://ap.tft.tools/img/new17/face/tft17_mordekaiser.jpg?w=36",
+      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_mordekaiser.jpg?w=64",
+      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Mordekaiser.jpg?w=290",
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Mordekaiser.png?w=22",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_mordekaiser/skins/base/images/tft17_mordekaiser_splash_tile_6.tft_set17.tex"
+    }
+  },
+  {
+    "apiName": "TFT17_Rhaast",
+    "key": "rhaast",
+    "name": "Rhaast",
+    "cost": 3,
+    "traits": [
+      "Anima",
+      "Redeemer"
+    ],
+    "stats": {
+      "hp": 1200,
+      "mana": 90,
+      "initialMana": 30,
+      "damage": 60,
+      "armor": 60,
+      "magicResist": 60,
+      "attackSpeed": 0.65,
+      "range": 1
+    },
+    "ability": {
+      "name": "Divine Scythe",
+      "desc": "Gain <TFTBonus>@Durability*100@%</TFTBonus> Durability for @Duration@ seconds, healing <scaleHealth>@ModifiedHeal@&nbsp;(%i:scaleAP%)</scaleHealth> over the duration. Afterwards, slash forward in a line, dealing <physicalDamage>@ModifiedDamage@&nbsp;(%i:scaleAD%)</physicalDamage> physical damage to enemies hit and knocking them up for @KnockupDuration@ second.",
+      "variables": [
+        {
+          "name": "Duration",
+          "value": [2, 2, 2, 2, 2, 2, 2]
+        },
+        {
+          "name": "Durability",
+          "value": [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+        },
+        {
+          "name": "HealAmount",
+          "value": [1, 525, 650, 825, 1000, 0, 0]
+        },
+        {
+          "name": "KnockupDuration",
+          "value": [1, 1, 1, 1, 1, 1, 1]
+        },
+        {
+          "name": "Damage",
+          "value": [0.2, 200, 300, 480, 660, 0.2, 0.2]
+        }
+      ]
+    },
+    "assets": {
+      "face": "https://ap.tft.tools/img/new17/face/tft17_rhaast.jpg?w=36",
+      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_rhaast.jpg?w=64",
+      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Rhaast.jpg?w=290",
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Rhaast.png?w=22",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_rhaast/skins/base/images/tft17_kaynsplash_tile.tft_set17.tex"
+    }
+  },
+  {
+    "apiName": "TFT17_TahmKench",
+    "key": "tahmkench",
+    "name": "Tahm Kench",
+    "cost": 4,
+    "traits": [
+      "Oracle",
+      "Brawler"
+    ],
+    "stats": {
+      "hp": 1300,
+      "mana": 120,
+      "initialMana": 50,
+      "damage": 75,
+      "armor": 60,
+      "magicResist": 60,
+      "attackSpeed": 0.5,
+      "range": 1
+    },
+    "ability": {
+      "name": "Tongue Lash",
+      "desc": "<spellPassive>Passive:</spellPassive> Once per combat after dropping below @HPThreshold*100@% Health, gain Shield for @ShieldDuration@ seconds equal to @PercentHealingToShield*100@% of healing received this combat.<br><br><spellActive>Active:</spellActive> Heal <scaleHealth>@ModifiedHeal@&nbsp;(%i:scaleHealth%%i:scaleAP%)</scaleHealth>, then tongue lash all enemies within two hexes dealing <magicDamage>@ModifiedDamage@&nbsp;(%i:scaleAP%%i:scaleHealth%)</magicDamage> magic damage.",
+      "variables": [
+        {
+          "name": "PercentHealingToShield",
+          "value": [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]
+        },
+        {
+          "name": "HealHP",
+          "value": [0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08]
+        },
+        {
+          "name": "HealAP",
+          "value": [0, 240, 280, 1500, 2500, 0, 0]
+        },
+        {
+          "name": "DamageHP",
+          "value": [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02]
+        },
+        {
+          "name": "DamageAP",
+          "value": [120, 45, 60, 800, 600, 870, 870]
+        },
+        {
+          "name": "HPThreshold",
+          "value": [0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35]
+        },
+        {
+          "name": "ShieldDuration",
+          "value": [4, 4, 4, 4, 4, 4, 4]
+        }
+      ]
+    },
+    "assets": {
+      "face": "https://ap.tft.tools/img/new17/face/tft17_tahmkench.jpg?w=36",
+      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_tahmkench.jpg?w=64",
+      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_TahmKench.jpg?w=290",
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TahmKench.png?w=22",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_tahmkench/skins/base/images/tft17_tahmkench_splash_tile_11.tft_set17.tex"
+    }
+  },
+  {
+    "apiName": "TFT17_Xayah",
+    "key": "xayah",
+    "name": "Xayah",
+    "cost": 4,
+    "traits": [
+      "Stargazer",
+      "Sniper"
+    ],
+    "stats": {
+      "hp": 850,
+      "mana": 50,
+      "initialMana": 0,
+      "damage": 45,
+      "armor": 30,
+      "magicResist": 30,
+      "attackSpeed": 0.75,
+      "range": 6
+    },
+    "ability": {
+      "name": "Stellar Ricochet",
+      "desc": "<spellPassive>Passive:</spellPassive> Attacks bounce to strike <scaleLevel>@AttackNumEnemies@</scaleLevel> times, dealing <scaleLevel>@PassivePercentReducedDamage*100@%</scaleLevel> reduced damage per target hit and leaving a Feather behind the final target.<br><br><spellActive>Active:</spellActive> Gain <TFTBonus>@AttackSpeed*100@%</TFTBonus> Attack Speed for @Duration@ seconds. At the end, recall all Feathers split between the closest @RecallFeatherTargets@ enemies, dealing <physicalDamage>@TotalDamage@&nbsp;(%i:scaleAD%)</physicalDamage> physical damage each.",
+      "variables": [
+        {
+          "name": "AttackNumEnemies",
+          "value": [3, 3, 3, 5, 5, 5, 5]
+        },
+        {
+          "name": "PassivePercentReducedDamage",
+          "value": [0.6, 0.6, 0.6, 0.3, 0.3, 0.3, 0.3]
+        },
+        {
+          "name": "ADDamage",
+          "value": [40, 46, 69, 900, 375, 300, 300]
+        },
+        {
+          "name": "APDamage",
+          "value": [10, 6, 9, 60, 75, 75, 75]
+        },
+        {
+          "name": "ActivePercentReducedDamage",
+          "value": [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
+        },
+        {
+          "name": "RecallFeatherTargets",
+          "value": [3, 3, 3, 3, 3, 3, 3]
+        },
+        {
+          "name": "AttackSpeed",
+          "value": [0.75, 0.75, 0.75, 0.75, 0.75, 0.75, 0.75]
+        },
+        {
+          "name": "Duration",
+          "value": [4, 4, 4, 4, 4, 4, 4]
+        }
+      ]
+    },
+    "assets": {
+      "face": "https://ap.tft.tools/img/new17/face/tft17_xayah.jpg?w=36",
+      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_xayah.jpg?w=64",
+      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Xayah.jpg?w=290",
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Xayah.png?w=22",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_xayah/skins/base/images/tft17_xayah_splash_tile_1.tft_set17.tex"
+    }
+  },
+  {
+    "apiName": "TFT17_Graves",
+    "key": "graves",
+    "name": "Graves",
+    "cost": 5,
+    "traits": [
+      "Anima",
+      "Factory New"
+    ],
+    "stats": {
+      "hp": 900,
+      "mana": 60,
+      "initialMana": 0,
+      "damage": 57,
+      "armor": 40,
+      "magicResist": 40,
+      "attackSpeed": 0.7,
+      "range": 4
+    },
+    "ability": {
+      "name": "Collateral Damage",
+      "desc": "<spellPassive>Passive:</spellPassive> Attacks fire @NumProjectiles@ projectiles in a cone that deal <physicalDamage>@ModifiedPassiveDamage@ (%i:TFTBaseAD%)</physicalDamage> physical damage each.<br><br><spellActive>Active:</spellActive> Fire an explosive shell that deals <physicalDamage>@ModifiedDamage@ (%i:scaleAD%)</physicalDamage> physical damage to the target, and <physicalDamage>@ModifiedSecondaryDamage@&nbsp;(%i:scaleAD%%i:scaleAP%)</physicalDamage> physical damage to adjacent enemies.",
+      "variables": [
+        {
+          "name": "NumProjectiles",
+          "value": [5, 5, 5, 5, 5, 5, 5]
+        },
+        {
+          "name": "PassivePercentBAD",
+          "value": [0.33, 0.33, 0.33, 0.33, 0.33, 0.33, 0.33]
+        },
+        {
+          "name": "Damage",
+          "value": [400, 360, 540, 5555, 5555, 5555, 5555]
+        },
+        {
+          "name": "SecondaryDamageAD",
+          "value": [120, 120, 180, 3333, 3333, 3333, 3333]
+        },
+        {
+          "name": "SecondaryDamageAP",
+          "value": [30, 30, 45, 777, 777, 777, 777]
+        }
+      ]
+    },
+    "assets": {
+      "face": "https://ap.tft.tools/img/new17/face/tft17_graves.jpg?w=36",
+      "face_lg": "https://ap.tft.tools/img/new17/face/tft17_graves.jpg?w=64",
+      "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Graves.jpg?w=290",
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Graves.png?w=22",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_graves/skins/base/images/tft17_graves_splash_tile_18.tft_set17.tex"
+    }
   }
 ]
