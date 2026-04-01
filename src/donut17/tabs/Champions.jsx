@@ -20,6 +20,7 @@ function StatBar({ label, value, max, color }) {
 }
 
 function Champions({ champions, traits }) {
+  var [view, setView] = useState("cards");
   const [search, setSearch] = useState("");
   const [costFilter, setCostFilter] = useState(null);
   const [expanded, setExpanded] = useState(null);
@@ -52,6 +53,22 @@ function Champions({ champions, traits }) {
 
   return (
     <div>
+      <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
+        <button
+          onClick={function() { setView("cards"); }}
+          style={{ padding: "6px 16px", background: view === "cards" ? C.primary + "22" : "transparent", border: "1px solid " + (view === "cards" ? C.primary : C.border), color: view === "cards" ? C.primary : C.textDim, fontFamily: F.headline, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}
+        >
+          Champions
+        </button>
+        <button
+          onClick={function() { setView("grid"); }}
+          style={{ padding: "6px 16px", background: view === "grid" ? C.secondary + "22" : "transparent", border: "1px solid " + (view === "grid" ? C.secondary : C.border), color: view === "grid" ? C.secondary : C.textDim, fontFamily: F.headline, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}
+        >
+          Synergy Grid
+        </button>
+      </div>
+      {view === "cards" && (
+      <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 10 }}>
         <div>
           <h2 style={{ fontFamily: F.headline, fontSize: 24, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: C.text, borderLeft: "4px solid " + C.primary, paddingLeft: 12, margin: 0, lineHeight: 1 }}>
@@ -148,6 +165,11 @@ function Champions({ champions, traits }) {
           </div>
         );
       })}
+      </div>
+      )}
+      {view === "grid" && (
+        <SynergyGridInline champions={champions} traits={traits} />
+      )}
     </div>
   );
 }
@@ -191,6 +213,42 @@ function ChampDetail({ champ, traitMap, color }) {
             <StatBar label="Range" value={champ.stats.range} max={5} color={color} />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SynergyGridInline({ champions, traits }) {
+  var origins = traits.filter(function(t) { return t.type === "origin" || t.type === "class"; });
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <div style={{ fontFamily: F.headline, fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: C.textSub, marginBottom: 12 }}>
+        Champions grouped by trait
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 4 }}>
+        {origins.map(function(trait) {
+          var champs = champions.filter(function(c) { return c.traits.includes(trait.name); });
+          if (champs.length === 0) return null;
+          return (
+            <div key={trait.key} style={{ background: C.surface, border: "1px solid " + C.border, padding: "10px 12px" }}>
+              <div style={{ fontFamily: F.headline, fontSize: 13, fontWeight: 700, color: C.primary, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>{trait.name}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                {champs.map(function(ch) {
+                  var col = COST_COLOR[ch.cost] || "#6b7280";
+                  return (
+                    <div key={ch.key} title={ch.name} style={{ width: 28, height: 28, clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)", overflow: "hidden", background: col + "44", outline: "1px solid " + col + "66", outlineOffset: -1 }}>
+                      {ch.assets && ch.assets.face ? (
+                        <img src={ch.assets.face} alt={ch.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+                      ) : (
+                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 7, color: col, fontFamily: F.label, fontWeight: 700 }}>{ch.name.slice(0, 2).toUpperCase()}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
