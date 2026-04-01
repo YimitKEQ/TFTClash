@@ -23,17 +23,10 @@ var TABS = [
   { id: "gods",     label: "Gods",      icon: "military_tech" },
 ];
 
-var ACCENTCOLORS = {
-  opener:   C.primary,
-  builder:  C.primary,
-  comps:    C.tertiary,
-  champs:   C.primary,
-  items:    C.secondary,
-  augments: C.orange,
-  gods:     C.tertiary,
-};
-
-function MSIcon({ name, size = 20, style: extra }) {
+function MSIcon(props) {
+  var name = props.name;
+  var size = props.size || 20;
+  var extra = props.style || {};
   return (
     <span
       className="material-symbols-outlined"
@@ -45,7 +38,9 @@ function MSIcon({ name, size = 20, style: extra }) {
 }
 
 function Donut17Page() {
-  const [tab, setTab] = useState("opener");
+  var _state = useState("opener");
+  var tab = _state[0];
+  var setTab = _state[1];
 
   useEffect(function() {
     var fontId = "d17-fonts";
@@ -66,112 +61,83 @@ function Donut17Page() {
     }
   }, []);
 
-  const accentColor = ACCENTCOLORS[tab] || C.primary;
-
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
 
-      {/* Nebula bg — stronger atmosphere */}
+      {/* Cosmic background */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
         background: "radial-gradient(ellipse at 25% 20%, rgba(200,184,255,0.13) 0%, transparent 50%), radial-gradient(ellipse at 80% 65%, rgba(125,200,255,0.09) 0%, transparent 45%), radial-gradient(ellipse at 60% 90%, rgba(124,58,237,0.06) 0%, transparent 40%)"
       }} />
 
-      {/* Fixed header */}
+      {/* Sticky top nav */}
       <header style={{
-        position: "fixed", top: 0, left: 0, right: 0, height: 56, zIndex: 50,
+        position: "sticky", top: 0, left: 0, right: 0, height: 52, zIndex: 50,
         background: "rgba(11,8,19,0.95)", backdropFilter: "blur(20px)",
         borderBottom: "1px solid " + C.border,
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 24px 0 80px",
-        boxShadow: "0 1px 0 0 " + accentColor + "22, 0 4px 24px rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "center",
+        padding: "0 24px",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.5)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <div style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 22, letterSpacing: 4, color: C.text, textTransform: "uppercase", textShadow: "0 0 24px " + C.primary + "44" }}>
-            DONUT<span style={{ color: C.primary }}>17</span>
-          </div>
-          <nav style={{ display: "flex", alignItems: "stretch", height: 56, gap: 0 }}>
-            {TABS.map(function(t) {
-              const active = tab === t.id;
-              const col = ACCENTCOLORS[t.id];
-              return (
-                <button
-                  key={t.id}
-                  onClick={function() { setTab(t.id); }}
-                  style={{
-                    padding: "0 16px",
-                    background: active ? col + "0d" : "transparent",
-                    border: "none",
-                    borderBottom: active ? ("2px solid " + col) : "2px solid transparent",
-                    color: active ? col : C.textDim,
-                    fontFamily: F.headline,
-                    fontSize: 11,
-                    fontWeight: 700,
-                    letterSpacing: 1,
-                    textTransform: "uppercase",
-                    cursor: "pointer",
-                    transition: "color 0.15s, border-color 0.15s",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </nav>
+        {/* Brand text with gradient */}
+        <div style={{
+          fontFamily: F.headline, fontWeight: 900, fontSize: 22,
+          letterSpacing: 3, textTransform: "uppercase",
+          background: "linear-gradient(135deg, #c8b8ff 0%, #7dc8ff 100%)",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          flexShrink: 0,
+        }}>
+          DONUT 17
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 10, fontFamily: F.label, color: C.textDim, letterSpacing: 1 }}>
-          <span style={{ color: C.border }}>|</span>
-          <span>{championsData.length} CHAMPIONS</span>
-          <span style={{ color: C.border }}>|</span>
-          <span>{traitsData.length} TRAITS</span>
-          <span style={{ color: C.border }}>|</span>
-          <span style={{ color: accentColor }}>PBE DATA</span>
+
+        {/* Set badge pill */}
+        <div style={{
+          marginLeft: 16, flexShrink: 0,
+          padding: "3px 10px", borderRadius: 999,
+          background: C.surfaceHigh, border: "1px solid " + C.border,
+          fontFamily: F.label, fontSize: 10, fontWeight: 600,
+          color: C.textMuted, letterSpacing: 0.5, whiteSpace: "nowrap",
+        }}>
+          Set 17 - Space Gods
         </div>
+
+        {/* Tab buttons pushed right */}
+        <nav style={{ display: "flex", alignItems: "stretch", height: 52, gap: 0, marginLeft: "auto" }}>
+          {TABS.map(function(t) {
+            var active = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={function() { setTab(t.id); }}
+                style={{
+                  padding: "0 14px",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: active ? "2px solid transparent" : "2px solid transparent",
+                  borderImage: active ? "linear-gradient(90deg, #c8b8ff, #7dc8ff) 1" : "none",
+                  color: active ? "#ffffff" : C.textDim,
+                  fontFamily: F.headline,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                  transition: "color 0.15s, border-color 0.15s",
+                  whiteSpace: "nowrap",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <MSIcon name={t.icon} size={16} style={{ color: active ? "#ffffff" : C.textDim }} />
+                {t.label}
+              </button>
+            );
+          })}
+        </nav>
       </header>
 
-      {/* Fixed left sidebar */}
-      <aside style={{
-        position: "fixed", top: 0, left: 0, bottom: 0, width: 64, zIndex: 40,
-        background: C.surfaceLow + "f0", backdropFilter: "blur(12px)",
-        borderRight: "1px solid " + C.border,
-        display: "flex", flexDirection: "column", alignItems: "center",
-        paddingTop: 72, gap: 4,
-      }}>
-        {TABS.map(function(t) {
-          const active = tab === t.id;
-          const col = ACCENTCOLORS[t.id];
-          return (
-            <button
-              key={t.id}
-              onClick={function() { setTab(t.id); }}
-              title={t.label}
-              style={{
-                width: "100%",
-                padding: "10px 0",
-                background: active ? col + "15" : "transparent",
-                border: "none",
-                borderLeft: active ? ("3px solid " + col) : "3px solid transparent",
-                color: active ? col : C.textDim,
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 3,
-                transition: "all 0.15s",
-              }}
-            >
-              <MSIcon name={t.icon} size={18} />
-              <span style={{ fontSize: 9, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
-                {t.label.slice(0,5).toUpperCase()}
-              </span>
-            </button>
-          );
-        })}
-      </aside>
-
-      {/* Main content */}
-      <main style={{ marginLeft: 64, paddingTop: 72, paddingBottom: 48, minHeight: "100vh", position: "relative", zIndex: 1 }}>
-        <div style={{ maxWidth: 1140, margin: "0 auto", padding: "0 24px" }}>
+      {/* Main content - no sidebar offset */}
+      <main style={{ paddingTop: 24, paddingBottom: 60, minHeight: "calc(100vh - 52px)", position: "relative", zIndex: 1 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
           <React.Suspense fallback={null}>
             {tab === "opener"  && <OpenerAdvisor champions={championsData} traits={traitsData} compLines={compLinesData} />}
             {tab === "builder" && <TeamBuilder   champions={championsData} traits={traitsData} />}
@@ -182,9 +148,9 @@ function Donut17Page() {
             {tab === "gods"    && <Gods           gods={godsData} />}
           </React.Suspense>
         </div>
-        <footer style={{ marginTop: 48, borderTop: "1px solid " + C.border, padding: "16px 24px 16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <footer style={{ marginTop: 48, borderTop: "1px solid " + C.border, padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ fontFamily: F.headline, fontWeight: 700, fontSize: 12, color: C.border, letterSpacing: 2, textTransform: "uppercase" }}>DONUT17</span>
-          <span style={{ fontFamily: F.label, fontSize: 9, color: C.border, letterSpacing: 1, textTransform: "uppercase" }}>v17 PBE — for the homies only — not affiliated with riot</span>
+          <span style={{ fontFamily: F.label, fontSize: 9, color: C.border, letterSpacing: 1, textTransform: "uppercase" }}>v17 PBE - for the homies only - not affiliated with riot</span>
         </footer>
       </main>
     </div>
