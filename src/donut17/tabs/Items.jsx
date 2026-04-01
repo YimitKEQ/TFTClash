@@ -206,6 +206,21 @@ function ItemCard({ item, expanded, onToggle }) {
   );
 }
 
+function TabHero({ eyebrow, title, sub, accentColor }) {
+  return (
+    <div style={{
+      background: "linear-gradient(180deg, " + accentColor + "12 0%, transparent 100%)",
+      borderBottom: "1px solid " + C.border,
+      padding: "32px 0 28px",
+      marginBottom: 24,
+    }}>
+      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 4, textTransform: "uppercase", marginBottom: 6, opacity: 0.85 }}>{eyebrow}</div>
+      <h2 style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 42, textTransform: "uppercase", letterSpacing: -1, color: C.text, lineHeight: 1, margin: "0 0 10px" }}>{title}</h2>
+      {sub && <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, margin: 0, maxWidth: 500 }}>{sub}</p>}
+    </div>
+  );
+}
+
 function Items() {
   const [category, setCategory] = useState("combined");
   const [search, setSearch] = useState("");
@@ -225,12 +240,7 @@ function Items() {
 
   return (
     <div>
-      <h2 style={{ fontFamily: F.headline, fontSize: 24, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: C.text, borderLeft: "4px solid " + C.secondary, paddingLeft: 12, margin: "0 0 6px" }}>
-        Items
-      </h2>
-      <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, marginBottom: 20, paddingLeft: 16 }}>
-        All Set 17 items — components, combined, artifacts, and trait emblems.
-      </p>
+      <TabHero eyebrow="Set 17 · Space Gods" title="Items" sub="Components, combined items, artifacts, and emblems." accentColor={C.secondary} />
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {CATEGORY_ORDER.map(function(cat) {

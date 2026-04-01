@@ -20,13 +20,17 @@ function scoreComp(comp, selectedKeys, allChamps) {
   return score;
 }
 
-function SectionHeader({ text, color, sub }) {
+function TabHero({ eyebrow, title, sub, accentColor }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <h2 style={{ fontFamily: F.headline, fontSize: 24, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: C.text, borderLeft: "4px solid " + color, paddingLeft: 12, margin: 0, lineHeight: 1 }}>
-        {text}
-      </h2>
-      {sub && <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, marginTop: 6, paddingLeft: 16 }}>{sub}</p>}
+    <div style={{
+      background: "linear-gradient(180deg, " + accentColor + "12 0%, transparent 100%)",
+      borderBottom: "1px solid " + C.border,
+      padding: "32px 0 28px",
+      marginBottom: 24,
+    }}>
+      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 4, textTransform: "uppercase", marginBottom: 6, opacity: 0.85 }}>{eyebrow}</div>
+      <h2 style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 42, textTransform: "uppercase", letterSpacing: -1, color: C.text, lineHeight: 1, margin: "0 0 10px" }}>{title}</h2>
+      {sub && <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, margin: 0, maxWidth: 500 }}>{sub}</p>}
     </div>
   );
 }
@@ -75,7 +79,7 @@ function OpenerAdvisor({ champions, traits, compLines }) {
 
   return (
     <div>
-      <SectionHeader text="Opener Advisor" color={C.primary} sub="Select champions found early — comp lines rank by match score in real time." />
+      <TabHero eyebrow="Set 17 · Space Gods" title="Opener Advisor" sub="Select your early game units to find which comp lines match your opener." accentColor={C.primary} />
 
       {/* Champion picker */}
       <div style={{ background: C.surfaceLow, padding: 16, marginBottom: 16 }}>

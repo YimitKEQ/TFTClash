@@ -1,21 +1,27 @@
 import React, { useState } from "react";
 import { C, F } from "../d17.js";
 
+function TabHero({ eyebrow, title, sub, accentColor }) {
+  return (
+    <div style={{
+      background: "linear-gradient(180deg, " + accentColor + "12 0%, transparent 100%)",
+      borderBottom: "1px solid " + C.border,
+      padding: "32px 0 28px",
+      marginBottom: 24,
+    }}>
+      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 4, textTransform: "uppercase", marginBottom: 6, opacity: 0.85 }}>{eyebrow}</div>
+      <h2 style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 42, textTransform: "uppercase", letterSpacing: -1, color: C.text, lineHeight: 1, margin: "0 0 10px" }}>{title}</h2>
+      {sub && <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, margin: 0, maxWidth: 500 }}>{sub}</p>}
+    </div>
+  );
+}
+
 function Gods({ gods }) {
   const [selected, setSelected] = useState(null);
 
   return (
     <div>
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 11, fontFamily: F.label, color: C.tertiary, letterSpacing: 4, textTransform: "uppercase", marginBottom: 8 }}>Celestial Entities</div>
-        <h2 style={{ fontFamily: F.headline, fontSize: 36, fontWeight: 700, textTransform: "uppercase", letterSpacing: -1, color: C.text, margin: "0 0 12px" }}>
-          The Space Gods
-        </h2>
-        <div style={{ width: 48, height: 2, background: C.tertiary, margin: "0 auto 12px" }} />
-        <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, maxWidth: 480, margin: "0 auto" }}>
-          Choose one God each run. Their blessings and offerings unlock at stages 2, 3, and 4. Your 4-7 blessing is always active.
-        </p>
-      </div>
+      <TabHero eyebrow="Set 17 · Celestial Entities" title="Space Gods" sub="Choose one God each run. Blessings unlock at stages 2, 3, and 4." accentColor={C.tertiary} />
 
       {/* God portrait row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 6, marginBottom: 24 }}>
