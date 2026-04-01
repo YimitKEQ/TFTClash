@@ -1,35 +1,36 @@
-// Donut17 design tokens — Cosmic Tactical v2
+// Donut17 design tokens — Galaxy Atlas v3
 
-export const C = {
-  bg:              '#0c1018',
-  surface:         '#161b27',
-  surfaceLow:      '#111622',
-  surfaceHigh:     '#1f2535',
-  surfaceHighest:  '#283046',
-  border:          '#3a3650',
-  borderLight:     '#5a5472',
-  primary:         '#c8b8ff',   // lavender
+export var C = {
+  bg:              '#0b0813',
+  surface:         '#110e1c',
+  surfaceLow:      '#0d0b17',
+  surfaceHigh:     '#1a1628',
+  surfaceHighest:  '#221d34',
+  border:          '#2e2848',
+  borderLight:     '#3d3660',
+  primary:         '#c8b8ff',
   primaryDim:      '#9b8fcc',
-  secondary:       '#7dc8ff',  // sky blue
+  secondary:       '#7dc8ff',
   secondaryDim:    '#5ea0cc',
-  tertiary:        '#f0cc00',  // gold
+  tertiary:        '#f0cc00',
   tertiaryDim:     '#b89e00',
+  orange:          '#ff8c42',
   text:            '#eceef8',
-  textMuted:       '#d4d0e8',  // was cbc3d9 — now readable
-  textDim:         '#a8a3be',  // was 958da2 — now readable
-  textSub:         '#7e7a96',  // for non-critical meta only
+  textMuted:       '#d4d0e8',
+  textDim:         '#a8a3be',
+  textSub:         '#6b6585',
   success:         '#4ade80',
   error:           '#f87171',
   warn:            '#fbbf24',
 };
 
-export const F = {
-  headline: "'Space Grotesk', sans-serif",
-  body:     "'Manrope', sans-serif",
+export var F = {
+  headline: "'Barlow Condensed', sans-serif",
+  body:     "'Inter', sans-serif",
   label:    "'Inter', sans-serif",
 };
 
-export const COST_COLOR = {
+export var COST_COLOR = {
   1: '#9ca3af',
   2: '#34d058',
   3: '#60a5fa',
@@ -37,7 +38,7 @@ export const COST_COLOR = {
   5: '#f0cc00',
 };
 
-export const COST_GLOW = {
+export var COST_GLOW = {
   1: 'rgba(156,163,175,0.25)',
   2: 'rgba(52,208,88,0.3)',
   3: 'rgba(96,165,250,0.3)',
@@ -45,8 +46,22 @@ export const COST_GLOW = {
   5: 'rgba(240,204,0,0.4)',
 };
 
-export const TRAIT_COLOR = {
+export var TRAIT_COLOR = {
   origin: '#c8b8ff',
   class:  '#7dc8ff',
   unique: '#f0cc00',
+};
+
+export var TIER_COLOR = {
+  S: '#c8b8ff',
+  A: '#7dc8ff',
+  B: '#e6a817',
+  C: '#6b6585',
+};
+
+export var TIER_BG = {
+  S: 'rgba(200,184,255,0.15)',
+  A: 'rgba(125,200,255,0.15)',
+  B: 'rgba(240,204,0,0.12)',
+  C: 'rgba(107,101,133,0.15)',
 };
