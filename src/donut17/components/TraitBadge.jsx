@@ -1,35 +1,41 @@
 import React from "react";
 import { TRAIT_COLOR, C, F } from "../d17.js";
 
-function TraitBadge({ trait, count = 0, showCount = false, compact = false }) {
-  const color = TRAIT_COLOR[trait.type] || C.borderLight;
-  return (
-    <span
-      title={trait.desc || trait.name}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: compact ? 3 : 5,
-        padding: compact ? "1px 6px 1px 0" : "2px 8px 2px 0",
-        background: C.surfaceHighest,
-        fontSize: compact ? 9 : 10,
-        fontFamily: F.label,
-        fontWeight: 600,
-        color: C.textMuted,
-        letterSpacing: 0.5,
-        textTransform: "uppercase",
-        whiteSpace: "nowrap",
-        borderLeft: "3px solid " + color,
-        paddingLeft: compact ? 5 : 7,
-      }}
-    >
-      {trait.name}
-      {showCount && count > 0 && (
-        <span style={{ background: color + "33", color: color, fontSize: compact ? 8 : 9, padding: "0 4px", fontWeight: 700 }}>
-          {count}
-        </span>
-      )}
-    </span>
+function TraitBadge(props) {
+  var trait = props.trait;
+  var color = TRAIT_COLOR[trait.type] || C.borderLight;
+  var ct = props.count || 0;
+
+  return React.createElement("span", {
+    title: trait.desc ? trait.desc.replace(/<[^>]*>/g, "").slice(0, 120) : trait.name,
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: props.compact ? 4 : 5,
+      padding: props.compact ? "2px 8px" : "4px 12px",
+      borderRadius: 6,
+      background: color + "10",
+      border: "1px solid " + color + "30",
+      fontSize: props.compact ? 10 : 11,
+      fontFamily: F.body,
+      fontWeight: 500,
+      color: color,
+      whiteSpace: "nowrap",
+    }
+  },
+    React.createElement("span", {
+      style: {
+        width: props.compact ? 4 : 5,
+        height: props.compact ? 4 : 5,
+        borderRadius: "50%",
+        background: color,
+        flexShrink: 0,
+      }
+    }),
+    trait.name,
+    props.showCount && ct > 0 && React.createElement("strong", {
+      style: { fontWeight: 700 }
+    }, ct)
   );
 }
 
