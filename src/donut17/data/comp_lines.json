@@ -32,7 +32,8 @@
     "god": "Varus",
     "godWhy": "+4% 5-cost odds makes hitting Jhin much faster",
     "gameplan": "Cho+Liss Dark Star 2 -> Kai'Sa 2 -> roll 8 for Karma+Jhin -> cap at 9",
-    "strategy": "FAST 8"
+    "strategy": "FAST 8",
+    "tier": "S"
   },
   {
     "id": "nova-bastion",
@@ -68,7 +69,8 @@
     "god": "Kayle",
     "godWhy": "Radiant item on Kindred or Aatrox frontline is game-ending",
     "gameplan": "Aatrox+Poppy Bastion 2 early -> add Akali for N.O.V.A. -> roll 7 for Maokai/Kindred",
-    "strategy": "FLEX"
+    "strategy": "FLEX",
+    "tier": "A"
   },
   {
     "id": "anima-reroll",
@@ -102,7 +104,8 @@
     "god": "Evelynn",
     "godWhy": "Lose streak to build gold then stabilize with bonus HP",
     "gameplan": "Briar+Jinx Anima 2 -> lose streak 1-3 -> stabilize -> find Aurora 2 at 6 -> roll for Fiora at 8",
-    "strategy": "REROLL 6"
+    "strategy": "REROLL 6",
+    "tier": "A"
   },
   {
     "id": "stargazer-stack",
@@ -136,7 +139,8 @@
     "god": "Yasuo",
     "godWhy": "Wind Hex 30% AS directly empowers Stargazer scaling",
     "gameplan": "Talon+TF Stargazer 2 -> Jax for 3 -> roll 7 for Lulu/Nunu 2 -> push to 8",
-    "strategy": "REROLL 7"
+    "strategy": "REROLL 7",
+    "tier": "B"
   },
   {
     "id": "space-groove-6",
@@ -172,7 +176,8 @@
     "god": "Soraka",
     "godWhy": "HP stacking synergizes perfectly with bulky frontline",
     "gameplan": "Nasus+Teemo Space Groove 2 -> Gwen for 3 -> push Groove 6 at 8 for Blitz",
-    "strategy": "FAST 8"
+    "strategy": "FAST 8",
+    "tier": "B"
   },
   {
     "id": "rogue-assassin",
@@ -207,7 +212,8 @@
     "god": "Evelynn",
     "godWhy": "Lose streak to build gold then roll for Riven 2 at level 6",
     "gameplan": "Briar+Talon Rogue 2 -> add Gwen/Fizz -> roll 7 for Riven 2 -> cap with Kaisa",
-    "strategy": "REROLL 6"
+    "strategy": "REROLL 6",
+    "tier": "A"
   },
   {
     "id": "meeple-6",
@@ -244,7 +250,8 @@
     "god": "Aurelion Sol",
     "godWhy": "Field 6 traits easily for emblem + reforger reward",
     "gameplan": "Poppy+Veigar Meeple 2 -> Gnar+Fizz for 4 -> push Meeple 6 at 8 for Bard",
-    "strategy": "FAST 8"
+    "strategy": "FAST 8",
+    "tier": "B"
   },
   {
     "id": "channeler-ap",
@@ -278,7 +285,8 @@
     "god": "Ekko",
     "godWhy": "Anomaly item scales perfectly with AP carries",
     "gameplan": "Zoe+Viktor Channeler 2 -> Aurelion Sol at 7 -> slow roll for Bard at 8/9",
-    "strategy": "FAST 7"
+    "strategy": "FAST 7",
+    "tier": "A"
   },
   {
     "id": "vanguard-frontline",
@@ -313,7 +321,8 @@
     "god": "Soraka",
     "godWhy": "Tank boards benefit massively from the HP scaling",
     "gameplan": "Leona+Nasus Vanguard 2 -> add Illaoi for 3 -> roll 7 for Nunu -> push 8 for Blitz",
-    "strategy": "FLEX"
+    "strategy": "FLEX",
+    "tier": "B"
   },
   {
     "id": "sniper-backline",
@@ -346,6 +355,7 @@
     "god": "Thresh",
     "godWhy": "Random loot can snowball early - dice gods willing",
     "gameplan": "Ezreal+Gnar Sniper 2 -> Samira 2 at 6 -> push 8 for Jhin -> spread board for Sniper bonus",
-    "strategy": "FAST 8"
+    "strategy": "FAST 8",
+    "tier": "C"
   }
 ]
