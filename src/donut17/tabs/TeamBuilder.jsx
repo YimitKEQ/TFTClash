@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo } from "react";
 import { C, F, COST_COLOR, COST_GLOW, TRAIT_COLOR } from "../d17.js";
 import itemsData from "../data/items_clean.json";
 import compLinesData from "../data/comp_lines.json";
@@ -7,15 +7,15 @@ import compLinesData from "../data/comp_lines.json";
 var gDrag = { src: null, champ: null, hid: null };
 
 // ── Board constants ───────────────────────────────────────────────────
-const ROWS = 4;
-const COLS = 7;
-const HEX_W  = 66;
-const HEX_H  = 72;
+const ROWS     = 4;
+const COLS     = 7;
+const HEX_W    = 66;
+const HEX_H    = 72;
 const COL_STEP = HEX_W + 7;
-const ROW_STEP = 95;       // hex + space for name + items below
+const ROW_STEP = 95;
 const STAGGER  = COL_STEP / 2;
 const BOARD_W  = COLS * COL_STEP + STAGGER;
-const BOARD_H  = (ROWS - 1) * ROW_STEP + HEX_H + 42;  // + items area
+const BOARD_H  = (ROWS - 1) * ROW_STEP + HEX_H + 42;
 
 function hexId(r, c) { return r + "_" + c; }
 
@@ -53,12 +53,11 @@ function makeStars() {
 const ITEM_MAP = {};
 itemsData.forEach(function(item) { ITEM_MAP[item.key] = item; });
 
-// combined + components for quick access
 const COMBINED_ITEMS  = itemsData.filter(function(x) { return x.category === "combined"; });
 const COMPONENT_ITEMS = itemsData.filter(function(x) { return x.category === "component"; });
 const ARTIFACT_ITEMS  = itemsData.filter(function(x) { return x.category === "artifact"; });
 
-// ── Sub-components ────────────────────────────────────────────────────
+// ── HexImage ──────────────────────────────────────────────────────────
 
 function HexImage({ champ, size }) {
   const [err, setErr] = useState(false);
@@ -80,6 +79,8 @@ function HexImage({ champ, size }) {
   );
 }
 
+// ── ItemSlotImg ───────────────────────────────────────────────────────
+
 function ItemSlotImg({ itemKey, size }) {
   const [err, setErr] = useState(false);
   const item = ITEM_MAP[itemKey];
@@ -97,9 +98,11 @@ function ItemSlotImg({ itemKey, size }) {
   );
 }
 
-function PoolIcon({ champ, placed, onClick, onDragStart }) {
+// ── Pool champion tile (below board, horizontal layout) ───────────────
+
+function PoolChampTile({ champ, placed, onClick, onDragStart }) {
   const [err, setErr] = useState(false);
-  const col = COST_COLOR[champ.cost];
+  const col  = COST_COLOR[champ.cost];
   const glow = COST_GLOW[champ.cost];
   return (
     <div
@@ -108,22 +111,25 @@ function PoolIcon({ champ, placed, onClick, onDragStart }) {
       onDragStart={function(e) { onDragStart(e, champ); }}
       title={champ.name + " (" + champ.cost + "g)"}
       style={{
-        cursor: "grab",
-        width: 42,
-        height: 46,
-        position: "relative",
-        opacity: placed ? 0.35 : 1,
-        transition: "opacity 0.1s, filter 0.1s",
-        filter: placed ? "none" : "drop-shadow(0 1px 3px " + glow + ")",
+        cursor: placed ? "default" : "grab",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 3,
+        opacity: placed ? 0.38 : 1,
+        transition: "opacity 0.1s",
+        width: 52,
+        flexShrink: 0,
       }}
     >
       <div style={{
-        width: 42,
-        height: 46,
+        width: 44,
+        height: 50,
         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
         overflow: "hidden",
-        outline: "1.5px solid " + col + "66",
+        outline: "1.5px solid " + col + (placed ? "33" : "77"),
         outlineOffset: 1,
+        filter: placed ? "none" : "drop-shadow(0 1px 4px " + glow + ")",
       }}>
         {!err && champ.assets && champ.assets.face ? (
           <img src={champ.assets.face} alt={champ.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }} onError={function() { setErr(true); }} />
@@ -133,14 +139,28 @@ function PoolIcon({ champ, placed, onClick, onDragStart }) {
           </div>
         )}
       </div>
-      {placed > 0 && (
-        <div style={{ position: "absolute", top: 1, right: -2, width: 13, height: 13, background: col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontFamily: F.label, fontWeight: 900, color: "#000", borderRadius: 0 }}>
-          {placed}
-        </div>
-      )}
+      <span style={{
+        fontSize: 8,
+        fontFamily: F.label,
+        color: placed ? C.textSub : C.textMuted,
+        textAlign: "center",
+        lineHeight: 1.2,
+        fontWeight: 700,
+        textTransform: "uppercase",
+        letterSpacing: 0.3,
+        width: 52,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        display: "block",
+      }}>
+        {champ.name}
+      </span>
     </div>
   );
 }
+
+// ── BoardHex ──────────────────────────────────────────────────────────
 
 function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver, onClickHex, onRemoveItem, onDragStart, onDragOver, onDrop, onDragEnd }) {
   const [err, setErr] = useState(false);
@@ -150,7 +170,6 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
   const isOdd   = r % 2 === 1;
   const x       = c * COL_STEP + (isOdd ? 0 : STAGGER);
   const y       = r * ROW_STEP;
-
   const starLabel = stars === 2 ? "★★" : stars === 3 ? "★★★" : "";
 
   return (
@@ -162,7 +181,6 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
       onDragEnd={onDragEnd}
       style={{ position: "absolute", left: x, top: y, width: HEX_W + 14, display: "flex", flexDirection: "column", alignItems: "center" }}
     >
-      {/* Hex cell */}
       <div
         onClick={function() { onClickHex(hid); }}
         style={{
@@ -174,27 +192,20 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
           transition: "filter 0.15s",
         }}
       >
-        {/* Hex background (glow ring) */}
         <div style={{
-          position: "absolute",
-          inset: -2,
+          position: "absolute", inset: -2,
           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
           background: selected ? C.primary + "44" : champ ? col + "22" : "transparent",
           zIndex: 0,
         }} />
-        {/* Hex border */}
         <div style={{
-          position: "absolute",
-          inset: 1,
+          position: "absolute", inset: 1,
           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
           background: selected ? C.primary + "33" : "transparent",
-          border: "none",
           zIndex: 1,
         }} />
-        {/* Hex content */}
         <div style={{
-          position: "absolute",
-          inset: 2,
+          position: "absolute", inset: 2,
           clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
           overflow: "hidden",
           background: isEmpty ? C.surfaceLow : "transparent",
@@ -206,45 +217,31 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
             <HexImage champ={champ} size={HEX_W - 4} />
           ) : (
             <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 20, color: C.border, lineHeight: 1 }}>+</span>
+              <span style={{ fontSize: 20, color: C.border + "88", lineHeight: 1 }}>+</span>
             </div>
           )}
         </div>
-
-        {/* Pending flash */}
         {pending && isEmpty && (
           <div style={{
-            position: "absolute",
-            inset: 0,
+            position: "absolute", inset: 0,
             clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-            background: C.primary + "22",
+            background: C.primary + "1a",
             zIndex: 5,
-            animation: "none",
           }} />
         )}
-
-        {/* Cost bar at bottom of hex */}
         {champ && (
           <div style={{
-            position: "absolute",
-            bottom: 4,
-            left: "50%",
+            position: "absolute", bottom: 4, left: "50%",
             transform: "translateX(-50%)",
-            background: col + "ee",
-            padding: "1px 6px",
-            fontSize: 8,
-            fontFamily: F.label,
-            fontWeight: 700,
-            color: "#000",
-            zIndex: 6,
-            letterSpacing: 0.5,
+            background: col + "ee", padding: "1px 6px",
+            fontSize: 8, fontFamily: F.label, fontWeight: 700, color: "#000",
+            zIndex: 6, letterSpacing: 0.5,
           }}>
             {champ.cost}G
           </div>
         )}
       </div>
 
-      {/* Name + stars */}
       {champ && (
         <div style={{ marginTop: 4, textAlign: "center", width: HEX_W + 10 }}>
           <div style={{ fontFamily: F.label, fontSize: 9, fontWeight: 700, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -256,7 +253,6 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
         </div>
       )}
 
-      {/* Item slots */}
       {champ && (
         <div style={{ display: "flex", gap: 2, marginTop: 3, justifyContent: "center" }}>
           {[0, 1, 2].map(function(si) {
@@ -267,8 +263,7 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
                 title={itemKey ? (ITEM_MAP[itemKey] ? ITEM_MAP[itemKey].name : itemKey) : "Empty slot"}
                 onClick={function(e) { e.stopPropagation(); if (itemKey) onRemoveItem(hid, si); }}
                 style={{
-                  width: 17,
-                  height: 17,
+                  width: 17, height: 17,
                   border: "1px solid " + (itemKey ? (col + "99") : C.border),
                   background: itemKey ? C.surfaceHigh : C.surfaceLow,
                   overflow: "hidden",
@@ -276,11 +271,7 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
                   flexShrink: 0,
                 }}
               >
-                {itemKey ? (
-                  <ItemSlotImg itemKey={itemKey} size={17} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", background: "transparent" }} />
-                )}
+                {itemKey && <ItemSlotImg itemKey={itemKey} size={17} />}
               </div>
             );
           })}
@@ -290,35 +281,61 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver,
   );
 }
 
-function TraitRow({ name, count, trait }) {
+// ── TraitBadge — hex pip breakpoints, TFT-client style ─────────────────
+
+function TraitBadge({ name, count, trait }) {
   const breakpoints = trait && trait.effects ? trait.effects.map(function(e) { return e.minUnits; }).filter(Boolean) : [];
-  const activeBp    = breakpoints.filter(function(bp) { return bp <= count; });
+  const activeBps   = breakpoints.filter(function(bp) { return bp <= count; });
   const nextBp      = breakpoints.find(function(bp) { return bp > count; });
-  const active      = activeBp.length > 0;
+  const active      = activeBps.length > 0;
   const col         = TRAIT_COLOR[(trait && trait.type) || "class"] || C.borderLight;
-  const pct         = nextBp ? Math.round((count / nextBp) * 100) : 100;
+  const pct         = nextBp ? Math.min(100, Math.round((count / nextBp) * 100)) : 100;
 
   return (
     <div style={{
       display: "flex",
       alignItems: "center",
-      gap: 8,
-      padding: "6px 10px",
-      background: active ? col + "12" : "transparent",
-      borderLeft: "3px solid " + (active ? col : C.border),
+      gap: 7,
+      padding: "6px 8px",
+      background: active ? col + "10" : "transparent",
+      borderLeft: "3px solid " + (active ? col : C.border + "55"),
       marginBottom: 1,
     }}>
+      {/* Count hex */}
+      <div style={{
+        width: 22, height: 22, flexShrink: 0,
+        clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+        background: active ? col + "28" : C.surfaceHighest,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        outline: "1.5px solid " + (active ? col + "88" : C.border),
+        outlineOffset: 0,
+      }}>
+        <span style={{ fontSize: 10, fontFamily: F.label, fontWeight: 900, color: active ? col : C.textSub, lineHeight: 1 }}>{count}</span>
+      </div>
+
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: active && nextBp ? 4 : 0 }}>
-          <span style={{ fontSize: 11, fontFamily: F.label, fontWeight: 700, color: active ? col : C.textDim, textTransform: "uppercase", letterSpacing: 0.5 }}>{name}</span>
-          <span style={{ fontSize: 11, fontFamily: F.label, color: active ? col : C.textDim, fontWeight: 700 }}>{count}</span>
-          <div style={{ display: "flex", gap: 2, marginLeft: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: (active && nextBp) ? 3 : 0 }}>
+          <span style={{
+            fontSize: 11, fontFamily: F.label, fontWeight: 700,
+            color: active ? col : C.textDim,
+            textTransform: "uppercase", letterSpacing: 0.3,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 80,
+          }}>{name}</span>
+          {/* Breakpoint pips */}
+          <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
             {breakpoints.map(function(bp, i) {
               const reached = bp <= count;
               return (
-                <span key={i} style={{ fontSize: 9, padding: "0 4px", background: reached ? col + "28" : "transparent", color: reached ? col : C.textSub, fontFamily: F.label, fontWeight: 700, border: "1px solid " + (reached ? col + "55" : C.border) }}>
-                  {bp}
-                </span>
+                <div key={i} style={{
+                  width: 15, height: 15,
+                  clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+                  background: reached ? col : C.surfaceHighest,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  outline: "1px solid " + (reached ? col + "77" : C.border),
+                  outlineOffset: 0,
+                }}>
+                  <span style={{ fontSize: 6, fontFamily: F.label, fontWeight: 900, color: reached ? "#000" : C.textSub, lineHeight: 1 }}>{bp}</span>
+                </div>
               );
             })}
           </div>
@@ -328,13 +345,17 @@ function TraitRow({ name, count, trait }) {
             <div style={{ height: "100%", width: pct + "%", background: col }} />
           </div>
         )}
-        {nextBp && !active && (
-          <div style={{ fontSize: 9, color: C.textSub, fontFamily: F.label }}>need {nextBp - count} more</div>
+        {!active && nextBp && (
+          <div style={{ fontSize: 9, color: C.textSub, fontFamily: F.label, marginTop: 1 }}>
+            {nextBp - count} more for tier 1
+          </div>
         )}
       </div>
     </div>
   );
 }
+
+// ── ItemPickerIcon ─────────────────────────────────────────────────────
 
 function ItemPickerIcon({ item, onClick }) {
   const [err, setErr] = useState(false);
@@ -343,8 +364,7 @@ function ItemPickerIcon({ item, onClick }) {
       onClick={onClick}
       title={item.name + (item.acronym ? " (" + item.acronym + ")" : "")}
       style={{
-        width: 32,
-        height: 32,
+        width: 34, height: 34,
         border: "1px solid " + C.border,
         background: C.surfaceHigh,
         overflow: "hidden",
@@ -352,7 +372,7 @@ function ItemPickerIcon({ item, onClick }) {
         flexShrink: 0,
         transition: "border-color 0.1s, filter 0.1s",
       }}
-      onMouseEnter={function(e) { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.filter = "brightness(1.25)"; }}
+      onMouseEnter={function(e) { e.currentTarget.style.borderColor = C.secondary; e.currentTarget.style.filter = "brightness(1.3)"; }}
       onMouseLeave={function(e) { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.filter = "none"; }}
     >
       {!err && item.icon ? (
@@ -369,18 +389,18 @@ function ItemPickerIcon({ item, onClick }) {
 // ── Main component ────────────────────────────────────────────────────
 
 function TeamBuilder({ champions, traits }) {
-  const [board,  setBoard]  = useState(makeBoard);
-  const [slots,  setSlots]  = useState(makeSlots);
-  const [stars,  setStars]  = useState(makeStars);
-  const [selected, setSelected] = useState(null);  // hexId or null
-  const [pendingChamp, setPendingChamp] = useState(null);  // champ waiting to be placed
+  const [board,    setBoard]    = useState(makeBoard);
+  const [slots,    setSlots]    = useState(makeSlots);
+  const [stars,    setStars]    = useState(makeStars);
+  const [selected, setSelected] = useState(null);
+  const [pendingChamp, setPendingChamp] = useState(null);
   const [costFilter, setCostFilter]     = useState([1, 2, 3, 4, 5]);
-  const [traitFilter, setTraitFilter]   = useState("all");
   const [search, setSearch]   = useState("");
   const [itemTab, setItemTab] = useState("combined");
   const [history, setHistory] = useState([]);
   var [dragOverHid, setDragOverHid] = useState(null);
 
+  // ── Drag handlers ──
   function handlePoolDragStart(e, champ) {
     gDrag = { src: "pool", champ: champ, hid: null };
     e.dataTransfer.effectAllowed = "move";
@@ -448,6 +468,7 @@ function TeamBuilder({ champions, traits }) {
     gDrag = { src: null, champ: null, hid: null };
   }
 
+  // ── Memos ──
   const traitMap = useMemo(function() {
     const m = {};
     traits.forEach(function(t) { m[t.name] = t; });
@@ -460,7 +481,6 @@ function TeamBuilder({ champions, traits }) {
     return m;
   }, [champions]);
 
-  // trait options for filter
   const traitOptions = useMemo(function() {
     const names = [];
     traits.filter(function(t) { return t.type === "origin" || t.type === "class"; })
@@ -481,13 +501,12 @@ function TeamBuilder({ champions, traits }) {
     const q = search.toLowerCase().trim();
     return champions.filter(function(c) {
       if (!costFilter.includes(c.cost)) return false;
-      if (traitFilter !== "all" && !c.traits.includes(traitFilter)) return false;
       if (!q) return true;
       if (c.name.toLowerCase().includes(q)) return true;
       if (c.traits.some(function(t) { return t.toLowerCase().includes(q); })) return true;
       return false;
     });
-  }, [champions, costFilter, traitFilter, search]);
+  }, [champions, costFilter, search]);
 
   const traitCounts = useMemo(function() {
     const counts = {};
@@ -517,6 +536,13 @@ function TeamBuilder({ champions, traits }) {
   const totalGold  = Object.values(board).filter(Boolean).reduce(function(sum, c) { return sum + c.cost; }, 0);
   const selectedChamp = selected ? board[selected] : null;
 
+  const activeTraitCount = sortedTraits.filter(function(e) {
+    const t = traitMap[e[0]];
+    const bps = t && t.effects ? t.effects.map(function(ef) { return ef.minUnits; }).filter(Boolean) : [];
+    return bps.some(function(bp) { return bp <= e[1]; });
+  }).length;
+
+  // ── Actions ──
   function saveHistory() {
     setHistory(function(prev) {
       return [...prev.slice(-19), { board: { ...board }, slots: JSON.parse(JSON.stringify(slots)), stars: { ...stars } }];
@@ -525,7 +551,6 @@ function TeamBuilder({ champions, traits }) {
 
   function handleClickHex(hid) {
     if (pendingChamp) {
-      // Place pending champion
       if (!board[hid]) {
         saveHistory();
         setBoard(function(prev) { const next = { ...prev }; next[hid] = pendingChamp; return next; });
@@ -542,10 +567,7 @@ function TeamBuilder({ champions, traits }) {
   }
 
   function handlePoolClick(champ) {
-    // If a hex is selected and empty… can't happen (selected requires champ on it)
-    // Just set pending
     setPendingChamp(champ);
-    // find first empty hex and place there
     const keys = Object.keys(board);
     for (let i = 0; i < keys.length; i++) {
       if (!board[keys[i]]) {
@@ -556,7 +578,6 @@ function TeamBuilder({ champions, traits }) {
         return;
       }
     }
-    // Board full
     setPendingChamp(null);
   }
 
@@ -633,7 +654,6 @@ function TeamBuilder({ champions, traits }) {
       while (ci < keys.length && next[keys[ci]] !== null) ci++;
       if (ci < keys.length) {
         next[keys[ci]] = champ;
-        // pre-fill items from comp
         if (comp.items && comp.items[key]) {
           const itemKeys = comp.items[key];
           for (let si = 0; si < Math.min(3, itemKeys.length); si++) {
@@ -652,6 +672,8 @@ function TeamBuilder({ champions, traits }) {
     : itemTab === "components" ? COMPONENT_ITEMS
     : ARTIFACT_ITEMS;
 
+  // ── RENDER ─────────────────────────────────────────────────────────
+
   return (
     <div>
       {/* ── Hero ── */}
@@ -660,178 +682,125 @@ function TeamBuilder({ champions, traits }) {
         background: "linear-gradient(160deg, rgba(200,184,255,0.16) 0%, rgba(200,184,255,0.05) 60%, transparent 100%)",
         borderBottom: "1px solid " + C.border,
         padding: "52px 0 40px",
-        marginBottom: 32,
+        marginBottom: 24,
       }}>
         <div style={{ position: "absolute", right: -60, top: -60, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(200,184,255,0.10) 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: C.primary, letterSpacing: 5, textTransform: "uppercase", marginBottom: 10 }}>Set 17 · Space Gods</div>
-        <h2 style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 72, textTransform: "uppercase", letterSpacing: -3, color: C.text, lineHeight: 0.88, margin: "0 0 18px" }}>Team<br />Builder</h2>
+        <h2 style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 72, textTransform: "uppercase", letterSpacing: -3, color: C.text, lineHeight: 0.88, margin: "0 0 16px" }}>Team<br />Builder</h2>
         <p style={{ fontFamily: F.body, fontSize: 13, color: C.textDim, margin: 0, maxWidth: 520, lineHeight: 1.6 }}>
-          Drag units onto the board. Drag to swap. Drop off the board to remove. Assign items by selecting a unit.
+          Click or drag units from the pool onto the board. Drag to swap positions. Select a unit to equip items.
         </p>
       </div>
 
-      {/* ── Controls bar ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 6 }}>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-          <select
-            defaultValue=""
-            onChange={function(e) { if (e.target.value) { handleLoadComp(e.target.value); e.target.value = ""; } }}
-            style={{ padding: "6px 10px", background: C.surfaceHigh, border: "1px solid " + C.border, color: C.textMuted, fontFamily: F.label, fontSize: 10, outline: "none", cursor: "pointer" }}
-          >
-            <option value="">Load Comp...</option>
-            {compLinesData.map(function(comp) {
-              return <option key={comp.id} value={comp.id}>{comp.name} ({comp.strategy})</option>;
-            })}
-          </select>
-          <button
-            onClick={handleUndo}
-            disabled={!history.length}
-            style={{ padding: "6px 12px", background: "transparent", border: "1px solid " + C.border, color: history.length ? C.textMuted : C.border, fontFamily: F.label, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: history.length ? "pointer" : "default" }}
-          >
-            UNDO
-          </button>
-          <button
-            onClick={handleClear}
-            style={{ padding: "6px 12px", background: C.error + "15", border: "1px solid " + C.error + "55", color: C.error, fontFamily: F.label, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}
-          >
-            CLEAR
-          </button>
-        </div>
+      {/* ── Controls ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+        <select
+          defaultValue=""
+          onChange={function(e) { if (e.target.value) { handleLoadComp(e.target.value); e.target.value = ""; } }}
+          style={{ padding: "6px 10px", background: C.surfaceHigh, border: "1px solid " + C.border, color: C.textMuted, fontFamily: F.label, fontSize: 10, outline: "none", cursor: "pointer" }}
+        >
+          <option value="">Load Comp...</option>
+          {compLinesData.map(function(comp) {
+            return <option key={comp.id} value={comp.id}>{comp.name}</option>;
+          })}
+        </select>
+        <button
+          onClick={handleUndo}
+          disabled={!history.length}
+          style={{ padding: "6px 14px", background: "transparent", border: "1px solid " + C.border, color: history.length ? C.textMuted : C.border, fontFamily: F.label, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: history.length ? "pointer" : "default" }}
+        >
+          UNDO
+        </button>
+        <button
+          onClick={handleClear}
+          style={{ padding: "6px 14px", background: C.error + "15", border: "1px solid " + C.error + "55", color: C.error, fontFamily: F.label, fontSize: 10, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}
+        >
+          CLEAR
+        </button>
+
+        {/* Board stats inline */}
+        {boardCount > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: "auto", padding: "6px 12px", background: C.surfaceLow, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: F.label, fontSize: 11, fontWeight: 700, color: C.primary }}>{boardCount}<span style={{ color: C.textDim, fontWeight: 400 }}>/28</span></span>
+            <span style={{ fontFamily: F.label, fontSize: 11, fontWeight: 700, color: C.tertiary }}>{totalGold}g</span>
+            <span style={{ fontFamily: F.label, fontSize: 10, color: C.success }}>{activeTraitCount} synergies</span>
+            {selected && selectedChamp && (
+              <div style={{ display: "flex", gap: 6, alignItems: "center", borderLeft: "1px solid " + C.border, paddingLeft: 10 }}>
+                <span style={{ fontSize: 11, fontFamily: F.label, color: C.primary, fontWeight: 700 }}>{selectedChamp.name}</span>
+                <button
+                  onClick={function() { cycleStars(selected); }}
+                  style={{ fontSize: 10, background: "transparent", border: "1px solid " + C.tertiary + "55", color: C.tertiary, padding: "1px 8px", cursor: "pointer", fontFamily: F.label, fontWeight: 700 }}
+                >
+                  {"★".repeat(stars[selected])}
+                </button>
+                <button
+                  onClick={function() { handleRemoveChamp(selected); }}
+                  style={{ fontSize: 9, background: C.error + "12", border: "1px solid " + C.error + "44", color: C.error, padding: "1px 8px", cursor: "pointer", fontFamily: F.label, fontWeight: 700, letterSpacing: 1 }}
+                >
+                  REMOVE
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── Board stats bar ── */}
-      {boardCount > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 10, padding: "6px 12px", background: C.surfaceLow, flexWrap: "wrap" }}>
-          <span style={{ fontFamily: F.label, fontSize: 11, fontWeight: 700, color: C.primary }}>{boardCount}<span style={{ color: C.textDim, fontWeight: 400 }}>/28 units</span></span>
-          <span style={{ fontFamily: F.label, fontSize: 11, fontWeight: 700, color: C.tertiary }}>{totalGold}g <span style={{ color: C.textDim, fontWeight: 400 }}>total cost</span></span>
-          {[1, 2, 3, 4, 5].map(function(cost) {
-            const n = Object.values(board).filter(function(c) { return c && c.cost === cost; }).length;
-            if (!n) return null;
-            return (
-              <span key={cost} style={{ fontFamily: F.label, fontSize: 10, color: COST_COLOR[cost] }}>
-                x{n} <span style={{ fontSize: 9 }}>{cost}g</span>
-              </span>
-            );
-          })}
-          {selected && selectedChamp && (
-            <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-              <span style={{ fontSize: 11, fontFamily: F.label, color: C.primary, fontWeight: 700 }}>{selectedChamp.name}</span>
-              <button
-                onClick={function() { cycleStars(selected); }}
-                style={{ fontSize: 10, background: "transparent", border: "1px solid " + C.tertiary + "55", color: C.tertiary, padding: "1px 8px", cursor: "pointer", fontFamily: F.label, fontWeight: 700 }}
-              >
-                {"★".repeat(stars[selected])} {stars[selected]}★
-              </button>
-              <button
-                onClick={function() { handleRemoveChamp(selected); }}
-                style={{ fontSize: 9, background: C.error + "12", border: "1px solid " + C.error + "44", color: C.error, padding: "1px 8px", cursor: "pointer", fontFamily: F.label, fontWeight: 700, letterSpacing: 1 }}
-              >
-                REMOVE
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      {/* ── 3-column layout ── */}
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
 
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-        {/* ── Left: Champion Pool ── */}
-        <div style={{ width: 210, flexShrink: 0 }}>
-          <div style={{ background: C.surfaceLow, padding: "10px 10px 8px" }}>
-            <div style={{ fontSize: 10, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Champion Pool</div>
-
-            <input
-              value={search}
-              onChange={function(e) { setSearch(e.target.value); }}
-              placeholder="Search name or trait..."
-              style={{ width: "100%", padding: "6px 8px", background: C.surfaceHigh, border: "1px solid " + C.border, color: C.text, fontSize: 11, fontFamily: F.label, outline: "none", marginBottom: 8, boxSizing: "border-box" }}
-            />
-
-            {/* Cost filter */}
-            <div style={{ display: "flex", gap: 3, marginBottom: 6 }}>
-              {[1, 2, 3, 4, 5].map(function(cost) {
-                const active = costFilter.includes(cost);
-                const col = COST_COLOR[cost];
-                return (
-                  <button
-                    key={cost}
-                    onClick={function() { setCostFilter(function(prev) { return active ? prev.filter(function(c) { return c !== cost; }) : [...prev, cost].sort(); }); }}
-                    style={{ flex: 1, height: 26, border: "1px solid " + (active ? col : C.border), background: active ? col + "22" : "transparent", color: active ? col : C.textDim, fontSize: 10, fontFamily: F.label, fontWeight: 700, cursor: "pointer" }}
-                  >
-                    {cost}
-                  </button>
-                );
-              })}
+        {/* ── LEFT: Synergies ── */}
+        <div style={{ width: 220, flexShrink: 0 }}>
+          <div style={{ background: C.surfaceLow, border: "1px solid " + C.border }}>
+            <div style={{ padding: "10px 12px 8px", borderBottom: "1px solid " + C.border, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 10, fontFamily: F.label, fontWeight: 700, color: C.textDim, letterSpacing: 2, textTransform: "uppercase" }}>Synergies</span>
+              {activeTraitCount > 0 && (
+                <span style={{ fontSize: 10, fontFamily: F.label, color: C.success, fontWeight: 700 }}>{activeTraitCount} active</span>
+              )}
             </div>
 
-            {/* Trait filter */}
-            <select
-              value={traitFilter}
-              onChange={function(e) { setTraitFilter(e.target.value); }}
-              style={{ width: "100%", padding: "5px 8px", background: C.surfaceHigh, border: "1px solid " + C.border, color: C.textMuted, fontSize: 10, fontFamily: F.label, outline: "none", marginBottom: 4, boxSizing: "border-box" }}
-            >
-              <option value="all">All Traits</option>
-              {traitOptions.map(function(name) { return <option key={name} value={name}>{name}</option>; })}
-            </select>
-          </div>
-
-          {/* Champion list grouped by cost */}
-          <div
-            onDragOver={function(e) { e.preventDefault(); }}
-            onDrop={handlePoolAreaDrop}
-            style={{ maxHeight: 500, overflowY: "auto", background: C.surfaceLow }}
-          >
-            {[1, 2, 3, 4, 5].filter(function(cost) { return costFilter.includes(cost); }).map(function(cost) {
-              const group = poolChamps.filter(function(c) { return c.cost === cost; });
-              if (!group.length) return null;
-              const col = COST_COLOR[cost];
-              return (
-                <div key={cost} style={{ borderTop: "1px solid " + C.border + "55" }}>
-                  <div style={{ padding: "4px 10px", fontSize: 9, fontFamily: F.label, color: col, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
-                    {cost}G — {group.length}
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "2px 8px 8px" }}>
-                    {group.map(function(champ) {
-                      return (
-                        <PoolIcon
-                          key={champ.key}
-                          champ={champ}
-                          placed={boardChampCounts[champ.key] || 0}
-                          onClick={function() { handlePoolClick(champ); }}
-                          onDragStart={handlePoolDragStart}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-            {poolChamps.length === 0 && (
-              <div style={{ padding: "20px 12px", fontSize: 11, color: C.textSub, fontFamily: F.label, textAlign: "center" }}>No units match</div>
+            {sortedTraits.length === 0 ? (
+              <div style={{ padding: "24px 12px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: C.textSub, fontFamily: F.body, fontStyle: "italic", lineHeight: 1.6 }}>Place units on the board to see trait synergies</div>
+              </div>
+            ) : (
+              <div style={{ padding: "4px 0" }}>
+                {sortedTraits.map(function(entry) {
+                  return <TraitBadge key={entry[0]} name={entry[0]} count={entry[1]} trait={traitMap[entry[0]]} />;
+                })}
+              </div>
             )}
           </div>
         </div>
 
-        {/* ── Center: Board ── */}
+        {/* ── CENTER: Board + Pool ── */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ background: C.surfaceLow, padding: "8px 12px", marginBottom: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+          {/* Board header */}
+          <div style={{ background: C.surfaceLow, padding: "6px 12px", marginBottom: 3, display: "flex", alignItems: "center", justifyContent: "space-between", border: "1px solid " + C.border, borderBottom: "none" }}>
             <span style={{ fontSize: 10, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase" }}>
-              Board — {boardCount}/{ROWS * COLS}
+              Board
+            </span>
+            <span style={{ fontSize: 10, fontFamily: F.label, color: boardCount > 0 ? C.primary : C.textSub }}>
+              {boardCount}/{ROWS * COLS} units
             </span>
             {pendingChamp && (
-              <span style={{ fontSize: 10, fontFamily: F.label, color: C.primary, letterSpacing: 0.5 }}>
+              <span style={{ fontSize: 10, fontFamily: F.label, color: C.secondary, letterSpacing: 0.5 }}>
                 Placing {pendingChamp.name} — click a hex
               </span>
             )}
           </div>
 
-          <div style={{
-            background: "radial-gradient(ellipse at 50% 60%, " + C.surfaceHigh + " 0%, " + C.surfaceLow + " 100%)",
-            border: "1px solid " + C.border,
-            padding: "16px 20px 12px",
-            overflowX: "auto",
-          }}>
+          {/* Hex board */}
+          <div
+            style={{
+              background: "radial-gradient(ellipse at 50% 60%, " + C.surfaceHigh + " 0%, " + C.surfaceLow + " 100%)",
+              border: "1px solid " + C.border,
+              padding: "16px 20px 12px",
+              overflowX: "auto",
+              marginBottom: 10,
+            }}
+          >
             <div style={{ position: "relative", width: BOARD_W, height: BOARD_H, margin: "0 auto" }}>
-              {/* Board grid background dots */}
               {Array.from({ length: ROWS }, function(_, r) {
                 return Array.from({ length: COLS }, function(_, c) {
                   const isOdd = r % 2 === 1;
@@ -839,20 +808,14 @@ function TeamBuilder({ champions, traits }) {
                   const by = r * ROW_STEP + HEX_H / 2;
                   return (
                     <div key={r + "_" + c + "_dot"} style={{
-                      position: "absolute",
-                      left: bx - 1,
-                      top: by - 1,
-                      width: 2,
-                      height: 2,
-                      background: C.border + "66",
-                      borderRadius: "50%",
+                      position: "absolute", left: bx - 1, top: by - 1,
+                      width: 2, height: 2,
+                      background: C.border + "55", borderRadius: "50%",
                       pointerEvents: "none",
                     }} />
                   );
                 });
               })}
-
-              {/* Hexes */}
               {Array.from({ length: ROWS }, function(_, r) {
                 return Array.from({ length: COLS }, function(_, c) {
                   const hid   = hexId(r, c);
@@ -860,9 +823,7 @@ function TeamBuilder({ champions, traits }) {
                   return (
                     <BoardHex
                       key={hid}
-                      hid={hid}
-                      r={r}
-                      c={c}
+                      hid={hid} r={r} c={c}
                       champ={champ}
                       items={slots[hid]}
                       stars={stars[hid]}
@@ -882,65 +843,138 @@ function TeamBuilder({ champions, traits }) {
             </div>
           </div>
 
-          {/* Placed unit badges */}
-          {boardCount > 0 && (
-            <div style={{ background: C.surfaceLow, padding: "6px 10px", marginTop: 4, display: "flex", flexWrap: "wrap", gap: 4 }}>
-              {Object.entries(board)
-                .filter(function(e) { return e[1]; })
-                .map(function(e) {
-                  const hid   = e[0];
-                  const champ = e[1];
-                  const col   = COST_COLOR[champ.cost];
-                  const isSelected = selected === hid;
+          {/* Champion Pool — rows by cost below board */}
+          <div
+            style={{ background: C.surfaceLow, border: "1px solid " + C.border }}
+            onDragOver={function(e) { e.preventDefault(); }}
+            onDrop={handlePoolAreaDrop}
+          >
+            {/* Pool controls */}
+            <div style={{ padding: "8px 10px", borderBottom: "1px solid " + C.border, display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, fontFamily: F.label, fontWeight: 700, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", flexShrink: 0 }}>Pool</span>
+              <input
+                value={search}
+                onChange={function(e) { setSearch(e.target.value); }}
+                placeholder="Search..."
+                style={{ padding: "4px 8px", background: C.surfaceHigh, border: "1px solid " + C.border, color: C.text, fontSize: 11, fontFamily: F.label, outline: "none", width: 120 }}
+              />
+              <div style={{ display: "flex", gap: 3 }}>
+                {[1, 2, 3, 4, 5].map(function(cost) {
+                  const active = costFilter.includes(cost);
+                  const col = COST_COLOR[cost];
                   return (
-                    <span
-                      key={hid}
-                      onClick={function() { setSelected(isSelected ? null : hid); }}
-                      style={{ fontSize: 9, fontFamily: F.label, color: isSelected ? "#000" : col, background: isSelected ? col : col + "18", padding: "2px 7px", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.3, cursor: "pointer", border: "1px solid " + (isSelected ? col : col + "44") }}
+                    <button
+                      key={cost}
+                      onClick={function() { setCostFilter(function(prev) { return active ? prev.filter(function(c) { return c !== cost; }) : [...prev, cost].sort(); }); }}
+                      style={{ width: 24, height: 24, border: "1px solid " + (active ? col : C.border), background: active ? col + "22" : "transparent", color: active ? col : C.textDim, fontSize: 10, fontFamily: F.label, fontWeight: 700, cursor: "pointer" }}
                     >
-                      {champ.name}
-                    </span>
+                      {cost}
+                    </button>
                   );
                 })}
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* ── Right: Traits + Items ── */}
-        <div style={{ width: 210, flexShrink: 0 }}>
-          {/* Synergies */}
-          <div style={{ background: C.surfaceLow, padding: "10px 10px 8px", marginBottom: 4 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 10, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase" }}>Synergies</span>
-              {sortedTraits.length > 0 && (
-                <span style={{ fontSize: 10, fontFamily: F.label, color: C.primary, fontWeight: 700 }}>{sortedTraits.filter(function(e) {
-                  const t = traitMap[e[0]];
-                  const bps = t && t.effects ? t.effects.map(function(ef) { return ef.minUnits; }).filter(Boolean) : [];
-                  return bps.some(function(bp) { return bp <= e[1]; });
-                }).length} active</span>
+            {/* Rows by cost */}
+            <div style={{ padding: "6px 0" }}>
+              {[1, 2, 3, 4, 5].filter(function(cost) { return costFilter.includes(cost); }).map(function(cost) {
+                const group = poolChamps.filter(function(c) { return c.cost === cost; });
+                if (!group.length) return null;
+                const col = COST_COLOR[cost];
+                return (
+                  <div key={cost} style={{ marginBottom: 4 }}>
+                    <div style={{ padding: "2px 10px 4px", display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ height: 1, width: 8, background: col + "66" }} />
+                      <span style={{ fontSize: 9, fontFamily: F.label, color: col, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase" }}>
+                        {cost}G
+                      </span>
+                      <div style={{ height: 1, flex: 1, background: col + "22" }} />
+                    </div>
+                    <div style={{ display: "flex", gap: 6, padding: "0 10px", flexWrap: "wrap" }}>
+                      {group.map(function(champ) {
+                        return (
+                          <PoolChampTile
+                            key={champ.key}
+                            champ={champ}
+                            placed={boardChampCounts[champ.key] || 0}
+                            onClick={function() { handlePoolClick(champ); }}
+                            onDragStart={handlePoolDragStart}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+              {poolChamps.length === 0 && (
+                <div style={{ padding: "16px 12px", fontSize: 11, color: C.textSub, fontFamily: F.label, textAlign: "center" }}>No units match</div>
               )}
             </div>
-            {sortedTraits.length === 0 && (
-              <div style={{ fontSize: 11, color: C.textSub, fontFamily: F.body, fontStyle: "italic", padding: "4px 0" }}>Place units to see synergies</div>
-            )}
-            {sortedTraits.map(function(entry) {
-              return <TraitRow key={entry[0]} name={entry[0]} count={entry[1]} trait={traitMap[entry[0]]} />;
-            })}
           </div>
+        </div>
 
-          {/* Items Panel */}
-          <div style={{ background: C.surfaceLow, padding: "10px 10px 8px" }}>
+        {/* ── RIGHT: Items Panel ── */}
+        <div style={{ width: 260, flexShrink: 0 }}>
+          <div style={{ background: C.surfaceLow, border: "1px solid " + C.border }}>
+
+            {/* Selected unit detail */}
             {selected && selectedChamp ? (
-              <div style={{ fontSize: 10, fontFamily: F.label, color: C.primary, letterSpacing: 1, marginBottom: 8, fontWeight: 700 }}>
-                ITEMS: {selectedChamp.name.toUpperCase()}
+              <div style={{ borderBottom: "1px solid " + C.border, padding: "10px 12px" }}>
+                <div style={{ fontSize: 10, fontFamily: F.label, fontWeight: 700, color: C.primary, letterSpacing: 1, marginBottom: 8, textTransform: "uppercase" }}>
+                  Equipping — {selectedChamp.name}
+                </div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  {/* Champ mini portrait */}
+                  <div style={{
+                    width: 40, height: 44,
+                    clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+                    overflow: "hidden",
+                    outline: "1.5px solid " + COST_COLOR[selectedChamp.cost] + "88",
+                    flexShrink: 0,
+                  }}>
+                    {selectedChamp.assets && selectedChamp.assets.face ? (
+                      <img src={selectedChamp.assets.face} alt={selectedChamp.name} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+                    ) : null}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontFamily: F.headline, fontSize: 14, fontWeight: 700, color: COST_COLOR[selectedChamp.cost], textTransform: "uppercase", letterSpacing: 0.5 }}>{selectedChamp.name}</div>
+                    <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim }}>{selectedChamp.cost}G</div>
+                  </div>
+                  {/* Equipped item slots */}
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[0, 1, 2].map(function(si) {
+                      const itemKey = slots[selected][si];
+                      return (
+                        <div
+                          key={si}
+                          onClick={function() { if (itemKey) handleRemoveItem(selected, si); }}
+                          title={itemKey && ITEM_MAP[itemKey] ? ITEM_MAP[itemKey].name + " (click to remove)" : "Empty slot"}
+                          style={{
+                            width: 34, height: 34,
+                            border: "1px solid " + (itemKey ? C.primary + "66" : C.border),
+                            background: C.surfaceHigh,
+                            overflow: "hidden",
+                            cursor: itemKey ? "pointer" : "default",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}
+                        >
+                          {itemKey ? <ItemSlotImg itemKey={itemKey} size={34} /> : <span style={{ fontSize: 14, color: C.border }}>+</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             ) : (
-              <div style={{ fontSize: 10, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Items</div>
+              <div style={{ padding: "10px 12px", borderBottom: "1px solid " + C.border }}>
+                <span style={{ fontSize: 10, fontFamily: F.label, fontWeight: 700, color: C.textDim, letterSpacing: 2, textTransform: "uppercase" }}>Items</span>
+                <div style={{ fontSize: 9, fontFamily: F.label, color: C.textSub, marginTop: 4, fontStyle: "italic" }}>Select a unit to equip items</div>
+              </div>
             )}
 
-            {/* Tab row */}
-            <div style={{ display: "flex", gap: 2, marginBottom: 8 }}>
-              {[["combined","BIS"],["components","Comp"],["artifact","Art"]].map(function(pair) {
+            {/* Item tabs */}
+            <div style={{ display: "flex", borderBottom: "1px solid " + C.border }}>
+              {[["combined","BIS"],["components","Parts"],["artifact","Artifacts"]].map(function(pair) {
                 const id = pair[0];
                 const label = pair[1];
                 const active = itemTab === id;
@@ -948,7 +982,15 @@ function TeamBuilder({ champions, traits }) {
                   <button
                     key={id}
                     onClick={function() { setItemTab(id); }}
-                    style={{ flex: 1, padding: "4px 0", fontSize: 9, fontFamily: F.label, fontWeight: 700, background: active ? C.secondary + "22" : "transparent", border: "1px solid " + (active ? C.secondary : C.border), color: active ? C.secondary : C.textDim, cursor: "pointer", letterSpacing: 0.5, textTransform: "uppercase" }}
+                    style={{
+                      flex: 1, padding: "7px 0",
+                      fontSize: 9, fontFamily: F.label, fontWeight: 700,
+                      background: active ? C.secondary + "18" : "transparent",
+                      border: "none",
+                      borderBottom: active ? ("2px solid " + C.secondary) : "2px solid transparent",
+                      color: active ? C.secondary : C.textDim,
+                      cursor: "pointer", letterSpacing: 0.5, textTransform: "uppercase",
+                    }}
                   >
                     {label}
                   </button>
@@ -957,7 +999,7 @@ function TeamBuilder({ champions, traits }) {
             </div>
 
             {/* Item grid */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+            <div style={{ padding: "10px", display: "flex", flexWrap: "wrap", gap: 4, maxHeight: 480, overflowY: "auto" }}>
               {currentItemList.map(function(item) {
                 return (
                   <ItemPickerIcon
@@ -968,41 +1010,6 @@ function TeamBuilder({ champions, traits }) {
                 );
               })}
             </div>
-
-            {selected && selectedChamp && (
-              <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid " + C.border + "44" }}>
-                <div style={{ fontSize: 9, fontFamily: F.label, color: C.textDim, letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>Equipped</div>
-                <div style={{ display: "flex", gap: 4 }}>
-                  {[0, 1, 2].map(function(si) {
-                    const itemKey = slots[selected][si];
-                    const item = itemKey ? ITEM_MAP[itemKey] : null;
-                    return (
-                      <div
-                        key={si}
-                        onClick={function() { if (itemKey) handleRemoveItem(selected, si); }}
-                        title={item ? item.name + " (click to remove)" : "Empty"}
-                        style={{
-                          width: 32, height: 32,
-                          border: "1px solid " + (itemKey ? C.primary + "66" : C.border),
-                          background: C.surfaceHigh,
-                          overflow: "hidden",
-                          cursor: itemKey ? "pointer" : "default",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {itemKey ? (
-                          <ItemSlotImg itemKey={itemKey} size={32} />
-                        ) : (
-                          <span style={{ fontSize: 14, color: C.border }}>+</span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

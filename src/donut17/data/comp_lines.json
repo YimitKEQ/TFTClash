@@ -4,358 +4,674 @@
     "name": "Dark Star Vertical",
     "color": "#7c3aed",
     "carry": "jhin",
-    "desc": "Stack Dark Star for Black Hole damage scaling. Jhin 5-cost carry with massive range.",
-    "core": [
-      "chogath",
-      "lissandra",
-      "kaisa",
-      "karma",
-      "jhin"
-    ],
-    "flex": [
-      "gragas",
-      "maokai",
-      "bard"
-    ],
+    "tier": "S",
+    "strategy": "FAST 8",
+    "desc": "Stack Dark Star for Black Hole scaling. Jhin 5-cost carry with massive range and OHKO potential.",
+    "core": ["chogath", "lissandra", "kaisa", "karma", "jhin"],
+    "flex": ["gragas", "maokai", "bard"],
     "items": {
-      "jhin": [
-        "infinityedge",
-        "lastwhisper",
-        "giantslayer"
-      ],
-      "chogath": [
-        "warmogsarmor",
-        "sunfirecape",
-        "morellonomicon"
-      ]
+      "jhin": ["infinityedge", "lastwhisper", "giantslayer"],
+      "chogath": ["warmogsarmor", "sunfirecape", "morellonomicon"]
     },
     "god": "Varus",
-    "godWhy": "+4% 5-cost odds makes hitting Jhin much faster",
-    "gameplan": "Cho+Liss Dark Star 2 -> Kai'Sa 2 -> roll 8 for Karma+Jhin -> cap at 9",
-    "strategy": "FAST 8",
-    "tier": "S"
+    "godWhy": "+4% 5-cost odds makes hitting Jhin much faster on 8",
+    "gameplan": "Open Dark Star 2 with Cho+Liss. Stabilize with Kai'Sa 2-star on 4-1. Roll 7-8 for Karma + Jhin. Cap 9 for max Dark Star.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Economy",
+        "units": ["chogath", "lissandra"],
+        "tip": "Open with Cho + Lissandra for Dark Star 2. Both are 1-cost so easy to find. Win streak to build gold. Do not roll."
+      },
+      "2": {
+        "label": "Stage 2 — Win Streak",
+        "units": ["chogath", "lissandra", "kaisa"],
+        "tip": "Add Kai'Sa when you find her. Push Dark Star 3 if you hit Karma. Keep econ 50g. Do NOT spend on rolling yet."
+      },
+      "3": {
+        "label": "Stage 3 — Stabilize",
+        "units": ["chogath", "lissandra", "kaisa", "karma"],
+        "tip": "Hit level 6. Find Karma 2-star if possible. Spend gold ONLY if health is below 50. Otherwise stay at 50g interest."
+      },
+      "4": {
+        "label": "Stage 4 — Level 8 Push",
+        "units": ["chogath", "lissandra", "kaisa", "karma", "jhin"],
+        "tip": "Level to 8 on 4-1. Roll for Karma + Jhin. Once you have Jhin 1-star, equip items and stabilize. Look for Maokai flex."
+      },
+      "5": {
+        "label": "Stage 5 — Cap & Win",
+        "units": ["chogath", "lissandra", "kaisa", "karma", "jhin", "maokai", "gragas"],
+        "tip": "Level to 9 for Dark Star 6. Slow roll for Jhin 2-star. Add Bard as final flex for Meeple + Channeler utility."
+      }
+    }
   },
   {
     "id": "nova-bastion",
-    "name": "N.O.V.A. + Bastion",
+    "name": "N.O.V.A. Bastion",
     "color": "#06b6d4",
     "carry": "kindred",
-    "desc": "Frontline Bastion tanks absorb everything while Kindred and Akali deal damage from behind.",
-    "core": [
-      "aatrox",
-      "caitlyn",
-      "poppy",
-      "akali",
-      "maokai",
-      "kindred"
-    ],
-    "flex": [
-      "jax",
-      "ornn",
-      "shen"
-    ],
+    "tier": "A",
+    "strategy": "FLEX",
+    "desc": "Bastion frontline tanks everything while Kindred and Akali deal sustained damage from protected positions.",
+    "core": ["aatrox", "caitlyn", "poppy", "akali", "maokai", "kindred"],
+    "flex": ["jax", "ornn", "shen"],
     "items": {
-      "kindred": [
-        "krakensfury",
-        "guinsoosrageblade",
-        "krakensfury"
-      ],
-      "aatrox": [
-        "warmogsarmor",
-        "gargoyle",
-        "dragonsclaw"
-      ]
+      "kindred": ["krakensfury", "guinsoosrageblade", "krakensfury"],
+      "aatrox": ["warmogsarmor", "gargoyle", "dragonsclaw"]
     },
     "god": "Kayle",
     "godWhy": "Radiant item on Kindred or Aatrox frontline is game-ending",
-    "gameplan": "Aatrox+Poppy Bastion 2 early -> add Akali for N.O.V.A. -> roll 7 for Maokai/Kindred",
-    "strategy": "FLEX",
-    "tier": "A"
+    "gameplan": "Aatrox+Poppy Bastion 2 early. Add Caitlyn for N.O.V.A. 2. Roll 7 for Maokai + Kindred. Cap Bastion 4 with Jax/Ornn.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Open Bastion",
+        "units": ["aatrox", "poppy"],
+        "tip": "Aatrox + Poppy opens Bastion 2 immediately. Strong early board. Win or stay close to win streak."
+      },
+      "2": {
+        "label": "Stage 2 — Add N.O.V.A.",
+        "units": ["aatrox", "poppy", "caitlyn", "akali"],
+        "tip": "Find Caitlyn for N.O.V.A. 2 (Aatrox already has it). Add Akali as third N.O.V.A. if you hit her. Keep 50g."
+      },
+      "3": {
+        "label": "Stage 3 — Flex Your Board",
+        "units": ["aatrox", "poppy", "caitlyn", "akali", "maokai"],
+        "tip": "Level to 6. Add Maokai for Brawler flex. You have N.O.V.A. 3 + Bastion 2 + Brawler. Strong mid-game."
+      },
+      "4": {
+        "label": "Stage 4 — Find Kindred",
+        "units": ["aatrox", "poppy", "caitlyn", "akali", "maokai", "kindred"],
+        "tip": "Level 7 and roll for Kindred. Equip items as soon as found. N.O.V.A. 4 + Bastion 2 + Challenger is solid."
+      },
+      "5": {
+        "label": "Stage 5 — Max Bastion",
+        "units": ["aatrox", "poppy", "jax", "ornn", "maokai", "kindred", "shen"],
+        "tip": "Level 8-9. Add Jax + Ornn for Bastion 4. Shen 5-cost Bastion cap. Replace Caitlyn if Bastion count is enough."
+      }
+    }
   },
   {
     "id": "anima-reroll",
     "name": "Anima Reroll",
     "color": "#ec4899",
     "carry": "aurora",
-    "desc": "Anima Squad grow stronger with each round they survive. Aurora 2-star AP carry.",
-    "core": [
-      "briar",
-      "jinx",
-      "aurora",
-      "illaoi",
-      "fiora"
-    ],
-    "flex": [
-      "aatrox",
-      "poppy",
-      "maokai"
-    ],
+    "tier": "A",
+    "strategy": "REROLL 6",
+    "desc": "Anima Squad grows stronger every round they survive. Aurora 2-star is the AP core carry.",
+    "core": ["briar", "jinx", "aurora", "illaoi", "fiora"],
+    "flex": ["aatrox", "poppy", "maokai"],
     "items": {
-      "aurora": [
-        "jeweledgauntlet",
-        "rabadons",
-        "bluebuff"
-      ],
-      "illaoi": [
-        "warmogsarmor",
-        "gargoyle"
-      ]
+      "aurora": ["jeweledgauntlet", "rabadons", "bluebuff"],
+      "illaoi": ["warmogsarmor", "gargoyle"]
     },
     "god": "Evelynn",
-    "godWhy": "Lose streak to build gold then stabilize with bonus HP",
-    "gameplan": "Briar+Jinx Anima 2 -> lose streak 1-3 -> stabilize -> find Aurora 2 at 6 -> roll for Fiora at 8",
-    "strategy": "REROLL 6",
-    "tier": "A"
-  },
-  {
-    "id": "stargazer-stack",
-    "name": "Stargazer Stack",
-    "color": "#f59e0b",
-    "carry": "nunu",
-    "desc": "Stack Stargazer trait for compounding star power. Nunu 4-cost carry.",
-    "core": [
-      "talon",
-      "twistedfate",
-      "jax",
-      "lulu",
-      "nunu"
-    ],
-    "flex": [
-      "aatrox",
-      "poppy",
-      "kindred"
-    ],
-    "items": {
-      "nunu": [
-        "warmogsarmor",
-        "titansresolve",
-        "gargoyle"
-      ],
-      "lulu": [
-        "spiritvisage",
-        "locket"
-      ]
-    },
-    "god": "Yasuo",
-    "godWhy": "Wind Hex 30% AS directly empowers Stargazer scaling",
-    "gameplan": "Talon+TF Stargazer 2 -> Jax for 3 -> roll 7 for Lulu/Nunu 2 -> push to 8",
-    "strategy": "REROLL 7",
-    "tier": "B"
-  },
-  {
-    "id": "space-groove-6",
-    "name": "Space Groove 6",
-    "color": "#a855f7",
-    "carry": "blitzcrank",
-    "desc": "Full Space Groove board with Blitzcrank 5-cost as the hook machine.",
-    "core": [
-      "nasus",
-      "teemo",
-      "gwen",
-      "ornn",
-      "nami",
-      "blitzcrank"
-    ],
-    "flex": [
-      "samira",
-      "poppy",
-      "leona"
-    ],
-    "items": {
-      "blitzcrank": [
-        "warmogsarmor",
-        "titansresolve",
-        "gargoyle"
-      ],
-      "ornn": [
-        "sunfirecape",
-        "dragonsclaw",
-        "spiritvisage"
-      ]
-    },
-    "god": "Soraka",
-    "godWhy": "HP stacking synergizes perfectly with bulky frontline",
-    "gameplan": "Nasus+Teemo Space Groove 2 -> Gwen for 3 -> push Groove 6 at 8 for Blitz",
-    "strategy": "FAST 8",
-    "tier": "B"
-  },
-  {
-    "id": "rogue-assassin",
-    "name": "Rogue Assassin",
-    "color": "#10b981",
-    "carry": "riven",
-    "desc": "Rogue units jump to the backline. Riven 4-cost bruiser carry that deletes supports.",
-    "core": [
-      "briar",
-      "talon",
-      "gwen",
-      "fizz",
-      "kaisa",
-      "riven"
-    ],
-    "flex": [
-      "akali",
-      "samira",
-      "diana"
-    ],
-    "items": {
-      "riven": [
-        "bloodthirster",
-        "lastwhisper",
-        "guinsoosrageblade"
-      ],
-      "gwen": [
-        "warmogsarmor",
-        "gargoyle"
-      ]
-    },
-    "god": "Evelynn",
-    "godWhy": "Lose streak to build gold then roll for Riven 2 at level 6",
-    "gameplan": "Briar+Talon Rogue 2 -> add Gwen/Fizz -> roll 7 for Riven 2 -> cap with Kaisa",
-    "strategy": "REROLL 6",
-    "tier": "A"
-  },
-  {
-    "id": "meeple-6",
-    "name": "Meeple 6",
-    "color": "#84cc16",
-    "carry": "bard",
-    "desc": "Meeple augments board items. Bard 5-cost carry that gets stronger the more items he has.",
-    "core": [
-      "poppy",
-      "veigar",
-      "gnar",
-      "ivernminion",
-      "fizz",
-      "corki",
-      "rammus",
-      "bard"
-    ],
-    "flex": [
-      "teemo",
-      "ivernminion"
-    ],
-    "items": {
-      "bard": [
-        "infinityedge",
-        "krakensfury",
-        "krakensfury"
-      ],
-      "poppy": [
-        "warmogsarmor",
-        "gargoyle",
-        "sunfirecape"
-      ]
-    },
-    "god": "Aurelion Sol",
-    "godWhy": "Field 6 traits easily for emblem + reforger reward",
-    "gameplan": "Poppy+Veigar Meeple 2 -> Gnar+Fizz for 4 -> push Meeple 6 at 8 for Bard",
-    "strategy": "FAST 8",
-    "tier": "B"
+    "godWhy": "Lose streak builds gold — roll for 2-stars at level 6. HP loss minimized.",
+    "gameplan": "Open Briar + Jinx Anima 2. Lose streak stages 1-3 to build gold. Hit level 6 and slow-roll for Aurora + Illaoi 2-stars. Add Fiora at 8.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Lose Streak",
+        "units": ["briar", "jinx"],
+        "tip": "Intentionally lose with a weak board. Keep Briar + Jinx for Anima 2. Every loss is gold (interest + lose streak bonus)."
+      },
+      "2": {
+        "label": "Stage 2 — Keep Losing (Save Gold)",
+        "units": ["briar", "jinx", "aurora"],
+        "tip": "Add Aurora as a unit but do NOT 2-star her yet. Stay below 50 HP is risky but aim for 50g+ gold. Evelynn god helps."
+      },
+      "3": {
+        "label": "Stage 3 — Stabilize or Die",
+        "units": ["briar", "jinx", "aurora", "illaoi"],
+        "tip": "Add Illaoi for Anima 3. By 3-1 you need to stabilize. Slow roll at level 6 to hit Aurora + Illaoi 2-star."
+      },
+      "4": {
+        "label": "Stage 4 — Anima 6 + 2-Stars",
+        "units": ["briar", "jinx", "aurora", "illaoi", "aatrox", "poppy"],
+        "tip": "Level 6 slow roll until Aurora 2-star stabilized. Add Poppy + Aatrox for Bastion + Anima 5. Equip Aurora items."
+      },
+      "5": {
+        "label": "Stage 5 — Cap with Fiora",
+        "units": ["briar", "jinx", "aurora", "illaoi", "fiora", "aatrox"],
+        "tip": "Level 8. Add Fiora for Anima 6. Fiora is a natural 5-cost cap. Anima Squad keeps stacking HP every fight."
+      }
+    }
   },
   {
     "id": "channeler-ap",
     "name": "Channeler AP",
     "color": "#0ea5e9",
     "carry": "aurelionsol",
-    "desc": "Channeler mana engine powering Aurelion Sol and Bard as AP carries.",
-    "core": [
-      "zoe",
-      "viktor",
-      "aurelionsol",
-      "bard"
-    ],
-    "flex": [
-      "gragas",
-      "pyke",
-      "masteryi",
-      "sona"
-    ],
+    "tier": "A",
+    "strategy": "FAST 7",
+    "desc": "Channeler mana engine fires endlessly. Aurelion Sol nukes the entire enemy board.",
+    "core": ["zoe", "viktor", "aurelionsol", "bard"],
+    "flex": ["gragas", "pyke", "masteryi", "sona"],
     "items": {
-      "aurelionsol": [
-        "bluebuff",
-        "jeweledgauntlet",
-        "rabadons"
-      ],
-      "bard": [
-        "infinityedge",
-        "krakensfury"
-      ]
+      "aurelionsol": ["bluebuff", "jeweledgauntlet", "rabadons"],
+      "bard": ["infinityedge", "krakensfury"]
     },
     "god": "Ekko",
-    "godWhy": "Anomaly item scales perfectly with AP carries",
-    "gameplan": "Zoe+Viktor Channeler 2 -> Aurelion Sol at 7 -> slow roll for Bard at 8/9",
-    "strategy": "FAST 7",
-    "tier": "A"
+    "godWhy": "Anomaly item scales perfectly with AP carries — giant power spike",
+    "gameplan": "Zoe + Viktor open Channeler 2. Level 7 for Aurelion Sol. Bard at 8. Sona at 9 for Channeler 5 + Psionic cap.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Channeler 2",
+        "units": ["zoe", "viktor"],
+        "tip": "Zoe + Viktor immediately gives Channeler 2. Both are cheap (2g/3g). Zoe also gives Arbiter 2 with Leona. Stay econ."
+      },
+      "2": {
+        "label": "Stage 2 — Add Psionic",
+        "units": ["zoe", "viktor", "gragas", "pyke"],
+        "tip": "Add Gragas + Pyke for Psionic 2. Your board is Channeler 2 + Psionic 2 + Voyager. Decent midgame core."
+      },
+      "3": {
+        "label": "Stage 3 — Level 5-6",
+        "units": ["zoe", "viktor", "gragas", "pyke", "masteryi"],
+        "tip": "Add Master Yi at level 5. Psionic 3 + Channeler 2 + Marauder. Keep econ 50g+. Get AP items for Viktor."
+      },
+      "4": {
+        "label": "Stage 4 — Aurelion Sol Online",
+        "units": ["zoe", "viktor", "aurelionsol", "bard", "gragas"],
+        "tip": "Level 7 and find Aurelion Sol. Equip Blue Buff immediately. Channeler 3-4 with Bard. This is your power spike."
+      },
+      "5": {
+        "label": "Stage 5 — Full Channel",
+        "units": ["zoe", "viktor", "aurelionsol", "bard", "sona", "gragas", "masteryi"],
+        "tip": "Level 9. Sona 5-cost for Channeler 5 + Psionic + Commander. Aurelion Sol deletes boards."
+      }
+    }
   },
   {
-    "id": "vanguard-frontline",
-    "name": "Vanguard Control",
-    "color": "#f97316",
-    "carry": "blitzcrank",
-    "desc": "Vanguard shield wall controls fight positioning. Blitzcrank as the teamfight centerpiece.",
-    "core": [
-      "leona",
-      "nasus",
-      "illaoi",
-      "nunu",
-      "blitzcrank"
-    ],
-    "flex": [
-      "poppy",
-      "ornn",
-      "shen"
-    ],
+    "id": "rogue-assassin",
+    "name": "Rogue Assassin",
+    "color": "#10b981",
+    "carry": "riven",
+    "tier": "A",
+    "strategy": "REROLL 6",
+    "desc": "Rogues jump to the enemy backline. Riven 2-star is a bruiser-carry that deletes supports and carries.",
+    "core": ["briar", "talon", "gwen", "fizz", "kaisa", "riven"],
+    "flex": ["akali", "samira", "diana"],
     "items": {
-      "blitzcrank": [
-        "warmogsarmor",
-        "titansresolve",
-        "spiritvisage"
-      ],
-      "leona": [
-        "sunfirecape",
-        "dragonsclaw",
-        "gargoyle"
-      ]
+      "riven": ["bloodthirster", "lastwhisper", "guinsoosrageblade"],
+      "gwen": ["warmogsarmor", "gargoyle"]
+    },
+    "god": "Evelynn",
+    "godWhy": "Lose streak gives gold to find Riven 2-star on 3-2/3-5 rolldown",
+    "gameplan": "Briar + Talon Rogue 2 opener. Lose streak to 3-1, then slow roll level 6 for Riven 2 + Gwen 2. Cap with Kai'Sa at 8.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Rogue 2 Opener",
+        "units": ["briar", "talon"],
+        "tip": "Briar + Talon immediately opens Rogue 2 — both 1-cost. Very strong synergy early. Weak but OK to take some losses."
+      },
+      "2": {
+        "label": "Stage 2 — Build the Board",
+        "units": ["briar", "talon", "gwen", "fizz"],
+        "tip": "Add Gwen + Fizz for Rogue 3-4. Space Groove + Meeple utility. Keep 50g interest. Do NOT roll for Riven yet."
+      },
+      "3": {
+        "label": "Stage 3 — Rolldown",
+        "units": ["briar", "talon", "gwen", "fizz", "riven"],
+        "tip": "3-1: Level 6. Use saved gold to roll for Riven 2-star. Stop at ~20g remaining. Equip BIS immediately."
+      },
+      "4": {
+        "label": "Stage 4 — Add Kai'Sa",
+        "units": ["briar", "talon", "gwen", "fizz", "kaisa", "riven"],
+        "tip": "Level 7 after stabilizing. Find Kai'Sa for Dark Star + Rogue synergy. Rogue 5 is strong. Akali for flex Marauder."
+      },
+      "5": {
+        "label": "Stage 5 — Rogue 6 Cap",
+        "units": ["briar", "talon", "gwen", "kaisa", "fizz", "riven", "diana", "akali"],
+        "tip": "Level 8. Rogue 6 is your end-game. Diana adds Challenger. Akali + Bel'Veth flex for Marauder + Challenger."
+      }
+    }
+  },
+  {
+    "id": "meeple-6",
+    "name": "Meeple 6",
+    "color": "#84cc16",
+    "carry": "bard",
+    "tier": "B",
+    "strategy": "FAST 8",
+    "desc": "Full Meeple board augments every unit's items. Bard 5-cost carry with infinite scaling potential.",
+    "core": ["poppy", "veigar", "gnar", "ivernminion", "fizz", "corki", "rammus", "bard"],
+    "flex": ["teemo", "lulu"],
+    "items": {
+      "bard": ["infinityedge", "krakensfury", "krakensfury"],
+      "poppy": ["warmogsarmor", "gargoyle", "sunfirecape"]
+    },
+    "god": "Aurelion Sol",
+    "godWhy": "6-trait quest reward is easy to hit + emblem from Meeple 7",
+    "gameplan": "Poppy + Veigar + Meepsie open Meeple 3. Level 8 for Bard. Meeple 7 is insane if you hit it — every item is upgraded.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Meeple 3",
+        "units": ["poppy", "veigar", "ivernminion"],
+        "tip": "Poppy + Veigar + Meepsie hits Meeple 3 immediately with 3 1-cost/2-cost units. Great early board."
+      },
+      "2": {
+        "label": "Stage 2 — Expand Meeple",
+        "units": ["poppy", "veigar", "ivernminion", "gnar", "fizz"],
+        "tip": "Add Gnar + Fizz for Meeple 5. Level 5 board is very healthy. Economy focus — stay at 50g."
+      },
+      "3": {
+        "label": "Stage 3 — Level Push",
+        "units": ["poppy", "veigar", "ivernminion", "gnar", "fizz", "corki"],
+        "tip": "Level to 6. Add Corki for Meeple 6 + Fateweaver. The Meeple 6 augment activates. You have 6 items buffed."
+      },
+      "4": {
+        "label": "Stage 4 — Rammus + Bard",
+        "units": ["poppy", "veigar", "ivernminion", "gnar", "fizz", "corki", "rammus"],
+        "tip": "Level 7-8. Add Rammus for Meeple 7 + Bastion 2. Roll for Bard when at 8. Bard with 3 items is enormous."
+      },
+      "5": {
+        "label": "Stage 5 — Meeple 10?",
+        "units": ["poppy", "veigar", "ivernminion", "gnar", "fizz", "corki", "rammus", "bard"],
+        "tip": "Level 9 for Meeple 8+ dream board. Lulu adds Stargazer + Replicator flex. Bard carries harder every round."
+      }
+    }
+  },
+  {
+    "id": "stargazer-stack",
+    "name": "Stargazer Stack",
+    "color": "#f59e0b",
+    "carry": "nunu",
+    "tier": "B",
+    "strategy": "REROLL 7",
+    "desc": "Stack Stargazer for compounding power. Nunu 4-cost vanguard-carry that becomes unkillable.",
+    "core": ["talon", "twistedfate", "jax", "lulu", "nunu"],
+    "flex": ["aatrox", "poppy", "kindred"],
+    "items": {
+      "nunu": ["warmogsarmor", "titansresolve", "gargoyle"],
+      "lulu": ["spiritvisage", "locket"]
+    },
+    "god": "Yasuo",
+    "godWhy": "Wind Hex 30% AS directly empowers Stargazer passive scaling",
+    "gameplan": "Talon + TF open Stargazer 2. Jax at 3 for Stargazer 3. Roll level 6-7 for Nunu 2-star. Cap Lulu 2 + Kindred.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Stargazer 2",
+        "units": ["talon", "twistedfate"],
+        "tip": "Talon + Twisted Fate = Stargazer 2 + Rogue 1 + Fateweaver 1. Good early. Save gold."
+      },
+      "2": {
+        "label": "Stage 2 — Stargazer 3",
+        "units": ["talon", "twistedfate", "jax"],
+        "tip": "Add Jax for Stargazer 3. Jax also gives Bastion. Board is decent midgame. 50g interest cap."
+      },
+      "3": {
+        "label": "Stage 3 — Roll for Nunu",
+        "units": ["talon", "twistedfate", "jax", "lulu", "nunu"],
+        "tip": "Level 6. Roll for Nunu 2-star and Lulu 2-star. Stargazer 4 is strong — each fight gets better."
+      },
+      "4": {
+        "label": "Stage 4 — Stargazer 5",
+        "units": ["talon", "twistedfate", "jax", "lulu", "nunu", "aatrox"],
+        "tip": "Level 7. Add Aatrox for Bastion 2. Stargazer 5 with Nunu cap — units stack massive stats over time."
+      },
+      "5": {
+        "label": "Stage 5 — Stargazer 6 Cap",
+        "units": ["talon", "twistedfate", "jax", "lulu", "nunu", "aatrox", "kindred"],
+        "tip": "Level 8. Kindred gives N.O.V.A. + Challenger. Stargazer 6 is end-game. Nunu is unkillable."
+      }
+    }
+  },
+  {
+    "id": "space-groove-6",
+    "name": "Space Groove 6",
+    "color": "#a855f7",
+    "carry": "blitzcrank",
+    "tier": "B",
+    "strategy": "FAST 8",
+    "desc": "Full Space Groove board — every unit gets buffed with dancing partner bonuses. Blitzcrank is the hook machine.",
+    "core": ["nasus", "teemo", "gwen", "ornn", "nami", "blitzcrank"],
+    "flex": ["samira", "poppy", "leona"],
+    "items": {
+      "blitzcrank": ["warmogsarmor", "titansresolve", "gargoyle"],
+      "ornn": ["sunfirecape", "dragonsclaw", "spiritvisage"]
     },
     "god": "Soraka",
-    "godWhy": "Tank boards benefit massively from the HP scaling",
-    "gameplan": "Leona+Nasus Vanguard 2 -> add Illaoi for 3 -> roll 7 for Nunu -> push 8 for Blitz",
-    "strategy": "FLEX",
-    "tier": "B"
+    "godWhy": "HP stacking synergizes perfectly with bulky frontline — every unit gets HP every fight",
+    "gameplan": "Nasus + Teemo Space Groove 2 to start. Gwen at 3 for Groove 3. Level 8 for Blitzcrank. Roll for Nami + Ornn.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Groove 2",
+        "units": ["nasus", "teemo"],
+        "tip": "Nasus + Teemo = Space Groove 2 + Vanguard 1 + Shepherd 1. Simple but effective opener."
+      },
+      "2": {
+        "label": "Stage 2 — Groove 3",
+        "units": ["nasus", "teemo", "gwen"],
+        "tip": "Add Gwen for Space Groove 3. Space Groove 3 gives a buffed dancing partner effect. Also Rogue 1 bonus."
+      },
+      "3": {
+        "label": "Stage 3 — Expand",
+        "units": ["nasus", "teemo", "gwen", "samira", "ornn"],
+        "tip": "Add Samira + Ornn for Groove 5 + Bastion 2 + Sniper 2. Level 6 board is solid. Keep 50g."
+      },
+      "4": {
+        "label": "Stage 4 — Level 8, Find Blitz",
+        "units": ["nasus", "teemo", "gwen", "samira", "ornn", "nami"],
+        "tip": "Level 7-8. Roll for Nami + Blitzcrank. Groove 7 with Blitzcrank is the power spike. Nami adds Replicator."
+      },
+      "5": {
+        "label": "Stage 5 — Groove 10 Dream",
+        "units": ["nasus", "teemo", "gwen", "samira", "ornn", "nami", "blitzcrank"],
+        "tip": "Level 9. 7 Space Groove units on board. Every unit gets huge bonuses. Add Leona for Vanguard 2."
+      }
+    }
   },
   {
     "id": "sniper-backline",
     "name": "Sniper Backline",
     "color": "#ca8a04",
     "carry": "jhin",
-    "desc": "Spread your board to maximize Sniper trait damage bonus. Jhin shreds from the corner.",
-    "core": [
-      "ezreal",
-      "gnar",
-      "samira",
-      "jhin"
-    ],
-    "flex": [
-      "jinx",
-      "caitlyn",
-      "corki"
-    ],
+    "tier": "C",
+    "strategy": "FAST 8",
+    "desc": "Spread your board to maximize Sniper damage bonus. Jhin shreds from the corner with unlimited range.",
+    "core": ["ezreal", "gnar", "samira", "jhin"],
+    "flex": ["jinx", "caitlyn", "corki"],
     "items": {
-      "jhin": [
-        "infinityedge",
-        "lastwhisper",
-        "giantslayer"
-      ],
-      "samira": [
-        "guinsoosrageblade",
-        "krakensfury"
-      ]
+      "jhin": ["infinityedge", "lastwhisper", "giantslayer"],
+      "samira": ["guinsoosrageblade", "krakensfury"]
     },
     "god": "Thresh",
-    "godWhy": "Random loot can snowball early - dice gods willing",
-    "gameplan": "Ezreal+Gnar Sniper 2 -> Samira 2 at 6 -> push 8 for Jhin -> spread board for Sniper bonus",
+    "godWhy": "Random loot can snowball early — dice gods willing",
+    "gameplan": "Ezreal + Gnar Sniper 2 opener. Samira 2-star at level 6. Level 8 for Jhin. Spread units far apart for max Sniper damage.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Sniper 2",
+        "units": ["ezreal", "gnar"],
+        "tip": "Ezreal + Gnar = Sniper 2. Ezreal also gives Timebreaker. Gnar gives Meeple. Decent early board."
+      },
+      "2": {
+        "label": "Stage 2 — Add Samira",
+        "units": ["ezreal", "gnar", "samira"],
+        "tip": "Samira adds Sniper 3 + Space Groove. Target Samira 2-star eventually for midgame stability."
+      },
+      "3": {
+        "label": "Stage 3 — Slow Roll Samira",
+        "units": ["ezreal", "gnar", "samira", "caitlyn"],
+        "tip": "Level 5-6. Slow roll for Samira 2-star. Add Caitlyn for N.O.V.A. flex. Watch your positioning."
+      },
+      "4": {
+        "label": "Stage 4 — Level 8",
+        "units": ["ezreal", "gnar", "samira", "jhin", "jinx"],
+        "tip": "Level 8 and find Jhin. Equip all 3 items immediately. Place Jhin in far corner for max Sniper range bonus."
+      },
+      "5": {
+        "label": "Stage 5 — Cap It",
+        "units": ["ezreal", "gnar", "samira", "jhin", "corki", "jinx"],
+        "tip": "Level 9. Add Corki for Meeple + Fateweaver utility. Spread units to maximize Sniper damage bonus."
+      }
+    }
+  },
+  {
+    "id": "vanguard-control",
+    "name": "Vanguard Control",
+    "color": "#f97316",
+    "carry": "blitzcrank",
+    "tier": "B",
+    "strategy": "FLEX",
+    "desc": "Vanguard shield wall controls fight positioning. Blitzcrank is the teamfight centerpiece hook machine.",
+    "core": ["leona", "nasus", "illaoi", "nunu", "blitzcrank"],
+    "flex": ["poppy", "ornn", "shen"],
+    "items": {
+      "blitzcrank": ["warmogsarmor", "titansresolve", "spiritvisage"],
+      "leona": ["sunfirecape", "dragonsclaw", "gargoyle"]
+    },
+    "god": "Soraka",
+    "godWhy": "Tank boards benefit massively from HP scaling — Soraka is the best god pick for this",
+    "gameplan": "Leona + Nasus Vanguard 2 + Arbiter early. Add Illaoi for Vanguard 3. Roll 7 for Nunu. Level 8 for Blitzcrank.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Vanguard 2",
+        "units": ["leona", "nasus"],
+        "tip": "Leona + Nasus = Vanguard 2 + Arbiter 1. Very tanky opener. Both 1-cost so cheap to 2-star."
+      },
+      "2": {
+        "label": "Stage 2 — Add Illaoi",
+        "units": ["leona", "nasus", "illaoi", "poppy"],
+        "tip": "Illaoi gives Vanguard 3 + Anima + Shepherd. Poppy adds Bastion 2 + Meeple. Very tanky 4-unit board."
+      },
+      "3": {
+        "label": "Stage 3 — Expand Frontline",
+        "units": ["leona", "nasus", "illaoi", "poppy", "ornn"],
+        "tip": "Add Ornn for Bastion 2 + Space Groove + Vanguard 3. Level 6. Stay at 50g interest cap."
+      },
+      "4": {
+        "label": "Stage 4 — Level 7, Nunu",
+        "units": ["leona", "nasus", "illaoi", "nunu", "ornn"],
+        "tip": "Level 7 and find Nunu. Vanguard 4 + Stargazer is very tanky. Roll for Nunu 2-star."
+      },
+      "5": {
+        "label": "Stage 5 — Blitzcrank Cap",
+        "units": ["leona", "nasus", "illaoi", "nunu", "blitzcrank", "shen"],
+        "tip": "Level 8-9. Add Blitzcrank for Vanguard 6 + Space Groove + Party Animal. Shen for Bastion 6 cap."
+      }
+    }
+  },
+  {
+    "id": "psionic-carry",
+    "name": "Psionic Carry",
+    "color": "#8b5cf6",
+    "carry": "masteryi",
+    "tier": "B",
+    "strategy": "FAST 7",
+    "desc": "Psionic units deal bonus magic damage through their shields. Master Yi is the blade that cuts through everything.",
+    "core": ["gragas", "pyke", "viktor", "masteryi", "sona"],
+    "flex": ["zoe", "aurelionsol", "bard"],
+    "items": {
+      "masteryi": ["guinsoos", "deathblade", "lastwhisper"],
+      "viktor": ["rabadons", "jeweledgauntlet", "bluebuff"]
+    },
+    "god": "Ekko",
+    "godWhy": "Anomaly item on Master Yi is devastating — scales with both AD and AP",
+    "gameplan": "Gragas + Pyke Psionic 2 + Voyager 2 early. Viktor at 5. Level 7 for Master Yi. Sona at 9 for Psionic 4.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Psionic 2",
+        "units": ["gragas", "pyke"],
+        "tip": "Gragas + Pyke = Psionic 2 + Brawler 1 + Voyager 1. Decent opener. Two 2-cost units so slightly weaker early."
+      },
+      "2": {
+        "label": "Stage 2 — Viktor Online",
+        "units": ["gragas", "pyke", "viktor"],
+        "tip": "Add Viktor for Psionic 3 + Channeler. Level 5 with Psionic 3 is strong. Put AP components on Viktor."
+      },
+      "3": {
+        "label": "Stage 3 — Keep Econ",
+        "units": ["gragas", "pyke", "viktor", "zoe"],
+        "tip": "Add Zoe for Channeler 2 + Arbiter. Psionic 3 + Channeler 2 + Voyager 2. Level 6. 50g interest."
+      },
+      "4": {
+        "label": "Stage 4 — Master Yi",
+        "units": ["gragas", "pyke", "viktor", "zoe", "masteryi"],
+        "tip": "Level 7. Find Master Yi. Psionic 4 activates — all Psionic units gain attack damage and AP from shields."
+      },
+      "5": {
+        "label": "Stage 5 — Sona Cap",
+        "units": ["gragas", "pyke", "viktor", "masteryi", "sona", "aurelionsol"],
+        "tip": "Level 9. Sona = Psionic 5 + Channeler + Shepherd + Commander. Add Aurelion Sol as second AP carry."
+      }
+    }
+  },
+  {
+    "id": "challenger-hyper",
+    "name": "Challenger Hyper",
+    "color": "#f43f5e",
+    "carry": "belveth",
+    "tier": "B",
+    "strategy": "REROLL 4",
+    "desc": "Hyperroll for Challenger 2-stars before everyone else stabilizes. Bel'Veth 2-star attacks infinitely fast.",
+    "core": ["belveth", "jinx", "diana", "kindred"],
+    "flex": ["akali", "talon", "gwen"],
+    "items": {
+      "belveth": ["guinsoosrageblade", "krakensfury", "bluebuff"],
+      "diana": ["warmogsarmor", "sunfirecape"]
+    },
+    "god": "Evelynn",
+    "godWhy": "Lose streak gold funds the hyperroll — essential for this strategy",
+    "gameplan": "Hyper roll at level 4 for Bel'Veth + Jinx 2-stars. Then natural roll for Diana + Kindred. Challenger 4 by mid-game.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Buy Everything",
+        "units": ["belveth", "jinx"],
+        "tip": "Buy every Bel'Veth and Jinx you see. Spend gold! You want 2-stars ASAP. Also grab Talon for Rogue."
+      },
+      "2": {
+        "label": "Stage 2 — Hyperroll to 0",
+        "units": ["belveth", "jinx", "akali"],
+        "tip": "2-1: If you have 30g+, hyperroll to find Bel'Veth 2 + Jinx 2. Challenger 2 is your core. Add Akali for N.O.V.A."
+      },
+      "3": {
+        "label": "Stage 3 — Diana Arrives",
+        "units": ["belveth", "jinx", "diana", "akali"],
+        "tip": "Natural roll to level 6. Find Diana for Challenger 3 + Arbiter. Much more stable board mid-game."
+      },
+      "4": {
+        "label": "Stage 4 — Kindred Cap",
+        "units": ["belveth", "jinx", "diana", "kindred", "akali"],
+        "tip": "Level 7 for Kindred. Challenger 4 activates — massive attack speed for all challengers. This is your win condition."
+      },
+      "5": {
+        "label": "Stage 5 — All Challengers",
+        "units": ["belveth", "jinx", "diana", "kindred", "akali"],
+        "tip": "Level 8. Add flex units. Challenger 5 if you hit everyone. Bel'Veth attacks unlimited times with Rageblade stacks."
+      }
+    }
+  },
+  {
+    "id": "arbiter-control",
+    "name": "Arbiter Control",
+    "color": "#06b6d4",
+    "carry": "leblanc",
+    "tier": "B",
     "strategy": "FAST 8",
-    "tier": "C"
+    "desc": "Arbiters impose laws each round. LeBlanc 4-cost is a slippery AP carry that duplicates her damage.",
+    "core": ["leona", "zoe", "diana", "leblanc"],
+    "flex": ["aatrox", "poppy", "kindred"],
+    "items": {
+      "leblanc": ["rabadons", "jeweledgauntlet", "bluebuff"],
+      "leona": ["warmogsarmor", "gargoyle", "dragonsclaw"]
+    },
+    "god": "Ahri",
+    "godWhy": "AP per level scales perfectly with LeBlanc double-cast damage",
+    "gameplan": "Leona + Zoe Arbiter 2 opener. Diana at level 5 for Arbiter 3. Level 8 for LeBlanc. Arbiter 2 law doubles a passive.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Arbiter 2",
+        "units": ["leona", "zoe"],
+        "tip": "Leona + Zoe = Arbiter 2 + Vanguard 1 + Channeler 1. Law effect activates — add bonus effect to arbitrary trait."
+      },
+      "2": {
+        "label": "Stage 2 — Expand",
+        "units": ["leona", "zoe", "diana", "aatrox"],
+        "tip": "Diana for Arbiter 3 + Challenger. Aatrox for N.O.V.A. + Bastion. Level 5 board is strong."
+      },
+      "3": {
+        "label": "Stage 3 — Keep Econ",
+        "units": ["leona", "zoe", "diana", "aatrox", "poppy"],
+        "tip": "Add Poppy for Meeple + Bastion 2. Level 6. 50g interest. AP items on Zoe as placeholder for LeBlanc."
+      },
+      "4": {
+        "label": "Stage 4 — LeBlanc Online",
+        "units": ["leona", "zoe", "diana", "leblanc"],
+        "tip": "Level 7-8. Find LeBlanc and transfer AP items. Arbiter 3 + Shepherd law gives LeBlanc absurd buffs."
+      },
+      "5": {
+        "label": "Stage 5 — Full Law Board",
+        "units": ["leona", "zoe", "diana", "leblanc", "kindred", "aatrox"],
+        "tip": "Level 9. Kindred for N.O.V.A. + Challenger. Full law board with Arbiter 3 + two laws active."
+      }
+    }
+  },
+  {
+    "id": "replicator-clone",
+    "name": "Replicator Clone",
+    "color": "#ec4899",
+    "carry": "nami",
+    "tier": "C",
+    "strategy": "REROLL 6",
+    "desc": "Replicators create clone copies of themselves. Nami's clones deal full damage. Overwhelming numbers.",
+    "core": ["lissandra", "veigar", "pantheon", "lulu", "nami"],
+    "flex": ["corki", "ivernminion", "poppy"],
+    "items": {
+      "nami": ["rabadons", "jeweledgauntlet", "bluebuff"],
+      "pantheon": ["warmogsarmor", "gargoyle"]
+    },
+    "god": "Thresh",
+    "godWhy": "Dice god can give you early Replicator snowball loot",
+    "gameplan": "Lissandra + Veigar Replicator 2 opener (Dark Star 2 bonus too!). Add Pantheon for 3. Roll 6 for Lulu + Nami. Clone army.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Replicator 2",
+        "units": ["lissandra", "veigar"],
+        "tip": "Lissandra + Veigar = Replicator 2 AND Dark Star 2 + Shepherd 1 + Meeple 1. Great opener with two synergies."
+      },
+      "2": {
+        "label": "Stage 2 — Replicator 3",
+        "units": ["lissandra", "veigar", "pantheon"],
+        "tip": "Pantheon for Replicator 3. Pantheon also gives Timebreaker + Brawler. Level 5. Save gold."
+      },
+      "3": {
+        "label": "Stage 3 — Roll for 2-Stars",
+        "units": ["lissandra", "veigar", "pantheon", "lulu"],
+        "tip": "Level 6. Slow roll for Lissandra + Veigar 2-stars. Lulu added for Stargazer + Replicator 4."
+      },
+      "4": {
+        "label": "Stage 4 — Nami Cap",
+        "units": ["lissandra", "veigar", "pantheon", "lulu", "nami"],
+        "tip": "Level 7-8. Nami for Replicator 4 + Space Groove. Replicator 4 makes 2 copies. Nami clones + Lissandra clones."
+      },
+      "5": {
+        "label": "Stage 5 — Clone Army",
+        "units": ["lissandra", "veigar", "pantheon", "lulu", "nami", "corki"],
+        "tip": "Level 9. Corki for Meeple + Fateweaver utility. Add Poppy for Bastion 2 cap. 6 Replicator if you're fed."
+      }
+    }
+  },
+  {
+    "id": "marauder-blitz",
+    "name": "Marauder Hyper",
+    "color": "#dc2626",
+    "carry": "masteryi",
+    "tier": "B",
+    "strategy": "REROLL 7",
+    "desc": "Marauders gain permanent AD every kill. Master Yi 2-star with a snowballing army of killers.",
+    "core": ["akali", "belveth", "urgot", "masteryi", "fiora"],
+    "flex": ["kindred", "diana", "briar"],
+    "items": {
+      "masteryi": ["deathblade", "lastwhisper", "guinsoosrageblade"],
+      "urgot": ["warmogsarmor", "sunfirecape", "gargoyle"]
+    },
+    "god": "Evelynn",
+    "godWhy": "Lose streak gold to slow roll Master Yi 2 at level 7",
+    "gameplan": "Akali + Bel'Veth Marauder 2 + Challenger early. Add Urgot at 5. Slow roll level 7 for Master Yi 2-star. Fiora cap at 9.",
+    "stages": {
+      "1": {
+        "label": "Stage 1 — Marauder 2",
+        "units": ["akali", "belveth"],
+        "tip": "Akali + Bel'Veth = Marauder 2 + N.O.V.A. 1 + Challenger 1 + Primordian 1. Lots of synergy activation at 2 units."
+      },
+      "2": {
+        "label": "Stage 2 — Build Board",
+        "units": ["akali", "belveth", "urgot", "briar"],
+        "tip": "Urgot for Marauder 3 + Mecha + Brawler. Briar for Anima + Primordian 2 (healing frontline). Level 5."
+      },
+      "3": {
+        "label": "Stage 3 — Keep Econ",
+        "units": ["akali", "belveth", "urgot", "briar", "diana"],
+        "tip": "Diana for Challenger 2 + Arbiter. Level 6. Marauder 4 is very strong — all Marauders stack AD per kill."
+      },
+      "4": {
+        "label": "Stage 4 — Master Yi",
+        "units": ["akali", "belveth", "urgot", "masteryi"],
+        "tip": "Level 7 slow roll. Find Master Yi 2-star. Marauder 4 + Psionic synergy. Yi with 3 items is devastating."
+      },
+      "5": {
+        "label": "Stage 5 — Fiora Cap",
+        "units": ["akali", "belveth", "urgot", "masteryi", "fiora", "kindred"],
+        "tip": "Level 8-9. Fiora adds Marauder 6 + Anima + Divine Duelist. Kindred for Challenger. Full Marauder army stacks to infinity."
+      }
+    }
   }
 ]

@@ -177,46 +177,117 @@ function CompLines({ compLines, champions }) {
 
               {/* Expanded detail */}
               {isExp && (
-                <div style={{ borderTop: "1px solid " + C.border, padding: "20px 16px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20 }}>
-                  <div>
-                    <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>Game Plan</div>
-                    <p style={{ fontFamily: F.body, fontSize: 12, color: C.textMuted, lineHeight: 1.7, margin: 0 }}>{comp.gameplan}</p>
-                  </div>
-                  <div>
-                    <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>God Pick</div>
-                    <div style={{ fontFamily: F.headline, fontSize: 20, fontWeight: 800, color: C.tertiary, marginBottom: 6 }}>{comp.god}</div>
-                    <p style={{ fontFamily: F.body, fontSize: 11, color: C.textDim, margin: 0, lineHeight: 1.5 }}>{comp.godWhy}</p>
-                  </div>
-                  {comp.flex && comp.flex.length > 0 && (
-                    <div>
-                      <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>Flex Units</div>
-                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        {comp.flex.map(function(key) {
-                          var ch = champions.find(function(c) { return c.key === key; });
-                          if (!ch) return null;
-                          return <ChampIcon key={key} champ={ch} size={38} />;
+                <div style={{ borderTop: "1px solid " + C.border }}>
+                  {/* Stage-by-stage game plan */}
+                  {comp.stages && Object.keys(comp.stages).length > 0 && (
+                    <div style={{ padding: "16px 16px 0" }}>
+                      <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 12 }}>Stage-by-Stage Game Plan</div>
+                      <div style={{ display: "flex", gap: 0, overflowX: "auto", marginBottom: 16 }}>
+                        {[1, 2, 3, 4, 5].map(function(stageNum) {
+                          var stage = comp.stages[String(stageNum)];
+                          if (!stage) return null;
+                          var isLast = stageNum === 5;
+                          return (
+                            <div
+                              key={stageNum}
+                              style={{
+                                flex: 1,
+                                minWidth: 160,
+                                background: C.surface,
+                                border: "1px solid " + comp.color + "33",
+                                borderRight: isLast ? ("1px solid " + comp.color + "33") : "none",
+                                padding: "12px",
+                                position: "relative",
+                              }}
+                            >
+                              {/* Stage number badge */}
+                              <div style={{
+                                width: 28, height: 28,
+                                background: comp.color + "22",
+                                border: "1px solid " + comp.color + "55",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontFamily: F.headline, fontWeight: 900, fontSize: 16,
+                                color: comp.color,
+                                marginBottom: 8,
+                              }}>
+                                {stageNum}
+                              </div>
+                              <div style={{ fontFamily: F.headline, fontSize: 11, fontWeight: 700, color: comp.color, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, lineHeight: 1.2 }}>
+                                {stage.label || ("Stage " + stageNum)}
+                              </div>
+                              {/* Units for this stage */}
+                              {stage.units && stage.units.length > 0 && (
+                                <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginBottom: 8 }}>
+                                  {stage.units.map(function(key) {
+                                    var ch = champions.find(function(c) { return c.key === key; });
+                                    if (!ch) return null;
+                                    return <ChampIcon key={key} champ={ch} size={28} />;
+                                  })}
+                                </div>
+                              )}
+                              <p style={{ fontFamily: F.body, fontSize: 10, color: C.textDim, margin: 0, lineHeight: 1.6 }}>
+                                {stage.tip}
+                              </p>
+                              {/* Arrow connector */}
+                              {!isLast && (
+                                <div style={{
+                                  position: "absolute", right: -10, top: "50%", transform: "translateY(-50%)",
+                                  width: 0, height: 0,
+                                  borderTop: "8px solid transparent",
+                                  borderBottom: "8px solid transparent",
+                                  borderLeft: "10px solid " + comp.color + "55",
+                                  zIndex: 2,
+                                }} />
+                              )}
+                            </div>
+                          );
                         })}
                       </div>
                     </div>
                   )}
-                  {comp.items && Object.keys(comp.items).filter(function(k) { return k !== comp.carry; }).length > 0 && (
+
+                  {/* Bottom detail: God Pick + Flex + Items */}
+                  <div style={{ padding: "16px", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 20 }}>
                     <div>
-                      <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>Secondary Items</div>
-                      {Object.entries(comp.items).filter(function(entry) { return entry[0] !== comp.carry; }).map(function(entry) {
-                        var key = entry[0];
-                        var items = entry[1];
-                        var ch = champions.find(function(c) { return c.key === key; });
-                        return (
-                          <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                            {ch && <ChampIcon champ={ch} size={28} />}
-                            <div style={{ display: "flex", gap: 3 }}>
-                              {items.map(function(itemKey, ii) { return <ItemIcon key={ii} itemKey={itemKey} size={24} />; })}
-                            </div>
-                          </div>
-                        );
-                      })}
+                      <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>God Pick</div>
+                      <div style={{ fontFamily: F.headline, fontSize: 20, fontWeight: 800, color: C.tertiary, marginBottom: 6 }}>{comp.god}</div>
+                      <p style={{ fontFamily: F.body, fontSize: 11, color: C.textDim, margin: 0, lineHeight: 1.5 }}>{comp.godWhy}</p>
                     </div>
-                  )}
+                    {comp.flex && comp.flex.length > 0 && (
+                      <div>
+                        <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>Flex Units</div>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                          {comp.flex.map(function(key) {
+                            var ch = champions.find(function(c) { return c.key === key; });
+                            if (!ch) return null;
+                            return <ChampIcon key={key} champ={ch} size={38} />;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {comp.items && Object.keys(comp.items).filter(function(k) { return k !== comp.carry; }).length > 0 && (
+                      <div>
+                        <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>Secondary Items</div>
+                        {Object.entries(comp.items).filter(function(entry) { return entry[0] !== comp.carry; }).map(function(entry) {
+                          var key = entry[0];
+                          var itemList = entry[1];
+                          var ch = champions.find(function(c) { return c.key === key; });
+                          return (
+                            <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                              {ch && <ChampIcon champ={ch} size={28} />}
+                              <div style={{ display: "flex", gap: 3 }}>
+                                {itemList.map(function(itemKey, ii) { return <ItemIcon key={ii} itemKey={itemKey} size={24} />; })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontFamily: F.headline, fontSize: 10, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: comp.color, marginBottom: 10 }}>Overview</div>
+                      <p style={{ fontFamily: F.body, fontSize: 12, color: C.textMuted, lineHeight: 1.7, margin: 0 }}>{comp.gameplan}</p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
