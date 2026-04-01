@@ -23,14 +23,16 @@ function scoreComp(comp, selectedKeys, allChamps) {
 function TabHero({ eyebrow, title, sub, accentColor }) {
   return (
     <div style={{
-      background: "linear-gradient(180deg, " + accentColor + "12 0%, transparent 100%)",
+      position: "relative", overflow: "hidden",
+      background: "linear-gradient(160deg, " + accentColor + "18 0%, " + accentColor + "05 60%, transparent 100%)",
       borderBottom: "1px solid " + C.border,
-      padding: "32px 0 28px",
-      marginBottom: 24,
+      padding: "52px 0 40px",
+      marginBottom: 32,
     }}>
-      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 4, textTransform: "uppercase", marginBottom: 6, opacity: 0.85 }}>{eyebrow}</div>
-      <h2 style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 42, textTransform: "uppercase", letterSpacing: -1, color: C.text, lineHeight: 1, margin: "0 0 10px" }}>{title}</h2>
-      {sub && <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, margin: 0, maxWidth: 500 }}>{sub}</p>}
+      <div style={{ position: "absolute", right: -60, top: -60, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, " + accentColor + "12 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 5, textTransform: "uppercase", marginBottom: 10 }}>{eyebrow}</div>
+      <h2 style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 72, textTransform: "uppercase", letterSpacing: -3, color: C.text, lineHeight: 0.88, margin: "0 0 18px" }}>{title}</h2>
+      {sub && <p style={{ fontFamily: F.body, fontSize: 13, color: C.textDim, margin: 0, maxWidth: 520, lineHeight: 1.6 }}>{sub}</p>}
     </div>
   );
 }
@@ -217,84 +219,95 @@ function OpenerAdvisor({ champions, traits, compLines }) {
 }
 
 function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys, expanded, onToggle }) {
-  const accentCol = comp.color;
+  var accentCol = comp.color;
   return (
-    <div style={{ background: C.surface, borderTop: "2px solid " + accentCol, position: "relative", gridColumn: expanded ? "1 / -1" : "auto" }}>
-      <div style={{ padding: "12px 14px", cursor: "pointer" }} onClick={onToggle}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-              <span style={{ fontFamily: F.headline, fontSize: 14, fontWeight: 700, color: C.text, textTransform: "uppercase", letterSpacing: -0.3 }}>
+    <div style={{ background: C.surface, overflow: "hidden", position: "relative", gridColumn: expanded ? "1 / -1" : "auto", border: "1px solid " + (isBest ? accentCol + "66" : C.border) }}>
+      <div style={{ cursor: "pointer" }} onClick={onToggle}>
+        {/* Splash header */}
+        <div style={{
+          height: 72,
+          background: "linear-gradient(135deg, " + accentCol + "30 0%, " + accentCol + "10 55%, " + C.surface + " 100%)",
+          borderBottom: "1px solid " + accentCol + "33",
+          padding: "0 14px 12px",
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          position: "relative",
+        }}>
+          <div style={{ position: "absolute", top: -20, left: -20, width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, " + accentCol + "20 0%, transparent 70%)", pointerEvents: "none" }} />
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <span style={{ fontFamily: F.headline, fontSize: 22, fontWeight: 900, color: C.text, textTransform: "uppercase", letterSpacing: -0.5, lineHeight: 1 }}>
                 {comp.name}
               </span>
-              <span style={{ fontSize: 10, padding: "1px 8px", background: accentCol + "22", color: accentCol, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", border: "1px solid " + accentCol + "44" }}>
-                {comp.strategy}
-              </span>
               {isBest && (
-                <span style={{ fontSize: 10, padding: "1px 8px", background: C.success + "22", color: C.success, fontFamily: F.label, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase" }}>
-                  BEST MATCH
-                </span>
+                <span style={{ fontSize: 9, padding: "2px 7px", background: C.success, color: "#000", fontFamily: F.headline, fontWeight: 900, letterSpacing: 1.5, textTransform: "uppercase" }}>BEST</span>
               )}
             </div>
-            <p style={{ fontFamily: F.body, fontSize: 10, color: C.textDim, margin: 0, lineHeight: 1.4 }}>{comp.desc}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 10, padding: "1px 8px", background: accentCol + "22", color: accentCol, fontFamily: F.headline, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", border: "1px solid " + accentCol + "44" }}>
+                {comp.strategy}
+              </span>
+              <span style={{ fontFamily: F.body, fontSize: 11, color: C.textDim }}>{comp.desc}</span>
+            </div>
           </div>
           {score > 0 && (
             <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <div style={{ fontSize: 18, fontFamily: F.headline, fontWeight: 700, color: accentCol, lineHeight: 1 }}>{pct}<span style={{ fontSize: 10 }}>%</span></div>
-              <div style={{ fontSize: 10, color: C.textDim, fontFamily: F.label, letterSpacing: 1 }}>MATCH</div>
+              <div style={{ fontSize: 28, fontFamily: F.headline, fontWeight: 900, color: accentCol, lineHeight: 1 }}>{pct}<span style={{ fontSize: 12 }}>%</span></div>
+              <div style={{ fontSize: 9, color: C.textDim, fontFamily: F.label, letterSpacing: 1.5, textTransform: "uppercase" }}>MATCH</div>
             </div>
           )}
         </div>
 
-        {score > 0 && (
-          <div style={{ height: 2, background: C.border, marginBottom: 8 }}>
-            <div style={{ height: "100%", width: pct + "%", background: accentCol, transition: "width 0.3s" }} />
-          </div>
-        )}
-
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-          {comp.core.map(function(key) {
-            const ch = champions.find(function(c) { return c.key === key; });
-            if (!ch) return null;
-            const owned = selectedKeys.includes(key);
-            return (
-              <div key={key} style={{ opacity: owned ? 1 : 0.45, transition: "opacity 0.1s" }}>
-                <ChampIcon champ={ch} size={38} />
-              </div>
-            );
-          })}
-          {comp.flex && comp.flex.length > 0 && (
-            <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
+        <div style={{ padding: "10px 14px 12px" }}>
+          {score > 0 && (
+            <div style={{ height: 2, background: C.border, marginBottom: 10 }}>
+              <div style={{ height: "100%", width: pct + "%", background: accentCol, transition: "width 0.3s" }} />
+            </div>
           )}
-          {(comp.flex || []).map(function(key) {
-            const ch = champions.find(function(c) { return c.key === key; });
-            if (!ch) return null;
-            const owned = selectedKeys.includes(key);
-            return (
-              <div key={key} style={{ opacity: owned ? 0.75 : 0.25, transition: "opacity 0.1s" }}>
-                <ChampIcon champ={ch} size={30} />
-              </div>
-            );
-          })}
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {comp.core.map(function(key) {
+              var ch = champions.find(function(c) { return c.key === key; });
+              if (!ch) return null;
+              var owned = selectedKeys.includes(key);
+              return (
+                <div key={key} style={{ opacity: owned ? 1 : 0.45, transition: "opacity 0.1s" }}>
+                  <ChampIcon champ={ch} size={38} />
+                </div>
+              );
+            })}
+            {comp.flex && comp.flex.length > 0 && (
+              <div style={{ width: 1, background: C.border, margin: "0 2px", alignSelf: "stretch" }} />
+            )}
+            {(comp.flex || []).map(function(key) {
+              var ch = champions.find(function(c) { return c.key === key; });
+              if (!ch) return null;
+              var owned = selectedKeys.includes(key);
+              return (
+                <div key={key} style={{ opacity: owned ? 0.75 : 0.25, transition: "opacity 0.1s" }}>
+                  <ChampIcon champ={ch} size={30} />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
       {expanded && (
-        <div style={{ borderTop: "1px solid " + C.border, padding: "12px 14px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ borderTop: "1px solid " + C.border, padding: "16px 14px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
-              <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>BIS Items</div>
+              <div style={{ fontSize: 10, fontFamily: F.headline, fontWeight: 700, color: accentCol, letterSpacing: 3, textTransform: "uppercase", marginBottom: 10 }}>BIS Items</div>
               {comp.items && Object.entries(comp.items).map(function(entry) {
-                const champKey = entry[0];
-                const itemKeys = entry[1];
+                var champKey = entry[0];
+                var itemKeys = entry[1];
+                var ch = champions.find(function(c) { return c.key === champKey; });
                 return (
-                  <div key={champKey} style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 11, fontFamily: F.label, color: accentCol, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>
-                      {champKey}
-                    </div>
-                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  <div key={champKey} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    {ch && <ChampIcon champ={ch} size={28} />}
+                    <div style={{ display: "flex", gap: 3 }}>
                       {itemKeys.map(function(itemKey, ii) {
-                        return <ItemIcon key={ii} itemKey={itemKey} size={28} showName={true} />;
+                        return <ItemIcon key={ii} itemKey={itemKey} size={26} showName={true} />;
                       })}
                     </div>
                   </div>
@@ -302,13 +315,12 @@ function CompCard({ comp, champions, traitMap, score, pct, isBest, selectedKeys,
               })}
             </div>
             <div>
-              <div style={{ fontSize: 11, fontFamily: F.label, color: C.textDim, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>Tactical Plan</div>
-              <p style={{ fontSize: 11, fontFamily: F.body, color: C.textMuted, margin: "0 0 10px", lineHeight: 1.6 }}>{comp.gameplan}</p>
+              <div style={{ fontSize: 10, fontFamily: F.headline, fontWeight: 700, color: accentCol, letterSpacing: 3, textTransform: "uppercase", marginBottom: 10 }}>Tactical Plan</div>
+              <p style={{ fontSize: 12, fontFamily: F.body, color: C.textMuted, margin: "0 0 12px", lineHeight: 1.7 }}>{comp.gameplan}</p>
               {comp.god && (
-                <div style={{ background: C.surfaceLow, border: "1px solid " + C.tertiary + "33", padding: "6px 10px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 11, color: C.textDim, fontFamily: F.label, letterSpacing: 1, textTransform: "uppercase" }}>God:</span>
-                  <span style={{ fontSize: 12, fontFamily: F.headline, fontWeight: 700, color: C.tertiary }}>{comp.god}</span>
-                  {comp.godWhy && <span style={{ fontSize: 10, color: C.textDim, fontFamily: F.body }}>{comp.godWhy}</span>}
+                <div style={{ background: C.surfaceLow, border: "1px solid " + C.tertiary + "44", padding: "8px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontFamily: F.headline, fontSize: 16, fontWeight: 800, color: C.tertiary }}>{comp.god}</span>
+                  {comp.godWhy && <span style={{ fontSize: 11, color: C.textDim, fontFamily: F.body }}>{comp.godWhy}</span>}
                 </div>
               )}
             </div>

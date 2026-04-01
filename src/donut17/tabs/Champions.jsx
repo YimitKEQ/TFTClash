@@ -53,19 +53,31 @@ function Champions({ champions, traits }) {
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
-        <button
-          onClick={function() { setView("cards"); }}
-          style={{ padding: "6px 16px", background: view === "cards" ? C.primary + "22" : "transparent", border: "1px solid " + (view === "cards" ? C.primary : C.border), color: view === "cards" ? C.primary : C.textDim, fontFamily: F.headline, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}
-        >
-          Champions
-        </button>
-        <button
-          onClick={function() { setView("grid"); }}
-          style={{ padding: "6px 16px", background: view === "grid" ? C.secondary + "22" : "transparent", border: "1px solid " + (view === "grid" ? C.secondary : C.border), color: view === "grid" ? C.secondary : C.textDim, fontFamily: F.headline, fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", cursor: "pointer" }}
-        >
-          Synergy Grid
-        </button>
+      {/* Hero */}
+      <div style={{
+        position: "relative", overflow: "hidden",
+        background: "linear-gradient(160deg, rgba(200,184,255,0.16) 0%, rgba(200,184,255,0.05) 60%, transparent 100%)",
+        borderBottom: "1px solid " + C.border,
+        padding: "52px 0 40px",
+        marginBottom: 32,
+      }}>
+        <div style={{ position: "absolute", right: -60, top: -60, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(200,184,255,0.10) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: C.primary, letterSpacing: 5, textTransform: "uppercase", marginBottom: 10 }}>Set 17 · Space Gods</div>
+        <h2 style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 72, textTransform: "uppercase", letterSpacing: -3, color: C.text, lineHeight: 0.88, margin: "0 0 18px" }}>Champions</h2>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            onClick={function() { setView("cards"); }}
+            style={{ padding: "7px 20px", background: view === "cards" ? C.primary + "22" : "transparent", border: "1px solid " + (view === "cards" ? C.primary : C.border), color: view === "cards" ? C.primary : C.textDim, fontFamily: F.headline, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer", transition: "all 0.15s" }}
+          >
+            Unit Cards
+          </button>
+          <button
+            onClick={function() { setView("grid"); }}
+            style={{ padding: "7px 20px", background: view === "grid" ? C.secondary + "22" : "transparent", border: "1px solid " + (view === "grid" ? C.secondary : C.border), color: view === "grid" ? C.secondary : C.textDim, fontFamily: F.headline, fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase", cursor: "pointer", transition: "all 0.15s" }}
+          >
+            Synergy Grid
+          </button>
+        </div>
       </div>
       {view === "cards" && (
       <div>

@@ -209,14 +209,16 @@ function ItemCard({ item, expanded, onToggle }) {
 function TabHero({ eyebrow, title, sub, accentColor }) {
   return (
     <div style={{
-      background: "linear-gradient(180deg, " + accentColor + "12 0%, transparent 100%)",
+      position: "relative", overflow: "hidden",
+      background: "linear-gradient(160deg, " + accentColor + "18 0%, " + accentColor + "05 60%, transparent 100%)",
       borderBottom: "1px solid " + C.border,
-      padding: "32px 0 28px",
-      marginBottom: 24,
+      padding: "52px 0 40px",
+      marginBottom: 32,
     }}>
-      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 4, textTransform: "uppercase", marginBottom: 6, opacity: 0.85 }}>{eyebrow}</div>
-      <h2 style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 42, textTransform: "uppercase", letterSpacing: -1, color: C.text, lineHeight: 1, margin: "0 0 10px" }}>{title}</h2>
-      {sub && <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, margin: 0, maxWidth: 500 }}>{sub}</p>}
+      <div style={{ position: "absolute", right: -60, top: -60, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, " + accentColor + "12 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: accentColor, letterSpacing: 5, textTransform: "uppercase", marginBottom: 10 }}>{eyebrow}</div>
+      <h2 style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 72, textTransform: "uppercase", letterSpacing: -3, color: C.text, lineHeight: 0.88, margin: "0 0 18px" }}>{title}</h2>
+      {sub && <p style={{ fontFamily: F.body, fontSize: 13, color: C.textDim, margin: 0, maxWidth: 520, lineHeight: 1.6 }}>{sub}</p>}
     </div>
   );
 }

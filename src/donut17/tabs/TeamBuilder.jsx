@@ -654,16 +654,24 @@ function TeamBuilder({ champions, traits }) {
 
   return (
     <div>
-      {/* ── Header ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-        <div>
-          <h2 style={{ fontFamily: F.headline, fontSize: 24, fontWeight: 700, textTransform: "uppercase", letterSpacing: -0.5, color: C.text, borderLeft: "4px solid " + C.primary, paddingLeft: 12, margin: 0 }}>
-            Team Builder
-          </h2>
-          <p style={{ fontFamily: F.body, fontSize: 12, color: C.textDim, marginTop: 5, paddingLeft: 16 }}>
-            Click unit to place. Click placed unit to select. Right-click placed unit to remove. Assign items via the panel.
-          </p>
-        </div>
+      {/* ── Hero ── */}
+      <div style={{
+        position: "relative", overflow: "hidden",
+        background: "linear-gradient(160deg, rgba(200,184,255,0.16) 0%, rgba(200,184,255,0.05) 60%, transparent 100%)",
+        borderBottom: "1px solid " + C.border,
+        padding: "52px 0 40px",
+        marginBottom: 32,
+      }}>
+        <div style={{ position: "absolute", right: -60, top: -60, width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(200,184,255,0.10) 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ fontSize: 11, fontFamily: F.headline, fontWeight: 700, color: C.primary, letterSpacing: 5, textTransform: "uppercase", marginBottom: 10 }}>Set 17 · Space Gods</div>
+        <h2 style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 72, textTransform: "uppercase", letterSpacing: -3, color: C.text, lineHeight: 0.88, margin: "0 0 18px" }}>Team<br />Builder</h2>
+        <p style={{ fontFamily: F.body, fontSize: 13, color: C.textDim, margin: 0, maxWidth: 520, lineHeight: 1.6 }}>
+          Drag units onto the board. Drag to swap. Drop off the board to remove. Assign items by selecting a unit.
+        </p>
+      </div>
+
+      {/* ── Controls bar ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 16, flexWrap: "wrap", gap: 6 }}>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
           <select
             defaultValue=""

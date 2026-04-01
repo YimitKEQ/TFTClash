@@ -71,21 +71,22 @@ function Donut17Page() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
 
-      {/* Nebula bg */}
+      {/* Nebula bg — stronger atmosphere */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none",
-        background: "radial-gradient(circle at 40% 30%, rgba(205,189,255,0.07) 0%, transparent 55%), radial-gradient(circle at 80% 70%, rgba(141,205,255,0.05) 0%, transparent 45%)"
+        background: "radial-gradient(ellipse at 25% 20%, rgba(200,184,255,0.13) 0%, transparent 50%), radial-gradient(ellipse at 80% 65%, rgba(125,200,255,0.09) 0%, transparent 45%), radial-gradient(ellipse at 60% 90%, rgba(124,58,237,0.06) 0%, transparent 40%)"
       }} />
 
       {/* Fixed header */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, height: 56, zIndex: 50,
-        background: "rgba(11,8,19,0.92)", backdropFilter: "blur(16px)",
+        background: "rgba(11,8,19,0.95)", backdropFilter: "blur(20px)",
         borderBottom: "1px solid " + C.border,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 24px 0 80px",
+        boxShadow: "0 1px 0 0 " + accentColor + "22, 0 4px 24px rgba(0,0,0,0.5)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <div style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 20, letterSpacing: 4, color: C.text, textTransform: "uppercase" }}>
+          <div style={{ fontFamily: F.headline, fontWeight: 900, fontSize: 22, letterSpacing: 4, color: C.text, textTransform: "uppercase", textShadow: "0 0 24px " + C.primary + "44" }}>
             DONUT<span style={{ color: C.primary }}>17</span>
           </div>
           <nav style={{ display: "flex", alignItems: "stretch", height: 56, gap: 0 }}>
