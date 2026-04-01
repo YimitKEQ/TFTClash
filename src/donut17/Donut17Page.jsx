@@ -6,31 +6,31 @@ import godsData from "./data/gods.json";
 import compLinesData from "./data/comp_lines.json";
 
 import OpenerAdvisor from "./tabs/OpenerAdvisor.jsx";
-import SynergyGrid from "./tabs/SynergyGrid.jsx";
+import Augments from "./tabs/Augments.jsx";
 import Champions from "./tabs/Champions.jsx";
 import CompLines from "./tabs/CompLines.jsx";
 import Gods from "./tabs/Gods.jsx";
 import Items from "./tabs/Items.jsx";
 import TeamBuilder from "./tabs/TeamBuilder.jsx";
 
-const TABS = [
-  { id: "opener",  label: "Opener Advisor", icon: "grid_view" },
-  { id: "builder", label: "Team Builder",   icon: "dashboard" },
-  { id: "grid",    label: "Synergy Grid",   icon: "hub" },
-  { id: "champs",  label: "Champions",      icon: "group" },
-  { id: "comps",   label: "Comp Lines",     icon: "bar_chart" },
-  { id: "items",   label: "Items",          icon: "shield" },
-  { id: "gods",    label: "Gods",           icon: "military_tech" },
+var TABS = [
+  { id: "opener",   label: "Opener",    icon: "grid_view" },
+  { id: "builder",  label: "Builder",   icon: "dashboard" },
+  { id: "comps",    label: "Comps",     icon: "bar_chart" },
+  { id: "champs",   label: "Champions", icon: "group" },
+  { id: "items",    label: "Items",     icon: "shield" },
+  { id: "augments", label: "Augments",  icon: "auto_awesome" },
+  { id: "gods",     label: "Gods",      icon: "military_tech" },
 ];
 
-const ACCENTCOLORS = {
-  opener:  C.primary,
-  builder: C.primary,
-  grid:    C.secondary,
-  champs:  C.primary,
-  comps:   C.tertiary,
-  items:   C.secondary,
-  gods:    C.tertiary,
+var ACCENTCOLORS = {
+  opener:   C.primary,
+  builder:  C.primary,
+  comps:    C.tertiary,
+  champs:   C.primary,
+  items:    C.secondary,
+  augments: C.orange,
+  gods:     C.tertiary,
 };
 
 function MSIcon({ name, size = 20, style: extra }) {
@@ -48,17 +48,17 @@ function Donut17Page() {
   const [tab, setTab] = useState("opener");
 
   useEffect(function() {
-    const fontId = "d17-fonts";
+    var fontId = "d17-fonts";
     if (!document.getElementById(fontId)) {
-      const link = document.createElement("link");
+      var link = document.createElement("link");
       link.id = fontId;
       link.rel = "stylesheet";
-      link.href = "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap";
+      link.href = "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap";
       document.head.appendChild(link);
     }
-    const iconId = "d17-msymbols";
+    var iconId = "d17-msymbols";
     if (!document.getElementById(iconId)) {
-      const link2 = document.createElement("link");
+      var link2 = document.createElement("link");
       link2.id = iconId;
       link2.rel = "stylesheet";
       link2.href = "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200";
@@ -79,13 +79,13 @@ function Donut17Page() {
       {/* Fixed header */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, height: 56, zIndex: 50,
-        background: C.bg + "e8", backdropFilter: "blur(16px)",
+        background: "rgba(11,8,19,0.92)", backdropFilter: "blur(16px)",
         borderBottom: "1px solid " + C.border,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 24px 0 80px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
-          <div style={{ fontFamily: F.headline, fontWeight: 700, fontSize: 16, letterSpacing: 2, color: C.text, textTransform: "uppercase" }}>
+          <div style={{ fontFamily: F.headline, fontWeight: 800, fontSize: 20, letterSpacing: 4, color: C.text, textTransform: "uppercase" }}>
             DONUT<span style={{ color: C.primary }}>17</span>
           </div>
           <nav style={{ display: "flex", alignItems: "stretch", height: 56, gap: 0 }}>
@@ -161,7 +161,7 @@ function Donut17Page() {
             >
               <MSIcon name={t.icon} size={18} />
               <span style={{ fontSize: 9, fontFamily: F.label, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase" }}>
-                {t.id === "opener" ? "HUD" : t.id === "builder" ? "BUILD" : t.id === "grid" ? "GRID" : t.id === "champs" ? "UNITS" : t.id === "comps" ? "COMPS" : t.id === "items" ? "ITEMS" : "GODS"}
+                {t.label.slice(0,5).toUpperCase()}
               </span>
             </button>
           );
@@ -174,7 +174,7 @@ function Donut17Page() {
           <React.Suspense fallback={null}>
             {tab === "opener"  && <OpenerAdvisor champions={championsData} traits={traitsData} compLines={compLinesData} />}
             {tab === "builder" && <TeamBuilder   champions={championsData} traits={traitsData} />}
-            {tab === "grid"    && <SynergyGrid   champions={championsData} traits={traitsData} />}
+            {tab === "augments" && <Augments />}
             {tab === "champs"  && <Champions      champions={championsData} traits={traitsData} />}
             {tab === "comps"   && <CompLines      compLines={compLinesData} champions={championsData} />}
             {tab === "items"   && <Items />}
