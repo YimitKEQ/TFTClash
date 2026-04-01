@@ -17,4 +17,5 @@ supabase/.temp/
 
 # Local tool configs
 .claude/
+.claude-backup/
 .superpowers/
