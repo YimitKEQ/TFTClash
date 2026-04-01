@@ -3,6 +3,9 @@ import { C, F, COST_COLOR, COST_GLOW, TRAIT_COLOR } from "../d17.js";
 import itemsData from "../data/items_clean.json";
 import compLinesData from "../data/comp_lines.json";
 
+// Module-level drag state (avoids stale closure in drop handlers)
+var gDrag = { src: null, champ: null, hid: null };
+
 // ── Board constants ───────────────────────────────────────────────────
 const ROWS = 4;
 const COLS = 7;
@@ -94,16 +97,18 @@ function ItemSlotImg({ itemKey, size }) {
   );
 }
 
-function PoolIcon({ champ, placed, onClick }) {
+function PoolIcon({ champ, placed, onClick, onDragStart }) {
   const [err, setErr] = useState(false);
   const col = COST_COLOR[champ.cost];
   const glow = COST_GLOW[champ.cost];
   return (
     <div
+      draggable
       onClick={onClick}
+      onDragStart={function(e) { onDragStart(e, champ); }}
       title={champ.name + " (" + champ.cost + "g)"}
       style={{
-        cursor: "pointer",
+        cursor: "grab",
         width: 42,
         height: 46,
         position: "relative",
@@ -117,7 +122,6 @@ function PoolIcon({ champ, placed, onClick }) {
         height: 46,
         clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
         overflow: "hidden",
-        border: "none",
         outline: "1.5px solid " + col + "66",
         outlineOffset: 1,
       }}>
@@ -138,7 +142,7 @@ function PoolIcon({ champ, placed, onClick }) {
   );
 }
 
-function BoardHex({ hid, r, c, champ, items, stars, selected, pending, onClickHex, onRemoveItem }) {
+function BoardHex({ hid, r, c, champ, items, stars, selected, pending, dragOver, onClickHex, onRemoveItem, onDragStart, onDragOver, onDrop, onDragEnd }) {
   const [err, setErr] = useState(false);
   const isEmpty = !champ;
   const col     = champ ? (COST_COLOR[champ.cost] || "#6b7280") : C.border;
@@ -150,7 +154,14 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, onClickHe
   const starLabel = stars === 2 ? "★★" : stars === 3 ? "★★★" : "";
 
   return (
-    <div style={{ position: "absolute", left: x, top: y, width: HEX_W + 14, display: "flex", flexDirection: "column", alignItems: "center" }}>
+    <div
+      draggable={!!champ}
+      onDragStart={champ ? function(e) { onDragStart(e, hid, champ); } : undefined}
+      onDragOver={function(e) { onDragOver(e, hid); }}
+      onDrop={function(e) { onDrop(e, hid); }}
+      onDragEnd={onDragEnd}
+      style={{ position: "absolute", left: x, top: y, width: HEX_W + 14, display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
       {/* Hex cell */}
       <div
         onClick={function() { onClickHex(hid); }}
@@ -188,7 +199,7 @@ function BoardHex({ hid, r, c, champ, items, stars, selected, pending, onClickHe
           overflow: "hidden",
           background: isEmpty ? C.surfaceLow : "transparent",
           zIndex: 2,
-          outline: "2px solid " + (selected ? C.primary : isEmpty ? C.border : col + "88"),
+          outline: "2px solid " + (dragOver ? C.secondary : selected ? C.primary : isEmpty ? C.border : col + "88"),
           outlineOffset: -2,
         }}>
           {champ ? (
@@ -368,6 +379,74 @@ function TeamBuilder({ champions, traits }) {
   const [search, setSearch]   = useState("");
   const [itemTab, setItemTab] = useState("combined");
   const [history, setHistory] = useState([]);
+  var [dragOverHid, setDragOverHid] = useState(null);
+
+  function handlePoolDragStart(e, champ) {
+    gDrag = { src: "pool", champ: champ, hid: null };
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", champ.key);
+  }
+
+  function handleBoardDragStart(e, hid, champ) {
+    gDrag = { src: "board", champ: champ, hid: hid };
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", hid);
+  }
+
+  function handleHexDragOver(e, hid) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverHid(hid);
+  }
+
+  function handleHexDrop(e, targetHid) {
+    e.preventDefault();
+    setDragOverHid(null);
+    if (!gDrag.src) return;
+    saveHistory();
+    if (gDrag.src === "pool") {
+      var champToDrop = gDrag.champ;
+      setBoard(function(prev) {
+        var next = Object.assign({}, prev);
+        next[targetHid] = champToDrop;
+        return next;
+      });
+      setSelected(targetHid);
+    } else if (gDrag.src === "board" && gDrag.hid !== targetHid) {
+      var srcHid = gDrag.hid;
+      setBoard(function(prev) {
+        var next = Object.assign({}, prev);
+        var srcChamp = next[srcHid];
+        var tgtChamp = next[targetHid];
+        next[targetHid] = srcChamp;
+        next[srcHid] = tgtChamp;
+        return next;
+      });
+      setSelected(targetHid);
+    }
+    gDrag = { src: null, champ: null, hid: null };
+  }
+
+  function handleDragEnd() {
+    setDragOverHid(null);
+    gDrag = { src: null, champ: null, hid: null };
+  }
+
+  function handlePoolAreaDrop(e) {
+    e.preventDefault();
+    if (gDrag.src === "board" && gDrag.hid) {
+      saveHistory();
+      var removeHid = gDrag.hid;
+      setBoard(function(prev) {
+        var next = Object.assign({}, prev);
+        next[removeHid] = null;
+        return next;
+      });
+      if (selected === removeHid) setSelected(null);
+    }
+    setDragOverHid(null);
+    gDrag = { src: null, champ: null, hid: null };
+  }
 
   const traitMap = useMemo(function() {
     const m = {};
@@ -688,7 +767,11 @@ function TeamBuilder({ champions, traits }) {
           </div>
 
           {/* Champion list grouped by cost */}
-          <div style={{ maxHeight: 500, overflowY: "auto", background: C.surfaceLow }}>
+          <div
+            onDragOver={function(e) { e.preventDefault(); }}
+            onDrop={handlePoolAreaDrop}
+            style={{ maxHeight: 500, overflowY: "auto", background: C.surfaceLow }}
+          >
             {[1, 2, 3, 4, 5].filter(function(cost) { return costFilter.includes(cost); }).map(function(cost) {
               const group = poolChamps.filter(function(c) { return c.cost === cost; });
               if (!group.length) return null;
@@ -706,6 +789,7 @@ function TeamBuilder({ champions, traits }) {
                           champ={champ}
                           placed={boardChampCounts[champ.key] || 0}
                           onClick={function() { handlePoolClick(champ); }}
+                          onDragStart={handlePoolDragStart}
                         />
                       );
                     })}
@@ -776,8 +860,13 @@ function TeamBuilder({ champions, traits }) {
                       stars={stars[hid]}
                       selected={selected === hid}
                       pending={!!pendingChamp && !champ}
+                      dragOver={dragOverHid === hid}
                       onClickHex={handleClickHex}
                       onRemoveItem={handleRemoveItem}
+                      onDragStart={handleBoardDragStart}
+                      onDragOver={handleHexDragOver}
+                      onDrop={handleHexDrop}
+                      onDragEnd={handleDragEnd}
                     />
                   );
                 });
