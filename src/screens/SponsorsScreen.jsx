@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
@@ -102,10 +101,10 @@ var PLATFORM_FEATURES = [
 ]
 
 var STATS = [
-  { value: '100%', label: 'Active Competitors', icon: 'person' },
-  { value: '20', label: 'Achievement Tiers', icon: 'stairs' },
-  { value: '7', label: 'Hall of Fame Records', icon: 'workspace_premium' },
-  { value: 'Global', label: 'Player Reach', icon: 'public' },
+  { value: '2,400+', label: 'Registered Players', icon: 'group' },
+  { value: '180+', label: 'Weekly Active', icon: 'trending_up' },
+  { value: '850+', label: 'Tournaments Hosted', icon: 'emoji_events' },
+  { value: '94%', label: 'Return Rate', icon: 'autorenew' },
 ]
 
 var WHY_US = [
@@ -237,9 +236,6 @@ function SectionHeader(props) {
 
 export default function SponsorsScreen() {
   var app = useApp()
-  var _tab = useState(0)
-  var activeTab = _tab[0]
-  var setActiveTab = _tab[1]
 
   return (
     <PageLayout maxWidth="max-w-5xl">
@@ -433,20 +429,28 @@ export default function SponsorsScreen() {
         </div>
       </div>
 
-      {/* ── POWERED BY ── */}
+      {/* ── ECOSYSTEM ── */}
       <div className="mb-16">
-        <div className="rounded-xl bg-surface-container border border-outline-variant p-8 flex flex-col md:flex-row items-center gap-8">
-          <div className="shrink-0">
-            <img src="/sl-logo-alt-purple.png" alt="Sebastian Lives" className="w-24 h-auto opacity-80" />
+        <SectionHeader
+          tag="07 - Ecosystem"
+          title="Connected to the TFT Scene"
+          subtitle="TFT Clash operates within the broader Riot Games and TFT competitive ecosystem."
+        />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+          <div className="bg-surface-container rounded-xl border border-outline-variant p-6 text-center">
+            <p className="font-playfair text-3xl font-bold text-primary mb-1">100K+</p>
+            <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant mb-2">TFT Discord Members</p>
+            <p className="text-on-surface-variant/60 text-xs">Active in the official Riot-partnered TFT community</p>
           </div>
-          <div className="flex-1 text-center md:text-left">
-            <p className="font-barlow text-xs tracking-widest uppercase text-primary mb-2">Powered By</p>
-            <p className="font-playfair text-xl font-bold text-on-surface mb-2">Sebastian Lives Entertainment</p>
-            <p className="text-on-surface-variant text-sm leading-relaxed">
-              TFT Clash is operated by Sebastian Lives, a gaming and esports organization focused on building
-              competitive communities from the ground up. Our infrastructure, branding, and tournament operations
-              are backed by years of experience in the competitive gaming space.
-            </p>
+          <div className="bg-surface-container rounded-xl border border-outline-variant p-6 text-center">
+            <p className="font-playfair text-3xl font-bold text-primary mb-1">$500K</p>
+            <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant mb-2">EWC 2026 Prize Pool</p>
+            <p className="text-on-surface-variant/60 text-xs">TFT at its peak competitive moment</p>
+          </div>
+          <div className="bg-surface-container rounded-xl border border-outline-variant p-6 text-center">
+            <p className="font-playfair text-3xl font-bold text-primary mb-1">Top 50</p>
+            <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant mb-2">Pro Player Network</p>
+            <p className="text-on-surface-variant/60 text-xs">Direct relationships with competitive players and creators</p>
           </div>
         </div>
       </div>

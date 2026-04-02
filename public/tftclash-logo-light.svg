@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 50" fill="none">
+  <!-- Owl Icon Circle - dark variant for light bg -->
+  <circle cx="25" cy="25" r="22" fill="#13131A" stroke="#13131A" stroke-width="2"/>
+  <!-- Owl Body -->
+  <path d="M25 8c-4 0-7.2 1.3-9.5 3.6C13 14 11.2 17.3 10.5 20.5c-1 4-.3 7.2 1 9.8 1.6 3.3 4.3 5.9 7.2 7.5 1.8.9 3.8 1.4 6.3 1.4s4.5-.5 6.3-1.4c3-1.6 5.6-4.2 7.2-7.5 1.3-2.6 2-5.8 1-9.8-.7-3.2-2.5-6.5-5-9C32.2 9.3 29 8 25 8z" fill="#E4E1EC"/>
+  <!-- Owl Eyes -->
+  <path d="M18.5 20c0-1.3 1-2.6 2.6-3.3 1-.4 2-.4 2.6 0 .5.3 1 .8 1.3 1.3.3-.5.8-1 1.3-1.3.7-.4 1.6-.4 2.6 0 1.6.7 2.6 2 2.6 3.3 0 1.6-1.3 3-3.3 3.3-1 .2-2 0-2.6-.7-.3-.3-.5-.7-.5-1 0 .3-.2.7-.5 1-.7.7-1.7.9-2.6.7-2-.3-3.3-1.7-3.3-3.3z" fill="#13131A"/>
+  <ellipse cx="21.5" cy="20.3" rx="1.2" ry="1.3" fill="#E4E1EC" opacity="0.9"/>
+  <ellipse cx="28.5" cy="20.3" rx="1.2" ry="1.3" fill="#E4E1EC" opacity="0.9"/>
+  <path d="M24 24L25 26 26 24" stroke="#13131A" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- TFT CLASH inline - dark text -->
+  <text x="58" y="22" font-family="'Playfair Display',Georgia,serif" font-weight="900" font-size="20" fill="#13131A" letter-spacing="1">TFT</text>
+  <text x="110" y="22" font-family="'Playfair Display',Georgia,serif" font-weight="900" font-size="20" fill="#805600" letter-spacing="1">CLASH</text>
+  <text x="58" y="38" font-family="'Barlow Condensed','Arial Narrow',sans-serif" font-weight="600" font-size="7.5" fill="#666" letter-spacing="3.5">ELITE COMPETITION</text>
+</svg>

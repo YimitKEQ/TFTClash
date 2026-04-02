@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 180" fill="none">
+  <!-- Owl Icon Circle - large -->
+  <circle cx="80" cy="60" r="50" fill="#13131A" stroke="#FFC66B" stroke-width="3"/>
+  <!-- Owl Body -->
+  <path d="M80 22c-8.5 0-15.5 2.8-20.5 7.8C55 34.3 51.5 40.3 50 47c-2 8.5-.7 15.5 2 21.2 3.5 7 9.2 12.7 15.5 16.2 4 2 8.2 3.1 13.5 3.1s9.5-1.1 13.5-3.1c6.3-3.5 12-9.2 15.5-16.2 2.7-5.7 4-12.7 2-21.2-1.5-6.7-5-12.7-10.5-17.2C96.5 24.8 89.5 22 80 22z" fill="#FFC66B"/>
+  <!-- Owl Eyes -->
+  <path d="M66 50c0-2.8 2.1-5.6 5.6-7 2.1-.9 4.2-.9 5.6 0 1.1.7 2.1 1.7 2.8 2.8.7-1.1 1.7-2.1 2.8-2.8 1.4-.9 3.5-.9 5.6 0 3.5 1.4 5.6 4.2 5.6 7 0 3.5-2.8 6.3-7 7-2.1.4-4.2 0-5.6-1.4-.7-.7-1.1-1.4-1.1-2.1 0 .7-.4 1.4-1.1 2.1-1.4 1.4-3.5 1.8-5.6 1.4-4.2-.7-7-3.5-7-7z" fill="#13131A"/>
+  <ellipse cx="72" cy="50.7" rx="2.5" ry="2.8" fill="#FFC66B" opacity="0.95"/>
+  <ellipse cx="88" cy="50.7" rx="2.5" ry="2.8" fill="#FFC66B" opacity="0.95"/>
+  <circle cx="72.5" cy="50" r="0.8" fill="#13131A"/>
+  <circle cx="88.5" cy="50" r="0.8" fill="#13131A"/>
+  <!-- Beak -->
+  <path d="M77.5 58L80 62.5 82.5 58" stroke="#13131A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Crown -->
+  <path d="M68 27l4-7 8 5 8-5 4 7" stroke="#FFC66B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <circle cx="72" cy="20" r="1.5" fill="#FFC66B"/>
+  <circle cx="80" cy="25" r="1.5" fill="#FFC66B"/>
+  <circle cx="88" cy="20" r="1.5" fill="#FFC66B"/>
+  <!-- TFT text -->
+  <text x="80" y="140" text-anchor="middle" font-family="'Playfair Display',Georgia,serif" font-weight="900" font-size="30" fill="#E4E1EC" letter-spacing="3">TFT</text>
+  <!-- CLASH text -->
+  <text x="80" y="164" text-anchor="middle" font-family="'Playfair Display',Georgia,serif" font-weight="900" font-size="30" fill="#FFC66B" letter-spacing="3">CLASH</text>
+</svg>
