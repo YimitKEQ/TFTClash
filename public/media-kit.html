@@ -43,7 +43,7 @@
   .toolbar-btn-outline:hover{border-color:rgba(255,198,107,0.3);}
 
   /* ── COVER ── */
-  .cover{min-height:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:64px 32px 48px;}
+  .cover{min-height:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:64px 32px 48px;background:var(--surface);}
   .cover::before{content:'';position:absolute;top:50%;left:50%;width:900px;height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,198,107,0.07)0%,rgba(217,185,255,0.03)35%,transparent 65%);pointer-events:none;}
   .cover::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.025)1px,transparent 0);background-size:40px 40px;pointer-events:none;}
   .cover-logo{width:80px;margin-bottom:16px;position:relative;z-index:1;filter:drop-shadow(0 0 40px rgba(255,198,107,0.18));}
@@ -252,7 +252,8 @@
     @page{size:A4;margin:12mm 10mm;}
     .toolbar{display:none!important;}
     body{background:var(--surface)!important;}
-    .cover{min-height:auto;page-break-after:always;padding:56px 32px 40px;}
+    .cover{min-height:auto;page-break-after:always;padding:56px 32px 40px;background:var(--surface)!important;}
+    .cover,.cover *{visibility:visible!important;}
     .section{page-break-inside:avoid;padding:32px 0;}
     .stat-grid,.audience-grid,.eco-grid,.logo-grid,.placement-grid,.usage-grid,.why-grid,.deliv-grid,.feat-grid,.mutual-grid,.highlight-bar,.tier-table{page-break-inside:avoid;}
     .contact-block{page-break-inside:avoid;}
@@ -325,7 +326,7 @@
       <div class="cover-stat-label">Monthly Spend</div>
     </div>
   </div>
-  <p class="cover-meta">contact@tftclash.gg</p>
+  <p class="cover-meta">contact@tftclash.com</p>
 </div>
 
 <div class="page">
