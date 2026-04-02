@@ -40,6 +40,7 @@ var ClashScreenNew = React.lazy(function(){ return import('./screens/ClashScreen
 var NotFoundScreen = React.lazy(function(){ return import('./screens/NotFoundScreen'); });
 var StatsHubScreenNew = React.lazy(function(){ return import('./screens/StatsHubScreen'); });
 var Donut17Page = React.lazy(function(){ return import('./donut17/Donut17Page'); });
+var SponsorsScreenNew = React.lazy(function(){ return import('./screens/SponsorsScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -188,7 +189,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/donut17":"donut17"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/donut17":"donut17","/sponsors":"sponsors"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -316,7 +317,7 @@ function TFTClash(){
     archive:"/archive",recap:"/season-recap",rules:"/rules",faq:"/faq",
     account:"/account","host-apply":"/host/apply","host-dashboard":"/host/dashboard",
     admin:"/admin",privacy:"/privacy",terms:"/terms",clash:"/clash",
-    tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear"
+    tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear",sponsors:"/sponsors"
   };
 
   var navTo=useCallback(function(s,sub){
@@ -630,6 +631,8 @@ function TFTClash(){
         {screen==="admin"&&<AdminScreenNew/>}
 
         {screen==="not-found"&&<NotFoundScreen/>}
+
+        {screen==="sponsors"&&<SponsorsScreenNew/>}
 
         {screen==="donut17"&&<Donut17Page/>}
 

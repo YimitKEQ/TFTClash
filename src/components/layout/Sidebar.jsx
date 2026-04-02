@@ -7,7 +7,7 @@ var SCREEN_TO_ROUTE = {
   home: '/', clash: '/clash', standings: '/standings', leaderboard: '/leaderboard',
   events: '/events', hof: '/hall-of-fame', archive: '/archive', results: '/results',
   milestones: '/milestones', challenges: '/challenges', scrims: '/scrims',
-  pricing: '/pricing', account: '/account', admin: '/admin',
+  pricing: '/pricing', sponsors: '/sponsors', account: '/account', admin: '/admin',
   'host-dashboard': '/host/dashboard', rules: '/rules', faq: '/faq',
 };
 
@@ -95,6 +95,7 @@ export default function Sidebar() {
         <Divider />
 
         <NavItem id="pricing" icon="sell"      label="Pricing" />
+        <NavItem id="sponsors" icon="handshake" label="Sponsors" />
         <NavItem id="rules"   icon="menu_book" label="Rules" />
         <NavItem id="faq"     icon="help"      label="FAQ" />
 

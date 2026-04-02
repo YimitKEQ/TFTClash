@@ -18,7 +18,8 @@ function Footer() {
     ["/featured", "Featured Events"],
     ["/rules", "Rules"],
     ["/faq", "FAQ"],
-    ["/gear", "Gear"]
+    ["/gear", "Gear"],
+    ["/sponsors", "Sponsors"]
   ];
   var hostingLinks = [
     ["/pricing", "Pricing"],
