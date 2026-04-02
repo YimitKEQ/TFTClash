@@ -95,7 +95,7 @@ export default function ResultsTab() {
 
     // On override: delete old results first to prevent double-counting in DB and local state
     var deleteStep = isPublished
-      ? supabase.from('game_results').delete().eq('lobby', lobby).eq('tournament_id', tId)
+      ? supabase.from('game_results').delete().eq('lobby_id', lobby).eq('tournament_id', tId)
       : Promise.resolve({ error: null })
 
     deleteStep.then(function(delRes) {
@@ -131,7 +131,7 @@ export default function ResultsTab() {
           })
           rows.forEach(function(row) {
             if (row.pts_earned > 0) {
-              supabase.rpc('increment_season_pts', { player_id_arg: row.player_id, pts_arg: row.pts_earned }).then(function(r2) {
+              supabase.rpc('increment_player_stats', { p_player_id: row.player_id, p_pts: row.pts_earned, p_wins: row.placement === 1 ? 1 : 0 }).then(function(r2) {
                 if (r2.error) {
                   supabase.from('players').select('season_pts').eq('id', row.player_id).single().then(function(cur) {
                     if (!cur.error && cur.data) {

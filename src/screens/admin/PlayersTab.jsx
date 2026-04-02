@@ -148,14 +148,28 @@ export default function PlayersTab() {
     var u = newScrimUser.trim()
     if (!u) { toast('Enter a username', 'error'); return }
     if ((scrimAccess || []).includes(u)) { toast('Already in list', 'error'); return }
-    setScrimAccess(function(a) { return (a || []).concat([u]) })
+    var updatedList = (scrimAccess || []).concat([u])
+    setScrimAccess(updatedList)
+    if (supabase.from) {
+      supabase.from('site_settings').upsert({
+        key: 'scrim_access',
+        value: JSON.stringify(updatedList)
+      }, { onConflict: 'key' })
+    }
     addAudit('ACTION', 'Scrims access granted: ' + u)
     setNewScrimUser('')
     toast(u + ' added to scrims access', 'success')
   }
 
   function removeScrimUser(u) {
-    setScrimAccess(function(a) { return (a || []).filter(function(x) { return x !== u }) })
+    var updatedList = (scrimAccess || []).filter(function(x) { return x !== u })
+    setScrimAccess(updatedList)
+    if (supabase.from) {
+      supabase.from('site_settings').upsert({
+        key: 'scrim_access',
+        value: JSON.stringify(updatedList)
+      }, { onConflict: 'key' })
+    }
     addAudit('ACTION', 'Scrims access removed: ' + u)
     toast(u + ' removed from scrims access', 'success')
   }
@@ -164,14 +178,28 @@ export default function PlayersTab() {
     var u = newScrimHostUser.trim()
     if (!u) { toast('Enter a username', 'error'); return }
     if ((scrimHostAccess || []).includes(u)) { toast('Already a host', 'error'); return }
-    setScrimHostAccess(function(a) { return (a || []).concat([u]) })
+    var updatedList = (scrimHostAccess || []).concat([u])
+    setScrimHostAccess(updatedList)
+    if (supabase.from) {
+      supabase.from('site_settings').upsert({
+        key: 'scrim_host_access',
+        value: JSON.stringify(updatedList)
+      }, { onConflict: 'key' })
+    }
     addAudit('ACTION', 'Scrim host access granted: ' + u)
     setNewScrimHostUser('')
     toast(u + ' added as scrim host', 'success')
   }
 
   function removeScrimHostUser(u) {
-    setScrimHostAccess(function(a) { return (a || []).filter(function(x) { return x !== u }) })
+    var updatedList = (scrimHostAccess || []).filter(function(x) { return x !== u })
+    setScrimHostAccess(updatedList)
+    if (supabase.from) {
+      supabase.from('site_settings').upsert({
+        key: 'scrim_host_access',
+        value: JSON.stringify(updatedList)
+      }, { onConflict: 'key' })
+    }
     addAudit('ACTION', 'Scrim host access removed: ' + u)
     toast(u + ' removed from scrim host access', 'success')
   }

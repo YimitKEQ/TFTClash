@@ -5,6 +5,9 @@ export var DATA_VERSION = 2;
 export var TFT_DEBUG = typeof window !== "undefined" && window.location.search.indexOf("debug=1") > -1;
 export function dbg() { if (TFT_DEBUG) console.log.apply(console, arguments); }
 
+// ─── DISCORD ─────────────────────────────────────────────────────────────────
+export var DISCORD_URL = "https://discord.gg/tftclash";
+
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 export const RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
@@ -196,7 +199,7 @@ export const PREMIUM_TIERS = [
     cta:"Go Pro", ctaV:"primary",
   },
   {
-    id:"org", name:"Host", price:"\u20AC24.99", period:"/ month", color:"#9B72CF",
+    id:"host", name:"Host", price:"\u20AC24.99", period:"/ month", color:"#9B72CF",
     desc:"Run your own TFT Clash circuit on our platform.",
     features:["Everything in Pro","Create & manage your own clash events","Custom branding on tournament pages","Private / invite-only clashes","Advanced admin dashboard","CSV data export","Dedicated support"],
     cta:"Apply to Host", ctaV:"purple",

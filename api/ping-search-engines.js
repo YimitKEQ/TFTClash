@@ -27,9 +27,13 @@ var URLS = [
 ];
 
 export default async function handler(req, res) {
-  // Allow both POST (from deploy hooks) and GET (manual trigger)
-  if (req.method !== 'POST' && req.method !== 'GET') {
+  if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  var secret = process.env.PING_SECRET || process.env.ADMIN_PASSWORD;
+  if (!secret || req.headers['x-ping-secret'] !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
   }
 
   var body = JSON.stringify({

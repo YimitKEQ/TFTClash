@@ -327,7 +327,7 @@ export function AppProvider(props) {
 
   // ── useEffect: load subscriptions ──
   useEffect(function(){
-    supabase.from("user_subscriptions").select("*").limit(500).then(function(res){
+    supabase.from("subscriptions").select("*").limit(500).then(function(res){
       if(res.data){
         var map={};
         res.data.forEach(function(s){map[s.user_id]=s;});
@@ -783,10 +783,10 @@ export function AppProvider(props) {
 
   // ── Load player's own pending results ──
   useEffect(function(){
-    if(!currentUser||!tournamentState.id||!supabase.from)return;
+    if(!currentUser||!tournamentState.dbTournamentId||!supabase.from)return;
     supabase.from('pending_results')
       .select('*')
-      .eq('tournament_id',tournamentState.id)
+      .eq('tournament_id',tournamentState.dbTournamentId)
       .eq('player_id',currentUser.id)
       .then(function(res){
         if(res.data)setPendingResults(res.data);
@@ -821,10 +821,10 @@ export function AppProvider(props) {
 
   // ── Load all pending results for admin ──
   useEffect(function(){
-    if(!isAdmin||!tournamentState.id||!supabase.from)return;
+    if(!isAdmin||!tournamentState.dbTournamentId||!supabase.from)return;
     supabase.from('pending_results')
       .select('*')
-      .eq('tournament_id',tournamentState.id)
+      .eq('tournament_id',tournamentState.dbTournamentId)
       .then(function(res){
         if(res.data)setAllPendingResults(res.data);
       });
