@@ -248,39 +248,15 @@
 
   /* ── PRINT ── */
   @media print{
+    *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important;}
+    @page{size:A4;margin:12mm 10mm;}
     .toolbar{display:none!important;}
-    .toc{display:none!important;}
-    body{background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-    .cover{min-height:auto;page-break-after:always;padding:100px 32px 80px;background:#fff;}
-    .cover::before,.cover::after{display:none;}
-    .cover-title{color:#1a1a1a;}
-    .cover-title span,.cover-stat-value{color:#805600;}
-    .cover-pitch,.cover-stat-label,.cover-meta{color:#666;}
-    .cover-badge{background:rgba(128,86,0,0.08);border-color:rgba(128,86,0,0.2);color:#805600;}
-    .section{page-break-inside:avoid;padding:40px 0;}
-    .stag,.card-label,.check,.stat-value,.eco-value,.why-card-title,.highlight-value{color:#805600!important;}
-    .stitle,.contact-block h2{color:#1a1a1a!important;}
-    .ssub,.card-body,.audience-card p,.placement-desc,.callout-body,.why-card-body,.deliv-body,.feat-body,.mutual-list li{color:#444!important;}
-    .card,.stat-card,.audience-card,.eco-card,.logo-card,.placement-card,.usage-card,.type-row,.contact-block,.callout,.why-card,.deliv-card,.feat-card,.mutual-card,.highlight-cell{border-color:#ddd!important;background:#f8f8f8!important;}
-    .logo-card-light{background:#f0eef5!important;}
-    .color-info{background:#f4f4f4!important;}
-    .stat-icon,.why-card-icon,.deliv-icon{background:rgba(128,86,0,0.08)!important;}
-    .stat-icon .material-symbols-outlined,.why-card-icon .material-symbols-outlined,.deliv-icon .material-symbols-outlined,.feat-card .material-symbols-outlined{color:#805600!important;}
-    .contact-icon{background:#805600!important;}
-    a{color:#805600;}
-    .placement-mockup{background:#eee!important;}
-    .tier-table th{border-bottom-color:#805600!important;color:#805600!important;}
-    .tier-table td{border-bottom-color:#ddd!important;color:#444!important;}
-    .check-t{color:#00897b!important;}
-    .audience-card::before,.feat-card{border-left-color:#805600!important;}
-    .tag{background:rgba(128,86,0,0.06)!important;border-color:rgba(128,86,0,0.15)!important;color:#805600!important;}
-    .usage-do h4{color:#00897b!important;}
-    .usage-dont h4{color:#c62828!important;}
-    .usage-do li::before{color:#00897b!important;}
-    .usage-dont li::before{color:#c62828!important;}
-    .stat-grid,.audience-grid,.eco-grid,.logo-grid,.placement-grid,.usage-grid,.why-grid,.deliv-grid,.feat-grid,.mutual-grid,.highlight-bar{page-break-inside:avoid;}
-    .appendix-divider::before{background:linear-gradient(90deg,transparent,#805600,#00897b,transparent)!important;}
-    .appendix-divider span{background:#fff!important;color:#805600!important;}
+    body{background:var(--surface)!important;}
+    .cover{min-height:auto;page-break-after:always;padding:80px 32px 60px;}
+    .section{page-break-inside:avoid;padding:48px 0;}
+    .stat-grid,.audience-grid,.eco-grid,.logo-grid,.placement-grid,.usage-grid,.why-grid,.deliv-grid,.feat-grid,.mutual-grid,.highlight-bar,.tier-table{page-break-inside:avoid;}
+    .contact-block{page-break-inside:avoid;}
+    .appendix-divider{page-break-before:always;}
   }
 
   @media(max-width:640px){
