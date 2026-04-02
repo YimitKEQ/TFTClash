@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
+import { DISCORD_URL } from '../../lib/constants.js';
 
 function Footer() {
   var ctx = useApp();
@@ -74,7 +75,7 @@ function Footer() {
                 </button>
               );
             })}
-            <button onClick={function() { window.open("https://discord.gg/tftclash", "_blank"); }}
+            <button onClick={function() { window.open(DISCORD_URL, "_blank"); }}
               className="block bg-transparent border-0 text-on-surface/60 text-[13px] py-1 px-0 cursor-pointer font-inherit hover:text-on-surface transition-colors">
               Discord
             </button>

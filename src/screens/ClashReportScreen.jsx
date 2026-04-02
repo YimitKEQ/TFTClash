@@ -221,7 +221,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                           <span className="font-medium text-on-surface">{p.name}</span>
                           {p.name === mostImproved && (
                             <span className="text-tertiary text-[10px] px-2 py-0.5 rounded border border-tertiary/20 font-technical uppercase bg-tertiary/10">
-                              Top 4
+                              Most Improved
                             </span>
                           )}
                         </div>
@@ -407,7 +407,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
             Export Results
           </button>
           <button
-            onClick={function() { navigate('/bracket') }}
+            onClick={function() { navigate('/events') }}
             className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
             >
             <Icon name="sports_esports" size={16} className="text-on-surface-variant" />

@@ -112,10 +112,11 @@ export default function LoginScreen() {
   }
 
   async function handleDiscordLogin() {
-    await supabase.auth.signInWithOAuth({
+    var res = await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: { redirectTo: CANONICAL_ORIGIN }
     })
+    if (res.error) { toast(res.error.message, 'error') }
   }
 
   function handleGuestLogin() {
@@ -165,7 +166,7 @@ export default function LoginScreen() {
                 {/* Email field */}
                 <div className="space-y-2">
                   <label className="font-condensed text-xs uppercase tracking-widest text-on-surface/70 block ml-1">
-                    Summoner Identity
+                    Email
                   </label>
                   <div className="relative">
                     <input

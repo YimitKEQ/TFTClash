@@ -39,6 +39,10 @@ export default function HostApplyScreen() {
   var [submitted, setSubmitted] = useState(false);
 
   async function submit() {
+    if (!currentUser) {
+      toast("Please log in to submit an application", "error");
+      return;
+    }
     if (!org.trim() || !reason.trim()) {
       toast("Organization name and reason are required", "error");
       return;

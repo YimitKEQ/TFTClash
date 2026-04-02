@@ -110,7 +110,7 @@ export function applyCutLine(playerStandings, cutLine, cutAfterGame) {
     var gamesPlayed = p.gamesInTournament || 0;
     if (gamesPlayed < cutAfterGame) { advancing.push(p); return; }
     var pts = p.tournamentPts || 0;
-    if (pts > cutLine) { advancing.push(p); }
+    if (pts >= cutLine) { advancing.push(p); }
     else { eliminated.push(p); }
   });
   return {advancing: advancing, eliminated: eliminated};

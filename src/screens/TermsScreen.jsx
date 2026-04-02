@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
+import { DISCORD_URL } from '../lib/constants.js'
 
 var TERMS_SECTIONS = [
   {
@@ -43,10 +44,10 @@ var TERMS_SECTIONS = [
     num: '05.',
     title: 'Subscriptions and Payments',
     highlight: true,
-    body: 'Paid tiers (Pro at $4.99/mo and Host at $19.99/mo) are billed monthly. You may cancel at any time. Refunds are handled case-by-case. Features are subject to change with reasonable notice.',
+    body: 'Paid tiers are billed monthly in EUR. See the pricing page for current rates. You may cancel at any time. Refunds are handled case-by-case. Features are subject to change with reasonable notice.',
     cards: [
-      { label: 'Pro Tier', text: '$4.99/month. Cancel anytime. No lock-in contracts.' },
-      { label: 'Host Tier', text: '$19.99/month. Full tournament hosting suite included.' }
+      { label: 'Pro Tier', text: 'Monthly subscription. Cancel anytime. No lock-in contracts.' },
+      { label: 'Host Tier', text: 'Monthly subscription. Full tournament hosting suite included. See pricing page for current rates.' }
     ]
   },
   {
@@ -210,7 +211,7 @@ export default function TermsScreen() {
                   <p className="text-on-surface-variant text-sm mt-1">Reach out to the TFT Clash team via Discord for any legal or compliance questions.</p>
                 </div>
                 <a
-                  href="https://discord.gg/tftclash"
+                  href={DISCORD_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-8 py-3 bg-primary text-on-primary font-bold rounded-full font-condensed text-sm uppercase tracking-wide hover:bg-primary/90 active:scale-95 transition-all no-underline whitespace-nowrap"

@@ -126,11 +126,23 @@ export default function TournamentDetailScreen() {
   var setScreen = ctx.setScreen
 
   var eventId = screen && screen.indexOf('tournament-') === 0 ? screen.replace('tournament-', '') : null
-  var event = (featuredEvents || []).find(function(e) { return String(e.id) === eventId || e.screen === screen; })
+  var contextEvent = (featuredEvents || []).find(function(e) { return String(e.id) === eventId || e.screen === screen; })
 
+  var [fallbackEvent, setFallbackEvent] = useState(null)
   var [detailTab, setDetailTab] = useState('overview')
   var [tournamentResults, setTournamentResults] = useState([])
   var [loadingResults, setLoadingResults] = useState(false)
+
+  useEffect(function() {
+    if (!contextEvent && eventId && supabase.from) {
+      supabase.from('tournaments').select('*').eq('id', eventId).single()
+        .then(function(res) {
+          if (res.data) setFallbackEvent(res.data)
+        })
+    }
+  }, [contextEvent, eventId])
+
+  var event = contextEvent || fallbackEvent
 
   useEffect(function() {
     if (!event || !event.dbTournamentId || !supabase.from) return
@@ -184,12 +196,16 @@ export default function TournamentDetailScreen() {
     }
   }
 
+  // Build player name lookup map
+  var playerNameMap = {}
+  ;(players || []).forEach(function(p) { playerNameMap[p.id] = p.username || p.name; })
+
   // Derive standings from game_results
   var standings = []
   if (tournamentResults.length > 0) {
     var playerMap = {}
     tournamentResults.forEach(function(r) {
-      if (!playerMap[r.player_id]) playerMap[r.player_id] = { player_id: r.player_id, total: 0, games: [] }
+      if (!playerMap[r.player_id]) playerMap[r.player_id] = { player_id: r.player_id, playerName: playerNameMap[r.player_id] || 'Unknown Player', total: 0, games: [] }
       playerMap[r.player_id].total += r.points || 0
       playerMap[r.player_id].games.push({ round: r.round_number, placement: r.placement, points: r.points })
     })
@@ -609,7 +625,7 @@ export default function TournamentDetailScreen() {
                       className={'flex items-center gap-3 px-4 py-3 ' + (i < 3 ? 'bg-primary/5 border border-primary/10' : 'bg-surface-container border border-outline-variant/5')}
                     >
                       <div className="w-8 text-center font-mono text-base font-bold flex-shrink-0" style={{ color: pc }}>{i + 1}</div>
-                      <div className="flex-1 font-mono text-sm font-bold text-on-surface">{s.player_id}</div>
+                      <div className="flex-1 font-mono text-sm font-bold text-on-surface">{s.playerName}</div>
                       <div className="font-sans text-xs text-on-surface/40 uppercase tracking-wider">{s.games.length + ' games'}</div>
                       <div className="font-mono text-lg font-bold text-primary min-w-[3rem] text-right">{s.total}</div>
                     </div>

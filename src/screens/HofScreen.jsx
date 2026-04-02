@@ -11,6 +11,7 @@ export default function HofScreen(props) {
   var pastClashes = ctx.pastClashes || []
   var setProfilePlayer = ctx.setProfilePlayer
   var setScreen = ctx.setScreen
+  var seasonConfig = ctx.seasonConfig
   var navigate = useNavigate()
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
@@ -54,9 +55,9 @@ export default function HofScreen(props) {
     var byStreak = wp.slice().sort(function(a, b) { return (b.bestStreak || 0) - (a.bestStreak || 0) })
     var byGames = wp.slice().sort(function(a, b) { return (b.games || 0) - (a.games || 0) })
     var byTop4 = wp.slice().sort(function(a, b) {
-      var aRate = b.games > 0 ? (b.top4 || 0) / b.games : 0
-      var bRate = a.games > 0 ? (a.top4 || 0) / a.games : 0
-      return aRate - bRate
+      var aRate = a.games > 0 ? (a.top4 || 0) / a.games : 0
+      var bRate = b.games > 0 ? (b.top4 || 0) / b.games : 0
+      return bRate - aRate
     })
 
     hofRecs = [
@@ -142,7 +143,7 @@ export default function HofScreen(props) {
 
                 <div className="relative z-10">
                   <div className="inline-block px-4 py-1 font-technical font-bold text-xs tracking-widest mb-4 bg-primary text-on-primary">
-                    SEASON 1 LEADER
+                    {'SEASON ' + (seasonConfig && seasonConfig.seasonNumber || 1) + ' LEADER'}
                   </div>
                   <h2
                     className="font-editorial text-3xl sm:text-5xl md:text-7xl text-on-surface mb-2 cursor-pointer hover:text-primary transition-colors"

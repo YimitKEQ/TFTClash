@@ -131,19 +131,32 @@ function SeasonCard(props) {
 
           {/* Action row */}
           <div className="flex justify-end items-center gap-4">
-            <button
-              className={'font-condensed uppercase tracking-wider flex items-center gap-2 text-sm transition-colors' + (isLegacy ? ' text-slate-500 hover:text-on-surface' : ' text-slate-400 hover:text-on-surface')}
-              onClick={function() { navigate('/standings') }}
-            >
-              {isLegacy ? 'ARCHIVE DATA' : 'VIEW STANDINGS'}
-              <Icon name={isLegacy ? 'database' : 'arrow_forward'} className="text-sm" />
-            </button>
-            <button
-              className={'px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full transition-all text-sm' + (isLegacy ? ' bg-surface-variant/30 text-on-surface-variant border border-white/5 hover:bg-surface-variant/50' : ' bg-gradient-to-br from-primary to-primary-fixed-dim text-[#281800] hover:scale-105')}
-              onClick={function() { navigate('/season-recap') }}
-            >
-              SEASON RECAP
-            </button>
+            {isLegacy ? (
+              <span className="font-condensed uppercase tracking-wider flex items-center gap-2 text-sm text-slate-600 cursor-default">
+                SEASON COMPLETE
+                <Icon name="lock" className="text-sm" />
+              </span>
+            ) : (
+              <button
+                className="font-condensed uppercase tracking-wider flex items-center gap-2 text-sm transition-colors text-slate-400 hover:text-on-surface"
+                onClick={function() { navigate('/standings') }}
+              >
+                VIEW STANDINGS
+                <Icon name="arrow_forward" className="text-sm" />
+              </button>
+            )}
+            {isLegacy ? (
+              <span className="px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full text-sm bg-surface-variant/30 text-on-surface-variant/40 border border-white/5 cursor-default select-none">
+                ARCHIVED
+              </span>
+            ) : (
+              <button
+                className="px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full transition-all text-sm bg-gradient-to-br from-primary to-primary-fixed-dim text-[#281800] hover:scale-105"
+                onClick={function() { navigate('/season-recap') }}
+              >
+                SEASON RECAP
+              </button>
+            )}
           </div>
         </div>
       </div>

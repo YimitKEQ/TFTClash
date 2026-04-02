@@ -1112,7 +1112,7 @@ function ResultsScreen(props) {
     });
     ctx.fillStyle = "rgba(232,168,56,0.15)"; ctx.fillRect(0, 488, 900, 32);
     ctx.font = "bold 11px monospace"; ctx.fillStyle = "#E8A838"; ctx.letterSpacing = "2px";
-    ctx.fillText("TFT CLASH  -  tftclash.gg", 40, 508); ctx.letterSpacing = "0px";
+    ctx.fillText("TFT CLASH  -  tftclash.com", 40, 508); ctx.letterSpacing = "0px";
     ctx.font = "11px monospace"; ctx.fillStyle = "#BECBD9"; ctx.fillText("#TFTClash  #TFT", 700, 508);
     var a = document.createElement("a"); a.download = "TFTClash-Results.png"; a.href = canvas.toDataURL("image/png"); a.click();
     toast("Results card downloaded", "success");
@@ -1137,7 +1137,7 @@ function ResultsScreen(props) {
           <Btn v="dark" s="sm" onClick={function() {
             var text = "TFT Clash Results\n" + CLASH_NAME + " - " + CLASH_DATE + "\n\n";
             sorted.slice(0, 8).forEach(function(p, i) { text += (i + 1) + ". " + p.name + " - " + p.pts + "pts (avg: " + getStats(p).avgPlacement + ")\n"; });
-            text += "\n#TFTClash tftclash.gg";
+            text += "\n#TFTClash tftclash.com";
             navigator.clipboard.writeText(text).then(function() { toast("Results copied!", "success"); }).catch(function() { toast("Copy failed", "error"); });
           }}><Icon name="content_paste" style={{ marginRight: 4 }} />Copy</Btn>
         </div>

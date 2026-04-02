@@ -85,7 +85,7 @@ function AchievementCard(props) {
   var barColorClass = unlocked ? (tier === 'legendary' ? 'bg-secondary' : tier === 'gold' ? 'bg-primary' : tier === 'silver' ? 'bg-[#C0C0C0]' : 'bg-[#CD7F32]') : 'bg-primary';
 
   return (
-    <div className={'bg-surface-container-low p-6 group relative overflow-hidden transition-all duration-300 ' + (unlocked ? 'cursor-pointer hover:bg-surface-container-high' : 'opacity-60 grayscale cursor-not-allowed')}>
+    <div className={'bg-surface-container-low p-6 group relative overflow-hidden transition-all duration-300 ' + (unlocked ? 'hover:bg-surface-container-high' : 'opacity-60 grayscale')}>
       {unlocked && (
         <div className={'absolute inset-0 bg-gradient-to-br ' + (tier === 'legendary' ? 'from-secondary/5' : 'from-primary/5') + ' to-transparent opacity-0 group-hover:opacity-100 transition-opacity'}></div>
       )}
@@ -204,7 +204,11 @@ export default function MilestonesScreen() {
   var setProfilePlayer = ctx.setProfilePlayer;
 
   var myPlayer = currentUser ? players.find(function(p) { return p.name === currentUser.username; }) : null;
-  var sorted = players.slice().sort(function(a, b) { return b.pts - a.pts; });
+  var sorted = players.slice().sort(function(a, b) {
+    var aCount = ACHIEVEMENTS.filter(function(ach) { try { return ach.check(a); } catch(e) { return false; } }).length;
+    var bCount = ACHIEVEMENTS.filter(function(ach) { try { return ach.check(b); } catch(e) { return false; } }).length;
+    return bCount - aCount;
+  });
 
   var _filterState = useState('all');
   var filterTier = _filterState[0];

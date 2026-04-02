@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
-import { PTS } from '../lib/constants.js'
+import { PTS, DISCORD_URL } from '../lib/constants.js'
 
 var QUICK_FACTS = [
   {
@@ -121,10 +121,21 @@ export default function RulesScreen() {
   var q = search.trim().toLowerCase()
   var filtered = q
     ? ACCORDIONS.filter(function (a) {
-        return (
-          a.title.toLowerCase().indexOf(q) !== -1 ||
-          a.content.toLowerCase().indexOf(q) !== -1
-        )
+        if (a.title.toLowerCase().indexOf(q) !== -1) return true
+        if (a.content && a.content.toLowerCase().indexOf(q) !== -1) return true
+        if (a.id === 'scoring') {
+          var scoringMatch = SCORING_ROWS.some(function(row) {
+            return row.place.toLowerCase().indexOf(q) !== -1 || row.pts.toLowerCase().indexOf(q) !== -1
+          })
+          if (scoringMatch) return true
+        }
+        if (a.id === 'tiebreakers') {
+          var tbMatch = TIEBREAKER_ITEMS.some(function(item) {
+            return item.toLowerCase().indexOf(q) !== -1
+          })
+          if (tbMatch) return true
+        }
+        return false
       })
     : ACCORDIONS
 
@@ -263,7 +274,7 @@ export default function RulesScreen() {
                 </div>
               </div>
               <a
-                href="https://discord.gg/HJH3NQqqXH"
+                href={DISCORD_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[rgba(103,226,217,0.08)] border border-[rgba(103,226,217,0.2)] text-[#67E2D9] text-sm font-semibold transition-colors hover:bg-[rgba(103,226,217,0.12)] no-underline"

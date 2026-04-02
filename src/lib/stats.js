@@ -421,7 +421,7 @@ export function generateRecap(clashData) {
   if (standings.length >= 2) {
     var diff = (standings[0].points || standings[0].pts || 0) - (standings[1].points || standings[1].pts || 0);
     if (diff <= 2) {
-      lines.push("It came down to the wire \u2014 only " + diff + " point" + (diff === 1 ? "" : "s") + " separated " + (standings[0].username || standings[0].name) + " and " + (standings[1].username || standings[1].name) + ".");
+      lines.push("It came down to the wire, only " + diff + " point" + (diff === 1 ? "" : "s") + " separated " + (standings[0].username || standings[0].name) + " and " + (standings[1].username || standings[1].name) + ".");
     }
   }
 

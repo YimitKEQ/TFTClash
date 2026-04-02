@@ -133,12 +133,16 @@ export default function ResultsScreen() {
       var st = getStats(p)
       text += (i + 1) + '. ' + p.name + ' - ' + p.pts + 'pts (avg: ' + st.avgPlacement + ')\n'
     })
-    text += '\n#TFTClash tftclash.gg'
-    navigator.clipboard.writeText(text).then(function() {
-      toast('Results copied!', 'success')
-    }).catch(function() {
-      toast('Copy failed', 'error')
-    })
+    text += '\n#TFTClash tftclash.com'
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        toast('Results copied!', 'success')
+      }).catch(function() {
+        toast('Copy failed', 'error')
+      })
+    } else {
+      toast('Clipboard not available', 'error')
+    }
   }
 
   function downloadCard() {
@@ -204,7 +208,7 @@ export default function ResultsScreen() {
     ctx2.fillRect(0, 488, 900, 32)
     ctx2.font = 'bold 11px monospace'
     ctx2.fillStyle = '#E8A838'
-    ctx2.fillText('TFT CLASH  -  tftclash.gg', 40, 508)
+    ctx2.fillText('TFT CLASH  -  tftclash.com', 40, 508)
     ctx2.font = '11px monospace'
     ctx2.fillStyle = '#BECBD9'
     ctx2.fillText('#TFTClash  #TFT', 700, 508)
@@ -585,7 +589,6 @@ export default function ResultsScreen() {
                     lobbies: Math.ceil(sorted.length / 8),
                     report: {
                       mostImproved: sorted[3] ? sorted[3].name : null,
-                      biggestUpset: (sorted[4] ? sorted[4].name : '') + ' beat ' + (sorted[0] ? sorted[0].name : ''),
                     },
                   }}
                   players={players}

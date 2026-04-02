@@ -114,6 +114,7 @@ export default function SignUpScreen() {
       } else {
         toast('Account created but profile setup failed. Please contact support.', 'error')
         setLoading(false)
+        return
       }
     }
 
@@ -139,10 +140,11 @@ export default function SignUpScreen() {
   }
 
   async function handleDiscordSignUp() {
-    await supabase.auth.signInWithOAuth({
+    var res = await supabase.auth.signInWithOAuth({
       provider: 'discord',
       options: { redirectTo: CANONICAL_ORIGIN }
     })
+    if (res.error) { toast(res.error.message, 'error') }
   }
 
   var inputClass = 'w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 py-4 px-4 pr-12 text-sm font-mono placeholder:text-on-surface/20 rounded-none text-on-surface focus:outline-none focus:border-primary transition-all duration-300'

@@ -270,7 +270,7 @@ export default function SponsorsScreen() {
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
-              href="mailto:contact@tftclash.gg"
+              href="mailto:contact@tftclash.com"
               className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl px-8 py-3.5 font-barlow tracking-widest uppercase text-sm font-semibold hover:opacity-90 transition-opacity no-underline"
             >
               <Icon name="mail" className="text-base" />
@@ -467,7 +467,7 @@ export default function SponsorsScreen() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a
-            href="mailto:contact@tftclash.gg"
+            href="mailto:contact@tftclash.com"
             className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl px-8 py-3.5 font-barlow tracking-widest uppercase text-sm font-semibold hover:opacity-90 transition-opacity no-underline"
           >
             <Icon name="mail" className="text-base" />

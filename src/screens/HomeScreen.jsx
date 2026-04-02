@@ -58,6 +58,11 @@ function HeroCountdown({ clashTimestamp, onRegister, onViewStandings, isLoggedIn
             <span className="font-mono text-5xl text-primary leading-none">{pad2(timeLeft.minutes)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Mins</span>
           </div>
+          <span className="font-mono text-5xl text-primary/20">:</span>
+          <div className="flex flex-col items-center">
+            <span className="font-mono text-5xl text-primary leading-none">{pad2(timeLeft.seconds)}</span>
+            <span className="font-label text-[10px] uppercase opacity-40">Secs</span>
+          </div>
         </div>
         <button
           className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"

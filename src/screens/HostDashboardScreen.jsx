@@ -1028,7 +1028,13 @@ export default function HostDashboardScreen() {
                     {t.status === "upcoming" && (
                       <button
                         className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
-                        onClick={function() { updateTournamentAndFeatured(t.id, { status: "live" }); toast("Check-in opened! Tournament is now LIVE", "success"); }}
+                        onClick={function() {
+                          updateTournamentAndFeatured(t.id, { status: "live" });
+                          if (supabase.from) {
+                            supabase.from('tournaments').update({ status: 'live' }).eq('id', t.id || t.dbId);
+                          }
+                          toast("Check-in opened! Tournament is now LIVE", "success");
+                        }}
                       >
                         Publish Event
                       </button>
@@ -1039,7 +1045,13 @@ export default function HostDashboardScreen() {
                     {t.status === "live" && (
                       <button
                         className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
-                        onClick={function() { updateTournamentAndFeatured(t.id, { status: "closed" }); toast("Registration closed", "info"); }}
+                        onClick={function() {
+                          updateTournamentAndFeatured(t.id, { status: "closed" });
+                          if (supabase.from) {
+                            supabase.from('tournaments').update({ registration_open: false }).eq('id', t.id || t.dbId);
+                          }
+                          toast("Registration closed", "info");
+                        }}
                       >
                         Close Reg
                       </button>
@@ -1051,6 +1063,9 @@ export default function HostDashboardScreen() {
                           var champ = prompt("Enter champion name:");
                           if (champ && champ.trim()) {
                             updateTournamentAndFeatured(t.id, { status: "complete", champion: champ.trim(), top4: [champ.trim()] });
+                            if (supabase.from) {
+                              supabase.from('tournaments').update({ status: 'complete', champion: champ.trim() }).eq('id', t.id || t.dbId);
+                            }
                             toast("Tournament completed! Champion: " + champ.trim(), "success");
                           }
                         }}

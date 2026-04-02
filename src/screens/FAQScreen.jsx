@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
-import { FAQ_DATA } from '../lib/constants.js'
+import { FAQ_DATA, DISCORD_URL } from '../lib/constants.js'
 
 var CATEGORIES = FAQ_DATA.map(function (cat) {
   return cat.cat
@@ -206,7 +206,7 @@ export default function FAQScreen() {
           </div>
           <div className="relative z-10 flex gap-4 flex-wrap">
             <a
-              href="https://discord.gg/HJH3NQqqXH"
+              href={DISCORD_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface inline-block"

@@ -284,9 +284,9 @@ function TFTClash(){
     var existingLD=document.getElementById("tft-jsonld");
     if(existingLD)existingLD.remove();
     var ld=null;
-    if(screen==="home")ld={"@context":"https://schema.org","@type":"WebApplication","name":"TFT Clash","url":"https://tft-clash.vercel.app","description":desc,"applicationCategory":"GameApplication","operatingSystem":"Any","offers":{"@type":"AggregateOffer","lowPrice":"0","highPrice":"19.99","priceCurrency":"EUR"}};
-    if(screen.indexOf("tournament-")===0)ld={"@context":"https://schema.org","@type":"SportsEvent","name":"TFT Clash Tournament","location":{"@type":"VirtualLocation","url":"https://tft-clash.vercel.app/tournament/"+screen.replace("tournament-","")},"organizer":{"@type":"Organization","name":"TFT Clash"}};
-    if(screen==="profile"||screen==="leaderboard")ld={"@context":"https://schema.org","@type":"SportsOrganization","name":"TFT Clash","sport":"Teamfight Tactics","url":"https://tft-clash.vercel.app"};
+    if(screen==="home")ld={"@context":"https://schema.org","@type":"WebApplication","name":"TFT Clash","url":"https://tftclash.com","description":desc,"applicationCategory":"GameApplication","operatingSystem":"Any","offers":{"@type":"AggregateOffer","lowPrice":"0","highPrice":"19.99","priceCurrency":"EUR"}};
+    if(screen.indexOf("tournament-")===0)ld={"@context":"https://schema.org","@type":"SportsEvent","name":"TFT Clash Tournament","location":{"@type":"VirtualLocation","url":"https://tftclash.com/tournament/"+screen.replace("tournament-","")},"organizer":{"@type":"Organization","name":"TFT Clash"}};
+    if(screen==="profile"||screen==="leaderboard")ld={"@context":"https://schema.org","@type":"SportsOrganization","name":"TFT Clash","sport":"Teamfight Tactics","url":"https://tftclash.com"};
     if(ld){var s2=document.createElement("script");s2.type="application/ld+json";s2.id="tft-jsonld";s2.textContent=JSON.stringify(ld);document.head.appendChild(s2);}
     window.scrollTo(0,0);
   },[screen,subRoute]);
@@ -634,7 +634,7 @@ function TFTClash(){
 
         {screen==="sponsors"&&<SponsorsScreenNew/>}
 
-        {screen==="donut17"&&<Donut17Page/>}
+        {screen==="donut17"&&isAdmin&&<Donut17Page/>}
 
         </ScreenBoundary>
         </React.Suspense>

@@ -91,6 +91,8 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
 function BracketScreen(){
   var ctx=useApp();
   var players=ctx.players;
+  var playersRef=useRef(players);
+  playersRef.current=players;
   var setPlayers=ctx.setPlayers;
   var toast=ctx.toast;
   var isAdmin=ctx.isAdmin;
@@ -584,7 +586,7 @@ function BracketScreen(){
                 <button
                   onClick={function(){
                     setShowFinalizeConfirm(false);
-                    saveResultsToSupabase(players,currentClashId);
+                    saveResultsToSupabase(playersRef.current,currentClashId);
                     setTournamentState(function(ts){return Object.assign({},ts,{phase:"complete",lockedLobbies:[],savedLobbies:[]});});
                     toast("Clash complete! View results","success");
                   }}

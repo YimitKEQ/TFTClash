@@ -737,7 +737,7 @@ export default function ScrimsScreen() {
                   {rosterForGame.length >= 2 && (
                     <div className="bg-surface-container-low rounded-sm p-5 space-y-5">
                       <div>
-                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Placements — {placedCount}/{rosterForGame.length} set</label>
+                        <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Placements - {placedCount}/{rosterForGame.length} set</label>
                         <PlacementBoard roster={rosterForGame} results={scrimResults}
                           onPlace={function(pid, place) { setScrimResults(function(r) { return Object.assign({}, r, {[pid]: place}); }); }}
                           comps={gameComps} onComp={function(pid, val) { setGameComps(function(c) { return Object.assign({}, c, {[pid]: val}); }); }}/>
@@ -953,7 +953,7 @@ export default function ScrimsScreen() {
                 <div className="bg-surface-container-low rounded-sm overflow-hidden">
                   <div className="px-6 py-4 bg-surface-container">
                     <h2 className="font-serif text-2xl font-bold">Placement Distribution</h2>
-                    <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Frequency heatmap — brighter = more occurrences</p>
+                    <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Frequency heatmap - brighter = more occurrences</p>
                   </div>
                   <div className="p-6 overflow-x-auto">
                     <table className="border-separate border-spacing-1 min-w-[480px]">

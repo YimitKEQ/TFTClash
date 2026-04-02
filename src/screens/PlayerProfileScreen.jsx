@@ -456,6 +456,12 @@ export default function PlayerProfileScreen() {
                 </div>
               )}
             </div>
+            {(player.riot_id_eu || player.riot_id) && (
+              <div className="flex items-center gap-2 text-on-surface-variant text-sm mt-1">
+                <Icon name="sports_esports" size={16} />
+                <span className="font-label">{player.riot_id_eu || player.riot_id}</span>
+              </div>
+            )}
             {pBio && (
               <p className="text-on-surface/40 font-body text-sm max-w-lg mb-3">{pBio}</p>
             )}
@@ -470,14 +476,14 @@ export default function PlayerProfileScreen() {
                 onClick={handleShare}
               >
                 <Icon className="text-lg">share</Icon>
-                <span className="font-technical text-xs tracking-widest uppercase">Socials</span>
+                <span className="font-technical text-xs tracking-widest uppercase">Share</span>
               </button>
               {!isOwnProfile && (
                 <button
                   className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
                   onClick={function() {
-                    if (setComparePlayer) setComparePlayer(player);
-                    if (toast) toast('Now comparing with ' + player.name + ' - check Leaderboard for rankings', 'info');
+                    navigate('/standings');
+                    if (toast) toast('View full rankings on the Standings page', 'info');
                   }}
                 >
                   <Icon className="text-lg">person_add</Icon>

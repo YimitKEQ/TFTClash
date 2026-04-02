@@ -425,11 +425,20 @@ export default function FlashTournamentScreen(props) {
         if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
         var seedMethod = tournament.seeding_method || 'snake';
         if (seedMethod === 'snake') {
+          // Compute standings inline to avoid reference-before-definition
+          var _standMap = {};
+          gameResults.forEach(function(g) {
+            if (!_standMap[g.player_id]) {
+              _standMap[g.player_id] = { id: g.player_id, totalPts: 0 };
+            }
+            _standMap[g.player_id].totalPts += (g.points || 0);
+          });
+          var _curStandings = Object.values(_standMap);
           var checkedIn = registrations.filter(function(r) { return r.status === 'checked_in'; });
           var checkedInPlayers = checkedIn.map(function(r) { return r.players || getPlayerById(r.player_id); }).filter(Boolean);
           checkedInPlayers.sort(function(a, b) {
-            var aStand = standings.find(function(s) { return s.id === a.id; });
-            var bStand = standings.find(function(s) { return s.id === b.id; });
+            var aStand = _curStandings.find(function(s) { return s.id === a.id; });
+            var bStand = _curStandings.find(function(s) { return s.id === b.id; });
             return ((bStand ? bStand.totalPts : 0) - (aStand ? aStand.totalPts : 0));
           });
           var result = buildFlashLobbies(checkedInPlayers, 'snake');

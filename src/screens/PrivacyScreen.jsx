@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
+import { DISCORD_URL } from '../lib/constants.js'
 
 var PRIVACY_SECTIONS = [
   {
@@ -16,7 +17,7 @@ var PRIVACY_SECTIONS = [
       },
       {
         label: 'Technical Data',
-        text: 'IP address, browser type, and anti-cheat hardware identifiers.'
+        text: 'IP address and browser type for session management.'
       }
     ]
   },
@@ -46,7 +47,7 @@ var PRIVACY_SECTIONS = [
     title: 'Third-Party Disclosures',
     highlight: true,
     body: 'We may share specific data with Riot Games, Inc. as part of our developer agreement to ensure compliance with the League of Legends / Teamfight Tactics Terms of Service.',
-    quote: 'TFT Clash is an independent organization and is not directly affiliated with Riot Games. However, all tournament results are reported to the official API for MMR adjustments where applicable.'
+    quote: 'TFT Clash is an independent organization and is not directly affiliated with Riot Games. We use the Riot Games API to read public match data and verify player identities, but do not write data back to Riot services.'
   },
   {
     id: 'retention',
@@ -219,7 +220,7 @@ export default function PrivacyScreen() {
                   <p className="text-on-surface-variant text-sm mt-1">Our compliance team is available for inquiries regarding GDPR and CCPA.</p>
                 </div>
                 <a
-                  href="https://discord.gg/tftclash"
+                  href={DISCORD_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-8 py-3 bg-primary text-on-primary font-bold rounded-full font-condensed text-sm uppercase tracking-wide hover:bg-primary/90 active:scale-95 transition-all no-underline whitespace-nowrap"

@@ -740,13 +740,13 @@ function ClashCard() {
                 size="sm"
                 className="flex-[2]"
                 disabled={!canRegister}
-                onClick={function() { navigate('/clash') }}
+                onClick={function() { navigate('/bracket') }}
               >
                 {isRegistered ? 'Already Registered' : 'Register Now'}
               </Btn>
               {(!linkedRiotId && !isRegistered)
                 ? <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/account') }}>Go to Account</Btn>
-                : <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>{"Who's In"}</Btn>
+                : <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/bracket') }}>{"Who's In"}</Btn>
               }
             </div>
           </div>
@@ -766,7 +766,7 @@ function ClashCard() {
               variant={isCheckedIn ? 'ghost' : 'primary'}
               size="sm"
               className="w-full"
-              onClick={function() { navigate('/clash') }}
+              onClick={function() { navigate('/bracket') }}
             >
               {isCheckedIn ? 'Checked In' : 'Check In Now'}
             </Btn>
@@ -832,7 +832,7 @@ function ClashCard() {
                     className="flex-[2] bg-tertiary/10 text-tertiary border border-tertiary/20"
                     onClick={function() { setShowPicker(true) }}
                   >Submit Results</Btn>
-                  <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>Live Board</Btn>
+                  <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/bracket') }}>Live Board</Btn>
                 </div>
               </div>
             )}
@@ -989,7 +989,7 @@ export default function DashboardScreen() {
     }) || null
   }, [players, currentUser])
 
-  var profileComplete = currentUser && currentUser.riotId && currentUser.riotId.trim().length > 0
+  var profileComplete = linkedPlayer && (linkedPlayer.riot_id || linkedPlayer.riotId || (linkedPlayer.riot_id_eu && linkedPlayer.riot_id_eu.trim().length > 0))
 
   var s2 = linkedPlayer ? getStats(linkedPlayer) : null
 
