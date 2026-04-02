@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TFT Clash - Media Kit 2026</title>
+<title>TFT Clash - Partnership Kit 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Barlow+Condensed:wght@400;600;700;800&family=Russo+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <style>
@@ -25,7 +25,7 @@
     --radius-lg:16px;
     --radius-xl:20px;
   }
-  html{font-size:16px;-webkit-font-smoothing:antialiased;}
+  html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth;}
   body{background:var(--surface);color:var(--on-surface);font-family:var(--f-body);line-height:1.6;}
   a{color:var(--primary);text-decoration:none;}
   img{max-width:100%;height:auto;display:block;}
@@ -33,7 +33,7 @@
   .page{max-width:920px;margin:0 auto;padding:0 32px;}
 
   /* ── TOOLBAR ── */
-  .toolbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--surface-ch);border-bottom:1px solid var(--outline-v);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);}
+  .toolbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(19,19,26,0.92);border-bottom:1px solid var(--outline-v);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
   .toolbar-brand{font-family:var(--f-brand);font-size:14px;color:var(--primary);letter-spacing:-0.02em;}
   .toolbar-actions{display:flex;gap:8px;}
   .toolbar-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.15s;}
@@ -44,28 +44,41 @@
 
   /* ── COVER ── */
   .cover{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:80px 32px 60px;}
-  .cover::before{content:'';position:absolute;top:50%;left:50%;width:800px;height:800px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,198,107,0.06)0%,rgba(103,226,217,0.02)40%,transparent 70%);pointer-events:none;}
+  .cover::before{content:'';position:absolute;top:50%;left:50%;width:900px;height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,198,107,0.07)0%,rgba(217,185,255,0.03)35%,transparent 65%);pointer-events:none;}
   .cover::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.025)1px,transparent 0);background-size:40px 40px;pointer-events:none;}
-  .cover-logo{width:96px;margin-bottom:28px;position:relative;z-index:1;filter:drop-shadow(0 0 32px rgba(255,198,107,0.15));}
-  .cover-badge{display:inline-flex;align-items:center;gap:8px;background:var(--primary-container);border:1px solid rgba(255,198,107,0.15);border-radius:100px;padding:8px 20px;font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:36px;position:relative;z-index:1;}
-  .cover-title{font-family:var(--f-brand);font-size:clamp(52px,9vw,88px);font-weight:400;font-style:italic;line-height:1.05;color:var(--on-surface);margin-bottom:16px;position:relative;z-index:1;letter-spacing:-0.03em;}
+  .cover-logo{width:100px;margin-bottom:24px;position:relative;z-index:1;filter:drop-shadow(0 0 40px rgba(255,198,107,0.18));}
+  .cover-badge{display:inline-flex;align-items:center;gap:8px;background:var(--primary-container);border:1px solid rgba(255,198,107,0.15);border-radius:100px;padding:8px 20px;font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:32px;position:relative;z-index:1;}
+  .cover-title{font-family:var(--f-display);font-size:clamp(40px,7vw,68px);font-weight:900;line-height:1.08;color:var(--on-surface);margin-bottom:20px;position:relative;z-index:1;}
   .cover-title span{color:var(--primary);}
-  .cover-sub{font-family:var(--f-label);font-size:17px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);margin-bottom:48px;position:relative;z-index:1;}
-  .cover-divider{width:60px;height:2px;background:linear-gradient(90deg,var(--primary),var(--tertiary));margin:28px auto;position:relative;z-index:1;}
-  .cover-meta{font-family:var(--f-label);font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(228,225,236,0.35);position:relative;z-index:1;}
+  .cover-pitch{font-family:var(--f-body);font-size:17px;color:var(--on-surface-v);max-width:560px;margin:0 auto 40px;position:relative;z-index:1;line-height:1.65;}
+  .cover-divider{width:60px;height:2px;background:linear-gradient(90deg,var(--primary),var(--tertiary));margin:0 auto 32px;position:relative;z-index:1;}
+  .cover-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;margin-bottom:48px;}
+  .cover-stat{text-align:center;}
+  .cover-stat-value{font-family:var(--f-display);font-size:36px;font-weight:900;color:var(--primary);line-height:1;}
+  .cover-stat-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--on-surface-v);margin-top:6px;}
+  .cover-meta{font-family:var(--f-label);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(228,225,236,0.3);position:relative;z-index:1;}
+
+  /* ── TOC ── */
+  .toc{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-xl);padding:32px 36px;margin-bottom:64px;}
+  .toc-title{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:16px;}
+  .toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 32px;}
+  .toc-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--outline-v);font-size:13px;color:var(--on-surface-v);transition:color 0.15s;}
+  .toc-item:hover{color:var(--primary);}
+  .toc-num{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--primary);width:24px;flex-shrink:0;}
+  .toc-item:last-child,.toc-grid > :nth-last-child(2):nth-child(odd){border-bottom:none;}
 
   /* ── SECTIONS ── */
-  .section{padding:72px 0;border-bottom:1px solid var(--outline-v);}
+  .section{padding:72px 0;border-bottom:1px solid var(--outline-v);scroll-margin-top:60px;}
   .section:last-child{border-bottom:none;}
   .stag{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:12px;}
   .stitle{font-family:var(--f-display);font-size:30px;font-weight:700;color:var(--on-surface);margin-bottom:6px;line-height:1.2;}
-  .ssub{color:var(--on-surface-v);font-size:14px;margin-bottom:28px;max-width:600px;line-height:1.6;}
+  .ssub{color:var(--on-surface-v);font-size:14px;margin-bottom:28px;max-width:620px;line-height:1.65;}
 
-  /* ── CARDS (Sponsors page style) ── */
+  /* ── CARDS ── */
   .card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px;transition:border-color 0.15s;}
   .card-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:10px;}
   .card-title{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--on-surface);margin-bottom:6px;}
-  .card-body{font-size:13px;color:var(--on-surface-v);line-height:1.6;}
+  .card-body{font-size:13px;color:var(--on-surface-v);line-height:1.65;}
 
   /* ── STATS ── */
   .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;}
@@ -75,6 +88,39 @@
   .stat-value{font-family:var(--f-display);font-size:36px;font-weight:700;color:var(--primary);line-height:1;margin-bottom:6px;}
   .stat-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--on-surface-v);}
   .stat-sub{font-size:10px;color:rgba(228,225,236,0.3);margin-top:4px;}
+
+  /* ── WHY CARDS ── */
+  .why-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .why-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden;}
+  .why-card-icon{width:40px;height:40px;border-radius:10px;background:var(--primary-container);display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+  .why-card-icon .material-symbols-outlined{font-size:20px;color:var(--primary);}
+  .why-card-title{font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
+  .why-card-body{font-size:13px;color:var(--on-surface-v);line-height:1.65;}
+
+  /* ── DELIVERABLES ── */
+  .deliv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .deliv-card{display:flex;gap:14px;align-items:start;background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:20px;}
+  .deliv-icon{width:40px;height:40px;border-radius:10px;background:var(--primary-container);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .deliv-icon .material-symbols-outlined{font-size:20px;color:var(--primary);}
+  .deliv-title{font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
+  .deliv-body{font-size:12px;color:var(--on-surface-v);line-height:1.6;}
+
+  /* ── MUTUAL VALUE ── */
+  .mutual-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .mutual-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px;}
+  .mutual-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--outline-v);}
+  .mutual-header .material-symbols-outlined{font-size:16px;}
+  .mutual-header span{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;}
+  .mutual-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .mutual-list li{display:flex;align-items:start;gap:8px;font-size:13px;color:var(--on-surface-v);line-height:1.5;}
+  .mutual-list .material-symbols-outlined{font-size:16px;flex-shrink:0;margin-top:2px;}
+
+  /* ── PLATFORM FEATURES ── */
+  .feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .feat-card{display:flex;gap:14px;align-items:start;background:var(--surface-c);border:1px solid var(--outline-v);border-left:3px solid var(--primary);border-radius:var(--radius-lg);padding:20px;}
+  .feat-card .material-symbols-outlined{font-size:22px;color:var(--primary);flex-shrink:0;margin-top:1px;}
+  .feat-title{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
+  .feat-body{font-size:12px;color:var(--on-surface-v);line-height:1.6;}
 
   /* ── AUDIENCE ── */
   .audience-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
@@ -90,6 +136,29 @@
   .eco-value{font-family:var(--f-display);font-size:28px;font-weight:700;color:var(--primary);margin-bottom:4px;}
   .eco-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);margin-bottom:6px;}
   .eco-desc{font-size:11px;color:rgba(228,225,236,0.35);line-height:1.5;}
+
+  /* ── ENDORSEMENTS ── */
+  .endorsement-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px;}
+  .endorsement-card{background:var(--surface-cl);border-radius:8px;padding:14px;text-align:center;}
+  .endorsement-name{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--on-surface);margin-bottom:2px;}
+  .endorsement-role{font-size:10px;color:var(--on-surface-v);}
+
+  /* ── PLACEMENTS ── */
+  .placement-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .placement-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);overflow:hidden;}
+  .placement-mockup{height:148px;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--outline-v);overflow:hidden;background:var(--surface-cl);}
+  .placement-info{padding:14px 18px;}
+  .placement-title{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
+  .placement-desc{font-size:12px;color:var(--on-surface-v);line-height:1.5;}
+
+  /* ── TIER TABLE ── */
+  .tier-table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px;}
+  .tier-table th{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;text-align:left;padding:10px 14px;border-bottom:2px solid var(--primary);color:var(--primary);}
+  .tier-table td{padding:9px 14px;border-bottom:1px solid var(--outline-v);color:var(--on-surface-v);vertical-align:top;}
+  .tier-table tr:last-child td{border-bottom:none;}
+  .tier-table tr:hover td{background:rgba(255,255,255,0.015);}
+  .check{color:var(--primary);font-weight:700;}
+  .check-t{color:var(--tertiary);font-weight:700;}
 
   /* ── LOGO GRID ── */
   .logo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px;}
@@ -115,23 +184,6 @@
   .type-sample{flex:1;min-width:200px;}
   .type-meta{font-family:monospace;font-size:11px;color:var(--on-surface-v);margin-top:6px;}
 
-  /* ── PLACEMENTS ── */
-  .placement-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
-  .placement-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);overflow:hidden;}
-  .placement-mockup{height:148px;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--outline-v);overflow:hidden;background:var(--surface-cl);}
-  .placement-info{padding:14px 18px;}
-  .placement-title{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
-  .placement-desc{font-size:12px;color:var(--on-surface-v);line-height:1.5;}
-
-  /* ── TIER TABLE ── */
-  .tier-table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px;}
-  .tier-table th{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;text-align:left;padding:10px 14px;border-bottom:2px solid var(--primary);color:var(--primary);}
-  .tier-table td{padding:9px 14px;border-bottom:1px solid var(--outline-v);color:var(--on-surface-v);vertical-align:top;}
-  .tier-table tr:last-child td{border-bottom:none;}
-  .tier-table tr:hover td{background:rgba(255,255,255,0.015);}
-  .check{color:var(--primary);font-weight:700;}
-  .check-t{color:var(--tertiary);font-weight:700;}
-
   /* ── USAGE ── */
   .usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
   .usage-card{background:var(--surface-c);border-radius:var(--radius);border:1px solid var(--outline-v);padding:20px;}
@@ -147,11 +199,17 @@
   .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
   .tag{background:var(--primary-container);border:1px solid rgba(255,198,107,0.15);border-radius:6px;padding:5px 14px;font-family:var(--f-label);font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--primary);}
 
-  /* ── ENDORSEMENTS ── */
-  .endorsement-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px;}
-  .endorsement-card{background:var(--surface-cl);border-radius:8px;padding:14px;text-align:center;}
-  .endorsement-name{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--on-surface);margin-bottom:2px;}
-  .endorsement-role{font-size:10px;color:var(--on-surface-v);}
+  /* ── CALLOUT BOX ── */
+  .callout{margin-top:20px;padding:20px 24px;border-radius:var(--radius);background:rgba(255,198,107,0.06);border:1px solid rgba(255,198,107,0.12);}
+  .callout-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
+  .callout-body{font-size:13px;color:var(--on-surface-v);line-height:1.65;}
+
+  /* ── HIGHLIGHT BAR ── */
+  .highlight-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:28px 0;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--outline-v);}
+  .highlight-cell{padding:20px;text-align:center;background:var(--surface-c);border-right:1px solid var(--outline-v);}
+  .highlight-cell:last-child{border-right:none;}
+  .highlight-value{font-family:var(--f-display);font-size:28px;font-weight:700;color:var(--primary);line-height:1;margin-bottom:4px;}
+  .highlight-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);}
 
   /* ── MOCKUP PIECES ── */
   .mock-navbar{background:var(--surface-cl);border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:12px;font-size:10px;font-family:var(--f-label);letter-spacing:0.1em;text-transform:uppercase;color:rgba(228,225,236,0.5);width:80%;}
@@ -171,8 +229,8 @@
   /* ── CONTACT ── */
   .contact-block{background:var(--surface-c);border:1px solid rgba(255,198,107,0.12);border-radius:var(--radius-xl);padding:48px 40px;text-align:center;margin-top:40px;position:relative;overflow:hidden;}
   .contact-block::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 80%,rgba(255,198,107,0.03),transparent 50%);pointer-events:none;}
-  .contact-icon{width:48px;height:48px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;}
-  .contact-icon .material-symbols-outlined{font-size:22px;color:var(--on-primary);}
+  .contact-icon{width:52px;height:52px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;}
+  .contact-icon .material-symbols-outlined{font-size:24px;color:var(--on-primary);}
   .contact-block h2{font-family:var(--f-display);font-size:28px;font-weight:700;margin-bottom:8px;position:relative;}
   .contact-block p{color:var(--on-surface-v);margin-bottom:24px;max-width:460px;margin-left:auto;margin-right:auto;position:relative;font-size:14px;line-height:1.6;}
   .contact-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
@@ -183,51 +241,59 @@
 
   .kit-footer{padding:36px 0;text-align:center;font-family:var(--f-label);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(228,225,236,0.25);}
 
-  /* ── CALLOUT BOX ── */
-  .callout{margin-top:20px;padding:20px 24px;border-radius:var(--radius);background:rgba(255,198,107,0.06);border:1px solid rgba(255,198,107,0.12);}
-  .callout-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
-  .callout-body{font-size:13px;color:var(--on-surface-v);line-height:1.6;}
+  /* ── SECTION DIVIDER ── */
+  .appendix-divider{text-align:center;padding:80px 0 20px;position:relative;}
+  .appendix-divider::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--primary),var(--tertiary),transparent);}
+  .appendix-divider span{position:relative;background:var(--surface);padding:0 24px;font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;color:var(--primary);}
 
   /* ── PRINT ── */
   @media print{
     .toolbar{display:none!important;}
+    .toc{display:none!important;}
     body{background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .cover{min-height:auto;page-break-after:always;padding:100px 32px 80px;background:#fff;}
     .cover::before,.cover::after{display:none;}
     .cover-title{color:#1a1a1a;}
-    .cover-title span{color:#805600;}
-    .cover-sub,.cover-meta{color:#666;}
+    .cover-title span,.cover-stat-value{color:#805600;}
+    .cover-pitch,.cover-stat-label,.cover-meta{color:#666;}
     .cover-badge{background:rgba(128,86,0,0.08);border-color:rgba(128,86,0,0.2);color:#805600;}
     .section{page-break-inside:avoid;padding:40px 0;}
-    .stag,.card-label,.check,.stat-value,.eco-value{color:#805600!important;}
+    .stag,.card-label,.check,.stat-value,.eco-value,.why-card-title,.highlight-value{color:#805600!important;}
     .stitle,.contact-block h2{color:#1a1a1a!important;}
-    .ssub,.card-body,.audience-card p,.placement-desc,.callout-body{color:#444!important;}
-    .card,.stat-card,.audience-card,.eco-card,.logo-card,.placement-card,.usage-card,.type-row,.contact-block,.callout{border-color:#ddd!important;background:#f8f8f8!important;}
+    .ssub,.card-body,.audience-card p,.placement-desc,.callout-body,.why-card-body,.deliv-body,.feat-body,.mutual-list li{color:#444!important;}
+    .card,.stat-card,.audience-card,.eco-card,.logo-card,.placement-card,.usage-card,.type-row,.contact-block,.callout,.why-card,.deliv-card,.feat-card,.mutual-card,.highlight-cell{border-color:#ddd!important;background:#f8f8f8!important;}
     .logo-card-light{background:#f0eef5!important;}
     .color-info{background:#f4f4f4!important;}
-    .stat-icon{background:rgba(128,86,0,0.08)!important;}
-    .stat-icon .material-symbols-outlined{color:#805600!important;}
+    .stat-icon,.why-card-icon,.deliv-icon{background:rgba(128,86,0,0.08)!important;}
+    .stat-icon .material-symbols-outlined,.why-card-icon .material-symbols-outlined,.deliv-icon .material-symbols-outlined,.feat-card .material-symbols-outlined{color:#805600!important;}
     .contact-icon{background:#805600!important;}
     a{color:#805600;}
     .placement-mockup{background:#eee!important;}
     .tier-table th{border-bottom-color:#805600!important;color:#805600!important;}
     .tier-table td{border-bottom-color:#ddd!important;color:#444!important;}
     .check-t{color:#00897b!important;}
-    .audience-card::before{background:#805600!important;}
+    .audience-card::before,.feat-card{border-left-color:#805600!important;}
     .tag{background:rgba(128,86,0,0.06)!important;border-color:rgba(128,86,0,0.15)!important;color:#805600!important;}
     .usage-do h4{color:#00897b!important;}
     .usage-dont h4{color:#c62828!important;}
     .usage-do li::before{color:#00897b!important;}
     .usage-dont li::before{color:#c62828!important;}
-    .stat-grid,.audience-grid,.eco-grid,.logo-grid,.placement-grid,.usage-grid{page-break-inside:avoid;}
+    .stat-grid,.audience-grid,.eco-grid,.logo-grid,.placement-grid,.usage-grid,.why-grid,.deliv-grid,.feat-grid,.mutual-grid,.highlight-bar{page-break-inside:avoid;}
+    .appendix-divider::before{background:linear-gradient(90deg,transparent,#805600,#00897b,transparent)!important;}
+    .appendix-divider span{background:#fff!important;color:#805600!important;}
   }
 
   @media(max-width:640px){
     .toolbar{padding:8px 16px;}
     .toolbar-btn span.btn-label{display:none;}
+    .cover-stats{gap:24px;}
+    .cover-stat-value{font-size:28px;}
+    .toc-grid{grid-template-columns:1fr;}
     .stat-grid{grid-template-columns:repeat(2,1fr);}
-    .placement-grid,.usage-grid,.audience-grid{grid-template-columns:1fr;}
-    .eco-grid{grid-template-columns:1fr;}
+    .why-grid,.deliv-grid,.feat-grid,.mutual-grid,.placement-grid,.usage-grid,.audience-grid{grid-template-columns:1fr;}
+    .eco-grid,.highlight-bar{grid-template-columns:1fr;}
+    .highlight-cell{border-right:none;border-bottom:1px solid var(--outline-v);}
+    .highlight-cell:last-child{border-bottom:none;}
     .type-row{flex-direction:column;gap:6px;}
     .type-label{width:auto;}
     .audience-full{grid-column:auto;}
@@ -241,7 +307,7 @@
 <div class="toolbar">
   <div class="toolbar-brand">TFT CLASH</div>
   <div class="toolbar-actions">
-    <button class="toolbar-btn toolbar-btn-outline" onclick="var a=document.createElement('a');a.href=window.location.href;a.download='TFT-Clash-Media-Kit-2026.html';a.click();">
+    <button class="toolbar-btn toolbar-btn-outline" onclick="var a=document.createElement('a');a.href=window.location.href;a.download='TFT-Clash-Partnership-Kit-2026.html';a.click();">
       <span class="material-symbols-outlined" style="font-size:16px;">download</span>
       <span class="btn-label">Save HTML</span>
     </button>
@@ -257,23 +323,60 @@
   <img src="/tftclash-icon.svg" alt="TFT Clash" class="cover-logo">
   <div class="cover-badge">
     <span class="material-symbols-outlined" style="font-size:14px;">star</span>
-    Media Kit 2026
+    Partnership Kit 2026
   </div>
-  <h1 class="cover-title"><span>TFT</span> CLASH</h1>
-  <p class="cover-sub">Brand Guidelines, Audience Data, and Partnership Assets</p>
+  <h1 class="cover-title">Put Your Brand Where<br><span>Competitors Are Watching</span></h1>
+  <p class="cover-pitch">
+    TFT Clash is a purpose-built competitive tournament platform for serious Teamfight Tactics players.
+    Real infrastructure. Real competition. A global audience that takes the game seriously and spends on the gear to prove it.
+  </p>
   <div class="cover-divider"></div>
-  <p class="cover-meta">The Competitive Teamfight Tactics Tournament Platform</p>
+  <div class="cover-stats">
+    <div class="cover-stat">
+      <div class="cover-stat-value">2,400+</div>
+      <div class="cover-stat-label">Players</div>
+    </div>
+    <div class="cover-stat">
+      <div class="cover-stat-value">850+</div>
+      <div class="cover-stat-label">Tournaments</div>
+    </div>
+    <div class="cover-stat">
+      <div class="cover-stat-value">94%</div>
+      <div class="cover-stat-label">Return Rate</div>
+    </div>
+    <div class="cover-stat">
+      <div class="cover-stat-value">$45</div>
+      <div class="cover-stat-label">Monthly Spend</div>
+    </div>
+  </div>
+  <p class="cover-meta">contact@tftclash.gg</p>
 </div>
 
 <div class="page">
 
-<!-- ═══════════════ 01 ABOUT ═══════════════ -->
-<div class="section">
+<!-- ═══════════════ TOC ═══════════════ -->
+<div class="toc">
+  <div class="toc-title">Contents</div>
+  <div class="toc-grid">
+    <a href="#platform" class="toc-item"><span class="toc-num">01</span> Platform Overview</a>
+    <a href="#audience" class="toc-item"><span class="toc-num">02</span> Audience Profile</a>
+    <a href="#why" class="toc-item"><span class="toc-num">03</span> Why Partner With Us</a>
+    <a href="#mutual" class="toc-item"><span class="toc-num">04</span> What Both Sides Gain</a>
+    <a href="#deliverables" class="toc-item"><span class="toc-num">05</span> Deliverables</a>
+    <a href="#placements" class="toc-item"><span class="toc-num">06</span> Sponsor Placements</a>
+    <a href="#tiers" class="toc-item"><span class="toc-num">07</span> Partnership Tiers</a>
+    <a href="#ecosystem" class="toc-item"><span class="toc-num">08</span> Ecosystem Reach</a>
+    <a href="#infrastructure" class="toc-item"><span class="toc-num">09</span> Platform Infrastructure</a>
+    <a href="#brand" class="toc-item"><span class="toc-num">10</span> Brand Assets</a>
+  </div>
+</div>
+
+<!-- ═══════════════ 01 PLATFORM ═══════════════ -->
+<div class="section" id="platform">
   <div class="stag">01 - Platform Overview</div>
   <div class="stitle">The Grassroots Esports Engine for TFT</div>
   <div class="ssub">
-    TFT Clash is the largest independent competitive tournament platform for Teamfight Tactics.
-    Purpose-built infrastructure for the layer between ranked solo queue and the professional circuit.
+    Not a Discord server with a spreadsheet bracket. A production-grade competitive platform with the infrastructure of a real esports circuit, built for the layer between ranked solo queue and the professional scene.
   </div>
 
   <div class="stat-grid">
@@ -306,19 +409,34 @@
   <div class="callout">
     <div class="callout-label">Why Now</div>
     <div class="callout-body">
-      TFT is in its strongest competitive moment. The Esports World Cup 2026 TFT prize pool reached $500,000.
-      The Las Vegas Open returns end of 2026 as the biggest open-bracket event on the global TFT calendar.
+      TFT is in its strongest competitive moment. The Esports World Cup 2026 prize pool hit <strong style="color:var(--on-surface);">$500,000</strong>.
+      The Las Vegas Open returns end of 2026 as the biggest open-bracket event on the global calendar.
       TFT Clash is building the grassroots foundation of this growing scene, and the brands that show up early
-      are the ones players remember.
+      are the ones players remember when they recommend gear to friends.
     </div>
   </div>
 </div>
 
 <!-- ═══════════════ 02 AUDIENCE ═══════════════ -->
-<div class="section">
+<div class="section" id="audience">
   <div class="stag">02 - Audience Profile</div>
   <div class="stitle">Who Competes on TFT Clash</div>
-  <div class="ssub">Every player actively competes, submits scores, and climbs leaderboards. Zero passive lurkers. This is a high-intent gaming audience.</div>
+  <div class="ssub">Every player actively competes, submits scores, and climbs leaderboards. Zero passive lurkers. This is the highest-intent gaming audience you can reach.</div>
+
+  <div class="highlight-bar">
+    <div class="highlight-cell">
+      <div class="highlight-value">$45</div>
+      <div class="highlight-label">Avg. Monthly Gaming Spend</div>
+    </div>
+    <div class="highlight-cell">
+      <div class="highlight-value">73%</div>
+      <div class="highlight-label">Buy on Peer Recommendations</div>
+    </div>
+    <div class="highlight-cell">
+      <div class="highlight-value">4.2x</div>
+      <div class="highlight-label">Sessions Per User Per Week</div>
+    </div>
+  </div>
 
   <div class="audience-grid">
     <div class="audience-card">
@@ -326,16 +444,16 @@
       <p>
         <strong style="color:var(--on-surface);">Age:</strong> 18-34 (82% of players)<br>
         <strong style="color:var(--on-surface);">Gender:</strong> 78% male, 18% female, 4% other<br>
-        <strong style="color:var(--on-surface);">Regions:</strong> EU West (42%), NA (28%), EUE/CIS (15%), Asia-Pacific (10%), Other (5%)<br>
+        <strong style="color:var(--on-surface);">Regions:</strong> EU West (42%), NA (28%), EUE/CIS (15%), APAC (10%), Other (5%)<br>
         <strong style="color:var(--on-surface);">Income:</strong> 64% have disposable income for gaming peripherals and subscriptions
       </p>
     </div>
     <div class="audience-card">
       <h4>Spending Behavior</h4>
       <p>
-        <strong style="color:var(--on-surface);">Avg. monthly gaming spend:</strong> $45<br>
         <strong style="color:var(--on-surface);">Top categories:</strong> Peripherals (keyboards, mice, monitors), in-game cosmetics, energy drinks, gaming chairs<br>
-        <strong style="color:var(--on-surface);">Purchase influence:</strong> 73% say peer recommendations drive buying decisions
+        <strong style="color:var(--on-surface);">Purchase influence:</strong> 73% say peer and community recommendations drive buying decisions<br>
+        <strong style="color:var(--on-surface);">Brand loyalty:</strong> Players associate sponsor brands with competitive credibility
       </p>
     </div>
     <div class="audience-card audience-full">
@@ -344,213 +462,141 @@
         TFT Clash players are not casual browsers. Average session length is <strong style="color:var(--on-surface);">22 minutes</strong>.
         Players return weekly to check standings, review match history, track achievements, and register for upcoming clashes.
         <strong style="color:var(--on-surface);">68%</strong> of players have their profile page bookmarked.
-        The platform drives <strong style="color:var(--on-surface);">4.2 sessions per user per week</strong> on average, with peak activity on tournament days (Saturday/Sunday).
+        Peak activity hits Saturday and Sunday on tournament days, when every placement, score, and bracket screen is being watched live.
       </p>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ 03 ECOSYSTEM ═══════════════ -->
-<div class="section">
-  <div class="stag">03 - Ecosystem Reach</div>
-  <div class="stitle">Connected to the TFT Competitive Scene</div>
-  <div class="ssub">TFT Clash operates within the broader Riot Games and TFT competitive ecosystem.</div>
+<!-- ═══════════════ 03 WHY US ═══════════════ -->
+<div class="section" id="why">
+  <div class="stag">03 - Why Partner With Us</div>
+  <div class="stitle">What Makes This Different</div>
+  <div class="ssub">This is not influencer sponsorship. This is infrastructure placement inside a competitive platform where every user is actively engaged.</div>
 
-  <div class="eco-grid">
-    <div class="eco-card">
-      <div class="eco-value">100K+</div>
-      <div class="eco-label">TFT Discord Members</div>
-      <div class="eco-desc">Active in the official Riot-partnered TFT community Discord</div>
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-card-icon"><span class="material-symbols-outlined">person</span></div>
+      <div class="why-card-title">Real Players, Zero Lurkers</div>
+      <div class="why-card-body">Every person on TFT Clash actively competes, submits scores, earns achievements, and climbs leaderboards. This is the highest-intent gaming audience you can reach. No bots, no inactive accounts inflating numbers.</div>
     </div>
-    <div class="eco-card">
-      <div class="eco-value">$500K</div>
-      <div class="eco-label">EWC 2026 Prize Pool</div>
-      <div class="eco-desc">TFT at Esports World Cup, the game's peak competitive moment</div>
+    <div class="why-card">
+      <div class="why-card-icon"><span class="material-symbols-outlined">layers</span></div>
+      <div class="why-card-title">Full-Stack Esports Infrastructure</div>
+      <div class="why-card-body">A production-grade platform with multi-lobby tournaments, a dispute system, a 20-tier achievement ladder, a Hall of Fame, and seasonal leaderboards. Your brand sits inside real competitive infrastructure, not a social media feed.</div>
     </div>
-    <div class="eco-card">
-      <div class="eco-value">Top 50</div>
-      <div class="eco-label">Pro Player Network</div>
-      <div class="eco-desc">Direct relationships with competitive TFT players and content creators</div>
+    <div class="why-card">
+      <div class="why-card-icon"><span class="material-symbols-outlined">autorenew</span></div>
+      <div class="why-card-title">Recurring Seasonal Visibility</div>
+      <div class="why-card-body">Structured seasons run every TFT set cycle. New season, new champion, new sponsor visibility. Your placement compounds in value over time as the community grows and recognizes your brand as part of the ecosystem.</div>
     </div>
-  </div>
-
-  <div class="card" style="margin-top:16px;">
-    <div class="card-label">Notable Players in Our Network</div>
-    <div class="endorsement-grid">
-      <div class="endorsement-card">
-        <div class="endorsement-name">Broseph</div>
-        <div class="endorsement-role">Pro Player / Streamer</div>
-      </div>
-      <div class="endorsement-card">
-        <div class="endorsement-name">Dehua</div>
-        <div class="endorsement-role">Competitive Player</div>
-      </div>
-      <div class="endorsement-card">
-        <div class="endorsement-name">k3soju</div>
-        <div class="endorsement-role">Top Challenger / Creator</div>
-      </div>
-      <div class="endorsement-card">
-        <div class="endorsement-name">Setsuko</div>
-        <div class="endorsement-role">Community Figure</div>
-      </div>
-      <div class="endorsement-card">
-        <div class="endorsement-name">Mortdog</div>
-        <div class="endorsement-role">TFT Lead Designer</div>
-      </div>
-      <div class="endorsement-card">
-        <div class="endorsement-name">Frodan</div>
-        <div class="endorsement-role">Esports Host / Caster</div>
-      </div>
+    <div class="why-card">
+      <div class="why-card-icon"><span class="material-symbols-outlined">storefront</span></div>
+      <div class="why-card-title">Ground-Floor Timing</div>
+      <div class="why-card-body">TFT is in its strongest competitive moment. EWC 2026 hit $500K. The brands that show up early are the ones players remember when they recommend gear to friends. First-mover advantage is real, and the window is now.</div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ 04 LOGOS ═══════════════ -->
-<div class="section">
-  <div class="stag">04 - Logo Assets</div>
-  <div class="stitle">Brand Marks</div>
-  <div class="ssub">
-    Official TFT Clash logo variants for digital and print use. All assets are SVG (infinitely scalable).
-    Maintain clear space equal to the icon height on all sides.
-  </div>
+<!-- ═══════════════ 04 MUTUAL VALUE ═══════════════ -->
+<div class="section" id="mutual">
+  <div class="stag">04 - Mutual Exposure</div>
+  <div class="stitle">What Both Sides Gain</div>
+  <div class="ssub">This works because the interests are genuinely aligned. Not a one-sided sponsorship ask.</div>
 
-  <div class="logo-grid">
-    <div class="logo-card">
-      <img src="/tftclash-icon.svg" alt="TFT Clash Icon" style="height:72px;">
-      <div class="logo-card-label">Icon Mark - Dark BG</div>
-    </div>
-    <div class="logo-card logo-card-light">
-      <img src="/tftclash-icon.svg" alt="TFT Clash Icon" style="height:72px;">
-      <div class="logo-card-label">Icon Mark - Light BG</div>
-    </div>
-    <div class="logo-card" style="grid-column:1/-1;">
-      <img src="/tftclash-logo-horizontal.svg" alt="TFT Clash Horizontal" style="height:48px;max-width:300px;">
-      <div class="logo-card-label">Horizontal Lockup - Primary</div>
-    </div>
-    <div class="logo-card">
-      <img src="/tftclash-logo-stacked.svg" alt="TFT Clash Stacked" style="height:120px;">
-      <div class="logo-card-label">Stacked Lockup</div>
-    </div>
-    <div class="logo-card logo-card-light">
-      <img src="/tftclash-logo-light.svg" alt="TFT Clash Light" style="height:48px;max-width:300px;">
-      <div class="logo-card-label">Horizontal - Light BG</div>
-    </div>
-  </div>
-
-  <div class="usage-grid" style="margin-top:24px;">
-    <div class="usage-card usage-do">
-      <h4>Do</h4>
-      <ul>
-        <li>Use official assets from this media kit</li>
-        <li>Maintain minimum clear space around the mark</li>
-        <li>Use on solid dark or light backgrounds</li>
-        <li>Scale proportionally, never stretch</li>
-        <li>Prefer the horizontal lockup for inline use</li>
+  <div class="mutual-grid">
+    <div class="mutual-card">
+      <div class="mutual-header">
+        <span class="material-symbols-outlined" style="color:var(--tertiary);">arrow_downward</span>
+        <span style="color:var(--tertiary);">What You Receive</span>
+      </div>
+      <ul class="mutual-list">
+        <li><span class="material-symbols-outlined" style="color:var(--tertiary);">check</span> Brand inside a structured competitive platform with real infrastructure, not just a banner</li>
+        <li><span class="material-symbols-outlined" style="color:var(--tertiary);">check</span> Naming rights on events and Hall of Fame categories that persist permanently</li>
+        <li><span class="material-symbols-outlined" style="color:var(--tertiary);">check</span> Affiliate code exposure to players actively buying gaming gear and peripherals</li>
+        <li><span class="material-symbols-outlined" style="color:var(--tertiary);">check</span> Association with winning: your product photographed and shared at peak engagement</li>
+        <li><span class="material-symbols-outlined" style="color:var(--tertiary);">check</span> Recurring seasonal visibility that compounds in value every new cycle</li>
+        <li><span class="material-symbols-outlined" style="color:var(--tertiary);">check</span> Access to a focused global demographic impossible to target efficiently through traditional ads</li>
       </ul>
     </div>
-    <div class="usage-card usage-dont">
-      <h4>Don't</h4>
-      <ul>
-        <li>Alter colors, proportions, or element spacing</li>
-        <li>Place on busy, patterned, or low-contrast backgrounds</li>
-        <li>Add effects (shadows, outlines, glows, gradients)</li>
-        <li>Rotate, skew, or warp any logo element</li>
-        <li>Use the icon mark smaller than 24px in height</li>
+    <div class="mutual-card">
+      <div class="mutual-header">
+        <span class="material-symbols-outlined" style="color:var(--primary);">arrow_upward</span>
+        <span style="color:var(--primary);">What We Gain</span>
+      </div>
+      <ul class="mutual-list">
+        <li><span class="material-symbols-outlined" style="color:var(--primary);">check</span> A legitimate named prize that elevates the perceived quality of our tournament circuit</li>
+        <li><span class="material-symbols-outlined" style="color:var(--primary);">check</span> Brand credibility that signals to players this is a serious, accountable platform</li>
+        <li><span class="material-symbols-outlined" style="color:var(--primary);">check</span> Content to create: unboxings, prize delivery, winner moments for organic promotion</li>
+        <li><span class="material-symbols-outlined" style="color:var(--primary);">check</span> A partner name to feature in every outreach, growing our ability to attract further sponsors</li>
+        <li><span class="material-symbols-outlined" style="color:var(--primary);">check</span> A long-term partner to grow with as the platform scales into new regions and formats</li>
       </ul>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ 05 COLORS ═══════════════ -->
-<div class="section">
-  <div class="stag">05 - Color Palette</div>
-  <div class="stitle">Brand Colors</div>
-  <div class="ssub">Material Design 3 dark theme tokens. Primary Gold is the signature color across all touchpoints.</div>
+<!-- ═══════════════ 05 DELIVERABLES ═══════════════ -->
+<div class="section" id="deliverables">
+  <div class="stag">05 - Deliverables</div>
+  <div class="stitle">What Sponsors Receive</div>
+  <div class="ssub">Every partnership is tailored. These are the core activations available at all tiers.</div>
 
-  <div class="color-grid">
-    <div class="color-card">
-      <div class="color-swatch" style="background:#ffc66b;"><span class="color-swatch-text" style="color:#432c00;">Aa</span></div>
-      <div class="color-info"><div class="color-name">Primary Gold</div><div class="color-hex">#FFC66B</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#e8a838;"><span class="color-swatch-text" style="color:#432c00;">Aa</span></div>
-      <div class="color-info"><div class="color-name">Primary Container</div><div class="color-hex">#E8A838</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#d9b9ff;"><span class="color-swatch-text" style="color:#2a0054;">Aa</span></div>
-      <div class="color-info"><div class="color-name">Secondary Purple</div><div class="color-hex">#D9B9FF</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#67e2d9;"><span class="color-swatch-text" style="color:#00201e;">Aa</span></div>
-      <div class="color-info"><div class="color-name">Tertiary Teal</div><div class="color-hex">#67E2D9</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#13131a;"><span class="color-swatch-text" style="color:#e4e1ec;">Aa</span></div>
-      <div class="color-info"><div class="color-name">Surface / BG</div><div class="color-hex">#13131A</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#1f1f27;"><span class="color-swatch-text" style="color:#e4e1ec;">Aa</span></div>
-      <div class="color-info"><div class="color-name">Surface Container</div><div class="color-hex">#1F1F27</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#e4e1ec;"><span class="color-swatch-text" style="color:#13131a;">Aa</span></div>
-      <div class="color-info"><div class="color-name">On Surface</div><div class="color-hex">#E4E1EC</div></div>
-    </div>
-    <div class="color-card">
-      <div class="color-swatch" style="background:#d5c4af;"><span class="color-swatch-text" style="color:#13131a;">Aa</span></div>
-      <div class="color-info"><div class="color-name">On Surface Variant</div><div class="color-hex">#D5C4AF</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════ 06 TYPOGRAPHY ═══════════════ -->
-<div class="section">
-  <div class="stag">06 - Typography</div>
-  <div class="stitle">Type System</div>
-  <div class="ssub">Four typefaces, each serving a distinct role in the visual hierarchy.</div>
-
-  <div class="type-showcase">
-    <div class="type-row">
-      <div class="type-label">Brand</div>
-      <div class="type-sample">
-        <div style="font-family:var(--f-brand);font-size:38px;font-style:italic;color:var(--on-surface);line-height:1.1;letter-spacing:-0.03em;"><span style="color:var(--primary);">TFT</span> CLASH</div>
-        <div class="type-meta">Russo One 400 italic - Logo text, hero branding, masthead</div>
+  <div class="deliv-grid">
+    <div class="deliv-card">
+      <div class="deliv-icon"><span class="material-symbols-outlined">emoji_events</span></div>
+      <div>
+        <div class="deliv-title">Named Tournament or Season</div>
+        <div class="deliv-body">Your brand names our Season Finals or Grand Prix event. Every announcement, results post, bracket screen, and Hall of Fame entry carries your name for the full cycle.</div>
       </div>
     </div>
-    <div class="type-row">
-      <div class="type-label">Display</div>
-      <div class="type-sample">
-        <div style="font-family:var(--f-display);font-size:34px;font-weight:700;color:var(--on-surface);line-height:1.1;">Season Champion</div>
-        <div class="type-meta">Playfair Display 700 - Section headings, stat values, Hall of Fame entries</div>
+    <div class="deliv-card">
+      <div class="deliv-icon"><span class="material-symbols-outlined">display_settings</span></div>
+      <div>
+        <div class="deliv-title">Platform Logo Placement</div>
+        <div class="deliv-body">Logo on the TFT Clash homepage, live bracket screen during tournaments, and Hall of Fame page. Seen by every active player, every session.</div>
       </div>
     </div>
-    <div class="type-row">
-      <div class="type-label">Labels</div>
-      <div class="type-sample">
-        <div style="font-family:var(--f-label);font-size:14px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);">GRAND PRIX FINALS - SEASON 1 - WEEK 12</div>
-        <div class="type-meta">Barlow Condensed 700 - Section tags, nav items, badges, stats labels</div>
+    <div class="deliv-card">
+      <div class="deliv-icon"><span class="material-symbols-outlined">campaign</span></div>
+      <div>
+        <div class="deliv-title">Discord and Social Announcements</div>
+        <div class="deliv-body">Sponsor featured in every tournament kick-off, results post, and season recap across Discord, Twitter/X, Twitch, and YouTube.</div>
       </div>
     </div>
-    <div class="type-row">
-      <div class="type-label">Body</div>
-      <div class="type-sample">
-        <div style="font-family:var(--f-body);font-size:14px;color:var(--on-surface-v);line-height:1.6;">Every feature was deliberately built to create a legitimate competitive environment at the grassroots level. Players who compete here are serious about the game and serious about their setups.</div>
-        <div class="type-meta">Inter 400/500 - Paragraphs, descriptions, UI copy</div>
+    <div class="deliv-card">
+      <div class="deliv-icon"><span class="material-symbols-outlined">military_tech</span></div>
+      <div>
+        <div class="deliv-title">Named Award in Hall of Fame</div>
+        <div class="deliv-body">A permanent Hall of Fame category bearing your brand name. Evergreen visibility every season alongside the best performances in platform history.</div>
       </div>
     </div>
-    <div class="type-row">
-      <div class="type-label">Data</div>
-      <div class="type-sample">
-        <div style="font-family:monospace;font-size:14px;color:var(--tertiary);">1st: 8pts | 2nd: 7pts | 3rd: 6pts | 4th: 5pts</div>
-        <div class="type-meta">System Monospace - Scores, placement codes, technical data</div>
+    <div class="deliv-card">
+      <div class="deliv-icon"><span class="material-symbols-outlined">redeem</span></div>
+      <div>
+        <div class="deliv-title">Product as Prize</div>
+        <div class="deliv-body">Your product as Grand Prize, Finalist Prize, or MVP Award. Peak brand association with winning, photographed and shared at the moment of highest community engagement.</div>
+      </div>
+    </div>
+    <div class="deliv-card">
+      <div class="deliv-icon"><span class="material-symbols-outlined">link</span></div>
+      <div>
+        <div class="deliv-title">Affiliate and Discount Code</div>
+        <div class="deliv-body">Your code embedded in player onboarding, the platform footer, and our Discord resources channel. Direct conversion from a high-intent audience actively spending on gaming gear.</div>
+      </div>
+    </div>
+    <div class="deliv-card" style="grid-column:1/-1;">
+      <div class="deliv-icon"><span class="material-symbols-outlined">videocam</span></div>
+      <div>
+        <div class="deliv-title">Twitch Broadcast Integration</div>
+        <div class="deliv-body">Sponsor branding in tournament livestreams via overlay and verbal mention. Live competitive content with a real audience watching results unfold in real time. Your logo in the moment of highest tension.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ 07 PLACEMENTS ═══════════════ -->
-<div class="section">
-  <div class="stag">07 - Sponsor Placements</div>
+<!-- ═══════════════ 06 PLACEMENTS ═══════════════ -->
+<div class="section" id="placements">
+  <div class="stag">06 - Sponsor Placements</div>
   <div class="stitle">Where Your Brand Appears</div>
   <div class="ssub">Visual mockups of all sponsor placement locations across the TFT Clash platform.</div>
 
@@ -616,11 +662,11 @@
   </div>
 </div>
 
-<!-- ═══════════════ 08 TIERS ═══════════════ -->
-<div class="section">
-  <div class="stag">08 - Partnership Tiers</div>
-  <div class="stitle">Tier Comparison</div>
-  <div class="ssub">Three levels of partnership, fully flexible. Built around what works for both sides.</div>
+<!-- ═══════════════ 07 TIERS ═══════════════ -->
+<div class="section" id="tiers">
+  <div class="stag">07 - Partnership Tiers</div>
+  <div class="stitle">How We Work Together</div>
+  <div class="ssub">Three entry points, fully flexible. We build the partnership around what works for both sides. Every tier includes a personal point of contact before any agreement is signed.</div>
 
   <table class="tier-table">
     <thead>
@@ -647,9 +693,259 @@
   </table>
 </div>
 
-<!-- ═══════════════ 09 VOICE ═══════════════ -->
+<!-- ═══════════════ 08 ECOSYSTEM ═══════════════ -->
+<div class="section" id="ecosystem">
+  <div class="stag">08 - Ecosystem Reach</div>
+  <div class="stitle">Connected to the TFT Competitive Scene</div>
+  <div class="ssub">TFT Clash operates within the broader Riot Games and TFT competitive ecosystem. Your brand enters a network, not just a platform.</div>
+
+  <div class="eco-grid">
+    <div class="eco-card">
+      <div class="eco-value">100K+</div>
+      <div class="eco-label">TFT Discord Members</div>
+      <div class="eco-desc">Active in the official Riot-partnered TFT community Discord</div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-value">$500K</div>
+      <div class="eco-label">EWC 2026 Prize Pool</div>
+      <div class="eco-desc">TFT at Esports World Cup, the game's peak competitive moment</div>
+    </div>
+    <div class="eco-card">
+      <div class="eco-value">Top 50</div>
+      <div class="eco-label">Pro Player Network</div>
+      <div class="eco-desc">Direct relationships with competitive TFT players and content creators</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="card-label">Notable Players in Our Network</div>
+    <div class="endorsement-grid">
+      <div class="endorsement-card">
+        <div class="endorsement-name">Broseph</div>
+        <div class="endorsement-role">Pro Player / Streamer</div>
+      </div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Dehua</div>
+        <div class="endorsement-role">Competitive Player</div>
+      </div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">k3soju</div>
+        <div class="endorsement-role">Top Challenger / Creator</div>
+      </div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Setsuko</div>
+        <div class="endorsement-role">Community Figure</div>
+      </div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Mortdog</div>
+        <div class="endorsement-role">TFT Lead Designer</div>
+      </div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Frodan</div>
+        <div class="endorsement-role">Esports Host / Caster</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 09 INFRASTRUCTURE ═══════════════ -->
+<div class="section" id="infrastructure">
+  <div class="stag">09 - Platform Infrastructure</div>
+  <div class="stitle">What is Inside TFT Clash</div>
+  <div class="ssub">The features that make this a real competitive platform, not just a community hub. This is the infrastructure your brand sits inside.</div>
+
+  <div class="feat-grid">
+    <div class="feat-card">
+      <span class="material-symbols-outlined">account_tree</span>
+      <div>
+        <div class="feat-title">Multi-Lobby Bracket System</div>
+        <div class="feat-body">Structured bracketed tournaments with seeding, live score tracking, and automatic progression through each stage.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="material-symbols-outlined">gavel</span>
+      <div>
+        <div class="feat-title">Dispute System</div>
+        <div class="feat-body">Proof-based score submission with live moderation and dispute resolution. Competitive integrity enforced, not assumed.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="material-symbols-outlined">stairs</span>
+      <div>
+        <div class="feat-title">20-Tier Achievement Ladder</div>
+        <div class="feat-body">Season-long system that tracks and rewards consistent performance at every skill level in the community.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="material-symbols-outlined">workspace_premium</span>
+      <div>
+        <div class="feat-title">Hall of Fame</div>
+        <div class="feat-body">Seven permanent record categories. Sponsor names placed here exist on the platform indefinitely.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="material-symbols-outlined">leaderboard</span>
+      <div>
+        <div class="feat-title">Seasonal Leaderboards</div>
+        <div class="feat-body">Live ranked standings updated every tournament cycle with full historical archive.</div>
+      </div>
+    </div>
+    <div class="feat-card">
+      <span class="material-symbols-outlined">groups</span>
+      <div>
+        <div class="feat-title">Role Hierarchy</div>
+        <div class="feat-body">Admin, Mod, Lobby Host, Player structure mirrors the operational model of professional leagues.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ APPENDIX DIVIDER ═══════════════ -->
+<div class="appendix-divider"><span>Brand Assets Appendix</span></div>
+
+<!-- ═══════════════ 10 BRAND ASSETS ═══════════════ -->
+<div class="section" id="brand" style="border-bottom:1px solid var(--outline-v);">
+  <div class="stag">10a - Logo Assets</div>
+  <div class="stitle">Brand Marks</div>
+  <div class="ssub">
+    Official TFT Clash logo variants for digital and print use. All assets are SVG (infinitely scalable).
+    Maintain clear space equal to the icon height on all sides.
+  </div>
+
+  <div class="logo-grid">
+    <div class="logo-card">
+      <img src="/tftclash-icon.svg" alt="TFT Clash Icon" style="height:72px;">
+      <div class="logo-card-label">Icon Mark - Dark BG</div>
+    </div>
+    <div class="logo-card logo-card-light">
+      <img src="/tftclash-icon.svg" alt="TFT Clash Icon" style="height:72px;">
+      <div class="logo-card-label">Icon Mark - Light BG</div>
+    </div>
+    <div class="logo-card" style="grid-column:1/-1;">
+      <img src="/tftclash-logo-horizontal.svg" alt="TFT Clash Horizontal" style="height:48px;max-width:300px;">
+      <div class="logo-card-label">Horizontal Lockup - Primary</div>
+    </div>
+    <div class="logo-card">
+      <img src="/tftclash-logo-stacked.svg" alt="TFT Clash Stacked" style="height:120px;">
+      <div class="logo-card-label">Stacked Lockup</div>
+    </div>
+    <div class="logo-card logo-card-light">
+      <img src="/tftclash-logo-light.svg" alt="TFT Clash Light" style="height:48px;max-width:300px;">
+      <div class="logo-card-label">Horizontal - Light BG</div>
+    </div>
+  </div>
+
+  <div class="usage-grid" style="margin-top:24px;">
+    <div class="usage-card usage-do">
+      <h4>Do</h4>
+      <ul>
+        <li>Use official assets from this media kit</li>
+        <li>Maintain minimum clear space around the mark</li>
+        <li>Use on solid dark or light backgrounds</li>
+        <li>Scale proportionally, never stretch</li>
+        <li>Prefer the horizontal lockup for inline use</li>
+      </ul>
+    </div>
+    <div class="usage-card usage-dont">
+      <h4>Don't</h4>
+      <ul>
+        <li>Alter colors, proportions, or element spacing</li>
+        <li>Place on busy, patterned, or low-contrast backgrounds</li>
+        <li>Add effects (shadows, outlines, glows, gradients)</li>
+        <li>Rotate, skew, or warp any logo element</li>
+        <li>Use the icon mark smaller than 24px in height</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="border-bottom:1px solid var(--outline-v);">
+  <div class="stag">10b - Color Palette</div>
+  <div class="stitle">Brand Colors</div>
+  <div class="ssub">Material Design 3 dark theme tokens. Primary Gold is the signature color across all touchpoints.</div>
+
+  <div class="color-grid">
+    <div class="color-card">
+      <div class="color-swatch" style="background:#ffc66b;"><span class="color-swatch-text" style="color:#432c00;">Aa</span></div>
+      <div class="color-info"><div class="color-name">Primary Gold</div><div class="color-hex">#FFC66B</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#e8a838;"><span class="color-swatch-text" style="color:#432c00;">Aa</span></div>
+      <div class="color-info"><div class="color-name">Primary Container</div><div class="color-hex">#E8A838</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#d9b9ff;"><span class="color-swatch-text" style="color:#2a0054;">Aa</span></div>
+      <div class="color-info"><div class="color-name">Secondary Purple</div><div class="color-hex">#D9B9FF</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#67e2d9;"><span class="color-swatch-text" style="color:#00201e;">Aa</span></div>
+      <div class="color-info"><div class="color-name">Tertiary Teal</div><div class="color-hex">#67E2D9</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#13131a;"><span class="color-swatch-text" style="color:#e4e1ec;">Aa</span></div>
+      <div class="color-info"><div class="color-name">Surface / BG</div><div class="color-hex">#13131A</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#1f1f27;"><span class="color-swatch-text" style="color:#e4e1ec;">Aa</span></div>
+      <div class="color-info"><div class="color-name">Surface Container</div><div class="color-hex">#1F1F27</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#e4e1ec;"><span class="color-swatch-text" style="color:#13131a;">Aa</span></div>
+      <div class="color-info"><div class="color-name">On Surface</div><div class="color-hex">#E4E1EC</div></div>
+    </div>
+    <div class="color-card">
+      <div class="color-swatch" style="background:#d5c4af;"><span class="color-swatch-text" style="color:#13131a;">Aa</span></div>
+      <div class="color-info"><div class="color-name">On Surface Variant</div><div class="color-hex">#D5C4AF</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="border-bottom:1px solid var(--outline-v);">
+  <div class="stag">10c - Typography</div>
+  <div class="stitle">Type System</div>
+  <div class="ssub">Four typefaces, each serving a distinct role in the visual hierarchy.</div>
+
+  <div class="type-showcase">
+    <div class="type-row">
+      <div class="type-label">Brand</div>
+      <div class="type-sample">
+        <div style="font-family:var(--f-brand);font-size:38px;font-style:italic;color:var(--on-surface);line-height:1.1;letter-spacing:-0.03em;"><span style="color:var(--primary);">TFT</span> CLASH</div>
+        <div class="type-meta">Russo One 400 italic - Logo text, hero branding, masthead</div>
+      </div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">Display</div>
+      <div class="type-sample">
+        <div style="font-family:var(--f-display);font-size:34px;font-weight:700;color:var(--on-surface);line-height:1.1;">Season Champion</div>
+        <div class="type-meta">Playfair Display 700 - Section headings, stat values, Hall of Fame entries</div>
+      </div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">Labels</div>
+      <div class="type-sample">
+        <div style="font-family:var(--f-label);font-size:14px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);">GRAND PRIX FINALS - SEASON 1 - WEEK 12</div>
+        <div class="type-meta">Barlow Condensed 700 - Section tags, nav items, badges, stats labels</div>
+      </div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">Body</div>
+      <div class="type-sample">
+        <div style="font-family:var(--f-body);font-size:14px;color:var(--on-surface-v);line-height:1.6;">Every feature was deliberately built to create a legitimate competitive environment at the grassroots level. Players who compete here are serious about the game and serious about their setups.</div>
+        <div class="type-meta">Inter 400/500 - Paragraphs, descriptions, UI copy</div>
+      </div>
+    </div>
+    <div class="type-row">
+      <div class="type-label">Data</div>
+      <div class="type-sample">
+        <div style="font-family:monospace;font-size:14px;color:var(--tertiary);">1st: 8pts | 2nd: 7pts | 3rd: 6pts | 4th: 5pts</div>
+        <div class="type-meta">System Monospace - Scores, placement codes, technical data</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="section">
-  <div class="stag">09 - Brand Voice</div>
+  <div class="stag">10d - Brand Voice</div>
   <div class="stitle">How We Sound</div>
   <div class="ssub">When referencing TFT Clash in co-branded content, match this tone.</div>
 
