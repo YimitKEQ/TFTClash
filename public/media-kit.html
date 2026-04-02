@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TFT Clash - Media Kit 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Barlow+Condensed:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Barlow+Condensed:wght@400;600;700;800&family=Russo+One&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
     --primary:#ffc66b;--primary-dim:#e8a838;--on-primary:#432c00;
+    --primary-container:rgba(255,198,107,0.12);
     --secondary:#d9b9ff;--secondary-container:#5c348d;
     --tertiary:#67e2d9;--tertiary-container:#45c6bd;
     --surface:#13131a;--surface-c:#1f1f27;--surface-ch:#2a2931;--surface-cl:#1b1b23;
@@ -16,126 +18,140 @@
     --outline-v:rgba(255,255,255,0.08);
     --error:#ffb4ab;--success:#67e2d9;
     --f-display:'Playfair Display',Georgia,serif;
+    --f-brand:'Russo One',sans-serif;
     --f-label:'Barlow Condensed','Arial Narrow',sans-serif;
     --f-body:'Inter',system-ui,sans-serif;
+    --radius:12px;
+    --radius-lg:16px;
+    --radius-xl:20px;
   }
   html{font-size:16px;-webkit-font-smoothing:antialiased;}
   body{background:var(--surface);color:var(--on-surface);font-family:var(--f-body);line-height:1.6;}
   a{color:var(--primary);text-decoration:none;}
   img{max-width:100%;height:auto;display:block;}
-  .page{max-width:900px;margin:0 auto;padding:0 32px;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle;}
+  .page{max-width:920px;margin:0 auto;padding:0 32px;}
+
+  /* ── TOOLBAR ── */
+  .toolbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--surface-ch);border-bottom:1px solid var(--outline-v);padding:10px 24px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);}
+  .toolbar-brand{font-family:var(--f-brand);font-size:14px;color:var(--primary);letter-spacing:-0.02em;}
+  .toolbar-actions{display:flex;gap:8px;}
+  .toolbar-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:8px;font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;border:none;cursor:pointer;transition:all 0.15s;}
+  .toolbar-btn-primary{background:var(--primary);color:var(--on-primary);}
+  .toolbar-btn-primary:hover{opacity:0.88;}
+  .toolbar-btn-outline{background:transparent;color:var(--on-surface);border:1px solid var(--outline-v);}
+  .toolbar-btn-outline:hover{border-color:rgba(255,198,107,0.3);}
 
   /* ── COVER ── */
-  .cover{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:60px 32px;}
-  .cover::before{content:'';position:absolute;top:50%;left:50%;width:900px;height:900px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,198,107,0.07)0%,rgba(103,226,217,0.03)40%,transparent 70%);pointer-events:none;}
-  .cover::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.03)1px,transparent 0);background-size:40px 40px;pointer-events:none;}
-  .cover-logo{width:100px;margin-bottom:32px;position:relative;z-index:1;filter:drop-shadow(0 0 40px rgba(255,198,107,0.2));}
-  .cover-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,198,107,0.08);border:1px solid rgba(255,198,107,0.15);border-radius:100px;padding:8px 20px;font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:40px;position:relative;z-index:1;}
-  .cover-title{font-family:var(--f-display);font-size:clamp(48px,8vw,80px);font-weight:900;line-height:1.05;color:var(--on-surface);margin-bottom:16px;position:relative;z-index:1;}
+  .cover{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:80px 32px 60px;}
+  .cover::before{content:'';position:absolute;top:50%;left:50%;width:800px;height:800px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,198,107,0.06)0%,rgba(103,226,217,0.02)40%,transparent 70%);pointer-events:none;}
+  .cover::after{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,0.025)1px,transparent 0);background-size:40px 40px;pointer-events:none;}
+  .cover-logo{width:96px;margin-bottom:28px;position:relative;z-index:1;filter:drop-shadow(0 0 32px rgba(255,198,107,0.15));}
+  .cover-badge{display:inline-flex;align-items:center;gap:8px;background:var(--primary-container);border:1px solid rgba(255,198,107,0.15);border-radius:100px;padding:8px 20px;font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:36px;position:relative;z-index:1;}
+  .cover-title{font-family:var(--f-brand);font-size:clamp(52px,9vw,88px);font-weight:400;font-style:italic;line-height:1.05;color:var(--on-surface);margin-bottom:16px;position:relative;z-index:1;letter-spacing:-0.03em;}
   .cover-title span{color:var(--primary);}
-  .cover-sub{font-family:var(--f-label);font-size:18px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);margin-bottom:48px;position:relative;z-index:1;}
-  .cover-meta{font-family:var(--f-label);font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(228,225,236,0.4);position:relative;z-index:1;}
-  .cover-divider{width:60px;height:2px;background:linear-gradient(90deg,var(--primary),var(--tertiary));margin:32px auto;position:relative;z-index:1;}
+  .cover-sub{font-family:var(--f-label);font-size:17px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);margin-bottom:48px;position:relative;z-index:1;}
+  .cover-divider{width:60px;height:2px;background:linear-gradient(90deg,var(--primary),var(--tertiary));margin:28px auto;position:relative;z-index:1;}
+  .cover-meta{font-family:var(--f-label);font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(228,225,236,0.35);position:relative;z-index:1;}
 
   /* ── SECTIONS ── */
-  .section{padding:80px 0;border-bottom:1px solid var(--outline-v);}
+  .section{padding:72px 0;border-bottom:1px solid var(--outline-v);}
   .section:last-child{border-bottom:none;}
   .stag{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:12px;}
-  .stitle{font-family:var(--f-display);font-size:32px;font-weight:700;color:var(--on-surface);margin-bottom:8px;}
-  .ssub{color:var(--on-surface-v);font-size:15px;margin-bottom:32px;max-width:600px;}
+  .stitle{font-family:var(--f-display);font-size:30px;font-weight:700;color:var(--on-surface);margin-bottom:6px;line-height:1.2;}
+  .ssub{color:var(--on-surface-v);font-size:14px;margin-bottom:28px;max-width:600px;line-height:1.6;}
+
+  /* ── CARDS (Sponsors page style) ── */
+  .card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px;transition:border-color 0.15s;}
+  .card-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:10px;}
+  .card-title{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--on-surface);margin-bottom:6px;}
+  .card-body{font-size:13px;color:var(--on-surface-v);line-height:1.6;}
 
   /* ── STATS ── */
-  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;}
-  .stat-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:16px;padding:28px 16px;text-align:center;position:relative;overflow:hidden;}
-  .stat-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:2px;background:linear-gradient(90deg,transparent,var(--primary),transparent);}
-  .stat-value{font-family:var(--f-display);font-size:40px;font-weight:900;color:var(--primary);line-height:1;margin-bottom:8px;}
-  .stat-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--on-surface-v);}
-  .stat-sub{font-family:var(--f-body);font-size:10px;color:rgba(228,225,236,0.35);margin-top:6px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px;}
+  .stat-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px 16px;text-align:center;}
+  .stat-icon{width:36px;height:36px;border-radius:50%;background:var(--primary-container);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+  .stat-icon .material-symbols-outlined{font-size:18px;color:var(--primary);}
+  .stat-value{font-family:var(--f-display);font-size:36px;font-weight:700;color:var(--primary);line-height:1;margin-bottom:6px;}
+  .stat-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--on-surface-v);}
+  .stat-sub{font-size:10px;color:rgba(228,225,236,0.3);margin-top:4px;}
+
+  /* ── AUDIENCE ── */
+  .audience-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .audience-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden;}
+  .audience-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--primary);}
+  .audience-card h4{font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--primary);margin-bottom:10px;}
+  .audience-card p{font-size:13px;color:var(--on-surface-v);line-height:1.7;}
+  .audience-full{grid-column:1/-1;}
+
+  /* ── ECOSYSTEM ── */
+  .eco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px;}
+  .eco-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:24px;text-align:center;}
+  .eco-value{font-family:var(--f-display);font-size:28px;font-weight:700;color:var(--primary);margin-bottom:4px;}
+  .eco-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);margin-bottom:6px;}
+  .eco-desc{font-size:11px;color:rgba(228,225,236,0.35);line-height:1.5;}
 
   /* ── LOGO GRID ── */
-  .logo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-top:24px;}
-  .logo-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:16px;padding:36px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;}
-  .logo-card img,.logo-card object{height:64px;width:auto;max-width:180px;object-fit:contain;}
+  .logo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px;}
+  .logo-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);padding:32px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;}
+  .logo-card img{height:64px;width:auto;max-width:180px;object-fit:contain;}
   .logo-card-light{background:#f0eef5;border-color:#d0cdd8;}
-  .logo-card-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--on-surface-v);}
+  .logo-card-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--on-surface-v);}
   .logo-card-light .logo-card-label{color:#555;}
 
   /* ── COLORS ── */
-  .color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-top:24px;}
-  .color-card{border-radius:12px;overflow:hidden;border:1px solid var(--outline-v);}
-  .color-swatch{height:80px;display:flex;align-items:center;justify-content:center;}
+  .color-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:20px;}
+  .color-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--outline-v);}
+  .color-swatch{height:72px;display:flex;align-items:center;justify-content:center;}
   .color-swatch-text{font-family:var(--f-label);font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;}
-  .color-info{background:var(--surface-c);padding:12px 16px;}
-  .color-name{font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
-  .color-hex{font-family:monospace;font-size:13px;color:var(--on-surface-v);}
+  .color-info{background:var(--surface-c);padding:10px 14px;}
+  .color-name{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--on-surface);margin-bottom:2px;}
+  .color-hex{font-family:monospace;font-size:12px;color:var(--on-surface-v);}
 
   /* ── TYPOGRAPHY ── */
-  .type-showcase{display:flex;flex-direction:column;gap:24px;margin-top:24px;}
-  .type-row{background:var(--surface-c);border-radius:12px;border:1px solid var(--outline-v);padding:24px;display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;}
-  .type-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);width:120px;flex-shrink:0;}
+  .type-showcase{display:flex;flex-direction:column;gap:16px;margin-top:20px;}
+  .type-row{background:var(--surface-c);border-radius:var(--radius);border:1px solid var(--outline-v);padding:20px;display:flex;align-items:baseline;gap:20px;flex-wrap:wrap;}
+  .type-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);width:100px;flex-shrink:0;}
   .type-sample{flex:1;min-width:200px;}
-  .type-meta{font-family:monospace;font-size:11px;color:var(--on-surface-v);margin-top:8px;}
-
-  /* ── AUDIENCE SECTION ── */
-  .audience-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;}
-  .audience-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:16px;padding:28px;position:relative;overflow:hidden;}
-  .audience-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--primary);}
-  .audience-card h4{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--primary);margin-bottom:12px;}
-  .audience-card p{font-size:13px;color:var(--on-surface-v);line-height:1.6;}
-  .audience-full{grid-column:1/-1;}
-
-  /* ── ENDORSEMENTS ── */
-  .endorsement-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;}
-  .endorsement-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:12px;padding:20px;text-align:center;}
-  .endorsement-name{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
-  .endorsement-role{font-size:11px;color:var(--on-surface-v);}
-  .endorsement-icon{font-size:28px;margin-bottom:8px;}
+  .type-meta{font-family:monospace;font-size:11px;color:var(--on-surface-v);margin-top:6px;}
 
   /* ── PLACEMENTS ── */
-  .placement-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;}
-  .placement-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:12px;overflow:hidden;}
-  .placement-mockup{height:160px;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--outline-v);overflow:hidden;background:var(--surface-cl);}
-  .placement-info{padding:16px 20px;}
-  .placement-title{font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
-  .placement-desc{font-size:13px;color:var(--on-surface-v);line-height:1.5;}
+  .placement-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .placement-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:var(--radius-lg);overflow:hidden;}
+  .placement-mockup{height:148px;display:flex;align-items:center;justify-content:center;position:relative;border-bottom:1px solid var(--outline-v);overflow:hidden;background:var(--surface-cl);}
+  .placement-info{padding:14px 18px;}
+  .placement-title{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface);margin-bottom:4px;}
+  .placement-desc{font-size:12px;color:var(--on-surface-v);line-height:1.5;}
 
   /* ── TIER TABLE ── */
-  .tier-table{width:100%;border-collapse:collapse;margin-top:24px;font-size:14px;}
-  .tier-table th{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;text-align:left;padding:12px 16px;border-bottom:2px solid var(--primary);color:var(--primary);}
-  .tier-table td{padding:10px 16px;border-bottom:1px solid var(--outline-v);color:var(--on-surface-v);vertical-align:top;}
+  .tier-table{width:100%;border-collapse:collapse;margin-top:20px;font-size:13px;}
+  .tier-table th{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;text-align:left;padding:10px 14px;border-bottom:2px solid var(--primary);color:var(--primary);}
+  .tier-table td{padding:9px 14px;border-bottom:1px solid var(--outline-v);color:var(--on-surface-v);vertical-align:top;}
   .tier-table tr:last-child td{border-bottom:none;}
-  .tier-table tr:hover td{background:rgba(255,255,255,0.02);}
+  .tier-table tr:hover td{background:rgba(255,255,255,0.015);}
   .check{color:var(--primary);font-weight:700;}
   .check-t{color:var(--tertiary);font-weight:700;}
 
   /* ── USAGE ── */
-  .usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;}
-  .usage-card{background:var(--surface-c);border-radius:12px;border:1px solid var(--outline-v);padding:24px;}
-  .usage-card h4{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:16px;}
+  .usage-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+  .usage-card{background:var(--surface-c);border-radius:var(--radius);border:1px solid var(--outline-v);padding:20px;}
+  .usage-card h4{font-family:var(--f-label);font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:14px;}
   .usage-do h4{color:var(--success);}
   .usage-dont h4{color:var(--error);}
-  .usage-card ul{list-style:none;display:flex;flex-direction:column;gap:8px;}
+  .usage-card ul{list-style:none;display:flex;flex-direction:column;gap:7px;}
   .usage-card li{font-size:13px;color:var(--on-surface-v);padding-left:20px;position:relative;line-height:1.5;}
   .usage-do li::before{content:'\2713';position:absolute;left:0;color:var(--success);font-weight:700;}
   .usage-dont li::before{content:'\2717';position:absolute;left:0;color:var(--error);font-weight:700;}
 
-  /* ── ECOSYSTEM ── */
-  .eco-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px;}
-  .eco-card{background:var(--surface-c);border:1px solid var(--outline-v);border-radius:12px;padding:24px;text-align:center;}
-  .eco-value{font-family:var(--f-display);font-size:28px;font-weight:900;color:var(--primary);margin-bottom:4px;}
-  .eco-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--on-surface-v);margin-bottom:8px;}
-  .eco-desc{font-size:11px;color:rgba(228,225,236,0.4);line-height:1.5;}
+  /* ── TAGS ── */
+  .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .tag{background:var(--primary-container);border:1px solid rgba(255,198,107,0.15);border-radius:6px;padding:5px 14px;font-family:var(--f-label);font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--primary);}
 
-  /* ── CONTACT ── */
-  .contact-block{background:linear-gradient(135deg,var(--surface-c),var(--surface-ch));border:1px solid rgba(255,198,107,0.15);border-radius:20px;padding:56px 48px;text-align:center;margin-top:48px;position:relative;overflow:hidden;}
-  .contact-block::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 80%,rgba(255,198,107,0.04),transparent 50%);pointer-events:none;}
-  .contact-block h2{font-family:var(--f-display);font-size:32px;font-weight:700;margin-bottom:8px;position:relative;}
-  .contact-block p{color:var(--on-surface-v);margin-bottom:28px;max-width:500px;margin-left:auto;margin-right:auto;position:relative;}
-  .contact-links{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;}
-  .contact-link{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;transition:all 0.2s;}
-  .contact-link:hover{opacity:0.85;transform:translateY(-1px);}
-  .cl-primary{background:var(--primary);color:var(--on-primary);box-shadow:0 4px 20px rgba(255,198,107,0.2);}
-  .cl-outline{background:transparent;color:var(--on-surface);border:1px solid var(--outline-v);}
+  /* ── ENDORSEMENTS ── */
+  .endorsement-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px;}
+  .endorsement-card{background:var(--surface-cl);border-radius:8px;padding:14px;text-align:center;}
+  .endorsement-name{font-family:var(--f-label);font-size:13px;font-weight:700;letter-spacing:0.06em;color:var(--on-surface);margin-bottom:2px;}
+  .endorsement-role{font-size:10px;color:var(--on-surface-v);}
 
   /* ── MOCKUP PIECES ── */
   .mock-navbar{background:var(--surface-cl);border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:12px;font-size:10px;font-family:var(--f-label);letter-spacing:0.1em;text-transform:uppercase;color:rgba(228,225,236,0.5);width:80%;}
@@ -152,37 +168,98 @@
   .mock-hof-label{font-family:var(--f-label);font-size:8px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--primary);}
   .mock-hof-name{font-family:var(--f-label);font-size:7px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(228,225,236,0.4);margin-top:2px;}
 
-  .kit-footer{padding:40px 0;text-align:center;font-family:var(--f-label);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(228,225,236,0.3);}
+  /* ── CONTACT ── */
+  .contact-block{background:var(--surface-c);border:1px solid rgba(255,198,107,0.12);border-radius:var(--radius-xl);padding:48px 40px;text-align:center;margin-top:40px;position:relative;overflow:hidden;}
+  .contact-block::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 80%,rgba(255,198,107,0.03),transparent 50%);pointer-events:none;}
+  .contact-icon{width:48px;height:48px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;position:relative;}
+  .contact-icon .material-symbols-outlined{font-size:22px;color:var(--on-primary);}
+  .contact-block h2{font-family:var(--f-display);font-size:28px;font-weight:700;margin-bottom:8px;position:relative;}
+  .contact-block p{color:var(--on-surface-v);margin-bottom:24px;max-width:460px;margin-left:auto;margin-right:auto;position:relative;font-size:14px;line-height:1.6;}
+  .contact-links{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;position:relative;}
+  .contact-link{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border-radius:var(--radius);font-family:var(--f-label);font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;transition:all 0.15s;}
+  .contact-link:hover{opacity:0.85;}
+  .cl-primary{background:var(--primary);color:var(--on-primary);}
+  .cl-outline{background:transparent;color:var(--on-surface);border:1px solid var(--outline-v);}
 
-  /* ── TAGS ── */
-  .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
-  .tag{background:rgba(255,198,107,0.08);border:1px solid rgba(255,198,107,0.15);border-radius:6px;padding:6px 14px;font-family:var(--f-label);font-size:12px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--primary);}
+  .kit-footer{padding:36px 0;text-align:center;font-family:var(--f-label);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(228,225,236,0.25);}
+
+  /* ── CALLOUT BOX ── */
+  .callout{margin-top:20px;padding:20px 24px;border-radius:var(--radius);background:rgba(255,198,107,0.06);border:1px solid rgba(255,198,107,0.12);}
+  .callout-label{font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:8px;}
+  .callout-body{font-size:13px;color:var(--on-surface-v);line-height:1.6;}
 
   /* ── PRINT ── */
   @media print{
-    body{background:#fff;color:#111;}
-    .cover{min-height:auto;page-break-after:always;padding:120px 32px;}
+    .toolbar{display:none!important;}
+    body{background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .cover{min-height:auto;page-break-after:always;padding:100px 32px 80px;background:#fff;}
     .cover::before,.cover::after{display:none;}
-    .section{page-break-inside:avoid;}
-    .cover-title span,.stag,.stat-value,.check{color:#805600;}
+    .cover-title{color:#1a1a1a;}
+    .cover-title span{color:#805600;}
+    .cover-sub,.cover-meta{color:#666;}
+    .cover-badge{background:rgba(128,86,0,0.08);border-color:rgba(128,86,0,0.2);color:#805600;}
+    .section{page-break-inside:avoid;padding:40px 0;}
+    .stag,.card-label,.check,.stat-value,.eco-value{color:#805600!important;}
+    .stitle,.contact-block h2{color:#1a1a1a!important;}
+    .ssub,.card-body,.audience-card p,.placement-desc,.callout-body{color:#444!important;}
+    .card,.stat-card,.audience-card,.eco-card,.logo-card,.placement-card,.usage-card,.type-row,.contact-block,.callout{border-color:#ddd!important;background:#f8f8f8!important;}
+    .logo-card-light{background:#f0eef5!important;}
+    .color-info{background:#f4f4f4!important;}
+    .stat-icon{background:rgba(128,86,0,0.08)!important;}
+    .stat-icon .material-symbols-outlined{color:#805600!important;}
+    .contact-icon{background:#805600!important;}
+    a{color:#805600;}
+    .placement-mockup{background:#eee!important;}
+    .tier-table th{border-bottom-color:#805600!important;color:#805600!important;}
+    .tier-table td{border-bottom-color:#ddd!important;color:#444!important;}
+    .check-t{color:#00897b!important;}
+    .audience-card::before{background:#805600!important;}
+    .tag{background:rgba(128,86,0,0.06)!important;border-color:rgba(128,86,0,0.15)!important;color:#805600!important;}
+    .usage-do h4{color:#00897b!important;}
+    .usage-dont h4{color:#c62828!important;}
+    .usage-do li::before{color:#00897b!important;}
+    .usage-dont li::before{color:#c62828!important;}
+    .stat-grid,.audience-grid,.eco-grid,.logo-grid,.placement-grid,.usage-grid{page-break-inside:avoid;}
   }
+
   @media(max-width:640px){
+    .toolbar{padding:8px 16px;}
+    .toolbar-btn span.btn-label{display:none;}
     .stat-grid{grid-template-columns:repeat(2,1fr);}
     .placement-grid,.usage-grid,.audience-grid{grid-template-columns:1fr;}
-    .eco-grid,.endorsement-grid{grid-template-columns:1fr;}
-    .type-row{flex-direction:column;gap:8px;}
+    .eco-grid{grid-template-columns:1fr;}
+    .type-row{flex-direction:column;gap:6px;}
     .type-label{width:auto;}
     .audience-full{grid-column:auto;}
+    .endorsement-grid{grid-template-columns:repeat(2,1fr);}
   }
 </style>
 </head>
 <body>
 
+<!-- ═══════════════ TOOLBAR ═══════════════ -->
+<div class="toolbar">
+  <div class="toolbar-brand">TFT CLASH</div>
+  <div class="toolbar-actions">
+    <button class="toolbar-btn toolbar-btn-outline" onclick="var a=document.createElement('a');a.href=window.location.href;a.download='TFT-Clash-Media-Kit-2026.html';a.click();">
+      <span class="material-symbols-outlined" style="font-size:16px;">download</span>
+      <span class="btn-label">Save HTML</span>
+    </button>
+    <button class="toolbar-btn toolbar-btn-primary" onclick="window.print();">
+      <span class="material-symbols-outlined" style="font-size:16px;">picture_as_pdf</span>
+      <span class="btn-label">Save as PDF</span>
+    </button>
+  </div>
+</div>
+
 <!-- ═══════════════ COVER ═══════════════ -->
 <div class="cover">
   <img src="/tftclash-icon.svg" alt="TFT Clash" class="cover-logo">
-  <div class="cover-badge">&#9733; Media Kit 2026</div>
-  <h1 class="cover-title"><span>TFT</span> Clash</h1>
+  <div class="cover-badge">
+    <span class="material-symbols-outlined" style="font-size:14px;">star</span>
+    Media Kit 2026
+  </div>
+  <h1 class="cover-title"><span>TFT</span> CLASH</h1>
   <p class="cover-sub">Brand Guidelines, Audience Data, and Partnership Assets</p>
   <div class="cover-divider"></div>
   <p class="cover-meta">The Competitive Teamfight Tactics Tournament Platform</p>
@@ -194,31 +271,45 @@
 <div class="section">
   <div class="stag">01 - Platform Overview</div>
   <div class="stitle">The Grassroots Esports Engine for TFT</div>
-  <div class="ssub" style="margin-bottom:24px;">
+  <div class="ssub">
     TFT Clash is the largest independent competitive tournament platform for Teamfight Tactics.
     Purpose-built infrastructure for the layer between ranked solo queue and the professional circuit.
   </div>
 
   <div class="stat-grid">
     <div class="stat-card">
+      <div class="stat-icon"><span class="material-symbols-outlined">group</span></div>
       <div class="stat-value">2,400+</div>
       <div class="stat-label">Registered Players</div>
       <div class="stat-sub">Across 40+ countries</div>
     </div>
     <div class="stat-card">
+      <div class="stat-icon"><span class="material-symbols-outlined">trending_up</span></div>
       <div class="stat-value">180+</div>
       <div class="stat-label">Weekly Active</div>
       <div class="stat-sub">Avg. tournament participation</div>
     </div>
     <div class="stat-card">
+      <div class="stat-icon"><span class="material-symbols-outlined">emoji_events</span></div>
       <div class="stat-value">850+</div>
       <div class="stat-label">Tournaments Hosted</div>
       <div class="stat-sub">Since platform launch</div>
     </div>
     <div class="stat-card">
+      <div class="stat-icon"><span class="material-symbols-outlined">autorenew</span></div>
       <div class="stat-value">94%</div>
       <div class="stat-label">Return Rate</div>
       <div class="stat-sub">Players competing 3+ weeks</div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-label">Why Now</div>
+    <div class="callout-body">
+      TFT is in its strongest competitive moment. The Esports World Cup 2026 TFT prize pool reached $500,000.
+      The Las Vegas Open returns end of 2026 as the biggest open-bracket event on the global TFT calendar.
+      TFT Clash is building the grassroots foundation of this growing scene, and the brands that show up early
+      are the ones players remember.
     </div>
   </div>
 </div>
@@ -283,34 +374,32 @@
     </div>
   </div>
 
-  <div style="margin-top:24px;background:var(--surface-c);border-radius:12px;border:1px solid var(--outline-v);padding:24px;">
-    <div style="font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:12px;">
-      Notable Players in Our Network
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
-      <div style="background:var(--surface-cl);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-family:var(--f-label);font-size:13px;font-weight:700;color:var(--on-surface);letter-spacing:0.05em;">Broseph</div>
-        <div style="font-size:10px;color:var(--on-surface-v);">Pro Player / Streamer</div>
+  <div class="card" style="margin-top:16px;">
+    <div class="card-label">Notable Players in Our Network</div>
+    <div class="endorsement-grid">
+      <div class="endorsement-card">
+        <div class="endorsement-name">Broseph</div>
+        <div class="endorsement-role">Pro Player / Streamer</div>
       </div>
-      <div style="background:var(--surface-cl);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-family:var(--f-label);font-size:13px;font-weight:700;color:var(--on-surface);letter-spacing:0.05em;">Dehua</div>
-        <div style="font-size:10px;color:var(--on-surface-v);">Competitive Player</div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Dehua</div>
+        <div class="endorsement-role">Competitive Player</div>
       </div>
-      <div style="background:var(--surface-cl);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-family:var(--f-label);font-size:13px;font-weight:700;color:var(--on-surface);letter-spacing:0.05em;">k3soju</div>
-        <div style="font-size:10px;color:var(--on-surface-v);">Top Challenger / Creator</div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">k3soju</div>
+        <div class="endorsement-role">Top Challenger / Creator</div>
       </div>
-      <div style="background:var(--surface-cl);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-family:var(--f-label);font-size:13px;font-weight:700;color:var(--on-surface);letter-spacing:0.05em;">Setsuko</div>
-        <div style="font-size:10px;color:var(--on-surface-v);">Community Figure</div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Setsuko</div>
+        <div class="endorsement-role">Community Figure</div>
       </div>
-      <div style="background:var(--surface-cl);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-family:var(--f-label);font-size:13px;font-weight:700;color:var(--on-surface);letter-spacing:0.05em;">Mortdog</div>
-        <div style="font-size:10px;color:var(--on-surface-v);">TFT Lead Designer</div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Mortdog</div>
+        <div class="endorsement-role">TFT Lead Designer</div>
       </div>
-      <div style="background:var(--surface-cl);border-radius:8px;padding:12px;text-align:center;">
-        <div style="font-family:var(--f-label);font-size:13px;font-weight:700;color:var(--on-surface);letter-spacing:0.05em;">Frodan</div>
-        <div style="font-size:10px;color:var(--on-surface-v);">Esports Host / Caster</div>
+      <div class="endorsement-card">
+        <div class="endorsement-name">Frodan</div>
+        <div class="endorsement-role">Esports Host / Caster</div>
       </div>
     </div>
   </div>
@@ -348,7 +437,7 @@
     </div>
   </div>
 
-  <div class="usage-grid" style="margin-top:32px;">
+  <div class="usage-grid" style="margin-top:24px;">
     <div class="usage-card usage-do">
       <h4>Do</h4>
       <ul>
@@ -418,14 +507,21 @@
 <div class="section">
   <div class="stag">06 - Typography</div>
   <div class="stitle">Type System</div>
-  <div class="ssub">Three typefaces, each serving a distinct role in the visual hierarchy.</div>
+  <div class="ssub">Four typefaces, each serving a distinct role in the visual hierarchy.</div>
 
   <div class="type-showcase">
     <div class="type-row">
+      <div class="type-label">Brand</div>
+      <div class="type-sample">
+        <div style="font-family:var(--f-brand);font-size:38px;font-style:italic;color:var(--on-surface);line-height:1.1;letter-spacing:-0.03em;"><span style="color:var(--primary);">TFT</span> CLASH</div>
+        <div class="type-meta">Russo One 400 italic - Logo text, hero branding, masthead</div>
+      </div>
+    </div>
+    <div class="type-row">
       <div class="type-label">Display</div>
       <div class="type-sample">
-        <div style="font-family:var(--f-display);font-size:36px;font-weight:900;color:var(--on-surface);line-height:1.1;">Season Champion</div>
-        <div class="type-meta">Playfair Display 900 - Headings, hero text, Hall of Fame entries</div>
+        <div style="font-family:var(--f-display);font-size:34px;font-weight:700;color:var(--on-surface);line-height:1.1;">Season Champion</div>
+        <div class="type-meta">Playfair Display 700 - Section headings, stat values, Hall of Fame entries</div>
       </div>
     </div>
     <div class="type-row">
@@ -438,7 +534,7 @@
     <div class="type-row">
       <div class="type-label">Body</div>
       <div class="type-sample">
-        <div style="font-family:var(--f-body);font-size:15px;color:var(--on-surface-v);line-height:1.6;">Every feature was deliberately built to create a legitimate competitive environment at the grassroots level. Players who compete here are serious about the game and serious about their setups.</div>
+        <div style="font-family:var(--f-body);font-size:14px;color:var(--on-surface-v);line-height:1.6;">Every feature was deliberately built to create a legitimate competitive environment at the grassroots level. Players who compete here are serious about the game and serious about their setups.</div>
         <div class="type-meta">Inter 400/500 - Paragraphs, descriptions, UI copy</div>
       </div>
     </div>
@@ -580,8 +676,8 @@
     </div>
   </div>
 
-  <div style="margin-top:24px;background:var(--surface-c);border-radius:12px;border:1px solid var(--outline-v);padding:24px;">
-    <div style="font-family:var(--f-label);font-size:10px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--primary);margin-bottom:12px;">Key Phrases</div>
+  <div class="card" style="margin-top:16px;">
+    <div class="card-label">Key Phrases</div>
     <div class="tag-row">
       <span class="tag">Free to compete, always</span>
       <span class="tag">Elite Competition</span>
@@ -595,16 +691,29 @@
 <!-- ═══════════════ CONTACT ═══════════════ -->
 <div class="section" style="border-bottom:none;">
   <div class="contact-block">
+    <div class="contact-icon"><span class="material-symbols-outlined">handshake</span></div>
     <h2>Ready to Partner?</h2>
     <p>
       The grassroots tier is where brand loyalty is built. Players remember who showed up
       before they went pro. Let us build something that works for both sides.
     </p>
     <div class="contact-links">
-      <a href="mailto:contact@tftclash.gg" class="contact-link cl-primary">&#9993; Email Us</a>
-      <a href="https://twitter.com/sebastianlives_" target="_blank" rel="noopener noreferrer" class="contact-link cl-outline">&#8599; Twitter / X</a>
-      <a href="https://discord.gg/tftclash" target="_blank" rel="noopener noreferrer" class="contact-link cl-outline">&#128172; Discord</a>
+      <a href="mailto:contact@tftclash.gg" class="contact-link cl-primary">
+        <span class="material-symbols-outlined" style="font-size:16px;">mail</span>
+        Email Us
+      </a>
+      <a href="https://twitter.com/tftclash" target="_blank" rel="noopener noreferrer" class="contact-link cl-outline">
+        <span class="material-symbols-outlined" style="font-size:16px;">open_in_new</span>
+        Twitter / X
+      </a>
+      <a href="https://discord.gg/tftclash" target="_blank" rel="noopener noreferrer" class="contact-link cl-outline">
+        <span class="material-symbols-outlined" style="font-size:16px;">forum</span>
+        Discord
+      </a>
     </div>
+    <p style="font-size:12px;color:rgba(228,225,236,0.35);margin-top:20px;margin-bottom:0;font-family:var(--f-label);letter-spacing:0.12em;">
+      We respond to all partnership enquiries within 48 hours.
+    </p>
   </div>
 </div>
 
