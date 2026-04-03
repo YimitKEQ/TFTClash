@@ -135,6 +135,10 @@ function BracketScreen(){
   var showFinalizeConfirm=_showFinalizeConfirm[0];
   var setShowFinalizeConfirm=_showFinalizeConfirm[1];
 
+  var _viewingRound=useState(null);
+  var viewingRound=_viewingRound[0];
+  var setViewingRound=_viewingRound[1];
+
   var _autoAdvanceCountdown=useState(null);
   var autoAdvanceCountdown=_autoAdvanceCountdown[0];
   var setAutoAdvanceCountdown=_autoAdvanceCountdown[1];
@@ -831,7 +835,9 @@ function BracketScreen(){
                     var isComplete=r<round;
                     var isCurrent=r===round;
                     return(
-                      <div key={r} className={"flex items-center gap-3 px-3 py-2.5 rounded-sm border " + (isComplete?"bg-tertiary/5 border-tertiary/20":isCurrent?"bg-primary/8 border-primary/30":"bg-surface-container-lowest/50 border-outline-variant/8")}>
+                      <div key={r}
+                        onClick={isComplete?function(){setViewingRound(viewingRound===r?null:r);}:undefined}
+                        className={"flex items-center gap-3 px-3 py-2.5 rounded-sm border transition-colors " + (isComplete?"bg-tertiary/5 border-tertiary/20 cursor-pointer hover:bg-tertiary/10":isCurrent?"bg-primary/8 border-primary/30":"bg-surface-container-lowest/50 border-outline-variant/8")}>
                         <div className={"w-6 h-6 rounded-sm flex items-center justify-center flex-shrink-0 " + (isComplete?"bg-tertiary/20":isCurrent?"bg-primary/20":"bg-surface-container-high")}>
                           {isComplete
                             ? <Icon name="check" size={14} className="text-tertiary" />
@@ -845,13 +851,55 @@ function BracketScreen(){
                             {"Round " + r}
                           </div>
                         </div>
-                        <div className={"text-[10px] font-mono font-bold " + (isComplete?"text-tertiary":isCurrent?"text-primary":"text-on-surface-variant/30")}>
+                        <div className={"text-[10px] font-mono font-bold flex items-center gap-1 " + (isComplete?"text-tertiary":isCurrent?"text-primary":"text-on-surface-variant/30")}>
                           {isComplete?"Done":isCurrent?"Active":"Soon"}
+                          {isComplete&&<Icon name={viewingRound===r?"expand_less":"expand_more"} size={14} className="text-tertiary/60" />}
                         </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* Past round results panel */}
+                {viewingRound!==null&&tournamentState.lockedPlacements&&(function(){
+                  var pastPlacements=tournamentState.lockedPlacements;
+                  var roundResults=[];
+                  lobbies.forEach(function(lobby,li){
+                    if(!pastPlacements[li])return;
+                    lobby.forEach(function(p){
+                      var place=pastPlacements[li][String(p.id)]||pastPlacements[li][p.id];
+                      if(place){
+                        roundResults.push({name:p.name||p.username,rank:p.rank,placement:place,pts:PTS[place]||0,lobbyIdx:li});
+                      }
+                    });
+                  });
+                  roundResults.sort(function(a,b){return a.placement-b.placement;});
+                  if(roundResults.length===0)return null;
+                  return(
+                    <div className="mt-3 bg-surface-container-lowest rounded-sm border border-tertiary/15 overflow-hidden">
+                      <div className="px-4 py-2.5 border-b border-tertiary/10 flex items-center justify-between">
+                        <span className="font-nav text-xs font-bold uppercase tracking-widest text-tertiary">{"Round " + viewingRound + " Results"}</span>
+                        <button onClick={function(){setViewingRound(null);}} className="text-on-surface-variant/40 hover:text-on-surface bg-transparent border-0 cursor-pointer">
+                          <Icon name="close" size={14} />
+                        </button>
+                      </div>
+                      <div className="divide-y divide-outline-variant/5 max-h-[300px] overflow-y-auto">
+                        {roundResults.map(function(r,ri){
+                          return(
+                            <div key={r.name+ri} className="flex items-center gap-3 px-4 py-1.5">
+                              <span className={"font-mono text-xs font-bold min-w-[20px] text-center " + (r.placement===1?"text-primary":r.placement<=3?"text-tertiary":"text-on-surface-variant/40")}>
+                                {"#"+r.placement}
+                              </span>
+                              <span className="flex-1 text-sm text-on-surface truncate">{r.name}</span>
+                              <span className="text-[10px] text-on-surface-variant/40 font-nav">{r.rank}</span>
+                              <span className="font-mono text-xs font-bold text-tertiary">{"+"+r.pts}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Admin quick actions */}

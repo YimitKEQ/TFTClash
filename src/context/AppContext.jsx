@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { supabase } from '../lib/supabase.js';
 import { DEFAULT_SEASON_CONFIG, setSeasonChampion, SEED, PAST_CLASHES } from '../lib/constants.js';
 import { getUserTier } from '../lib/tiers.js';
+import { isSimulation, buildSimulationState } from '../lib/simulation.js';
 
 var AppContext = createContext(null);
 
@@ -222,6 +223,7 @@ export function AppProvider(props) {
 
   // ── Load players from normalized players table (primary source of truth) ──
   function loadPlayersFromTable(){
+    if(isSimulation())return; // Simulation injects its own players
     if(!supabase.from)return;
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
@@ -573,6 +575,15 @@ export function AppProvider(props) {
 
         setIsLoadingData(false);
 
+        // Local simulation mode (?sim=1) - override tournament state with fake 64-player data
+        if (isSimulation()) {
+          var sim = buildSimulationState();
+          if (sim) {
+            setTournamentState(sim.tournamentState);
+            setPlayers(sim.players);
+          }
+        }
+
       });
 
     // realtime - push changes to all browsers instantly
@@ -677,6 +688,7 @@ export function AppProvider(props) {
   // ── save shared state to Supabase on every change (skip if change came from Supabase) ──
 
   useEffect(function(){
+    if(isSimulation())return; // Never sync simulation state to DB
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
     if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
       .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});

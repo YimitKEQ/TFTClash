@@ -2341,16 +2341,14 @@ function ClashScreen(props) {
     return props.currentUser && p.name === (props.currentUser.username || props.currentUser.name)
   }) || null
   var phase = props.tournamentState && props.tournamentState.phase;
-  var phaseColors = { registration: "#9B72CF", live: "#E8A838", complete: "#4ECDC4" };
-  var phaseLabels = {
-    registration: "Registration Open",
-    live: "Live - Game " + (props.tournamentState && props.tournamentState.round || 1) + " of " + (props.tournamentState && props.tournamentState.totalGames || 4),
-    complete: "Results"
-  };
-  var accentColor = phaseColors[phase] || "#9B72CF";
-
   if (!phase || phase === 'idle') {
     return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} />
+  }
+
+  // For live/registration phases, redirect to the polished Bracket page
+  if (phase === 'live' || phase === 'inprogress' || phase === 'registration') {
+    navigate('/bracket', { replace: true })
+    return null
   }
 
   var recapData = phase === "complete" ? generateRecap(props.tournamentState) : null;
