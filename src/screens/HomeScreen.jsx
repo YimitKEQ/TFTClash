@@ -2,39 +2,22 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
+import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 
-// ── Countdown logic ──────────────────────────────────────────────────────────
-
-function getTimeLeft(target) {
-  var diff = Math.max(0, new Date(target) - new Date())
-  return {
-    days: Math.floor(diff / 86400000),
-    hours: Math.floor((diff % 86400000) / 3600000),
-    minutes: Math.floor((diff % 3600000) / 60000),
-    seconds: Math.floor((diff % 60000) / 1000),
-  }
-}
-
-function pad2(n) {
-  return String(n).padStart(2, '0')
-}
-
 // ── HeroCountdown ─────────────────────────────────────────────────────────────
 
-function HeroCountdown({ clashTimestamp, onRegister, onViewStandings, isLoggedIn }) {
-  var initial = clashTimestamp ? getTimeLeft(clashTimestamp) : { days: 0, hours: 0, minutes: 0, seconds: 0 }
-  var [timeLeft, setTimeLeft] = useState(initial)
+function HeroCountdown(props) {
+  var tournamentState = props.tournamentState
+  var onRegister = props.onRegister
+  var onViewStandings = props.onViewStandings
+  var isLoggedIn = props.isLoggedIn
 
-  useEffect(function() {
-    if (!clashTimestamp) return
-    var timer = setInterval(function() {
-      setTimeLeft(getTimeLeft(clashTimestamp))
-    }, 1000)
-    return function() { clearInterval(timer) }
-  }, [clashTimestamp])
+  var countdown = useCountdown(tournamentState)
+
+  function pad2(n) { return String(n).padStart(2, '0') }
 
   return (
     <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
@@ -45,22 +28,22 @@ function HeroCountdown({ clashTimestamp, onRegister, onViewStandings, isLoggedIn
         </span>
         <div className="flex justify-center gap-6">
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(timeLeft.days)}</span>
+            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.days)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Days</span>
           </div>
           <span className="font-mono text-5xl text-primary/20">:</span>
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(timeLeft.hours)}</span>
+            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.hours)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Hours</span>
           </div>
           <span className="font-mono text-5xl text-primary/20">:</span>
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(timeLeft.minutes)}</span>
+            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.minutes)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Mins</span>
           </div>
           <span className="font-mono text-5xl text-primary/20">:</span>
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(timeLeft.seconds)}</span>
+            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.seconds)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Secs</span>
           </div>
         </div>
@@ -252,9 +235,8 @@ export default function HomeScreen() {
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var top5 = sorted.slice(0, 5)
-  var clashTimestamp = tournamentState && tournamentState.clashTimestamp
-  var clashName = tournamentState && tournamentState.clashName
-  var hasCountdown = clashTimestamp && new Date(clashTimestamp) > new Date()
+  var sharedCountdown = useCountdown(tournamentState)
+  var hasCountdown = sharedCountdown.hasCountdown
 
   function handleSignUp() {
     setAuthScreen && setAuthScreen('signup')
@@ -315,7 +297,7 @@ export default function HomeScreen() {
           {hasCountdown
             ? (
               <HeroCountdown
-                clashTimestamp={clashTimestamp}
+                tournamentState={tournamentState}
                 onRegister={currentUser ? function() { navigate('/dashboard'); } : handleSignUp}
                 onViewStandings={handleViewStandings}
                 isLoggedIn={!!currentUser}

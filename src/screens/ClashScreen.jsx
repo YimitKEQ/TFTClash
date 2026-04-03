@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback, memo } from "
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import CountdownTimer from '../components/shared/CountdownTimer';
+import { getNextSaturday } from '../lib/useCountdown';
 import { RANKS, RCOLS, REGIONS, PTS, PAST_CLASHES, SEED, CLASH_RANKS, XP_REWARDS, HOMIES_IDS, TIER_FEATURES } from '../lib/constants.js';
 import { computeStats, getStats, effectivePts, tiebreaker, computeClashAwards, generateRecap, getClashRank, getXpProgress, estimateXp, isHotStreak, isOnTilt, isComebackEligible, getAttendanceStreak, computeSeasonBonuses, checkAchievements, syncAchievements } from '../lib/stats.js';
 import { TOURNAMENT_FORMATS, buildLobbies, computeTournamentStandings, applyCutLine } from '../lib/tournament.js';
@@ -2253,11 +2254,7 @@ function ClashIdleView(props) {
 
   var lastClash = PAST_CLASHES[0]
 
-  var now = new Date()
-  var daysUntilSat = (6 - now.getDay() + 7) % 7 || 7
-  var nextSaturday = new Date(now)
-  nextSaturday.setDate(now.getDate() + daysUntilSat)
-  nextSaturday.setHours(20, 0, 0, 0)
+  var nextSaturday = getNextSaturday()
 
   var top3 = lastClash && lastClash.top8 ? lastClash.top8.slice(0, 3) : []
   var top3Colors = ['text-primary', 'text-on-surface', 'text-tertiary']

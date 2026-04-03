@@ -5,6 +5,7 @@ import { getStats } from '../lib/stats.js'
 import { ordinal } from '../lib/utils.js'
 import { writeActivityEvent } from '../lib/notifications.js'
 import { supabase } from '../lib/supabase.js'
+import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 
@@ -443,37 +444,33 @@ function FlashTournamentBanner({ tournament, onView }) {
 
 function ClashCountdown(props) {
   var target = props.target
-  var _t = useState(function() {
-    var diff = Math.max(0, new Date(target) - new Date())
-    return {
-      D: Math.floor(diff / 86400000),
-      H: Math.floor((diff % 86400000) / 3600000),
-      M: Math.floor((diff % 3600000) / 60000),
-      S: Math.floor((diff % 60000) / 1000)
-    }
+  var _state = useState(function() {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 }
   })
-  var t = _t[0]
-  var setT = _t[1]
+  var t = _state[0]
+  var setT = _state[1]
 
   useEffect(function() {
-    var iv = setInterval(function() {
+    function calc() {
       var diff = Math.max(0, new Date(target) - new Date())
-      setT({
-        D: Math.floor(diff / 86400000),
-        H: Math.floor((diff % 86400000) / 3600000),
-        M: Math.floor((diff % 3600000) / 60000),
-        S: Math.floor((diff % 60000) / 1000)
-      })
-    }, 1000)
+      return {
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        minutes: Math.floor((diff % 3600000) / 60000),
+        seconds: Math.floor((diff % 60000) / 1000)
+      }
+    }
+    setT(calc())
+    var iv = setInterval(function() { setT(calc()) }, 1000)
     return function() { clearInterval(iv) }
   }, [target])
 
   function p(n) { return String(n).padStart(2, '0') }
 
-  if (t.D > 0) {
-    return <span className="font-display text-5xl text-primary tracking-tight">{t.D}d {p(t.H)}:{p(t.M)}:{p(t.S)}</span>
+  if (t.days > 0) {
+    return <span className="font-display text-5xl text-primary tracking-tight">{t.days}d {p(t.hours)}:{p(t.minutes)}:{p(t.seconds)}</span>
   }
-  return <span className="font-display text-5xl text-primary tracking-tight">{p(t.H)}:{p(t.M)}:{p(t.S)}</span>
+  return <span className="font-display text-5xl text-primary tracking-tight">{p(t.hours)}:{p(t.minutes)}:{p(t.seconds)}</span>
 }
 
 // --- COMPLETE TOP THREE ---
@@ -872,36 +869,16 @@ export default function DashboardScreen() {
   var toast = ctx.toast
   var navigate = useNavigate()
 
-  // Countdown state
-  var clashName = (tournamentState && tournamentState.clashName) || 'Next Clash'
+  // Countdown state (shared hook - single source of truth)
+  var countdown = useCountdown(tournamentState)
+  var clashName = countdown.clashName
   var clashDate = (tournamentState && tournamentState.clashDate) || ''
   var clashTime = (tournamentState && tournamentState.clashTime) || ''
-  var targetMsRef = useRef(
-    tournamentState && tournamentState.clashTimestamp
-      ? new Date(tournamentState.clashTimestamp).getTime()
-      : Date.now() + 7 * 86400000
-  )
-
-  useEffect(function () {
-    if (tournamentState && tournamentState.clashTimestamp) {
-      targetMsRef.current = new Date(tournamentState.clashTimestamp).getTime()
-    }
-  }, [tournamentState && tournamentState.clashTimestamp])
-
-  var _now = useState(Date.now())
-  var now = _now[0]
-  var setNow = _now[1]
-
-  useEffect(function () {
-    var t = setInterval(function () { setNow(Date.now()) }, 1000)
-    return function () { clearInterval(t) }
-  }, [])
-
-  var diff = Math.max(0, targetMsRef.current - now)
-  var D = Math.floor(diff / 86400000)
-  var H = Math.floor(diff % 86400000 / 3600000)
-  var M = Math.floor(diff % 3600000 / 60000)
-  var S = Math.floor(diff % 60000 / 1000)
+  var diff = countdown.total
+  var D = countdown.days
+  var H = countdown.hours
+  var M = countdown.minutes
+  var S = countdown.seconds
 
   // Tick for activity feed refresh
   var _tick = useState(0)
