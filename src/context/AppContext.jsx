@@ -706,13 +706,13 @@ export function AppProvider(props) {
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scheduled_events){rtRef.current.scheduled_events=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scheduledEvents]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.audit_log){rtRef.current.audit_log=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[auditLog]);
 
   // hostApps now managed via host_applications table, no site_settings sync
@@ -720,25 +720,25 @@ export function AppProvider(props) {
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_host_access){rtRef.current.scrim_host_access=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_host_access',value:JSON.stringify(scrimHostAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'scrim_host_access',value:JSON.stringify(scrimHostAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scrimHostAccess]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scrimAccess]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_data){rtRef.current.scrim_data=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scrimSessions]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.ticker_overrides){rtRef.current.ticker_overrides=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tickerOverrides]);
 
   // hostTournaments, hostBranding, hostAnnouncements now managed via DB tables, no site_settings sync
@@ -746,13 +746,13 @@ export function AppProvider(props) {
   useEffect(function(){
     if(rtRef.current.featured_events){rtRef.current.featured_events=false;return;}
     localStorage.setItem('tft-featured-events',JSON.stringify(featuredEvents));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[featuredEvents]);
 
   useEffect(function(){
     if(rtRef.current.challenge_completions){rtRef.current.challenge_completions=false;return;}
     localStorage.setItem('tft-challenge-completions',JSON.stringify(challengeCompletions));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[challengeCompletions]);
 
   // ── Load past clashes from tournament_results + tournaments tables ──
