@@ -133,11 +133,12 @@ export default function Navbar() {
     var base = s.split('/')[0];
     var canS = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
     if (base === 'scrims' && !canS) { toast('Access restricted', 'error'); return; }
+    setAuthScreen(null);
     setScreen(base);
     var route = SCREEN_TO_ROUTE[base];
     if (route) navigate(route);
     else navigate('/' + base);
-  }, [isAdmin, currentUser, scrimAccess, toast, navigate, setScreen]);
+  }, [isAdmin, currentUser, scrimAccess, toast, navigate, setScreen, setAuthScreen]);
 
   function tryLogin() {
     supabase.auth.getSession().then(function(sess) {
