@@ -30,7 +30,7 @@ export default function AdminScreen() {
   var tab = _tab[0]
   var setTab = _tab[1]
 
-  if (!currentUser || !isAdmin) {
+  if (!isAdmin) {
     return (
       <PageLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
