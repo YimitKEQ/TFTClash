@@ -235,15 +235,15 @@ export default function TournamentsListScreen() {
       });
   }, [tournaments]);
 
-  var activeTournament = visible.find(function(t) {
-    return t.phase === 'registration' || t.phase === 'in_progress' || t.phase === 'live' || t.status === 'upcoming';
-  });
-  var featured = activeTournament || null;
-
   var visible = tournaments.filter(function(t) {
     if (t.phase === 'draft' || t.status === 'draft') return isAdmin;
     return true;
   });
+
+  var activeTournament = visible.find(function(t) {
+    return t.phase === 'registration' || t.phase === 'in_progress' || t.phase === 'live' || t.status === 'upcoming';
+  });
+  var featured = activeTournament || null;
 
   var filtered = visible.filter(function(t) {
     if (activeFilter !== 'all' && t.phase !== activeFilter) return false;
