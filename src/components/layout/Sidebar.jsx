@@ -20,20 +20,21 @@ export default function Sidebar() {
   var isAdmin = ctx.isAdmin;
   var toast = ctx.toast;
   var scrimAccess = ctx.scrimAccess;
+  var scrimHostAccess = ctx.scrimHostAccess;
   var setAuthScreen = ctx.setAuthScreen;
   var tournamentState = ctx.tournamentState;
 
-  var canScrims = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
+  var canScrims = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
 
   var navTo = useCallback(function(s) {
-    var canS = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
+    var canS = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
     if (s === 'scrims' && !canS) { toast('Access restricted', 'error'); return; }
     if (s === 'account' && !currentUser) { setAuthScreen('login'); return; }
     setScreen(s);
     var route = SCREEN_TO_ROUTE[s];
     if (route) navigate(route);
     else navigate('/' + s);
-  }, [isAdmin, currentUser, scrimAccess, toast, navigate, setScreen, setAuthScreen]);
+  }, [isAdmin, currentUser, scrimAccess, scrimHostAccess, toast, navigate, setScreen, setAuthScreen]);
 
   var phase = (tournamentState && tournamentState.phase) || '';
 

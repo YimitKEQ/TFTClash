@@ -75,6 +75,7 @@ export function AppProvider(props) {
 
   var _disputes = useState([]);
   var disputes = _disputes[0];
+  var setDisputes = _disputes[1];
 
   var _announcement = useState("");
   var announcement = _announcement[0];
@@ -775,7 +776,7 @@ export function AppProvider(props) {
       .then(function(res){
         if(res.data)setPendingResults(res.data);
       });
-  },[currentUser&&currentUser.id,tournamentState.id]);
+  },[currentUser&&currentUser.id,tournamentState.dbTournamentId]);
 
   // ── Realtime subscription for player's own pending results ──
   useEffect(function(){
@@ -832,7 +833,20 @@ export function AppProvider(props) {
       .subscribe();
 
     return function(){supabase.removeChannel(adminPrChannel);};
-  },[isAdmin,tournamentState.id]);
+  },[isAdmin,tournamentState.dbTournamentId]);
+
+  // ── Load pending disputes for admin badge ──
+  useEffect(function(){
+    if(!isAdmin||!supabase.from)return;
+    supabase.from('disputes')
+      .select('*')
+      .in('status',['pending','open'])
+      .order('created_at',{ascending:false})
+      .limit(50)
+      .then(function(res){
+        if(res.data)setDisputes(res.data);
+      });
+  },[isAdmin]);
 
   // ── Compute season champion from live standings ──
   var computedChampion=useMemo(function(){

@@ -16,7 +16,8 @@ function isRateLimited(ip) {
 
 export default async function handler(req, res) {
   var origin = req.headers.origin || '';
-  var allowed = origin === 'https://tftclash.com' || origin.startsWith('http://localhost');
+  var allowedOrigins = ['https://tftclash.com', 'https://tft-clash.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
+  var allowed = allowedOrigins.indexOf(origin) > -1;
   if (req.method === 'OPTIONS') {
     if (allowed) {
       res.setHeader('Access-Control-Allow-Origin', origin);

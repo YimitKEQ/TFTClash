@@ -110,6 +110,7 @@ export default function Navbar() {
   var notifications = ctx.notifications;
   var markAllRead = ctx.markAllRead;
   var scrimAccess = ctx.scrimAccess;
+  var scrimHostAccess = ctx.scrimHostAccess;
   var tournamentState = ctx.tournamentState;
   var authScreen = ctx.authScreen;
   var setAuthScreen = ctx.setAuthScreen;
@@ -149,7 +150,7 @@ export default function Navbar() {
 
   var phase = tournamentState && tournamentState.phase;
   var dispCount = (disputes || []).length;
-  var canScrims = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
+  var canScrims = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
 
   // Drawer sections
   var mainItems = [
