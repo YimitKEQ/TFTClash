@@ -858,8 +858,8 @@ export default function HostDashboardScreen() {
                         className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
                         onClick={function() {
                           updateTournamentAndFeatured(t.id, { status: "closed" });
-                          if (supabase.from) {
-                            supabase.from('tournaments').update({ registration_open: false }).eq('id', t.id || t.dbId);
+                          if (supabase.from && (t.dbId || t.id)) {
+                            supabase.from('tournaments').update({ registration_close_at: new Date().toISOString() }).eq('id', t.dbId || t.id);
                           }
                           toast("Registration closed", "info");
                         }}

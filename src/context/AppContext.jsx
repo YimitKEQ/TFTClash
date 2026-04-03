@@ -928,7 +928,7 @@ export function AppProvider(props) {
   }, [
     screen, subRoute,
     players, isLoadingData, isAdmin,
-    scrimAccess, tickerOverrides, scrimSessions,
+    scrimAccess, scrimHostAccess, tickerOverrides, scrimSessions,
     notifications, toasts, disputes,
     announcement, profilePlayer, comparePlayer,
     tournamentState, seasonConfig, quickClashes,

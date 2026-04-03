@@ -22,7 +22,7 @@ function BroadcastOverlay(props) {
 
   useEffect(function() {
     var interval = setInterval(function() {
-      supabase.from("players").select("*").order("pts", { ascending: false }).then(function(res) {
+      supabase.from("players").select("*").order("season_pts", { ascending: false }).then(function(res) {
         if (res.data) {
           setLiveData(res.data);
           setLastUpdate(new Date());
@@ -32,7 +32,7 @@ function BroadcastOverlay(props) {
 
     var channel = supabase.channel("broadcast-live")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "game_results" }, function() {
-        supabase.from("players").select("*").order("pts", { ascending: false }).then(function(res) {
+        supabase.from("players").select("*").order("season_pts", { ascending: false }).then(function(res) {
           if (res.data) {
             setLiveData(res.data);
             setLastUpdate(new Date());
