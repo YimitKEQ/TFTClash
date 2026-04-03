@@ -1,6 +1,6 @@
 /**
  * Local tournament simulation - activate with ?sim=1 in URL
- * Creates a fake 64-player tournament in "inprogress" phase with 8 lobbies
+ * Creates a fake 64-player tournament in "live" phase with 8 lobbies
  * Does NOT touch Supabase or any remote data
  */
 import { SEED, PTS, RANKS, RCOLS } from './constants.js'
@@ -73,24 +73,18 @@ export function buildSimulationState() {
   var allPlayers = generatePlayers()
   var lobbies = buildLobbies(allPlayers, 'snake', 8)
 
-  // Generate results for game 1 (completed) and game 2 (in progress - some lobbies done)
+  // Generate results for game 1 (completed)
   var game1Placements = {}
-  var game2Placements = {}
   for (var i = 0; i < lobbies.length; i++) {
     game1Placements[i] = randomPlacements(lobbies[i])
-    // Only first 5 lobbies have game 2 results (simulates "in progress")
-    if (i < 5) {
-      game2Placements[i] = randomPlacements(lobbies[i])
-    }
   }
 
-  // Build game_results array for standings calculation
+  // Build game_results array
   var gameResults = []
   for (var li = 0; li < lobbies.length; li++) {
     for (var pi = 0; pi < lobbies[li].length; pi++) {
       var player = lobbies[li][pi]
       var pid = String(player.id)
-      // Game 1 result
       if (game1Placements[li] && game1Placements[li][pid]) {
         var place1 = game1Placements[li][pid]
         gameResults.push({
@@ -103,21 +97,26 @@ export function buildSimulationState() {
           is_dnp: false
         })
       }
-      // Game 2 result (partial)
-      if (game2Placements[li] && game2Placements[li][pid]) {
-        var place2 = game2Placements[li][pid]
-        gameResults.push({
-          tournament_id: 'sim-64p',
-          round_number: 2,
-          game_number: 2,
-          player_id: player.id,
-          placement: place2,
-          points: PTS[place2] || 0,
-          is_dnp: false
-        })
-      }
     }
   }
+
+  // Stamp clashHistory onto players from game 1 results
+  var playerMap = {}
+  allPlayers.forEach(function(p) { playerMap[String(p.id)] = p })
+
+  gameResults.forEach(function(gr) {
+    var p = playerMap[String(gr.player_id)]
+    if (!p) return
+    if (!p.clashHistory) p.clashHistory = []
+    p.clashHistory.push({
+      round: gr.round_number,
+      place: gr.placement,
+      placement: gr.placement,
+      pts: gr.points,
+      clashId: 'sim-64p',
+      bonusPts: 0
+    })
+  })
 
   // Build savedLobbies (array of arrays of player IDs)
   var savedLobbies = lobbies.map(function(lobby) {
@@ -126,6 +125,11 @@ export function buildSimulationState() {
 
   var allIds = allPlayers.map(function(p) { return String(p.id) })
 
+  // Store per-round placement history so past rounds can be viewed
+  var roundHistory = {
+    1: game1Placements
+  }
+
   var tournamentState = {
     phase: 'live',
     round: 2,
@@ -133,11 +137,12 @@ export function buildSimulationState() {
     clashId: 'sim-64p',
     clashName: 'Simulated Clash (64 Players)',
     clashDate: new Date().toISOString().slice(0, 10),
-    clashTimestamp: new Date(Date.now() - 3600000).toISOString(), // Started 1 hour ago
+    clashTimestamp: new Date(Date.now() - 3600000).toISOString(),
     lobbies: lobbies,
     savedLobbies: savedLobbies,
-    lockedLobbies: [0, 1, 2, 3, 4, 5, 6, 7], // All locked for game 1
-    lockedPlacements: game1Placements,
+    lockedLobbies: [],
+    lockedPlacements: {},
+    roundHistory: roundHistory,
     checkedInIds: allIds,
     registeredIds: allIds,
     waitlistIds: [],
@@ -145,7 +150,7 @@ export function buildSimulationState() {
     seedAlgo: 'snake',
     cutLine: 13,
     cutAfterGame: 4,
-    dbTournamentId: null, // No DB - pure local sim
+    dbTournamentId: null,
     format: 'competitive'
   }
 

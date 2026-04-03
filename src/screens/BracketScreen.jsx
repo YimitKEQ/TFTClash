@@ -554,7 +554,8 @@ function BracketScreen(){
   var myLobbyAuto=currentUser?lobbies.findIndex(function(lb){return lb.some(function(p){return p.name===currentUser.username;});}): -1;
   var effectiveHighlight=highlightLobby!==null?highlightLobby:myLobbyAuto>=0?myLobbyAuto:null;
 
-  var phaseLabel=tournamentState.phase==="inprogress"?"Live":tournamentState.phase==="complete"?"Complete":tournamentState.phase==="checkin"?"Check-in":"Setup";
+  var isLive=tournamentState.phase==="inprogress"||tournamentState.phase==="live";
+  var phaseLabel=isLive?"Live":tournamentState.phase==="complete"?"Complete":tournamentState.phase==="checkin"?"Check-in":"Setup";
   var totalGames=tournamentState.totalGames||4;
   var clashName=(tournamentState&&tournamentState.clashName)||"TFT Clash";
   var lockedCount=lockedLobbies.length;
@@ -617,8 +618,8 @@ function BracketScreen(){
               </span>
             </h1>
             <div className="flex items-center gap-4 flex-wrap">
-              <span className={"px-3 py-1 rounded-sm font-nav text-xs tracking-wider border " + (tournamentState.phase==="inprogress"?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
-                {tournamentState.phase==="inprogress"?"ACTIVE TOURNAMENT":tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN OPEN":"SETUP"}
+              <span className={"px-3 py-1 rounded-sm font-nav text-xs tracking-wider border " + (isLive?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
+                {isLive?"ACTIVE TOURNAMENT":tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN OPEN":"SETUP"}
               </span>
               <div className="flex items-center gap-2 text-on-surface-variant/60 font-mono text-sm">
                 <Icon name="calendar_today" size={14} />
@@ -726,13 +727,13 @@ function BracketScreen(){
         {checkedIn.length===0&&(
           <div className="text-center py-20">
             <div className="flex justify-center mb-4">
-              <Icon name={tournamentState&&tournamentState.phase==="complete"?"emoji_events":tournamentState&&tournamentState.phase==="inprogress"?"bolt":"sports_esports"} size={56} className="text-on-surface-variant/30" />
+              <Icon name={tournamentState&&tournamentState.phase==="complete"?"emoji_events":tournamentState&&isLive?"bolt":"sports_esports"} size={56} className="text-on-surface-variant/30" />
             </div>
             <h3 className="text-on-surface text-xl font-bold mb-2">
-              {tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&tournamentState.phase==="inprogress"?"Waiting for Players":"No Active Tournament"}
+              {tournamentState&&tournamentState.phase==="complete"?"Tournament Complete":tournamentState&&isLive?"Waiting for Players":"No Active Tournament"}
             </h3>
             <p className="text-on-surface-variant text-sm mb-6 max-w-sm mx-auto leading-relaxed">
-              {tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&tournamentState.phase==="inprogress"?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}
+              {tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&isLive?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}
             </p>
             <div className="flex gap-3 justify-center">
               <button
@@ -764,15 +765,15 @@ function BracketScreen(){
                 </div>
                 <div className="flex items-center gap-3 mb-4">
                   <span className="relative flex h-3 w-3">
-                    <span className={"animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 " + (tournamentState.phase==="inprogress"?"bg-error":tournamentState.phase==="complete"?"bg-tertiary":"bg-secondary")}></span>
-                    <span className={"relative inline-flex rounded-full h-3 w-3 " + (tournamentState.phase==="inprogress"?"bg-error":tournamentState.phase==="complete"?"bg-tertiary":"bg-secondary")}></span>
+                    <span className={"animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 " + (isLive?"bg-error":tournamentState.phase==="complete"?"bg-tertiary":"bg-secondary")}></span>
+                    <span className={"relative inline-flex rounded-full h-3 w-3 " + (isLive?"bg-error":tournamentState.phase==="complete"?"bg-tertiary":"bg-secondary")}></span>
                   </span>
                   <span className="font-display text-xl tracking-tighter">
-                    {tournamentState.phase==="inprogress"?"LIVE - Round "+round+" of "+totalGames:tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN":"SETUP"}
+                    {isLive?"LIVE - Round "+round+" of "+totalGames:tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN":"SETUP"}
                   </span>
                 </div>
                 <p className="text-on-surface-variant text-sm mb-5 leading-relaxed">
-                  {tournamentState.phase==="inprogress"?"The arena is live. All lobbies have been synchronized. Placement data entry is now active for lobby admins.":tournamentState.phase==="complete"?"All rounds are locked. Final results have been recorded.":"Tournament is in setup or check-in phase. Players are joining the lobby."}
+                  {isLive?"The arena is live. All lobbies have been synchronized. Placement data entry is now active for lobby admins.":tournamentState.phase==="complete"?"All rounds are locked. Final results have been recorded.":"Tournament is in setup or check-in phase. Players are joining the lobby."}
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
@@ -786,7 +787,7 @@ function BracketScreen(){
                 </div>
 
                 {/* Lobby lock progress */}
-                {lobbies.length>0&&tournamentState.phase==="inprogress"&&(
+                {lobbies.length>0&&isLive&&(
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider">Lobbies Locked</span>
@@ -861,19 +862,37 @@ function BracketScreen(){
                 </div>
 
                 {/* Past round results panel */}
-                {viewingRound!==null&&tournamentState.lockedPlacements&&(function(){
-                  var pastPlacements=tournamentState.lockedPlacements;
+                {viewingRound!==null&&(function(){
+                  // Get placements for the viewed round from roundHistory or lockedPlacements
+                  var rh=tournamentState.roundHistory||{};
+                  var pastPlacements=rh[viewingRound]||tournamentState.lockedPlacements||{};
                   var roundResults=[];
+
+                  // Calculate cumulative points per player up to and including viewed round
+                  var cumulativeMap={};
+                  checkedIn.forEach(function(p){
+                    var total=0;
+                    (p.clashHistory||[]).forEach(function(h){
+                      if(h.clashId===currentClashId&&h.round<=viewingRound){
+                        total+=(PTS[h.place||h.placement]||0);
+                      }
+                    });
+                    cumulativeMap[String(p.id)]=total;
+                  });
+
                   lobbies.forEach(function(lobby,li){
                     if(!pastPlacements[li])return;
                     lobby.forEach(function(p){
-                      var place=pastPlacements[li][String(p.id)]||pastPlacements[li][p.id];
+                      var pid=String(p.id);
+                      var place=pastPlacements[li][pid]||pastPlacements[li][p.id];
                       if(place){
-                        roundResults.push({name:p.name||p.username,rank:p.rank,placement:place,pts:PTS[place]||0,lobbyIdx:li});
+                        var gained=PTS[place]||0;
+                        var cumulative=cumulativeMap[pid]||gained;
+                        roundResults.push({id:pid,name:p.name||p.username,rank:p.rank,placement:place,gained:gained,total:cumulative,lobbyIdx:li});
                       }
                     });
                   });
-                  roundResults.sort(function(a,b){return a.placement-b.placement;});
+                  roundResults.sort(function(a,b){return b.total-a.total||a.placement-b.placement;});
                   if(roundResults.length===0)return null;
                   return(
                     <div className="mt-3 bg-surface-container-lowest rounded-sm border border-tertiary/15 overflow-hidden">
@@ -883,16 +902,17 @@ function BracketScreen(){
                           <Icon name="close" size={14} />
                         </button>
                       </div>
-                      <div className="divide-y divide-outline-variant/5 max-h-[300px] overflow-y-auto">
+                      <div className="divide-y divide-outline-variant/5 max-h-[400px] overflow-y-auto">
                         {roundResults.map(function(r,ri){
                           return(
-                            <div key={r.name+ri} className="flex items-center gap-3 px-4 py-1.5">
-                              <span className={"font-mono text-xs font-bold min-w-[20px] text-center " + (r.placement===1?"text-primary":r.placement<=3?"text-tertiary":"text-on-surface-variant/40")}>
-                                {"#"+r.placement}
+                            <div key={r.id} className={"flex items-center gap-3 px-4 py-2 " + (ri===0?"bg-primary/5":"")}>
+                              <span className={"font-mono text-xs font-bold min-w-[20px] text-center " + (ri===0?"text-primary":ri<=2?"text-tertiary":"text-on-surface-variant/40")}>
+                                {ri+1}
                               </span>
-                              <span className="flex-1 text-sm text-on-surface truncate">{r.name}</span>
-                              <span className="text-[10px] text-on-surface-variant/40 font-nav">{r.rank}</span>
-                              <span className="font-mono text-xs font-bold text-tertiary">{"+"+r.pts}</span>
+                              <span className={"flex-1 text-sm truncate " + (ri===0?"text-primary font-bold":"text-on-surface")}>{r.name}</span>
+                              <span className="text-[10px] text-on-surface-variant/30 font-nav uppercase">{r.rank}</span>
+                              <span className="font-mono text-xs text-tertiary font-bold">{r.total+" pts"}</span>
+                              <span className="font-mono text-[10px] text-tertiary/60">{"+"+r.gained}</span>
                             </div>
                           );
                         })}
@@ -916,7 +936,7 @@ function BracketScreen(){
                       <span className="text-sm font-medium text-on-surface">Re-roll Lobbies</span>
                       <Icon name="shuffle" size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
                     </button>
-                    {tournamentState.phase==="inprogress"&&round>=(tournamentState.totalGames||4)&&(
+                    {isLive&&round>=(tournamentState.totalGames||4)&&(
                       <button
                         onClick={function(){setShowFinalizeConfirm(true);}}
                         className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded-sm">
@@ -928,8 +948,8 @@ function BracketScreen(){
                 </div>
               )}
 
-              {/* Live standings (shown after some lobbies lock) */}
-              {tournamentState&&tournamentState.phase==="inprogress"&&lockedLobbies.length>0&&(
+              {/* Live standings */}
+              {tournamentState&&isLive&&(
                 <LiveStandingsPanel checkedIn={checkedIn} tournamentState={tournamentState} lobbies={lobbies} round={round}/>
               )}
 
@@ -1017,7 +1037,7 @@ function BracketScreen(){
                                 <span className={"font-mono text-xs font-bold " + (tournamentState.lockedPlacements[li][p.id]===1?"text-primary":tournamentState.lockedPlacements[li][p.id]<=4?"text-tertiary":"text-on-surface-variant/50")}>
                                   {"#" + tournamentState.lockedPlacements[li][p.id]}
                                 </span>
-                              ):isMe&&!locked&&tournamentState.phase==="inprogress"?(
+                              ):isMe&&!locked&&isLive?(
                                 playerSubmissions[li]&&playerSubmissions[li][p.id]?(
                                   <div className="font-mono text-xs text-tertiary font-bold">
                                     {"#" + playerSubmissions[li][p.id].placement + " sub"}
@@ -1030,7 +1050,7 @@ function BracketScreen(){
                                 )
                               ):(
                                 <div className={"font-mono text-xs font-bold " + (locked?"text-on-surface-variant/20":"text-on-surface-variant/20")}>
-                                  {tournamentState.phase==="inprogress"&&!locked?"In Progress":"-"}
+                                  {isLive&&!locked?"In Progress":"-"}
                                 </div>
                               )}
                             </div>
