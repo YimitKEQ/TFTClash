@@ -351,7 +351,7 @@ export default function AccountScreen() {
   async function handleSetNewPassword() {
     setPwError('');
     if (!newPw.trim()) { setPwError('Please enter a new password'); return; }
-    if (newPw.length < 6) { setPwError('Password must be at least 6 characters'); return; }
+    if (newPw.length < 8) { setPwError('Password must be at least 8 characters'); return; }
     if (newPw !== confirmPw) { setPwError('Passwords do not match'); return; }
     setPwSaving(true);
     var res = await supabase.auth.updateUser({ password: newPw });

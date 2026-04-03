@@ -325,16 +325,17 @@ export function AppProvider(props) {
       });
   },[currentUser]);
 
-  // ── useEffect: load subscriptions ──
+  // ── useEffect: load own subscription ──
   useEffect(function(){
-    supabase.from("subscriptions").select("*").limit(500).then(function(res){
+    if(!currentUser || !currentUser.auth_user_id || !supabase.from) return;
+    supabase.from("subscriptions").select("*").eq("user_id", currentUser.auth_user_id).limit(1).then(function(res){
       if(res.data){
         var map={};
         res.data.forEach(function(s){map[s.user_id]=s;});
         setSubscriptions(map);
       }
     });
-  },[]);
+  },[currentUser]);
 
   // ── useEffect: auth listener ──
   useEffect(function(){

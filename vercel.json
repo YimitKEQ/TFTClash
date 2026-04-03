@@ -20,6 +20,7 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Access-Control-Allow-Origin", "value": "https://tftclash.com" },
         { "key": "Access-Control-Allow-Methods", "value": "POST, GET, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, stripe-signature" }
       ]

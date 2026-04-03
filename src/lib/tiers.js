@@ -9,7 +9,7 @@ export function getUserTier(subscriptions, userId) {
     var grace = 3 * 24 * 60 * 60 * 1000;
     if (new Date(sub.current_period_end).getTime() + grace < Date.now()) return "free";
   }
-  return sub.tier || "free";
+  return sub.tier || sub.plan || "free";
 }
 
 export function hasFeature(tier, feature) {
