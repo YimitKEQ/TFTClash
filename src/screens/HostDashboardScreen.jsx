@@ -304,7 +304,7 @@ export default function HostDashboardScreen() {
   // Load host profile from DB on mount
   useEffect(function() {
     if (!currentUser || !supabase.from || dbProfileLoaded) return;
-    supabase.from("host_profiles").select("*").eq("user_id", currentUser.id).maybeSingle().then(function(res) {
+    supabase.from("host_profiles").select("*").eq("user_id", currentUser.auth_user_id).maybeSingle().then(function(res) {
       if (res.data) {
         var hp = res.data;
         setBrandName(hp.org_name || brandName);
@@ -366,7 +366,7 @@ export default function HostDashboardScreen() {
     var setUrl = type === "logo" ? setBrandLogoUrl : setBrandBannerUrl;
     setUploading(true);
     var ext = file.name.split('.').pop();
-    var authUid = currentUser ? (currentUser.auth_user_id || currentUser.authUserId || currentUser.id) : "anon";
+    var authUid = currentUser ? currentUser.auth_user_id : "anon";
     var path = "host-" + authUid + "/" + type + "." + ext;
     supabase.storage.from("host-assets").upload(path, file, { cacheControl: "3600", upsert: true }).then(function(res) {
       setUploading(false);
@@ -491,8 +491,8 @@ export default function HostDashboardScreen() {
         total_games: savedWizData.totalGames,
         max_players: savedWizData.maxPlayers,
         status: "upcoming",
-        created_by: currentUser ? (currentUser.auth_user_id || currentUser.id) : null,
-        host_id: currentUser ? (currentUser.auth_user_id || currentUser.id) : null,
+        created_by: currentUser ? currentUser.auth_user_id : null,
+        host_id: currentUser ? currentUser.auth_user_id : null,
         branding_json: { accent_color: savedWizData.accentColor }
       }).select().single().then(function(res) {
         setWizCreating(false);
@@ -530,7 +530,7 @@ export default function HostDashboardScreen() {
         bio: brandBio,
         logo_url: brandLogoUrl || brandLogo,
         banner_url: brandBannerUrl || ""
-      }).eq("user_id", currentUser.id).then(function(res) {
+      }).eq("user_id", currentUser.auth_user_id).then(function(res) {
         if (res.error) console.error("[TFT] host_profiles branding update failed:", res.error);
       });
     }

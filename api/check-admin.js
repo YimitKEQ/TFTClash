@@ -3,6 +3,7 @@
 // Set ADMIN_PASSWORD in Vercel dashboard → Settings → Environment Variables
 
 import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
 // ---------------------------------------------------------------------------
 // In-memory sliding-window rate limiter (IP-based, 10 attempts / 5 min)
@@ -47,7 +48,7 @@ setInterval(() => {
 // ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
-export default function handler(req, res) {
+export default async function handler(req, res) {
   // CORS — restrict to known origins
   const allowedOrigins = [
     'https://tft-clash.vercel.app',
@@ -79,7 +80,7 @@ export default function handler(req, res) {
   }
 
   // Input validation
-  const { password } = req.body ?? {};
+  const { password, userId } = req.body ?? {};
   if (typeof password !== 'string' || password.length === 0 || password.length > 128) {
     return res.status(400).json({ isAdmin: false, error: 'Invalid password input' });
   }
@@ -100,7 +101,21 @@ export default function handler(req, res) {
 
   if (!isMatch) {
     console.warn(`[check-admin] Failed login attempt from ${ip} at ${new Date().toISOString()}`);
+    return res.json({ isAdmin: false });
   }
 
-  res.json({ isAdmin: isMatch });
+  // On success, ensure user_roles entry exists so RLS admin policies work
+  if (userId && typeof userId === 'string' && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      await supabase.from('user_roles').upsert(
+        { user_id: userId, role: 'admin' },
+        { onConflict: 'user_id,role' }
+      );
+    } catch (err) {
+      console.error('[check-admin] user_roles upsert failed:', err.message);
+    }
+  }
+
+  res.json({ isAdmin: true });
 }

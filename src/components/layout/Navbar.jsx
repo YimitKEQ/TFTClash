@@ -140,7 +140,7 @@ export default function Navbar() {
     fetch('/api/check-admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw })
+      body: JSON.stringify({ password: pw, userId: currentUser && currentUser.auth_user_id })
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data && data.isAdmin) { setIsAdmin(true); setPwModal(false); setPw(''); toast('Admin activated', 'success'); }
       else toast('Wrong password', 'error');
