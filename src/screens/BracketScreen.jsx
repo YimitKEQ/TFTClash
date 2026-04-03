@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
-import { PTS, HOMIES_IDS, PAST_CLASHES } from '../lib/constants.js'
+import { PTS, PAST_CLASHES } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
 import { applyCutLine, computeTournamentStandings } from '../lib/tournament.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
@@ -861,12 +861,10 @@ function BracketScreen(){
                   })}
                 </div>
 
-                {/* Past round results panel */}
+                {/* Past round results panel - lobby grouped */}
                 {viewingRound!==null&&(function(){
-                  // Get placements for the viewed round from roundHistory or lockedPlacements
                   var rh=tournamentState.roundHistory||{};
                   var pastPlacements=rh[viewingRound]||tournamentState.lockedPlacements||{};
-                  var roundResults=[];
 
                   // Calculate cumulative points per player up to and including viewed round
                   var cumulativeMap={};
@@ -880,20 +878,25 @@ function BracketScreen(){
                     cumulativeMap[String(p.id)]=total;
                   });
 
+                  // Build per-lobby results
+                  var lobbyGroups=[];
                   lobbies.forEach(function(lobby,li){
                     if(!pastPlacements[li])return;
+                    var players=[];
                     lobby.forEach(function(p){
                       var pid=String(p.id);
                       var place=pastPlacements[li][pid]||pastPlacements[li][p.id];
                       if(place){
                         var gained=PTS[place]||0;
                         var cumulative=cumulativeMap[pid]||gained;
-                        roundResults.push({id:pid,name:p.name||p.username,rank:p.rank,placement:place,gained:gained,total:cumulative,lobbyIdx:li});
+                        players.push({id:pid,name:p.name||p.username,rank:p.rank,riotId:p.riotId||p.riot_id_eu||"",placement:place,gained:gained,total:cumulative});
                       }
                     });
+                    players.sort(function(a,b){return a.placement-b.placement;});
+                    if(players.length>0)lobbyGroups.push({idx:li,players:players});
                   });
-                  roundResults.sort(function(a,b){return b.total-a.total||a.placement-b.placement;});
-                  if(roundResults.length===0)return null;
+
+                  if(lobbyGroups.length===0)return null;
                   return(
                     <div className="mt-3 bg-surface-container-lowest rounded-sm border border-tertiary/15 overflow-hidden">
                       <div className="px-4 py-2.5 border-b border-tertiary/10 flex items-center justify-between">
@@ -902,17 +905,35 @@ function BracketScreen(){
                           <Icon name="close" size={14} />
                         </button>
                       </div>
-                      <div className="divide-y divide-outline-variant/5 max-h-[400px] overflow-y-auto">
-                        {roundResults.map(function(r,ri){
+                      <div className="max-h-[500px] overflow-y-auto">
+                        {lobbyGroups.map(function(lg){
                           return(
-                            <div key={r.id} className={"flex items-center gap-3 px-4 py-2 " + (ri===0?"bg-primary/5":"")}>
-                              <span className={"font-mono text-xs font-bold min-w-[20px] text-center " + (ri===0?"text-primary":ri<=2?"text-tertiary":"text-on-surface-variant/40")}>
-                                {ri+1}
-                              </span>
-                              <span className={"flex-1 text-sm truncate " + (ri===0?"text-primary font-bold":"text-on-surface")}>{r.name}</span>
-                              <span className="text-[10px] text-on-surface-variant/30 font-nav uppercase">{r.rank}</span>
-                              <span className="font-mono text-xs text-tertiary font-bold">{r.total+" pts"}</span>
-                              <span className="font-mono text-[10px] text-tertiary/60">{"+"+r.gained}</span>
+                            <div key={lg.idx}>
+                              <div className="px-4 py-2 bg-surface-container-low/50 border-b border-outline-variant/10 flex items-center gap-2">
+                                <Icon name="groups" size={14} className="text-on-surface-variant/40" />
+                                <span className="font-nav text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">{"Lobby " + String.fromCharCode(65+lg.idx)}</span>
+                              </div>
+                              <div className="divide-y divide-outline-variant/5">
+                                {lg.players.map(function(r,ri){
+                                  return(
+                                    <div key={r.id} className={"flex items-center gap-3 px-4 py-2 " + (ri===0?"bg-primary/5":"")}>
+                                      <span className={"font-mono text-xs font-bold min-w-[20px] text-center " + (ri===0?"text-primary":ri<=2?"text-tertiary":"text-on-surface-variant/40")}>
+                                        {"#"+r.placement}
+                                      </span>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className={"text-sm truncate " + (ri===0?"text-primary font-bold":"text-on-surface")}>{r.name}</span>
+                                          {ri===0&&<span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
+                                        </div>
+                                        {r.riotId&&<div className="text-[10px] text-on-surface-variant/30 truncate">{r.riotId}</div>}
+                                      </div>
+                                      <span className="text-[10px] text-on-surface-variant/30 font-nav uppercase">{r.rank}</span>
+                                      <span className="font-mono text-xs text-tertiary font-bold">{r.total+" pts"}</span>
+                                      <span className="font-mono text-[10px] text-tertiary/60">{"+"+r.gained}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
                             </div>
                           );
                         })}
@@ -1009,7 +1030,6 @@ function BracketScreen(){
                       <div className="divide-y divide-outline-variant/10">
                         {lobby.slice().sort(function(a,b){return b.pts-a.pts;}).map(function(p,pi){
                           var isMe=currentUser&&p.name===currentUser.username;
-                          var homie=HOMIES_IDS.includes(p.id);
 
                           return(
                             <div
@@ -1026,10 +1046,11 @@ function BracketScreen(){
                                 <div>
                                   <div className={"text-sm font-semibold flex items-center gap-1 " + (isMe?"text-secondary":isMyLobby?"text-on-surface":"text-on-surface-variant/90")}>
                                     {p.name}
-                                    {homie&&<Icon name="favorite" size={12} fill className="text-secondary/70" />}
                                     {isHotStreak(p)&&<Icon name="local_fire_department" size={12} fill className="text-orange-400" />}
+                                    {pi===0&&<span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
                                   </div>
                                   <div className="text-[10px] text-on-surface-variant/40">{p.rank}</div>
+                                  {(p.riotId||p.riot_id_eu)&&<div className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId||p.riot_id_eu}</div>}
                                 </div>
                               </div>
                               {/* Player placement controls */}

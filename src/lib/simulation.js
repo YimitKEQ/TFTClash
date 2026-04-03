@@ -13,7 +13,7 @@ export function isSimulation() { return SIM_ACTIVE }
 // Generate 64 fake players (24 from SEED + 40 generated)
 function generatePlayers() {
   var players = SEED.map(function(p) {
-    return Object.assign({}, p, { checkedIn: true })
+    return Object.assign({}, p, { checkedIn: true, riotId: p.name + '#' + (p.region || 'EUW') })
   })
 
   var extraNames = [
@@ -32,11 +32,13 @@ function generatePlayers() {
   for (var i = 0; i < 40; i++) {
     var rank = rankPool[i % rankPool.length]
     var pts = Math.max(5, Math.floor(Math.random() * 400) + 20)
+    var region = i % 3 === 0 ? 'NA' : 'EUW'
     players.push({
       id: 100 + i,
       name: extraNames[i],
+      riotId: extraNames[i] + '#' + region,
       rank: rank,
-      region: i % 3 === 0 ? 'NA' : 'EUW',
+      region: region,
       pts: pts,
       wins: Math.floor(Math.random() * 5),
       top4: Math.floor(Math.random() * 12),
