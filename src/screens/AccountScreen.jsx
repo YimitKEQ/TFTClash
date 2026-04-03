@@ -1341,11 +1341,18 @@ export default function AccountScreen() {
                     onClick={async function() {
                       if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
                       try {
-                        if (supabase.from) {
-                          await supabase.from('registrations').delete().eq('player_id', user.id).catch(function() {});
-                          await supabase.from('notifications').delete().eq('user_id', user.id).catch(function() {});
-                          await supabase.from('player_achievements').delete().eq('player_id', user.id).catch(function() {});
-                          await supabase.from('players').delete().eq('auth_user_id', user.id).catch(function() {});
+                        var session = await supabase.auth.getSession();
+                        var token = session.data && session.data.session && session.data.session.access_token;
+                        if (token) {
+                          var resp = await fetch('/api/delete-account', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                          });
+                          var result = await resp.json();
+                          if (!resp.ok) {
+                            toast(result.error || 'Deletion failed', 'error');
+                            return;
+                          }
                         }
                         if (setPlayers) {
                           setPlayers(function(ps) {
