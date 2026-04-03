@@ -262,7 +262,7 @@ export default function HomeScreen() {
     navigate('/faq')
   }
 
-  var seasonLabel = clashName || seasonConfig.seasonName || 'TFT Clash'
+  var seasonLabel = sharedCountdown.clashName || seasonConfig.seasonName || 'TFT Clash'
 
   return (
     <PageLayout showSidebar={false} maxWidth="max-w-[880px]">
