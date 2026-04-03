@@ -128,7 +128,6 @@ export default function Navbar() {
 
   var navTo = useCallback(function(s) {
     var base = s.split('/')[0];
-    if (base === 'admin' && !isAdmin) { toast('Admin access required', 'error'); return; }
     var canS = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
     if (base === 'scrims' && !canS) { toast('Access restricted', 'error'); return; }
     setScreen(base);

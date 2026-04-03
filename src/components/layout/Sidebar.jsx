@@ -26,7 +26,6 @@ export default function Sidebar() {
   var canScrims = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
 
   var navTo = useCallback(function(s) {
-    if (s === 'admin' && !isAdmin) { toast('Admin access required', 'error'); return; }
     var canS = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
     if (s === 'scrims' && !canS) { toast('Access restricted', 'error'); return; }
     if (s === 'account' && !currentUser) { setAuthScreen('login'); return; }
