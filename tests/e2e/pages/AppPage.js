@@ -1,7 +1,15 @@
 /**
  * Page Object Model for the TFT Clash SPA.
- * The app uses simple hash routing: #home, #standings, #bracket, etc.
- * Nav clicks update the hash, which the React state machine reads.
+ *
+ * Navigation structure (post-overhaul):
+ * - Top header with logo, desktop nav links, Sign In / Sign Up, hamburger menu
+ * - Desktop sidebar (xl+ only) with full nav
+ * - Mobile bottom bar with tabs
+ * - Right-side drawer menu (opened via hamburger)
+ *
+ * Desktop nav links (inside <nav> in the <header>): Clash, Standings, Events, Stats, Hall of Fame, Pricing
+ * Sign In / Sign Up buttons are in the header but OUTSIDE the <nav> element.
+ * Rules, FAQ, and other secondary pages are only in the drawer or sidebar.
  */
 
 export class AppPage {
@@ -25,39 +33,66 @@ export class AppPage {
 
   // ── Desktop nav helpers ──────────────────────────────────────────────────
 
+  /** Click a primary nav link (Clash, Standings, Events, Stats, Hall of Fame, Pricing). */
   async clickNavLink(label) {
-    // Desktop nav buttons (text-only buttons inside the top nav)
-    const nav = this.page.locator('nav').first();
+    const nav = this.page.locator('header nav').first();
     const btn = nav.getByRole('button', { name: label, exact: true });
     await btn.waitFor({ timeout: 5000 });
     await btn.click();
     await this.page.waitForTimeout(400);
   }
 
-  async openMoreMenu() {
-    const nav = this.page.locator('nav').first();
-    const moreBtn = nav.getByRole('button', { name: /More/i });
-    await moreBtn.click();
-    await this.page.waitForTimeout(300);
+  /** Open the hamburger drawer menu. */
+  async openDrawer() {
+    // The hamburger button contains a Material Symbol "menu" icon
+    const menuBtn = this.page.locator('header button').filter({
+      has: this.page.locator('span.material-symbols-outlined', { hasText: 'menu' })
+    }).first();
+    await menuBtn.waitFor({ timeout: 5000 });
+    await menuBtn.click();
+    await this.page.waitForTimeout(500);
   }
 
-  async clickMoreMenuItem(label) {
-    await this.openMoreMenu();
-    // Scope to the nav to avoid strict-mode violations with duplicate footer buttons
-    const nav = this.page.locator('nav').first();
-    await nav.getByRole('button', { name: label, exact: true }).click();
+  /** Click an item inside the hamburger drawer menu. */
+  async clickDrawerItem(label) {
+    await this.openDrawer();
+    // Wait for drawer animation to complete
+    await this.page.waitForTimeout(300);
+    // Use JavaScript click to bypass backdrop overlay z-index issues
+    await this.page.evaluate((buttonLabel) => {
+      const buttons = document.querySelectorAll('button');
+      for (const btn of buttons) {
+        if (btn.textContent.trim().toLowerCase().includes(buttonLabel.toLowerCase())) {
+          // Check if this button is inside the drawer (fixed, right-0 panel)
+          const parent = btn.closest('div.fixed');
+          if (parent && parent.classList.contains('right-0')) {
+            btn.click();
+            return true;
+          }
+        }
+      }
+      return false;
+    }, label);
     await this.page.waitForTimeout(400);
   }
 
   // ── Auth helpers ─────────────────────────────────────────────────────────
 
+  /** Click the Sign In button in the top header (visible on md+ screens). */
   async clickSignIn() {
-    await this.page.getByRole('button', { name: 'Sign In' }).click();
+    const header = this.page.locator('header');
+    const btn = header.getByRole('button', { name: 'Sign In', exact: true });
+    await btn.waitFor({ timeout: 5000 });
+    await btn.click();
     await this.page.waitForTimeout(400);
   }
 
+  /** Click the Sign Up button in the top header (visible on md+ screens). */
   async clickSignUp() {
-    await this.page.getByRole('button', { name: 'Sign Up' }).click();
+    const header = this.page.locator('header');
+    const btn = header.getByRole('button', { name: 'Sign Up', exact: true });
+    await btn.waitFor({ timeout: 5000 });
+    await btn.click();
     await this.page.waitForTimeout(400);
   }
 

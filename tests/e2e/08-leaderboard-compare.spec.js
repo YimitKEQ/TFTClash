@@ -2,8 +2,6 @@
  * E2E – Standings comparison tool
  *
  * Tests the player comparison feature in the Standings screen.
- * With no players loaded (SEED = []), the standings is empty
- * but should render gracefully with the search bar visible.
  */
 
 import { test, expect } from '@playwright/test';
@@ -31,7 +29,7 @@ test.describe('Standings screen', () => {
 
   test('standings tabs are rendered', async ({ page }) => {
     const body = await page.textContent('body');
-    const hasTabs = /Season|Cards|Stats|Streaks/i.test(body || '');
+    const hasTabs = /Leaderboard|Hall of Fame|Player Directory/i.test(body || '');
     expect(hasTabs, 'Standings tabs should be visible').toBe(true);
   });
 
@@ -57,7 +55,6 @@ test.describe('Comparison tool', () => {
   });
 
   test('comparison panel is not shown by default', async ({ page }) => {
-    // Compare panel only shows when 2+ players are selected
     const body = await page.textContent('body');
     expect(body).toBeTruthy();
   });

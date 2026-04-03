@@ -1,12 +1,7 @@
 /**
- * E2E – Clash, Events screens (replaced Results, HoF, Archive)
+ * E2E – Clash, Events, Legends tab
  *
- * After the UX overhaul:
- * - Results + Bracket → Clash (phase-adaptive)
- * - Archive + Featured → Events (filtered)
- * - Hall of Fame → Standings "legends" tab
- *
- * Tests verify the new screens render correctly.
+ * Tests verify these screens render correctly using the current nav structure.
  */
 
 import { test, expect } from '@playwright/test';
@@ -19,11 +14,7 @@ test.describe('Clash screen', () => {
     const app = new AppPage(page);
     await app.goto();
     await page.waitForTimeout(600);
-
-    const nav = page.locator('nav').first();
-    const clashBtn = nav.getByRole('button', { name: 'Clash', exact: true });
-    await clashBtn.waitFor({ timeout: 5000 });
-    await clashBtn.click();
+    await app.clickNavLink('Clash');
     await page.waitForTimeout(700);
   });
 
@@ -57,11 +48,7 @@ test.describe('Events screen', () => {
     const app = new AppPage(page);
     await app.goto();
     await page.waitForTimeout(600);
-
-    const nav = page.locator('nav').first();
-    const eventsBtn = nav.getByRole('button', { name: 'Events', exact: true });
-    await eventsBtn.waitFor({ timeout: 5000 });
-    await eventsBtn.click();
+    await app.clickNavLink('Events');
     await page.waitForTimeout(700);
   });
 
@@ -83,38 +70,35 @@ test.describe('Events screen', () => {
   });
 });
 
-// ── Legends tab (in Standings) ───────────────────────────────────────────────
+// ── Hall of Fame tab (in Standings) ──────────────────────────────────────────
 
-test.describe('Legends tab in Standings', () => {
+test.describe('Hall of Fame tab in Standings', () => {
   test.beforeEach(async ({ page }) => {
     const app = new AppPage(page);
     await app.goto();
     await page.waitForTimeout(600);
-
-    const nav = page.locator('nav').first();
-    await nav.getByRole('button', { name: 'Standings', exact: true }).click();
+    await app.clickNavLink('Standings');
     await page.waitForTimeout(700);
 
-    // Click the legends tab
-    const legendsBtn = page.getByRole('button', { name: /legends/i }).first();
-    await legendsBtn.waitFor({ timeout: 5000 });
-    await legendsBtn.click();
+    const hofBtn = page.getByRole('button', { name: 'Hall of Fame' }).first();
+    await hofBtn.waitFor({ timeout: 5000 });
+    await hofBtn.click();
     await page.waitForTimeout(500);
   });
 
-  test('Legends tab renders Hall of Fame content', async ({ page }) => {
+  test('Hall of Fame tab renders content', async ({ page }) => {
     const bodyText = await page.textContent('body');
     expect(bodyText).toMatch(/hall of fame|champion|trophy|season|legend/i);
   });
 
-  test('Legends tab does not crash', async ({ page }) => {
+  test('Hall of Fame tab does not crash', async ({ page }) => {
     const bodyText = await page.textContent('body');
     expect(bodyText?.length).toBeGreaterThan(100);
   });
 
-  test('screenshot of Legends tab', async ({ page }) => {
+  test('screenshot of Hall of Fame tab', async ({ page }) => {
     await page.screenshot({
-      path: 'playwright-report/screenshots/legends-tab.png',
+      path: 'playwright-report/screenshots/hof-tab.png',
       fullPage: false,
     });
   });
