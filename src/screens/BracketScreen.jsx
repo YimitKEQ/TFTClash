@@ -102,6 +102,8 @@ function BracketScreen(){
   var tournamentState=ctx.tournamentState;
   var setTournamentState=ctx.setTournamentState;
   var seasonConfig=ctx.seasonConfig;
+  var orgSponsors=ctx.orgSponsors||[];
+  var bracketSponsors=orgSponsors.filter(function(s){return s.status==='active'&&s.placements&&s.placements.indexOf('bracket')>-1;});
 
   var checkedIn=useMemo(function(){return players.filter(function(p){return p.checkedIn;});},[players]);
 
@@ -690,6 +692,21 @@ function BracketScreen(){
         )}
 
         {/* Complete banner */}
+        {bracketSponsors.length>0&&(
+          <div className="mb-4 flex items-center justify-center gap-5 flex-wrap py-3 px-4 rounded-lg bg-surface-container/50 border border-outline-variant/8">
+            <span className="text-[8px] font-bold text-on-surface/25 uppercase tracking-widest">Sponsored By</span>
+            {bracketSponsors.map(function(sp){return(
+              <div key={sp.name} className="flex items-center gap-1.5 opacity-50 hover:opacity-90 transition-opacity">
+                {sp.logo_url?(
+                  <img src={sp.logo_url} alt={sp.name} className="h-4 object-contain" />
+                ):(
+                  <span className="text-[10px] font-bold" style={{color:sp.color||'#9B72CF'}}>{sp.name}</span>
+                )}
+              </div>
+            );})}
+          </div>
+        )}
+
         {tournamentState&&tournamentState.phase==="complete"&&checkedIn.length>0&&(
           <div className="mb-6 bg-primary/8 border border-primary/30 rounded-[4px] px-5 py-4 flex items-center gap-4">
             <Icon name="emoji_events" size={24} fill className="text-primary" />

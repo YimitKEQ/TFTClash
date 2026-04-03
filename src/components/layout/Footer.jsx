@@ -4,8 +4,10 @@ import { DISCORD_URL } from '../../lib/constants.js';
 
 function Footer() {
   var ctx = useApp();
-  var orgSponsors = ctx.orgSponsors || {};
-  var sponsorEntries = Object.values(orgSponsors);
+  var orgSponsors = ctx.orgSponsors || [];
+  var sponsorEntries = (Array.isArray(orgSponsors) ? orgSponsors : []).filter(function(s) {
+    return s.status === 'active' && (!s.placements || s.placements.indexOf('footer') > -1)
+  });
   var navigate = useNavigate();
 
   var platformLinks = [
@@ -43,10 +45,14 @@ function Footer() {
               return (
                 <div key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-md border"
                   style={{background: s.color + "12", borderColor: s.color + "25"}}>
-                  <span className="text-xs font-extrabold" style={{color: s.color}}>
-                    {s.logo || s.org.slice(0, 2).toUpperCase()}
-                  </span>
-                  <span className="text-[11px] font-semibold text-on-surface/60">{s.org}</span>
+                  {s.logo_url ? (
+                    <img src={s.logo_url} alt={s.name} className="h-4 object-contain" />
+                  ) : (
+                    <span className="text-xs font-extrabold" style={{color: s.color}}>
+                      {(s.name || '').slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                  <span className="text-[11px] font-semibold text-on-surface/60">{s.name}</span>
                 </div>
               );
             })}

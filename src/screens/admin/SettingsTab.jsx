@@ -32,8 +32,6 @@ export default function SettingsTab() {
   var ctx = useApp()
   var seasonConfig = ctx.seasonConfig
   var setSeasonConfig = ctx.setSeasonConfig
-  var orgSponsors = ctx.orgSponsors
-  var setOrgSponsors = ctx.setOrgSponsors
   var players = ctx.players
   var setPlayers = ctx.setPlayers
   var tickerOverrides = ctx.tickerOverrides
@@ -58,10 +56,6 @@ export default function SettingsTab() {
   var _newTicker = useState('')
   var newTicker = _newTicker[0]
   var setNewTicker = _newTicker[1]
-
-  var _spForm = useState({ name: '', logo: '', color: '#9B72CF', playerId: '' })
-  var spForm = _spForm[0]
-  var setSpForm = _spForm[1]
 
   var _seasonName = useState((seasonConfig && seasonConfig.seasonName) || 'Season 1')
   var seasonName = _seasonName[0]
@@ -127,24 +121,6 @@ export default function SettingsTab() {
     setTickerOverrides(updated)
     upsertSetting('ticker_overrides', JSON.stringify(updated))
     addAudit('ACTION', 'Ticker item removed: ' + item)
-  }
-
-  function addSponsor() {
-    if (!spForm.name.trim()) { toast('Org name required', 'error'); return }
-    var updated = (orgSponsors || []).concat([Object.assign({}, spForm)])
-    setOrgSponsors(updated)
-    upsertSetting('org_sponsors', JSON.stringify(updated))
-    addAudit('ACTION', 'Sponsor added: ' + spForm.name)
-    toast('Sponsor added', 'success')
-    setSpForm({ name: '', logo: '', color: '#9B72CF', playerId: '' })
-  }
-
-  function removeSponsor(idx) {
-    var updated = (orgSponsors || []).filter(function(_, i) { return i !== idx })
-    setOrgSponsors(updated)
-    upsertSetting('org_sponsors', JSON.stringify(updated))
-    addAudit('ACTION', 'Sponsor removed')
-    toast('Sponsor removed', 'success')
   }
 
   function saveSeasonName() {
@@ -263,37 +239,6 @@ export default function SettingsTab() {
             </div>
           )
         })}
-      </Panel>
-
-      <Panel>
-        <div className="flex items-center gap-2 mb-4">
-          <Icon name="apartment" size={16} className="text-primary" />
-          <span className="font-bold text-sm text-on-surface">Sponsorships</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-          <Inp value={spForm.name} onChange={function(v) { setSpForm(Object.assign({}, spForm, { name: typeof v === 'string' ? v : v.target.value })) }} placeholder="Org name" />
-          <Inp value={spForm.logo} onChange={function(v) { setSpForm(Object.assign({}, spForm, { logo: typeof v === 'string' ? v : v.target.value })) }} placeholder="Logo text/URL" />
-          <Inp value={spForm.color} onChange={function(v) { setSpForm(Object.assign({}, spForm, { color: typeof v === 'string' ? v : v.target.value })) }} placeholder="#hex color" />
-          <Sel value={spForm.playerId} onChange={function(v) { setSpForm(Object.assign({}, spForm, { playerId: v })) }}>
-            <option value="">Assign player</option>
-            {(players || []).map(function(p) { return <option key={p.id} value={String(p.id)}>{p.name}</option> })}
-          </Sel>
-        </div>
-        <Btn variant="secondary" size="sm" onClick={addSponsor}>Add Sponsor</Btn>
-        {(orgSponsors || []).length > 0 && (
-          <div className="mt-3 space-y-1.5">
-            {(orgSponsors || []).map(function(sp, i) {
-              return (
-                <div key={i} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded-sm">
-                  <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sp.color || '#9B72CF' }} />
-                  <span className="flex-1 text-sm font-semibold text-on-surface">{sp.name}</span>
-                  {sp.logo && <span className="text-xs text-on-surface/50">{sp.logo}</span>}
-                  <Btn variant="ghost" size="sm" onClick={function() { removeSponsor(i) }}>Remove</Btn>
-                </div>
-              )
-            })}
-          </div>
-        )}
       </Panel>
 
       <Panel>

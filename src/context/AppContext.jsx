@@ -100,7 +100,7 @@ export function AppProvider(props) {
   var quickClashes = _quickClashes[0];
   var setQuickClashes = _quickClashes[1];
 
-  var _orgSponsors = useState(function(){try{var s=localStorage.getItem("tft-sponsors");return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _orgSponsors = useState(function(){try{var s=localStorage.getItem("tft-sponsors");var p=s?JSON.parse(s):[];return Array.isArray(p)?p:[];}catch(e){return [];}});
   var orgSponsors = _orgSponsors[0];
   var setOrgSponsors = _orgSponsors[1];
 
@@ -522,7 +522,7 @@ export function AppProvider(props) {
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
               if(row.key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
-              if(row.key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(val);}
+              if(row.key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(Array.isArray(val)?val:[]);}
               if(row.key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
               if(row.key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
               if(row.key==='scrim_host_access'&&Array.isArray(val)){rtRef.current.scrim_host_access=true;setScrimHostAccess(val);}
@@ -579,7 +579,7 @@ export function AppProvider(props) {
           if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
           if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
           if(key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
-          if(key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(val);}
+          if(key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(Array.isArray(val)?val:[]);}
           if(key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
           if(key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
           if(key==='scrim_host_access'&&Array.isArray(val)){rtRef.current.scrim_host_access=true;setScrimHostAccess(val);}

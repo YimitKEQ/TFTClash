@@ -12,7 +12,12 @@ export default function HofScreen(props) {
   var setProfilePlayer = ctx.setProfilePlayer
   var setScreen = ctx.setScreen
   var seasonConfig = ctx.seasonConfig
+  var orgSponsors = ctx.orgSponsors || []
   var navigate = useNavigate()
+
+  var hofSponsors = orgSponsors.filter(function(s) {
+    return s.status === 'active' && s.placements && s.placements.indexOf('hall_of_fame') > -1
+  })
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var king = sorted[0] || null
@@ -121,6 +126,24 @@ export default function HofScreen(props) {
             Celebrating the Architects of Victory
           </p>
         </div>
+
+        {/* Hall of Fame Sponsors */}
+        {hofSponsors.length > 0 && (
+          <div className="flex items-center justify-center gap-6 flex-wrap py-4 border-y border-primary/10">
+            <span className="text-[9px] font-bold text-primary/40 uppercase tracking-widest">Hall of Fame presented by</span>
+            {hofSponsors.map(function(sp) {
+              return (
+                <div key={sp.name} className="flex items-center gap-2 opacity-50 hover:opacity-90 transition-opacity">
+                  {sp.logo_url ? (
+                    <img src={sp.logo_url} alt={sp.name} className="h-5 object-contain" />
+                  ) : (
+                    <span className="text-sm font-bold" style={{ color: sp.color || '#ffc66b' }}>{sp.name}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Featured Section: Reigning Champ and Challengers */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -192,7 +192,12 @@ export default function LeaderboardScreen(props) {
   var currentUser = ctx.currentUser
   var setProfilePlayer = ctx.setProfilePlayer
   var setScreen = ctx.setScreen
+  var orgSponsors = ctx.orgSponsors || []
   var navigate = useNavigate()
+
+  var lbSponsors = orgSponsors.filter(function(s) {
+    return s.status === 'active' && s.placements && s.placements.indexOf('leaderboard') > -1
+  })
 
   var _search = useState('')
   var search = _search[0]
@@ -260,6 +265,24 @@ export default function LeaderboardScreen(props) {
             Behold the elite tacticians of the convergence. Only those with iron resolve and unmatched strategy ascend the Obsidian Arena.
           </p>
         </header>
+
+        {/* Leaderboard Sponsors */}
+        {lbSponsors.length > 0 && (
+          <div className="flex items-center justify-center gap-6 flex-wrap py-4 mb-8 border-y border-outline-variant/10">
+            <span className="text-[9px] font-bold text-on-surface/30 uppercase tracking-widest">Leaderboard Powered By</span>
+            {lbSponsors.map(function(sp) {
+              return (
+                <div key={sp.name} className="flex items-center gap-2 opacity-50 hover:opacity-90 transition-opacity">
+                  {sp.logo_url ? (
+                    <img src={sp.logo_url} alt={sp.name} className="h-5 object-contain" />
+                  ) : (
+                    <span className="text-xs font-bold" style={{ color: sp.color || '#9B72CF' }}>{sp.name}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Podium */}
         {top3.length >= 3 && (

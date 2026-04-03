@@ -234,11 +234,72 @@ function SectionHeader(props) {
 
 /* ─── MAIN ─── */
 
+function CurrentPartners(props) {
+  var sponsors = props.sponsors
+  if (!sponsors || sponsors.length === 0) return null
+
+  var TIER_ORDER = { title: 0, official: 1, associate: 2 }
+
+  var sorted = sponsors.slice().sort(function(a, b) {
+    return (TIER_ORDER[a.tier] || 99) - (TIER_ORDER[b.tier] || 99)
+  })
+
+  var TIER_LABELS = { title: 'Title Partner', official: 'Official Sponsor', associate: 'Associate' }
+  var TIER_COLORS = { title: '#ffc66b', official: '#9B72CF', associate: '#67e2d9' }
+
+  return (
+    <div className="mb-16">
+      <SectionHeader
+        tag="Current Partners"
+        title="Our Sponsors"
+        subtitle="These brands support the TFT Clash competitive community."
+        center
+      />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        {sorted.map(function(sp) {
+          var tierColor = TIER_COLORS[sp.tier] || '#9B72CF'
+          return (
+            <div key={sp.name} className="group bg-surface-container rounded-xl border border-outline-variant hover:border-primary/30 transition-colors p-6 text-center">
+              {sp.logo_url ? (
+                <img src={sp.logo_url} alt={sp.name} className="h-12 mx-auto mb-4 object-contain group-hover:scale-105 transition-transform" />
+              ) : (
+                <div className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center text-2xl font-bold" style={{ background: (sp.color || tierColor) + '20', color: sp.color || tierColor }}>
+                  {(sp.name || '?').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <p className="font-barlow text-sm tracking-widest uppercase font-semibold text-on-surface mb-1">{sp.name}</p>
+              <p className="text-xs font-semibold mb-2" style={{ color: tierColor }}>
+                {TIER_LABELS[sp.tier] || 'Partner'}
+              </p>
+              {sp.website && (
+                <a href={sp.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline no-underline">
+                  <Icon name="open_in_new" className="text-xs" /> Visit Website
+                </a>
+              )}
+              {sp.discount_code && (
+                <div className="mt-3 px-3 py-2 bg-tertiary/10 border border-tertiary/20 rounded-lg">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-tertiary mb-0.5">Discount Code</p>
+                  <p className="text-sm font-mono font-bold text-on-surface">{sp.discount_code}</p>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function SponsorsScreen() {
   var app = useApp()
+  var orgSponsors = app.orgSponsors || []
+  var activeSponsors = orgSponsors.filter(function(s) { return s.status === 'active' })
 
   return (
     <PageLayout maxWidth="max-w-5xl">
+
+      {/* ── CURRENT PARTNERS (dynamic from admin) ── */}
+      <CurrentPartners sponsors={activeSponsors} />
 
       {/* ── HERO ── */}
       <div className="relative overflow-hidden rounded-2xl bg-surface-container border border-outline-variant mb-16">

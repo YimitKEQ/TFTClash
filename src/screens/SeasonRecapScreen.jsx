@@ -124,6 +124,10 @@ export default function SeasonRecapScreen() {
   var seasonConfig = ctx.seasonConfig || {}
   var seasonName = seasonConfig.seasonName || 'Season 1'
   var seasonTag = seasonConfig.seasonTag || 'S1'
+  var orgSponsors = ctx.orgSponsors || []
+  var recapSponsors = orgSponsors.filter(function(s) {
+    return s.status === 'active' && s.placements && s.placements.indexOf('recap') > -1
+  })
 
   var player = null
   if (currentUser) {
@@ -373,6 +377,24 @@ export default function SeasonRecapScreen() {
             {nextSeasonCountdown()}
           </p>
         </div>
+
+        {/* Season Recap Sponsors */}
+        {recapSponsors.length > 0 && (
+          <div className="flex items-center justify-center gap-6 flex-wrap py-6 mt-12 border-t border-outline-variant/10">
+            <span className="text-[9px] font-bold text-on-surface/30 uppercase tracking-widest">{seasonName} supported by</span>
+            {recapSponsors.map(function(sp) {
+              return (
+                <div key={sp.name} className="flex items-center gap-2 opacity-50 hover:opacity-90 transition-opacity">
+                  {sp.logo_url ? (
+                    <img src={sp.logo_url} alt={sp.name} className="h-5 object-contain" />
+                  ) : (
+                    <span className="text-xs font-bold" style={{ color: sp.color || '#9B72CF' }}>{sp.name}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
 
       </div>
     </PageLayout>
