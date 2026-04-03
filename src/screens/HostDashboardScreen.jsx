@@ -125,7 +125,7 @@ export default function HostDashboardScreen() {
         if (hp.banner_url) setBrandBannerUrl(hp.banner_url);
         setDbProfileLoaded(true);
       }
-    });
+    }).catch(function() {});
   }, [currentUser]);
 
   // Load registrants for the selected event from DB
@@ -145,7 +145,7 @@ export default function HostDashboardScreen() {
         var regIds = res.data.map(function(r) { return r.player_id; });
         var matched = (players || []).filter(function(p) { return regIds.indexOf(p.id) !== -1; });
         setEventRegistrants(matched);
-      });
+      }).catch(function() { setEventRegistrantsLoading(false); });
   }, [selectedEventId, (hostTournaments || []).length]);
 
   // Load host tournaments from DB
@@ -168,7 +168,7 @@ export default function HostDashboardScreen() {
             return (prev || []).concat(newFromDb);
           });
         }
-      });
+      }).catch(function() {});
   }, [currentUser && currentUser.id]);
 
   function uploadImage(file, type) {
@@ -185,7 +185,7 @@ export default function HostDashboardScreen() {
       var url = supabase.storage.from("host-assets").getPublicUrl(path).data.publicUrl;
       setUrl(url);
       toast((type === "logo" ? "Logo" : "Banner") + " uploaded!", "success");
-    });
+    }).catch(function() { setUploading(false); toast("Upload failed", "error"); });
   }
 
   function updateTournamentAndFeatured(tournamentId, updates) {
@@ -322,7 +322,7 @@ export default function HostDashboardScreen() {
         setWizStep(0);
         setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
         toast(savedWizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
-      });
+      }).catch(function() { setWizCreating(false); toast("Failed to create tournament", "error"); });
     } else {
       setWizCreating(false);
       setShowCreate(false);
@@ -342,8 +342,7 @@ export default function HostDashboardScreen() {
         logo_url: brandLogoUrl || brandLogo,
         banner_url: brandBannerUrl || ""
       }).eq("user_id", currentUser.auth_user_id).then(function(res) {
-        if (res.error) console.error("[TFT] host_profiles branding update failed:", res.error);
-      });
+      }).catch(function() {});
     }
     setBrandSaved(true);
     toast("Branding saved!", "success");
@@ -362,7 +361,7 @@ export default function HostDashboardScreen() {
       supabase.from('site_settings').upsert(
         { key: 'announcement', value: msg },
         { onConflict: 'key' }
-      ).then(function(r) { if (r.error) console.error('[TFT] site_settings announcement failed:', r.error) })
+      ).then(function(r) { }).catch(function() {})
     }
     toast("Announcement sent to " + (announceTo === "all" ? "all players" : announceTo + " players"), "success");
   }
@@ -621,7 +620,7 @@ export default function HostDashboardScreen() {
                   var isLast = i === Math.min(tournaments.length, 9) - 1;
                   return (
                     <div
-                      key={t.id || i}
+                      key={t.id || t.name}
                       className={'flex-grow rounded-t-sm border-t-2 ' + (isLast ? 'bg-primary/25 border-t-primary/80' : 'bg-[rgba(30,30,40,0.6)] border-t-white/[0.04]')}
                       title={t.name + ': ' + (t.registered || 0) + '/' + (t.size || 0) + ' players'}
                       style={{ height: h + '%' }}
@@ -708,7 +707,7 @@ export default function HostDashboardScreen() {
                 <div className="flex items-center gap-2">
                   {WIZ_STEPS.map(function(label, i) {
                     return (
-                      <div key={i} className="flex items-center gap-2">
+                      <div key={label} className="flex items-center gap-2">
                         <div className="flex items-center gap-1.5">
                           <div className={'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all border ' + (wizStep === i ? 'bg-primary/20 border-primary/50 text-primary' : wizStep > i ? 'bg-tertiary/15 border-tertiary/40 text-tertiary' : 'bg-white/[0.06] border-white/10 text-on-surface-variant')}>
                             {wizStep > i ? <Icon name="check" size={12} /> : (i + 1)}
@@ -1161,7 +1160,7 @@ export default function HostDashboardScreen() {
                                   }).then(function(res) {
                                     if (res.error) toast("Failed to save: " + res.error.message, "error");
                                     else toast(username + " placed " + placement + (placement === 1 ? "st" : placement === 2 ? "nd" : placement === 3 ? "rd" : "th") + " (" + pts + "pts)", "success");
-                                  });
+                                  }).catch(function() { toast("Failed to save result", "error"); });
                                 } else {
                                   toast(username + " placed " + placement + (placement === 1 ? "st" : placement === 2 ? "nd" : placement === 3 ? "rd" : "th") + " (" + pts + "pts)", "success");
                                 }
@@ -1449,7 +1448,7 @@ export default function HostDashboardScreen() {
                 <div className="p-3 flex flex-col gap-2">
                   {activityItems.map(function(item, i) {
                     return (
-                      <div key={i} className="flex gap-2 items-start">
+                      <div key={item.label} className="flex gap-2 items-start">
                         <div className={'w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ' + item.dot}></div>
                         <div className="flex-1 text-[9px] text-on-surface/40 leading-relaxed">{item.label}</div>
                       </div>

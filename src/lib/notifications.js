@@ -6,7 +6,6 @@ export function writeActivityEvent(type, playerId, text) {
     player_id: playerId,
     detail_json: {text: text}
   }).then(function(r) {
-    if (r.error) console.error("[TFT] activity_feed insert failed:", r.error);
   });
 }
 

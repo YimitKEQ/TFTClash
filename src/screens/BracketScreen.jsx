@@ -212,7 +212,7 @@ function BracketScreen(){
           });
         });
         if(Object.keys(restored).length>0)setPlayerSubmissions(restored);
-      });
+      }).catch(function(){});
   },[tournamentState.dbTournamentId,round,lobbies.length]);
 
   // Auto-persist lobby assignments
@@ -231,7 +231,7 @@ function BracketScreen(){
           player_ids:playerIds,
           status:'pending'
         },{onConflict:'tournament_id,lobby_number,round_number'})
-        .then(function(res){if(res.error)console.error("[TFT] Failed to persist lobby "+(idx+1)+":",res.error);});
+        .then(function(res){}).catch(function(){});
       });
     }
   },[lobbies]);
@@ -239,7 +239,7 @@ function BracketScreen(){
   function findMyLobby(){
     var q=mySearch.trim().toLowerCase();
     if(!q)return;
-    var li=lobbies.findIndex(function(lobby){return lobby.some(function(p){return p.name.toLowerCase().includes(q)||(p.riotId&&p.riotId.toLowerCase().includes(q));});});
+    var li=lobbies.findIndex(function(lobby){return lobby.some(function(p){return (p.name||'').toLowerCase().includes(q)||(p.riotId&&p.riotId.toLowerCase().includes(q));});});
     if(li>=0){setHighlightLobby(li);toast("Found in Lobby "+(li+1)+"!","success");}
     else toast("Not found in active lobbies","error");
   }
@@ -318,7 +318,7 @@ function BracketScreen(){
         .eq('tournament_id',tournamentState.dbTournamentId)
         .eq('lobby_number',li+1)
         .eq('round_number',round)
-        .then(function(res){if(res.error)console.error("[TFT] Failed to lock lobby in DB:",res.error);});
+        .then(function(res){}).catch(function(){ toast('Failed to lock lobby','error'); });
     }
 
     if(supabase.from&&tournamentState.dbTournamentId){
@@ -330,7 +330,7 @@ function BracketScreen(){
       });
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
-          if(res.error){console.error("[TFT] Failed to save game results:",res.error);toast("Failed to save game results","error");}
+          if(res.error){toast("Failed to save game results","error");}
           else{
             lobby.forEach(function(lp){
               var place=parseInt(placementEntry[li].placements[lp.id]||"0");
@@ -346,11 +346,10 @@ function BracketScreen(){
                 season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
                 avg_placement:parseFloat(newAvg.toFixed(2))
               }).eq('id',lp.id).then(function(pr){
-                if(pr.error)console.error("[TFT] Failed to sync player stats for",lp.name||lp.id,pr.error);
-              });
+              }).catch(function(){});
             });
           }
-        });
+        }).catch(function(){ toast('Failed to save game results','error'); });
       }
     }
 
@@ -374,8 +373,7 @@ function BracketScreen(){
         reported_placement:p,
         reported_at:new Date().toISOString()
       },{onConflict:'tournament_id,game_number,player_id'}).then(function(r){
-        if(r.error)console.error("[TFT] Failed to persist placement report:",r.error);
-      });
+      }).catch(function(){});
     }
     toast("Placement submitted - waiting for admin confirmation","success");
   }
@@ -413,13 +411,13 @@ function BracketScreen(){
           .eq('tournament_id',tournamentState.dbTournamentId)
           .eq('round_number',round)
           .in('player_id',lobbyPlayerIds)
-          .then(function(res){if(res.error)console.error("[TFT] Failed to delete game results:",res.error);});
+          .then(function(res){}).catch(function(){});
       }
       supabase.from('lobbies').update({status:'active'})
         .eq('tournament_id',tournamentState.dbTournamentId)
         .eq('lobby_number',li+1)
         .eq('round_number',round)
-        .then(function(res){if(res.error)console.error("[TFT] Failed to unlock lobby in DB:",res.error);});
+        .then(function(res){}).catch(function(){});
       if(savedPlacements){
         lobbyPlayerIds.forEach(function(pid){
           var place=savedPlacements[pid];
@@ -436,8 +434,7 @@ function BracketScreen(){
             season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
             avg_placement:parseFloat(newAvg.toFixed(2))
           }).eq('id',pid).then(function(pr){
-            if(pr.error)console.error("[TFT] Failed to revert player stats:",pr.error);
-          });
+          }).catch(function(){});
         });
       }
     }
@@ -487,7 +484,7 @@ function BracketScreen(){
     var clashName=(tournamentState&&tournamentState.clashName)?tournamentState.clashName:("Clash "+new Date().toLocaleDateString());
     var doSave=function(tId){
       supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()}).eq('id',tId)
-        .then(function(r){if(r.error)console.error("Failed to update tournament phase:",r.error);});
+        .then(function(r){}).catch(function(){});
       var playerTotals={};
       allPlayers.forEach(function(p){
         var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
@@ -501,7 +498,7 @@ function BracketScreen(){
       var rows=Object.values(playerTotals);
       if(rows.length>0){
         supabase.from('tournament_results').insert(rows).then(function(r){
-          if(r.error){console.error("Failed to save results:",r.error);toast("Failed to save player results","error");return;}
+          if(r.error){toast("Failed to save player results","error");return;}
           allPlayers.forEach(function(p){
             if(p.authUserId){createNotification(p.authUserId,"Results Finalized",clashName+" results are in! Check the Results screen to see your placement and points.","trophy");}
           });
@@ -533,11 +530,10 @@ function BracketScreen(){
                 avg_placement:parseFloat(parseFloat(p.avg||0).toFixed(2)),
                 last_clash_rank:sortedByPts.findIndex(function(q){return q.id===p.id;})+1
               }).eq('id',p.id).then(function(pr){
-                if(pr.error)console.error("[TFT] Failed to sync final stats for",p.name,pr.error);
-              });
+              }).catch(function(){});
             }
           });
-        });
+        }).catch(function(){ toast('Failed to save player results','error'); });
       }
     };
     var existingId=tournamentState.dbTournamentId;
@@ -545,9 +541,9 @@ function BracketScreen(){
       doSave(existingId);
     }else{
       supabase.from('tournaments').insert({name:clashName,date:new Date().toISOString().split('T')[0],phase:'complete'}).select('id').single().then(function(res){
-        if(res.error){console.error("Failed to save tournament:",res.error);toast("Failed to save results to database","error");return;}
+        if(res.error){toast("Failed to save results to database","error");return;}
         if(res.data)doSave(res.data.id);
-      });
+      }).catch(function(){ toast('Failed to save results to database','error'); });
     }
   }
 

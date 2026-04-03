@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Btn, Inp, Panel, Icon } from '../ui';
+import { supabase } from '../../lib/supabase';
 
 var SCREEN_TO_ROUTE = {
   home: '/', login: '/login', signup: '/signup', standings: '/standings',
@@ -104,6 +105,7 @@ export default function Navbar() {
   var players = ctx.players;
   var isAdmin = ctx.isAdmin;
   var setIsAdmin = ctx.setIsAdmin;
+  var setAdminOverride = ctx.setAdminOverride;
   var toast = ctx.toast;
   var disputes = ctx.disputes;
   var currentUser = ctx.currentUser;
@@ -138,13 +140,18 @@ export default function Navbar() {
   }, [isAdmin, currentUser, scrimAccess, toast, navigate, setScreen]);
 
   function tryLogin() {
-    fetch('/api/check-admin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pw, userId: currentUser && currentUser.auth_user_id })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      if (data && data.isAdmin) { setIsAdmin(true); setPwModal(false); setPw(''); toast('Admin activated', 'success'); }
-      else toast('Wrong password', 'error');
+    supabase.auth.getSession().then(function(sess) {
+      var token = sess.data && sess.data.session && sess.data.session.access_token;
+      var headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      fetch('/api/check-admin', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ password: pw })
+      }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data && data.isAdmin) { setAdminOverride(true); setPwModal(false); setPw(''); toast('Admin activated', 'success'); }
+        else toast('Wrong password', 'error');
+      });
     });
   }
 
@@ -255,7 +262,7 @@ export default function Navbar() {
               {!isAdmin ? (
                 <Btn variant="ghost" className="w-full" onClick={function() { setDrawer(false); setPwModal(true); }}>Admin Login</Btn>
               ) : (
-                <Btn variant="destructive" className="w-full" onClick={function() { setIsAdmin(false); setDrawer(false); toast('Admin off', 'success'); }}>Admin On</Btn>
+                <Btn variant="destructive" className="w-full" onClick={function() { setAdminOverride(false); setDrawer(false); toast('Admin off', 'success'); }}>Admin On</Btn>
               )}
             </div>
           </div>

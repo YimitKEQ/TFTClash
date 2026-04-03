@@ -176,7 +176,7 @@ export default function StandingsScreen() {
                     var displayName = p.name || p.username || 'Unknown'
                     return (
                       <tr
-                        key={p.id || idx}
+                        key={p.id || p.name || p.username}
                         onClick={function() { navigate('/player/' + encodeURIComponent(displayName)) }}
                         className="border-b border-outline-variant/5 hover:bg-surface-container-low/60 cursor-pointer transition-colors"
                       >

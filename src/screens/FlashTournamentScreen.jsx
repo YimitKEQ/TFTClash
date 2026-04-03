@@ -34,7 +34,7 @@ export default function FlashTournamentScreen(props) {
 
   function loadTournament() {
     return supabase.from('tournaments').select('*').eq('id', tournamentId).single().then(function(res) {
-      if (res.error) { console.error('[Flash] Failed to load tournament:', res.error); return res; }
+      if (res.error) { return res; }
       if (res.data) setTournament(res.data);
       return res;
     });
@@ -83,7 +83,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   useEffect(function() {
-    Promise.all([loadTournament(), loadRegistrations(), loadLobbies(), loadDisputes(), loadResults()]).then(function() { setLoading(false); }).catch(function(e) { console.error('[Flash] Initial load failed:', e); setLoading(false); });
+    Promise.all([loadTournament(), loadRegistrations(), loadLobbies(), loadDisputes(), loadResults()]).then(function() { setLoading(false); }).catch(function(e) { setLoading(false); });
   }, [tournamentId]);
 
   useEffect(function() {
@@ -125,7 +125,7 @@ export default function FlashTournamentScreen(props) {
       if (res.error) { toast('Failed to save code', 'error'); return; }
       toast('Lobby code saved!', 'success');
       loadLobbies();
-    });
+    }).catch(function() { toast('Failed to save code', 'error'); });
   }
 
   function generateLobbies() {
@@ -156,17 +156,15 @@ export default function FlashTournamentScreen(props) {
           if (lRes.error) { toast('Failed: ' + lRes.error.message, 'error'); return; }
           supabase.from('tournaments').update({phase: 'in_progress', started_at: new Date().toISOString(), current_round: 1})
             .eq('id', tournamentId).then(function(tRes) {
-              if (tRes.error) { console.error('[Flash] Failed to start tournament:', tRes.error); toast && toast('Error: ' + tRes.error.message, 'error'); return; }
+              if (tRes.error) { toast && toast('Error: ' + tRes.error.message, 'error'); return; }
               setTournament(Object.assign({}, tournament, {phase: 'in_progress', current_round: 1}));
-            });
+            }).catch(function() { toast('Failed to update tournament phase', 'error'); });
           toast(result.lobbies.length + ' lobbies generated!', 'success');
           broadcastUpdate('lobbies_generated');
           loadLobbies();
-          supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id', tournamentId).eq('status', 'checked_in').then(function(rRes) {
-            if (rRes.data) { rRes.data.forEach(function(r) { var uid = r.players && r.players.auth_user_id; if (uid) { createNotification(uid, 'Lobby Assigned', 'Your lobby has been assigned for ' + (tournament ? tournament.name : 'the tournament') + '. Check your lobby now!', 'trophy'); } }); }
-          });
-        });
-      });
+          supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Lobby Assigned', p_body: 'Your lobby has been assigned for ' + (tournament ? tournament.name : 'the tournament') + '. Check your lobby now!', p_icon: 'trophy', p_statuses: ['checked_in']}).catch(function() {});
+        }).catch(function() { setActionLoading(false); toast('Failed to generate lobbies', 'error'); });
+      }).catch(function() { setActionLoading(false); toast('Failed to load players', 'error'); });
   }
 
   var myPlayer = currentUser ? (players || []).find(function(p) { return p.authUserId === currentUser.id; }) : null;
@@ -202,7 +200,7 @@ export default function FlashTournamentScreen(props) {
         toast('Added to waitlist (position #' + waitPos + ')!', 'info');
         broadcastUpdate('registration');
         loadRegistrations();
-      });
+      }).catch(function() { setActionLoading(false); toast('Registration failed', 'error'); });
       return;
     }
     supabase.from('registrations').upsert({
@@ -212,11 +210,12 @@ export default function FlashTournamentScreen(props) {
     }, {onConflict: 'tournament_id,player_id'}).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Registration failed: ' + res.error.message, 'error'); return; }
+
       if (currentUser) { createNotification(currentUser.id, 'Registration Confirmed', 'You are registered for ' + (tournament ? tournament.name : 'the tournament') + '. Check in when the check-in window opens.', 'controller'); }
       toast('Registered!', 'success');
       broadcastUpdate('registration');
       loadRegistrations();
-    });
+    }).catch(function() { setActionLoading(false); toast('Registration failed', 'error'); });
   }
 
   function handleUnregister() {
@@ -229,7 +228,7 @@ export default function FlashTournamentScreen(props) {
       toast('Unregistered', 'success');
       broadcastUpdate('registration');
       loadRegistrations();
-    });
+    }).catch(function() { setActionLoading(false); toast('Failed to unregister', 'error'); });
   }
 
   function handleCheckIn() {
@@ -241,7 +240,7 @@ export default function FlashTournamentScreen(props) {
       toast('Checked in!', 'success');
       broadcastUpdate('registration');
       loadRegistrations();
-    });
+    }).catch(function() { setActionLoading(false); toast('Check-in failed', 'error'); });
   }
 
   function adminOpenCheckIn() {
@@ -250,10 +249,8 @@ export default function FlashTournamentScreen(props) {
       setTournament(Object.assign({}, tournament, {phase: 'check_in'}));
       toast('Check-in opened!', 'success');
       broadcastUpdate('phase_change');
-      supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id', tournamentId).eq('status', 'registered').then(function(rRes) {
-        if (rRes.data) { rRes.data.forEach(function(r) { var uid = r.players && r.players.auth_user_id; if (uid) { createNotification(uid, 'Check-in is Open', 'Check in now to secure your spot in ' + (tournament ? tournament.name : 'the tournament') + '!', 'checkmark'); } }); }
-      });
-    });
+      supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Check-in is Open', p_body: 'Check in now to secure your spot in ' + (tournament ? tournament.name : 'the tournament') + '!', p_icon: 'checkmark', p_statuses: ['registered']}).catch(function() {});
+    }).catch(function() { toast('Failed to open check-in', 'error'); });
   }
 
   function adminCloseCheckIn() {
@@ -267,23 +264,22 @@ export default function FlashTournamentScreen(props) {
       var dropIds = notCheckedIn.map(function(r) { return r.id; });
       if (dropIds.length > 0) {
         supabase.from('registrations').update({status: 'dropped'}).in('id', dropIds).then(function(dropRes) {
-          if (dropRes.error) console.error('Drop failed:', dropRes.error);
           var openSpots = maxP - checkedInCount;
           var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted'; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
           var toPromote = waitlisted.slice(0, Math.max(0, openSpots));
           if (toPromote.length > 0) {
             var promoteIds = toPromote.map(function(r) { return r.id; });
-            supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', promoteIds).then(function() { loadRegistrations(); });
+            supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', promoteIds).then(function() { loadRegistrations(); }).catch(function() { loadRegistrations(); });
           } else {
             loadRegistrations();
           }
-        });
+        }).catch(function() { loadRegistrations(); });
       } else {
         loadRegistrations();
       }
       toast('Check-in closed. ' + notCheckedIn.length + ' player(s) dropped.', 'success');
       broadcastUpdate('phase_change');
-    });
+    }).catch(function() { toast('Failed to close check-in', 'error'); });
   }
 
   function adminOpenRegistration() {
@@ -292,7 +288,7 @@ export default function FlashTournamentScreen(props) {
       setTournament(Object.assign({}, tournament, {phase: 'registration'}));
       toast('Registration opened!', 'success');
       broadcastUpdate('phase_change');
-    });
+    }).catch(function() { toast('Failed to open registration', 'error'); });
   }
 
   function adminStartTournament() {
@@ -301,7 +297,7 @@ export default function FlashTournamentScreen(props) {
       setTournament(Object.assign({}, tournament, {phase: 'in_progress', current_round: 1}));
       toast('Tournament started!', 'success');
       broadcastUpdate('phase_change');
-    });
+    }).catch(function() { toast('Failed to start tournament', 'error'); });
   }
 
   function submitReport(placement) {
@@ -320,7 +316,7 @@ export default function FlashTournamentScreen(props) {
         broadcastUpdate('report_submitted');
         setMyPlacement(0);
         loadReports();
-      });
+      }).catch(function() { toast('Failed to submit placement', 'error'); });
   }
 
   function submitDispute() {
@@ -340,7 +336,7 @@ export default function FlashTournamentScreen(props) {
       toast('Dispute submitted', 'success');
       setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''});
       loadDisputes();
-    });
+    }).catch(function() { toast('Dispute submission failed', 'error'); });
   }
 
   function lockLobby(lobbyId) {
@@ -356,17 +352,17 @@ export default function FlashTournamentScreen(props) {
         game_number: currentGameNumber
       };
     });
-    supabase.from('game_results').insert(gameRows).then(function(res) {
+    supabase.from('game_results').upsert(gameRows, {onConflict: 'tournament_id,game_number,player_id'}).then(function(res) {
       if (res.error) { toast('Failed to lock: ' + res.error.message, 'error'); return; }
       supabase.from('lobbies').update({status: 'locked', reports_complete: true}).eq('id', lobbyId).then(function(luRes) {
-        if (luRes.error) { console.error('[Flash] Failed to lock lobby:', luRes.error); toast && toast('Error: ' + luRes.error.message, 'error'); return; }
+        if (luRes.error) { toast('Error: ' + luRes.error.message, 'error'); return; }
         toast('Lobby locked!', 'success');
         broadcastUpdate('lobby_locked');
         loadLobbies();
         loadReports();
         loadResults();
-      });
-    });
+      }).catch(function() { toast('Network error locking lobby', 'error'); });
+    }).catch(function() { toast('Network error saving results', 'error'); });
   }
 
   function adminOverridePlacement(lobbyId, playerId, placement) {
@@ -382,7 +378,7 @@ export default function FlashTournamentScreen(props) {
         if (res.error) { toast('Override failed: ' + res.error.message, 'error'); return; }
         toast('Placement overridden', 'success');
         loadReports();
-      });
+      }).catch(function() { toast('Override failed', 'error'); });
   }
 
   function isSafeUrl(url) { return url && (url.indexOf('https://') === 0 || url.indexOf('http://') === 0); }
@@ -392,7 +388,7 @@ export default function FlashTournamentScreen(props) {
     if (!d) return;
     var updates = {
       status: accept ? 'resolved_accepted' : 'resolved_rejected',
-      resolved_by: currentUser ? currentUser.id : null,
+      resolved_by: currentUser ? currentUser.auth_user_id : null,
       resolved_at: new Date().toISOString()
     };
     supabase.from('disputes').update(updates).eq('id', disputeId).then(function(res) {
@@ -407,7 +403,7 @@ export default function FlashTournamentScreen(props) {
           reported_at: new Date().toISOString()
         }, {onConflict: 'lobby_id,game_number,player_id'}).then(function() {
           loadReports();
-        });
+        }).catch(function() {});
       }
       toast('Dispute ' + (accept ? 'accepted' : 'rejected'), 'success');
       loadDisputes();
@@ -415,7 +411,7 @@ export default function FlashTournamentScreen(props) {
       if (disputingPlayer && disputingPlayer.authUserId) {
         createNotification(disputingPlayer.authUserId, 'Dispute ' + (accept ? 'Accepted' : 'Rejected'), 'Your placement dispute has been ' + (accept ? 'accepted. Your placement has been updated.' : 'rejected. The original result stands.'), 'bell');
       }
-    });
+    }).catch(function() { toast('Failed to resolve dispute', 'error'); });
   }
 
   function startNextGame() {
@@ -457,13 +453,13 @@ export default function FlashTournamentScreen(props) {
             };
           });
           supabase.from('lobbies').insert(lobbyRows).select().then(function(lRes) {
-            if (lRes.error) { console.error('[Flash] Failed to create lobbies for next game:', lRes.error); toast && toast('Error: ' + lRes.error.message, 'error'); return; }
+            if (lRes.error) { toast && toast('Error: ' + lRes.error.message, 'error'); return; }
             setTournament(Object.assign({}, tournament, {current_round: nextGame}));
             loadLobbies();
             loadReports();
             toast('Game ' + nextGame + ' started! New lobbies generated.', 'success');
             broadcastUpdate('next_game');
-          });
+          }).catch(function() { toast('Failed to create lobbies', 'error'); });
         } else {
           var currentLobbies = lobbies.filter(function(l) { return l.game_number === currentGameNumber; });
           var newLobbies = currentLobbies.map(function(l) {
@@ -478,15 +474,15 @@ export default function FlashTournamentScreen(props) {
             };
           });
           supabase.from('lobbies').insert(newLobbies).select().then(function(lRes) {
-            if (lRes.error) { console.error('[Flash] Failed to create lobbies for next game:', lRes.error); toast && toast('Error: ' + lRes.error.message, 'error'); return; }
+            if (lRes.error) { toast && toast('Error: ' + lRes.error.message, 'error'); return; }
             setTournament(Object.assign({}, tournament, {current_round: nextGame}));
             loadLobbies();
             loadReports();
             toast('Game ' + nextGame + ' started!', 'success');
             broadcastUpdate('next_game');
-          });
+          }).catch(function() { toast('Failed to create lobbies', 'error'); });
         }
-      });
+      }).catch(function() { toast('Failed to start next game', 'error'); });
   }
 
   function finalizeTournament() {
@@ -497,9 +493,7 @@ export default function FlashTournamentScreen(props) {
         setTournament(Object.assign({}, tournament, {phase: 'complete'}));
         toast('Tournament finalized!', 'success');
         broadcastUpdate('finalized');
-        supabase.from('registrations').select('players(auth_user_id)').eq('tournament_id', tournamentId).in('status', ['checked_in', 'registered']).then(function(rRes) {
-          if (rRes.data) { rRes.data.forEach(function(r) { var uid = r.players && r.players.auth_user_id; if (uid) { createNotification(uid, 'Results Finalized', (tournament ? tournament.name : 'The tournament') + ' has been finalized. Check the results screen for your placement and points.', 'trophy'); } }); }
-        });
+        supabase.rpc('notify_tournament_players', {p_tournament_id: tournamentId, p_title: 'Results Finalized', p_body: (tournament ? tournament.name : 'The tournament') + ' has been finalized. Check the results screen for your placement and points.', p_icon: 'trophy', p_statuses: ['checked_in', 'registered']}).catch(function() {});
         supabase.from('game_results').select('player_id,placement,points')
           .eq('tournament_id', tournamentId).then(function(grRes) {
             if (grRes.error || !grRes.data || !grRes.data.length) return;
@@ -519,8 +513,7 @@ export default function FlashTournamentScreen(props) {
             });
             if (tRows.length > 0) {
               supabase.from('tournament_results').insert(tRows).then(function(tr) {
-                if (tr.error) console.error('[TFT] Failed to insert tournament_results:', tr.error);
-              });
+              }).catch(function() {});
             }
             Object.keys(playerAgg).forEach(function(pid) {
               var a = playerAgg[pid];
@@ -537,12 +530,11 @@ export default function FlashTournamentScreen(props) {
                     games: newGames,
                     avg_placement: parseFloat(newAvg.toFixed(2))
                   }).eq('id', pid).then(function(uRes) {
-                    if (uRes.error) console.error('[TFT] Failed to update player stats:', pid, uRes.error);
-                  });
-                });
+                  }).catch(function() {});
+                }).catch(function() {});
             });
-          });
-      });
+          }).catch(function() {});
+      }).catch(function() { toast('Failed to finalize tournament', 'error'); });
   }
 
   if (loading) {
@@ -685,7 +677,7 @@ export default function FlashTournamentScreen(props) {
                 var colors = ['#E8A838', '#C0C0C0', '#CD7F32'];
                 var c = colors[i] || '#9B72CF';
                 return (
-                  <div key={i} className="bg-white/[.03] rounded-[10px] px-[18px] py-3 min-w-[80px] text-center" style={{border: '1px solid ' + c + '33'}}>
+                  <div key={p.placement + '-' + p.prize} className="bg-white/[.03] rounded-[10px] px-[18px] py-3 min-w-[80px] text-center" style={{border: '1px solid ' + c + '33'}}>
                     <div className="text-xl font-bold mb-1" style={{color: c}}>{'#' + p.placement}</div>
                     <div className="text-[13px] text-on-surface font-semibold">{p.prize}</div>
                   </div>
@@ -761,7 +753,7 @@ export default function FlashTournamentScreen(props) {
                 var statusColors = {checked_in: '#52C47C', registered: '#9B72CF', waitlisted: '#E8A838', dropped: '#F87171'};
                 var statusIcons = {checked_in: '\u2713', registered: '\u25CF', waitlisted: '\u25CB', dropped: '\u2717'};
                 return (
-                  <div key={r.id || idx} className="flex items-center gap-2.5 px-2.5 py-2 bg-white/[.02] rounded-md border border-on-surface/[.04]">
+                  <div key={r.id || r.player_id} className="flex items-center gap-2.5 px-2.5 py-2 bg-white/[.02] rounded-md border border-on-surface/[.04]">
                     <span className="text-sm w-[18px] text-center" style={{color: statusColors[r.status] || '#8896A8'}}>{statusIcons[r.status] || '?'}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-[13px] text-on-surface">{pData.username || 'Player'}</div>
@@ -799,7 +791,7 @@ export default function FlashTournamentScreen(props) {
                           className="bg-white/[.06] rounded-md px-2.5 py-[7px] text-[13px] text-on-surface font-[inherit] outline-none border border-secondary/30"
                         >
                           {(myLobby.player_ids || []).map(function(_, i) {
-                            return (<option key={i + 1} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
+                            return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
                           })}
                         </select>
                         <Btn v="primary" s="sm" onClick={function() { submitReport(myPlacement); }}>Submit</Btn>
@@ -817,7 +809,7 @@ export default function FlashTournamentScreen(props) {
                     >
                       <option value={0}>Select placement...</option>
                       {(myLobby.player_ids || []).map(function(_, i) {
-                        return (<option key={i + 1} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
+                        return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
                       })}
                     </select>
                     <Btn v="primary" s="sm" onClick={function() { if (myPlacement > 0) submitReport(myPlacement); else toast('Select a placement first', 'error'); }} disabled={myPlacement === 0}>Submit</Btn>
@@ -843,7 +835,7 @@ export default function FlashTournamentScreen(props) {
                       >
                         <option value={0}>Select...</option>
                         {(myLobby.player_ids || []).map(function(_, i) {
-                          return (<option key={i + 1} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th')}</option>);
+                          return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th')}</option>);
                         })}
                       </select>
                     </div>
@@ -1025,7 +1017,7 @@ export default function FlashTournamentScreen(props) {
                                 className="bg-white/[.06] rounded text-[11px] text-primary font-[inherit] outline-none cursor-pointer px-1.5 py-[3px] border border-secondary/20"
                               >
                                 <option value="">Override</option>
-                                {(lobby.player_ids || []).map(function(_, i) { return (<option key={i + 1} value={i + 1}>{i + 1}</option>); })}
+                                {(lobby.player_ids || []).map(function(_, i) { return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
                               </select>
                             </div>
                           );

@@ -5,11 +5,11 @@ export function sanitize(str) { if (typeof str !== 'string') return ''; return s
 
 export function rc(r) { return RCOLS[r] || "#A8B2CC"; }
 
-export function tier(pts) { return TIERS.find(t => pts >= t.min) || TIERS[TIERS.length - 1]; }
+export function tier(pts) { return TIERS.find(function(t) { return pts >= t.min; }) || TIERS[TIERS.length - 1]; }
 
 // Avg placement colour coding
 export function avgCol(avg) {
-  const n = parseFloat(avg) || 0;
+  var n = parseFloat(avg) || 0;
   if (n === 0) return "#BECBD9";
   if (n < 3.0) return "#4ade80"; // green
   if (n <= 5.0) return "#facc15"; // yellow

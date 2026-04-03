@@ -51,7 +51,7 @@ export default function TournamentTab() {
   useEffect(function() {
     supabase.from('tournaments').select('id, name, date, phase, type').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(20).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
-    })
+    }).catch(function() {})
   }, [])
 
   function addAudit(type, msg) {
@@ -62,7 +62,7 @@ export default function TournamentTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
@@ -73,8 +73,7 @@ export default function TournamentTab() {
   function setPhase(phase) {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
     supabase.from('tournaments').update({ phase: phase }).eq('type', 'weekly').then(function(r) {
-      if (r.error) console.error('[TFT] Phase update failed:', r.error)
-    })
+    }).catch(function() {})
     addAudit('ACTION', 'Phase set to: ' + phase)
     toast('Phase: ' + PHASE_LABELS[phase], 'success')
   }
@@ -92,7 +91,7 @@ export default function TournamentTab() {
   function resetToRegistration() {
     if (!window.confirm('Reset tournament to Registration? This will clear check-ins.')) return
     setTournamentState(function(s) { return Object.assign({}, s, { phase: 'registration', checkedInIds: [], round: 1 }) })
-    supabase.from('players').update({ checked_in: false }).then(function(r) { if (r.error) console.error('[TFT] Reset failed:', r.error) })
+    supabase.from('players').update({ checked_in: false }).then(function(r) { }).catch(function() {})
     addAudit('WARN', 'Tournament reset to Registration')
     toast('Reset to Registration', 'success')
   }
@@ -132,7 +131,7 @@ export default function TournamentTab() {
       addAudit('ACTION', 'Flash tournament created: ' + flashForm.name.trim())
       toast('Flash tournament created!', 'success')
       setFlashForm({ name: 'Flash Tournament', date: '', maxPlayers: '128', gameCount: '3', formatPreset: 'standard', seedingMethod: 'snake', prizeRows: [{ placement: '1', prize: '' }] })
-    })
+    }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
   return (
@@ -329,7 +328,7 @@ export default function TournamentTab() {
           </div>
           {flashForm.prizeRows.map(function(row, idx) {
             return (
-              <div key={idx} className="flex gap-2 mb-1.5 items-center">
+              <div key={row.placement} className="flex gap-2 mb-1.5 items-center">
                 <div className="text-xs text-secondary font-bold w-7 text-center">#{row.placement}</div>
                 <div className="flex-1">
                   <Inp value={row.prize} onChange={function(v) { var val = typeof v === 'string' ? v : v.target.value; var updated = flashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { prize: val }) : r }); setFlashForm(Object.assign({}, flashForm, { prizeRows: updated })) }} placeholder="e.g. $50, RP, Skin code" />
@@ -358,7 +357,7 @@ export default function TournamentTab() {
                         setFlashTournaments(function(ts) { return ts.map(function(x) { return x.id === t.id ? Object.assign({}, x, { phase: 'registration' }) : x }) })
                         addAudit('ACTION', 'Flash tournament registration opened: ' + t.name)
                         toast('Registration opened!', 'success')
-                      })
+                      }).catch(function() { toast('Failed to open registration', 'error') })
                     }}>Open Reg</Btn>
                   )}
                   <Btn variant="ghost" size="sm" onClick={function() {
@@ -368,7 +367,7 @@ export default function TournamentTab() {
                       setFlashTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id }) })
                       addAudit('ACTION', 'Tournament deleted: ' + t.name)
                       toast('Deleted', 'success')
-                    })
+                    }).catch(function() { toast('Delete failed', 'error') })
                   }}>Del</Btn>
                 </div>
               )

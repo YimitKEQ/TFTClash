@@ -3,36 +3,38 @@
 //        await startCheckout('pro', currentUser);
 
 export async function startCheckout(plan, user) {
-  if (!user?.email) throw new Error('Must be logged in to subscribe');
+  if (!(user && user.email)) throw new Error('Must be logged in to subscribe');
 
-  const res = await fetch('/api/create-checkout', {
+  var res = await fetch('/api/create-checkout', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      plan,
+      plan: plan,
       userId: user.id,
       email: user.email,
-      successUrl: `${window.location.origin}/#account?checkout=success`,
-      cancelUrl:  `${window.location.origin}/#pricing`,
+      successUrl: window.location.origin + '/#account?checkout=success',
+      cancelUrl:  window.location.origin + '/#pricing',
     }),
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    var err = await res.json().catch(function() { return {}; });
     throw new Error(err.error || 'Checkout failed');
   }
 
-  const { url } = await res.json();
+  var result = await res.json();
+  var url = result.url;
   if (url) window.location.href = url;
 }
 
 // Check subscription status from Supabase
 export async function getSubscription(supabase, userId) {
   if (!userId) return null;
-  const { data } = await supabase
+  var resp = await supabase
     .from('subscriptions')
     .select('plan, status')
     .eq('user_id', userId)
     .single();
-  return data?.status === 'active' ? data : null;
+  var data = resp.data;
+  return data && data.status === 'active' ? data : null;
 }

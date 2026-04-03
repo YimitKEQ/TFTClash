@@ -210,7 +210,7 @@ export default function ArchiveScreen() {
     if (!search) return true
     var q = search.toLowerCase()
     return (
-      e.name.toLowerCase().indexOf(q) !== -1 ||
+      (e.name||'').toLowerCase().indexOf(q) !== -1 ||
       (e.winner && e.winner.toLowerCase().indexOf(q) !== -1)
     )
   })
@@ -294,7 +294,7 @@ export default function ArchiveScreen() {
                   )}
                   {filteredMinor.map(function(event, i) {
                     return (
-                      <tr key={i} className="hover:bg-white/5 transition-colors">
+                      <tr key={event.name} className="hover:bg-white/5 transition-colors">
                         <td className="px-8 py-5 font-bold text-on-surface">{event.name}</td>
                         <td className="px-8 py-5 font-mono text-tertiary">{event.winner}</td>
                         <td className="px-8 py-5 font-mono text-on-surface">{event.entries}</td>

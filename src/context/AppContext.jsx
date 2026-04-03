@@ -49,6 +49,10 @@ export function AppProvider(props) {
   var isAdmin = _isAdmin[0];
   var setIsAdmin = _isAdmin[1];
 
+  var _adminOverride = useState(null);
+  var adminOverride = _adminOverride[0];
+  var setAdminOverride = _adminOverride[1];
+
   var _scrimAccess = useState([]);
   var scrimAccess = _scrimAccess[0];
   var setScrimAccess = _scrimAccess[1];
@@ -201,7 +205,7 @@ export function AppProvider(props) {
 
   // ── Helper functions ──
 
-  function toast(msg,type){var id=Date.now()+Math.random();setToasts(function(ts){return ts.concat([{id:id,msg:msg,type:type}]);});}
+  function toast(msg,type){var id=Date.now()+Math.random();setToasts(function(ts){var next=ts.concat([{id:id,msg:msg,type:type}]);return next.length>5?next.slice(next.length-5):next;});setTimeout(function(){removeToast(id);},4000);}
 
   function removeToast(id){setToasts(function(ts){return ts.filter(function(t){return t.id!==id;});});}
 
@@ -221,7 +225,7 @@ export function AppProvider(props) {
     if(!supabase.from)return;
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
-        if(res.error){console.error("[TFT] Failed to load players:",res.error);
+        if(res.error){
           // On error, keep whatever is already in state -- do NOT overwrite with SEED
           return;}
         if(!res.data||!res.data.length){
@@ -301,7 +305,7 @@ export function AppProvider(props) {
               });
             }
             setPlayers(mapped);
-          }).catch(function(e){ console.error("[TFT] game_results enrichment failed:", e); setPlayers(freshMapped); });
+          }).catch(function(e){ setPlayers(freshMapped); });
       });
   }
 
@@ -354,13 +358,12 @@ export function AppProvider(props) {
 
     function fetchAndSetCurrentUser(authUser, onDone) {
       if (!authUser) { setCurrentUser(null); if (onDone) onDone(); return; }
-      supabase.from('players').select('*').eq('auth_user_id', authUser.id).single()
+      supabase.rpc('get_my_player').single()
         .then(function(result) {
           if (result.data) {
             setCurrentUser(result.data);
           } else {
             if (result.error && result.error.code !== 'PGRST116') {
-              console.error('[TFT] fetchAndSetCurrentUser error:', result.error.message);
             }
             setCurrentUser(mapUser(authUser));
           }
@@ -397,9 +400,9 @@ export function AppProvider(props) {
     // to return null server-side and silently fail the RLS check on insert.
     supabase.auth.getSession().then(function(sessionRes){
       if(!sessionRes.data||!sessionRes.data.session)return;
-      supabase.from('players').select('*').eq('auth_user_id',currentUser.id).maybeSingle()
+      supabase.rpc('get_my_player').maybeSingle()
         .then(function(res){
-          if(res.error){console.error("[TFT] player check failed:",res.error);return;}
+          if(res.error){return;}
           if(res.data){
             setCurrentUser(Object.assign({}, res.data, { riotId: res.data.riot_id || '' }));
             loadPlayersFromTable();
@@ -416,7 +419,6 @@ export function AppProvider(props) {
             auth_user_id:currentUser.id
           }).select().single().then(function(ins){
             if(ins.error){
-              console.error("[TFT] auto-create player failed:",ins.error);
               if(ins.error.code==='23505'){loadPlayersFromTable();}
               return;
             }
@@ -479,14 +481,23 @@ export function AppProvider(props) {
 
   // ── useEffect: sync isAdmin from currentUser.is_admin (DB source of truth only) ──
   useEffect(function(){
-    setIsAdmin(!!(currentUser && currentUser.is_admin === true));
+    var dbAdmin = !!(currentUser && currentUser.is_admin === true);
+    setIsAdmin(currentUser && adminOverride !== null ? adminOverride : dbAdmin);
     // Ensure user_roles entry exists for admins so RLS policies work correctly
-    if(currentUser && currentUser.is_admin === true && currentUser.auth_user_id && supabase.from){
+    if(dbAdmin && currentUser.auth_user_id && supabase.from){
       supabase.from('user_roles').upsert(
         {user_id: currentUser.auth_user_id, role: 'admin'},
         {onConflict: 'user_id,role'}
       );
     }
+  }, [currentUser, adminOverride]);
+
+  // Reset override when user identity changes (logout/switch)
+  var prevUserIdRef = useRef(currentUser && (currentUser.auth_user_id || currentUser.id));
+  useEffect(function(){
+    var curId = currentUser && (currentUser.auth_user_id || currentUser.id);
+    if(prevUserIdRef.current !== curId){ setAdminOverride(null); }
+    prevUserIdRef.current = curId;
   }, [currentUser]);
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);
@@ -516,7 +527,7 @@ export function AppProvider(props) {
 
         res.data.forEach(function(row){
           try{
-            if(row.key==='announcement'){rtRef.current.announcement=true;setAnnouncement(typeof row.value==='string'?row.value:JSON.stringify(row.value)||'');}
+            if(row.key==='announcement'){rtRef.current.announcement=true;var aVal=row.value;try{var parsed=typeof aVal==='string'?JSON.parse(aVal):aVal;setAnnouncement(parsed&&parsed.message?parsed.message:typeof parsed==='string'?parsed:'');}catch(e){setAnnouncement(typeof aVal==='string'?aVal:'');}}
             else{
               var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
 
@@ -533,7 +544,7 @@ export function AppProvider(props) {
               if(row.key==='featured_events'&&Array.isArray(val)){rtRef.current.featured_events=true;setFeaturedEvents(val);}
               if(row.key==='challenge_completions'&&val){rtRef.current.challenge_completions=true;setChallengeCompletions(val);}
             }
-          }catch(e){console.warn("Failed to parse site_settings row:",row.key,e);}
+          }catch(e){}
         });
 
         announcementInitRef.current=true;
@@ -572,7 +583,7 @@ export function AppProvider(props) {
           var raw=payload.new&&payload.new.value;
           if(!key)return;
 
-          if(key==='announcement'){rtRef.current.announcement=true;setAnnouncement(typeof raw==='string'?raw:JSON.stringify(raw)||'');return;}
+          if(key==='announcement'){rtRef.current.announcement=true;try{var parsed=typeof raw==='string'?JSON.parse(raw):raw;setAnnouncement(parsed&&parsed.message?parsed.message:typeof parsed==='string'?parsed:'');}catch(e){setAnnouncement(typeof raw==='string'?raw:'');}return;}
 
           var val=typeof raw==='string'?JSON.parse(raw||'null'):raw;
           if(!val)return;
@@ -589,7 +600,7 @@ export function AppProvider(props) {
           if(key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
           if(key==='featured_events'&&Array.isArray(val)){rtRef.current.featured_events=true;setFeaturedEvents(val);}
           if(key==='challenge_completions'&&val){rtRef.current.challenge_completions=true;setChallengeCompletions(val);}
-        }catch(e){console.warn("Failed to parse realtime update:",e);}
+        }catch(e){}
       })
       .subscribe();
 
@@ -632,13 +643,19 @@ export function AppProvider(props) {
         var row=payload.new;
         if(!row||!row.player_id)return;
         var pid=String(row.player_id);
-        if(row.status==='checked_in'){
-          setTournamentState(function(ts){
-            var cids=new Set((ts.checkedInIds||[]).map(String));
-            cids.add(pid);
-            return Object.assign({},ts,{checkedInIds:Array.from(cids)});
-          });
-        }
+        setTournamentState(function(ts){
+          var rids=new Set((ts.registeredIds||[]).map(String));
+          var cids=new Set((ts.checkedInIds||[]).map(String));
+          if(row.status==='checked_in'){
+            cids.add(pid); rids.add(pid);
+          } else if(row.status==='registered'){
+            rids.add(pid); cids.delete(pid);
+          } else {
+            // dropped, waitlisted, or any other status - remove from both
+            rids.delete(pid); cids.delete(pid);
+          }
+          return Object.assign({},ts,{registeredIds:Array.from(rids),checkedInIds:Array.from(cids)});
+        });
       })
       .on('postgres_changes',{event:'DELETE',schema:'public',table:'registrations'},function(payload){
         var old=payload.old;
@@ -662,40 +679,40 @@ export function AppProvider(props) {
   useEffect(function(){
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
     if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
-      .then(function(res){if(res.error)console.error("[TFT] Failed to sync tournament_state:",res.error);});
+      .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tournamentState]);
 
   useEffect(function(){
     if(rtRef.current.quick_clashes){rtRef.current.quick_clashes=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'quick_clashes',value:JSON.stringify(quickClashes),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'quick_clashes',value:JSON.stringify(quickClashes),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[quickClashes]);
 
   useEffect(function(){
     if(!announcementInitRef.current)return;
     if(rtRef.current.announcement){rtRef.current.announcement=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(announcement),updated_at:new Date().toISOString()}).then(function(res){if(res.error)console.error("[TFT] Failed to sync announcement:",res.error);});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'announcement',value:JSON.stringify(announcement),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[announcement]);
 
   useEffect(function(){
     if(rtRef.current.season_config){rtRef.current.season_config=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'season_config',value:JSON.stringify(seasonConfig),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'season_config',value:JSON.stringify(seasonConfig),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[seasonConfig]);
 
   useEffect(function(){
     if(rtRef.current.org_sponsors){rtRef.current.org_sponsors=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(orgSponsors),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'org_sponsors',value:JSON.stringify(orgSponsors),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[orgSponsors]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scheduled_events){rtRef.current.scheduled_events=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scheduled_events',value:JSON.stringify(scheduledEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scheduledEvents]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.audit_log){rtRef.current.audit_log=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[auditLog]);
 
   // hostApps now managed via host_applications table, no site_settings sync
@@ -703,25 +720,25 @@ export function AppProvider(props) {
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_host_access){rtRef.current.scrim_host_access=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_host_access',value:JSON.stringify(scrimHostAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_host_access',value:JSON.stringify(scrimHostAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scrimHostAccess]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_access){rtRef.current.scrim_access=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_access',value:JSON.stringify(scrimAccess),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scrimAccess]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.scrim_data){rtRef.current.scrim_data=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'scrim_data',value:JSON.stringify(scrimSessions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[scrimSessions]);
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
     if(rtRef.current.ticker_overrides){rtRef.current.ticker_overrides=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tickerOverrides]);
 
   // hostTournaments, hostBranding, hostAnnouncements now managed via DB tables, no site_settings sync
@@ -729,13 +746,13 @@ export function AppProvider(props) {
   useEffect(function(){
     if(rtRef.current.featured_events){rtRef.current.featured_events=false;return;}
     localStorage.setItem('tft-featured-events',JSON.stringify(featuredEvents));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[featuredEvents]);
 
   useEffect(function(){
     if(rtRef.current.challenge_completions){rtRef.current.challenge_completions=false;return;}
     localStorage.setItem('tft-challenge-completions',JSON.stringify(challengeCompletions));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
+    if(supabase.from)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[challengeCompletions]);
 
   // ── Load past clashes from tournament_results + tournaments tables ──
@@ -744,13 +761,13 @@ export function AppProvider(props) {
     if(!supabase.from||!playersLoadedCount)return;
     supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false}).limit(50)
       .then(function(res){
-        if(res.error){console.error("Failed to load tournaments:",res.error);return;}
+        if(res.error){return;}
         if(!res.data||!res.data.length){setPastClashes(PAST_CLASHES);return;}
         var tIds=res.data.map(function(t){return t.id;});
         supabase.from('tournament_results').select('tournament_id,player_id,final_placement,total_points')
           .in('tournament_id',tIds).order('final_placement',{ascending:true})
           .then(function(rRes){
-            if(rRes.error){console.error("Failed to load results:",rRes.error);return;}
+            if(rRes.error){return;}
             if(!rRes.data)return;
             var playersCopy=players;
             var clashes=res.data.map(function(t){
@@ -874,7 +891,7 @@ export function AppProvider(props) {
       // Core data
       players: players, setPlayers: setPlayers,
       isLoadingData: isLoadingData,
-      isAdmin: isAdmin, setIsAdmin: setIsAdmin,
+      isAdmin: isAdmin, setIsAdmin: setIsAdmin, setAdminOverride: setAdminOverride,
       scrimAccess: scrimAccess, setScrimAccess: setScrimAccess,
       scrimHostAccess: scrimHostAccess, setScrimHostAccess: setScrimHostAccess,
       tickerOverrides: tickerOverrides, setTickerOverrides: setTickerOverrides,

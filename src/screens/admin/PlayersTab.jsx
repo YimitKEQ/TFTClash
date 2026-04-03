@@ -69,7 +69,7 @@ export default function PlayersTab() {
     supabase.from('disputes').select('*').order('created_at', { ascending: false }).limit(50).then(function(res) {
       setDisputesLoading(false)
       if (res.data) setDisputes(res.data)
-    })
+    }).catch(function() { setDisputesLoading(false) })
   }, [])
 
   function addAudit(type, msg) {
@@ -80,20 +80,20 @@ export default function PlayersTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
   function ban(id, name) {
     setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { banned: true, checkedIn: false }) : p }) })
-    if (supabase.from && id) { supabase.from('players').update({ banned: true, checked_in: false }).eq('id', id).then(function(r) { if (r.error) toast('Ban DB sync failed', 'error') }) }
+    if (supabase.from && id) { supabase.from('players').update({ banned: true, checked_in: false }).eq('id', id).then(function(r) { if (r.error) toast('Ban DB sync failed', 'error') }).catch(function() { toast('Ban DB sync failed', 'error') }) }
     addAudit('WARN', 'Banned: ' + name)
     toast(name + ' banned', 'success')
   }
 
   function unban(id, name) {
     setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { banned: false, dnpCount: 0 }) : p }) })
-    if (supabase.from && id) { supabase.from('players').update({ banned: false, dnp_count: 0 }).eq('id', id).then(function(r) { if (r.error) toast('Unban DB sync failed', 'error') }) }
+    if (supabase.from && id) { supabase.from('players').update({ banned: false, dnp_count: 0 }).eq('id', id).then(function(r) { if (r.error) toast('Unban DB sync failed', 'error') }).catch(function() { toast('Unban DB sync failed', 'error') }) }
     addAudit('ACTION', 'Unbanned: ' + name)
     toast(name + ' unbanned', 'success')
   }
@@ -101,7 +101,7 @@ export default function PlayersTab() {
   function remove(id, name) {
     if (!window.confirm('Delete ' + name + '? This cannot be undone.')) return
     setPlayers(function(ps) { return ps.filter(function(p) { return p.id !== id }) })
-    if (supabase.from && id) { supabase.from('players').delete().eq('id', id).then(function(r) { if (r.error) toast('Delete DB sync failed', 'error') }) }
+    if (supabase.from && id) { supabase.from('players').delete().eq('id', id).then(function(r) { if (r.error) toast('Delete DB sync failed', 'error') }).catch(function() { toast('Delete DB sync failed', 'error') }) }
     addAudit('ACTION', 'Removed player: ' + name)
     toast(name + ' removed', 'success')
   }
@@ -110,7 +110,7 @@ export default function PlayersTab() {
     if (!editP) return
     setPlayers(function(ps) { return ps.map(function(p) { return p.id === editP.id ? Object.assign({}, p, editP) : p }) })
     var updates = { username: editP.name, riot_id: editP.riotId, region: editP.region, rank: editP.rank, role: editP.role, season_pts: editP.pts, banned: editP.banned, dnp_count: editP.dnpCount || 0 }
-    if (supabase.from && editP.id) { supabase.from('players').update(updates).eq('id', editP.id).then(function(r) { if (r.error) toast('Save failed: ' + r.error.message, 'error') }) }
+    if (supabase.from && editP.id) { supabase.from('players').update(updates).eq('id', editP.id).then(function(r) { if (r.error) toast('Save failed: ' + r.error.message, 'error') }).catch(function() { toast('Save failed', 'error') }) }
     if (editP._ptsChanged) addAudit('DANGER', 'Season pts override: ' + editP.name + ' -> ' + editP.pts)
     else addAudit('ACTION', 'Player updated: ' + editP.name)
     toast('Saved ' + editP.name, 'success')
@@ -119,7 +119,7 @@ export default function PlayersTab() {
 
   function saveNote() {
     setPlayers(function(ps) { return ps.map(function(p) { return p.id === noteTarget.id ? Object.assign({}, p, { notes: noteText }) : p }) })
-    if (supabase.from && noteTarget.id) { supabase.from('players').update({ notes: noteText }).eq('id', noteTarget.id).then(function(r) { if (r.error) toast('Note save failed', 'error') }) }
+    if (supabase.from && noteTarget.id) { supabase.from('players').update({ notes: noteText }).eq('id', noteTarget.id).then(function(r) { if (r.error) toast('Note save failed', 'error') }).catch(function() { toast('Note save failed', 'error') }) }
     addAudit('ACTION', 'Note updated: ' + noteTarget.name)
     toast('Note saved', 'success')
     setNoteTarget(null)
@@ -136,7 +136,7 @@ export default function PlayersTab() {
       supabase.from('players').insert({ username: n, riot_id: r, rank: addForm.rank || 'Gold', region: addForm.region || 'EUW' }).select().single().then(function(res) {
         if (res.error) { toast('DB insert failed: ' + res.error.message, 'error'); return }
         if (res.data) { setPlayers(function(ps) { return ps.map(function(p) { return p.name === n ? Object.assign({}, p, { id: res.data.id }) : p }) }) }
-      })
+      }).catch(function() { toast('DB insert failed', 'error') })
     }
     addAudit('ACTION', 'Player added: ' + n)
     toast(n + ' added!', 'success')
@@ -205,22 +205,22 @@ export default function PlayersTab() {
   }
 
   function resolveDispute(id) {
-    setDisputes(function(ds) { return ds.map(function(d) { return d.id === id ? Object.assign({}, d, { status: 'resolved' }) : d }) })
-    supabase.from('disputes').update({ status: 'resolved' }).eq('id', id).then(function(r) { if (r.error) toast('Resolve failed', 'error') })
+    setDisputes(function(ds) { return ds.map(function(d) { return d.id === id ? Object.assign({}, d, { status: 'resolved_accepted' }) : d }) })
+    supabase.from('disputes').update({ status: 'resolved_accepted', resolved_by: currentUser ? currentUser.auth_user_id : null, resolved_at: new Date().toISOString() }).eq('id', id).then(function(r) { if (r.error) toast('Resolve failed', 'error') }).catch(function() { toast('Resolve failed', 'error') })
     addAudit('ACTION', 'Dispute resolved: #' + id)
     toast('Dispute resolved', 'success')
   }
 
   function dismissDispute(id) {
-    setDisputes(function(ds) { return ds.map(function(d) { return d.id === id ? Object.assign({}, d, { status: 'dismissed' }) : d }) })
-    supabase.from('disputes').update({ status: 'dismissed' }).eq('id', id).then(function(r) { if (r.error) toast('Dismiss failed', 'error') })
+    setDisputes(function(ds) { return ds.map(function(d) { return d.id === id ? Object.assign({}, d, { status: 'resolved_rejected' }) : d }) })
+    supabase.from('disputes').update({ status: 'resolved_rejected', resolved_by: currentUser ? currentUser.auth_user_id : null, resolved_at: new Date().toISOString() }).eq('id', id).then(function(r) { if (r.error) toast('Dismiss failed', 'error') }).catch(function() { toast('Dismiss failed', 'error') })
     addAudit('ACTION', 'Dispute dismissed: #' + id)
     toast('Dispute dismissed', 'success')
   }
 
   var allPlayers = players || []
   var filtered = search ? allPlayers.filter(function(p) { return (p.name || '').toLowerCase().indexOf(search.toLowerCase()) !== -1 }) : allPlayers
-  var pendingDisputes = disputes.filter(function(d) { return d.status === 'pending' }).length
+  var pendingDisputes = disputes.filter(function(d) { return d.status === 'open' }).length
 
   if (editP) {
     return (

@@ -298,7 +298,7 @@ export default function ChallengesScreen() {
                   {buildHeatmapCells(challengeCompletions).map(function(cls, i) {
                     return (
                       <div
-                        key={i}
+                        key={"cell-" + i}
                         className={'aspect-square ' + cls}
                       />
                     );

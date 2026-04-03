@@ -10,16 +10,16 @@ export var DISCORD_URL = "https://discord.gg/tftclash";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
-export const RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
+export var RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
 
-export const RCOLS = {Iron:"#8C7B6B",Bronze:"#CD7F32",Silver:"#A8B2CC",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#6EA8E0",Master:"#9B72CF",Grandmaster:"#E85B5B",Challenger:"#FFD700"};
+export var RCOLS = {Iron:"#8C7B6B",Bronze:"#CD7F32",Silver:"#A8B2CC",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#6EA8E0",Master:"#9B72CF",Grandmaster:"#E85B5B",Challenger:"#FFD700"};
 
-export const REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
+export var REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
 
 // Fixed scoring - not configurable
-export const PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
+export var PTS = {1:8,2:7,3:6,4:5,5:4,6:3,7:2,8:1};
 
-export const DEFAULT_SEASON_CONFIG = {
+export var DEFAULT_SEASON_CONFIG = {
   dropWeeks: 0,
   finalBoost: 1.0,
   finaleClashes: 2,
@@ -30,11 +30,11 @@ export const DEFAULT_SEASON_CONFIG = {
   defaultClashSize: 126,
 };
 
-export const TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#BECBD9"}];
+export var TIERS = [{label:"S",min:850,col:"#FFD700"},{label:"A",min:650,col:"#52C47C"},{label:"B",min:450,col:"#4ECDC4"},{label:"C",min:200,col:"#9B72CF"},{label:"D",min:0,col:"#BECBD9"}];
 
 // ─── PLATFORM RANKING SYSTEM ─────────────────────────────────────────────────
 
-export const CLASH_RANKS = [
+export var CLASH_RANKS = [
   {id:"iron",       name:"Iron",        icon:"gear-fill",  color:"#BECBD9", minXp:0,    maxXp:200},
   {id:"bronze",     name:"Bronze",      icon:"shield-fill",  color:"#CD7F32", minXp:200,  maxXp:500},
   {id:"silver",     name:"Silver",      icon:"shield-fill",  color:"#C0C0C0", minXp:500,  maxXp:900},
@@ -47,7 +47,7 @@ export const CLASH_RANKS = [
 ];
 
 // XP rewards per action
-export const XP_REWARDS = {
+export var XP_REWARDS = {
   play_game:25,       // just playing
   top4:15,            // bonus for top 4
   win:40,             // 1st place
@@ -123,9 +123,9 @@ export var TIER_FEATURES = {
 
 // ─── SEED DATA ────────────────────────────────────────────────────────────────
 
-export const HOMIES_IDS = [1,2,3,4,5,6,7,8,9];
+export var HOMIES_IDS = [1,2,3,4,5,6,7,8,9];
 
-export const SEED = [
+export var SEED = [
   {id:1,name:"Levitate",   rank:"Challenger",  region:"EUW",pts:1024,wins:16,top4:38,games:56,riot_id_eu:"Levitate#EUW"},
   {id:2,name:"Zounderkite",rank:"Grandmaster", region:"EUW",pts:896, wins:13,top4:33,games:52,riot_id_eu:"Zounderkite#EUW"},
   {id:3,name:"Uri",        rank:"Master",      region:"EUW",pts:780, wins:11,top4:28,games:48,riot_id_eu:"Uri#EUW"},
@@ -152,7 +152,7 @@ export const SEED = [
   {id:24,name:"GhostRider",rank:"Bronze",      region:"EUW",pts:10,  wins:0, top4:0, games:2},
 ];
 
-export const PAST_CLASHES = [
+export var PAST_CLASHES = [
   {id:"c7",name:"Clash #7",date:"2026-03-22",season:"S1",players:24,lobbies:3,champion:"Levitate",
     top3:["Levitate","Zounderkite","Uri"],
     top8:[{name:"Levitate",pts:8},{name:"Zounderkite",pts:7},{name:"Uri",pts:6},{name:"BingBing",pts:5},{name:"Wiwi",pts:4},{name:"Ole",pts:3},{name:"Sybor",pts:2},{name:"Ivdim",pts:1}]},
@@ -185,7 +185,7 @@ export function setSeasonChampion(val) { _seasonChampion = val; }
 
 // ─── PREMIUM TIERS ────────────────────────────────────────────────────────────
 
-export const PREMIUM_TIERS = [
+export var PREMIUM_TIERS = [
   {
     id:"free", name:"Player", price:"\u20AC0", period:"forever", color:"#BECBD9",
     desc:"Compete in every weekly clash. Always free.",

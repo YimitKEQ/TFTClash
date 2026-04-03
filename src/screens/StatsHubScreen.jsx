@@ -55,7 +55,7 @@ function SpotlightCards(props) {
   if (loading || !consistency || !h2h || !gameResults) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {[0,1,2,3].map(function(i) { return <Skeleton key={i} className="h-24" />; })}
+        {[0,1,2,3].map(function(i) { return <Skeleton key={"skeleton-" + i} className="h-24" />; })}
       </div>
     );
   }
@@ -152,7 +152,7 @@ function SpotlightCards(props) {
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
       {cards.map(function(c, i) {
         return (
-          <div key={i} className={'rounded-lg border p-4 ' + c.colorClass}>
+          <div key={c.label} className={'rounded-lg border p-4 ' + c.colorClass}>
             <div className="flex items-start justify-between mb-2">
               <span className="text-[10px] font-label uppercase tracking-widest text-on-surface/50">{c.label}</span>
               <Icon name={c.icon} size={16} className={c.iconClass + ' opacity-70'} />
@@ -196,7 +196,7 @@ function H2HPanel(props) {
   var players = consistency.map(function(p) { return { id: p.player_id, name: p.username }; });
 
   var filteredPlayers = useSearch && search.length > 0
-    ? players.filter(function(p) { return p.name.toLowerCase().indexOf(search.toLowerCase()) !== -1; })
+    ? players.filter(function(p) { return (p.name||'').toLowerCase().indexOf(search.toLowerCase()) !== -1; })
     : players;
 
   var matchups = sel ? h2h.filter(function(r) {
@@ -279,7 +279,7 @@ function H2HPanel(props) {
               var isWinning = r.wins > r.losses;
               var isLosing = r.losses > r.wins;
               return (
-                <div key={i} className="grid grid-cols-[1fr_56px_80px_80px] gap-2 px-2 py-2.5 border-b border-white/[0.03] last:border-0 items-center">
+                <div key={r.opponent} className="grid grid-cols-[1fr_56px_80px_80px] gap-2 px-2 py-2.5 border-b border-white/[0.03] last:border-0 items-center">
                   <span className="text-sm font-label font-semibold text-on-surface truncate">{r.opponent}</span>
                   <span className="text-xs font-mono text-on-surface/50 text-center">{r.meetings}</span>
                   <span className={'text-xs font-mono text-center font-bold ' + (isWinning ? 'text-success' : isLosing ? 'text-error' : 'text-on-surface/50')}>
@@ -529,7 +529,7 @@ function TopRivalries(props) {
           var aW = parseInt(r.player_a_wins);
           var bW = parseInt(r.player_b_wins);
           return (
-            <div key={i} className="flex items-center gap-3 py-2.5 border-b border-white/[0.03] last:border-0">
+            <div key={r.player_a_name + '-' + r.player_b_name} className="flex items-center gap-3 py-2.5 border-b border-white/[0.03] last:border-0">
               <span className="text-[10px] font-mono text-on-surface/20 w-5 shrink-0">{'#' + (i + 1)}</span>
               <div className="flex-1 min-w-0">
                 <span className="text-sm font-label font-semibold text-on-surface">

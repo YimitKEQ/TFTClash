@@ -231,7 +231,7 @@ export default function RulesScreen() {
                         <ol className="space-y-3">
                           {TIEBREAKER_ITEMS.map(function (item, i) {
                             return (
-                              <li key={i} className="flex items-start gap-3">
+                              <li key={item} className="flex items-start gap-3">
                                 <span
                                   className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-xs font-bold font-condensed rounded bg-primary/[0.12] text-primary"
                                 >

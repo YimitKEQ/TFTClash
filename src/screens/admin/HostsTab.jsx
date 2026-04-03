@@ -23,7 +23,7 @@ export default function HostsTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
@@ -37,8 +37,7 @@ export default function HostsTab() {
           { user_id: applicantId, role: 'host', granted_by: currentUser && currentUser.auth_user_id },
           { onConflict: 'user_id,role' }
         ).then(function(r2) {
-          if (r2.error) console.error('[TFT] user_roles upsert failed:', r2.error)
-        })
+        }).catch(function() {})
         // Create host_profiles entry so they can manage branding
         var slug = (app.org || app.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'host-' + Date.now()
         supabase.from('host_profiles').upsert({
@@ -49,13 +48,12 @@ export default function HostsTab() {
           status: 'approved',
           approved_at: new Date().toISOString()
         }, { onConflict: 'user_id' }).then(function(r3) {
-          if (r3.error) console.error('[TFT] host_profiles upsert failed:', r3.error)
-        })
+        }).catch(function() {})
       }
       setHostApps(function(apps) { return apps.map(function(a) { return a.id === app.id ? Object.assign({}, a, { status: 'approved' }) : a }) })
       addAudit('ACTION', 'Host application approved: ' + (app.name || app.email))
       toast((app.name || 'Applicant') + ' approved as host!', 'success')
-    })
+    }).catch(function() { toast('Approve failed', 'error') })
   }
 
   function rejectApp(app) {
@@ -65,7 +63,7 @@ export default function HostsTab() {
       setHostApps(function(apps) { return apps.map(function(a) { return a.id === app.id ? Object.assign({}, a, { status: 'rejected' }) : a }) })
       addAudit('ACTION', 'Host application rejected: ' + (app.name || app.email))
       toast('Application rejected', 'success')
-    })
+    }).catch(function() { toast('Reject failed', 'error') })
   }
 
   var apps = hostApps || []

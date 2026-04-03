@@ -48,7 +48,7 @@ function PlacementDistribution({ history }) {
           var pct = Math.round((count / total) * 100);
           var heightPct = Math.round((count / maxCount) * 100);
           return (
-            <div key={i} className="flex flex-col items-center flex-1 group">
+            <div key={"place-" + (i + 1)} className="flex flex-col items-center flex-1 group">
               <span className="text-xs font-stats text-on-surface/40 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">{pct + '%'}</span>
               <div className={'w-full rounded-t-sm ' + bgClasses[i]} style={{ height: heightPct + '%', minHeight: count > 0 ? '4px' : '0' }}></div>
               <span className={'font-technical text-[10px] mt-4 ' + labelColors[i]}>{labels[i]}</span>
@@ -141,7 +141,7 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
     var place = g.place || g.placement;
     return (
       <div
-        key={i}
+        key={g.clashId || g.name || ("clash-" + i)}
         className={'flex items-center gap-4 px-6 py-4 border-b border-on-surface/5 hover:bg-surface-container-high transition-all ' + (place === 1 ? 'bg-primary/[0.03]' : '') + (isDropped ? ' opacity-[0.45]' : '')}
       >
         <div
@@ -776,7 +776,7 @@ export default function PlayerProfileScreen() {
                 var isTop4 = place <= 4 && place !== '-';
                 return (
                   <div
-                    key={i}
+                    key={g.clashId || g.name || ("clash-" + i)}
                     className="bg-surface-container-low p-4 rounded-lg flex items-center justify-between group hover:bg-surface-container-high transition-all"
                   >
                     <div className="flex items-center gap-6">
@@ -858,7 +858,7 @@ export default function PlayerProfileScreen() {
           )}
           {(player.clashHistory || []).slice(0, 6).map(function(g, i) {
             return (
-              <div key={i} className="grid items-center gap-2 py-3 border-b border-on-surface/5 [grid-template-columns:1fr_50px_50px_50px_50px_60px]">
+              <div key={g.clashId || g.name || ("round-" + i)} className="grid items-center gap-2 py-3 border-b border-on-surface/5 [grid-template-columns:1fr_50px_50px_50px_50px_60px]">
                 <div>
                   <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
                   <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
@@ -976,7 +976,7 @@ export default function PlayerProfileScreen() {
         <div>
           {deepLoading && (
             <div className="space-y-4">
-              {[0,1,2].map(function(i) { return <div key={i} className="h-32 bg-surface-variant/30 animate-pulse rounded-lg" />; })}
+              {[0,1,2].map(function(i) { return <div key={"skeleton-" + i} className="h-32 bg-surface-variant/30 animate-pulse rounded-lg" />; })}
             </div>
           )}
           {deepError && (
@@ -1076,7 +1076,7 @@ export default function PlayerProfileScreen() {
                              : 'bg-error/70';
                       return (
                         <div
-                          key={i}
+                          key={r.id || ("game-" + i)}
                           className={'w-7 h-7 rounded flex items-center justify-center font-mono text-[10px] font-bold text-on-surface/80 cursor-default ' + bg}
                           title={'Place #' + p}
                         >

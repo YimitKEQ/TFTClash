@@ -68,7 +68,7 @@ function HeroCountdown({ clashTimestamp, onRegister, onViewStandings, isLoggedIn
           className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
           onClick={onRegister}
         >
-          {isLoggedIn ? 'Go to Dashboard' : 'Sign Up Free'}
+          {isLoggedIn ? 'Go to Dashboard' : 'Join This Tournament'}
         </button>
         <a
           href="/standings"
@@ -233,34 +233,6 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
   )
 }
 
-// ── PromotionFooter ───────────────────────────────────────────────────────────
-
-function PromotionFooter({ playerCount, onRules, onHowToPlay }) {
-  var countText = playerCount > 0 ? playerCount.toLocaleString() + ' players are already on the leaderboard. Your spot is free.' : 'Your spot on the leaderboard is free. Sign up and compete this week.'
-
-  return (
-    <footer className="pt-12 border-t border-outline-variant/10 text-center space-y-4">
-      <p className="text-on-surface-variant text-sm">
-        {countText}
-      </p>
-      <div className="flex justify-center gap-4 flex-wrap">
-        <button
-          className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
-          onClick={onRules}
-        >
-          Tournament Rules
-        </button>
-        <button
-          className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
-          onClick={onHowToPlay}
-        >
-          How to Play
-        </button>
-      </div>
-    </footer>
-  )
-}
-
 // ── HomeScreen ────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
@@ -336,7 +308,7 @@ export default function HomeScreen() {
 
           {/* Tagline */}
           <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-60">
-            The ranked TFT league for you. Compete weekly, climb the ladder.
+            Free weekly tournaments. Real competition. One leaderboard to rule them all.
           </p>
 
           {/* Countdown or CTA */}
@@ -378,13 +350,13 @@ export default function HomeScreen() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
                 <div className="relative z-10 space-y-4">
                   <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
-                    Free to compete, forever
+                    Takes 10 seconds with Discord
                   </span>
                   <button
                     className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
                     onClick={handleSignUp}
                   >
-                    Enter the Arena - Free
+                    Join This Week's Tournament
                   </button>
                   <a
                     href="/standings"
@@ -398,6 +370,38 @@ export default function HomeScreen() {
             )
           }
         </section>
+
+        {/* ── How It Works ──────────────────────────────────────────────────── */}
+        {!currentUser && (
+          <section className="space-y-6">
+            <h2 className="text-center font-headline text-2xl sm:text-3xl italic text-on-surface">
+              How It <span className="text-primary">Works</span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 text-center space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon name="login" size={24} className="text-primary" />
+                </div>
+                <h3 className="font-label text-sm font-bold uppercase tracking-wider text-on-surface">Sign in with Discord</h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">One click. No passwords, no emails to verify. You already have Discord open.</p>
+              </div>
+              <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 text-center space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon name="sports_esports" size={24} className="text-primary" />
+                </div>
+                <h3 className="font-label text-sm font-bold uppercase tracking-wider text-on-surface">Join a Tournament</h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">Register for the next weekly clash. Check in when it starts, get assigned a lobby, play your games.</p>
+              </div>
+              <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 text-center space-y-3">
+                <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon name="trending_up" size={24} className="text-primary" />
+                </div>
+                <h3 className="font-label text-sm font-bold uppercase tracking-wider text-on-surface">Climb the Leaderboard</h3>
+                <p className="text-xs text-on-surface-variant leading-relaxed">Earn points based on placement. Track your stats, build streaks, compete for the season title.</p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ── Value Props ───────────────────────────────────────────────────── */}
         <div className="flex flex-wrap justify-center gap-3">
@@ -432,9 +436,6 @@ export default function HomeScreen() {
             })}
           </section>
         )}
-
-        {/* ── Ad Banner ─────────────────────────────────────────────────────── */}
-        <AdBanner size="banner" className="w-full" />
 
         {/* ── Season Stats Bar ──────────────────────────────────────────────── */}
         <SeasonStatsBar
@@ -471,12 +472,68 @@ export default function HomeScreen() {
           </div>
         )}
 
-        {/* ── Promotion Footer ──────────────────────────────────────────────── */}
-        <PromotionFooter
-          playerCount={players.length}
-          onRules={handleViewRules}
-          onHowToPlay={handleViewFaq}
-        />
+        {/* ── Ad Banner ─────────────────────────────────────────────────────── */}
+        <AdBanner size="banner" className="w-full" />
+
+        {/* ── Common Questions ─────────────────────────────────────────────── */}
+        {!currentUser && (
+          <section className="space-y-6">
+            <h2 className="text-center font-headline text-2xl sm:text-3xl italic text-on-surface">
+              Common <span className="text-primary">Questions</span>
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+                <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Is it really free?</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">Yes, forever. Competing in clashes and climbing the leaderboard costs nothing. Pro and Host tiers add optional extras.</p>
+              </div>
+              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+                <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Do I need to be good?</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">All skill levels are welcome. The points system rewards consistency, not just wins. Iron to Challenger, everyone competes.</p>
+              </div>
+              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+                <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">How long does a clash take?</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">Each clash runs a set of TFT games in one session. Register in advance, check in when it starts, and play your games. Usually a couple of hours.</p>
+              </div>
+              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+                <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Is my Discord data safe?</h3>
+                <p className="text-sm text-on-surface-variant leading-relaxed">We only access your public Discord profile (username and avatar). We never read your messages, servers, or friends list.</p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── Final CTA ────────────────────────────────────────────────────── */}
+        {!currentUser && (
+          <section className="text-center space-y-4 pt-4">
+            <p className="text-on-surface-variant text-sm">
+              {players.length > 0 ? players.length.toLocaleString() + ' players are already on the leaderboard.' : 'Your spot on the leaderboard is waiting.'}
+            </p>
+            <button
+              className="px-8 py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
+              onClick={handleSignUp}
+            >
+              Join This Week's Tournament
+            </button>
+          </section>
+        )}
+
+        {/* ── Footer Links ──────────────────────────────────────────────────── */}
+        <footer className="pt-12 border-t border-outline-variant/10 text-center space-y-4">
+          <div className="flex justify-center gap-4 flex-wrap">
+            <button
+              className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
+              onClick={handleViewRules}
+            >
+              Tournament Rules
+            </button>
+            <button
+              className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
+              onClick={handleViewFaq}
+            >
+              How to Play
+            </button>
+          </div>
+        </footer>
 
       </main>
 

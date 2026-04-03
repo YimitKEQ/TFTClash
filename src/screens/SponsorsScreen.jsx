@@ -208,7 +208,7 @@ function TierCard(props) {
         <ul className="space-y-3">
           {tier.items.map(function(item, i) {
             return (
-              <li key={i} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
+              <li key={item} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
                 <Icon name="check" className="text-primary text-base shrink-0 mt-0.5" />
                 {item}
               </li>
@@ -241,7 +241,9 @@ function CurrentPartners(props) {
   var TIER_ORDER = { title: 0, official: 1, associate: 2 }
 
   var sorted = sponsors.slice().sort(function(a, b) {
-    return (TIER_ORDER[a.tier] || 99) - (TIER_ORDER[b.tier] || 99)
+    var aOrder = TIER_ORDER[a.tier] !== undefined ? TIER_ORDER[a.tier] : 99;
+    var bOrder = TIER_ORDER[b.tier] !== undefined ? TIER_ORDER[b.tier] : 99;
+    return aOrder - bOrder
   })
 
   var TIER_LABELS = { title: 'Title Partner', official: 'Official Sponsor', associate: 'Associate' }
@@ -412,9 +414,9 @@ export default function SponsorsScreen() {
               </p>
             </div>
             <ul className="space-y-3">
-              {WHAT_YOU_RECEIVE.map(function(item, i) {
+              {WHAT_YOU_RECEIVE.map(function(item) {
                 return (
-                  <li key={i} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
+                  <li key={item} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
                     <Icon name="check" className="text-tertiary text-base shrink-0 mt-0.5" />
                     {item}
                   </li>
@@ -431,9 +433,9 @@ export default function SponsorsScreen() {
               </p>
             </div>
             <ul className="space-y-3">
-              {WHAT_WE_GAIN.map(function(item, i) {
+              {WHAT_WE_GAIN.map(function(item) {
                 return (
-                  <li key={i} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
+                  <li key={item} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
                     <Icon name="check" className="text-primary text-base shrink-0 mt-0.5" />
                     {item}
                   </li>

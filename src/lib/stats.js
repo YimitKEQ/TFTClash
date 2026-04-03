@@ -4,15 +4,15 @@ import { ordinal } from './utils.js';
 // ─── PLATFORM RANKING ─────────────────────────────────────────────────────────
 
 export function getClashRank(xp) {
-  return CLASH_RANKS.slice().reverse().find(r => xp >= r.minXp) || CLASH_RANKS[0];
+  return CLASH_RANKS.slice().reverse().find(function(r) { return xp >= r.minXp; }) || CLASH_RANKS[0];
 }
 
 export function getXpProgress(xp) {
-  const rank = getClashRank(xp);
-  const next = CLASH_RANKS[CLASH_RANKS.indexOf(rank) + 1];
-  if (!next) return {rank, pct: 100, current: xp, needed: 0};
-  const pct = Math.min(100, Math.round((xp - rank.minXp) / (next.minXp - rank.minXp) * 100));
-  return {rank, next, pct, current: xp - rank.minXp, needed: next.minXp - rank.minXp};
+  var rank = getClashRank(xp);
+  var next = CLASH_RANKS[CLASH_RANKS.indexOf(rank) + 1];
+  if (!next) return {rank: rank, pct: 100, current: xp, needed: 0};
+  var pct = Math.min(100, Math.round((xp - rank.minXp) / (next.minXp - rank.minXp) * 100));
+  return {rank: rank, next: next, pct: pct, current: xp - rank.minXp, needed: next.minXp - rank.minXp};
 }
 
 // Estimate XP from player stats (for demo data)
@@ -23,44 +23,44 @@ export function estimateXp(p) {
 // ─── STATS ENGINE ─────────────────────────────────────────────────────────────
 
 export function computeStats(player) {
-  const h = player.clashHistory || [];
-  const games = h.length || player.games || 0;
-  const wins = h.filter(g => (g.place || g.placement) === 1).length || player.wins || 0;
-  const top4 = h.filter(g => (g.place || g.placement) <= 4).length || player.top4 || 0;
-  const bot4 = h.filter(g => (g.place || g.placement) > 4).length;
+  var h = player.clashHistory || [];
+  var games = h.length || player.games || 0;
+  var wins = h.filter(function(g) { return (g.place || g.placement) === 1; }).length || player.wins || 0;
+  var top4 = h.filter(function(g) { return (g.place || g.placement) <= 4; }).length || player.top4 || 0;
+  var bot4 = h.filter(function(g) { return (g.place || g.placement) > 4; }).length;
 
   // AVP = sum of all placements / total games (lower = better)
-  const avgPlacement = h.length > 0
-    ? (h.reduce((s, g) => s + (g.place || g.placement || 0), 0) / h.length)
+  var avgPlacement = h.length > 0
+    ? (h.reduce(function(s, g) { return s + (g.place || g.placement || 0); }, 0) / h.length)
     : (parseFloat(player.avg) || 0);
 
   // Per-round avgs (from roundPlacements field in history)
-  const roundAvgs = {r1: null, r2: null, r3: null, finals: null};
-  const roundKeys = ["r1", "r2", "r3", "finals"];
-  roundKeys.forEach(rk => {
-    const vals = h.map(g => g.roundPlacements?.[rk]).filter(v => v != null);
-    if (vals.length > 0) roundAvgs[rk] = (vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2);
+  var roundAvgs = {r1: null, r2: null, r3: null, finals: null};
+  var roundKeys = ["r1", "r2", "r3", "finals"];
+  roundKeys.forEach(function(rk) {
+    var vals = h.map(function(g) { return g.roundPlacements?.[rk]; }).filter(function(v) { return v != null; });
+    if (vals.length > 0) roundAvgs[rk] = (vals.reduce(function(s, v) { return s + v; }, 0) / vals.length).toFixed(2);
   });
 
   // Comeback rate: placed 5-8 in r1 but finished top4 overall
-  const comebacks = h.filter(g => g.roundPlacements?.r1 >= 5 && (g.place || g.placement) <= 4).length;
-  const comebackOpp = h.filter(g => g.roundPlacements?.r1 >= 5).length;
-  const comebackRate = comebackOpp > 0 ? ((comebacks / comebackOpp) * 100).toFixed(0) : 0;
+  var comebacks = h.filter(function(g) { return g.roundPlacements?.r1 >= 5 && (g.place || g.placement) <= 4; }).length;
+  var comebackOpp = h.filter(function(g) { return g.roundPlacements?.r1 >= 5; }).length;
+  var comebackRate = comebackOpp > 0 ? ((comebacks / comebackOpp) * 100).toFixed(0) : 0;
 
   // Clutch rate: won their lobby
-  const clutches = h.filter(g => g.claimedClutch).length;
-  const clutchRate = games > 0 ? ((clutches / games) * 100).toFixed(0) : 0;
+  var clutches = h.filter(function(g) { return g.claimedClutch; }).length;
+  var clutchRate = games > 0 ? ((clutches / games) * 100).toFixed(0) : 0;
 
   // PPG
-  const ppg = games > 0 ? (player.pts / games).toFixed(1) : 0;
+  var ppg = games > 0 ? (player.pts / games).toFixed(1) : 0;
 
   // Per-clash AVP: average placement within each individual clash
-  const perClashAvp = h.length > 0
-    ? h.map(g => {
-        const rp = g.roundPlacements || {};
-        const rounds = Object.values(rp).filter(v => v != null);
-        return rounds.length > 0 ? (rounds.reduce((s, v) => s + v, 0) / rounds.length) : (g.place || g.placement);
-      }).reduce((s, v, _, a) => s + v / a.length, 0).toFixed(2)
+  var perClashAvp = h.length > 0
+    ? h.map(function(g) {
+        var rp = g.roundPlacements || {};
+        var rounds = Object.values(rp).filter(function(v) { return v != null; });
+        return rounds.length > 0 ? (rounds.reduce(function(s, v) { return s + v; }, 0) / rounds.length) : (g.place || g.placement);
+      }).reduce(function(s, v, _, a) { return s + v / a.length; }, 0).toFixed(2)
     : null;
 
   return {
@@ -221,49 +221,49 @@ export function computeSeasonBonuses(player, currentClashId, allClashIds, season
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────────────────────
 
-export const ACHIEVEMENTS = [
+export var ACHIEVEMENTS = [
   // PLACEMENT MILESTONES
-  {id:"first_blood",    tier:"bronze",    icon:"droplet-fill",  name:"First Blood",       desc:"Win your first clash game",                            check:p=>p.wins>=1},
-  {id:"hat_trick",      tier:"bronze",    icon:"mortarboard-fill",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:p=>p.wins>=3},
-  {id:"top4_machine",   tier:"silver",    icon:"gear-fill",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:p=>p.top4>=10},
-  {id:"podium_hunter",  tier:"silver",    icon:"award-fill",  name:"Podium Hunter",      desc:"5 wins total",                                         check:p=>p.wins>=5},
-  {id:"clutch_god",     tier:"gold",      icon:"lightning-charge-fill",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
-  {id:"dynasty",        tier:"gold",      icon:"trophy-fill",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:p=>p.wins>=10},
-  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"Finish in top 4 every game in a single clash",         check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)<=4)&&p.top4>=p.games},
-  {id:"the_grind",      tier:"legendary", icon:"moon-fill",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:p=>p.games>=30},
+  {id:"first_blood",    tier:"bronze",    icon:"droplet-fill",  name:"First Blood",       desc:"Win your first clash game",                            check:function(p){ return p.wins>=1; }},
+  {id:"hat_trick",      tier:"bronze",    icon:"mortarboard-fill",  name:"Hat Trick",          desc:"3 total wins across any clashes",                      check:function(p){ return p.wins>=3; }},
+  {id:"top4_machine",   tier:"silver",    icon:"gear-fill",  name:"Top 4 Machine",      desc:"Land top 4 in 10 different games",                     check:function(p){ return p.top4>=10; }},
+  {id:"podium_hunter",  tier:"silver",    icon:"award-fill",  name:"Podium Hunter",      desc:"5 wins total",                                         check:function(p){ return p.wins>=5; }},
+  {id:"clutch_god",     tier:"gold",      icon:"lightning-charge-fill",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
+  {id:"dynasty",        tier:"gold",      icon:"trophy-fill",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:function(p){ return p.wins>=10; }},
+  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"Finish in top 4 every game in a single clash",         check:function(p){ return (p.clashHistory||[]).some(function(g){ return (g.place||g.placement)<=4; })&&p.top4>=p.games; }},
+  {id:"the_grind",      tier:"legendary", icon:"moon-fill",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:function(p){ return p.games>=30; }},
   // STREAK ACHIEVEMENTS
-  {id:"hot_start",      tier:"bronze",    icon:"fire",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:p=>p.wins>=1&&p.games<=8},
-  {id:"on_fire",        tier:"silver",    icon:"graph-up-arrow",  name:"On Fire",            desc:"3 win streak at any point",                            check:p=>p.bestStreak>=3},
-  {id:"cant_stop",      tier:"gold",      icon:"rocket-takeoff-fill",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:p=>p.bestStreak>=5},
-  {id:"goat_streak",    tier:"legendary", icon:"star-fill",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:p=>p.bestStreak>=7},
+  {id:"hot_start",      tier:"bronze",    icon:"fire",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:function(p){ return p.wins>=1&&p.games<=8; }},
+  {id:"on_fire",        tier:"silver",    icon:"graph-up-arrow",  name:"On Fire",            desc:"3 win streak at any point",                            check:function(p){ return p.bestStreak>=3; }},
+  {id:"cant_stop",      tier:"gold",      icon:"rocket-takeoff-fill",  name:"Can't Stop",         desc:"5 consecutive wins",                                   check:function(p){ return p.bestStreak>=5; }},
+  {id:"goat_streak",    tier:"legendary", icon:"star-fill",  name:"GOAT Streak",        desc:"7 win streak - absolutely unstoppable",                check:function(p){ return p.bestStreak>=7; }},
   // POINTS ACHIEVEMENTS
-  {id:"point_getter",   tier:"bronze",    icon:"coin",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:p=>p.pts>=100},
-  {id:"century",        tier:"silver",    icon:"gem",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:p=>p.pts>=500},
-  {id:"big_dog",        tier:"gold",      icon:"trophy-fill",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:p=>p.pts>=800},
-  {id:"thousand_club",  tier:"legendary", icon:"sun-fill",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:p=>p.pts>=1000},
+  {id:"point_getter",   tier:"bronze",    icon:"coin",  name:"Point Getter",       desc:"Earn your first 100 Clash Points",                     check:function(p){ return p.pts>=100; }},
+  {id:"century",        tier:"silver",    icon:"gem",  name:"Half-K",             desc:"500 Clash Points accumulated",                         check:function(p){ return p.pts>=500; }},
+  {id:"big_dog",        tier:"gold",      icon:"trophy-fill",  name:"Big Dog",            desc:"800 Clash Points - top tier territory",                check:function(p){ return p.pts>=800; }},
+  {id:"thousand_club",  tier:"legendary", icon:"sun-fill",  name:"Thousand Club",      desc:"1000+ Clash Points in a single season",                check:function(p){ return p.pts>=1000; }},
   // SOCIAL / COMMUNITY
-  {id:"regular",        tier:"bronze",    icon:"calendar-check-fill",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:p=>p.games>=5},
-  {id:"veteran",        tier:"silver",    icon:"shield-check",  name:"Veteran",            desc:"20 total games across the season",                     check:p=>p.games>=20},
-  {id:"season_finisher",tier:"gold",      icon:"patch-check-fill",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:p=>p.games>=28},
-  {id:"champion",       tier:"legendary", icon:"award-fill",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:p=>{var sc=getSeasonChampion();return sc&&p.name===sc.name;}},
+  {id:"regular",        tier:"bronze",    icon:"calendar-check-fill",  name:"Regular",            desc:"Show up to 5 clashes",                                 check:function(p){ return p.games>=5; }},
+  {id:"veteran",        tier:"silver",    icon:"shield-check",  name:"Veteran",            desc:"20 total games across the season",                     check:function(p){ return p.games>=20; }},
+  {id:"season_finisher",tier:"gold",      icon:"patch-check-fill",  name:"Season Finisher",    desc:"Complete every clash in the season",                   check:function(p){ return p.games>=28; }},
+  {id:"champion",       tier:"legendary", icon:"award-fill",  name:"Season Champion",    desc:"Finish #1 on the season leaderboard",                  check:function(p){var sc=getSeasonChampion();return sc&&p.name===sc.name;}},
   // RARE / EASTER EGG
-  {id:"dishsoap",       tier:"legendary", icon:"droplet",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:p=>p.name==="Dishsoap"||p.riotId?.toLowerCase().includes("dishsoap")},
-  {id:"perfect_lobby",  tier:"legendary", icon:"bullseye",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:p=>(p.clashHistory||[]).some(g=>(g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(v=>v<=3):true))},
-  {id:"silent_grinder", tier:"gold",      icon:"eye-fill",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:p=>p.pts>=400&&p.wins===0},
+  {id:"dishsoap",       tier:"legendary", icon:"droplet",  name:"Squeaky Clean",      desc:"Only Dishsoap knows how he earned this.",              check:function(p){ return p.name==="Dishsoap"||(p.riotId?.toLowerCase().indexOf("dishsoap")>=0); }},
+  {id:"perfect_lobby",  tier:"legendary", icon:"bullseye",  name:"The Anomaly",        desc:"Win a lobby without ever placing below 3rd in any round", check:function(p){ return (p.clashHistory||[]).some(function(g){ return (g.place||g.placement)===1&&(g.roundPlacements?Object.values(g.roundPlacements).every(function(v){ return v<=3; }):true); }); }},
+  {id:"silent_grinder", tier:"gold",      icon:"eye-fill",  name:"Silent Grinder",     desc:"Top 8 on the leaderboard with no wins - pure consistency", check:function(p){ return p.pts>=400&&p.wins===0; }},
 ];
 
-export const MILESTONES = [
-  {id:"m1",icon:"shield-fill",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:p=>p.pts>=100},
-  {id:"m2",icon:"shield-fill",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:p=>p.pts>=300},
-  {id:"m3",icon:"shield-fill",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:p=>p.pts>=600},
-  {id:"m4",icon:"gem",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:p=>p.pts>=800},
-  {id:"m5",icon:"trophy-fill",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:p=>p.pts>=1000},
-  {id:"m6",icon:"fire",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:p=>isHotStreak(p)},
-  {id:"m7",icon:"trophy-fill",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:p=>p.wins>=1},
-  {id:"m8",icon:"lightning-charge-fill",name:"Clutch Player",   pts:null, reward:"Clutch tag on your stats",     check:p=>(p.clashHistory||[]).some(g=>g.clutch)},
+export var MILESTONES = [
+  {id:"m1",icon:"shield-fill",name:"Bronze Contender",pts:100,  reward:"Bronze badge on your profile",     check:function(p){ return p.pts>=100; }},
+  {id:"m2",icon:"shield-fill",name:"Silver Contender",pts:300,  reward:"Silver animated border",            check:function(p){ return p.pts>=300; }},
+  {id:"m3",icon:"shield-fill",name:"Gold Contender",  pts:600,  reward:"Gold sparkle border + title",       check:function(p){ return p.pts>=600; }},
+  {id:"m4",icon:"gem",name:"Diamond Tier",    pts:800,  reward:"Diamond holographic card effect",   check:function(p){ return p.pts>=800; }},
+  {id:"m5",icon:"trophy-fill",name:"Champion Tier",   pts:1000, reward:"Champion crown + Hall of Fame entry",check:function(p){ return p.pts>=1000; }},
+  {id:"m6",icon:"fire",name:"Hot Streak",      pts:null, reward:"Flame icon next to your name",     check:function(p){ return isHotStreak(p); }},
+  {id:"m7",icon:"trophy-fill",name:"Event Winner",    pts:null, reward:"Winner trophy on your profile",    check:function(p){ return p.wins>=1; }},
+  {id:"m8",icon:"lightning-charge-fill",name:"Clutch Player",   pts:null, reward:"Clutch tag on your stats",     check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
 ];
 
-export function getAchievements(p) { return ACHIEVEMENTS.filter(a => { try { return a.check(p); } catch { return false; } }); }
+export function getAchievements(p) { return ACHIEVEMENTS.filter(function(a) { try { return a.check(p); } catch(e) { return false; } }); }
 
 // ─── CHALLENGES ───────────────────────────────────────────────────────────────
 
@@ -314,7 +314,7 @@ export function syncAchievements(playerId, earnedIds) {
   if (rows.length > 0) {
     import('./supabase.js').then(function(mod) {
       mod.supabase.from("player_achievements").upsert(rows, {onConflict: "player_id,achievement_id"})
-        .then(function(r) { if (r.error) console.error("[TFT] achievement sync:", r.error); });
+        .then(function(r) { });
     });
   }
 }
@@ -326,25 +326,25 @@ export function isOnTilt(p) { return (p.tiltStreak || 0) >= 3; }
 // ─── POST-CLASH AWARDS ENGINE ─────────────────────────────────────────────────
 
 export function computeClashAwards(players) {
-  const eligible = players.filter(p => p.games > 0);
+  var eligible = players.filter(function(p) { return p.games > 0; });
   if (eligible.length === 0) return [];
 
-  const byPts = [...eligible].sort((a, b) => b.pts - a.pts);
-  const byAvp = [...eligible].filter(p => p.games >= 3).sort((a, b) => parseFloat(a.avg || 9) - parseFloat(b.avg || 9));
-  const byAvpWorst = [...eligible].filter(p => p.games >= 3).sort((a, b) => parseFloat(b.avg || 0) - parseFloat(a.avg || 0));
+  var byPts = eligible.slice().sort(function(a, b) { return b.pts - a.pts; });
+  var byAvp = eligible.slice().filter(function(p) { return p.games >= 3; }).sort(function(a, b) { return parseFloat(a.avg || 9) - parseFloat(b.avg || 9); });
+  var byAvpWorst = eligible.slice().filter(function(p) { return p.games >= 3; }).sort(function(a, b) { return parseFloat(b.avg || 0) - parseFloat(a.avg || 0); });
 
   // Lobby Bully - most 1st place finishes
-  const lobbyBully = byPts.reduce((best, p) => (!best || p.wins > best.wins) ? p : best, null);
+  var lobbyBully = byPts.reduce(function(best, p) { return (!best || p.wins > best.wins) ? p : best; }, null);
 
   // The Choker - highest AVP but still in top half by pts (ironic)
-  const topHalf = byPts.slice(0, Math.ceil(byPts.length / 2));
-  const choker = [...topHalf].filter(p => p.games >= 3).sort((a, b) => parseFloat(b.avg || 0) - parseFloat(a.avg || 0))[0];
+  var topHalf = byPts.slice(0, Math.ceil(byPts.length / 2));
+  var choker = topHalf.slice().filter(function(p) { return p.games >= 3; }).sort(function(a, b) { return parseFloat(b.avg || 0) - parseFloat(a.avg || 0); })[0];
 
   // Highest single-clash score - best haul ever
-  const singleMVP = eligible.reduce((best, p) => (!best || (p.bestHaul || 0) > (best.bestHaul || 0)) ? p : best, null);
+  var singleMVP = eligible.reduce(function(best, p) { return (!best || (p.bestHaul || 0) > (best.bestHaul || 0)) ? p : best; }, null);
 
   // Most Improved - biggest improvement from first half to second half of games
-  const mostImproved = (function() {
+  var mostImproved = (function() {
     var candidates = eligible.filter(function(p) { return (p.clashHistory || []).length >= 4; });
     if (!candidates.length) return byAvp[0] || null;
     var best = null; var bestDelta = 0;
@@ -360,7 +360,7 @@ export function computeClashAwards(players) {
   })();
 
   // Ice Cold - longest streak without a top-4 finish (3+ games)
-  const iceCold = (function() {
+  var iceCold = (function() {
     var candidates = eligible.filter(function(p) { return (p.clashHistory || []).length >= 3; });
     if (!candidates.length) return null;
     var worst = null; var worstStreak = 0;
@@ -377,7 +377,7 @@ export function computeClashAwards(players) {
   })();
 
   // On Fire - best 1st place streak
-  const onFire = [...eligible].sort((a, b) => (b.bestStreak || 0) - (a.bestStreak || 0))[0];
+  var onFire = eligible.slice().sort(function(a, b) { return (b.bestStreak || 0) - (a.bestStreak || 0); })[0];
 
   return [
     lobbyBully && {icon: "crosshair", id: "bully", title: "Lobby Bully", desc: "Most 1st place finishes", winner: lobbyBully, stat: lobbyBully.wins + " wins", color: "#E8A838"},

@@ -60,7 +60,7 @@ export default async function handler(req, res) {
   const corsOrigin = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
   res.setHeader('Access-Control-Allow-Origin', corsOrigin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -80,9 +80,20 @@ export default async function handler(req, res) {
   }
 
   // Input validation
-  const { password, userId } = req.body ?? {};
+  const { password } = req.body ?? {};
   if (typeof password !== 'string' || password.length === 0 || password.length > 128) {
     return res.status(400).json({ isAdmin: false, error: 'Invalid password input' });
+  }
+
+  // Derive userId from auth token (never trust body)
+  let userId = null;
+  const authHeader = req.headers['authorization'] || '';
+  if (authHeader.startsWith('Bearer ') && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const supabaseAuth = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+      const { data } = await supabaseAuth.auth.getUser(authHeader.replace('Bearer ', ''));
+      if (data && data.user) userId = data.user.id;
+    } catch (e) { /* token invalid, userId stays null */ }
   }
 
   // Server-side config check
@@ -91,13 +102,17 @@ export default async function handler(req, res) {
     return res.status(500).json({ isAdmin: false, error: 'ADMIN_PASSWORD not set' });
   }
 
-  // Constant-time comparison to prevent timing attacks
-  const pwBuf = Buffer.from(password);
-  const adminBuf = Buffer.from(adminPw);
+  // Require a valid authenticated session — never grant admin without identity
+  if (!userId) {
+    console.warn(`[check-admin] Admin attempt without valid session from ${ip}`);
+    return res.status(401).json({ isAdmin: false, error: 'Valid session required' });
+  }
 
-  const isMatch =
-    pwBuf.length === adminBuf.length &&
-    crypto.timingSafeEqual(pwBuf, adminBuf);
+  // Constant-time comparison to prevent timing attacks
+  // Hash both sides so timingSafeEqual always compares equal-length buffers,
+  // eliminating the length-leak timing oracle.
+  const hash = (b) => crypto.createHash('sha256').update(b).digest();
+  const isMatch = crypto.timingSafeEqual(hash(Buffer.from(password)), hash(Buffer.from(adminPw)));
 
   if (!isMatch) {
     console.warn(`[check-admin] Failed login attempt from ${ip} at ${new Date().toISOString()}`);
@@ -105,16 +120,15 @@ export default async function handler(req, res) {
   }
 
   // On success, ensure user_roles entry exists so RLS admin policies work
-  if (userId && typeof userId === 'string' && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    try {
-      const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-      await supabase.from('user_roles').upsert(
-        { user_id: userId, role: 'admin' },
-        { onConflict: 'user_id,role' }
-      );
-    } catch (err) {
-      console.error('[check-admin] user_roles upsert failed:', err.message);
-    }
+  try {
+    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    await supabase.from('user_roles').upsert(
+      { user_id: userId, role: 'admin' },
+      { onConflict: 'user_id,role' }
+    );
+  } catch (err) {
+    console.error('[check-admin] user_roles upsert failed:', err.message);
+    return res.status(500).json({ isAdmin: false, error: 'Failed to provision admin role' });
   }
 
   res.json({ isAdmin: true });

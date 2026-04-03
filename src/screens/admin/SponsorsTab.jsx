@@ -247,7 +247,7 @@ export default function SponsorsTab() {
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'sponsor',
         details: { message: msg, timestamp: Date.now() }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
@@ -369,7 +369,7 @@ export default function SponsorsTab() {
           </div>
           <div className="space-y-2">
             {active.map(function(s, i) {
-              return <SponsorCard key={s.name + '-' + i} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} />
+              return <SponsorCard key={s.id || s.name} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} />
             })}
           </div>
         </div>
@@ -384,7 +384,7 @@ export default function SponsorsTab() {
           </div>
           <div className="space-y-2">
             {inactive.map(function(s, i) {
-              return <SponsorCard key={s.name + '-' + i} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} />
+              return <SponsorCard key={s.id || s.name} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} />
             })}
           </div>
         </div>

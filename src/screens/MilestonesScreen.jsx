@@ -276,9 +276,9 @@ export default function MilestonesScreen() {
 
           <div className="h-8 bg-surface-container-lowest relative rounded-full overflow-hidden flex items-center p-1">
             <div className="absolute inset-0 flex">
-              {RANK_TIERS.map(function(_, idx) {
+              {RANK_TIERS.map(function(tier, idx) {
                 return (
-                  <div key={idx} className={'h-full ' + (idx < RANK_TIERS.length - 1 ? 'border-r border-outline-variant/10' : '') + ' flex-1'}></div>
+                  <div key={tier} className={'h-full ' + (idx < RANK_TIERS.length - 1 ? 'border-r border-outline-variant/10' : '') + ' flex-1'}></div>
                 );
               })}
             </div>

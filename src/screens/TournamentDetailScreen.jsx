@@ -101,7 +101,7 @@ function RoundCard(props) {
           var pc = getPlaceColor(r.placement)
           var playerName = ((players || []).find(function(p) { return p.id === r.player_id || p.dbId === r.player_id; }) || {}).name || r.player_id
           return (
-            <div key={i} className={'flex items-center gap-3 px-3 py-2 rounded-sm ' + (r.placement <= 3 ? 'bg-primary/5 border border-primary/10' : 'bg-surface-container border border-outline-variant/5')}>
+            <div key={r.player_id} className={'flex items-center gap-3 px-3 py-2 rounded-sm ' + (r.placement <= 3 ? 'bg-primary/5 border border-primary/10' : 'bg-surface-container border border-outline-variant/5')}>
               <div className="w-7 text-center font-mono text-sm font-bold flex-shrink-0" style={{ color: pc }}>{r.placement}</div>
               <div className="flex-1 font-mono text-sm text-on-surface">{playerName}</div>
               <div className="font-mono text-sm font-bold text-primary">{r.points + 'pts'}</div>
@@ -138,7 +138,7 @@ export default function TournamentDetailScreen() {
       supabase.from('tournaments').select('*').eq('id', eventId).single()
         .then(function(res) {
           if (res.data) setFallbackEvent(res.data)
-        })
+        }).catch(function() {})
     }
   }, [contextEvent, eventId])
 
@@ -150,10 +150,10 @@ export default function TournamentDetailScreen() {
     supabase.from('game_results').select('*').eq('tournament_id', event.dbTournamentId).order('round_number', { ascending: true }).order('placement', { ascending: true })
       .then(function(res) {
         setLoadingResults(false)
-        if (res.error) { console.error('[TFT] Failed to load game results:', res.error); toast('Failed to load results', 'error'); return; }
+        if (res.error) { toast('Failed to load results', 'error'); return; }
         if (res.data) setTournamentResults(res.data)
-      })
-  }, [event && event.dbTournamentId])
+      }).catch(function() { setLoadingResults(false); toast('Failed to load results', 'error'); })
+  }, [event ? event.dbTournamentId : null])
 
   if (!event) return null
 
@@ -173,10 +173,8 @@ export default function TournamentDetailScreen() {
         var newIds = (ev.registeredIds || []).filter(function(u) { return u !== currentUser.username; })
         return Object.assign({}, ev, { registeredIds: newIds, registered: Math.max(0, (ev.registered || 0) - 1) })
       }); })
-      if (supabase.from && currentUser && event.dbTournamentId) {
-        supabase.from('players').select('id').eq('auth_user_id', currentUser.id).single().then(function(pRes) {
-          if (pRes.data) supabase.from('registrations').delete().eq('tournament_id', event.dbTournamentId).eq('player_id', pRes.data.id).then(function(r) { if (r.error) { console.error('[TFT] unregister failed:', r.error); toast('Unregister failed', 'error'); } })
-        })
+      if (supabase.from && currentUser && currentUser.auth_user_id && event.dbTournamentId) {
+        supabase.from('registrations').delete().eq('tournament_id', event.dbTournamentId).eq('player_id', currentUser.id).then(function(r) { if (r.error) { toast('Unregister failed', 'error'); } }).catch(function() { toast('Unregister failed', 'error'); })
       }
       toast('Unregistered from ' + event.name, 'info')
     } else {
@@ -186,11 +184,9 @@ export default function TournamentDetailScreen() {
         var newIds = (ev.registeredIds || []).concat([currentUser.username])
         return Object.assign({}, ev, { registeredIds: newIds, registered: (ev.registered || 0) + 1 })
       }); })
-      if (supabase.from && currentUser && event.dbTournamentId) {
-        supabase.from('players').select('id').eq('auth_user_id', currentUser.id).single().then(function(pRes) {
-          if (pRes.data) supabase.from('registrations').upsert({ tournament_id: event.dbTournamentId, player_id: pRes.data.id, status: 'registered' }, { onConflict: 'tournament_id,player_id' })
-            .then(function(r) { if (r.error) console.error('[TFT] registration insert failed:', r.error) })
-        })
+      if (supabase.from && currentUser && currentUser.auth_user_id && event.dbTournamentId) {
+        supabase.from('registrations').upsert({ tournament_id: event.dbTournamentId, player_id: currentUser.id, status: 'registered' }, { onConflict: 'tournament_id,player_id' })
+          .then(function(r) { if (r && r.error) toast('Registration sync failed', 'error'); }).catch(function() { toast('Registration sync failed', 'error'); })
       }
       toast('Registered for ' + event.name + '!', 'success')
     }
@@ -380,7 +376,7 @@ export default function TournamentDetailScreen() {
                       <div className="flex gap-3 flex-wrap">
                         {event.top4.map(function(p, i) {
                           return (
-                            <div key={i} className={'flex items-center gap-2 bg-surface-container-high px-4 py-2 border border-outline-variant/10 ' + (i === 0 ? 'border-primary/30' : '')}>
+                            <div key={p} className={'flex items-center gap-2 bg-surface-container-high px-4 py-2 border border-outline-variant/10 ' + (i === 0 ? 'border-primary/30' : '')}>
                               <span className="font-mono text-xs font-bold" style={{ color: PLACE_COLORS[i] || '#D5C4AF' }}>{i + 1}.</span>
                               <span className="font-mono text-sm text-on-surface">{p}</span>
                             </div>
@@ -455,7 +451,7 @@ export default function TournamentDetailScreen() {
                     {event.prize_pool_json.map(function(p, i) {
                       var pb = PRIZE_BARS[i] || PRIZE_BARS[PRIZE_BARS.length - 1]
                       return (
-                        <div key={i} className="relative h-12 flex items-center bg-surface-container-lowest">
+                        <div key={p.placement} className="relative h-12 flex items-center bg-surface-container-lowest">
                           <div className={'absolute inset-y-0 left-0 border-r-2 ' + pb.barBg + ' ' + pb.barBorder} style={{ width: pb.pct }}></div>
                           <div className="relative z-10 w-full flex justify-between px-4 font-mono">
                             <span className={pb.textColor + ' font-bold text-sm'}>{'#' + p.placement}</span>

@@ -29,7 +29,7 @@ export default function OverviewTab({ setTab }) {
     supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(10).then(function(res) {
       setActLoading(false)
       if (res.data) setRecentActivity(res.data)
-    })
+    }).catch(function() { setActLoading(false) })
   }, [])
 
   function addAudit(type, msg) {
@@ -42,7 +42,7 @@ export default function OverviewTab({ setTab }) {
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action',
         details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
@@ -61,7 +61,7 @@ export default function OverviewTab({ setTab }) {
       if (r.error) { toast('DB sync failed: ' + r.error.message, 'error'); return }
       addAudit('ACTION', 'Check-in All: ' + ids.length + ' players')
       toast(ids.length + ' players checked in', 'success')
-    })
+    }).catch(function() { toast('Check-in failed', 'error') })
   }
 
   function clearCheckIn() {
@@ -71,7 +71,7 @@ export default function OverviewTab({ setTab }) {
       if (r.error) { toast('DB sync failed: ' + r.error.message, 'error'); return }
       addAudit('ACTION', 'Check-in cleared')
       toast('Check-in cleared', 'success')
-    })
+    }).catch(function() { toast('Clear check-in failed', 'error') })
   }
 
   var statCards = [

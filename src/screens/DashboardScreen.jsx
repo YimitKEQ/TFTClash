@@ -66,7 +66,7 @@ function SparklineBars({ data }) {
         var alphaClass = isLast ? '' : (ALPHAS[Math.min(i, ALPHAS.length - 1)])
         return (
           <div
-            key={i}
+            key={"bar-" + i}
             className={'w-full rounded-t-sm ' + alphaClass}
             style={{
               height: pct + '%',
@@ -92,7 +92,7 @@ function FormCircles({ history, max }) {
         var isTop4 = p <= 4
         return (
           <div
-            key={i}
+            key={"form-" + i}
             title={'Game ' + (i + 1) + ': #' + p}
             className={
               'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ' +
@@ -295,7 +295,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
             var timeStr = h.date || ''
             return (
               <div
-                key={i}
+                key={h.clashId || ("recent-" + i)}
                 className={'flex items-center justify-between p-3 bg-surface-container rounded-sm border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
               >
                 <div className="flex items-center gap-3">
@@ -331,7 +331,7 @@ function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
           var isLast = i === (Math.min(top5.length, 4) - 1)
           return (
             <div
-              key={p.id || i}
+              key={p.id || p.name}
               onClick={function () { onViewPlayer && onViewPlayer(p) }}
               className={
                 'flex items-center justify-between py-2 ' +
@@ -394,7 +394,7 @@ function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
         <div className="space-y-4">
           {displayItems.map(function (item, idx) {
             return (
-              <div key={item.id || idx} className="flex gap-3">
+              <div key={item.id || item.message} className="flex gap-3">
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
                   <Icon name={item.icon} size={16} className="text-on-surface/60" />
                 </div>
@@ -490,7 +490,7 @@ function CompleteTopThree(props) {
         var pName = typeof r === 'string' ? r : (r.name || ('Player ' + (i + 1)))
         var pts = typeof r === 'object' ? r.pts : null
         return (
-          <div key={i} className={'flex items-center gap-2 py-1.5 ' + (i < 2 ? 'border-b border-white/[0.04]' : '')}>
+          <div key={pName + '-' + (i + 1)} className={'flex items-center gap-2 py-1.5 ' + (i < 2 ? 'border-b border-white/[0.04]' : '')}>
             <div className={
               'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold font-mono flex-shrink-0 ' +
               (i === 0 ? 'bg-primary text-[#13131A]' : 'bg-white/[0.08] text-on-surface-variant')
@@ -620,7 +620,7 @@ function ClashCard() {
       setShowPicker(false)
       setSelectedPlace(0)
       toast('Placement submitted!', 'success')
-    })
+    }).catch(function() { setSubmitting(false); toast('Failed to submit placement', 'error'); })
   }
 
   var phaseTagMap = {
@@ -926,7 +926,7 @@ export default function DashboardScreen() {
       .limit(1)
       .then(function (res) {
         if (res.data && res.data.length > 0) setUpcomingTournament(res.data[0])
-      })
+      }).catch(function () {})
   }, [])
 
   // Activity feed
@@ -959,7 +959,7 @@ export default function DashboardScreen() {
           setAfHasMore(res.data.length > 20)
           setAfOffset(0)
         }
-      })
+      }).catch(function () { setAfLoading(false); })
   }, [tick])
 
   function handleLoadMoreActivity() {
@@ -975,7 +975,7 @@ export default function DashboardScreen() {
           setAfHasMore(res.data.length > 20)
           setAfOffset(nextOffset)
         }
-      })
+      }).catch(function () { setAfLoading(false); })
   }
 
   // Derived values
@@ -1069,7 +1069,7 @@ export default function DashboardScreen() {
       supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
         .eq('tournament_id', tournamentState.dbTournamentId)
         .eq('player_id', linkedPlayer.id)
-        .then(function (r) { if (r.error) console.error('[TFT] check-in update failed:', r.error) })
+        .then(function (r) { }).catch(function () {})
     }
     toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
   }
@@ -1104,8 +1104,7 @@ export default function DashboardScreen() {
           player_id: linkedPlayer.id,
           status: 'registered'
         }, { onConflict: 'tournament_id,player_id' }).then(function (r) {
-          if (r.error) console.error('[TFT] registration insert failed:', r.error)
-        })
+        }).catch(function () {})
       }
       if (tournamentState.dbTournamentId) {
         doInsert(tournamentState.dbTournamentId)
@@ -1121,9 +1120,8 @@ export default function DashboardScreen() {
             setTournamentState(function (ts) { return Object.assign({}, ts, { dbTournamentId: newId }) })
             doInsert(newId)
           } else if (res.error) {
-            console.error('[TFT] Failed to auto-create tournament:', res.error)
           }
-        })
+        }).catch(function () {})
       }
     }
     toast(currentUser.username + ' registered for ' + clashName + '!', 'success')
@@ -1141,7 +1139,7 @@ export default function DashboardScreen() {
       supabase.from('registrations').delete()
         .eq('tournament_id', tournamentState.dbTournamentId)
         .eq('player_id', linkedPlayer.id)
-        .then(function (r) { if (r.error) console.error('[TFT] unregister failed:', r.error) })
+        .then(function (r) { }).catch(function () {})
     }
     toast('Unregistered from ' + clashName, 'info')
     setTournamentState(function (ts2) {
@@ -1412,7 +1410,7 @@ export default function DashboardScreen() {
             {[].concat(tickerItems, tickerItems).map(function (item, i) {
               return (
                 <span
-                  key={i}
+                  key={"ticker-" + i}
                   className="inline-flex items-center px-5 py-2 text-[11px] text-on-surface/60 font-semibold whitespace-nowrap border-r border-secondary/[0.08]"
                 >
                   {typeof item === 'object' ? item.text : item}

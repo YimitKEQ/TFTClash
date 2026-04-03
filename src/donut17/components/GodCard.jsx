@@ -98,7 +98,7 @@ function GodCard({ god, compact = false }) {
               </div>
               {offerings.map(function(offer, i) {
                 return (
-                  <div key={i} style={{ fontSize: 10, color: "#cbd5e1", fontFamily: "'Chakra Petch', sans-serif", marginBottom: 3, paddingLeft: 8, borderLeft: "2px solid " + god.color + "44" }}>
+                  <div key={offer} style={{ fontSize: 10, color: "#cbd5e1", fontFamily: "'Chakra Petch', sans-serif", marginBottom: 3, paddingLeft: 8, borderLeft: "2px solid " + god.color + "44" }}>
                     {offer}
                   </div>
                 );

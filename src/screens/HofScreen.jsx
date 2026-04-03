@@ -396,7 +396,7 @@ export default function HofScreen(props) {
                             var runnerClasses = ['text-[#C0C0C0]', 'text-[#CD7F32]']
                             var labels = ['2nd', '3rd']
                             return (
-                              <div key={i} className="flex items-center gap-2 text-xs text-on-surface/50">
+                              <div key={ru} className="flex items-center gap-2 text-xs text-on-surface/50">
                                 <span className={'font-technical text-[10px] font-bold min-w-[24px] ' + runnerClasses[i]}>
                                   {labels[i]}
                                 </span>

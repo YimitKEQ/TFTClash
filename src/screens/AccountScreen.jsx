@@ -72,7 +72,7 @@ function PlacementDistribution({ history }) {
       {counts.map(function(count, i) {
         var pct = Math.round((count / total) * 100);
         return (
-          <div key={i} className="flex items-center gap-2 mb-1.5">
+          <div key={"place-" + (i + 1)} className="flex items-center gap-2 mb-1.5">
             <div className="w-5 text-right text-xs font-bold flex-shrink-0" style={{ color: colors[i] }}>{'#' + (i + 1)}</div>
             <div className="flex-1 h-2 bg-surface-container-lowest rounded-full overflow-hidden">
               <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: colors[i] }} />
@@ -223,7 +223,7 @@ export default function AccountScreen() {
   useEffect(function() {
     if (!user || !user.id) return;
     supabase.from('subscriptions').select('plan,status').eq('user_id', user.id).single()
-      .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); });
+      .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); }).catch(function() {});
   }, [user && user.id]);
 
   async function handleLogout() {
@@ -234,7 +234,6 @@ export default function AccountScreen() {
       navigate('/');
       toast('Logged out successfully', 'info');
     } catch(e) {
-      console.error('[TFT] logout failed:', e);
       toast('Logout failed', 'error');
     }
   }
@@ -279,7 +278,6 @@ export default function AccountScreen() {
     try {
       await supabase.auth.updateUser({ data: meta });
     } catch(e) {
-      console.warn('Supabase update failed', e);
       setProfileSaving(false);
       toast('Failed to save profile - please try again', 'error');
       return;
@@ -297,7 +295,6 @@ export default function AccountScreen() {
     var authUid = user.auth_user_id || user.id;
     supabase.from('players').update(playerUpdate).eq('auth_user_id', authUid).then(function(pRes) {
       if (pRes.error) {
-        console.error('[TFT] Players table update failed:', pRes.error);
         toast('Profile saved but some data may not have synced', 'error');
       } else {
         var newUsername = playerUpdate.username || user.username;
@@ -321,7 +318,7 @@ export default function AccountScreen() {
           });
         });
       }
-    });
+    }).catch(function() { setProfileSaving(false); toast('Profile save failed', 'error'); });
 
     var updated = Object.assign({}, user, meta, {
       username: meta.username || user.username,
@@ -606,9 +603,9 @@ export default function AccountScreen() {
                                     return p;
                                   });
                                 });
-                              });
+                              }).catch(function() {});
                               toast('Avatar updated!', 'success');
-                            });
+                            }).catch(function() { toast('Upload failed', 'error'); });
                         }}
                       />
                     </label>
@@ -730,9 +727,9 @@ export default function AccountScreen() {
                                                 return p;
                                               });
                                             });
-                                          });
+                                          }).catch(function() {});
                                           toast('Photo uploaded!', 'success');
-                                        });
+                                        }).catch(function() { toast('Upload failed', 'error'); });
                                       }}
                                     />
                                   </label>
@@ -771,7 +768,7 @@ export default function AccountScreen() {
                                       var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
                                       setBannerUrl(urlResult.data.publicUrl);
                                       toast('Banner uploaded!', 'success');
-                                    });
+                                    }).catch(function() { toast('Upload failed', 'error'); });
                                   }}
                                 />
                               </label>
@@ -1173,7 +1170,7 @@ export default function AccountScreen() {
                     ].map(function(item, i) {
                       if (item.locked) {
                         return (
-                          <div key={i} className="relative h-24 rounded-lg overflow-hidden cursor-not-allowed border border-outline-variant/10 bg-surface-container-lowest">
+                          <div key={item.label} className="relative h-24 rounded-lg overflow-hidden cursor-not-allowed border border-outline-variant/10 bg-surface-container-lowest">
                             <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
                               <Icon name="lock" size={20} className="text-on-surface/20" />
                             </div>
@@ -1184,7 +1181,7 @@ export default function AccountScreen() {
                         );
                       }
                       return (
-                        <div key={i} className={'relative h-24 rounded-lg overflow-hidden border group ' + (item.active ? 'border-2 border-primary cursor-pointer' : 'border-outline-variant/20 cursor-pointer opacity-50')}>
+                        <div key={item.label} className={'relative h-24 rounded-lg overflow-hidden border group ' + (item.active ? 'border-2 border-primary cursor-pointer' : 'border-outline-variant/20 cursor-pointer opacity-50')}>
                           <div className={'w-full h-full ' + (i === 0 ? 'bg-gradient-to-br from-[#1a2a3a] to-[#0e1f2f]' : 'bg-gradient-to-br from-[#2a1a3a] to-[#1a0e2f]')} />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
                             <span className={'font-sans-cond text-[10px] uppercase tracking-widest ' + (item.active ? 'text-primary' : 'text-on-surface/60')}>{item.label}</span>
@@ -1343,16 +1340,18 @@ export default function AccountScreen() {
                       try {
                         var session = await supabase.auth.getSession();
                         var token = session.data && session.data.session && session.data.session.access_token;
-                        if (token) {
-                          var resp = await fetch('/api/delete-account', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                          });
-                          var result = await resp.json();
-                          if (!resp.ok) {
-                            toast(result.error || 'Deletion failed', 'error');
-                            return;
-                          }
+                        if (!token) {
+                          toast('Session expired. Please log in again to delete your account.', 'error');
+                          return;
+                        }
+                        var resp = await fetch('/api/delete-account', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                        });
+                        var result = await resp.json();
+                        if (!resp.ok) {
+                          toast(result.error || 'Deletion failed', 'error');
+                          return;
                         }
                         if (setPlayers) {
                           setPlayers(function(ps) {
@@ -1590,7 +1589,7 @@ export default function AccountScreen() {
                       var isFirst = place === 1;
                       var isTop4 = place <= 4;
                       return (
-                        <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-outline-variant/5 last:border-0">
+                        <div key={g.clashId || ("clash-" + i)} className="flex items-center gap-4 px-4 py-3 border-b border-outline-variant/5 last:border-0">
                           <div
                             className={'w-9 h-9 rounded flex items-center justify-center text-sm font-bold flex-shrink-0 font-mono border ' + (isFirst ? 'bg-primary/[0.12] border-primary/40 text-primary' : isTop4 ? 'bg-tertiary/[0.08] border-tertiary/25 text-tertiary' : 'bg-white/[0.03] border-white/[0.08] text-on-surface-variant')}
                           >

@@ -97,7 +97,7 @@ function FormDots(props) {
         var p = h.placement || h.place || 5;
         var cls = "form-dot " + (p === 1 ? "form-dot-win" : p <= 4 ? "form-dot-top4" : "form-dot-bot4");
         var title = "Game " + (i + 1) + ": #" + p;
-        return <span key={i} className={cls} title={title} />;
+        return <span key={"dot-" + i} className={cls} title={title} />;
       })}
     </div>
   );
@@ -191,7 +191,7 @@ function ClashRecap(props) {
       <div className="font-condensed text-[10px] uppercase tracking-[.12em] font-bold mb-[10px]" style={{ color: "#34D399" }}>{recap.clashName + " Recap"}</div>
       <div className="text-[14px] text-on-surface leading-[1.8]">
         {recap.lines.map(function(line, i) {
-          return <p key={i} className="mb-2">{line}</p>;
+          return <p key={"line-" + i} className="mb-2">{line}</p>;
         })}
       </div>
       <div className="flex gap-2 mt-3">
@@ -322,7 +322,7 @@ function DisputeBanner(props) {
       </div>
       {disputes.map(function(d, i) {
         return (
-          <div key={i} style={{ fontSize: 13, color: "#FCA5A5", marginBottom: 8, padding: "10px 12px", background: "rgba(0,0,0,.35)", borderRadius: 8 }}>
+          <div key={d.target + '-' + d.placement} style={{ fontSize: 13, color: "#FCA5A5", marginBottom: 8, padding: "10px 12px", background: "rgba(0,0,0,.35)", borderRadius: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
               <div>
                 <span style={{ fontWeight: 700, color: "#F2EDE4" }}>{d.target}</span> {"->"} <span style={{ color: "#E8A838", fontWeight: 700 }}>#{d.placement}</span>
@@ -469,7 +469,7 @@ function ResultSubmitModal(props) {
         <h3 className="font-editorial mb-4" style={{ color: "#F2EDE4" }}>Submit Results</h3>
         {rankings.map(function(r, i) {
           return (
-            <div key={i} className="flex items-center gap-[10px] mb-2">
+            <div key={r.player.username || r.player.name || r.player} className="flex items-center gap-[10px] mb-2">
               <span className="flex-1 text-[13px]" style={{ color: "#F2EDE4" }}>{r.player.username || r.player.name || r.player}</span>
               <select
                 value={r.position}
@@ -511,7 +511,7 @@ function ConfirmResultsModal(props) {
         <p className="text-[12px] mb-4" style={{ color: "#9AAABF" }}>{"Submitted by " + (submission.submittedBy || "unknown")}</p>
         {(submission.rankings || []).map(function(r, i) {
           return (
-            <div key={i} className="flex items-center gap-[10px] py-[6px]" style={{ borderBottom: "1px solid rgba(242,237,228,.04)" }}>
+            <div key={r.player.username || r.player.name || r.player} className="flex items-center gap-[10px] py-[6px]" style={{ borderBottom: "1px solid rgba(242,237,228,.04)" }}>
               <span className="text-[12px] font-bold w-7" style={{ color: i < 3 ? ["#E8A838", "#C0C0C0", "#CD7F32"][i] : "#BECBD9" }}>{ordinal(r.position)}</span>
               <span className="text-[13px]" style={{ color: "#F2EDE4" }}>{r.player.username || r.player.name || r.player}</span>
             </div>
@@ -771,7 +771,7 @@ function LiveStandingsTable(props) {
         var posChange = p.posChange || 0;
         return (
           <div
-            key={p.id || p.username || p.name || i}
+            key={p.id || p.username || p.name}
             className="fade-up grid px-[14px] py-[10px] text-[13px]"
             style={{
               gridTemplateColumns: "36px 1fr 60px 50px",
@@ -926,7 +926,7 @@ function PlacementDistribution(props) {
           if (pct === 0) return null;
           return (
             <div
-              key={i}
+              key={"pbar-" + (i + 1)}
               title={ordinal(i + 1) + ": " + c + " (" + Math.round(pct) + "%)"}
               style={{ width: pct + "%", background: colors[i], transition: "width .5s ease" }}
             />
@@ -936,7 +936,7 @@ function PlacementDistribution(props) {
       <div className="flex justify-between mt-1">
         {counts.map(function(c, i) {
           return (
-            <div key={i} className="text-center flex-1 text-[10px] font-semibold" style={{ color: c > 0 ? colors[i] : "#4A5568" }}>
+            <div key={"plabel-" + (i + 1)} className="text-center flex-1 text-[10px] font-semibold" style={{ color: c > 0 ? colors[i] : "#4A5568" }}>
               {ordinal(i + 1)}
             </div>
           );
@@ -1074,7 +1074,7 @@ function ResultsScreen(props) {
     lines.push("```");
     lines.push("Champion: **" + champ.name + "**    " + champ.pts + "pts");
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(lines.join("\n")).then(function() { toast("Copied for Discord", "success"); });
+      navigator.clipboard.writeText(lines.join("\n")).then(function() { toast("Copied for Discord", "success"); }).catch(function() { toast("Copy failed", "error"); });
     }
   }
 
@@ -1388,7 +1388,7 @@ function LobbySubmissionPanel(props) {
                     status: 'pending'
                   }, { onConflict: 'tournament_id,round,player_id' }).then(function(r) {
                     if (!r.error) { setDisputePlayer(null); setDisputeVal(''); }
-                  });
+                  }).catch(function() {});
                 }}>Save</Btn>
                 <Btn v="ghost" s="sm" onClick={function() { setDisputePlayer(null); }}>Cancel</Btn>
               </div>
@@ -1532,7 +1532,7 @@ function BracketScreen(props) {
           });
         });
         if (Object.keys(restored).length > 0) setPlayerSubmissions(restored);
-      });
+      }).catch(function() {});
   }, [tournamentState.dbTournamentId, round, lobbies.length]);
 
   // Auto-persist lobby assignments
@@ -1551,7 +1551,7 @@ function BracketScreen(props) {
           player_ids: playerIds,
           status: 'pending'
         }, { onConflict: 'tournament_id,lobby_number,round_number' })
-        .then(function(res) { if (res.error) console.error("[TFT] Failed to persist lobby " + (idx + 1) + ":", res.error); });
+        .then(function(res) { }).catch(function() {});
       });
     }
   }, [lobbies]);
@@ -1561,7 +1561,7 @@ function BracketScreen(props) {
     if (!q) return;
     var li = lobbies.findIndex(function(lobby) {
       return lobby.some(function(p) {
-        return p.name.toLowerCase().includes(q) || (p.riotId && p.riotId.toLowerCase().includes(q));
+        return (p.name||'').toLowerCase().includes(q) || (p.riotId && p.riotId.toLowerCase().includes(q));
       });
     });
     if (li >= 0) { setHighlightLobby(li); toast("Found in Lobby " + (li + 1) + "!", "success"); }
@@ -1643,7 +1643,7 @@ function BracketScreen(props) {
         .eq('tournament_id', tournamentState.dbTournamentId)
         .eq('lobby_number', li + 1)
         .eq('round_number', round)
-        .then(function(res) { if (res.error) console.error("[TFT] Failed to lock lobby in DB:", res.error); });
+        .then(function(res) { }).catch(function() {});
     }
     // Persist per-game results
     if (supabase.from && tournamentState.dbTournamentId) {
@@ -1655,7 +1655,7 @@ function BracketScreen(props) {
       });
       if (gameRows.length > 0) {
         supabase.from('game_results').insert(gameRows).then(function(res) {
-          if (res.error) { console.error("[TFT] Failed to save game results:", res.error); toast("Failed to save game results", "error"); }
+          if (res.error) { toast("Failed to save game results", "error"); }
           else {
             gameRows.forEach(function(row) {
               var ptsGained = row.points || 0;
@@ -1667,9 +1667,8 @@ function BracketScreen(props) {
                 p_wins: winsGained
               }).then(function(rpcRes) {
                 if (rpcRes.error) {
-                  console.error('[TFT] increment_player_stats failed for player', row.player_id, rpcRes.error);
                 }
-              });
+              }).catch(function() {});
             });
             setPlayers(function(ps) {
               return ps.map(function(p) {
@@ -1682,7 +1681,7 @@ function BracketScreen(props) {
               });
             });
           }
-        });
+        }).catch(function() { toast("Failed to save game results", "error"); });
       }
     }
     toast("Lobby " + (li + 1) + " results applied!", "success");
@@ -1697,8 +1696,7 @@ function BracketScreen(props) {
         .update({ status: 'confirmed' })
         .eq('id', sub.id)
         .then(function(r) {
-          if (r.error) console.error('[TFT] Failed to confirm submission', r.error);
-        });
+        }).catch(function() {});
     });
 
     var gameRows = submissions.map(function(sub) {
@@ -1721,8 +1719,7 @@ function BracketScreen(props) {
           p_pts: row.points,
           p_wins: row.placement === 1 ? 1 : 0
         }).then(function(r) {
-          if (r.error) console.error('[TFT] RPC failed:', r.error);
-        });
+        }).catch(function() {});
       });
 
       setPlayers(function(ps) {
@@ -1751,8 +1748,8 @@ function BracketScreen(props) {
             }
           }
           toast('Lobby ' + lobbyNum + ' results confirmed!', 'success');
-        });
-    });
+        }).catch(function() {});
+    }).catch(function() { toast('Failed to save results', 'error'); });
   }
 
   function submitMyPlacement(li, playerId, playerName, placement) {
@@ -1772,8 +1769,7 @@ function BracketScreen(props) {
         reported_placement: p,
         reported_at: new Date().toISOString()
       }, { onConflict: 'tournament_id,game_number,player_id' }).then(function(r) {
-        if (r.error) console.error("[TFT] Failed to persist placement report:", r.error);
-      });
+      }).catch(function() {});
     }
     toast("Placement submitted - waiting for admin confirmation", "success");
   }
@@ -1812,13 +1808,13 @@ function BracketScreen(props) {
           .eq('tournament_id', tournamentState.dbTournamentId)
           .eq('round_number', round)
           .in('player_id', lobbyPlayerIds)
-          .then(function(res) { if (res.error) console.error("[TFT] Failed to delete game results:", res.error); });
+          .then(function(res) { }).catch(function() {});
       }
       supabase.from('lobbies').update({ status: 'active' })
         .eq('tournament_id', tournamentState.dbTournamentId)
         .eq('lobby_number', li + 1)
         .eq('round_number', round)
-        .then(function(res) { if (res.error) console.error("[TFT] Failed to unlock lobby in DB:", res.error); });
+        .then(function(res) { }).catch(function() {});
       if (savedPlacements) {
         lobbyPlayerIds.forEach(function(pid) {
           var place = savedPlacements[pid];
@@ -1835,8 +1831,7 @@ function BracketScreen(props) {
             season_pts: newPts, wins: newWins, top4: newTop4, games: newGames,
             avg_placement: parseFloat(newAvg.toFixed(2))
           }).eq('id', pid).then(function(pr) {
-            if (pr.error) console.error("[TFT] Failed to revert player stats:", pr.error);
-          });
+          }).catch(function() {});
         });
       }
     }
@@ -1885,7 +1880,7 @@ function BracketScreen(props) {
     var clashName = (tournamentState && tournamentState.clashName) ? tournamentState.clashName : ("Clash " + new Date().toLocaleDateString());
     var doSave = function(tId) {
       supabase.from('tournaments').update({ phase: 'complete', completed_at: new Date().toISOString() }).eq('id', tId)
-        .then(function(r) { if (r.error) console.error("Failed to update tournament phase:", r.error); });
+        .then(function(r) { }).catch(function() {});
       var playerTotals = {};
       allPlayers.forEach(function(p) {
         var entries = (p.clashHistory || []).filter(function(h) { return h.clashId === clashId; });
@@ -1899,7 +1894,7 @@ function BracketScreen(props) {
       var rows = Object.values(playerTotals);
       if (rows.length > 0) {
         supabase.from('tournament_results').insert(rows).then(function(r) {
-          if (r.error) { console.error("Failed to save results:", r.error); toast("Failed to save player results", "error"); return; }
+          if (r.error) { toast("Failed to save player results", "error"); return; }
           allPlayers.forEach(function(p) {
             if (p.authUserId) { createNotification(p.authUserId, "Results Finalized", clashName + " results are in! Check the Results screen to see your placement and points.", "trophy"); }
           });
@@ -1931,11 +1926,10 @@ function BracketScreen(props) {
                 avg_placement: parseFloat(parseFloat(p.avg || 0).toFixed(2)),
                 last_clash_rank: sortedByPts.findIndex(function(q) { return q.id === p.id; }) + 1
               }).eq('id', p.id).then(function(pr) {
-                if (pr.error) console.error("[TFT] Failed to sync final stats for", p.name, pr.error);
-              });
+              }).catch(function() {});
             }
           });
-        });
+        }).catch(function() { toast("Failed to save player results", "error"); });
       }
     };
     var existingId = tournamentState.dbTournamentId;
@@ -1943,9 +1937,9 @@ function BracketScreen(props) {
       doSave(existingId);
     } else {
       supabase.from('tournaments').insert({ name: clashName, date: new Date().toISOString().split('T')[0], phase: 'complete' }).select('id').single().then(function(res) {
-        if (res.error) { console.error("Failed to save tournament:", res.error); toast("Failed to save results to database", "error"); return; }
+        if (res.error) { toast("Failed to save results to database", "error"); return; }
         if (res.data) doSave(res.data.id);
-      });
+      }).catch(function() { toast("Failed to save results to database", "error"); });
     }
   }
 
@@ -2294,7 +2288,7 @@ function ClashIdleView(props) {
           <div className="flex gap-3">
             {top3.map(function(entry, i) {
               return (
-                <div key={i} className="flex-1 text-center bg-white/[0.03] rounded-lg p-3 border border-on-surface/10">
+                <div key={entry.name} className="flex-1 text-center bg-white/[0.03] rounded-lg p-3 border border-on-surface/10">
                   <div className={'cond text-xs font-bold uppercase tracking-wider mb-1 ' + top3Colors[i]}>{top3Labels[i]}</div>
                   <div className={'font-bold text-sm ' + top3Colors[i]}>{entry.name}</div>
                   <div className="text-xs text-on-surface/60 mt-0.5">{entry.pts} pts</div>
@@ -2392,7 +2386,7 @@ function ClashScreen(props) {
         <div className="flex gap-2 flex-wrap">
           {awardsList.map(function(a, i) {
             return (
-              <div key={i} className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] min-w-0" style={{
+              <div key={a.label} className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] min-w-0" style={{
                 background: "rgba(17,24,39,.8)",
                 border: "1px solid rgba(" + hexToRgb(a.color) + ",.2)",
                 flex: "1 1 140px"
@@ -2448,7 +2442,7 @@ function ClashScreen(props) {
             {registeredPlayers.map(function(p, idx) {
               var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || c.place || 4; });
               return (
-                <div key={p.id || p.username || idx}
+                <div key={p.id || p.username}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer"
                   style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)" }}
                   onClick={function() { if (props.setProfilePlayer && props.setScreen) { props.setProfilePlayer(p); props.setScreen("profile"); } }}>
@@ -2488,7 +2482,7 @@ function ClashScreen(props) {
             var isComplete = i + 1 < (props.tournamentState.round || 1);
             var isCurrent = i + 1 === (props.tournamentState.round || 1);
             return (
-              <div key={i} className="h-2 rounded" style={{
+              <div key={"game-" + (i + 1)} className="h-2 rounded" style={{
                 width: isCurrent ? 24 : 8,
                 background: isComplete ? "#6EE7B7" : isCurrent ? "#E8A838" : "rgba(255,255,255,.1)",
                 transition: "all .3s ease"

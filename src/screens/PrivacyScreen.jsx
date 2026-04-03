@@ -196,7 +196,7 @@ export default function PrivacyScreen() {
                       <ul className="space-y-4">
                         {sec.items.map(function (item, i) {
                           return (
-                            <li key={i} className="flex gap-3">
+                            <li key={item.strong} className="flex gap-3">
                               <Icon name="check_circle" size={18} className="text-primary mt-0.5 shrink-0" />
                               <span className="text-sm text-on-surface-variant">
                                 <strong className="text-on-surface">{item.strong}</strong>

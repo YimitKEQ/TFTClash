@@ -17,7 +17,7 @@ function ScrimTrend(props) {
         var barH = Math.max(3, Math.round(((9 - pl) / 8) * maxH));
         var c = pl === 1 ? '#E8A838' : pl === 2 ? '#C0C0C0' : pl === 3 ? '#CD7F32' : pl <= 4 ? '#4ECDC4' : pl <= 6 ? '#facc15' : '#f87171';
         return (
-          <div key={i} style={{
+          <div key={"bar-" + i} style={{
             width: '5px', height: barH + 'px', background: c,
             opacity: 0.35 + (i / Math.max(last.length - 1, 1)) * 0.65,
             borderRadius: '2px 2px 0 0'
@@ -252,13 +252,13 @@ export default function ScrimsScreen() {
       if (res.error) { toast('Failed to load scrims: ' + res.error.message, 'error'); setDbLoading(false); return; }
       setDbScrims(res.data || []);
       setDbLoading(false);
-    });
+    }).catch(function() { setDbLoading(false); });
     return function() { cancelled = true; };
   }, [currentUser]);
 
   function reloadScrims() {
     if (!currentUser) return;
-    loadScrims().then(function(res) { if (!res.error) setDbScrims(res.data || []); });
+    loadScrims().then(function(res) { if (!res.error) setDbScrims(res.data || []); }).catch(function() {});
   }
 
   var fmt = function(s) { return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); };
@@ -346,13 +346,13 @@ export default function ScrimsScreen() {
       var scrimId = res.data.id;
       var pids = scrimRoster.map(function(p) { return p.id; }).filter(Boolean);
       if (pids.length > 0) {
-        addScrimPlayers(scrimId, pids).then(function() { reloadScrims(); });
+        addScrimPlayers(scrimId, pids).then(function() { reloadScrims(); }).catch(function() { reloadScrims(); });
       } else { reloadScrims(); }
       setActiveId(scrimId);
       setNewName(''); setNewNotes(''); setNewTarget('5');
       toast('Session created', 'success');
       setTab('record');
-    });
+    }).catch(function() { toast('Failed to create session', 'error'); });
   }
 
 
@@ -368,14 +368,14 @@ export default function ScrimsScreen() {
       reloadScrims();
       setScrimResults({}); setGameComps({}); setGameNote(''); setTimer(0); setTimerActive(false);
       toast('Game locked', 'success');
-    });
+    }).catch(function() { toast('Failed to save game', 'error'); });
   }
 
   function stopSession(id) {
     endScrimDb(id).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims(); toast('Session ended', 'success');
-    });
+    }).catch(function() { toast('Failed to end session', 'error'); });
   }
 
   function saveEditGame() {
@@ -383,14 +383,14 @@ export default function ScrimsScreen() {
     updateScrimGame(editGame.id, editGame.note, editGame.tag).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims(); setEditGame(null); toast('Game updated', 'success');
-    });
+    }).catch(function() { toast('Failed to update game', 'error'); });
   }
 
   function deleteGame(gameId) {
     deleteScrimGameDb(gameId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims(); setConfirmDelete(null); toast('Game deleted', 'success');
-    });
+    }).catch(function() { toast('Failed to delete game', 'error'); });
   }
 
   function deleteSession(sessionId) {
@@ -399,7 +399,7 @@ export default function ScrimsScreen() {
       reloadScrims();
       if (activeId === sessionId) { setActiveId(null); setScrimRoster([]); setScrimResults({}); }
       setConfirmDelete(null); toast('Session deleted', 'success');
-    });
+    }).catch(function() { toast('Failed to delete session', 'error'); });
   }
 
   function addGuestPlayer(name) {
@@ -411,11 +411,12 @@ export default function ScrimsScreen() {
     }
     supabase.from('players').insert({username: name, role: 'guest'}).select().single().then(function(res) {
       if (res.error) { toast('Failed to add guest: ' + res.error.message, 'error'); return; }
+
       var np = {id: res.data.id, name: res.data.username || name, role: 'guest', rank: null, pts: 0, wins: 0, games: 0, top4: 0, avg: '0'};
       setPlayers(function(prev) { return prev.concat([np]); });
       setScrimRoster(function(r) { return r.concat([np]); });
       toast(name + ' added as guest', 'success');
-    });
+    }).catch(function() { toast('Failed to add guest', 'error'); });
   }
 
   function exportCSV() {

@@ -231,9 +231,9 @@ export default function SeasonRecapScreen() {
             <p className="text-2xl font-serif text-on-surface leading-snug">
               {narrativeParts.map(function(part, idx) {
                 if (part.italic) {
-                  return <span key={idx} className="text-primary italic">{part.text}</span>
+                  return <span key={"part-" + idx + "-" + part.text.slice(0, 20)} className="text-primary italic">{part.text}</span>
                 }
-                return <span key={idx}>{part.text}</span>
+                return <span key={"part-" + idx + "-" + part.text.slice(0, 20)}>{part.text}</span>
               })}
             </p>
             <div className="mt-8 flex items-center gap-4">
@@ -317,10 +317,10 @@ export default function SeasonRecapScreen() {
               </p>
             ) : (
               <div className="space-y-4">
-                {highlights.map(function(item, idx) {
+                {highlights.map(function(item) {
                   return (
                     <div
-                      key={idx}
+                      key={item.title}
                       className={'flex items-center justify-between p-4 bg-surface-container-lowest border-l-4 ' + item.borderColor}
                     >
                       <div className="flex items-center gap-4">

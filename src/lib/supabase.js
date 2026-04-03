@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const noop = async () => ({});
-const mockAuth = {
-  getSession: async () => ({ data: { session: null } }),
-  onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+var url = import.meta.env.VITE_SUPABASE_URL;
+var key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+var noop = async function() { return {}; };
+var mockAuth = {
+  getSession: async function() { return { data: { session: null } }; },
+  onAuthStateChange: function() { return { data: { subscription: { unsubscribe: function() {} } } }; },
   signOut: noop, signInWithOAuth: noop, signInWithPassword: noop,
   signUp: noop, linkIdentity: noop, updateUser: noop,
 };
-export const CANONICAL_ORIGIN = 'https://tftclash.com';
-export const supabase = (url && key)
+export var CANONICAL_ORIGIN = 'https://tftclash.com';
+export var supabase = (url && key)
   ? createClient(url, key, {
       auth: {
         flowType: 'pkce',

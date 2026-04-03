@@ -77,7 +77,7 @@ export default function SettingsTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
@@ -95,7 +95,7 @@ export default function SettingsTab() {
       addAudit('BROADCAST', broadType + ': ' + broadMsg.trim())
       toast('Broadcast sent!', 'success')
       setBroadMsg('')
-    })
+    }).catch(function() { toast('Broadcast failed', 'error') })
   }
 
   function dismissAnnouncement(idx) {
@@ -130,7 +130,7 @@ export default function SettingsTab() {
       if (r.error) { toast('Save failed', 'error'); return }
       addAudit('ACTION', 'Season name set: ' + seasonName)
       toast('Season name saved', 'success')
-    })
+    }).catch(function() { toast('Save failed', 'error') })
   }
 
   function toggleReg(val) {
@@ -158,7 +158,7 @@ export default function SettingsTab() {
       if (r.error) { toast('DB reset failed: ' + r.error.message, 'error'); return }
       addAudit('DANGER', 'Season stats reset by ' + (currentUser && currentUser.username || 'Admin'))
       toast('Season stats reset', 'success')
-    })
+    }).catch(function() { toast('DB reset failed', 'error') })
   }
 
   function clearAllPlayers() {
@@ -169,7 +169,7 @@ export default function SettingsTab() {
       setPlayers([])
       addAudit('DANGER', 'All players cleared by ' + (currentUser && currentUser.username || 'Admin'))
       toast('All players cleared', 'success')
-    })
+    }).catch(function() { toast('Delete failed', 'error') })
   }
 
   var totalPts = (players || []).reduce(function(s, p) { return s + (p.pts || 0) }, 0)
@@ -209,7 +209,7 @@ export default function SettingsTab() {
           <div className="space-y-1.5 mt-3">
             {announcements.map(function(a, i) {
               return (
-                <div key={i} className="flex items-center gap-2 px-3 py-2 bg-secondary/5 border border-secondary/20 rounded-sm">
+                <div key={a.type + '-' + a.message} className="flex items-center gap-2 px-3 py-2 bg-secondary/5 border border-secondary/20 rounded-sm">
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">{a.type}</span>
                   <span className="flex-1 text-sm text-on-surface">{a.message}</span>
                   <button onClick={function() { dismissAnnouncement(i) }} className="bg-transparent border-0 text-on-surface/40 cursor-pointer text-xs hover:text-error">x</button>
@@ -232,7 +232,7 @@ export default function SettingsTab() {
         {(tickerOverrides || []).length === 0 && <div className="text-center py-3 text-on-surface/40 text-sm">No custom ticker items.</div>}
         {(tickerOverrides || []).map(function(item, i) {
           return (
-            <div key={i} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded-sm mb-1.5">
+            <div key={item} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded-sm mb-1.5">
               <Icon name="chevron_right" size={14} className="text-tertiary flex-shrink-0" />
               <span className="flex-1 text-sm text-on-surface">{item}</span>
               <button onClick={function() { removeTicker(item) }} className="bg-transparent border-0 text-on-surface/40 cursor-pointer text-xs hover:text-error">x</button>

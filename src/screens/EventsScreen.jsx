@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
@@ -189,7 +189,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
             })
           })
         }
-      })
+      }).catch(function() {})
   }, [currentUser ? currentUser.id : null])
 
   var allEvents = featuredEvents || []
@@ -260,7 +260,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
         })
       }
       if (toast) toast('Registered for ' + ev.name, 'success')
-    })
+    }).catch(function() { if (toast) toast('Registration failed', 'error') })
   }
 
   var hero = live.length > 0 ? live[0] : upcoming.length > 0 ? upcoming[0] : null
@@ -514,7 +514,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
       .then(function(res) {
         if (res.data) setTournaments(res.data)
         setLoading(false)
-      })
+      }).catch(function() { setLoading(false) })
   }, [])
 
   useEffect(function() {
@@ -531,7 +531,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
           counts[r.tournament_id] = (counts[r.tournament_id] || 0) + 1
         })
         setRegCounts(counts)
-      })
+      }).catch(function() {})
     if (!currentUser) return
     supabase
       .from('registrations')
@@ -540,7 +540,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
       .in('tournament_id', ids)
       .then(function(res) {
         if (res.data) setMyRegIds(res.data.map(function(r) { return r.tournament_id }))
-      })
+      }).catch(function() {})
   }, [tournaments])
 
   function handleRegister(t) {
@@ -558,7 +558,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
       setMyRegIds(function(ids) { return ids.concat([t.id]) })
       setRegCounts(function(c) { return Object.assign({}, c, { [t.id]: (c[t.id] || 0) + 1 }) })
       if (toast) toast('Registered for ' + t.name, 'success')
-    })
+    }).catch(function() { if (toast) toast('Registration failed', 'error') })
   }
 
   var phaseLabels = {
@@ -667,7 +667,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
                     {prizes.slice(0, 3).map(function(p, i) {
                       return (
                         <span
-                          key={i}
+                          key={p.placement + '-' + p.prize}
                           className="text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-sm px-2 py-0.5 font-label"
                         >
                           {'#' + p.placement + ' ' + p.prize}
@@ -756,7 +756,7 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
       {clashes.map(function(clash, idx) {
         return (
           <div
-            key={clash.id || idx}
+            key={clash.id || clash.name}
             className="bg-surface-container-low border border-outline-variant/10 px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
             onClick={function() { navigate('/results', { state: { clash: clash } }) }}
           >
@@ -792,11 +792,10 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
 // ── Main EventsScreen ──────────────────────────────────────────────────────────
 
 export default function EventsScreen() {
-  var { sub } = useParams()
   var navigate = useNavigate()
-  var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer, toast } = useApp()
+  var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer, toast, subRoute } = useApp()
 
-  var activeTab = sub || 'featured'
+  var activeTab = subRoute || 'featured'
 
   var tabs = [
     { id: 'featured', label: 'Featured Events', icon: 'star' },

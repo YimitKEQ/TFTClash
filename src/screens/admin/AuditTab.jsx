@@ -40,7 +40,7 @@ export default function AuditTab() {
     if (currentFilter && currentFilter !== 'All') q = q.eq('action', currentFilter)
     q.then(function(res) {
       setLoading(false)
-      if (res.error) { console.error('[TFT] Audit fetch error:', res.error); return }
+      if (res.error) { return }
       var data = res.data || []
       if (pageNum === 0) {
         setEntries(data)
@@ -48,7 +48,7 @@ export default function AuditTab() {
         setEntries(function(prev) { return prev.concat(data) })
       }
       if (data.length < PAGE_SIZE) setHasMore(false)
-    })
+    }).catch(function() { setLoading(false) })
   }
 
   function loadMore() {

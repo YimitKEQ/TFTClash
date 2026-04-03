@@ -213,7 +213,7 @@ export default function LeaderboardScreen(props) {
 
   var sorted = useMemo(function() {
     var f = players.filter(function(p) {
-      var matchName = !search || p.name.toLowerCase().indexOf(search.toLowerCase()) !== -1
+      var matchName = !search || (p.name||'').toLowerCase().indexOf(search.toLowerCase()) !== -1
       var matchRegion = regionFilter === 'All' || p.region === regionFilter
       var matchTier = tierFilter === 'All' || p.rank === tierFilter
       return matchName && matchRegion && matchTier

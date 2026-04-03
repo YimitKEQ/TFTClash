@@ -41,7 +41,7 @@ export default function ResultsTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { if (r.error) console.error('[TFT] Audit write failed:', r.error) })
+      }).then(function(r) { }).catch(function() {})
     }
   }
 
@@ -114,7 +114,7 @@ export default function ResultsTab() {
                 })
               })
             }
-          })
+          }).catch(function() {})
         } else {
           // Fresh publish: update local state immediately
           setPlayers(function(ps) {
@@ -137,17 +137,17 @@ export default function ResultsTab() {
                     if (!cur.error && cur.data) {
                       supabase.from('players').update({ season_pts: (cur.data.season_pts || 0) + row.pts_earned }).eq('id', row.player_id)
                     }
-                  })
+                  }).catch(function() {})
                 }
-              })
+              }).catch(function() {})
             }
           })
         }
         setPublished(function(pub) { return pub.concat([lobbyKey]) })
         addAudit('ACTION', 'Results ' + (isPublished ? 'overridden' : 'published') + ': Lobby ' + lobby + ', ' + rows.length + ' players')
         toast('Results ' + (isPublished ? 'updated' : 'published') + ' for Lobby ' + lobby + '!', 'success')
-      })
-    })
+      }).catch(function() { toast('Publish failed', 'error') })
+    }).catch(function() { toast('Operation failed', 'error') })
   }
 
   if (checkedIn.length === 0) {

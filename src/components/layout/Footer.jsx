@@ -43,7 +43,7 @@ function Footer() {
             <span className="text-[10px] font-bold text-on-surface/40 tracking-widest uppercase font-condensed">Partners</span>
             {sponsorEntries.map(function(s, i) {
               return (
-                <div key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-md border"
+                <div key={s.name} className="flex items-center gap-1.5 px-3 py-1 rounded-md border"
                   style={{background: s.color + "12", borderColor: s.color + "25"}}>
                   {s.logo_url ? (
                     <img src={s.logo_url} alt={s.name} className="h-4 object-contain" />

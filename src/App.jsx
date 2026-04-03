@@ -60,7 +60,7 @@ class ErrorBoundary extends Component {
 
   static getDerivedStateFromError(){return{hasError:true};}
 
-  componentDidCatch(error,info){console.error("TFT Clash error:",error,info);Sentry.captureException(error,{extra:{componentStack:info&&info.componentStack}});}
+  componentDidCatch(error,info){Sentry.captureException(error,{extra:{componentStack:info&&info.componentStack}});}
 
   render(){
 
@@ -99,7 +99,7 @@ class ScreenBoundary extends Component {
 
   static getDerivedStateFromError(error){return{hasError:true,error:error};}
 
-  componentDidCatch(error,info){console.error("[TFT] Screen crash ("+this.props.name+"):",error,info);Sentry.captureException(error,{tags:{screen:this.props.name},extra:{componentStack:info&&info.componentStack}});}
+  componentDidCatch(error,info){Sentry.captureException(error,{tags:{screen:this.props.name},extra:{componentStack:info&&info.componentStack}});}
 
   render(){
     if(this.state.hasError){
@@ -430,7 +430,6 @@ function TFTClash(){
       setScreen("home");
       toast("Logged out successfully","info");
     }catch(e){
-      console.error("[TFT] logout failed:",e);
       toast("Logout failed","error");
     }
   }
@@ -450,14 +449,14 @@ function TFTClash(){
         supabase.from('registrations').delete()
           .eq('tournament_id',tournamentState.dbTournamentId)
           .eq('player_id',playerId)
-          .then(function(r){if(r.error)console.error("[TFT] unregister failed:",r.error);});
+          .then(function(r){});
       }else if(!isRegistered){
         var doInsert=function(tid){
           supabase.from('registrations').upsert({
             tournament_id:tid,
             player_id:playerId,
             status:'registered'
-          },{onConflict:'tournament_id,player_id'}).then(function(r){if(r.error)console.error("[TFT] registration insert failed:",r.error);});
+          },{onConflict:'tournament_id,player_id'}).then(function(r){});
         };
         if(tournamentState.dbTournamentId){
           doInsert(tournamentState.dbTournamentId);

@@ -234,7 +234,7 @@ export default function HostApplyScreen() {
             <ul className="space-y-4">
               {REQUIREMENTS.map(function(req, i) {
                 return (
-                  <li key={i} className={"flex items-start gap-3" + (req.met ? "" : " opacity-50")}>
+                  <li key={req.label} className={"flex items-start gap-3" + (req.met ? "" : " opacity-50")}>
                     <Icon
                       name={req.met ? "check_circle" : "radio_button_unchecked"}
                       fill={req.met}
