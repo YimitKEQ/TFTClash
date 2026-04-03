@@ -47,33 +47,22 @@ export default function HostApplyScreen() {
       toast("Organization name and reason are required", "error");
       return;
     }
-    if (currentUser) {
-      var slug = org.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      var res = await supabase.from("host_profiles").upsert({
-        user_id: currentUser.id,
-        org_name: org.trim(),
-        slug: slug,
-        bio: reason.trim(),
-        status: "pending",
-        social_links: { freq: freq, discord: discord.trim() },
-        vision: vision.trim()
-      }, { onConflict: 'user_id' }).select().single();
-      if (res.error) {
-        toast("Failed to submit application: " + res.error.message, "error");
-        return;
-      }
-    }
-    var app = {
-      id: Date.now(),
-      name: (currentUser && currentUser.username) || "",
+    var res = await supabase.from("host_applications").insert({
+      user_id: currentUser.auth_user_id,
+      name: currentUser.username || "",
+      email: currentUser.email || "",
       org: org.trim(),
       reason: reason.trim(),
       freq: freq,
-      email: (currentUser && currentUser.email) || "",
-      status: "pending",
-      submittedAt: new Date().toLocaleDateString()
-    };
-    if (setHostApps) setHostApps(function(apps) { return [app].concat(apps); });
+      discord: discord.trim(),
+      vision: vision.trim(),
+      status: "pending"
+    }).select().single();
+    if (res.error) {
+      toast("Failed to submit application: " + res.error.message, "error");
+      return;
+    }
+    if (setHostApps) setHostApps(function(apps) { return [res.data].concat(apps); });
     setSubmitted(true);
     toast("Application submitted! We will review it within 48h", "success");
   }

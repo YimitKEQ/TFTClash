@@ -28,29 +28,42 @@ export default function HostsTab() {
   }
 
   function approveApp(app) {
-    var applicantId = app.user_id || app.applicant_id
-    supabase.from('host_applications').update({ status: 'approved' }).eq('id', app.id).then(function(r) {
+    var applicantId = app.user_id
+    supabase.from('host_applications').update({ status: 'approved', approved_at: new Date().toISOString() }).eq('id', app.id).then(function(r) {
       if (r.error) { toast('Approve failed: ' + r.error.message, 'error'); return }
       if (applicantId) {
+        // Grant host role
         supabase.from('user_roles').upsert(
-          { user_id: applicantId, role: 'host', granted_by: currentUser && currentUser.id },
+          { user_id: applicantId, role: 'host', granted_by: currentUser && currentUser.auth_user_id },
           { onConflict: 'user_id,role' }
         ).then(function(r2) {
           if (r2.error) console.error('[TFT] user_roles upsert failed:', r2.error)
         })
+        // Create host_profiles entry so they can manage branding
+        var slug = (app.org || app.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'host-' + Date.now()
+        supabase.from('host_profiles').upsert({
+          user_id: applicantId,
+          org_name: app.org || app.name || '',
+          slug: slug,
+          bio: app.reason || '',
+          status: 'approved',
+          approved_at: new Date().toISOString()
+        }, { onConflict: 'user_id' }).then(function(r3) {
+          if (r3.error) console.error('[TFT] host_profiles upsert failed:', r3.error)
+        })
       }
       setHostApps(function(apps) { return apps.map(function(a) { return a.id === app.id ? Object.assign({}, a, { status: 'approved' }) : a }) })
-      addAudit('ACTION', 'Host application approved: ' + (app.name || app.applicant_name || app.email))
-      toast((app.name || app.applicant_name || 'Applicant') + ' approved as host!', 'success')
+      addAudit('ACTION', 'Host application approved: ' + (app.name || app.email))
+      toast((app.name || 'Applicant') + ' approved as host!', 'success')
     })
   }
 
   function rejectApp(app) {
-    if (!window.confirm('Reject application from ' + (app.name || app.applicant_name || app.email) + '?')) return
+    if (!window.confirm('Reject application from ' + (app.name || app.email) + '?')) return
     supabase.from('host_applications').update({ status: 'rejected' }).eq('id', app.id).then(function(r) {
       if (r.error) { toast('Reject failed: ' + r.error.message, 'error'); return }
       setHostApps(function(apps) { return apps.map(function(a) { return a.id === app.id ? Object.assign({}, a, { status: 'rejected' }) : a }) })
-      addAudit('ACTION', 'Host application rejected: ' + (app.name || app.applicant_name || app.email))
+      addAudit('ACTION', 'Host application rejected: ' + (app.name || app.email))
       toast('Application rejected', 'success')
     })
   }

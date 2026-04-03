@@ -112,19 +112,19 @@ export function AppProvider(props) {
   var auditLog = _auditLog[0];
   var setAuditLog = _auditLog[1];
 
-  var _hostApps = useState(function(){try{var s=localStorage.getItem('tft-host-apps');return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _hostApps = useState([]);
   var hostApps = _hostApps[0];
   var setHostApps = _hostApps[1];
 
-  var _hostTournaments = useState(function(){try{var s=localStorage.getItem('tft-host-tournaments');return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _hostTournaments = useState([]);
   var hostTournaments = _hostTournaments[0];
   var setHostTournaments = _hostTournaments[1];
 
-  var _hostBranding = useState(function(){try{var s=localStorage.getItem('tft-host-branding');return s?JSON.parse(s):{};}catch(e){return {};}});
+  var _hostBranding = useState({});
   var hostBranding = _hostBranding[0];
   var setHostBranding = _hostBranding[1];
 
-  var _hostAnnouncements = useState(function(){try{var s=localStorage.getItem('tft-host-announcements');return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _hostAnnouncements = useState([]);
   var hostAnnouncements = _hostAnnouncements[0];
   var setHostAnnouncements = _hostAnnouncements[1];
 
@@ -193,7 +193,7 @@ export function AppProvider(props) {
   var setClashRemindersOn = _clashRemindersOn[1];
 
   // ── Refs for realtime tracking ──
-  var rtRef = useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,host_apps:false,host_tournaments:false,host_branding:false,host_announcements:false,featured_events:false,challenge_completions:false,scrim_host_access:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
+  var rtRef = useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,featured_events:false,challenge_completions:false,scrim_host_access:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
   var announcementInitRef = useRef(false);
   var settingsLoadedRef = useRef(false); // true once site_settings are fetched — guards sync useEffects from overwriting DB on mount
   var navSourceRef = useRef("user");
@@ -441,16 +441,27 @@ export function AppProvider(props) {
     return function(){supabase.removeChannel(channel);};
   },[]);
 
-  // ── useEffect: load host branding from host_profiles DB on auth ──
+  // ── useEffect: load host data from DB tables on auth ──
   useEffect(function(){
     if(!currentUser||!supabase.from)return;
-    supabase.from("host_profiles").select("*").eq("user_id",currentUser.id).maybeSingle()
+    // Load host branding from host_profiles
+    supabase.from("host_profiles").select("*").eq("user_id",currentUser.auth_user_id).maybeSingle()
       .then(function(res){
         if(res.data&&res.data.status==="approved"){
           setHostBranding({name:res.data.org_name||"",logo:res.data.logo_url||"\ud83c\udfae",color:res.data.brand_color||"#9B72CF",bio:res.data.bio||"",logoUrl:res.data.logo_url||"",bannerUrl:res.data.banner_url||""});
         }
       });
-  },[currentUser]);
+    // Load host applications from host_applications table
+    if(isAdmin){
+      supabase.from("host_applications").select("*").order("created_at",{ascending:false}).then(function(res){
+        if(res.data)setHostApps(res.data);
+      });
+    } else {
+      supabase.from("host_applications").select("*").eq("user_id",currentUser.auth_user_id).then(function(res){
+        if(res.data)setHostApps(res.data);
+      });
+    }
+  },[currentUser, isAdmin]);
 
   // ── popstate handler removed: React Router handles navigation ──
 
@@ -485,7 +496,7 @@ export function AppProvider(props) {
 
   useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},300);return function(){clearTimeout(t);};},[scheduledEvents]);
 
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-host-apps",JSON.stringify(hostApps));}catch(e){}},300);return function(){clearTimeout(t);};},[hostApps]);
+  // hostApps now loaded from host_applications table, no localStorage sync needed
 
   // ── Supabase shared state - single channel for all keys ──
   useEffect(function(){
@@ -497,7 +508,7 @@ export function AppProvider(props) {
 
     // Settings/config: load from site_settings
     supabase.from('site_settings').select('key,value')
-      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','host_apps','scrim_host_access','scrim_access','scrim_data','ticker_overrides','host_tournaments','host_branding','host_announcements','featured_events','challenge_completions'])
+      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','scrim_host_access','scrim_access','scrim_data','ticker_overrides','featured_events','challenge_completions'])
       .then(function(res){
 
         if(!res.data){setIsLoadingData(false);return;}
@@ -514,14 +525,10 @@ export function AppProvider(props) {
               if(row.key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(val);}
               if(row.key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
               if(row.key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
-              if(row.key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
               if(row.key==='scrim_host_access'&&Array.isArray(val)){rtRef.current.scrim_host_access=true;setScrimHostAccess(val);}
               if(row.key==='scrim_access'&&Array.isArray(val)){rtRef.current.scrim_access=true;setScrimAccess(val);}
               if(row.key==='ticker_overrides'&&Array.isArray(val)){rtRef.current.ticker_overrides=true;setTickerOverrides(val);}
               if(row.key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
-              if(row.key==='host_tournaments'&&Array.isArray(val)){rtRef.current.host_tournaments=true;setHostTournaments(val);}
-              if(row.key==='host_branding'&&val){rtRef.current.host_branding=true;setHostBranding(val);}
-              if(row.key==='host_announcements'&&Array.isArray(val)){rtRef.current.host_announcements=true;setHostAnnouncements(val);}
               if(row.key==='featured_events'&&Array.isArray(val)){rtRef.current.featured_events=true;setFeaturedEvents(val);}
               if(row.key==='challenge_completions'&&val){rtRef.current.challenge_completions=true;setChallengeCompletions(val);}
             }
@@ -575,14 +582,10 @@ export function AppProvider(props) {
           if(key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(val);}
           if(key==='scheduled_events'&&Array.isArray(val)){rtRef.current.scheduled_events=true;setScheduledEvents(val);}
           if(key==='audit_log'&&Array.isArray(val)){rtRef.current.audit_log=true;setAuditLog(val);}
-          if(key==='host_apps'&&Array.isArray(val)){rtRef.current.host_apps=true;setHostApps(val);}
           if(key==='scrim_host_access'&&Array.isArray(val)){rtRef.current.scrim_host_access=true;setScrimHostAccess(val);}
           if(key==='scrim_access'&&Array.isArray(val)){rtRef.current.scrim_access=true;setScrimAccess(val);}
           if(key==='ticker_overrides'&&Array.isArray(val)){rtRef.current.ticker_overrides=true;setTickerOverrides(val);}
           if(key==='scrim_data'&&Array.isArray(val)){rtRef.current.scrim_data=true;setScrimSessions(val);}
-          if(key==='host_tournaments'&&Array.isArray(val)){rtRef.current.host_tournaments=true;setHostTournaments(val);}
-          if(key==='host_branding'&&val){rtRef.current.host_branding=true;setHostBranding(val);}
-          if(key==='host_announcements'&&Array.isArray(val)){rtRef.current.host_announcements=true;setHostAnnouncements(val);}
           if(key==='featured_events'&&Array.isArray(val)){rtRef.current.featured_events=true;setFeaturedEvents(val);}
           if(key==='challenge_completions'&&val){rtRef.current.challenge_completions=true;setChallengeCompletions(val);}
         }catch(e){console.warn("Failed to parse realtime update:",e);}
@@ -694,11 +697,7 @@ export function AppProvider(props) {
     if(supabase.from)supabase.from('site_settings').upsert({key:'audit_log',value:JSON.stringify(auditLog),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[auditLog]);
 
-  useEffect(function(){
-    if(!settingsLoadedRef.current)return;
-    if(rtRef.current.host_apps){rtRef.current.host_apps=false;return;}
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_apps',value:JSON.stringify(hostApps),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
-  },[hostApps]);
+  // hostApps now managed via host_applications table, no site_settings sync
 
   useEffect(function(){
     if(!settingsLoadedRef.current)return;
@@ -724,23 +723,7 @@ export function AppProvider(props) {
     if(supabase.from)supabase.from('site_settings').upsert({key:'ticker_overrides',value:JSON.stringify(tickerOverrides),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
   },[tickerOverrides]);
 
-  useEffect(function(){
-    if(rtRef.current.host_tournaments){rtRef.current.host_tournaments=false;return;}
-    localStorage.setItem('tft-host-tournaments',JSON.stringify(hostTournaments));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_tournaments',value:JSON.stringify(hostTournaments),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
-  },[hostTournaments]);
-
-  useEffect(function(){
-    if(rtRef.current.host_branding){rtRef.current.host_branding=false;return;}
-    localStorage.setItem('tft-host-branding',JSON.stringify(hostBranding));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_branding',value:JSON.stringify(hostBranding),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
-  },[hostBranding]);
-
-  useEffect(function(){
-    if(rtRef.current.host_announcements){rtRef.current.host_announcements=false;return;}
-    localStorage.setItem('tft-host-announcements',JSON.stringify(hostAnnouncements));
-    if(supabase.from)supabase.from('site_settings').upsert({key:'host_announcements',value:JSON.stringify(hostAnnouncements),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)console.error("[TFT] Sync error:",res.error);});
-  },[hostAnnouncements]);
+  // hostTournaments, hostBranding, hostAnnouncements now managed via DB tables, no site_settings sync
 
   useEffect(function(){
     if(rtRef.current.featured_events){rtRef.current.featured_events=false;return;}

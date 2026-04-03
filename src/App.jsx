@@ -619,9 +619,9 @@ function TFTClash(){
 
         {screen==="host-apply" &&<HostApplyScreenNew/>}
 
-        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<HostDashboardScreenNew/>}
+        {screen==="host-dashboard"&&(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&a.user_id===currentUser.auth_user_id;})))&&<HostDashboardScreenNew/>}
 
-        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&(a.name===currentUser.username||a.email===currentUser.email);})))&&<div className="page wrap text-center pt-20"><div className="text-4xl mb-4">&#128274;</div><h2 className="text-on-surface mb-2">Host Access Required</h2><p className="text-on-surface/60 text-sm mb-5">Your host application is pending review. You will be notified once approved.</p><Btn variant="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
+        {screen==="host-dashboard"&&!(isAdmin||(currentUser&&hostApps.some(function(a){return a.status==="approved"&&a.user_id===currentUser.auth_user_id;})))&&<div className="page wrap text-center pt-20"><div className="text-4xl mb-4">&#128274;</div><h2 className="text-on-surface mb-2">Host Access Required</h2><p className="text-on-surface/60 text-sm mb-5">Your host application is pending review. You will be notified once approved.</p><Btn variant="primary" onClick={function(){navTo("home");}}>Back to Home</Btn></div>}
 
 
         {screen==="stats"      &&<StatsHubScreenNew/>}
