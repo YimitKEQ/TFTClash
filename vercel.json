@@ -22,7 +22,7 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Access-Control-Allow-Origin", "value": "https://tftclash.com" },
         { "key": "Access-Control-Allow-Methods", "value": "POST, GET, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, stripe-signature" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, stripe-signature" }
       ]
     },
     {
@@ -60,6 +60,7 @@
     "api/check-admin.js":     { "memory": 128, "maxDuration": 5  },
     "api/health.js":          { "memory": 128, "maxDuration": 5  },
     "api/ai-commentary.js":       { "memory": 128, "maxDuration": 10 },
+    "api/delete-account.js":      { "memory": 256, "maxDuration": 10 },
     "api/ping-search-engines.js": { "memory": 128, "maxDuration": 15 }
   }
 }
