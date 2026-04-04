@@ -50,62 +50,105 @@ function generatePlayers() {
   return players
 }
 
-// Generate random placements for a lobby (1-8, no duplicates)
-function randomPlacements(lobbyPlayers) {
+// Build the full simulated state
+// Seeded random for deterministic sim (same results on each reload)
+var _simSeed = 42
+function simRandom() {
+  _simSeed = (_simSeed * 16807 + 0) % 2147483647
+  return (_simSeed - 1) / 2147483646
+}
+
+// Deterministic shuffle using seeded random
+function seededShuffle(arr) {
+  var a = arr.slice()
+  for (var j = a.length - 1; j > 0; j--) {
+    var k = Math.floor(simRandom() * (j + 1))
+    var tmp = a[j]; a[j] = a[k]; a[k] = tmp
+  }
+  return a
+}
+
+// Generate placements with optional bias (lower number = better placement for biased player)
+function randomPlacementsSeeded(lobbyPlayers, biasPlayerId) {
   var placements = []
   for (var i = 1; i <= lobbyPlayers.length; i++) placements.push(i)
-  // Fisher-Yates shuffle
-  for (var j = placements.length - 1; j > 0; j--) {
-    var k = Math.floor(Math.random() * (j + 1))
-    var tmp = placements[j]
-    placements[j] = placements[k]
-    placements[k] = tmp
-  }
+  placements = seededShuffle(placements)
   var result = {}
   for (var m = 0; m < lobbyPlayers.length; m++) {
     result[String(lobbyPlayers[m].id)] = placements[m]
   }
+  // Bias: give the target player a top-4 placement if they got unlucky
+  if (biasPlayerId && result[String(biasPlayerId)] > 4) {
+    var bestIdx = null
+    var bestPlace = 9
+    for (var key in result) {
+      if (result[key] < bestPlace && key !== String(biasPlayerId)) {
+        bestPlace = result[key]
+        bestIdx = key
+      }
+    }
+    if (bestIdx) {
+      var tmp = result[bestIdx]
+      result[bestIdx] = result[String(biasPlayerId)]
+      result[String(biasPlayerId)] = tmp
+    }
+  }
   return result
 }
 
-// Build the full simulated state
 export function buildSimulationState() {
   if (!SIM_ACTIVE) return null
+  _simSeed = 42 // reset for deterministic results
 
   var allPlayers = generatePlayers()
   var lobbies = buildLobbies(allPlayers, 'snake', 8)
 
-  // Generate results for game 1 (completed)
-  var game1Placements = {}
-  for (var i = 0; i < lobbies.length; i++) {
-    game1Placements[i] = randomPlacements(lobbies[i])
-  }
+  // Find Levitate's ID for bias
+  var levitateId = null
+  allPlayers.forEach(function(p) { if (p.name === 'Levitate') levitateId = p.id })
 
-  // Build game_results array
+  // Find which lobby Levitate is in
+  var levitateLobbyIdx = -1
+  lobbies.forEach(function(lobby, li) {
+    lobby.forEach(function(p) { if (p.id === levitateId) levitateLobbyIdx = li })
+  })
+
+  var completedRounds = 4
   var gameResults = []
-  for (var li = 0; li < lobbies.length; li++) {
-    for (var pi = 0; pi < lobbies[li].length; pi++) {
-      var player = lobbies[li][pi]
-      var pid = String(player.id)
-      if (game1Placements[li] && game1Placements[li][pid]) {
-        var place1 = game1Placements[li][pid]
-        gameResults.push({
-          tournament_id: 'sim-64p',
-          round_number: 1,
-          game_number: 1,
-          player_id: player.id,
-          placement: place1,
-          points: PTS[place1] || 0,
-          is_dnp: false
-        })
+  var roundHistory = {}
+  var playerMap = {}
+  allPlayers.forEach(function(p) { playerMap[String(p.id)] = p })
+
+  // Generate results for rounds 1-4
+  for (var r = 1; r <= completedRounds; r++) {
+    var roundPlacements = {}
+    for (var i = 0; i < lobbies.length; i++) {
+      var bias = (i === levitateLobbyIdx) ? levitateId : null
+      roundPlacements[i] = randomPlacementsSeeded(lobbies[i], bias)
+    }
+    roundHistory[r] = roundPlacements
+
+    for (var li = 0; li < lobbies.length; li++) {
+      for (var pi = 0; pi < lobbies[li].length; pi++) {
+        var player = lobbies[li][pi]
+        var pid = String(player.id)
+        if (roundPlacements[li] && roundPlacements[li][pid]) {
+          var place = roundPlacements[li][pid]
+          gameResults.push({
+            tournament_id: 'sim-64p',
+            round_number: r,
+            game_number: r,
+            player_id: player.id,
+            placement: place,
+            points: PTS[place] || 0,
+            is_dnp: false
+          })
+        }
       }
     }
   }
 
-  // Stamp clashHistory onto players from game 1 results
-  var playerMap = {}
-  allPlayers.forEach(function(p) { playerMap[String(p.id)] = p })
-
+  // Stamp clashHistory onto players from all completed rounds
   gameResults.forEach(function(gr) {
     var p = playerMap[String(gr.player_id)]
     if (!p) return
@@ -120,37 +163,61 @@ export function buildSimulationState() {
     })
   })
 
-  // Build savedLobbies (array of arrays of player IDs)
-  var savedLobbies = lobbies.map(function(lobby) {
+  // Apply cut line after round 4: eliminate players below 13 pts
+  var cutLine = 13
+  var survivingIds = []
+  var eliminatedIds = []
+  allPlayers.forEach(function(p) {
+    var totalPts = 0
+    ;(p.clashHistory || []).forEach(function(h) {
+      if (h.clashId === 'sim-64p') totalPts += (h.pts || 0)
+    })
+    if (totalPts >= cutLine) {
+      survivingIds.push(String(p.id))
+    } else {
+      eliminatedIds.push(String(p.id))
+      p.checkedIn = false
+      p.eliminated = true
+    }
+  })
+
+  // Store original lobbies for past round results viewing
+  var roundLobbies = {}
+  for (var rl = 1; rl <= completedRounds; rl++) {
+    roundLobbies[rl] = lobbies.map(function(lobby) {
+      return lobby.map(function(p) { return {id: p.id, name: p.name, rank: p.rank, riotId: p.riotId} })
+    })
+  }
+
+  // Rebuild lobbies from surviving players only for round 5
+  var survivingPlayers = allPlayers.filter(function(p) { return !p.eliminated })
+  var newLobbies = buildLobbies(survivingPlayers, 'snake', 8)
+
+  var savedLobbies = newLobbies.map(function(lobby) {
     return lobby.map(function(p) { return p.id })
   })
 
-  var allIds = allPlayers.map(function(p) { return String(p.id) })
-
-  // Store per-round placement history so past rounds can be viewed
-  var roundHistory = {
-    1: game1Placements
-  }
-
   var tournamentState = {
     phase: 'live',
-    round: 2,
+    round: 5,
     totalGames: 6,
     clashId: 'sim-64p',
     clashName: 'Simulated Clash (64 Players)',
     clashDate: new Date().toISOString().slice(0, 10),
     clashTimestamp: new Date(Date.now() - 3600000).toISOString(),
-    lobbies: lobbies,
+    lobbies: newLobbies,
     savedLobbies: savedLobbies,
     lockedLobbies: [],
     lockedPlacements: {},
     roundHistory: roundHistory,
-    checkedInIds: allIds,
-    registeredIds: allIds,
+    roundLobbies: roundLobbies,
+    checkedInIds: survivingIds,
+    registeredIds: allPlayers.map(function(p) { return String(p.id) }),
+    eliminatedIds: eliminatedIds,
     waitlistIds: [],
     maxPlayers: 64,
     seedAlgo: 'snake',
-    cutLine: 13,
+    cutLine: cutLine,
     cutAfterGame: 4,
     dbTournamentId: null,
     format: 'competitive'

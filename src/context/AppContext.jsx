@@ -581,6 +581,21 @@ export function AppProvider(props) {
           if (sim) {
             setTournamentState(sim.tournamentState);
             setPlayers(sim.players);
+            // Auto-login as Levitate so the full player experience is visible
+            var simUser = sim.players.find(function(p){ return p.name === 'Levitate'; });
+            if (simUser) {
+              setCurrentUser({
+                id: simUser.id,
+                username: simUser.name,
+                email: 'levitate@tftclash.gg',
+                riotId: simUser.riotId || 'Levitate#EUW',
+                rank: simUser.rank,
+                region: simUser.region || 'EUW',
+                is_admin: true,
+                auth_user_id: 'sim-auth-levitate'
+              });
+              setIsAdmin(true);
+            }
           }
         }
 

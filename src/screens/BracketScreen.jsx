@@ -357,7 +357,15 @@ function BracketScreen(){
       }
     }
 
-    toast("Lobby "+(li+1)+" results applied!","success");
+    // Notify the current player if their lobby was just locked
+    var myLobby=currentUser?lobbies[li]&&lobbies[li].some(function(p){return p.name===currentUser.username;}):false;
+    if(myLobby&&currentUser){
+      var myPlace=placements[checkedIn.find(function(p){return p.name===currentUser.username;}).id];
+      var myPts=PTS[myPlace]||0;
+      toast("Your results are in! You placed #"+myPlace+" (+"+myPts+"pts)","success");
+    }else{
+      toast("Lobby "+(li+1)+" results applied!","success");
+    }
   }
 
   function submitMyPlacement(li,playerId,playerName,placement){
@@ -471,7 +479,13 @@ function BracketScreen(){
     var maxRounds=tournamentState.totalGames||4;
     if(round<maxRounds){
       var nextRound=round+1;
-      setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
+      setTournamentState(function(ts){
+        var newRH=Object.assign({},ts.roundHistory||{});
+        if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0)newRH[round]=ts.lockedPlacements;
+        var newRL=Object.assign({},ts.roundLobbies||{});
+        newRL[round]=lobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId};});});
+        return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRH,roundLobbies:newRL});
+      });
       toast("Auto-advanced to Game "+nextRound,"success");
     }
     setAutoAdvanceCountdown(null);
@@ -559,6 +573,7 @@ function BracketScreen(){
   var totalGames=tournamentState.totalGames||4;
   var clashName=(tournamentState&&tournamentState.clashName)||"TFT Clash";
   var lockedCount=lockedLobbies.length;
+  var survivingCount=checkedIn.length;
 
   var lobbyLetters=["A","B","C","D","E","F","G","H","I","J"];
 
@@ -663,7 +678,18 @@ function BracketScreen(){
                         });
                       }
                     }
-                    setTournamentState(function(ts){return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[]});});
+                    setTournamentState(function(ts){
+                      // Save current round's placements and lobbies into history before advancing
+                      var newRoundHistory=Object.assign({},ts.roundHistory||{});
+                      if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0){
+                        newRoundHistory[round]=ts.lockedPlacements;
+                      }
+                      var newRoundLobbies=Object.assign({},ts.roundLobbies||{});
+                      newRoundLobbies[round]=lobbies.map(function(lobby){
+                        return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId};});
+                      });
+                      return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRoundHistory,roundLobbies:newRoundLobbies});
+                    });
                     toast("Advanced to Game "+nextRound+cutMsg,"success");
                   }
                 }}
@@ -689,6 +715,21 @@ function BracketScreen(){
               {"All " + lobbies.length + " lobbies locked - " + (round>=(totalGames)?"ready to finalize!":"ready for next game!")}
               {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<totalGames?" Auto-advancing in "+autoAdvanceCountdown+"s...":""}
             </span>
+          </div>
+        )}
+
+        {/* Cut line / eliminated players banner */}
+        {tournamentState.eliminatedIds&&tournamentState.eliminatedIds.length>0&&isLive&&(
+          <div className="mb-6 bg-error/8 border border-error/25 rounded-[4px] px-5 py-4">
+            <div className="flex items-center gap-3 mb-2">
+              <Icon name="content_cut" size={18} className="text-error" />
+              <span className="text-error font-nav font-bold text-sm tracking-wider">
+                {"Cut after Game " + (tournamentState.cutAfterGame||4) + " - " + tournamentState.eliminatedIds.length + " players eliminated (below " + (tournamentState.cutLine||13) + " pts)"}
+              </span>
+            </div>
+            <div className="text-on-surface-variant/50 text-xs leading-relaxed">
+              {survivingCount + " players remain across " + lobbies.length + " lobbies for the final " + (totalGames - round + 1) + " games"}
+            </div>
           </div>
         )}
 
@@ -866,9 +907,14 @@ function BracketScreen(){
                   var rh=tournamentState.roundHistory||{};
                   var pastPlacements=rh[viewingRound]||tournamentState.lockedPlacements||{};
 
+                  // Use stored lobbies for past rounds (pre-cut rosters) or current lobbies
+                  var rl=tournamentState.roundLobbies||{};
+                  var viewLobbies=rl[viewingRound]||lobbies;
+
                   // Calculate cumulative points per player up to and including viewed round
+                  var allPlayers=players||[];
                   var cumulativeMap={};
-                  checkedIn.forEach(function(p){
+                  allPlayers.forEach(function(p){
                     var total=0;
                     (p.clashHistory||[]).forEach(function(h){
                       if(h.clashId===currentClashId&&h.round<=viewingRound){
@@ -880,20 +926,20 @@ function BracketScreen(){
 
                   // Build per-lobby results
                   var lobbyGroups=[];
-                  lobbies.forEach(function(lobby,li){
+                  viewLobbies.forEach(function(lobby,li){
                     if(!pastPlacements[li])return;
-                    var players=[];
+                    var lpPlayers=[];
                     lobby.forEach(function(p){
                       var pid=String(p.id);
                       var place=pastPlacements[li][pid]||pastPlacements[li][p.id];
                       if(place){
                         var gained=PTS[place]||0;
                         var cumulative=cumulativeMap[pid]||gained;
-                        players.push({id:pid,name:p.name||p.username,rank:p.rank,riotId:p.riotId||p.riot_id_eu||"",placement:place,gained:gained,total:cumulative});
+                        lpPlayers.push({id:pid,name:p.name||p.username,rank:p.rank,riotId:p.riotId||p.riot_id_eu||"",placement:place,gained:gained,total:cumulative});
                       }
                     });
-                    players.sort(function(a,b){return a.placement-b.placement;});
-                    if(players.length>0)lobbyGroups.push({idx:li,players:players});
+                    lpPlayers.sort(function(a,b){return a.placement-b.placement;});
+                    if(lpPlayers.length>0)lobbyGroups.push({idx:li,players:lpPlayers});
                   });
 
                   if(lobbyGroups.length===0)return null;
@@ -1050,7 +1096,15 @@ function BracketScreen(){
                                     {pi===0&&<span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
                                   </div>
                                   <div className="text-[10px] text-on-surface-variant/40">{p.rank}</div>
-                                  {(p.riotId||p.riot_id_eu)&&<div className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId||p.riot_id_eu}</div>}
+                                  {(p.riotId||p.riot_id_eu)&&<div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId||p.riot_id_eu}</span>
+                                    <button
+                                      onClick={function(e){e.stopPropagation();navigator.clipboard.writeText(p.riotId||p.riot_id_eu||"");toast("Copied "+p.name+"'s Riot ID","success");}}
+                                      className="text-on-surface-variant/25 hover:text-primary transition-colors flex-shrink-0"
+                                      title="Copy Riot ID">
+                                      <Icon name="content_copy" size={11} />
+                                    </button>
+                                  </div>}
                                 </div>
                               </div>
                               {/* Player placement controls */}
@@ -1064,10 +1118,12 @@ function BracketScreen(){
                                     {"#" + playerSubmissions[li][p.id].placement + " sub"}
                                   </div>
                                 ):(
-                                  <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}}>
-                                    <option value="">{" - "}</option>
-                                    {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
-                                  </Sel>
+                                  <div onClick={function(e){e.stopPropagation();}}>
+                                    <Sel value="" onChange={function(v){if(v)submitMyPlacement(li,p.id,p.name,v);}}>
+                                      <option value="">{" - "}</option>
+                                      {[1,2,3,4,5,6,7,8].map(function(n){return <option key={n} value={n}>{n}</option>;})}
+                                    </Sel>
+                                  </div>
                                 )
                               ):(
                                 <div className={"font-mono text-xs font-bold " + (locked?"text-on-surface-variant/20":"text-on-surface-variant/20")}>
