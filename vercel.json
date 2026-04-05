@@ -22,7 +22,7 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Access-Control-Allow-Origin", "value": "https://tftclash.com" },
         { "key": "Access-Control-Allow-Methods", "value": "POST, GET, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, stripe-signature" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
       ]
     },
     {
@@ -49,14 +49,13 @@
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://api.stripe.com https://*.ingest.sentry.io https://www.google-analytics.com https://analytics.google.com; img-src 'self' data: blob: https:; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; object-src 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://*.ingest.sentry.io https://www.google-analytics.com https://analytics.google.com; img-src 'self' data: blob: https:; frame-ancestors 'none'; object-src 'none';"
         }
       ]
     }
   ],
   "functions": {
-    "api/create-checkout.js": { "memory": 256, "maxDuration": 10 },
-    "api/stripe-webhook.js":  { "memory": 256, "maxDuration": 10 },
+    "api/paypal-webhook.js":  { "memory": 256, "maxDuration": 10 },
     "api/check-admin.js":     { "memory": 128, "maxDuration": 5  },
     "api/health.js":          { "memory": 128, "maxDuration": 5  },
     "api/ai-commentary.js":       { "memory": 128, "maxDuration": 10 },
