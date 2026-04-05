@@ -116,6 +116,7 @@ function BoolCell(props) {
 function PayPalButtonContainer(props) {
   var tier = props.tier
   var authUserId = props.authUserId
+  var accent = props.accent || 'primary'
   var supabase = props.supabase
   var onSuccess = props.onSuccess
   var sdkReady = props.sdkReady
@@ -169,7 +170,21 @@ function PayPalButtonContainer(props) {
     )
   }
 
-  return <div ref={containerRef} className="min-h-[45px]" />
+  // Wrap PayPal button in a styled container that clips to our button shape.
+  // The PayPal button is rendered at full opacity inside but the container
+  // is styled to match our design. Height is fixed to show only one button.
+  var accentBg = accent === 'tertiary' ? 'bg-tertiary/10 border-tertiary/30' : 'bg-primary/10 border-primary/30'
+
+  return (
+    <div className="relative">
+      <div className={'rounded-[20px] overflow-hidden border ' + accentBg} style={{ height: '45px' }}>
+        <div ref={containerRef} style={{ marginTop: '-2px' }} />
+      </div>
+      <div className="text-center mt-1.5">
+        <span className="text-[10px] text-on-surface-variant/30 font-mono">Powered by PayPal</span>
+      </div>
+    </div>
+  )
 }
 
 function TierCard(props) {
@@ -260,6 +275,7 @@ function TierCard(props) {
           <PayPalButtonContainer
             tier={tier}
             authUserId={currentUser.auth_user_id || currentUser.id}
+            accent={accent}
             supabase={supabase}
             onSuccess={onSubscribed}
             sdkReady={sdkReady}

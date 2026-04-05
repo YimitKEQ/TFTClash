@@ -59,9 +59,8 @@ export function loadPayPal() {
 }
 
 // ─── Render Subscribe Button ──────────────────────────────────────────────────
-// Renders PayPal subscription buttons into a container element.
-// onApprove receives { subscriptionId, tier } on success.
-// onError receives the error object.
+// Renders a hidden PayPal button into a container. Returns a handle with
+// a .click() method so we can trigger it from our own styled button.
 
 export function renderSubscribeButton(container, tier, options) {
   var planId = PAYPAL_PLANS[tier];
