@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS } from '../lib/constants.js'
+import { hasFeature } from '../lib/tiers.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
 
@@ -730,8 +731,10 @@ export default function ScrimsScreen() {
   var currentUsernameLower = currentUsername.toLowerCase();
   var isScrimHost = !!(currentUsername && scrimHostAccess.some(function(u) { return u.toLowerCase() === currentUsernameLower; }));
   var isScrimmer = !!(currentUsername && (scrimAccess || []).some(function(u) { return u.toLowerCase() === currentUsernameLower; }));
-  var hasAccess = isAdmin || isScrimHost || isScrimmer;
-  var canManage = isAdmin || isScrimHost;
+  var userTier = ctx.userTier || 'free';
+  var hasTierAccess = hasFeature(userTier, 'createScrimRoom');
+  var hasAccess = isAdmin || isScrimHost || isScrimmer || hasTierAccess;
+  var canManage = isAdmin || isScrimHost || hasTierAccess;
   if (!hasAccess) {
     return (
       <PageLayout>

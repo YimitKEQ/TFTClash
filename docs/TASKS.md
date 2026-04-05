@@ -256,9 +256,9 @@ downloadStatsCard() on PlayerProfileScreen generates 600x340 PNG with player nam
 
 ## Phase 7 — Monetization
 
-### [~] #23 — Stripe Integration
-Stripe Checkout for Pro/Host tiers, webhook handler, subscription gate.
-**Status:** Endpoints ready (create-checkout.js, stripe-webhook.js), needs STRIPE_SECRET_KEY + price IDs in Vercel env
+### [x] #23 — PayPal Integration (was Stripe)
+PayPal subscription links for 5 tiers (Free/Pro/Scrim/Bundle/Host), webhook handler, subscription gate, profile badges.
+**Status:** Done — Direct subscription links (no SDK), paypal-webhook.js with signature verification, user_subscriptions table with RLS, tier-gated scrim room creation, pro/host badges on player profiles, checkout return handler on AccountScreen
 
 ---
 

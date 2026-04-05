@@ -276,6 +276,22 @@ export default function PlayerProfileScreen() {
   var achievements = player ? getAchievements(player) : [];
   var s = player ? getStats(player) : { games: 0, wins: 0, top4: 0, bot4: 0, top1Rate: '0.0', top4Rate: '0.0', bot4Rate: '0.0', avgPlacement: '-', perClashAvp: null, roundAvgs: { r1: null, r2: null, r3: null, finals: null }, comebackRate: 0, clutchRate: 0, ppg: 0 };
 
+  // Subscription badge
+  var _subTier = useState(null);
+  var profileSubTier = _subTier[0];
+  var setProfileSubTier = _subTier[1];
+  useEffect(function() {
+    if (!player || !player.auth_user_id) { setProfileSubTier(null); return; }
+    supabase.from('user_subscriptions').select('tier, status').eq('user_id', player.auth_user_id).single()
+      .then(function(res) {
+        if (res.data && res.data.status === 'active' && res.data.tier !== 'free') {
+          setProfileSubTier(res.data.tier);
+        } else {
+          setProfileSubTier(null);
+        }
+      }).catch(function() { setProfileSubTier(null); });
+  }, [player && player.auth_user_id]);
+
   // Achievement sync for own profile
   useEffect(function() {
     if (player && player.id && isOwnProfile) {
@@ -455,6 +471,16 @@ export default function PlayerProfileScreen() {
                   {champion.title.toUpperCase()}
                 </div>
               )}
+              {profileSubTier && (function() {
+                var badgeLabels = { pro: 'PRO', scrim: 'SCRIM', bundle: 'PRO+SCRIM', host: 'HOST' };
+                var isHostTier = profileSubTier === 'host';
+                return (
+                  <div className={(isHostTier ? 'bg-tertiary/10 text-tertiary border-tertiary/20' : 'bg-primary/10 text-primary border-primary/20') + ' px-3 py-1 rounded-sm font-technical text-xs tracking-widest border flex items-center gap-1.5'}>
+                    <Icon name={isHostTier ? 'shield_person' : 'verified'} size={14} fill />
+                    {badgeLabels[profileSubTier] || profileSubTier.toUpperCase()}
+                  </div>
+                );
+              })()}
             </div>
             {(player.riot_id_eu || player.riot_id) && (
               <div className="flex items-center gap-2 text-on-surface-variant text-sm mt-1">

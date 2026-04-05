@@ -115,6 +115,7 @@ export default function AccountScreen() {
   var hostApps = ctx.hostApps;
   var toast = ctx.toast;
   var setScreen = ctx.setScreen;
+  var setSubscriptions = ctx.setSubscriptions;
   var passwordRecovery = ctx.passwordRecovery;
   var setPasswordRecovery = ctx.setPasswordRecovery;
   var navigate = useNavigate();
@@ -239,6 +240,12 @@ export default function AccountScreen() {
     activateSubscription(supabase, authId, tier)
       .then(function(sub) {
         setSubscription(sub);
+        // Update global context so userTier reflects immediately
+        if (setSubscriptions && user.id) {
+          var map = {};
+          map[user.id] = sub;
+          setSubscriptions(map);
+        }
         toast('Subscription activated - welcome to ' + (TIER_LABELS[tier] || tier) + '!', 'success');
       })
       .catch(function(err) {
