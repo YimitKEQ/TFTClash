@@ -38,7 +38,10 @@ export function AppProvider(props) {
   var setSubRoute = _subRoute[1];
 
   // ── Core data state ──
-  var _players = useState(function(){try{var s=localStorage.getItem("tft-players");return s?JSON.parse(s):[];}catch(e){return [];}});
+  // Clean up legacy localStorage player cache (DB is sole source of truth now)
+  try{localStorage.removeItem("tft-players");}catch(e){}
+
+  var _players = useState([]);
   var players = _players[0];
   var setPlayers = _players[1];
 
@@ -476,8 +479,7 @@ export function AppProvider(props) {
     setPlayers(function(ps){return ps.map(function(p){return Object.assign({},p,{checkedIn:ids.has(String(p.id))});});});
   },[tournamentState.checkedInIds]);
 
-  // ── localStorage sync (fast cache) ──
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-players",JSON.stringify(players));}catch(e){}},300);return function(){clearTimeout(t);};},[players]);
+  // Players are always loaded from DB -- no localStorage cache (prevents stale player lists)
 
   // isAdmin is derived solely from currentUser.is_admin (DB field) -- no localStorage write
 
