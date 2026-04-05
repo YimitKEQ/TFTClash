@@ -856,21 +856,29 @@ export default function ScrimsScreen() {
                 {/* Hero strip */}
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
                   {(function() {
-                    var bestAvg = scrimStats[0];
+                    var bestPts = scrimStats[0];
+                    var bestAvg = scrimStats.slice().sort(function(a, b) { return parseFloat(a.avg) - parseFloat(b.avg); })[0];
                     var bestWR = scrimStats.slice().sort(function(a, b) { return parseFloat(b.winRate) - parseFloat(a.winRate); })[0];
                     var bestTop4 = scrimStats.slice().sort(function(a, b) { return parseFloat(b.top4Rate) - parseFloat(a.top4Rate); })[0];
-                    var bestPts = scrimStats.slice().sort(function(a, b) { return b.pts - a.pts; })[0];
-                    var bestStreak = scrimStats.slice().sort(function(a, b) { return b.streak - a.streak; })[0];
+                    var mostGames = scrimStats.slice().sort(function(a, b) { return b.games - a.games; })[0];
+                    var stdDevs = scrimStats.filter(function(p) { return p.games >= 3; }).map(function(p) {
+                      var mean = p.placements.reduce(function(s, v) { return s + v; }, 0) / p.placements.length;
+                      var variance = p.placements.reduce(function(s, v) { return s + Math.pow(v - mean, 2); }, 0) / p.placements.length;
+                      return {name: p.name, sd: Math.sqrt(variance)};
+                    }).sort(function(a, b) { return a.sd - b.sd; });
+                    var consistent = stdDevs.length > 0 ? stdDevs[0] : null;
                     return [
-                      {label: 'Games Logged',   val: allGames.length,               sub: safeSessions.length + ' sessions',      color: '#C4B5FD'},
-                      {label: 'Best Avg',        val: bestAvg.avg,                   sub: bestAvg.name,                           color: '#4ade80'},
-                      {label: 'Top Win Rate',    val: bestWR.winRate + '%',          sub: bestWR.name,                            color: '#E8A838'},
-                      {label: 'Top Top-4 Rate',  val: bestTop4.top4Rate + '%',       sub: bestTop4.name,                          color: '#4ECDC4'},
-                      {label: 'Most Points',     val: bestPts.pts + ' pts',          sub: bestStreak.streak + ' streak ' + bestStreak.name, color: '#f97316'},
+                      {label: 'Games Logged',    val: allGames.length,          sub: safeSessions.length + ' sessions',                    color: '#C4B5FD', icon: 'sports_esports'},
+                      {label: 'Most Points',     val: bestPts.pts,              sub: bestPts.name + ' - ' + bestPts.ppg + ' ppg',          color: '#f97316', icon: 'emoji_events'},
+                      {label: 'Best Average',    val: bestAvg.avg,              sub: bestAvg.name,                                         color: '#4ade80', icon: 'trending_up'},
+                      {label: 'Top Win Rate',    val: bestWR.winRate + '%',     sub: bestWR.name + ' - ' + bestWR.wins + ' wins',          color: '#E8A838', icon: 'military_tech'},
+                      {label: consistent ? 'Most Consistent' : 'Most Active', val: consistent ? consistent.sd.toFixed(1) + ' sd' : mostGames.games + 'g', sub: consistent ? consistent.name : mostGames.name, color: '#4ECDC4', icon: consistent ? 'balance' : 'local_fire_department'},
                     ].map(function(item) {
                       return (
                         <div key={item.label} className="bg-surface-container-low p-4 border-t-2 space-y-0.5" style={{borderColor: item.color + '55'}}>
-                          <div className="font-mono text-2xl font-black leading-none" style={{color: item.color}}>{item.val}</div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-mono text-2xl font-black leading-none" style={{color: item.color}}>{item.val}</div>
+                          </div>
                           <div className="text-[9px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{item.label}</div>
                           <div className="text-[10px] text-on-surface-variant/50 truncate">{item.sub}</div>
                         </div>
@@ -953,17 +961,17 @@ export default function ScrimsScreen() {
                   <div className="bg-surface-container-low rounded-sm overflow-hidden">
                     <div className="px-6 py-4 bg-surface-container">
                       <h2 className="font-serif text-2xl font-bold">Session Breakdown</h2>
-                      <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Avg placement per session - track improvement over time</p>
+                      <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Points and avg per session - track improvement over time</p>
                     </div>
                     <div className="p-6 overflow-x-auto">
-                      <table className="border-separate border-spacing-1" style={{minWidth: 180 + safeSessions.length * 120 + 'px'}}>
+                      <table className="border-separate border-spacing-1" style={{minWidth: 180 + safeSessions.length * 140 + 'px'}}>
                         <thead>
                           <tr>
                             <th className="text-left text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest pr-4 w-28"/>
                             {safeSessions.map(function(sess) {
                               return (
-                                <th key={sess.id} className="text-center min-w-[110px]">
-                                  <div className="font-mono text-[10px] font-bold text-on-surface truncate max-w-[110px]">{sess.name}</div>
+                                <th key={sess.id} className="text-center min-w-[120px]">
+                                  <div className="font-mono text-[10px] font-bold text-on-surface truncate max-w-[120px]">{sess.name}</div>
                                   <div className="text-[9px] font-sans-condensed text-on-surface-variant uppercase">{sess.games.length}g{sess.active ? ' · LIVE' : ''}</div>
                                 </th>
                               );
@@ -978,17 +986,25 @@ export default function ScrimsScreen() {
                                 <td className="pr-4 py-1 font-bold text-xs text-on-surface">{p.name}</td>
                                 {safeSessions.map(function(sess) {
                                   var pGames = sess.games.filter(function(g) { return g.results[p.id] != null || g.results[String(p.id)] != null; });
-                                  if (pGames.length === 0) return <td key={sess.id} className="text-center py-1"><div className="w-14 h-8 flex items-center justify-center mx-auto text-on-surface-variant/20 text-xs" style={{background: 'rgba(255,255,255,0.02)'}}>-</div></td>;
+                                  if (pGames.length === 0) return <td key={sess.id} className="text-center py-1"><div className="w-[120px] h-10 flex items-center justify-center mx-auto text-on-surface-variant/20 text-xs" style={{background: 'rgba(255,255,255,0.02)'}}>-</div></td>;
                                   var pls = pGames.map(function(g) { return g.results[p.id] != null ? g.results[p.id] : g.results[String(p.id)]; });
-                                  var avg = (pls.reduce(function(s, v) { return s + v; }, 0) / pls.length).toFixed(2);
-                                  var c = parseFloat(avg) < 3 ? '#4ade80' : parseFloat(avg) <= 5 ? '#facc15' : '#f87171';
+                                  var pts = pls.reduce(function(s, v) { return s + (PTS[v] || 0); }, 0);
+                                  var avg = (pls.reduce(function(s, v) { return s + v; }, 0) / pls.length).toFixed(1);
+                                  var avgV = parseFloat(avg);
+                                  var c = avgV < 3 ? '#4ade80' : avgV <= 5 ? '#facc15' : '#f87171';
                                   return (
                                     <td key={sess.id} className="text-center py-1">
-                                      <div className="w-14 h-8 flex items-center justify-center mx-auto font-mono text-sm font-bold" style={{background: c + '18', border: '1px solid ' + c + '33', color: c}}>{avg}</div>
+                                      <div className="w-[120px] h-10 flex flex-col items-center justify-center mx-auto" style={{background: c + '10', border: '1px solid ' + c + '22'}}>
+                                        <div className="font-mono text-sm font-black text-primary">{pts}<span className="text-[9px] font-normal text-on-surface-variant/40 ml-0.5">pts</span></div>
+                                        <div className="font-mono text-[10px]" style={{color: c}}>{avg} avg</div>
+                                      </div>
                                     </td>
                                   );
                                 })}
-                                <td className="pl-2 text-center py-1 font-mono text-sm font-bold" style={{color: parseFloat(p.avg) < 3 ? '#4ade80' : parseFloat(p.avg) <= 5 ? '#facc15' : '#f87171'}}>{p.avg}</td>
+                                <td className="pl-2 text-center py-1">
+                                  <div className="font-mono text-sm font-black text-primary">{p.pts}</div>
+                                  <div className="font-mono text-[10px]" style={{color: parseFloat(p.avg) < 3 ? '#4ade80' : parseFloat(p.avg) <= 5 ? '#facc15' : '#f87171'}}>{p.avg} avg</div>
+                                </td>
                               </tr>
                             );
                           })}
@@ -1131,19 +1147,31 @@ export default function ScrimsScreen() {
                         <div className="flex items-center gap-3 flex-wrap">
                           <span className="font-mono text-sm font-bold text-on-surface uppercase">{sess.name}</span>
                           <span className={'text-[9px] font-sans-condensed px-2 py-0.5 uppercase tracking-widest ' + (sess.active ? 'bg-tertiary/15 text-tertiary' : 'bg-surface-container-highest text-on-surface-variant')}>{sess.active ? 'Live' : 'Ended'}</span>
-                          <span className="text-[10px] font-sans-condensed text-on-surface-variant">{sess.games.length} games · {sess.createdAt}</span>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 flex-wrap">
+                          <span className="text-[10px] font-sans-condensed text-on-surface-variant">{sess.games.length} games</span>
+                          <span className="text-[10px] text-on-surface-variant/30">|</span>
+                          <span className="text-[10px] font-sans-condensed text-on-surface-variant">{Object.keys(sessPlayers).length} players</span>
+                          <span className="text-[10px] text-on-surface-variant/30">|</span>
+                          <span className="text-[10px] font-sans-condensed text-on-surface-variant">{sess.createdAt}</span>
+                          {sessStats.length > 0 && (
+                            <>
+                              <span className="text-[10px] text-on-surface-variant/30">|</span>
+                              <span className="text-[10px] font-sans-condensed text-amber-400">MVP: {sessStats[0].name} ({sessStats[0].pts}pts)</span>
+                            </>
+                          )}
                           {sess.notes && <span className="text-[10px] text-on-surface-variant/50 italic truncate">{sess.notes}</span>}
                         </div>
                       </div>
                       {/* Mini podium */}
                       {sessStats.length > 0 && (
-                        <div className="hidden md:flex gap-2 flex-shrink-0 items-center">
+                        <div className="hidden lg:flex gap-1.5 flex-shrink-0 items-center">
                           {sessStats.slice(0, 3).map(function(s, si) {
                             var medal = si === 0 ? '#E8A838' : si === 1 ? '#C0C0C0' : '#CD7F32';
                             return (
-                              <div key={s.name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm" style={{background: medal + '10', border: '1px solid ' + medal + '25'}}>
+                              <div key={s.name} className="flex items-center gap-1.5 px-2 py-1 rounded-sm" style={{background: medal + '10', border: '1px solid ' + medal + '20'}}>
                                 <span className="font-mono text-[10px] font-black" style={{color: medal}}>{si + 1}</span>
-                                <span className="text-[10px] font-sans-condensed text-on-surface truncate max-w-[60px]">{s.name}</span>
+                                <span className="text-[10px] font-sans-condensed text-on-surface truncate max-w-[56px]">{s.name}</span>
                                 <span className="font-mono text-[10px] font-bold text-primary">{s.pts}</span>
                               </div>
                             );
@@ -1188,32 +1216,37 @@ export default function ScrimsScreen() {
                         )}
 
                         {/* Game list */}
-                        <div className="p-5 space-y-2">
+                        <div className="p-5 space-y-3">
                           <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Games</div>
                           {sess.games.map(function(g) {
                             var isEditing = editGame && editGame.id === g.id;
                             var sorted = Object.entries(g.results).sort(function(a, b) { return a[1] - b[1]; });
+                            var winnerEntry = sorted[0];
+                            var winnerPlayer = winnerEntry ? players.find(function(pl) { return String(pl.id) === String(winnerEntry[0]); }) : null;
                             return (
-                              <div key={g.id} className="bg-surface-container-high rounded-sm p-4">
-                                <div className="flex items-start justify-between gap-3 mb-3">
+                              <div key={g.id} className="bg-surface-container-high rounded-sm overflow-hidden">
+                                <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container-highest/50">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber}</span>
                                     {g.tag !== 'standard' && <span className="text-[9px] font-sans-condensed bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
                                     {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
                                     {!isEditing && g.note && <span className="text-[10px] text-on-surface-variant/50 italic">"{g.note}"</span>}
                                   </div>
-                                  {isAdmin && (
-                                  <div className="flex gap-1 flex-shrink-0">
-                                    <button onClick={function() { setEditGame(isEditing ? null : {id: g.id, note: g.note, tag: g.tag}); }}
-                                      className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name={isEditing ? 'close' : 'edit'} size={12} className="text-current"/></button>
-                                    <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
-                                      className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                                  <div className="flex items-center gap-2">
+                                    {winnerPlayer && <span className="text-[10px] font-sans-condensed text-on-surface-variant/60">Winner: <span className="font-bold text-amber-400">{winnerPlayer.name}</span></span>}
+                                    {isAdmin && (
+                                      <div className="flex gap-1 flex-shrink-0">
+                                        <button onClick={function() { setEditGame(isEditing ? null : {id: g.id, note: g.note, tag: g.tag}); }}
+                                          className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name={isEditing ? 'close' : 'edit'} size={12} className="text-current"/></button>
+                                        <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
+                                          className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                                      </div>
+                                    )}
                                   </div>
-                                  )}
                                 </div>
 
                                 {isEditing && (
-                                  <div className="flex gap-2 mb-3">
+                                  <div className="flex gap-2 px-4 py-3 border-b border-outline-variant/10">
                                     <select value={editGame.tag} onChange={function(e) { setEditGame(Object.assign({}, editGame, {tag: e.target.value})); }}
                                       className="bg-surface-container-lowest border-0 text-on-surface font-mono text-xs p-2 outline-none focus:ring-1 focus:ring-primary">
                                       {['standard','draft comp','test run','ranked sim','meta test'].map(function(t) { return <option key={t} value={t}>{t}</option>; })}
@@ -1226,19 +1259,19 @@ export default function ScrimsScreen() {
                                   </div>
                                 )}
 
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                <div className="px-4 py-2.5 divide-y divide-outline-variant/5">
                                   {sorted.map(function(entry) {
                                     var pid = entry[0]; var place = entry[1];
                                     var p = players.find(function(pl) { return String(pl.id) === String(pid); });
                                     if (!p) return null;
                                     var c = placeColor(place);
+                                    var pts = PTS[place] || 0;
                                     return (
-                                      <div key={pid} className="flex items-center gap-2 px-2 py-1.5" style={{background: c + '0d', border: '1px solid ' + c + '22'}}>
-                                        <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 font-mono text-[10px] font-bold" style={{color: c, background: c + '25'}}>#{place}</div>
-                                        <div className="min-w-0">
-                                          <div className="font-bold text-xs text-on-surface truncate">{p.name}</div>
-                                          {g.comps && g.comps[pid] && <div className="text-[9px] font-sans-condensed text-on-surface-variant/50 truncate">{g.comps[pid]}</div>}
-                                        </div>
+                                      <div key={pid} className="flex items-center gap-2.5 py-1.5">
+                                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded-sm font-mono text-[10px] font-black" style={{background: c + '20', color: c}}>{place}</div>
+                                        <span className="text-xs truncate flex-1" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
+                                        {g.comps && g.comps[pid] && <span className="text-[9px] font-sans-condensed text-on-surface-variant/30 truncate max-w-[100px]">{g.comps[pid]}</span>}
+                                        <span className="font-mono text-[10px] font-bold flex-shrink-0" style={{color: c}}>{pts}pt</span>
                                       </div>
                                     );
                                   })}
