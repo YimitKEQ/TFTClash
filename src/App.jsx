@@ -39,7 +39,7 @@ import PageLayout from './components/layout/PageLayout';
 var ClashScreenNew = React.lazy(function(){ return import('./screens/ClashScreen'); });
 var NotFoundScreen = React.lazy(function(){ return import('./screens/NotFoundScreen'); });
 var StatsHubScreenNew = React.lazy(function(){ return import('./screens/StatsHubScreen'); });
-var Donut17Page = React.lazy(function(){ return import('./donut17/Donut17Page'); });
+
 var SponsorsScreenNew = React.lazy(function(){ return import('./screens/SponsorsScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
@@ -633,7 +633,6 @@ function TFTClash(){
 
         {screen==="sponsors"&&<SponsorsScreenNew/>}
 
-        {screen==="donut17"&&isAdmin&&<Donut17Page/>}
 
         </ScreenBoundary>
         </React.Suspense>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '../lib/supabase.js';
-import { DEFAULT_SEASON_CONFIG, setSeasonChampion, SEED, PAST_CLASHES } from '../lib/constants.js';
+import { DEFAULT_SEASON_CONFIG, setSeasonChampion } from '../lib/constants.js';
 import { getUserTier } from '../lib/tiers.js';
 import { isSimulation, buildSimulationState } from '../lib/simulation.js';
 
@@ -101,19 +101,19 @@ export function AppProvider(props) {
   var tournamentState = _tournamentState[0];
   var setTournamentState = _tournamentState[1];
 
-  var _seasonConfig = useState(function(){try{var s=localStorage.getItem("tft-season-config");return s?JSON.parse(s):DEFAULT_SEASON_CONFIG;}catch(e){return DEFAULT_SEASON_CONFIG;}});
+  var _seasonConfig = useState(DEFAULT_SEASON_CONFIG);
   var seasonConfig = _seasonConfig[0];
   var setSeasonConfig = _seasonConfig[1];
 
-  var _quickClashes = useState(function(){try{var s=localStorage.getItem("tft-events");return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _quickClashes = useState([]);
   var quickClashes = _quickClashes[0];
   var setQuickClashes = _quickClashes[1];
 
-  var _orgSponsors = useState(function(){try{var s=localStorage.getItem("tft-sponsors");var p=s?JSON.parse(s):[];return Array.isArray(p)?p:[];}catch(e){return [];}});
+  var _orgSponsors = useState([]);
   var orgSponsors = _orgSponsors[0];
   var setOrgSponsors = _orgSponsors[1];
 
-  var _scheduledEvents = useState(function(){try{var s=localStorage.getItem('tft-scheduled-events');return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _scheduledEvents = useState([]);
   var scheduledEvents = _scheduledEvents[0];
   var setScheduledEvents = _scheduledEvents[1];
 
@@ -141,11 +141,11 @@ export function AppProvider(props) {
   var pastClashes = _pastClashes[0];
   var setPastClashes = _pastClashes[1];
 
-  var _featuredEvents = useState(function(){try{var s=localStorage.getItem('tft-featured-events');return s?JSON.parse(s):[];}catch(e){return [];}});
+  var _featuredEvents = useState([]);
   var featuredEvents = _featuredEvents[0];
   var setFeaturedEvents = _featuredEvents[1];
 
-  var _challengeCompletions = useState(function(){try{var s=localStorage.getItem('tft-challenge-completions');return s?JSON.parse(s):{};}catch(e){return {};}});
+  var _challengeCompletions = useState({});
   var challengeCompletions = _challengeCompletions[0];
   var setChallengeCompletions = _challengeCompletions[1];
 
@@ -530,13 +530,8 @@ export function AppProvider(props) {
     prevUserIdRef.current = curId;
   }, [currentUser]);
 
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-season-config",JSON.stringify(seasonConfig));}catch(e){}},300);return function(){clearTimeout(t);};},[seasonConfig]);
-
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-events",JSON.stringify(quickClashes));}catch(e){}},300);return function(){clearTimeout(t);};},[quickClashes]);
-
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-sponsors",JSON.stringify(orgSponsors));}catch(e){}},300);return function(){clearTimeout(t);};},[orgSponsors]);
-
-  useEffect(function(){var t=setTimeout(function(){try{localStorage.setItem("tft-scheduled-events",JSON.stringify(scheduledEvents));}catch(e){}},300);return function(){clearTimeout(t);};},[scheduledEvents]);
+  // seasonConfig, quickClashes, orgSponsors, scheduledEvents are synced to site_settings DB table
+  // No localStorage caching needed - DB is the single source of truth
 
   // hostApps now loaded from host_applications table, no localStorage sync needed
 
@@ -800,13 +795,11 @@ export function AppProvider(props) {
 
   useEffect(function(){
     if(rtRef.current.featured_events){rtRef.current.featured_events=false;return;}
-    localStorage.setItem('tft-featured-events',JSON.stringify(featuredEvents));
     if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'featured_events',value:JSON.stringify(featuredEvents),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[featuredEvents]);
 
   useEffect(function(){
     if(rtRef.current.challenge_completions){rtRef.current.challenge_completions=false;return;}
-    localStorage.setItem('tft-challenge-completions',JSON.stringify(challengeCompletions));
     if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'challenge_completions',value:JSON.stringify(challengeCompletions),updated_at:new Date().toISOString()}).then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[challengeCompletions]);
 
@@ -817,7 +810,7 @@ export function AppProvider(props) {
     supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false}).limit(50)
       .then(function(res){
         if(res.error){return;}
-        if(!res.data||!res.data.length){setPastClashes(PAST_CLASHES);return;}
+        if(!res.data||!res.data.length){setPastClashes([]);return;}
         var tIds=res.data.map(function(t){return t.id;});
         supabase.from('tournament_results').select('tournament_id,player_id,final_placement,total_points')
           .in('tournament_id',tIds).order('final_placement',{ascending:true})

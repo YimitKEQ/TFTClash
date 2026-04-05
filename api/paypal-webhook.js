@@ -110,6 +110,7 @@ async function verifyWebhookSignature(headers, rawBody, webhookId) {
 // ── Main handler ────────────────────────────────────────────────────────────
 
 export default async function handler(req, res) {
+  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
   var webhookId = process.env.PAYPAL_WEBHOOK_ID;
@@ -145,6 +146,26 @@ export default async function handler(req, res) {
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
+
+  // ── Idempotency: deduplicate webhook events ─────────────────────────────
+  var eventId = event.id || null;
+  if (eventId) {
+    var dedupCheck = await supabase
+      .from('webhook_events')
+      .select('id')
+      .eq('event_id', eventId)
+      .maybeSingle();
+    if (dedupCheck.data) {
+      // Already processed this event
+      return res.json({ received: true, duplicate: true });
+    }
+    // Record this event before processing (insert-or-ignore)
+    await supabase.from('webhook_events').insert({
+      event_id: eventId,
+      event_type: eventType,
+      processed_at: new Date().toISOString()
+    }).select().maybeSingle();
+  }
 
   // Extract user ID from custom_id (we pass it when creating the subscription)
   var userId = resource.custom_id || null;
