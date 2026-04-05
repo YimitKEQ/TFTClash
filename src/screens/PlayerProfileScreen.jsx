@@ -252,9 +252,10 @@ export default function PlayerProfileScreen() {
 
   var subRoute = ctx.subRoute || '';
   var urlName = params.name || subRoute;
-  var player = ctx.profilePlayer
-    || (urlName && players.find(function(p) { return p.name === urlName || p.username === urlName; }))
-    || null;
+  var urlPlayer = urlName
+    ? players.find(function(p) { return p.name === urlName || p.username === urlName || p.name === decodeURIComponent(urlName) || p.username === decodeURIComponent(urlName); })
+    : null;
+  var player = urlPlayer || ctx.profilePlayer || null;
 
   var _tab = useState('overview');
   var tab = _tab[0];
