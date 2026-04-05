@@ -8,7 +8,7 @@ import Icon from '../components/ui/Icon'
 import Tag from '../components/ui/Tag'
 import { getStats } from '../lib/stats.js'
 import { isHotStreak, isComebackEligible, computeClashAwards } from '../lib/stats.js'
-import { HOMIES_IDS, PAST_CLASHES } from '../lib/constants.js'
+import { HOMIES_IDS } from '../lib/constants.js'
 import { avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import ClashReportScreen from './ClashReportScreen'
 
@@ -75,6 +75,7 @@ export default function ResultsScreen() {
   var toast = ctx.toast || function() {}
   var navigate = useNavigate()
 
+  var pastClashes = ctx.pastClashes || []
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var champ = sorted[0]
 
@@ -103,7 +104,7 @@ export default function ResultsScreen() {
   // Podium: 2nd, 1st, 3rd display order
   var top3 = [sorted[1], sorted[0], sorted[2]].filter(Boolean)
 
-  var clashIds = PAST_CLASHES.map(function(c) { return 'c' + c.id })
+  var clashIds = pastClashes.map(function(c) { return 'c' + c.id })
 
   function openProfile(p) {
     setProfilePlayer(p)

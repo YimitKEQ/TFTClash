@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase.js';
 import CountdownTimer from '../components/shared/CountdownTimer';
 import { getNextSaturday } from '../lib/useCountdown';
-import { RANKS, RCOLS, REGIONS, PTS, PAST_CLASHES, SEED, CLASH_RANKS, XP_REWARDS, HOMIES_IDS, TIER_FEATURES } from '../lib/constants.js';
+import { RANKS, RCOLS, REGIONS, PTS, CLASH_RANKS, XP_REWARDS, HOMIES_IDS, TIER_FEATURES } from '../lib/constants.js';
 import { computeStats, getStats, effectivePts, tiebreaker, computeClashAwards, generateRecap, getClashRank, getXpProgress, estimateXp, isHotStreak, isOnTilt, isComebackEligible, getAttendanceStreak, computeSeasonBonuses, checkAchievements, syncAchievements } from '../lib/stats.js';
 import { TOURNAMENT_FORMATS, buildLobbies, computeTournamentStandings, applyCutLine } from '../lib/tournament.js';
 import { ordinal, rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js';
@@ -1048,6 +1048,7 @@ function ResultsScreen(props) {
   var setScreen = props.setScreen;
   var setProfilePlayer = props.setProfilePlayer;
   var tournamentState = props.tournamentState;
+  var pastClashes = props.pastClashes || [];
   var sorted = [].concat(players).sort(function(a, b) { return b.pts - a.pts; });
   var champ = sorted[0];
   var _t = useState("results");
@@ -1265,7 +1266,7 @@ function ResultsScreen(props) {
                     <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 11, color: "#BECBD9" }}>{p.rank} - {p.region}</span>
                       {(p.attendanceStreak || 0) >= 3 && <Tag color="#E8A838" size="sm">{p.attendanceStreak}-streak</Tag>}
-                      {isComebackEligible(p, PAST_CLASHES.map(function(c) { return "c" + c.id; })) && <Tag color="#4ECDC4" size="sm">Comeback</Tag>}
+                      {isComebackEligible(p, pastClashes.map(function(c) { return "c" + c.id; })) && <Tag color="#4ECDC4" size="sm">Comeback</Tag>}
                     </div>
                   </div>
                 </div>
@@ -1434,6 +1435,7 @@ function BracketScreen(props) {
   var setTournamentState = props.setTournamentState;
   var seasonConfig = props.seasonConfig;
   var allPendingResults = props.allPendingResults || [];
+  var pastClashes = props.pastClashes || [];
 
   var checkedIn = useMemo(function() { return players.filter(function(p) { return p.checkedIn; }); }, [players]);
   var lobbySize = 8;
@@ -1604,7 +1606,7 @@ function BracketScreen(props) {
     if (!placementEntry[li]) return;
     var placements = {};
     lobby.forEach(function(p) { placements[p.id] = parseInt(placementEntry[li].placements[p.id] || "0"); });
-    var allClashIds = PAST_CLASHES.map(function(c) { return "c" + c.id; });
+    var allClashIds = pastClashes.map(function(c) { return "c" + c.id; });
     setPlayers(function(prev) {
       return prev.map(function(p) {
         var place = placements[p.id];
@@ -2252,7 +2254,7 @@ function ClashIdleView(props) {
   var linkedPlayer = props.linkedPlayer
   var navigate = props.navigate
 
-  var lastClash = PAST_CLASHES[0]
+  var lastClash = (props.pastClashes || [])[0] || null
 
   var nextSaturday = getNextSaturday()
 
@@ -2466,7 +2468,7 @@ function ClashScreen(props) {
           isAdmin={props.isAdmin} currentUser={props.currentUser} setProfilePlayer={props.setProfilePlayer}
           setScreen={props.setScreen} tournamentState={props.tournamentState}
           setTournamentState={props.setTournamentState} seasonConfig={props.seasonConfig}
-          allPendingResults={props.allPendingResults}
+          allPendingResults={props.allPendingResults} pastClashes={props.pastClashes}
         />
       )}
 
@@ -2509,7 +2511,7 @@ function ClashScreen(props) {
           <YourFinishCard currentUser={props.currentUser} finalStandings={props.tournamentState.finalStandings || []} />
           {awardsEl}
           {recapEl}
-          <MemoResultsScreen players={props.players} toast={props.toast} setScreen={props.setScreen} setProfilePlayer={props.setProfilePlayer} tournamentState={props.tournamentState} />
+          <MemoResultsScreen players={props.players} toast={props.toast} setScreen={props.setScreen} setProfilePlayer={props.setProfilePlayer} tournamentState={props.tournamentState} pastClashes={props.pastClashes} />
         </>
       )}
     </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
-import { PTS, PAST_CLASHES } from '../lib/constants.js'
+import { PTS } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
 import { applyCutLine, computeTournamentStandings } from '../lib/tournament.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
@@ -103,6 +103,7 @@ function BracketScreen(){
   var setTournamentState=ctx.setTournamentState;
   var seasonConfig=ctx.seasonConfig;
   var orgSponsors=ctx.orgSponsors||[];
+  var pastClashes=ctx.pastClashes||[];
   var bracketSponsors=orgSponsors.filter(function(s){return s.status==='active'&&s.placements&&s.placements.indexOf('bracket')>-1;});
 
   var checkedIn=useMemo(function(){return players.filter(function(p){return p.checkedIn;});},[players]);
@@ -286,7 +287,7 @@ function BracketScreen(){
     if(!placementEntry[li])return;
     var placements={};
     lobby.forEach(function(p){placements[p.id]=parseInt(placementEntry[li].placements[p.id]||"0");});
-    var allClashIds=PAST_CLASHES.map(function(c){return "c"+c.id;});
+    var allClashIds=pastClashes.map(function(c){return "c"+c.id;});
 
     setPlayers(function(prev){return prev.map(function(p){
       var place=placements[p.id];

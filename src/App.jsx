@@ -189,7 +189,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/donut17":"donut17","/sponsors":"sponsors"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -584,7 +584,7 @@ function TFTClash(){
         {screen==="milestones" &&<MilestonesScreenNew/>}
         {screen==="challenges" &&<ChallengesScreenNew/>}
 
-        {screen==="clash"      &&<PageLayout><ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} allPendingResults={allPendingResults}/></PageLayout>}
+        {screen==="clash"      &&<PageLayout><ClashScreenNew subRoute={subRoute} players={players} setPlayers={setPlayers} toast={toast} isAdmin={isAdmin} currentUser={currentUser} setProfilePlayer={setProfilePlayer} setScreen={navTo} tournamentState={tournamentState} setTournamentState={setTournamentState} seasonConfig={seasonConfig} allPendingResults={allPendingResults} pastClashes={pastClashes}/></PageLayout>}
 
         {screen==="bracket"    &&<BracketScreenNew/>}
 
