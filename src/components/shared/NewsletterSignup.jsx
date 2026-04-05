@@ -1,4 +1,5 @@
 import React from 'react'
+import { supabase } from '../../lib/supabase.js'
 
 function NewsletterSignup(props) {
   var toast = props.toast;
@@ -27,15 +28,13 @@ function NewsletterSignup(props) {
               if (toast) toast("Enter a valid email", "error");
               return;
             }
-            try {
-              var subs = JSON.parse(localStorage.getItem("tft-newsletter-subs") || "[]");
-              if (!subs.includes(val)) {
-                subs.push(val);
-                localStorage.setItem("tft-newsletter-subs", JSON.stringify(subs));
-              }
-            } catch (ex) {
-              // ignore storage errors
-            }
+            supabase.from('newsletter_subscribers')
+              .upsert({ email: val }, { onConflict: 'email' })
+              .then(function(res) {
+                if (res.error) {
+                  if (toast) toast("Already subscribed or error occurred", "info");
+                }
+              }).catch(function() {});
             setSubmitted(true);
             if (toast) toast("Subscribed! Welcome aboard.", "success");
           }}

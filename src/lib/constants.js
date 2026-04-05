@@ -1,5 +1,5 @@
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
-export var DATA_VERSION = 2;
+export var DATA_VERSION = 3;
 
 // ─── DEBUG LOGGING ─────────────────────────────────────────────────────────────
 export var TFT_DEBUG = typeof window !== "undefined" && window.location.search.indexOf("debug=1") > -1;

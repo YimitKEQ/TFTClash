@@ -193,7 +193,7 @@ export function AppProvider(props) {
   // Newsletter + push notification state
   var newsletterEmailRef = useRef(null);
 
-  var _newsletterSubmitted = useState(function(){try{var subs=JSON.parse(localStorage.getItem("tft-newsletter-subs")||"[]");return subs.length>0;}catch(e){return false;}});
+  var _newsletterSubmitted = useState(false);
   var newsletterSubmitted = _newsletterSubmitted[0];
   var setNewsletterSubmitted = _newsletterSubmitted[1];
 

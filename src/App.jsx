@@ -351,7 +351,7 @@ function TFTClash(){
       toast(decodeURIComponent(desc.replace(/\+/g," ")),"error");
     }
     var refParam=params.get("ref");
-    if(refParam){try{var prev=localStorage.getItem("tft-referred-by");if(!prev){localStorage.setItem("tft-referred-by",refParam);var rc=parseInt(localStorage.getItem("tft-referral-count-"+refParam)||"0");localStorage.setItem("tft-referral-count-"+refParam,String(rc+1));}}catch(e){}}
+    if(refParam){try{var prev=localStorage.getItem("tft-referred-by");if(!prev){localStorage.setItem("tft-referred-by",refParam);if(supabase.from){supabase.from('referrals').upsert({referrer_code:refParam,referred_at:new Date().toISOString()},{onConflict:'referrer_code'}).then(function(){}).catch(function(){});}}}catch(e){}}
     if(params.get("checkout")==="success"){
       toast("Subscription activated! Welcome to Pro.","success");
       navigate("/account",{replace:true});
