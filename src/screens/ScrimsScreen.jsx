@@ -214,6 +214,7 @@ export default function ScrimsScreen() {
   var _newNotes = useState(''); var newNotes = _newNotes[0]; var setNewNotes = _newNotes[1];
   var _newTarget = useState('5'); var newTarget = _newTarget[0]; var setNewTarget = _newTarget[1];
   var _scrimRoster = useState([]); var scrimRoster = _scrimRoster[0]; var setScrimRoster = _scrimRoster[1];
+  var rosterDirtyRef = useRef(false);
 
   // Record game
   var _scrimResults = useState({}); var scrimResults = _scrimResults[0]; var setScrimResults = _scrimResults[1];
@@ -291,7 +292,7 @@ export default function ScrimsScreen() {
     }
     return scrimRoster;
   }());
-  var rosterForGame = sessionRoster.length > 0 ? sessionRoster : scrimRoster;
+  var rosterForGame = rosterDirtyRef.current && scrimRoster.length > 0 ? scrimRoster : (sessionRoster.length > 0 ? sessionRoster : scrimRoster);
   var allGames = safeSessions.flatMap(function(s) { return s.games; });
   var placedCount = Object.keys(scrimResults).length;
   var allPlaced = rosterForGame.length > 0 && placedCount >= rosterForGame.length;
@@ -397,7 +398,7 @@ export default function ScrimsScreen() {
     deleteScrimDb(sessionId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims();
-      if (activeId === sessionId) { setActiveId(null); setScrimRoster([]); setScrimResults({}); }
+      if (activeId === sessionId) { setActiveId(null); setScrimRoster([]); setScrimResults({}); rosterDirtyRef.current = false; }
       setConfirmDelete(null); toast('Session deleted', 'success');
     }).catch(function() { toast('Failed to delete session', 'error'); });
   }
@@ -405,8 +406,14 @@ export default function ScrimsScreen() {
   function addGuestPlayer(name) {
     var existing = players.find(function(p) { return (p.name || '').toLowerCase() === name.toLowerCase(); });
     if (existing) {
-      var alreadyIn = scrimRoster.find(function(r) { return String(r.id) === String(existing.id); });
-      if (!alreadyIn) setScrimRoster(function(r) { return r.concat([existing]); });
+      var alreadyIn = (rosterDirtyRef.current ? scrimRoster : rosterForGame).find(function(r) { return String(r.id) === String(existing.id); });
+      if (!alreadyIn) {
+        rosterDirtyRef.current = true;
+        var base = scrimRoster.length > 0 ? scrimRoster : rosterForGame;
+        var newR = base.concat([existing]);
+        setScrimRoster(newR);
+        syncRosterToDb(newR);
+      }
       return;
     }
     supabase.from('players').insert({username: name, role: 'guest'}).select().single().then(function(res) {
@@ -414,9 +421,25 @@ export default function ScrimsScreen() {
 
       var np = {id: res.data.id, name: res.data.username || name, role: 'guest', rank: null, pts: 0, wins: 0, games: 0, top4: 0, avg: '0'};
       setPlayers(function(prev) { return prev.concat([np]); });
-      setScrimRoster(function(r) { return r.concat([np]); });
+      rosterDirtyRef.current = true;
+      var base = scrimRoster.length > 0 ? scrimRoster : rosterForGame;
+      var newR = base.concat([np]);
+      setScrimRoster(newR);
+      syncRosterToDb(newR);
       toast(name + ' added as guest', 'success');
     }).catch(function() { toast('Failed to add guest', 'error'); });
+  }
+
+  function syncRosterToDb(newRoster) {
+    if (!activeId) return;
+    var ids = newRoster.map(function(p) { return p.id; });
+    // Delete existing scrim_players and re-insert
+    supabase.from('scrim_players').delete().eq('scrim_id', activeId).then(function() {
+      if (ids.length > 0) {
+        var rows = ids.map(function(pid) { return {scrim_id: activeId, player_id: pid}; });
+        supabase.from('scrim_players').insert(rows).then(function() {}).catch(function() {});
+      }
+    }).catch(function() {});
   }
 
   function exportCSV() {
@@ -656,7 +679,7 @@ export default function ScrimsScreen() {
               {/* Session selector */}
               <div className="bg-surface-container-low rounded-sm p-5">
                 <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">Session</label>
-                <select value={activeId || ''} onChange={function(e) { var v = e.target.value || null; setActiveId(v); setScrimResults({}); setGameComps({}); if (v) setScrimRoster([]); }}
+                <select value={activeId || ''} onChange={function(e) { var v = e.target.value || null; setActiveId(v); setScrimResults({}); setGameComps({}); rosterDirtyRef.current = false; if (v) setScrimRoster([]); }}
                   className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary">
                   <option value="">- Select session -</option>
                   {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
@@ -677,11 +700,15 @@ export default function ScrimsScreen() {
                       players={players}
                       roster={rosterForGame}
                       onAdd={function(p) {
+                        rosterDirtyRef.current = true;
+                        var newRoster;
                         if (session && session.playerIds.length > 0 && scrimRoster.length === 0) {
-                          setScrimRoster(rosterForGame.concat([p]));
+                          newRoster = rosterForGame.concat([p]);
                         } else {
-                          setScrimRoster(function(r) { return r.concat([p]); });
+                          newRoster = scrimRoster.concat([p]);
                         }
+                        setScrimRoster(newRoster);
+                        syncRosterToDb(newRoster);
                       }}
                       onAddGuest={addGuestPlayer}
                     />
@@ -694,7 +721,9 @@ export default function ScrimsScreen() {
                               {p.role === 'guest' && <span className="text-[9px] font-sans-condensed text-on-surface-variant/50 uppercase">guest</span>}
                               <button onClick={function() {
                                 var override = rosterForGame.filter(function(r) { return String(r.id) !== String(p.id); });
+                                rosterDirtyRef.current = true;
                                 setScrimRoster(override);
+                                syncRosterToDb(override);
                                 setScrimResults(function(prev) { var n = Object.assign({}, prev); delete n[p.id]; return n; });
                               }} className="text-primary/40 hover:text-error transition-colors text-sm leading-none bg-transparent border-0 cursor-pointer p-0 ml-0.5">x</button>
                             </div>

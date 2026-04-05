@@ -20,30 +20,30 @@ function HeroCountdown(props) {
   function pad2(n) { return String(n).padStart(2, '0') }
 
   return (
-    <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
+    <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
       <div className="relative z-10 space-y-4">
         <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
           Next Tournament Begins In
         </span>
-        <div className="flex justify-center gap-6">
+        <div className="flex justify-center gap-3 sm:gap-6">
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.days)}</span>
+            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.days)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Days</span>
           </div>
-          <span className="font-mono text-5xl text-primary/20">:</span>
+          <span className="font-mono text-4xl sm:text-5xl text-primary/20">:</span>
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.hours)}</span>
+            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.hours)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Hours</span>
           </div>
-          <span className="font-mono text-5xl text-primary/20">:</span>
+          <span className="font-mono text-4xl sm:text-5xl text-primary/20">:</span>
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.minutes)}</span>
+            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.minutes)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Mins</span>
           </div>
-          <span className="font-mono text-5xl text-primary/20">:</span>
+          <span className="font-mono text-4xl sm:text-5xl text-primary/20">:</span>
           <div className="flex flex-col items-center">
-            <span className="font-mono text-5xl text-primary leading-none">{pad2(countdown.seconds)}</span>
+            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.seconds)}</span>
             <span className="font-label text-[10px] uppercase opacity-40">Secs</span>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function HomeScreen() {
         }
       `}</style>
 
-      <main className="pt-8 sm:pt-12 pb-20 px-4 max-w-[880px] mx-auto space-y-8 sm:space-y-12">
+      <div className="space-y-8 sm:space-y-12">
 
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
         <section className="relative text-center space-y-6 sm:space-y-8">
@@ -305,7 +305,7 @@ export default function HomeScreen() {
             )
             : currentUser
             ? (
-              <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
+              <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
                 <div className="relative z-10 space-y-4">
                   <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
@@ -328,7 +328,7 @@ export default function HomeScreen() {
               </div>
             )
             : (
-              <div className="glass-panel p-8 rounded-xl border border-outline-variant/15 max-w-md mx-auto shadow-2xl relative overflow-hidden">
+              <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
                 <div className="relative z-10 space-y-4">
                   <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
@@ -517,7 +517,7 @@ export default function HomeScreen() {
           </div>
         </footer>
 
-      </main>
+      </div>
 
       {/* ── FAB ───────────────────────────────────────────────────────────────── */}
       <button

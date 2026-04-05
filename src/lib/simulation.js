@@ -163,21 +163,31 @@ export function buildSimulationState() {
     })
   })
 
-  // Apply cut line after round 4: eliminate players below 13 pts
-  var cutLine = 13
-  var survivingIds = []
-  var eliminatedIds = []
-  allPlayers.forEach(function(p) {
+  // Apply cut line after round 4: eliminate bottom players, keeping lobbies even (multiples of 8)
+  // Sort all players by total points descending, then cut to nearest multiple of 8
+  var ranked = allPlayers.map(function(p) {
     var totalPts = 0
     ;(p.clashHistory || []).forEach(function(h) {
       if (h.clashId === 'sim-64p') totalPts += (h.pts || 0)
     })
-    if (totalPts >= cutLine) {
-      survivingIds.push(String(p.id))
+    return { player: p, totalPts: totalPts }
+  }).sort(function(a, b) { return b.totalPts - a.totalPts })
+
+  // Keep top N players where N is the largest multiple of 8 that's <= 75% of total (target ~48 from 64)
+  var targetSurvivors = Math.floor(allPlayers.length * 0.75)
+  var survivorCount = Math.floor(targetSurvivors / 8) * 8
+  if (survivorCount < 8) survivorCount = 8
+
+  var cutLine = ranked.length > survivorCount ? ranked[survivorCount - 1].totalPts : 0
+  var survivingIds = []
+  var eliminatedIds = []
+  ranked.forEach(function(entry, idx) {
+    if (idx < survivorCount) {
+      survivingIds.push(String(entry.player.id))
     } else {
-      eliminatedIds.push(String(p.id))
-      p.checkedIn = false
-      p.eliminated = true
+      eliminatedIds.push(String(entry.player.id))
+      entry.player.checkedIn = false
+      entry.player.eliminated = true
     }
   })
 

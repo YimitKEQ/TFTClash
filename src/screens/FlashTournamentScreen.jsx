@@ -1,11 +1,27 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { Panel, Btn } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
 import { PTS, RANKS } from '../lib/constants.js'
 import { buildFlashLobbies } from '../lib/tournament.js'
 import { createNotification } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
+import Icon from '../components/ui/Icon.jsx'
+
+// ── Sel component (inline, local) ─────────────────────────────────────────────
+function Sel(props){
+  return(
+    <div className="relative">
+      <select
+        value={props.value}
+        onChange={function(e){props.onChange(e.target.value);}}
+        className={"bg-surface-container-lowest border-none text-xs font-mono focus:ring-1 focus:ring-primary h-8 py-1 rounded appearance-none pr-6 pl-2 text-on-surface " + (props.className||"")}>
+        {props.children}
+      </select>
+      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/40 text-xs">{"v"}</div>
+    </div>
+  );
+}
 
 export default function FlashTournamentScreen(props) {
   var tournamentId = props.tournamentId;
@@ -17,19 +33,44 @@ export default function FlashTournamentScreen(props) {
   var setScreen = ctx.setScreen;
   var players = ctx.players;
   var isAdmin = ctx.isAdmin;
+  var navigate = useNavigate();
 
-  var [tournament, setTournament] = useState(null);
-  var [registrations, setRegistrations] = useState([]);
-  var [lobbies, setLobbies] = useState([]);
-  var [lobbyCodeInputs, setLobbyCodeInputs] = useState({});
-  var [loading, setLoading] = useState(true);
-  var [activeTab, setActiveTab] = useState('info');
-  var [actionLoading, setActionLoading] = useState(false);
-  var [reports, setReports] = useState([]);
-  var [myPlacement, setMyPlacement] = useState(0);
-  var [disputeForm, setDisputeForm] = useState({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''});
-  var [disputes, setDisputes] = useState([]);
-  var [gameResults, setGameResults] = useState([]);
+  var _tournament = useState(null);
+  var tournament = _tournament[0];
+  var setTournament = _tournament[1];
+  var _registrations = useState([]);
+  var registrations = _registrations[0];
+  var setRegistrations = _registrations[1];
+  var _lobbies = useState([]);
+  var lobbies = _lobbies[0];
+  var setLobbies = _lobbies[1];
+  var _lobbyCodeInputs = useState({});
+  var lobbyCodeInputs = _lobbyCodeInputs[0];
+  var setLobbyCodeInputs = _lobbyCodeInputs[1];
+  var _loading = useState(true);
+  var loading = _loading[0];
+  var setLoading = _loading[1];
+  var _activeTab = useState('info');
+  var activeTab = _activeTab[0];
+  var setActiveTab = _activeTab[1];
+  var _actionLoading = useState(false);
+  var actionLoading = _actionLoading[0];
+  var setActionLoading = _actionLoading[1];
+  var _reports = useState([]);
+  var reports = _reports[0];
+  var setReports = _reports[1];
+  var _myPlacement = useState(0);
+  var myPlacement = _myPlacement[0];
+  var setMyPlacement = _myPlacement[1];
+  var _disputeForm = useState({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''});
+  var disputeForm = _disputeForm[0];
+  var setDisputeForm = _disputeForm[1];
+  var _disputes = useState([]);
+  var disputes = _disputes[0];
+  var setDisputes = _disputes[1];
+  var _gameResults = useState([]);
+  var gameResults = _gameResults[0];
+  var setGameResults = _gameResults[1];
   var channelRef = useRef(null);
 
   function loadTournament() {
@@ -83,7 +124,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   useEffect(function() {
-    Promise.all([loadTournament(), loadRegistrations(), loadLobbies(), loadDisputes(), loadResults()]).then(function() { setLoading(false); }).catch(function(e) { setLoading(false); });
+    Promise.all([loadTournament(), loadRegistrations(), loadLobbies(), loadDisputes(), loadResults()]).then(function() { setLoading(false); }).catch(function() { setLoading(false); });
   }, [tournamentId]);
 
   useEffect(function() {
@@ -113,8 +154,6 @@ export default function FlashTournamentScreen(props) {
       channelRef.current.send({type: 'broadcast', event: 'update', payload: {type: type}});
     }
   }
-
-  var rankColors = {Iron: '#5A6573', Bronze: '#CD7F32', Silver: '#C0C0C0', Gold: '#E8A838', Platinum: '#4ECDC4', Emerald: '#52C47C', Diamond: '#93B5F7', Master: '#9B72CF', Grandmaster: '#DC2626', Challenger: '#F59E0B'};
 
   function getPlayerById(pid) {
     return (players || []).find(function(p) { return p.id === pid; }) || {username: 'Unknown', rank: 'Iron'};
@@ -167,7 +206,7 @@ export default function FlashTournamentScreen(props) {
       }).catch(function() { setActionLoading(false); toast('Failed to load players', 'error'); });
   }
 
-  var myPlayer = currentUser ? (players || []).find(function(p) { return p.authUserId === currentUser.id; }) : null;
+  var myPlayer = currentUser ? (players || []).find(function(p) { return (currentUser.auth_user_id && p.authUserId === currentUser.auth_user_id) || p.id === currentUser.id; }) : null;
   var myReg = myPlayer ? registrations.find(function(r) { return r.player_id === myPlayer.id; }) : null;
   var regCount = registrations.filter(function(r) { return r.status === 'registered' || r.status === 'checked_in'; }).length;
   var currentGameNumber = tournament ? (tournament.current_round || 1) : 1;
@@ -210,7 +249,6 @@ export default function FlashTournamentScreen(props) {
     }, {onConflict: 'tournament_id,player_id'}).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Registration failed: ' + res.error.message, 'error'); return; }
-
       if (currentUser) { createNotification(currentUser.id, 'Registration Confirmed', 'You are registered for ' + (tournament ? tournament.name : 'the tournament') + '. Check in when the check-in window opens.', 'controller'); }
       toast('Registered!', 'success');
       broadcastUpdate('registration');
@@ -263,7 +301,7 @@ export default function FlashTournamentScreen(props) {
       var notCheckedIn = registrations.filter(function(r) { return r.status === 'registered'; });
       var dropIds = notCheckedIn.map(function(r) { return r.id; });
       if (dropIds.length > 0) {
-        supabase.from('registrations').update({status: 'dropped'}).in('id', dropIds).then(function(dropRes) {
+        supabase.from('registrations').update({status: 'dropped'}).in('id', dropIds).then(function() {
           var openSpots = maxP - checkedInCount;
           var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted'; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
           var toPromote = waitlisted.slice(0, Math.max(0, openSpots));
@@ -421,7 +459,6 @@ export default function FlashTournamentScreen(props) {
         if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
         var seedMethod = tournament.seeding_method || 'snake';
         if (seedMethod === 'snake') {
-          // Compute standings inline to avoid reference-before-definition
           var _standMap = {};
           gameResults.forEach(function(g) {
             if (!_standMap[g.player_id]) {
@@ -512,8 +549,7 @@ export default function FlashTournamentScreen(props) {
               return {tournament_id: tournamentId, player_id: pid, total_points: a.pts, wins: a.wins, top4_count: a.top4, final_placement: Math.round(a.placeSum / a.games)};
             });
             if (tRows.length > 0) {
-              supabase.from('tournament_results').insert(tRows).then(function(tr) {
-              }).catch(function() {});
+              supabase.from('tournament_results').insert(tRows).then(function() {}).catch(function() {});
             }
             Object.keys(playerAgg).forEach(function(pid) {
               var a = playerAgg[pid];
@@ -529,51 +565,66 @@ export default function FlashTournamentScreen(props) {
                     top4: (cur.top4 || 0) + a.top4,
                     games: newGames,
                     avg_placement: parseFloat(newAvg.toFixed(2))
-                  }).eq('id', pid).then(function(uRes) {
-                  }).catch(function() {});
+                  }).eq('id', pid).then(function() {}).catch(function() {});
                 }).catch(function() {});
             });
           }).catch(function() {});
       }).catch(function() { toast('Failed to finalize tournament', 'error'); });
   }
 
+  // ── Loading / not found states ──────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="page wrap text-center pt-20">
-        <div className="text-on-surface-variant text-sm">Loading tournament...</div>
-      </div>
+      <PageLayout>
+        <div className="max-w-5xl mx-auto text-center py-20">
+          <Icon name="hourglass_empty" size={40} className="text-on-surface-variant/30 mx-auto mb-4" />
+          <div className="text-on-surface-variant text-sm font-nav tracking-wider uppercase">Loading tournament...</div>
+        </div>
+      </PageLayout>
     );
   }
 
   if (!tournament) {
     return (
-      <div className="page wrap text-center pt-20">
-        <div className="text-4xl mb-4">{'!'}</div>
-        <h2 className="text-on-surface mb-2.5">Tournament Not Found</h2>
-        <p className="text-on-surface-variant mb-4">This tournament may have been removed.</p>
-        <Btn v="primary" onClick={function() { setScreen('tournaments'); }}>Back to Tournaments</Btn>
-      </div>
+      <PageLayout>
+        <div className="max-w-5xl mx-auto text-center py-20">
+          <Icon name="error_outline" size={48} className="text-on-surface-variant/30 mx-auto mb-4" />
+          <h2 className="text-on-surface text-xl font-bold mb-2">Tournament Not Found</h2>
+          <p className="text-on-surface-variant text-sm mb-6">This tournament may have been removed or the link is invalid.</p>
+          <button
+            onClick={function() { navigate('/events'); }}
+            className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+            Back to Events
+          </button>
+        </div>
+      </PageLayout>
     );
   }
 
-  var phaseColors = {draft: '#9AAABF', registration: '#9B72CF', check_in: '#E8A838', in_progress: '#52C47C', complete: '#4ECDC4'};
-  var phaseLabels = {draft: 'Draft', registration: 'Registration Open', check_in: 'Check-In Open', in_progress: 'In Progress', completed: 'Completed', complete: 'Complete'};
+  // ── Derived data ────────────────────────────────────────────────────────────
+  var phaseColors = {draft: 'text-on-surface-variant', registration: 'text-secondary', check_in: 'text-primary', in_progress: 'text-tertiary', complete: 'text-tertiary'};
+  var phaseBgs = {draft: 'bg-on-surface-variant/10 border-on-surface-variant/20', registration: 'bg-secondary/10 border-secondary/20', check_in: 'bg-primary/10 border-primary/20', in_progress: 'bg-tertiary/10 border-tertiary/20', complete: 'bg-tertiary/10 border-tertiary/20'};
+  var phaseLabels = {draft: 'DRAFT', registration: 'REGISTRATION OPEN', check_in: 'CHECK-IN OPEN', in_progress: 'IN PROGRESS', completed: 'COMPLETED', complete: 'COMPLETE'};
   var dateStr = tournament.date ? new Date(tournament.date).toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'TBD';
 
+  var isLive = phase === 'in_progress';
+  var isComplete = phase === 'complete';
+  var totalGames = tournament.round_count || 3;
+
   var regBtnLabel = 'Register';
-  var regBtnVariant = 'primary';
   var regBtnAction = handleRegister;
   var regBtnDisabled = false;
+  var regBtnClass = 'bg-primary text-on-primary shadow-lg shadow-primary/20 hover:brightness-110';
   if (myReg && myReg.status === 'registered' && phase === 'check_in') {
-    regBtnLabel = 'Check In'; regBtnVariant = 'success'; regBtnAction = handleCheckIn;
+    regBtnLabel = 'Check In'; regBtnClass = 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/20 hover:brightness-110'; regBtnAction = handleCheckIn;
   } else if (myReg && myReg.status === 'checked_in') {
-    regBtnLabel = 'Checked In'; regBtnVariant = 'success'; regBtnDisabled = true;
+    regBtnLabel = 'Checked In'; regBtnClass = 'bg-tertiary/20 text-tertiary'; regBtnDisabled = true;
   } else if (myReg && myReg.status === 'waitlisted') {
-    regBtnLabel = 'Waitlisted (#' + (myReg.waitlist_position || '?') + ')'; regBtnVariant = 'dark'; regBtnDisabled = true;
+    regBtnLabel = 'Waitlisted (#' + (myReg.waitlist_position || '?') + ')'; regBtnClass = 'bg-surface-container-high text-on-surface-variant'; regBtnDisabled = true;
   } else if (myReg && myReg.status === 'registered') {
-    regBtnLabel = 'Registered'; regBtnVariant = 'success'; regBtnDisabled = true;
+    regBtnLabel = 'Registered'; regBtnClass = 'bg-tertiary/20 text-tertiary'; regBtnDisabled = true;
   } else if (phase !== 'registration' && phase !== 'check_in') {
-    regBtnLabel = phase === 'draft' ? 'Registration Not Open' : 'Registration Closed'; regBtnDisabled = true; regBtnVariant = 'dark';
+    regBtnLabel = phase === 'draft' ? 'Registration Not Open' : 'Registration Closed'; regBtnDisabled = true; regBtnClass = 'bg-surface-container-high text-on-surface-variant/50';
   }
 
   var canUnregister = myReg && (phase === 'registration' || phase === 'check_in') && myReg.status !== 'dropped';
@@ -622,18 +673,18 @@ export default function FlashTournamentScreen(props) {
 
   var currentGameLobbies = lobbies.filter(function(l) { return l.game_number === currentGameNumber; });
   var allLobbiesLocked = currentGameLobbies.length > 0 && currentGameLobbies.every(function(l) { return l.status === 'locked'; });
-  var isLastGame = currentGameNumber >= (tournament && tournament.round_count ? tournament.round_count : 3);
+  var isLastGame = currentGameNumber >= totalGames;
 
   var allGameNums = [];
   gameResults.forEach(function(g) { if (allGameNums.indexOf(g.game_number) === -1) allGameNums.push(g.game_number); });
   allGameNums.sort(function(a, b) { return a - b; });
 
-  var tabs = [{id: 'info', label: 'Info'}, {id: 'players', label: 'Players (' + regCount + ')'}];
+  var tabs = [{id: 'info', label: 'Info', icon: 'info'}, {id: 'players', label: 'Players (' + regCount + ')', icon: 'group'}];
   if (phase === 'in_progress' || phase === 'complete' || (phase === 'check_in' && isAdmin)) {
-    tabs.push({id: 'bracket', label: 'Lobbies' + (lobbies.length > 0 ? ' (' + lobbies.length + ')' : '')});
+    tabs.push({id: 'bracket', label: 'Lobbies' + (lobbies.length > 0 ? ' (' + currentGameLobbies.length + ')' : ''), icon: 'groups'});
   }
   if (phase === 'in_progress' || phase === 'complete') {
-    tabs.push({id: 'standings', label: phase === 'complete' ? 'Final Results' : 'Standings'});
+    tabs.push({id: 'standings', label: isComplete ? 'Final Results' : 'Standings', icon: 'bar_chart'});
   }
 
   var sortedRegs = [].concat(registrations).sort(function(a, b) {
@@ -641,514 +692,633 @@ export default function FlashTournamentScreen(props) {
     return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
   });
 
+  var lobbyLetters = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <PageLayout>
-      <div className="page wrap">
+      <div className="max-w-5xl mx-auto">
+
+        {/* Back nav */}
         <button
-          onClick={function() { setScreen('tournaments'); }}
-          className="flex items-center gap-1 text-primary text-[13px] font-semibold cursor-pointer pb-4 bg-transparent border-0 font-[inherit]"
+          onClick={function() { navigate('/events'); }}
+          className="flex items-center gap-1.5 text-on-surface-variant/50 hover:text-primary text-xs font-nav font-bold tracking-wider uppercase mb-6 bg-transparent border-0 cursor-pointer transition-colors"
         >
-          {'\u2190 Back to Tournaments'}
+          <Icon name="arrow_back" size={14} />
+          {"Back to Events"}
         </button>
 
-        <div className="rounded-2xl p-7 mb-5 bg-gradient-to-br from-secondary/[0.12] to-tertiary/[0.08] border border-secondary/20">
-          <div className="flex items-center gap-2.5 mb-3 flex-wrap">
-            <span
-              className="text-[11px] font-bold uppercase tracking-wide bg-white/[.06] rounded-md px-2.5 py-[3px]"
-              style={{color: phaseColors[phase]}}
-            >
-              {phaseLabels[phase] || phase}
-            </span>
-            <span className="text-[11px] text-on-surface-variant">{dateStr}</span>
-          </div>
-          <h1 className="text-on-surface text-[28px] font-bold mb-2">{tournament.name}</h1>
-          <div className="flex gap-4 flex-wrap text-[13px] text-on-surface-variant">
-            <span>{(tournament.round_count || 3) + ' games'}</span>
-            <span>{(tournament.seeding_method || 'snake') + ' seeding'}</span>
-            <span>{maxP + ' max players'}</span>
+        {/* ── Page header ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <div>
+            <h1 className="font-editorial italic text-3xl md:text-4xl text-on-background mb-2">
+              {tournament.name}
+            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className={"px-3 py-1 rounded-sm font-nav text-xs tracking-wider font-bold border " + (phaseBgs[phase] || 'bg-surface-container-high border-outline-variant/20') + " " + (phaseColors[phase] || 'text-on-surface-variant')}>
+                {phaseLabels[phase] || phase}
+              </span>
+              <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
+                <Icon name="calendar_today" size={13} />
+                {dateStr}
+              </div>
+              <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
+                <Icon name="sports_esports" size={13} />
+                {totalGames + " games - " + (tournament.seeding_method || 'snake') + " seeding"}
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* ── Prize pool ── */}
         {prizes.length > 0 && (
-          <Panel className="p-[18px] mb-4">
-            <div className="font-bold text-sm text-[#E8A838] mb-3">{'Prize Pool'}</div>
-            <div className="flex gap-2.5 flex-wrap">
+          <div className="bg-surface-container-low rounded-[4px] border border-primary/15 p-5 mb-6 overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-3 opacity-5">
+              <Icon name="emoji_events" size={64} />
+            </div>
+            <div className="font-nav font-bold text-xs tracking-widest uppercase text-primary mb-4">Prize Pool</div>
+            <div className="flex gap-3 flex-wrap">
               {prizes.map(function(p, i) {
-                var colors = ['#E8A838', '#C0C0C0', '#CD7F32'];
-                var c = colors[i] || '#9B72CF';
+                var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70'];
+                var bgs = ['bg-primary/10 border-primary/25', 'bg-on-surface-variant/8 border-on-surface-variant/15', 'bg-on-surface-variant/5 border-on-surface-variant/10'];
                 return (
-                  <div key={p.placement + '-' + p.prize} className="bg-white/[.03] rounded-[10px] px-[18px] py-3 min-w-[80px] text-center" style={{border: '1px solid ' + c + '33'}}>
-                    <div className="text-xl font-bold mb-1" style={{color: c}}>{'#' + p.placement}</div>
-                    <div className="text-[13px] text-on-surface font-semibold">{p.prize}</div>
+                  <div key={p.placement + '-' + p.prize} className={"rounded-[4px] px-5 py-3 min-w-[90px] text-center border " + (bgs[i] || 'bg-surface-container-high border-outline-variant/10')}>
+                    <div className={"text-lg font-display font-bold mb-0.5 " + (colors[i] || 'text-on-surface-variant/50')}>{"#" + p.placement}</div>
+                    <div className="text-xs text-on-surface font-semibold">{p.prize}</div>
                   </div>
                 );
               })}
             </div>
-          </Panel>
+          </div>
         )}
 
-        <Panel className="px-5 py-4 mb-4">
-          <div className="flex items-center justify-between flex-wrap gap-2.5">
+        {/* ── Registration bar ── */}
+        <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 p-5 mb-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <div className="text-[22px] font-bold text-on-surface">{regCount + ' / ' + maxP}</div>
-              <div className="text-[11px] text-on-surface-variant">{'players registered' + (phase === 'check_in' ? ' - ' + checkedInCount + ' checked in' : '')}</div>
+              <div className="flex items-baseline gap-2">
+                <span className="font-mono text-2xl font-bold text-on-surface">{regCount}</span>
+                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + maxP}</span>
+              </div>
+              <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
+                {"players registered" + (phase === 'check_in' ? ' - ' + checkedInCount + ' checked in' : '')}
+              </div>
             </div>
             <div className="flex gap-2 items-center">
-              <Btn v={regBtnVariant} onClick={regBtnAction} disabled={regBtnDisabled || actionLoading}>{actionLoading ? '...' : regBtnLabel}</Btn>
-              {canUnregister && <Btn v="dark" s="sm" onClick={handleUnregister} disabled={actionLoading}>Unregister</Btn>}
+              <button
+                onClick={regBtnAction}
+                disabled={regBtnDisabled || actionLoading}
+                className={"px-5 py-2.5 font-nav font-bold text-xs tracking-widest uppercase rounded transition-all disabled:opacity-40 disabled:pointer-events-none " + regBtnClass}>
+                {actionLoading ? '...' : regBtnLabel}
+              </button>
+              {canUnregister && (
+                <button
+                  onClick={handleUnregister}
+                  disabled={actionLoading}
+                  className="px-3 py-2 bg-surface-container-high text-on-surface-variant font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:bg-error/10 hover:text-error transition-colors">
+                  Unregister
+                </button>
+              )}
             </div>
           </div>
-          <div className="h-1 rounded-sm bg-white/[.06] mt-2.5">
-            <div className="h-1 rounded-sm bg-primary transition-all duration-300" style={{width: Math.min(100, Math.round((regCount / maxP) * 100)) + '%'}}/>
+          <div className="w-full bg-surface-container-lowest rounded-full h-1.5 overflow-hidden mt-3">
+            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{width: Math.min(100, Math.round((regCount / maxP) * 100)) + '%'}} />
           </div>
-        </Panel>
+        </div>
 
-        <div
-          className="flex gap-1 mb-4 border-b border-on-surface/[.06] pb-0.5 overflow-x-auto whitespace-nowrap"
-          style={{WebkitOverflowScrolling: 'touch', msOverflowStyle: 'none', scrollbarWidth: 'none'}}
-        >
+        {/* ── All lobbies locked banner ── */}
+        {isLive && allLobbiesLocked && (
+          <div className="mb-6 bg-tertiary/8 border border-tertiary/25 rounded-[4px] px-5 py-3 flex items-center gap-3">
+            <Icon name="check_circle" size={18} fill className="text-tertiary" />
+            <span className="text-tertiary font-nav font-bold text-sm tracking-wider flex-1">
+              {"All lobbies locked" + (isLastGame ? " - ready to finalize!" : " - ready for next game!")}
+            </span>
+          </div>
+        )}
+
+        {/* ── Complete banner ── */}
+        {isComplete && standings.length > 0 && (
+          <div className="mb-6 bg-primary/8 border border-primary/30 rounded-[4px] px-5 py-4 flex items-center gap-4">
+            <Icon name="emoji_events" size={24} fill className="text-primary" />
+            <div className="flex-1">
+              <div className="font-bold text-primary text-base mb-0.5">Tournament Complete!</div>
+              <div className="text-on-surface-variant text-sm">{"All " + totalGames + " games finished. Final results are in."}</div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Tabs ── */}
+        <div className="flex gap-0.5 mb-6 border-b border-outline-variant/10 overflow-x-auto" style={{WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none'}}>
           {tabs.map(function(t) {
             var active = activeTab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={function() { setActiveTab(t.id); }}
-                className={'shrink-0 whitespace-nowrap border-0 border-b-2 px-4 py-2 text-[13px] font-[inherit] cursor-pointer transition-all duration-150 ' + (active ? 'bg-secondary/15 border-b-secondary font-bold text-on-surface' : 'bg-transparent border-b-transparent font-medium text-on-surface-variant')}
+                className={"shrink-0 flex items-center gap-1.5 border-0 border-b-2 px-4 py-2.5 font-nav text-xs tracking-wider uppercase cursor-pointer transition-all " + (active ? 'bg-primary/5 border-b-primary font-bold text-primary' : 'bg-transparent border-b-transparent font-bold text-on-surface-variant/50 hover:text-on-surface-variant')}
               >
+                <Icon name={t.icon} size={14} />
                 {t.label}
               </button>
             );
           })}
         </div>
 
+        {/* ══════════════════════════════════════════════════════════════════════
+            TAB: INFO
+           ══════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'info' && (
-          <div className="flex flex-col gap-3.5">
-            <Panel className="p-[18px]">
-              <div className="font-bold text-sm text-on-surface mb-2.5">Tournament Details</div>
-              <div className="grid grid-cols-2 gap-2.5 text-[13px]">
-                <div><span className="text-on-surface-variant">Format: </span><span className="text-on-surface font-semibold">{tournament.seeding_method || 'snake'}</span></div>
-                <div><span className="text-on-surface-variant">Games: </span><span className="text-on-surface font-semibold">{tournament.round_count || 3}</span></div>
-                <div><span className="text-on-surface-variant">Max Players: </span><span className="text-on-surface font-semibold">{maxP}</span></div>
-                <div><span className="text-on-surface-variant">Lobby Host: </span><span className="text-on-surface font-semibold">{tournament.lobby_host_method || 'random'}</span></div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 space-y-5">
+              {/* Tournament details */}
+              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <Icon name="tune" size={18} className="text-primary" />
+                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Details</span>
+                </div>
+                <div className="grid grid-cols-2 gap-px bg-outline-variant/5">
+                  {[
+                    {label: 'Format', value: tournament.seeding_method || 'snake', icon: 'shuffle'},
+                    {label: 'Games', value: totalGames, icon: 'videogame_asset'},
+                    {label: 'Max Players', value: maxP, icon: 'group'},
+                    {label: 'Lobby Host', value: tournament.lobby_host_method || 'highest rank', icon: 'star'}
+                  ].map(function(item) {
+                    return (
+                      <div key={item.label} className="bg-surface-container-low p-4">
+                        <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-1">{item.label}</div>
+                        <div className="font-mono text-sm font-bold text-on-surface">{item.value}</div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </Panel>
-            {tournament.announcement && (
-              <Panel className="p-4" style={{background: 'rgba(232,168,56,.06)', borderColor: 'rgba(232,168,56,.2)'}}>
-                <div className="text-xs font-bold text-[#E8A838] mb-1.5">Announcement</div>
-                <div className="text-[13px] text-on-surface leading-relaxed">{tournament.announcement}</div>
-              </Panel>
+
+              {/* Announcement */}
+              {tournament.announcement && (
+                <div className="bg-primary/5 rounded-[4px] border border-primary/15 p-5">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon name="campaign" size={16} className="text-primary" />
+                    <span className="text-xs font-nav font-bold text-primary tracking-widest uppercase">Announcement</span>
+                  </div>
+                  <div className="text-sm text-on-surface leading-relaxed">{tournament.announcement}</div>
+                </div>
+              )}
+            </div>
+
+            {/* Right sidebar: Round progress */}
+            <div className="lg:col-span-5 space-y-5">
+              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 p-5">
+                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Round Progress</h3>
+                <div className="space-y-2">
+                  {Array.from({length: totalGames}, function(_, idx) { return idx + 1; }).map(function(r) {
+                    var isGameComplete = r < currentGameNumber || (r === currentGameNumber && allLobbiesLocked);
+                    var isCurrent = r === currentGameNumber && !allLobbiesLocked;
+                    var isFuture = r > currentGameNumber;
+                    return (
+                      <div key={r} className={"flex items-center gap-3 px-3 py-2.5 rounded-sm border transition-colors " + (isGameComplete ? "bg-tertiary/5 border-tertiary/20" : isCurrent ? "bg-primary/8 border-primary/30" : "bg-surface-container-lowest/50 border-outline-variant/8")}>
+                        <div className={"w-6 h-6 rounded-sm flex items-center justify-center flex-shrink-0 " + (isGameComplete ? "bg-tertiary/20" : isCurrent ? "bg-primary/20" : "bg-surface-container-high")}>
+                          {isGameComplete
+                            ? <Icon name="check" size={14} className="text-tertiary" />
+                            : isCurrent
+                              ? <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span></span>
+                              : <span className="font-mono text-[10px] text-on-surface-variant/30 font-bold">{r}</span>
+                          }
+                        </div>
+                        <div className="flex-1">
+                          <div className={"text-xs font-nav font-bold uppercase tracking-widest " + (isGameComplete ? "text-tertiary" : isCurrent ? "text-primary" : "text-on-surface-variant/40")}>
+                            {"Game " + r}
+                          </div>
+                        </div>
+                        <div className={"text-[10px] font-mono font-bold " + (isGameComplete ? "text-tertiary" : isCurrent ? "text-primary" : "text-on-surface-variant/30")}>
+                          {isGameComplete ? "Done" : isCurrent ? "Active" : "Soon"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Live status card */}
+              {(isLive || isComplete) && (
+                <div className={"bg-surface-container-low rounded-[4px] p-5 border-l-4 relative overflow-hidden " + (isLive ? "border-primary" : "border-tertiary")}>
+                  <div className="absolute top-0 right-0 p-3 opacity-5">
+                    <Icon name="sensors" size={48} />
+                  </div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="relative flex h-3 w-3">
+                      <span className={"animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 " + (isLive ? "bg-error" : "bg-tertiary")}></span>
+                      <span className={"relative inline-flex rounded-full h-3 w-3 " + (isLive ? "bg-error" : "bg-tertiary")}></span>
+                    </span>
+                    <span className="font-display text-lg tracking-tighter">
+                      {isLive ? "LIVE - Game " + currentGameNumber + " of " + totalGames : "COMPLETE"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
+                      <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase mb-1">Lobbies</div>
+                      <div className="font-mono text-lg font-bold text-primary">{currentGameLobbies.length}</div>
+                    </div>
+                    <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
+                      <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase mb-1">Checked In</div>
+                      <div className="font-mono text-lg font-bold text-tertiary">{checkedInCount}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            TAB: PLAYERS
+           ══════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'players' && (
+          <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+              <Icon name="group" size={18} className="text-primary" />
+              <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">{"Registered Players (" + registrations.length + ")"}</span>
+            </div>
+            {sortedRegs.length === 0 ? (
+              <div className="text-center py-16 px-5">
+                <Icon name="person_add" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
+                <div className="text-on-surface-variant text-sm">No players registered yet. Share the tournament link!</div>
+              </div>
+            ) : (
+              <div className="divide-y divide-outline-variant/5">
+                {sortedRegs.map(function(r, idx) {
+                  var pData = r.players || {};
+                  var isCheckedIn = r.status === 'checked_in';
+                  var isDropped = r.status === 'dropped';
+                  var isWait = r.status === 'waitlisted';
+                  var isMe = myPlayer && r.player_id === myPlayer.id;
+                  return (
+                    <div key={r.id || r.player_id} className={"flex items-center gap-3 px-5 py-2.5 " + (isMe ? "bg-secondary/5" : isDropped ? "opacity-40" : "")}>
+                      <span className={"font-mono text-xs font-bold min-w-[22px] text-center " + (isCheckedIn ? "text-tertiary" : isWait ? "text-primary" : isDropped ? "text-error" : "text-secondary")}>
+                        {isCheckedIn ? '\u2713' : isWait ? '\u25CB' : isDropped ? '\u2717' : '\u25CF'}
+                      </span>
+                      <div className="w-7 h-7 rounded-sm bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                        <Icon name="person" size={14} className="text-on-surface-variant/40" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={"text-sm font-semibold " + (isMe ? "text-secondary" : "text-on-surface")}>{pData.username || 'Player'}</div>
+                        <div className="text-[10px] text-on-surface-variant/40">{(pData.rank || 'Unranked') + " - " + (pData.region || '')}</div>
+                      </div>
+                      <span className={"text-[10px] font-nav font-bold tracking-widest uppercase rounded-sm px-2 py-0.5 border " + (isCheckedIn ? "text-tertiary bg-tertiary/10 border-tertiary/20" : isWait ? "text-primary bg-primary/10 border-primary/20" : isDropped ? "text-error bg-error/10 border-error/20" : "text-secondary bg-secondary/10 border-secondary/20")}>
+                        {r.status === 'checked_in' ? 'Checked In' : r.status}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
 
-        {activeTab === 'players' && (
-          <Panel className="p-4">
-            <div className="font-bold text-sm text-on-surface mb-3">{'Registered Players (' + registrations.length + ')'}</div>
-            {sortedRegs.length === 0 && (
-              <div className="text-center py-8 px-5 text-on-surface-variant text-sm">No players registered yet. Share the tournament link!</div>
-            )}
-            <div className="flex flex-col gap-1">
-              {sortedRegs.map(function(r, idx) {
-                var pData = r.players || {};
-                var statusColors = {checked_in: '#52C47C', registered: '#9B72CF', waitlisted: '#E8A838', dropped: '#F87171'};
-                var statusIcons = {checked_in: '\u2713', registered: '\u25CF', waitlisted: '\u25CB', dropped: '\u2717'};
-                return (
-                  <div key={r.id || r.player_id} className="flex items-center gap-2.5 px-2.5 py-2 bg-white/[.02] rounded-md border border-on-surface/[.04]">
-                    <span className="text-sm w-[18px] text-center" style={{color: statusColors[r.status] || '#8896A8'}}>{statusIcons[r.status] || '?'}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-[13px] text-on-surface">{pData.username || 'Player'}</div>
-                      <div className="text-[11px] text-on-surface-variant">{(pData.rank || 'Unranked') + ' - ' + (pData.region || '')}</div>
-                    </div>
-                    <span className="text-[11px] font-bold uppercase" style={{color: statusColors[r.status] || '#8896A8'}}>{r.status === 'checked_in' ? 'Checked In' : r.status}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </Panel>
-        )}
-
+        {/* ══════════════════════════════════════════════════════════════════════
+            TAB: LOBBIES (BRACKET)
+           ══════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'bracket' && (
-          <div className="flex flex-col gap-3">
-            {phase === 'in_progress' && myPlayer && myLobby && (
-              <Panel className="p-[18px]" style={{borderColor: 'rgba(155,114,207,.35)', background: 'rgba(155,114,207,.05)'}}>
-                <div className="font-bold text-sm text-primary mb-3">{'Game ' + currentGameNumber + ' - Report Your Placement'}</div>
+          <div className="space-y-5">
+
+            {/* My placement report panel */}
+            {isLive && myPlayer && myLobby && (
+              <div className="bg-surface-container-low rounded-[4px] border-l-4 border-secondary p-5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-3 opacity-5">
+                  <Icon name="edit_note" size={48} />
+                </div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon name="edit_note" size={18} className="text-secondary" />
+                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">{"Game " + currentGameNumber + " - Report Your Placement"}</span>
+                </div>
                 {myReport ? (
                   <div>
-                    <div className="flex items-center gap-2.5 mb-2.5 flex-wrap">
-                      <span className="text-[13px] text-[#52C47C] font-semibold">{'\u2713 You reported: ' + myReport.reported_placement + (myReport.reported_placement === 1 ? 'st' : myReport.reported_placement === 2 ? 'nd' : myReport.reported_placement === 3 ? 'rd' : 'th') + ' place'}</span>
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <span className="flex items-center gap-1.5 text-tertiary font-bold text-sm">
+                        <Icon name="check_circle" size={16} fill className="text-tertiary" />
+                        {"You reported: #" + myReport.reported_placement}
+                      </span>
                       <button
                         onClick={function() { setMyPlacement(myReport.reported_placement); }}
-                        className="bg-transparent rounded-md px-2.5 py-1 text-[11px] text-primary cursor-pointer font-[inherit] border border-secondary/30"
+                        className="bg-transparent text-secondary text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-secondary/30 rounded px-2.5 py-1 hover:bg-secondary/10 transition-colors"
                       >
                         Update
                       </button>
                     </div>
                     {myPlacement > 0 && (
-                      <div className="flex gap-2 items-center mb-2.5">
-                        <select
-                          value={myPlacement}
-                          onChange={function(e) { setMyPlacement(parseInt(e.target.value) || 0); }}
-                          className="bg-white/[.06] rounded-md px-2.5 py-[7px] text-[13px] text-on-surface font-[inherit] outline-none border border-secondary/30"
-                        >
+                      <div className="flex gap-2 items-center mt-2">
+                        <Sel value={String(myPlacement)} onChange={function(v) { setMyPlacement(parseInt(v) || 0); }}>
                           {(myLobby.player_ids || []).map(function(_, i) {
-                            return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
+                            return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
                           })}
-                        </select>
-                        <Btn v="primary" s="sm" onClick={function() { submitReport(myPlacement); }}>Submit</Btn>
-                        <Btn v="dark" s="sm" onClick={function() { setMyPlacement(0); }}>Cancel</Btn>
+                        </Sel>
+                        <button onClick={function() { submitReport(myPlacement); }} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Submit</button>
+                        <button onClick={function() { setMyPlacement(0); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex gap-2 items-center mb-2.5 flex-wrap">
-                    <select
-                      value={myPlacement}
-                      onChange={function(e) { setMyPlacement(parseInt(e.target.value) || 0); }}
-                      className="bg-white/[.06] rounded-md px-2.5 py-[7px] text-[13px] text-on-surface font-[inherit] outline-none"
-                      style={{border: '1px solid rgba(155,114,207,.3)'}}
-                    >
-                      <option value={0}>Select placement...</option>
+                  <div className="flex gap-2 items-center flex-wrap">
+                    <Sel value={String(myPlacement)} onChange={function(v) { setMyPlacement(parseInt(v) || 0); }}>
+                      <option value="0">{"Select placement..."}</option>
                       {(myLobby.player_ids || []).map(function(_, i) {
-                        return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th') + ' place'}</option>);
+                        return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
                       })}
-                    </select>
-                    <Btn v="primary" s="sm" onClick={function() { if (myPlacement > 0) submitReport(myPlacement); else toast('Select a placement first', 'error'); }} disabled={myPlacement === 0}>Submit</Btn>
+                    </Sel>
+                    <button
+                      onClick={function() { if (myPlacement > 0) submitReport(myPlacement); else toast('Select a placement first', 'error'); }}
+                      disabled={myPlacement === 0}
+                      className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                      Submit
+                    </button>
                   </div>
                 )}
+
+                {/* Dispute link */}
                 {myReport && !disputeForm.open && (
                   <button
                     onClick={function() { setDisputeForm({open: true, lobbyId: myLobby.id, claimed: myReport.reported_placement, reason: '', screenshotUrl: ''}); }}
-                    className="bg-transparent rounded-md px-3 py-[5px] text-[11px] text-[#F87171] cursor-pointer font-[inherit] mt-1 border border-[#F87171]/30"
+                    className="mt-3 bg-transparent text-error text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-error/20 rounded px-3 py-1.5 hover:bg-error/10 transition-colors"
                   >
-                    {'Dispute this result'}
+                    Dispute this result
                   </button>
                 )}
+
+                {/* Dispute form */}
                 {disputeForm.open && disputeForm.lobbyId === myLobby.id && (
-                  <div className="mt-3 p-[14px] rounded-[10px] bg-[#F87171]/[0.05] border border-[#F87171]/20">
-                    <div className="font-bold text-xs text-[#F87171] mb-2.5">Submit Dispute</div>
+                  <div className="mt-4 p-4 rounded-[4px] bg-error/5 border border-error/15">
+                    <div className="font-nav font-bold text-xs text-error tracking-widest uppercase mb-3">Submit Dispute</div>
                     <div className="flex gap-2 mb-2 flex-wrap items-center">
-                      <label className="text-xs text-on-surface-variant min-w-[80px]">My actual placement:</label>
-                      <select
-                        value={disputeForm.claimed}
-                        onChange={function(e) { setDisputeForm(Object.assign({}, disputeForm, {claimed: parseInt(e.target.value) || 0})); }}
-                        className="bg-white/[.06] rounded-md px-2.5 py-[6px] text-xs text-on-surface font-[inherit] outline-none border border-[#F87171]/30"
-                      >
-                        <option value={0}>Select...</option>
+                      <label className="text-xs text-on-surface-variant min-w-[100px]">Actual placement:</label>
+                      <Sel value={String(disputeForm.claimed)} onChange={function(v) { setDisputeForm(Object.assign({}, disputeForm, {claimed: parseInt(v) || 0})); }}>
+                        <option value="0">Select...</option>
                         {(myLobby.player_ids || []).map(function(_, i) {
-                          return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1 + (i === 0 ? 'st' : i === 1 ? 'nd' : i === 2 ? 'rd' : 'th')}</option>);
+                          return (<option key={"d-" + (i + 1)} value={i + 1}>{i + 1}</option>);
                         })}
-                      </select>
+                      </Sel>
                     </div>
                     <textarea
                       placeholder="Reason for dispute..."
                       value={disputeForm.reason}
                       onChange={function(e) { setDisputeForm(Object.assign({}, disputeForm, {reason: e.target.value})); }}
                       rows={2}
-                      className="w-full bg-white/[.05] rounded-md px-2.5 py-2 text-xs text-on-surface font-[inherit] outline-none resize-y mb-2 border border-[#F87171]/20 box-border"
+                      className="w-full bg-surface-container-lowest border border-error/15 rounded text-xs text-on-surface px-3 py-2 resize-y mb-2 focus:outline-none focus:ring-1 focus:ring-error box-border"
                     />
                     <input
                       placeholder="Screenshot URL (optional)"
                       value={disputeForm.screenshotUrl}
                       onChange={function(e) { setDisputeForm(Object.assign({}, disputeForm, {screenshotUrl: e.target.value})); }}
-                      className="w-full bg-white/[.05] rounded-md px-2.5 py-[7px] text-xs text-on-surface font-[inherit] outline-none mb-2.5 border border-[#F87171]/20 box-border"
+                      className="w-full bg-surface-container-lowest border border-error/15 rounded text-xs text-on-surface px-3 py-2 mb-3 focus:outline-none focus:ring-1 focus:ring-error box-border"
                     />
                     <div className="flex gap-2">
-                      <Btn v="danger" s="sm" onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason}>Submit Dispute</Btn>
-                      <Btn v="dark" s="sm" onClick={function() { setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''}); }}>Cancel</Btn>
+                      <button onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason} className="px-4 py-2 bg-error text-on-error font-nav font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">Submit Dispute</button>
+                      <button onClick={function() { setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''}); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
                     </div>
                   </div>
                 )}
-              </Panel>
-            )}
-            {phase === 'in_progress' && myPlayer && myLobby && myLobby.status === 'locked' && myReport && (
-              <div
-                className="mt-2.5 px-[14px] py-2.5 rounded-[10px] text-[13px] font-semibold"
-                style={{
-                  background: 'rgba(78,205,196,.08)',
-                  border: '1px solid rgba(78,205,196,.2)',
-                  color: myReport.reported_placement === 1 ? '#E8A838' : myReport.reported_placement === 2 ? '#C0C0C0' : myReport.reported_placement === 3 ? '#CD7F32' : '#4ECDC4'
-                }}
-              >
-                {'Your result: ' + myReport.reported_placement + (myReport.reported_placement === 1 ? 'st' : myReport.reported_placement === 2 ? 'nd' : myReport.reported_placement === 3 ? 'rd' : 'th') + ' place - ' + (PTS[myReport.reported_placement] || 0) + ' points'}
               </div>
             )}
-            {phase === 'in_progress' && myPlayer && myDisputes.length > 0 && (
-              <div className="px-[18px] py-[14px] rounded-[10px] flex flex-col gap-2.5" style={{background: 'rgba(232,168,56,.06)', border: '1px solid rgba(232,168,56,.2)'}}>
-                <div className="font-bold text-xs text-[#E8A838] tracking-[.05em] uppercase">Your Disputes</div>
-                {myDisputes.map(function(d) {
-                  var isPending = d.status === 'open';
-                  var isAccepted = d.status === 'resolved_accepted';
-                  var statusColor = isPending ? '#E8A838' : isAccepted ? '#52C47C' : '#F87171';
-                  var statusLabel = isPending ? 'Pending review' : isAccepted ? 'Accepted - placement updated' : 'Rejected';
-                  return (
-                    <div key={d.id} className="bg-black/25 rounded-lg px-3 py-2.5">
-                      <div className="flex items-center gap-2" style={{marginBottom: d.resolution_note ? 6 : 0}}>
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{background: statusColor}}/>
-                        <div className="text-xs font-semibold" style={{color: statusColor}}>{statusLabel}</div>
-                        {d.claimed_placement && (
-                          <div className="text-[11px] text-on-surface-variant ml-auto">{'Claimed: ' + d.claimed_placement + (d.claimed_placement === 1 ? 'st' : d.claimed_placement === 2 ? 'nd' : d.claimed_placement === 3 ? 'rd' : 'th')}</div>
-                        )}
+
+            {/* My disputes */}
+            {isLive && myPlayer && myDisputes.length > 0 && (
+              <div className="bg-primary/5 rounded-[4px] border border-primary/15 p-5">
+                <div className="font-nav font-bold text-xs text-primary tracking-widest uppercase mb-3">Your Disputes</div>
+                <div className="space-y-2">
+                  {myDisputes.map(function(d) {
+                    var isPending = d.status === 'open';
+                    var isAccepted = d.status === 'resolved_accepted';
+                    return (
+                      <div key={d.id} className="bg-surface-container-lowest rounded-sm px-4 py-2.5 border border-outline-variant/10">
+                        <div className="flex items-center gap-2">
+                          <div className={"w-2 h-2 rounded-full shrink-0 " + (isPending ? "bg-primary" : isAccepted ? "bg-tertiary" : "bg-error")} />
+                          <div className={"text-xs font-nav font-bold tracking-wider " + (isPending ? "text-primary" : isAccepted ? "text-tertiary" : "text-error")}>
+                            {isPending ? 'Pending review' : isAccepted ? 'Accepted' : 'Rejected'}
+                          </div>
+                          {d.claimed_placement && (
+                            <div className="text-[10px] text-on-surface-variant/40 font-mono ml-auto">{"Claimed: #" + d.claimed_placement}</div>
+                          )}
+                        </div>
                       </div>
-                      {d.resolution_note && (
-                        <div className="text-[11px] text-on-surface-variant pl-4">{d.resolution_note}</div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Lobby grid */}
+            {lobbies.length === 0 ? (
+              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 text-center py-16">
+                <Icon name="groups" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
+                <div className="font-bold text-base text-on-surface mb-1">Lobbies</div>
+                <div className="text-sm text-on-surface-variant">Lobbies will appear once the admin generates them.</div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {currentGameLobbies.map(function(lobby, idx) {
+                  var lobbyPlayers = (lobby.player_ids || []).map(function(pid) { return getPlayerById(pid); });
+                  var hostId = lobby.host_player_id;
+                  var isMyLobby = myPlayer && (lobby.player_ids || []).indexOf(myPlayer.id) !== -1;
+                  var lobbyLetter = lobbyLetters[idx] || String(idx + 1);
+                  var isLocked = lobby.status === 'locked' || lobby.status === 'completed';
+                  var codeKey = lobby.id;
+                  var codeInput = lobbyCodeInputs[codeKey] || '';
+                  var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobby.id; });
+                  var reportedCount = lobbyReports.length;
+                  var totalCount = (lobby.player_ids || []).length;
+                  var allReported = reportedCount === totalCount && totalCount > 0;
+                  var placementCounts = {};
+                  lobbyReports.forEach(function(r) { placementCounts[r.reported_placement] = (placementCounts[r.reported_placement] || 0) + 1; });
+                  var hasDuplicate = Object.keys(placementCounts).some(function(k) { return placementCounts[k] > 1; });
+                  var lobbyDisputes = disputes.filter(function(d) { return d.lobby_id === lobby.id && d.status === 'open'; });
+                  var canLock = allReported && !hasDuplicate && !isLocked;
+                  var iAmHost = myPlayer && hostId === myPlayer.id;
+
+                  return (
+                    <div
+                      key={lobby.id}
+                      className={"bg-surface-container-high rounded-[4px] overflow-hidden border-2 transition-all " + (isMyLobby && !isLocked ? "border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]" : isLocked ? "border-tertiary/30" : hasDuplicate ? "border-error/40" : "border-outline-variant/15")}
+                    >
+                      {/* Lobby header */}
+                      <div className={"px-4 py-3 flex justify-between items-center border-b " + (isMyLobby && !isLocked ? "bg-secondary/10 border-secondary/20" : isLocked ? "bg-tertiary/5 border-tertiary/15" : "bg-surface-container border-outline-variant/10")}>
+                        <div className="flex items-center gap-2">
+                          <span className={"font-display " + (isMyLobby && !isLocked ? "text-secondary" : isLocked ? "text-tertiary" : "text-on-surface-variant/80")}>
+                            {"LOBBY " + lobbyLetter}
+                          </span>
+                          {isMyLobby && !isLocked && (
+                            <span className="bg-secondary/20 text-[10px] text-secondary px-2 py-0.5 rounded font-nav font-bold tracking-tighter">YOUR LOBBY</span>
+                          )}
+                          {isLocked && (
+                            <span className="bg-tertiary/10 text-[10px] text-tertiary px-2 py-0.5 rounded font-nav font-bold tracking-tighter flex items-center gap-1">
+                              <Icon name="lock" size={10} fill />
+                              LOCKED
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs text-on-surface-variant/40">{lobbyPlayers.length + " players"}</span>
+                          {isAdmin && isLive && !isLocked && (
+                            <span className={"text-[10px] font-nav font-bold rounded px-2 py-0.5 border " + (allReported ? "text-tertiary bg-tertiary/10 border-tertiary/20" : "text-primary bg-primary/10 border-primary/20")}>
+                              {reportedCount + "/" + totalCount}
+                            </span>
+                          )}
+                          {lobby.lobby_code && (
+                            <span className="font-mono text-xs font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 tracking-widest">
+                              {lobby.lobby_code}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Player list */}
+                      <div className="divide-y divide-outline-variant/5">
+                        {lobbyPlayers.map(function(p, pi) {
+                          var isHost = p.id === hostId;
+                          var isMe = myPlayer && p.id === myPlayer.id;
+                          var playerReport = lobbyReports.find(function(r) { return r.player_id === p.id; });
+                          var isDupe = playerReport && placementCounts[playerReport.reported_placement] > 1;
+
+                          return (
+                            <div
+                              key={p.id || pi}
+                              className={"flex items-center gap-3 px-4 py-2 " + (isMe ? "bg-secondary/5" : "")}
+                            >
+                              <span className={"font-mono text-xs " + (pi === 0 ? "text-primary" : pi <= 2 ? "text-on-surface-variant/60" : "text-on-surface-variant/30")}>
+                                {String(pi + 1).padStart(2, "0")}
+                              </span>
+                              <div className="w-7 h-7 rounded-sm bg-surface-container-low flex items-center justify-center flex-shrink-0">
+                                <Icon name="person" size={14} className="text-on-surface-variant/40" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className={"text-sm font-semibold flex items-center gap-1.5 " + (isMe ? "text-secondary" : "text-on-surface")}>
+                                  {p.username || p.name || 'Unknown'}
+                                  {isHost && <span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
+                                </div>
+                                <div className="text-[10px] text-on-surface-variant/40">{p.rank || 'Iron'}</div>
+                                {(p.riotId || p.riot_id) && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId || p.riot_id}</span>
+                                    <button
+                                      onClick={function() { navigator.clipboard.writeText(p.riotId || p.riot_id || ''); toast("Copied Riot ID", "success"); }}
+                                      className="text-on-surface-variant/25 hover:text-primary transition-colors flex-shrink-0 bg-transparent border-0 cursor-pointer"
+                                      title="Copy Riot ID">
+                                      <Icon name="content_copy" size={10} />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Placement / status */}
+                              {isLocked && playerReport ? (
+                                <span className={"font-mono text-xs font-bold " + (playerReport.reported_placement === 1 ? "text-primary" : playerReport.reported_placement <= 4 ? "text-tertiary" : "text-on-surface-variant/50")}>
+                                  {"#" + playerReport.reported_placement}
+                                </span>
+                              ) : playerReport ? (
+                                <span className={"font-mono text-xs font-bold rounded px-1.5 py-0.5 " + (isDupe ? "text-error bg-error/10" : "text-tertiary bg-tertiary/10")}>
+                                  {"#" + playerReport.reported_placement}
+                                </span>
+                              ) : isLive ? (
+                                <span className="text-[10px] text-on-surface-variant/30 font-nav">Pending</span>
+                              ) : null}
+
+                              {/* Admin override */}
+                              {isAdmin && isLive && !isLocked && (
+                                <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }} className="ml-1">
+                                  <option value="">{"--"}</option>
+                                  {(lobby.player_ids || []).map(function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
+                                </Sel>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Admin lock button */}
+                      {isAdmin && isLive && !isLocked && (
+                        <div className="border-t border-outline-variant/10 p-4 bg-surface-container-low flex items-center gap-3 flex-wrap">
+                          {hasDuplicate && (
+                            <span className="text-[10px] font-nav font-bold text-error tracking-wider">Duplicate placements - resolve first</span>
+                          )}
+                          {lobbyDisputes.length > 0 && (
+                            <span className="text-[10px] font-nav font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5">
+                              {lobbyDisputes.length + " dispute" + (lobbyDisputes.length === 1 ? "" : "s")}
+                            </span>
+                          )}
+                          <button
+                            onClick={function() { lockLobby(lobby.id); }}
+                            disabled={!canLock}
+                            className="ml-auto px-4 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                            {canLock ? 'Lock Lobby' : 'Cannot Lock Yet'}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Host lobby code entry */}
+                      {iAmHost && !lobby.lobby_code && !isLocked && (
+                        <div className="border-t border-outline-variant/10 p-4 bg-surface-container-low flex gap-2 items-center">
+                          <input
+                            placeholder="Enter lobby code..."
+                            value={codeInput}
+                            onChange={function(e) { var v = e.target.value; setLobbyCodeInputs(function(prev) { var next = Object.assign({}, prev); next[codeKey] = v; return next; }); }}
+                            className="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded text-sm text-on-surface font-mono placeholder:text-on-surface-variant/30 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
+                          <button onClick={function() { submitLobbyCode(lobby.id, codeInput); }} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Save</button>
+                        </div>
+                      )}
+
+                      {/* Locked footer */}
+                      {isLocked && (
+                        <div className="px-4 py-2.5 bg-tertiary/5 border-t border-tertiary/10 flex items-center justify-center gap-2">
+                          <Icon name="lock" size={14} fill className="text-tertiary" />
+                          <span className="font-nav text-[10px] font-bold tracking-widest uppercase text-tertiary">Results Locked</span>
+                        </div>
                       )}
                     </div>
                   );
                 })}
               </div>
             )}
-            {lobbies.length === 0 && (
-              <Panel className="py-12 px-5 text-center">
-                <div className="font-bold text-base text-on-surface mb-1.5">Lobbies</div>
-                <div className="text-[13px] text-on-surface-variant">Lobbies will appear once the admin generates them.</div>
-              </Panel>
-            )}
-            {lobbies.map(function(lobby, idx) {
-              var lobbyPlayers = (lobby.player_ids || []).map(function(pid) { return getPlayerById(pid); });
-              var hostId = lobby.host_player_id;
-              var isMyLobby = myPlayer && (lobby.player_ids || []).indexOf(myPlayer.id) !== -1;
-              var iAmHost = myPlayer && hostId === myPlayer.id;
-              var lobbyLetter = String.fromCharCode(65 + idx);
-              var isLocked = lobby.status === 'locked' || lobby.status === 'completed';
-              var codeKey = lobby.id;
-              var codeInput = lobbyCodeInputs[codeKey] || '';
-              var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobby.id; });
-              var reportedCount = lobbyReports.length;
-              var totalCount = (lobby.player_ids || []).length;
-              var allReported = reportedCount === totalCount && totalCount > 0;
-              var placementCounts = {};
-              lobbyReports.forEach(function(r) { placementCounts[r.reported_placement] = (placementCounts[r.reported_placement] || 0) + 1; });
-              var hasDuplicate = Object.keys(placementCounts).some(function(k) { return placementCounts[k] > 1; });
-              var lobbyDisputes = disputes.filter(function(d) { return d.lobby_id === lobby.id && d.status === 'open'; });
-              var canLock = allReported && !hasDuplicate && !isLocked;
-              var letterColor = isLocked ? '#52C47C' : '#9B72CF';
-              var cardBorderColor = hasDuplicate ? 'rgba(248,113,113,.5)' : isLocked ? 'rgba(82,196,124,.3)' : isMyLobby ? 'rgba(155,114,207,.4)' : 'rgba(242,237,228,.08)';
-              var cardBorderLeft = isLocked ? '4px solid #52C47C' : hasDuplicate ? '4px solid #F87171' : '4px solid transparent';
-              return (
-                <Panel
-                  key={lobby.id}
-                  className="overflow-hidden rounded-[10px] p-0"
-                  style={{
-                    borderColor: cardBorderColor,
-                    boxShadow: isMyLobby && !hasDuplicate ? '0 0 0 1px rgba(155,114,207,.2)' : 'none',
-                    borderLeft: cardBorderLeft,
-                    background: isLocked ? 'rgba(82,196,124,.08)' : undefined
-                  }}
-                >
-                  {isLocked && (
-                    <div className="px-3 py-1 rounded-t-[10px] text-[11px] font-bold text-white text-center tracking-[.04em] bg-gradient-to-r from-[#52C47C] to-[#3DA867]">
-                      {'\u2713 LOCKED'}
-                    </div>
-                  )}
-                  <div className="px-[18px] py-4">
-                    <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-9 h-9 rounded-[10px] flex items-center justify-center font-bold text-lg shrink-0"
-                          style={{
-                            background: isLocked ? 'rgba(82,196,124,.15)' : 'rgba(155,114,207,.15)',
-                            border: '1px solid ' + (isLocked ? 'rgba(82,196,124,.4)' : 'rgba(155,114,207,.3)'),
-                            color: letterColor
-                          }}
-                        >
-                          {lobbyLetter}
-                        </div>
-                        <div>
-                          <div className="font-bold text-sm text-on-surface">{'Lobby ' + lobbyLetter}</div>
-                          <div className="text-[11px] text-on-surface-variant">{lobbyPlayers.length + ' players' + (isLocked ? ' - Locked' : '')}</div>
-                        </div>
-                      </div>
-                      <div className="flex gap-1.5 items-center flex-wrap">
-                        {isAdmin && phase === 'in_progress' && (
-                          <span
-                            className="text-[11px] font-bold rounded-md px-2 py-[3px]"
-                            style={{
-                              color: allReported ? '#52C47C' : '#E8A838',
-                              background: allReported ? 'rgba(82,196,124,.1)' : 'rgba(232,168,56,.1)',
-                              border: '1px solid ' + (allReported ? 'rgba(82,196,124,.3)' : 'rgba(232,168,56,.3)')
-                            }}
-                          >
-                            {reportedCount + '/' + totalCount + ' reported'}
-                          </span>
-                        )}
-                        {isAdmin && lobbyDisputes.length > 0 && (
-                          <span className="text-[11px] font-bold text-[#F97316] bg-[rgba(249,115,22,.1)] rounded-md px-2 py-[3px] border border-[#F97316]/30">
-                            {lobbyDisputes.length + ' dispute' + (lobbyDisputes.length === 1 ? '' : 's')}
-                          </span>
-                        )}
-                        {lobby.lobby_code && (
-                          <div className="bg-[rgba(232,168,56,.1)] rounded-lg px-[14px] py-1.5 font-mono text-[15px] font-bold text-[#E8A838] tracking-[2px] border border-primary/30">
-                            {lobby.lobby_code}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {isAdmin && phase === 'in_progress' ? (
-                      <div className="flex flex-col gap-1 mb-3">
-                        {lobbyPlayers.map(function(p, pi) {
-                          var isHost = p.id === hostId;
-                          var rc = rankColors[p.rank || 'Iron'] || '#8896A8';
-                          var playerReport = lobbyReports.find(function(r) { return r.player_id === p.id; });
-                          var isDupe = playerReport && placementCounts[playerReport.reported_placement] > 1;
-                          return (
-                            <div
-                              key={p.id || pi}
-                              className="flex items-center gap-2 px-2 py-1.5 bg-white/[.02] rounded-md"
-                              style={{border: '1px solid ' + (isDupe ? 'rgba(248,113,113,.3)' : isHost ? 'rgba(232,168,56,.15)' : 'rgba(242,237,228,.04)')}}
-                            >
-                              <span className="text-[11px] font-bold rounded min-w-[60px] text-center px-1.5 py-0.5" style={{color: rc, background: rc + '18'}}>{p.rank || 'Iron'}</span>
-                              <span className="flex-1 text-[13px] text-on-surface font-semibold">{p.username || 'Unknown'}</span>
-                              {playerReport ? (
-                                <span
-                                  className="text-xs font-bold rounded px-2 py-0.5"
-                                  style={{
-                                    color: isDupe ? '#F87171' : '#52C47C',
-                                    background: isDupe ? 'rgba(248,113,113,.1)' : 'rgba(82,196,124,.1)'
-                                  }}
-                                >
-                                  {playerReport.reported_placement + (playerReport.reported_placement === 1 ? 'st' : playerReport.reported_placement === 2 ? 'nd' : playerReport.reported_placement === 3 ? 'rd' : 'th')}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-[#E8A838] font-semibold">Not reported</span>
-                              )}
-                              <select
-                                defaultValue=""
-                                onChange={function(e) { var v = parseInt(e.target.value) || 0; if (v > 0) adminOverridePlacement(lobby.id, p.id, v); e.target.value = ''; }}
-                                className="bg-white/[.06] rounded text-[11px] text-primary font-[inherit] outline-none cursor-pointer px-1.5 py-[3px] border border-secondary/20"
-                              >
-                                <option value="">Override</option>
-                                {(lobby.player_ids || []).map(function(_, i) { return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
-                              </select>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className={'flex flex-col gap-1 ' + (iAmHost && !lobby.lobby_code ? 'mb-3' : '')}>
-                        {lobbyPlayers.map(function(p, pi) {
-                          var isHost = p.id === hostId;
-                          var rc = rankColors[p.rank || 'Iron'] || '#8896A8';
-                          var playerReport = reports.find(function(r) { return r.player_id === p.id && r.lobby_id === lobby.id; });
-                          var hasReported = !!playerReport;
-                          return (
-                            <div
-                              key={p.id || pi}
-                              className="flex items-center gap-2 px-2 py-1.5 bg-white/[.02] rounded-md"
-                              style={{border: '1px solid ' + (isHost ? 'rgba(232,168,56,.15)' : 'rgba(242,237,228,.04)')}}
-                            >
-                              <span className="text-[11px] font-bold rounded min-w-[60px] text-center px-1.5 py-0.5" style={{color: rc, background: rc + '18'}}>{p.rank || 'Iron'}</span>
-                              <span className="flex-1 text-[13px] text-on-surface font-semibold">
-                                {isHost && <span className="text-[#E8A838] mr-1" title="Lobby Host">{'\u265B'}</span>}
-                                {p.username || 'Unknown'}
-                              </span>
-                              {phase === 'in_progress' && (
-                                <span
-                                  className="text-[13px] font-bold"
-                                  style={{color: hasReported ? '#52C47C' : 'rgba(136,150,168,.4)'}}
-                                  title={hasReported ? 'Reported' : 'Not yet reported'}
-                                >
-                                  {hasReported ? '\u2713' : '\u25CB'}
-                                </span>
-                              )}
-                              {playerReport && (
-                                <span className="text-xs font-bold text-[#52C47C]">{playerReport.reported_placement + (playerReport.reported_placement === 1 ? 'st' : playerReport.reported_placement === 2 ? 'nd' : playerReport.reported_placement === 3 ? 'rd' : 'th')}</span>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {isAdmin && phase === 'in_progress' && !isLocked && (
-                      <div
-                        className="flex gap-2 items-center pt-2.5 flex-wrap border-t border-on-surface/[.06]"
-                      >
-                        {hasDuplicate && <span className="text-[11px] text-[#F87171]">{'Duplicate placements - resolve before locking'}</span>}
-                        <Btn v="success" s="sm" onClick={function() { lockLobby(lobby.id); }} disabled={!canLock}>{isLocked ? 'Locked' : canLock ? 'Lock Lobby' : 'Cannot Lock Yet'}</Btn>
-                      </div>
-                    )}
-                    {iAmHost && !lobby.lobby_code && (
-                      <div
-                        className={'flex gap-2 items-center mt-2 pt-2.5 border-t border-on-surface/[.06] ' + (isLocked ? 'opacity-70 pointer-events-none' : '')}
-                      >
-                        <input
-                          placeholder="Enter lobby code..."
-                          value={codeInput}
-                          onChange={function(e) { var v = e.target.value; setLobbyCodeInputs(function(prev) { var next = Object.assign({}, prev); next[codeKey] = v; return next; }); }}
-                          className="flex-1 bg-white/[.05] rounded-md px-3 py-[7px] text-[13px] text-on-surface font-mono outline-none border border-secondary/30"
-                        />
-                        <Btn v="primary" s="sm" onClick={function() { submitLobbyCode(lobby.id, codeInput); }}>Save</Btn>
-                      </div>
-                    )}
-                  </div>
-                </Panel>
-              );
-            })}
           </div>
         )}
 
+        {/* ══════════════════════════════════════════════════════════════════════
+            TAB: STANDINGS
+           ══════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'standings' && (
-          <div className="flex flex-col gap-4">
-            {phase === 'complete' && standings.length >= 3 && (
-              <Panel
-                className="px-5 pt-7 pb-4"
-                style={{background: 'linear-gradient(160deg,rgba(232,168,56,.09),rgba(155,114,207,.09),rgba(17,24,39,0))', border: '1px solid rgba(232,168,56,.18)'}}
-              >
-                <div className="text-center font-extrabold text-[13px] text-[#E8A838] mb-6 tracking-[2px] uppercase">{'Final Results'}</div>
-                <div className="flex gap-2 justify-center items-end flex-wrap">
+          <div className="space-y-6">
+
+            {/* Podium for complete tournaments */}
+            {isComplete && standings.length >= 3 && (
+              <div className="bg-surface-container-low rounded-[4px] border border-primary/15 px-5 pt-8 pb-5 overflow-hidden relative">
+                <div className="absolute top-0 right-0 p-4 opacity-5">
+                  <Icon name="emoji_events" size={80} />
+                </div>
+                <div className="text-center font-nav font-bold text-xs text-primary mb-8 tracking-[3px] uppercase">Final Results</div>
+                <div className="flex gap-3 justify-center items-end flex-wrap">
                   {[1, 0, 2].map(function(rankIdx) {
                     var entry = standings[rankIdx];
                     if (!entry) return null;
                     var pos = rankIdx + 1;
-                    var colors = ['#E8A838', '#C0C0C0', '#CD7F32'];
-                    var cardBgs = ['linear-gradient(160deg,rgba(232,168,56,.18),rgba(232,168,56,.04))', 'linear-gradient(160deg,rgba(192,192,192,.12),rgba(192,192,192,.03))', 'linear-gradient(160deg,rgba(205,127,50,.12),rgba(205,127,50,.03))'];
-                    var cardBorders = ['rgba(232,168,56,.45)', 'rgba(192,192,192,.3)', 'rgba(205,127,50,.3)'];
-                    var avatarSizes = [80, 64, 60];
-                    var nameSizes = [16, 13, 13];
-                    var cardPaddings = ['20px 18px', '16px 14px', '16px 14px'];
-                    var prizeEntry = prizes.find(function(pr) { return pr.placement === pos; });
+                    var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70'];
+                    var bgColors = ['bg-primary/10 border-primary/30', 'bg-on-surface-variant/8 border-on-surface-variant/15', 'bg-on-surface-variant/5 border-on-surface-variant/10'];
+                    var avatarSizes = [72, 56, 52];
                     var isFirst = pos === 1;
                     var orderMap = [2, 1, 3];
-                    var displayOrder = orderMap[rankIdx];
+                    var prizeEntry = prizes.find(function(pr) { return pr.placement === pos; });
                     return (
                       <div
                         key={entry.id}
-                        className="flex flex-col items-center gap-1.5 rounded-[14px]"
-                        style={{
-                          order: displayOrder,
-                          flex: isFirst ? '0 0 160px' : '0 0 130px',
-                          background: cardBgs[rankIdx],
-                          border: '1px solid ' + cardBorders[rankIdx],
-                          padding: cardPaddings[rankIdx],
-                          minWidth: isFirst ? 140 : 110,
-                          maxWidth: isFirst ? 180 : 150
-                        }}
+                        className={"flex flex-col items-center gap-2 rounded-[4px] border p-4 " + (bgColors[rankIdx])}
+                        style={{order: orderMap[rankIdx], flex: isFirst ? '0 0 160px' : '0 0 120px', minWidth: isFirst ? 140 : 100}}
                       >
                         <div
-                          className="rounded-full flex items-center justify-center font-extrabold"
-                          style={{
-                            width: avatarSizes[rankIdx],
-                            height: avatarSizes[rankIdx],
-                            background: 'linear-gradient(135deg,' + colors[rankIdx] + '44,' + colors[rankIdx] + '11)',
-                            border: '2.5px solid ' + colors[rankIdx],
-                            fontSize: isFirst ? 24 : 18,
-                            color: colors[rankIdx],
-                            boxShadow: isFirst ? '0 0 18px ' + colors[rankIdx] + '55' : 'none'
-                          }}
+                          className={"rounded-full flex items-center justify-center font-display font-bold border-2 " + (colors[rankIdx])}
+                          style={{width: avatarSizes[rankIdx], height: avatarSizes[rankIdx], borderColor: 'currentColor', background: 'currentColor', color: 'transparent'}}
                         >
-                          {'#' + pos}
+                          <span style={{color: pos === 1 ? 'var(--md-sys-color-on-primary,#1a1a2e)' : '#1a1a2e'}} className={"font-display font-bold " + (isFirst ? "text-xl" : "text-base")}>{"#" + pos}</span>
                         </div>
-                        <div className="font-bold text-center mt-1 leading-tight text-on-surface" style={{fontSize: nameSizes[rankIdx]}}>{entry.name}</div>
-                        <div className="text-xs font-bold rounded-lg px-2.5 py-0.5" style={{color: colors[rankIdx], background: colors[rankIdx] + '18'}}>{entry.totalPts + ' pts'}</div>
+                        <div className={"font-bold text-center leading-tight " + (colors[rankIdx]) + " " + (isFirst ? "text-base" : "text-sm")}>{entry.name}</div>
+                        <div className={"font-mono text-xs font-bold rounded px-2.5 py-0.5 " + (pos === 1 ? "bg-primary/20 text-primary" : "bg-on-surface-variant/10 text-on-surface-variant")}>{entry.totalPts + " pts"}</div>
                         {prizeEntry && (
-                          <div
-                            className="font-extrabold rounded-lg px-3 py-1 mt-0.5"
-                            style={{
-                              fontSize: isFirst ? 14 : 12,
-                              color: colors[rankIdx],
-                              background: colors[rankIdx] + '22',
-                              border: '1px solid ' + colors[rankIdx] + '55'
-                            }}
-                          >
+                          <div className={"font-nav font-bold text-[10px] tracking-wider uppercase rounded px-2.5 py-1 border " + (pos === 1 ? "text-primary bg-primary/15 border-primary/30" : "text-on-surface-variant bg-surface-container-high border-outline-variant/15")}>
                             {prizeEntry.prize}
                           </div>
                         )}
@@ -1156,34 +1326,39 @@ export default function FlashTournamentScreen(props) {
                     );
                   })}
                 </div>
-              </Panel>
+              </div>
             )}
 
+            {/* Standings table */}
             {standings.length === 0 ? (
-              <Panel className="py-12 px-5 text-center">
-                <div className="font-bold text-base text-on-surface mb-1.5">Standings</div>
-                <div className="text-[13px] text-on-surface-variant">No results yet. Complete games to see standings.</div>
-              </Panel>
+              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 text-center py-16">
+                <Icon name="bar_chart" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
+                <div className="font-bold text-base text-on-surface mb-1">Standings</div>
+                <div className="text-sm text-on-surface-variant">No results yet. Complete games to see standings.</div>
+              </div>
             ) : (
-              <Panel className="pt-4 pb-0 overflow-hidden">
-                <div className="px-[18px] pb-3 font-bold text-sm text-on-surface">
-                  {'Standings - Game ' + (allGameNums.length > 0 ? allGameNums[allGameNums.length - 1] : currentGameNumber) + ' of ' + (tournament.round_count || 3)}
+              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+                <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+                  <Icon name="bar_chart" size={18} className="text-primary" />
+                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
+                    {"Standings - Game " + (allGameNums.length > 0 ? allGameNums[allGameNums.length - 1] : currentGameNumber) + " of " + totalGames}
+                  </span>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-[13px] min-w-[360px] border-collapse table-auto">
+                  <table className="w-full text-sm min-w-[400px] border-collapse table-auto">
                     <thead>
-                      <tr className="bg-white/[.03] border-b border-on-surface/[.08]">
-                        <th className="py-2 pl-[18px] pr-2.5 text-left font-semibold text-[11px] text-on-surface-variant whitespace-nowrap sticky left-0 z-[3] bg-surface">#</th>
-                        <th className="py-2 px-2.5 text-left font-semibold text-[11px] text-on-surface-variant whitespace-nowrap sticky left-[40px] z-[3] bg-surface">Player</th>
-                        <th className="py-2 px-2.5 text-center font-semibold text-[11px] text-[#E8A838] whitespace-nowrap">Pts</th>
-                        <th className="py-2 px-2.5 text-center font-semibold text-[11px] text-on-surface-variant whitespace-nowrap">Avg</th>
-                        <th className="py-2 px-2.5 text-center font-semibold text-[11px] text-on-surface-variant whitespace-nowrap">Wins</th>
-                        <th className="py-2 px-2.5 text-center font-semibold text-[11px] text-on-surface-variant whitespace-nowrap">Top4</th>
+                      <tr className="bg-surface-container border-b border-outline-variant/10">
+                        <th className="py-2.5 pl-5 pr-2 text-left font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap sticky left-0 z-[3] bg-surface-container">#</th>
+                        <th className="py-2.5 px-2.5 text-left font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap sticky left-[40px] z-[3] bg-surface-container">Player</th>
+                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-primary uppercase tracking-widest whitespace-nowrap">Pts</th>
+                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">Avg</th>
+                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">W</th>
+                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">T4</th>
                         {allGameNums.map(function(gn) {
-                          return (<th key={gn} className="py-2 px-2 text-center font-semibold text-[11px] text-primary whitespace-nowrap">{'G' + gn}</th>);
+                          return (<th key={gn} className="py-2.5 px-2 text-center font-nav font-bold text-[10px] text-secondary uppercase tracking-widest whitespace-nowrap">{"G" + gn}</th>);
                         })}
-                        {phase === 'complete' && prizes.length > 0 && (
-                          <th className="py-2 px-2.5 text-center font-semibold text-[11px] text-[#52C47C] whitespace-nowrap">Prize</th>
+                        {isComplete && prizes.length > 0 && (
+                          <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-tertiary uppercase tracking-widest whitespace-nowrap">Prize</th>
                         )}
                       </tr>
                     </thead>
@@ -1191,55 +1366,45 @@ export default function FlashTournamentScreen(props) {
                       {standings.map(function(entry, rankIdx) {
                         var pos = rankIdx + 1;
                         var isMe = myPlayer && entry.id === myPlayer.id;
-                        var isCut = tournament.cut_line_pts && entry.totalPts < tournament.cut_line_pts && phase === 'in_progress';
-                        var rowColors = ['rgba(232,168,56,.08)', 'rgba(192,192,192,.05)', 'rgba(205,127,50,.05)'];
-                        var borderColors = ['rgba(232,168,56,.3)', 'rgba(192,192,192,.15)', 'rgba(205,127,50,.15)'];
-                        var bg = pos <= 3 ? rowColors[pos - 1] : (isCut ? 'rgba(248,113,113,.04)' : 'transparent');
-                        var borderL = isMe ? '3px solid #E8A838' : (pos <= 3 ? '3px solid ' + borderColors[pos - 1] : (isCut ? '3px solid rgba(248,113,113,.3)' : '3px solid transparent'));
                         var prizeEntry = prizes.find(function(pr) { return pr.placement === pos; });
                         return (
                           <tr
                             key={entry.id}
-                            className="border-b border-on-surface/[.04]"
-                            style={{background: bg, outline: isMe ? '1px solid rgba(232,168,56,.35)' : 'none', position: 'relative'}}
+                            className={"border-b border-outline-variant/5 " + (isMe ? "bg-secondary/5" : pos <= 3 ? "bg-primary/3" : "")}
                           >
                             <td
-                              className="py-2.5 pl-4 pr-2.5 font-bold whitespace-nowrap sticky left-0 z-[2] bg-surface"
-                              style={{
-                                color: pos === 1 ? '#E8A838' : pos === 2 ? '#C0C0C0' : pos === 3 ? '#CD7F32' : '#8896A8',
-                                borderLeft: borderL
-                              }}
+                              className={"py-2.5 pl-5 pr-2 font-mono text-xs font-bold whitespace-nowrap sticky left-0 z-[2] " + (isMe ? "bg-secondary/5" : pos <= 3 ? "bg-primary/3" : "bg-surface-container-low")}
+                              style={{borderLeft: isMe ? '3px solid var(--md-sys-color-secondary, #D9B9FF)' : pos === 1 ? '3px solid var(--md-sys-color-primary, #9B72CF)' : '3px solid transparent'}}
                             >
-                              {pos}
+                              <span className={pos === 1 ? "text-primary" : pos === 2 ? "text-on-surface-variant/60" : pos === 3 ? "text-on-surface-variant/50" : "text-on-surface-variant/30"}>{pos}</span>
                             </td>
-                            <td className="py-2.5 px-2.5 max-w-[160px] sticky left-[40px] z-[2] bg-surface">
-                              <div className="font-semibold text-[13px] whitespace-nowrap overflow-hidden text-ellipsis" style={{color: isMe ? '#E8A838' : '#F2EDE4'}}>{entry.name + (isMe ? ' (you)' : '')}</div>
-                              <div className="text-[10px] text-on-surface-variant">{entry.rank}</div>
+                            <td className={"py-2.5 px-2.5 max-w-[160px] sticky left-[40px] z-[2] " + (isMe ? "bg-secondary/5" : pos <= 3 ? "bg-primary/3" : "bg-surface-container-low")}>
+                              <div className={"text-sm font-semibold truncate " + (isMe ? "text-secondary" : "text-on-surface")}>{entry.name + (isMe ? " (you)" : "")}</div>
+                              <div className="text-[10px] text-on-surface-variant/40">{entry.rank}</div>
                             </td>
-                            <td className="py-2.5 px-2.5 text-center font-bold text-[#E8A838] text-sm whitespace-nowrap">{entry.totalPts}</td>
-                            <td className="py-2.5 px-2.5 text-center text-on-surface-variant text-xs whitespace-nowrap">{entry.avgPlace.toFixed(1)}</td>
-                            <td className="py-2.5 px-2.5 text-center text-on-surface font-semibold whitespace-nowrap">{entry.wins}</td>
-                            <td className="py-2.5 px-2.5 text-center text-on-surface whitespace-nowrap">{entry.top4}</td>
+                            <td className="py-2.5 px-2.5 text-center font-mono text-sm font-bold text-primary whitespace-nowrap">{entry.totalPts}</td>
+                            <td className="py-2.5 px-2.5 text-center font-mono text-xs text-on-surface-variant/50 whitespace-nowrap">{entry.avgPlace.toFixed(1)}</td>
+                            <td className="py-2.5 px-2.5 text-center font-mono text-xs text-on-surface font-semibold whitespace-nowrap">{entry.wins}</td>
+                            <td className="py-2.5 px-2.5 text-center font-mono text-xs text-on-surface whitespace-nowrap">{entry.top4}</td>
                             {allGameNums.map(function(gn) {
                               var detail = entry.gameDetails.find(function(d) { return d.game === gn; });
                               var plc = detail ? detail.placement : null;
-                              var plcColor = plc === 1 ? '#E8A838' : plc === 2 ? '#C0C0C0' : plc === 3 ? '#CD7F32' : plc <= 4 ? '#52C47C' : '#8896A8';
                               return (
                                 <td key={gn} className="py-2.5 px-2 text-center whitespace-nowrap">
                                   {plc ? (
-                                    <span className="text-xs font-bold rounded px-1.5 py-0.5" style={{color: plcColor, background: plcColor + '18'}}>{plc}</span>
+                                    <span className={"font-mono text-xs font-bold rounded px-1.5 py-0.5 " + (plc === 1 ? "text-primary bg-primary/15" : plc <= 4 ? "text-tertiary bg-tertiary/10" : "text-on-surface-variant/50 bg-surface-container-high")}>{plc}</span>
                                   ) : (
-                                    <span className="text-[11px]" style={{color: 'rgba(136,150,168,.4)'}}> - </span>
+                                    <span className="text-on-surface-variant/20 font-mono text-xs">{"-"}</span>
                                   )}
                                 </td>
                               );
                             })}
-                            {phase === 'complete' && prizes.length > 0 && (
+                            {isComplete && prizes.length > 0 && (
                               <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
                                 {prizeEntry ? (
-                                  <span className="text-xs font-bold text-[#52C47C] bg-[rgba(82,196,124,.12)] rounded px-2 py-0.5">{prizeEntry.prize}</span>
+                                  <span className="text-xs font-nav font-bold text-tertiary bg-tertiary/10 rounded px-2 py-0.5">{prizeEntry.prize}</span>
                                 ) : (
-                                  <span className="text-[11px]" style={{color: 'rgba(136,150,168,.4)'}}> - </span>
+                                  <span className="text-on-surface-variant/20 font-mono text-xs">{"-"}</span>
                                 )}
                               </td>
                             )}
@@ -1249,66 +1414,52 @@ export default function FlashTournamentScreen(props) {
                     </tbody>
                   </table>
                 </div>
-                {tournament.cut_line_pts && phase === 'in_progress' && (
-                  <div className="px-[18px] py-2.5 text-[11px] text-[#F87171] border-t border-[rgba(248,113,113,.15)] bg-[rgba(248,113,113,.03)]">
-                    {'Cut line: ' + tournament.cut_line_pts + ' pts - players below this threshold are at risk of elimination'}
-                  </div>
-                )}
-              </Panel>
+              </div>
             )}
           </div>
         )}
 
+        {/* ══════════════════════════════════════════════════════════════════════
+            ADMIN: Disputes panel
+           ══════════════════════════════════════════════════════════════════════ */}
         {isAdmin && disputes.length > 0 && (
-          <Panel className="p-[18px] mt-4" style={{borderColor: 'rgba(249,115,22,.2)'}}>
-            <div className="flex items-center gap-2.5 mb-[14px] flex-wrap">
-              <div className="font-bold text-sm text-[#F97316]">{'Disputes'}</div>
+          <div className="bg-surface-container-low rounded-[4px] border border-primary/15 overflow-hidden mt-6">
+            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+              <Icon name="gavel" size={18} className="text-primary" />
+              <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Disputes</span>
               {openDisputeCount > 0 && (
-                <span className="text-[11px] font-bold text-[#F97316] bg-[rgba(249,115,22,.15)] rounded-[20px] px-[9px] py-0.5 border border-[#F97316]/30">
-                  {openDisputeCount + ' open'}
+                <span className="text-[10px] font-nav font-bold text-primary bg-primary/15 rounded-sm px-2 py-0.5 border border-primary/20">
+                  {openDisputeCount + " open"}
                 </span>
               )}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="divide-y divide-outline-variant/5">
               {disputes.map(function(d) {
                 var lobbyIdx = lobbies.findIndex(function(l) { return l.id === d.lobby_id; });
-                var lobbyLabel = lobbyIdx >= 0 ? 'Lobby ' + String.fromCharCode(65 + lobbyIdx) : 'Unknown lobby';
+                var lobbyLabel = lobbyIdx >= 0 ? 'Lobby ' + lobbyLetters[lobbyIdx] : 'Unknown lobby';
                 var pData = d.players || {};
                 var isOpen = d.status === 'open';
                 return (
-                  <div
-                    key={d.id}
-                    className="rounded-lg px-[14px] py-3"
-                    style={{
-                      background: isOpen ? 'rgba(249,115,22,.05)' : 'rgba(255,255,255,.02)',
-                      border: '1px solid ' + (isOpen ? 'rgba(249,115,22,.25)' : 'rgba(242,237,228,.06)')
-                    }}
-                  >
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                  <div key={d.id} className={"px-5 py-3.5 " + (isOpen ? "bg-primary/3" : "")}>
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
                       <div className="flex-1 min-w-0">
                         <div className="flex gap-2 items-center flex-wrap mb-1">
-                          <span className="font-bold text-[13px] text-on-surface">{pData.username || 'Player'}</span>
-                          <span className="text-[11px] text-primary">{lobbyLabel}</span>
-                          <span
-                            className="text-[11px] font-semibold rounded px-1.5 py-[1px]"
-                            style={{
-                              color: isOpen ? '#F97316' : '#52C47C',
-                              background: isOpen ? 'rgba(249,115,22,.1)' : 'rgba(82,196,124,.1)'
-                            }}
-                          >
+                          <span className="font-semibold text-sm text-on-surface">{pData.username || 'Player'}</span>
+                          <span className="text-[10px] text-secondary font-nav font-bold tracking-wider">{lobbyLabel}</span>
+                          <span className={"text-[10px] font-nav font-bold rounded-sm px-1.5 py-0.5 border " + (isOpen ? "text-primary bg-primary/10 border-primary/20" : "text-tertiary bg-tertiary/10 border-tertiary/20")}>
                             {d.status === 'open' ? 'Open' : d.status === 'resolved_accepted' ? 'Accepted' : 'Rejected'}
                           </span>
                         </div>
-                        <div className="text-xs text-on-surface-variant mb-1">
-                          {'Claimed: ' + (d.claimed_placement || '?') + (d.claimed_placement === 1 ? 'st' : d.claimed_placement === 2 ? 'nd' : d.claimed_placement === 3 ? 'rd' : 'th') + ' - Reported: ' + (d.reported_placement || '?') + (d.reported_placement === 1 ? 'st' : d.reported_placement === 2 ? 'nd' : d.reported_placement === 3 ? 'rd' : 'th')}
+                        <div className="text-xs text-on-surface-variant/50 font-mono mb-0.5">
+                          {"Claimed: #" + (d.claimed_placement || '?') + " - Reported: #" + (d.reported_placement || '?')}
                         </div>
-                        {d.reason && <div className="text-xs text-on-surface-variant italic mb-1">{d.reason}</div>}
-                        {isSafeUrl(d.screenshot_url) && <a href={d.screenshot_url} target="_blank" rel="noreferrer" className="text-[11px] text-secondary">{'View screenshot'}</a>}
+                        {d.reason && <div className="text-xs text-on-surface-variant/40 italic">{d.reason}</div>}
+                        {isSafeUrl(d.screenshot_url) && <a href={d.screenshot_url} target="_blank" rel="noreferrer" className="text-[10px] text-secondary hover:underline">View screenshot</a>}
                       </div>
                       {isOpen && (
-                        <div className="flex gap-1.5 shrink-0">
-                          <Btn v="success" s="sm" onClick={function() { resolveDispute(d.id, true); }}>Accept</Btn>
-                          <Btn v="danger" s="sm" onClick={function() { resolveDispute(d.id, false); }}>Reject</Btn>
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={function() { resolveDispute(d.id, true); }} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Accept</button>
+                          <button onClick={function() { resolveDispute(d.id, false); }} className="px-3 py-1.5 bg-error text-on-error font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Reject</button>
                         </div>
                       )}
                     </div>
@@ -1316,38 +1467,69 @@ export default function FlashTournamentScreen(props) {
                 );
               })}
             </div>
-          </Panel>
+          </div>
         )}
 
+        {/* ══════════════════════════════════════════════════════════════════════
+            ADMIN: Controls
+           ══════════════════════════════════════════════════════════════════════ */}
         {isAdmin && (
-          <Panel className="p-[18px] mt-5" style={{borderColor: 'rgba(248,113,113,.15)'}}>
-            <div className="font-bold text-sm text-[#F87171] mb-[14px]">{'Admin Controls'}</div>
-            <div className="flex gap-2 flex-wrap">
-              {phase === 'draft' && <Btn v="purple" s="sm" onClick={adminOpenRegistration}>Open Registration</Btn>}
-              {phase === 'registration' && <Btn v="primary" s="sm" onClick={adminOpenCheckIn}>Open Check-In</Btn>}
-              {phase === 'check_in' && <Btn v="primary" s="sm" onClick={adminCloseCheckIn}>Close Check-In</Btn>}
-              {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
-                <Btn v="success" s="sm" onClick={generateLobbies} disabled={actionLoading}>{actionLoading ? 'Generating...' : 'Generate Lobbies'}</Btn>
-              )}
-              {phase === 'check_in' && lobbies.length > 0 && (
-                <span className="text-xs text-[#52C47C] px-2.5 py-1 bg-[rgba(82,196,124,.1)] rounded-md font-semibold border border-[#52C47C]/20">
-                  {'\u2713 ' + lobbies.length + ' lobbies ready'}
-                </span>
-              )}
-              {(phase === 'check_in' || phase === 'registration') && <Btn v="dark" s="sm" onClick={adminStartTournament}>Start Tournament</Btn>}
-
-              {phase === 'in_progress' && allLobbiesLocked && !isLastGame && (
-                <Btn v="primary" s="sm" onClick={startNextGame}>{'Start Game ' + (currentGameNumber + 1)}</Btn>
-              )}
-              {phase === 'in_progress' && allLobbiesLocked && isLastGame && (
-                <Btn v="success" s="sm" onClick={finalizeTournament}>Finalize Tournament</Btn>
-              )}
+          <div className="bg-surface-container-lowest rounded-[4px] border border-error/15 overflow-hidden mt-6">
+            <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+              <Icon name="admin_panel_settings" size={18} className="text-error" />
+              <span className="font-nav font-bold text-sm tracking-widest uppercase text-error">Admin Controls</span>
             </div>
-            <div className="text-[11px] text-on-surface-variant mt-2.5">
-              {'Phase: ' + (phaseLabels[phase] || phase) + ' - Registered: ' + regCount + ' - Checked in: ' + checkedInCount + (lobbies.length > 0 ? ' - ' + lobbies.length + ' lobbies' : '') + (phase === 'in_progress' ? ' - Game ' + currentGameNumber + ' of ' + (tournament.round_count || 3) : '')}
+            <div className="p-5">
+              <div className="flex gap-2 flex-wrap">
+                {phase === 'draft' && (
+                  <button onClick={adminOpenRegistration} className="px-4 py-2 bg-secondary text-on-secondary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                    Open Registration
+                  </button>
+                )}
+                {phase === 'registration' && (
+                  <button onClick={adminOpenCheckIn} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                    Open Check-In
+                  </button>
+                )}
+                {phase === 'check_in' && (
+                  <button onClick={adminCloseCheckIn} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                    Close Check-In
+                  </button>
+                )}
+                {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
+                  <button onClick={generateLobbies} disabled={actionLoading} className="px-4 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                    {actionLoading ? 'Generating...' : 'Generate Lobbies'}
+                  </button>
+                )}
+                {phase === 'check_in' && lobbies.length > 0 && (
+                  <span className="flex items-center gap-1.5 text-[10px] font-nav font-bold text-tertiary bg-tertiary/10 rounded px-3 py-2 border border-tertiary/20">
+                    <Icon name="check" size={12} />
+                    {lobbies.length + " lobbies ready"}
+                  </span>
+                )}
+                {(phase === 'check_in' || phase === 'registration') && (
+                  <button onClick={adminStartTournament} className="px-4 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                    Start Tournament
+                  </button>
+                )}
+                {isLive && allLobbiesLocked && !isLastGame && (
+                  <button onClick={startNextGame} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                    {"Start Game " + (currentGameNumber + 1)}
+                  </button>
+                )}
+                {isLive && allLobbiesLocked && isLastGame && (
+                  <button onClick={finalizeTournament} className="px-4 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 hover:brightness-110 transition-all">
+                    Finalize Tournament
+                  </button>
+                )}
+              </div>
+              <div className="text-[10px] font-mono text-on-surface-variant/40 mt-3">
+                {"Phase: " + (phaseLabels[phase] || phase) + " | Registered: " + regCount + " | Checked in: " + checkedInCount + (lobbies.length > 0 ? " | " + currentGameLobbies.length + " lobbies" : "") + (isLive ? " | Game " + currentGameNumber + "/" + totalGames : "")}
+              </div>
             </div>
-          </Panel>
+          </div>
         )}
+
       </div>
     </PageLayout>
   );

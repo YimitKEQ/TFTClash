@@ -387,7 +387,27 @@ export function AppProvider(props) {
 
     supabase.auth.getSession().then(function(result){
       var session=result&&result.data&&result.data.session;
-      fetchAndSetCurrentUser(session&&session.user?session.user:null, function(){setIsAuthLoading(false);});
+      if(session&&session.user){
+        fetchAndSetCurrentUser(session.user, function(){setIsAuthLoading(false);});
+      } else {
+        // Dev-mode auto-login: on localhost with no session, load Levitate from DB
+        var isLocal=typeof window!=='undefined'&&(window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1');
+        if(isLocal&&supabase.from){
+          supabase.from('players').select('*').eq('username','Levitate').single().then(function(pRes){
+            if(pRes.data){
+              setCurrentUser({
+                id:pRes.data.id,username:pRes.data.username,email:'levitate@tftclash.gg',
+                riotId:pRes.data.riot_id||'Levitate#EUW',rank:pRes.data.rank,region:pRes.data.region||'EUW',
+                is_admin:true,auth_user_id:pRes.data.auth_user_id||'dev-auth-levitate'
+              });
+              setIsAdmin(true);
+            }
+            setIsAuthLoading(false);
+          }).catch(function(){setIsAuthLoading(false);});
+        } else {
+          fetchAndSetCurrentUser(null, function(){setIsAuthLoading(false);});
+        }
+      }
     }).catch(function(){setIsAuthLoading(false);});
 
     var authResult=supabase.auth.onAuthStateChange(function(_e,session){

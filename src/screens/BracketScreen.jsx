@@ -724,7 +724,7 @@ function BracketScreen(){
             <div className="flex items-center gap-3 mb-2">
               <Icon name="content_cut" size={18} className="text-error" />
               <span className="text-error font-nav font-bold text-sm tracking-wider">
-                {"Cut after Game " + (tournamentState.cutAfterGame||4) + " - " + tournamentState.eliminatedIds.length + " players eliminated (below " + (tournamentState.cutLine||13) + " pts)"}
+                {"Cut after Game " + (tournamentState.cutAfterGame||4) + " - " + tournamentState.eliminatedIds.length + " players eliminated (below " + (tournamentState.cutLine||0) + " pts)"}
               </span>
             </div>
             <div className="text-on-surface-variant/50 text-xs leading-relaxed">
