@@ -11,7 +11,7 @@ var SCREEN_TO_ROUTE = {
   milestones: '/milestones', challenges: '/challenges', hof: '/hall-of-fame',
   archive: '/archive', recap: '/season-recap', rules: '/rules', faq: '/faq',
   account: '/account', 'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
-  admin: '/admin', privacy: '/privacy', terms: '/terms', clash: '/clash',
+  admin: '/admin', ops: '/ops', privacy: '/privacy', terms: '/terms', clash: '/clash',
   tournaments: '/tournaments', gear: '/gear', stats: '/stats'
 };
 
@@ -185,6 +185,7 @@ export default function Navbar() {
     { id: 'faq',        icon: 'help',              label: 'FAQ' },
   ];
   var adminItems = isAdmin ? [
+    { id: 'ops',            icon: 'radar',             label: 'Command Center' },
     { id: 'admin',          icon: 'shield',            label: 'Admin Panel' },
     { id: 'host-dashboard', icon: 'workspace_premium', label: 'Host Dashboard' },
   ] : [];

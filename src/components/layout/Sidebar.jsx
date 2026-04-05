@@ -8,7 +8,7 @@ var SCREEN_TO_ROUTE = {
   events: '/events', hof: '/hall-of-fame', archive: '/archive', results: '/results',
   milestones: '/milestones', challenges: '/challenges', scrims: '/scrims',
   pricing: '/pricing', sponsors: '/sponsors', account: '/account', admin: '/admin',
-  'host-dashboard': '/host/dashboard', rules: '/rules', faq: '/faq',
+  'host-dashboard': '/host/dashboard', ops: '/ops', rules: '/rules', faq: '/faq',
 };
 
 export default function Sidebar() {
@@ -102,6 +102,7 @@ export default function Sidebar() {
         {isAdmin && (
           <>
             <Divider />
+            <NavItem id="ops"            icon="radar"             label="Command Center" />
             <NavItem id="admin"          icon="shield"            label="Admin Panel" />
             <NavItem id="host-dashboard" icon="workspace_premium" label="Host Dashboard" />
           </>
