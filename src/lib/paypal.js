@@ -35,8 +35,8 @@ export var TIER_LABELS = {
 export function getSubscribeUrl(tier, authUserId) {
   var planId = PAYPAL_PLANS[tier];
   if (!planId) return null;
-  var returnUrl = window.location.origin + '/#/account?checkout=success&tier=' + tier;
-  var cancelUrl = window.location.origin + '/#/pricing';
+  var returnUrl = window.location.origin + '/account?checkout=success&tier=' + tier;
+  var cancelUrl = window.location.origin + '/pricing';
   return 'https://www.paypal.com/webapps/billing/plans/subscribe'
     + '?plan_id=' + encodeURIComponent(planId)
     + '&custom_id=' + encodeURIComponent(authUserId || '')
@@ -48,6 +48,8 @@ export function getSubscribeUrl(tier, authUserId) {
 // After PayPal redirects back, record the subscription in the DB.
 // The webhook will also fire and update the record, but this gives instant feedback.
 
+// Client-side: writes as 'pending'. Only the webhook (service role) sets 'active'.
+// This gives instant UI feedback while preventing users from self-activating.
 export function activateSubscription(supabase, userId, tier, subscriptionId) {
   return supabase
     .from('user_subscriptions')
@@ -56,7 +58,7 @@ export function activateSubscription(supabase, userId, tier, subscriptionId) {
       tier: tier,
       provider: 'paypal',
       provider_subscription_id: subscriptionId || '',
-      status: 'active',
+      status: 'pending',
       current_period_start: new Date().toISOString(),
       current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       cancel_at_period_end: false,

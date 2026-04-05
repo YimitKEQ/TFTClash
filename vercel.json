@@ -49,7 +49,7 @@
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://*.ingest.sentry.io https://www.google-analytics.com https://analytics.google.com; img-src 'self' data: blob: https:; frame-ancestors 'none'; object-src 'none';"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://www.paypal.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://odaphvmwhxecocrhwpsb.supabase.co wss://odaphvmwhxecocrhwpsb.supabase.co https://*.ingest.sentry.io https://www.google-analytics.com https://analytics.google.com https://www.paypal.com https://api-m.paypal.com; img-src 'self' data: blob: https:; frame-src https://www.paypal.com; frame-ancestors 'none'; object-src 'none';"
         }
       ]
     }

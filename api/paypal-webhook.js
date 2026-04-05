@@ -20,10 +20,16 @@ var MAX_BODY_BYTES = 64 * 1024;
 var PLAN_TO_TIER = {};
 
 function buildPlanMap() {
-  if (process.env.VITE_PAYPAL_PLAN_PRO)    PLAN_TO_TIER[process.env.VITE_PAYPAL_PLAN_PRO]    = 'pro';
-  if (process.env.VITE_PAYPAL_PLAN_SCRIM)  PLAN_TO_TIER[process.env.VITE_PAYPAL_PLAN_SCRIM]  = 'scrim';
-  if (process.env.VITE_PAYPAL_PLAN_BUNDLE) PLAN_TO_TIER[process.env.VITE_PAYPAL_PLAN_BUNDLE] = 'bundle';
-  if (process.env.VITE_PAYPAL_PLAN_HOST)   PLAN_TO_TIER[process.env.VITE_PAYPAL_PLAN_HOST]   = 'host';
+  // Server-side: use PAYPAL_PLAN_* (non-VITE_ prefixed) env vars.
+  // Falls back to VITE_ prefix for local dev compatibility.
+  var proPlan    = process.env.PAYPAL_PLAN_PRO    || process.env.VITE_PAYPAL_PLAN_PRO;
+  var scrimPlan  = process.env.PAYPAL_PLAN_SCRIM  || process.env.VITE_PAYPAL_PLAN_SCRIM;
+  var bundlePlan = process.env.PAYPAL_PLAN_BUNDLE || process.env.VITE_PAYPAL_PLAN_BUNDLE;
+  var hostPlan   = process.env.PAYPAL_PLAN_HOST   || process.env.VITE_PAYPAL_PLAN_HOST;
+  if (proPlan)    PLAN_TO_TIER[proPlan]    = 'pro';
+  if (scrimPlan)  PLAN_TO_TIER[scrimPlan]  = 'scrim';
+  if (bundlePlan) PLAN_TO_TIER[bundlePlan] = 'bundle';
+  if (hostPlan)   PLAN_TO_TIER[hostPlan]   = 'host';
 }
 
 // ── Raw body reader ─────────────────────────────────────────────────────────
@@ -222,6 +228,6 @@ export default async function handler(req, res) {
     res.json({ received: true });
   } catch (err) {
     console.error('PayPal webhook handler error [' + eventType + ']:', err.message);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'internal error' });
   }
 }

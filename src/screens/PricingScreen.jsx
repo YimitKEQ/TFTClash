@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
-import { TIER_PRICES, getSubscribeUrl, isPayPalConfigured } from '../lib/paypal'
+import { TIER_PRICES, getSubscribeUrl } from '../lib/paypal'
 
 // ─── Feature lists per tier ─────────────────────────────────────────────────
 
@@ -129,6 +129,7 @@ function TierCard(props) {
   var navigate = props.navigate
 
   var isCurrent = currentTier === tier
+  var subscribeUrl = currentUser ? getSubscribeUrl(tier, currentUser.auth_user_id || currentUser.id) : null
   var accentText = accent === 'tertiary' ? 'text-tertiary' : 'text-primary'
   var accentBorder = accent === 'tertiary' ? 'border-tertiary/50' : 'border-primary'
   var accentBg = accent === 'tertiary' ? 'bg-tertiary/10' : 'bg-primary/10'
@@ -196,24 +197,18 @@ function TierCard(props) {
             Apply Now
           </button>
         ) : currentUser ? (
-          (function() {
-            var url = getSubscribeUrl(tier, currentUser.auth_user_id || currentUser.id)
-            if (!url) {
-              return (
-                <div className="w-full py-3 text-center rounded-[20px] bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
-                  Coming Soon
-                </div>
-              )
-            }
-            return (
-              <a
-                href={url}
-                className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm text-center block ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
-              >
-                Subscribe
-              </a>
-            )
-          })()
+          subscribeUrl ? (
+            <a
+              href={subscribeUrl}
+              className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm text-center block ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
+            >
+              Subscribe
+            </a>
+          ) : (
+            <div className="w-full py-3 text-center rounded-[20px] bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+              Coming Soon
+            </div>
+          )
         ) : (
           <button
             onClick={function() { navigate('/signup') }}

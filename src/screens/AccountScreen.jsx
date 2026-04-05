@@ -231,6 +231,7 @@ export default function AccountScreen() {
   }, [user && user.id]);
 
   // Handle PayPal checkout return: /account?checkout=success&tier=pro
+  // Writes as 'pending' - webhook will set 'active' once PayPal confirms payment.
   useEffect(function() {
     var params = new URLSearchParams(location.search);
     var checkout = params.get('checkout');
@@ -240,19 +241,20 @@ export default function AccountScreen() {
     activateSubscription(supabase, authId, tier)
       .then(function(sub) {
         setSubscription(sub);
-        // Update global context so userTier reflects immediately
         if (setSubscriptions && user.id) {
-          var map = {};
-          map[user.id] = sub;
-          setSubscriptions(map);
+          setSubscriptions(function(prev) {
+            var merged = Object.assign({}, prev || {});
+            merged[user.id] = sub;
+            return merged;
+          });
         }
-        toast('Subscription activated - welcome to ' + (TIER_LABELS[tier] || tier) + '!', 'success');
+        toast('Payment received - your ' + (TIER_LABELS[tier] || tier) + ' subscription is being activated.', 'success');
+        navigate('/account', { replace: true });
       })
-      .catch(function(err) {
-        toast('Subscription recorded - it may take a moment to activate.', 'info');
+      .catch(function() {
+        toast('Payment received - it may take a moment to activate.', 'info');
+        navigate('/account', { replace: true });
       });
-    // Clean up URL params
-    navigate('/account', { replace: true });
   }, [location.search]);
 
   async function handleLogout() {
