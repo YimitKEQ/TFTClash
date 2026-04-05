@@ -147,24 +147,24 @@ export default async function handler(req, res) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  // ── Idempotency: deduplicate webhook events ─────────────────────────────
+  // ── Idempotency: deduplicate webhook events (atomic upsert) ────────────���─
   var eventId = event.id || null;
   if (eventId) {
-    var dedupCheck = await supabase
+    // Atomic check: upsert returns the row; if it already existed with a
+    // processed_at timestamp, this is a duplicate we already handled.
+    var dedupRes = await supabase
       .from('webhook_events')
-      .select('id')
-      .eq('event_id', eventId)
-      .maybeSingle();
-    if (dedupCheck.data) {
-      // Already processed this event
+      .upsert({
+        event_id: eventId,
+        event_type: eventType,
+        received_at: new Date().toISOString()
+      }, { onConflict: 'event_id', ignoreDuplicates: false })
+      .select('processed_at')
+      .single();
+    if (dedupRes.data && dedupRes.data.processed_at) {
+      // Already fully processed this event
       return res.json({ received: true, duplicate: true });
     }
-    // Record this event before processing (insert-or-ignore)
-    await supabase.from('webhook_events').insert({
-      event_id: eventId,
-      event_type: eventType,
-      processed_at: new Date().toISOString()
-    }).select().maybeSingle();
   }
 
   // Extract user ID from custom_id (we pass it when creating the subscription)
@@ -246,9 +246,17 @@ export default async function handler(req, res) {
       }
     }
 
+    // Mark event as fully processed (only after success)
+    if (eventId) {
+      await supabase.from('webhook_events')
+        .update({ processed_at: new Date().toISOString() })
+        .eq('event_id', eventId);
+    }
+
     res.json({ received: true });
   } catch (err) {
     console.error('PayPal webhook handler error [' + eventType + ']:', err.message);
+    // Don't mark as processed on failure - PayPal will retry
     res.status(500).json({ error: 'internal error' });
   }
 }
