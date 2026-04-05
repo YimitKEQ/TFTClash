@@ -185,7 +185,7 @@ export default async function handler(req, res) {
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
         await supabase.from('user_subscriptions')
           .update({
-            status: 'canceled',
+            status: 'cancelled',
             cancel_at_period_end: true,
           })
           .eq('user_id', userId);

@@ -38,7 +38,7 @@ var SCRIM_FEATURES = [
 var BUNDLE_FEATURES = [
   { text: 'All Pro features', icon: 'verified', highlight: true },
   { text: 'All Scrim Pass features', icon: 'meeting_room', highlight: true },
-  { text: 'Best value - save $2.99/mo', icon: 'savings' },
+  { text: 'Best value - save 2.99/mo', icon: 'savings' },
 ]
 
 var HOST_FEATURES = [
@@ -115,7 +115,7 @@ function BoolCell(props) {
 
 function PayPalButtonContainer(props) {
   var tier = props.tier
-  var userId = props.userId
+  var authUserId = props.authUserId
   var supabase = props.supabase
   var onSuccess = props.onSuccess
   var containerRef = useRef(null)
@@ -135,8 +135,9 @@ function PayPalButtonContainer(props) {
 
     setMounted(true)
     renderSubscribeButton(containerRef.current, tier, {
+      authUserId: authUserId,
       onApprove: function(data) {
-        activateSubscription(supabase, userId, tier, data.subscriptionId)
+        activateSubscription(supabase, authUserId, tier, data.subscriptionId)
           .then(function(sub) {
             if (onSuccess) onSuccess(sub)
           })
@@ -151,7 +152,7 @@ function PayPalButtonContainer(props) {
       setError(err.message)
       setMounted(false)
     })
-  }, [tier, userId])
+  }, [tier, authUserId])
 
   if (error) {
     return (
@@ -208,7 +209,7 @@ function TierCard(props) {
             <span className="font-display text-4xl">Free</span>
           ) : (
             <>
-              <span className="font-display text-4xl">{'$' + price}</span>
+              <span className="font-display text-4xl">{'\u20AC' + price}</span>
               <span className="font-mono text-xs ml-2 opacity-60">/mo</span>
             </>
           )}
@@ -252,7 +253,7 @@ function TierCard(props) {
         ) : currentUser ? (
           <PayPalButtonContainer
             tier={tier}
-            userId={currentUser.id}
+            authUserId={currentUser.auth_user_id || currentUser.id}
             supabase={supabase}
             onSuccess={onSubscribed}
           />
@@ -281,7 +282,7 @@ export default function PricingScreen() {
   function handleSubscribed(sub) {
     if (app.setSubscriptions && currentUser) {
       var updated = Object.assign({}, app.subscriptions || {})
-      updated[currentUser.id] = sub
+      updated[currentUser.id] = sub  // keyed by player ID for getUserTier lookup
       app.setSubscriptions(updated)
     }
     navigate('/account?checkout=success')
@@ -348,7 +349,7 @@ export default function PricingScreen() {
             label="Pro + Scrim"
             subtitle="Best Value"
             price={TIER_PRICES.bundle}
-            priceNote="Save $2.99/mo vs buying separately"
+            priceNote="Save 2.99/mo vs buying separately"
             features={BUNDLE_FEATURES}
             highlighted={true}
             currentTier={userTier}

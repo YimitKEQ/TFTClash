@@ -76,6 +76,7 @@ export function renderSubscribeButton(container, tier, options) {
       createSubscription: function(data, actions) {
         return actions.subscription.create({
           plan_id: planId,
+          custom_id: (options && options.authUserId) || '',
           application_context: {
             shipping_preference: 'NO_SHIPPING',
           },
