@@ -6,7 +6,11 @@ import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
 
 // Frequency radio tile
-function FreqTile({ label, value, selected, onSelect }) {
+function FreqTile(props) {
+  var label = props.label;
+  var value = props.value;
+  var selected = props.selected;
+  var onSelect = props.onSelect;
   return (
     <button
       type="button"

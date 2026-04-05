@@ -19,3 +19,4 @@ supabase/.temp/
 .claude/
 .claude-backup/
 .superpowers/
+.mcp.json

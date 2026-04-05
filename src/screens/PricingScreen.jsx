@@ -1,330 +1,396 @@
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
+import { TIER_PRICES, TIER_LABELS, renderSubscribeButton, activateSubscription, isPayPalConfigured } from '../lib/paypal'
 
-var PLAYER_FEATURES = [
-  { text: 'Compete in weekly clashes - always free', icon: 'sports_esports' },
+// ─── Feature lists per tier ─────────────────────────────────────────────────
+
+var FREE_FEATURES = [
+  { text: 'Compete in weekly clashes', icon: 'sports_esports' },
   { text: 'Global leaderboard', icon: 'leaderboard' },
   { text: 'Basic match history (last 10)', icon: 'history' },
   { text: 'Public profile page', icon: 'person' },
+  { text: 'Join scrim rooms as participant', icon: 'group' },
 ]
 
 var PRO_FEATURES = [
-  { text: 'Auto check-in for weekly clash', icon: 'check_circle' },
+  { text: 'Everything in Free, plus:', icon: 'add_circle', dim: true },
   { text: 'Priority registration (10 min early)', icon: 'schedule' },
-  { text: 'Ad-free - compete without interruptions', icon: 'block' },
   { text: 'Pro badge on profile', icon: 'verified' },
-  { text: 'Extended match history (full career)', icon: 'history' },
-  { text: 'Advanced stat breakdowns (placement rates, avg by comp, etc.)', icon: 'bar_chart' },
+  { text: 'Full career match history', icon: 'history' },
+  { text: 'Advanced stat breakdowns', icon: 'bar_chart' },
   { text: 'Custom profile banner', icon: 'wallpaper' },
-  { text: 'Scrim access - run private practice lobbies', icon: 'group' },
-  { text: 'Early access to new features', icon: 'new_releases' },
-  { text: 'Pro Discord role + exclusive channels', icon: 'forum' },
+  { text: 'Season recap and achievements', icon: 'emoji_events' },
+  { text: 'Pro Discord role', icon: 'forum' },
+]
+
+var SCRIM_FEATURES = [
+  { text: 'Everything in Free, plus:', icon: 'add_circle', dim: true },
+  { text: 'Create scrim rooms (up to 32 players)', icon: 'meeting_room' },
+  { text: 'Multi-lobby seeding (Swiss, Snake, Random)', icon: 'swap_vert' },
+  { text: 'Full scrim stats and leaderboards', icon: 'analytics' },
+  { text: 'Scrim tournaments and seasons', icon: 'account_tree' },
+  { text: 'Room customization', icon: 'tune' },
+]
+
+var BUNDLE_FEATURES = [
+  { text: 'All Pro features', icon: 'verified', highlight: true },
+  { text: 'All Scrim Pass features', icon: 'meeting_room', highlight: true },
+  { text: 'Best value - save $2.99/mo', icon: 'savings' },
 ]
 
 var HOST_FEATURES = [
+  { text: 'Everything in Pro + Scrim, plus:', icon: 'add_circle', dim: true },
   { text: 'Custom branded tournament pages', icon: 'storefront' },
-  { text: 'Full tournament orchestration tools', icon: 'account_tree' },
+  { text: 'Full tournament orchestration', icon: 'account_tree' },
   { text: 'Up to 128-player brackets', icon: 'device_hub' },
-  { text: 'Custom prize pool management', icon: 'emoji_events' },
-  { text: 'Revenue sharing on prize pools', icon: 'payments' },
+  { text: 'Entry fee collection (15% platform fee)', icon: 'payments' },
   { text: 'Analytics dashboard', icon: 'insights' },
-  { text: 'Dedicated onboarding', icon: 'person_check' },
-  { text: 'Priority support channel', icon: 'support_agent' },
+  { text: 'Verified Host badge', icon: 'verified_user' },
+  { text: 'Priority support', icon: 'support_agent' },
 ]
 
+// ─── Comparison table ───────────────────────────────────────────────────────
+
 var COMPARISON_ROWS = [
-  {
-    label: 'Weekly clash entry',
-    player: true,
-    pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Match history',
-    player: 'Last 10',
-    pro: 'Full career',
-    host: 'Full career',
-    proHighlight: true,
-    hostHighlight: true,
-    type: 'text',
-  },
-  {
-    label: 'Auto check-in',
-    player: false,
-    pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Priority registration',
-    player: false,
-    pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Ad-free browsing',
-    player: false,
-    pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Advanced stat breakdowns',
-    player: false,
-    pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Scrim lobbies',
-    player: false,
-    pro: true,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Tournament hosting',
-    player: false,
-    pro: false,
-    host: true,
-    type: 'bool',
-  },
-  {
-    label: 'Max bracket size',
-    player: '-',
-    pro: '-',
-    host: '128 players',
-    hostHighlight: true,
-    type: 'text',
-  },
+  { label: 'Weekly clash entry',       free: true,       pro: true,       scrim: true,       bundle: true,       host: true,       type: 'bool' },
+  { label: 'Match history',            free: 'Last 10',  pro: 'Full',     scrim: 'Last 10',  bundle: 'Full',     host: 'Full',     type: 'text' },
+  { label: 'Priority registration',    free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
+  { label: 'Pro badge',                free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
+  { label: 'Advanced stats',           free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
+  { label: 'Custom banner',            free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
+  { label: 'Join scrim rooms',         free: true,       pro: true,       scrim: true,        bundle: true,       host: true,       type: 'bool' },
+  { label: 'Create scrim rooms',       free: false,      pro: false,      scrim: true,        bundle: true,       host: true,       type: 'bool' },
+  { label: 'Max scrim players',        free: '-',        pro: '-',        scrim: '32',        bundle: '32',       host: '32',       type: 'text' },
+  { label: 'Multi-lobby seeding',      free: false,      pro: false,      scrim: true,        bundle: true,       host: true,       type: 'bool' },
+  { label: 'Scrim stats',              free: false,      pro: false,      scrim: true,        bundle: true,       host: true,       type: 'bool' },
+  { label: 'Tournament hosting',       free: false,      pro: false,      scrim: false,       bundle: false,      host: true,       type: 'bool' },
+  { label: 'Branded pages',            free: false,      pro: false,      scrim: false,       bundle: false,      host: true,       type: 'bool' },
+  { label: 'Entry fee collection',     free: false,      pro: false,      scrim: false,       bundle: false,      host: true,       type: 'bool' },
+  { label: 'Discord role',             free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
 ]
 
 var FAQ_ITEMS = [
   {
     q: 'Can I upgrade or downgrade at any time?',
-    a: 'Yes. Tier changes are applied immediately, and billing is prorated to your next cycle.',
+    a: 'Yes. Tier changes are applied immediately. Your billing is prorated to the next cycle.',
   },
   {
-    q: 'Do Pro members get an advantage in games?',
-    a: 'Never. Membership provides cosmetic and analytical tools. We maintain strict competitive integrity - no pay-to-win mechanics exist in the Arena.',
+    q: 'Do paid members get an advantage in games?',
+    a: 'Never. Membership provides cosmetic and analytical tools only. We maintain strict competitive integrity.',
   },
   {
-    q: 'How does Enterprise pricing work?',
-    a: 'Enterprise is custom-priced based on your community size and needs. Reach out and we will put together a package that fits.',
+    q: 'What is a Scrim Pass?',
+    a: 'The Scrim Pass lets you create private practice rooms for up to 32 players with multi-lobby seeding. Perfect for friend groups and practice squads.',
   },
   {
-    q: 'Can I trial the Host tools?',
-    a: 'Yes, approved hosts get a 14-day trial period before billing starts. No credit card required upfront.',
+    q: 'How does Host work?',
+    a: 'Host is application-based. Once approved, you get full tournament tools, branded pages, and can collect entry fees. We take a 15% platform fee on entry fees.',
+  },
+  {
+    q: 'Can I just buy Scrim without Pro?',
+    a: 'Yes. Scrim Pass and Pro are separate products for different needs. If you want both, the Pro + Scrim bundle saves you $2.99/mo.',
   },
 ]
 
+// ─── Components ─────────────────────────────────────────────────────────────
+
 function BoolCell(props) {
   var value = props.value
-  var colorClass = props.colorClass
   if (value) {
     return (
-      <div className={'flex justify-center ' + colorClass}>
-        <Icon name="check" size={20} fill />
+      <div className="flex justify-center text-primary">
+        <Icon name="check" size={18} fill />
       </div>
     )
   }
   return (
     <div className="flex justify-center opacity-20">
-      <Icon name="close" size={20} />
+      <Icon name="close" size={18} />
     </div>
   )
 }
+
+function PayPalButtonContainer(props) {
+  var tier = props.tier
+  var userId = props.userId
+  var supabase = props.supabase
+  var onSuccess = props.onSuccess
+  var containerRef = useRef(null)
+  var _mounted = useState(false)
+  var mounted = _mounted[0]
+  var setMounted = _mounted[1]
+  var _error = useState(null)
+  var error = _error[0]
+  var setError = _error[1]
+
+  useEffect(function() {
+    if (!containerRef.current || mounted) return
+    if (!isPayPalConfigured()) {
+      setError('PayPal not configured yet')
+      return
+    }
+
+    setMounted(true)
+    renderSubscribeButton(containerRef.current, tier, {
+      onApprove: function(data) {
+        activateSubscription(supabase, userId, tier, data.subscriptionId)
+          .then(function(sub) {
+            if (onSuccess) onSuccess(sub)
+          })
+          .catch(function(err) {
+            setError('Failed to activate: ' + err.message)
+          })
+      },
+      onError: function(err) {
+        setError('PayPal error: ' + (err.message || 'Unknown error'))
+      },
+    }).catch(function(err) {
+      setError(err.message)
+      setMounted(false)
+    })
+  }, [tier, userId])
+
+  if (error) {
+    return (
+      <div className="text-center py-3">
+        <div className="text-xs text-on-surface-variant/50 bg-surface-container rounded-lg py-3 px-4">
+          {error === 'PayPal not configured yet' ? 'Coming Soon' : error}
+        </div>
+      </div>
+    )
+  }
+
+  return <div ref={containerRef} className="min-h-[45px]" />
+}
+
+function TierCard(props) {
+  var tier = props.tier
+  var label = props.label
+  var subtitle = props.subtitle
+  var price = props.price
+  var priceNote = props.priceNote
+  var features = props.features
+  var accent = props.accent || 'primary'
+  var highlighted = props.highlighted
+  var currentTier = props.currentTier
+  var currentUser = props.currentUser
+  var supabase = props.supabase
+  var onSubscribed = props.onSubscribed
+  var cta = props.cta
+  var navigate = props.navigate
+
+  var isCurrent = currentTier === tier
+  var accentText = accent === 'tertiary' ? 'text-tertiary' : 'text-primary'
+  var accentBorder = accent === 'tertiary' ? 'border-tertiary/50' : 'border-primary'
+  var accentBg = accent === 'tertiary' ? 'bg-tertiary/10' : 'bg-primary/10'
+
+  return (
+    <div className={
+      'relative flex flex-col bg-surface-container-low p-6 rounded-[4px] transition-all hover:bg-surface-container' +
+      (highlighted ? ' border-t-4 ' + accentBorder + ' ring-1 ring-primary/20 -mt-2 z-10' : ' border-t-2 border-outline-variant/20')
+    }>
+      {highlighted ? (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 rounded-full font-sans font-bold text-[10px] tracking-tighter uppercase whitespace-nowrap">
+          Best Value
+        </div>
+      ) : null}
+
+      <div className="mb-6">
+        <span className={'font-sans uppercase tracking-widest text-xs font-bold ' + accentText}>
+          {subtitle}
+        </span>
+        <h3 className="font-serif text-3xl mt-1">{label}</h3>
+        <div className="flex items-baseline mt-3">
+          {price === 0 ? (
+            <span className="font-display text-4xl">Free</span>
+          ) : (
+            <>
+              <span className="font-display text-4xl">{'$' + price}</span>
+              <span className="font-mono text-xs ml-2 opacity-60">/mo</span>
+            </>
+          )}
+        </div>
+        {priceNote ? (
+          <p className="text-xs text-on-surface-variant/60 mt-1">{priceNote}</p>
+        ) : null}
+      </div>
+
+      <div className="space-y-3 mb-8 flex-1">
+        {features.map(function(f) {
+          return (
+            <div key={f.text} className={'flex items-start gap-2.5' + (f.dim ? ' opacity-50' : '')}>
+              <Icon name={f.icon} size={18} className={(f.highlight ? accentText : accentText) + ' shrink-0 mt-0.5'} />
+              <span className="text-sm leading-snug">{f.text}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="mt-auto">
+        {isCurrent && currentUser ? (
+          <div className="text-center py-3 text-sm font-bold text-success flex items-center justify-center gap-2">
+            <Icon name="check_circle" size={18} fill />
+            Current Plan
+          </div>
+        ) : cta === 'signup' ? (
+          <button
+            onClick={function() { navigate(currentUser ? '/dashboard' : '/signup') }}
+            className="w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm bg-surface-variant/20 border border-outline-variant/15 hover:bg-surface-variant transition-all"
+          >
+            Get Started
+          </button>
+        ) : cta === 'apply' ? (
+          <button
+            onClick={function() { navigate('/host/apply') }}
+            className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border border-tertiary/30 text-tertiary hover:bg-tertiary/20 transition-all'}
+          >
+            Apply Now
+          </button>
+        ) : currentUser ? (
+          <PayPalButtonContainer
+            tier={tier}
+            userId={currentUser.id}
+            supabase={supabase}
+            onSuccess={onSubscribed}
+          />
+        ) : (
+          <button
+            onClick={function() { navigate('/signup') }}
+            className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
+          >
+            Sign Up to Subscribe
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Screen ────────────────────────────────────────────────────────────
 
 export default function PricingScreen() {
   var app = useApp()
   var currentUser = app.currentUser
   var userTier = app.userTier || 'free'
+  var supabase = app.supabase
   var navigate = useNavigate()
 
-  function handleGetStarted() {
-    if (currentUser) {
-      navigate('/dashboard')
-    } else {
-      navigate('/signup')
+  function handleSubscribed(sub) {
+    if (app.setSubscriptions && currentUser) {
+      var updated = Object.assign({}, app.subscriptions || {})
+      updated[currentUser.id] = sub
+      app.setSubscriptions(updated)
     }
+    navigate('/account?checkout=success')
   }
-
-  function handleContactSupport() {
-    window.location.href = 'mailto:support@tftclash.com'
-  }
-
-  function handleEnterpriseContact() {
-    window.location.href = 'mailto:hello@tftclash.com'
-  }
-
-  var isPlayer = userTier === 'free'
-  var isPro = userTier === 'pro'
-  var isHost = userTier === 'host'
 
   return (
     <PageLayout showSidebar={false}>
       <div className="max-w-7xl mx-auto px-6 py-16">
 
         {/* Header */}
-        <header className="text-center mb-20">
-          <h1 className="font-serif text-6xl md:text-8xl mb-6 text-on-surface">
+        <header className="text-center mb-16">
+          <h1 className="font-serif text-5xl md:text-7xl mb-4 text-on-surface">
             Competing is always free.
           </h1>
-          <p className="font-sans text-base uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">
-            Pro gives you the edge. Host lets you run your own league.
+          <p className="font-sans text-sm uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">
+            Pro gives you the edge. Scrim Pass unlocks private practice. Host runs your league.
           </p>
         </header>
 
-        {/* Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+        {/* Pricing Cards - 5 tiers */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
 
-          {/* Player Tier */}
-          <div className="bg-surface-container-low p-8 rounded-[4px] border-t-2 border-outline-variant/20 transition-all hover:bg-surface-container">
-            <div className="mb-10">
-              <span className="font-sans uppercase tracking-widest text-xs text-on-surface-variant font-bold">
-                Entry Level
-              </span>
-              <h3 className="font-serif text-4xl mt-2">Player</h3>
-              <div className="flex items-baseline mt-4">
-                <span className="font-display text-5xl">$0</span>
-                <span className="font-mono text-sm ml-2 opacity-60">/MONTH</span>
-              </div>
-            </div>
+          <TierCard
+            tier="free"
+            label="Player"
+            subtitle="Entry Level"
+            price={0}
+            features={FREE_FEATURES}
+            currentTier={userTier}
+            currentUser={currentUser}
+            supabase={supabase}
+            navigate={navigate}
+            cta="signup"
+          />
 
-            <div className="space-y-5 mb-12">
-              {PLAYER_FEATURES.map(function(f) {
-                return (
-                  <div key={f.text} className="flex items-start gap-3">
-                    <Icon name={f.icon} size={20} className="text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">{f.text}</span>
-                  </div>
-                )
-              })}
-            </div>
+          <TierCard
+            tier="pro"
+            label="Pro"
+            subtitle="Ascendant"
+            price={TIER_PRICES.pro}
+            features={PRO_FEATURES}
+            currentTier={userTier}
+            currentUser={currentUser}
+            supabase={supabase}
+            onSubscribed={handleSubscribed}
+            navigate={navigate}
+          />
 
-            {isPlayer && currentUser ? (
-              <div className="text-center py-3 text-sm font-bold text-success">
-                Current Plan
-              </div>
-            ) : (
-              <button
-                onClick={handleGetStarted}
-                className="w-full py-4 rounded-[20px] font-sans font-bold uppercase tracking-widest bg-surface-variant/20 border border-outline-variant/15 hover:bg-surface-variant transition-all"
-                style={{ boxShadow: '0 40px 40px rgba(228,225,236,0.06)' }}
-              >
-                Get Started
-              </button>
-            )}
-          </div>
+          <TierCard
+            tier="scrim"
+            label="Scrim Pass"
+            subtitle="Practice Squad"
+            price={TIER_PRICES.scrim}
+            features={SCRIM_FEATURES}
+            currentTier={userTier}
+            currentUser={currentUser}
+            supabase={supabase}
+            onSubscribed={handleSubscribed}
+            navigate={navigate}
+          />
 
-          {/* Pro Tier - Highlighted */}
-          <div
-            className="relative bg-surface-container-high p-8 rounded-[4px] border-t-4 border-primary -mt-4 scale-105 z-10"
-            style={{ boxShadow: '0 40px 40px rgba(228,225,236,0.06)' }}
-          >
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 rounded-full font-sans font-bold text-[10px] tracking-tighter uppercase whitespace-nowrap">
-              Most Popular
-            </div>
+          <TierCard
+            tier="bundle"
+            label="Pro + Scrim"
+            subtitle="Best Value"
+            price={TIER_PRICES.bundle}
+            priceNote="Save $2.99/mo vs buying separately"
+            features={BUNDLE_FEATURES}
+            highlighted={true}
+            currentTier={userTier}
+            currentUser={currentUser}
+            supabase={supabase}
+            onSubscribed={handleSubscribed}
+            navigate={navigate}
+          />
 
-            <div className="mb-10">
-              <span className="font-sans uppercase tracking-widest text-xs text-primary font-bold">
-                Ascendant
-              </span>
-              <h3 className="font-serif text-4xl mt-2">Pro</h3>
-              <div className="flex items-baseline mt-4">
-                <span className="font-display text-5xl">$4.99</span>
-                <span className="font-mono text-sm ml-2 opacity-60">/MONTH</span>
-              </div>
-              <p className="text-xs text-on-surface-variant/60 mt-2 leading-relaxed">
-                Priority registration locks your spot 10 min before the field opens. Never miss a clash because it filled up.
-              </p>
-            </div>
+          <TierCard
+            tier="host"
+            label="Host"
+            subtitle="Tournament Organizer"
+            price={TIER_PRICES.host}
+            priceNote="Application required"
+            features={HOST_FEATURES}
+            accent="tertiary"
+            currentTier={userTier}
+            currentUser={currentUser}
+            supabase={supabase}
+            onSubscribed={handleSubscribed}
+            navigate={navigate}
+            cta="apply"
+          />
 
-            <div className="space-y-5 mb-12">
-              {PRO_FEATURES.map(function(f) {
-                return (
-                  <div key={f.text} className="flex items-start gap-3">
-                    <Icon name={f.icon} size={20} className="text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">{f.text}</span>
-                  </div>
-                )
-              })}
-            </div>
-
-            {isPro ? (
-              <div className="text-center py-3 text-sm font-bold text-success">
-                Current Plan
-              </div>
-            ) : (
-              <div>
-                <div className="w-full py-2.5 text-center rounded-lg bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
-                  Coming Soon
-                </div>
-                <p className="text-center text-[11px] text-on-surface-variant/40 mt-2">Founding member pricing locks in at launch.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Enterprise / Host Tier */}
-          <div className="bg-surface-container-low p-8 rounded-[4px] border-t-2 border-tertiary/50 transition-all hover:bg-surface-container ring-1 ring-tertiary/20">
-            <div className="mb-10">
-              <span className="font-sans uppercase tracking-widest text-xs text-tertiary font-bold">
-                Enterprise
-              </span>
-              <h3 className="font-serif text-4xl mt-2">Host</h3>
-              <div className="flex items-baseline mt-4">
-                <span className="font-display text-3xl text-tertiary">Custom Pricing</span>
-              </div>
-              <p className="text-xs text-on-surface-variant mt-3 leading-relaxed">
-                For organisations, content creators and serious community builders who want to run their own branded TFT leagues.
-              </p>
-            </div>
-
-            <div className="space-y-5 mb-12">
-              {HOST_FEATURES.map(function(f) {
-                return (
-                  <div key={f.text} className="flex items-start gap-3">
-                    <Icon name={f.icon} size={20} className="text-tertiary shrink-0 mt-0.5" />
-                    <span className="text-sm">{f.text}</span>
-                  </div>
-                )
-              })}
-            </div>
-
-            {isHost ? (
-              <div className="text-center py-3 text-sm font-bold text-success">
-                Current Plan
-              </div>
-            ) : (
-              <button
-                onClick={handleEnterpriseContact}
-                className="w-full py-4 rounded-[20px] font-sans font-bold uppercase tracking-widest bg-tertiary/10 border border-tertiary/30 text-tertiary hover:bg-tertiary/20 transition-all"
-              >
-                Get in Touch
-              </button>
-            )}
-          </div>
         </div>
 
-        {/* Promo Banner */}
-        <section className="mt-24 relative overflow-hidden rounded-[4px] bg-surface-container-lowest p-12 border border-outline-variant/10 text-center">
+        {/* Free-to-compete banner */}
+        <section className="mt-20 relative overflow-hidden rounded-[4px] bg-surface-container-lowest p-10 border border-outline-variant/10 text-center">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
           <div className="relative z-10">
-            <h2 className="font-display text-4xl mb-4 tracking-tighter">
+            <h2 className="font-display text-3xl mb-3 tracking-tighter">
               FREE TO COMPETE, ALWAYS.
             </h2>
-            <p className="text-on-surface-variant max-w-2xl mx-auto mb-8">
+            <p className="text-on-surface-variant max-w-2xl mx-auto mb-6 text-sm">
               Our core competitive ecosystem remains accessible to every tactician.
-              We believe in meritocracy. The arena is open - your legend begins with a single match.
+              We believe in meritocracy. The arena is open.
             </p>
-            <div className="inline-flex items-center gap-8 font-mono text-xs opacity-50 uppercase flex-wrap justify-center">
+            <div className="inline-flex items-center gap-6 font-mono text-xs opacity-50 uppercase flex-wrap justify-center">
               <div className="flex items-center gap-2">
                 <Icon name="verified_user" size={16} />
-                Fair Play Guaranteed
+                Fair Play
               </div>
               <div className="flex items-center gap-2">
                 <Icon name="public" size={16} />
@@ -339,67 +405,52 @@ export default function PricingScreen() {
         </section>
 
         {/* Feature Comparison Table */}
-        <section className="mt-32">
-          <h2 className="font-serif text-5xl mb-16">The Specification</h2>
-          <div className="w-full overflow-hidden">
-            <div className="grid grid-cols-4 gap-4 pb-6 border-b border-outline-variant/20 font-sans uppercase tracking-[0.2em] text-[10px] text-on-surface-variant">
-              <div className="col-span-1">Feature Sets</div>
-              <div className="text-center">Player</div>
-              <div className="text-center text-primary">Pro</div>
-              <div className="text-center text-tertiary">Host</div>
-            </div>
-
-            <div className="space-y-4 py-8">
-              {COMPARISON_ROWS.map(function(row, i) {
-                var isAlt = i % 2 === 0
-                return (
-                  <div
-                    key={row.label}
-                    className={'grid grid-cols-4 gap-4 items-center p-4 rounded-[2px]' + (isAlt ? ' bg-surface-container-low' : '')}
-                  >
-                    <div className="font-body text-sm">{row.label}</div>
-
-                    {row.type === 'bool' ? (
-                      <>
-                        <BoolCell value={row.player} colorClass="text-primary" />
-                        <BoolCell value={row.pro} colorClass="text-primary" />
-                        <BoolCell value={row.host} colorClass="text-tertiary" />
-                      </>
-                    ) : (
-                      <>
-                        <div className="font-mono text-center text-sm opacity-60">{row.player}</div>
-                        <div className={'font-mono text-center text-sm' + (row.proHighlight ? ' text-primary font-bold' : ' opacity-60')}>
-                          {row.pro}
-                        </div>
-                        <div className={'font-mono text-center text-sm' + (row.hostHighlight ? ' text-tertiary font-bold' : ' opacity-60')}>
-                          {row.host}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Support Section */}
         <section className="mt-24">
-          <div className="border border-outline-variant/10 rounded-sm p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="max-w-lg">
-              <h4 className="font-sans uppercase tracking-widest text-xs text-secondary mb-2">Support the Platform</h4>
-              <h2 className="font-serif text-3xl mb-3">Help us grow</h2>
-              <p className="text-sm text-on-surface-variant leading-relaxed">
-                TFT Clash is free to compete on, always. If you enjoy the platform and want to help keep it running, fund prize pools, or just show some love, reach out to us directly.
-              </p>
+          <h2 className="font-serif text-4xl mb-12">The Specification</h2>
+          <div className="w-full overflow-x-auto">
+            <div className="min-w-[700px]">
+              {/* Header */}
+              <div className="grid grid-cols-6 gap-2 pb-4 border-b border-outline-variant/20 font-sans uppercase tracking-[0.15em] text-[10px] text-on-surface-variant">
+                <div>Feature</div>
+                <div className="text-center">Free</div>
+                <div className="text-center text-primary">Pro</div>
+                <div className="text-center">Scrim</div>
+                <div className="text-center text-primary font-bold">Bundle</div>
+                <div className="text-center text-tertiary">Host</div>
+              </div>
+
+              {/* Rows */}
+              <div className="space-y-1 py-4">
+                {COMPARISON_ROWS.map(function(row, i) {
+                  var isAlt = i % 2 === 0
+                  return (
+                    <div
+                      key={row.label}
+                      className={'grid grid-cols-6 gap-2 items-center py-2.5 px-3 rounded-[2px]' + (isAlt ? ' bg-surface-container-low' : '')}
+                    >
+                      <div className="font-body text-sm">{row.label}</div>
+                      {row.type === 'bool' ? (
+                        <>
+                          <BoolCell value={row.free} />
+                          <BoolCell value={row.pro} />
+                          <BoolCell value={row.scrim} />
+                          <BoolCell value={row.bundle} />
+                          <BoolCell value={row.host} />
+                        </>
+                      ) : (
+                        <>
+                          <div className="font-mono text-center text-xs opacity-60">{row.free}</div>
+                          <div className="font-mono text-center text-xs text-primary">{row.pro}</div>
+                          <div className="font-mono text-center text-xs opacity-60">{row.scrim}</div>
+                          <div className="font-mono text-center text-xs text-primary font-bold">{row.bundle}</div>
+                          <div className="font-mono text-center text-xs text-tertiary">{row.host}</div>
+                        </>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
-            <a
-              href="mailto:support@tftclash.com"
-              className="flex-shrink-0 flex items-center gap-3 bg-secondary/10 border border-secondary/30 text-secondary px-8 py-4 rounded-sm font-sans font-bold text-sm uppercase tracking-widest hover:bg-secondary/20 transition-colors"
-            >
-              <Icon name="volunteer_activism" size={18} />
-              Contact Us
-            </a>
           </div>
         </section>
 
@@ -410,21 +461,21 @@ export default function PricingScreen() {
               Inquiries
             </h4>
             <h2 className="font-serif text-4xl mb-6">Frequently Asked Questions</h2>
-            <p className="text-on-surface-variant">
-              Still unsure which path to tread? Our support command center is active via Discord to assist your ascent.
+            <p className="text-on-surface-variant text-sm">
+              Still unsure? Our support team is active on Discord.
             </p>
-            <div className="mt-8 flex gap-4">
-              <button
-                onClick={handleContactSupport}
+            <div className="mt-8 flex gap-4 flex-wrap">
+              <a
+                href="mailto:support@tftclash.com"
                 className="bg-surface-container-highest px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest border border-outline-variant/20 hover:bg-surface-variant transition-colors"
               >
                 Email Support
-              </button>
+              </a>
               <button
-                onClick={handleEnterpriseContact}
+                onClick={function() { navigate('/host/apply') }}
                 className="bg-tertiary/10 border border-tertiary/30 text-tertiary px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest hover:bg-tertiary/20 transition-colors"
               >
-                Enterprise Enquiry
+                Host Application
               </button>
             </div>
           </div>
@@ -432,8 +483,8 @@ export default function PricingScreen() {
           <div className="space-y-4">
             {FAQ_ITEMS.map(function(item) {
               return (
-                <div key={item.q} className="p-6 bg-surface-container-low rounded-[4px]">
-                  <h5 className="font-bold mb-2">{item.q}</h5>
+                <div key={item.q} className="p-5 bg-surface-container-low rounded-[4px]">
+                  <h5 className="font-bold mb-2 text-sm">{item.q}</h5>
                   <p className="text-sm text-on-surface-variant">{item.a}</p>
                 </div>
               )

@@ -343,10 +343,11 @@ export function AppProvider(props) {
   // ── useEffect: load own subscription ──
   useEffect(function(){
     if(!currentUser || !currentUser.auth_user_id || !supabase.from) return;
-    supabase.from("subscriptions").select("*").eq("user_id", currentUser.auth_user_id).limit(1).then(function(res){
-      if(res.data){
+    supabase.from("user_subscriptions").select("*").eq("user_id", currentUser.auth_user_id).limit(1).then(function(res){
+      if(res.data && res.data.length){
         var map={};
-        res.data.forEach(function(s){map[s.user_id]=s;});
+        var s=res.data[0];
+        map[currentUser.id]=s;
         setSubscriptions(map);
       }
     });

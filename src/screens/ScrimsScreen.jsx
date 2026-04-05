@@ -78,11 +78,14 @@ function addScrimPlayers(scrimId, playerIds) {
   );
 }
 
-function submitScrimResult(scrimId, gameNumber, results, tag, note, duration) {
-  return supabase.from('scrim_games').insert({
+function submitScrimResult(scrimId, gameNumber, results, tag, note, duration, roundNumber, lobbyIndex) {
+  var row = {
     scrim_id: scrimId, game_number: gameNumber, status: 'completed',
     tag: tag || 'standard', note: note || null, duration: duration || 0
-  }).select().single().then(function(res) {
+  };
+  if (roundNumber != null) row.round_number = roundNumber;
+  if (lobbyIndex != null) row.lobby_index = lobbyIndex;
+  return supabase.from('scrim_games').insert(row).select().single().then(function(res) {
     if (res.error) return res;
     var gameId = res.data.id;
     var rows = results.map(function(r) {
@@ -111,6 +114,64 @@ function deleteScrimDb(id) { return supabase.from('scrims').delete().eq('id', id
 // ── Placement color helper ────────────────────────────────────────────────────
 function placeColor(p) {
   return p === 1 ? '#E8A838' : p === 2 ? '#C0C0C0' : p === 3 ? '#CD7F32' : p <= 4 ? '#4ECDC4' : p <= 6 ? '#facc15' : '#f87171';
+}
+
+// ── Multi-lobby seeding ──────────────────────────────────────────────────────
+function chunkArray(arr, size) {
+  var chunks = [];
+  for (var i = 0; i < arr.length; i += size) {
+    chunks.push(arr.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function shuffleArray(arr) {
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+  }
+  return a;
+}
+
+function seedRandom(roster, lobbySize) {
+  var shuffled = shuffleArray(roster);
+  return chunkArray(shuffled, lobbySize || 8);
+}
+
+function seedSwiss(roster, lobbySize, pointsMap) {
+  var size = lobbySize || 8;
+  var sorted = roster.slice().sort(function(a, b) {
+    var ptsA = pointsMap[a.id] || 0;
+    var ptsB = pointsMap[b.id] || 0;
+    return ptsB - ptsA;
+  });
+  return chunkArray(sorted, size);
+}
+
+function seedSnake(roster, lobbySize, pointsMap) {
+  var size = lobbySize || 8;
+  var sorted = roster.slice().sort(function(a, b) {
+    var ptsA = pointsMap[a.id] || 0;
+    var ptsB = pointsMap[b.id] || 0;
+    return ptsB - ptsA;
+  });
+  var numLobbies = Math.ceil(sorted.length / size);
+  var lobbies = [];
+  for (var i = 0; i < numLobbies; i++) lobbies.push([]);
+  var forward = true;
+  var li = 0;
+  for (var pi = 0; pi < sorted.length; pi++) {
+    lobbies[li].push(sorted[pi]);
+    if (forward) {
+      if (li >= numLobbies - 1) { forward = false; }
+      else { li++; }
+    } else {
+      if (li <= 0) { forward = true; }
+      else { li--; }
+    }
+  }
+  return lobbies;
 }
 
 // ── Player search + guest add ─────────────────────────────────────────────────
@@ -183,6 +244,8 @@ export default function ScrimsScreen() {
   var scrimAccess = ctx.scrimAccess;
   var scrimHostAccess = ctx.scrimHostAccess || [];
 
+  var devMode = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   var _tab = useState('lobbies'); var tab = _tab[0]; var setTab = _tab[1];
   var _statsTab = useState('players'); var statsTab = _statsTab[0]; var setStatsTab = _statsTab[1];
   var _activeId = useState(null); var activeId = _activeId[0]; var setActiveId = _activeId[1];
@@ -203,6 +266,14 @@ export default function ScrimsScreen() {
   var _timerActive = useState(false); var timerActive = _timerActive[0]; var setTimerActive = _timerActive[1];
   var timerRef = useRef(null);
 
+  // Multi-lobby
+  var _seedMode = useState('random'); var seedMode = _seedMode[0]; var setSeedMode = _seedMode[1];
+  var _lobbies = useState(null); var lobbies = _lobbies[0]; var setLobbies = _lobbies[1];
+  var _lobbyResults = useState({}); var lobbyResults = _lobbyResults[0]; var setLobbyResults = _lobbyResults[1];
+  var _lobbyComps = useState({}); var lobbyComps = _lobbyComps[0]; var setLobbyComps = _lobbyComps[1];
+  var _currentRound = useState(1); var currentRound = _currentRound[0]; var setCurrentRound = _currentRound[1];
+  var _roundStandings = useState(null); var roundStandings = _roundStandings[0]; var setRoundStandings = _roundStandings[1];
+
   // Edit game
   var _editGame = useState(null); var editGame = _editGame[0]; var setEditGame = _editGame[1];
 
@@ -215,6 +286,9 @@ export default function ScrimsScreen() {
   // DB
   var _dbScrims = useState([]); var dbScrims = _dbScrims[0]; var setDbScrims = _dbScrims[1];
   var _dbLoading = useState(true); var dbLoading = _dbLoading[0]; var setDbLoading = _dbLoading[1];
+
+  // Local-only sessions (dev mode fallback)
+  var _localSessions = useState([]); var localSessions = _localSessions[0]; var setLocalSessions = _localSessions[1];
 
   useEffect(function() {
     if (timerActive) { timerRef.current = setInterval(function() { setTimer(function(t) { return t + 1; }); }, 1000); }
@@ -250,7 +324,7 @@ export default function ScrimsScreen() {
         results[r.player_id] = r.placement;
         if (r.comp) comps[r.player_id] = r.comp;
       });
-      return {id: g.id, results: results, comps: comps, note: g.note || '', tag: g.tag || 'standard', duration: g.duration || 0, ts: new Date(g.created_at).getTime(), gameNumber: g.game_number};
+      return {id: g.id, results: results, comps: comps, note: g.note || '', tag: g.tag || 'standard', duration: g.duration || 0, ts: new Date(g.created_at).getTime(), gameNumber: g.game_number, roundNumber: g.round_number || null, lobbyIndex: g.lobby_index != null ? g.lobby_index : null};
     }).sort(function(a, b) { return a.gameNumber - b.gameNumber; });
     return {
       id: sc.id, name: sc.name, notes: sc.notes || '', targetGames: sc.target_games || 5,
@@ -258,7 +332,7 @@ export default function ScrimsScreen() {
       active: sc.status === 'active', createdBy: sc.created_by,
       playerIds: (sc.scrim_players || []).map(function(sp) { return sp.player_id; })
     };
-  });
+  }).concat(localSessions);
 
   var session = safeSessions.find(function(s) { return s.id === activeId; });
   var sessionRoster = (function() {
@@ -271,9 +345,40 @@ export default function ScrimsScreen() {
     return scrimRoster;
   }());
   var rosterForGame = rosterDirtyRef.current && scrimRoster.length > 0 ? scrimRoster : (sessionRoster.length > 0 ? sessionRoster : scrimRoster);
+  var isMultiLobby = rosterForGame.length > 8;
   var allGames = safeSessions.flatMap(function(s) { return s.games; });
   var placedCount = Object.keys(scrimResults).length;
   var allPlaced = rosterForGame.length > 0 && placedCount >= rosterForGame.length;
+
+  // Multi-lobby: compute cumulative points for seeding
+  var sessionPointsMap = {};
+  if (session) {
+    session.games.forEach(function(g) {
+      Object.keys(g.results).forEach(function(pid) {
+        if (!sessionPointsMap[pid]) sessionPointsMap[pid] = 0;
+        sessionPointsMap[pid] += PTS[g.results[pid]] || 0;
+      });
+    });
+  }
+
+  // Multi-lobby: check if all lobbies are fully placed
+  var allLobbiesPlaced = false;
+  if (lobbies && lobbies.length > 0) {
+    allLobbiesPlaced = lobbies.every(function(lobby, li) {
+      var lr = lobbyResults[li] || {};
+      return lobby.length > 0 && Object.keys(lr).length >= lobby.length;
+    });
+  }
+
+  // Detect current round from existing games
+  var sessionRoundCount = 0;
+  if (session) {
+    var maxRound = 0;
+    session.games.forEach(function(g) {
+      if (g.roundNumber && g.roundNumber > maxRound) maxRound = g.roundNumber;
+    });
+    sessionRoundCount = maxRound;
+  }
 
   // Per-player stats
   var scrimStats = players.map(function(p) {
@@ -314,14 +419,116 @@ export default function ScrimsScreen() {
   });
   var compList = Object.values(compMap).sort(function(a, b) { return b.games - a.games; });
 
+  // Multi-lobby functions
+  function generateLobbies() {
+    var roster = rosterForGame;
+    if (roster.length <= 8) return;
+    var result;
+    if (seedMode === 'swiss') {
+      result = seedSwiss(roster, 8, sessionPointsMap);
+    } else if (seedMode === 'snake') {
+      result = seedSnake(roster, 8, sessionPointsMap);
+    } else {
+      result = seedRandom(roster, 8);
+    }
+    setLobbies(result);
+    setLobbyResults({});
+    setLobbyComps({});
+    setRoundStandings(null);
+    setCurrentRound(sessionRoundCount + 1);
+  }
+
+  function buildRoundStandings() {
+    var standings = {};
+    lobbies.forEach(function(lobby, li) {
+      var lr = lobbyResults[li] || {};
+      Object.keys(lr).forEach(function(pid) {
+        var place = lr[pid];
+        var pts = PTS[place] || 0;
+        var cumPts = (sessionPointsMap[pid] || 0) + pts;
+        var p = players.find(function(pl) { return String(pl.id) === String(pid); });
+        if (!standings[pid]) standings[pid] = {name: p ? p.name : pid, roundPts: 0, totalPts: 0, roundPlace: 0, lobby: 0};
+        standings[pid].roundPts = pts;
+        standings[pid].roundPlace = place;
+        standings[pid].totalPts = cumPts;
+        standings[pid].lobby = li;
+      });
+    });
+    return Object.values(standings).sort(function(a, b) { return b.totalPts - a.totalPts; });
+  }
+
+  function lockRoundLocal() {
+    var baseGameNum = session ? session.games.length + 1 : 1;
+    var newGames = lobbies.map(function(lobby, li) {
+      var lr = lobbyResults[li] || {};
+      var lc = lobbyComps[li] || {};
+      var results = {}; var comps = {};
+      Object.keys(lr).forEach(function(pid) { results[pid] = lr[pid]; });
+      Object.keys(lc).forEach(function(pid) { if (lc[pid]) comps[pid] = lc[pid]; });
+      return {id: 'game-' + Date.now() + '-' + li, results: results, comps: comps, note: gameNote, tag: gameTag, duration: timer, ts: Date.now(), gameNumber: baseGameNum + li, roundNumber: currentRound, lobbyIndex: li};
+    });
+    setLocalSessions(function(prev) {
+      return prev.map(function(s) {
+        if (s.id !== activeId) return s;
+        return Object.assign({}, s, {games: s.games.concat(newGames)});
+      });
+    });
+    setRoundStandings(buildRoundStandings());
+    setLobbyResults({}); setLobbyComps({}); setGameNote(''); setTimer(0); setTimerActive(false);
+    toast('Round ' + currentRound + ' locked - ' + lobbies.length + ' lobbies (local)', 'success');
+  }
+
+  function lockRound() {
+    if (!activeId || !lobbies || !allLobbiesPlaced) return;
+    if (devMode || String(activeId).startsWith('local-')) { lockRoundLocal(); return; }
+    var baseGameNum = session ? session.games.length + 1 : 1;
+    var promises = lobbies.map(function(lobby, li) {
+      var lr = lobbyResults[li] || {};
+      var lc = lobbyComps[li] || {};
+      var resultRows = Object.keys(lr).map(function(pid) {
+        return {playerId: pid, placement: lr[pid], comp: lc[pid] || null};
+      });
+      return submitScrimResult(activeId, baseGameNum + li, resultRows, gameTag, gameNote, timer, currentRound, li);
+    });
+    Promise.all(promises).then(function(results) {
+      var anyError = results.find(function(r) { return r.error; });
+      if (anyError) { lockRoundLocal(); return; }
+      setRoundStandings(buildRoundStandings());
+      reloadScrims();
+      setLobbyResults({}); setLobbyComps({}); setGameNote(''); setTimer(0); setTimerActive(false);
+      toast('Round ' + currentRound + ' locked - ' + lobbies.length + ' lobbies', 'success');
+    }).catch(function() { lockRoundLocal(); });
+  }
+
+  function nextRound() {
+    setRoundStandings(null);
+    setLobbies(null);
+  }
+
   // Fns
+  function createSessionLocal() {
+    var localId = 'local-' + Date.now();
+    var sess = {
+      id: localId, name: newName.trim(), notes: newNotes.trim(),
+      targetGames: parseInt(newTarget) || 5, games: [], active: true,
+      createdAt: new Date().toLocaleDateString(), createdBy: 'dev',
+      playerIds: scrimRoster.map(function(p) { return p.id; })
+    };
+    setLocalSessions(function(prev) { return [sess].concat(prev); });
+    setActiveId(localId);
+    setNewName(''); setNewNotes(''); setNewTarget('5');
+    toast('Session created (local)', 'success');
+    setTab('record');
+  }
+
   function createSession() {
     if (!newName.trim()) { toast('Name required', 'error'); return; }
     if (!currentUser) { toast('Login required', 'error'); return; }
+    if (devMode) { createSessionLocal(); return; }
     var authId = currentUser.auth_user_id || currentUser.id;
     if (!authId) { toast('Auth session not found', 'error'); return; }
     createScrim(newName.trim(), authId, newNotes.trim(), parseInt(newTarget) || 5).then(function(res) {
-      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
+      if (res.error) { createSessionLocal(); return; }
       var scrimId = res.data.id;
       var pids = scrimRoster.map(function(p) { return p.id; }).filter(Boolean);
       if (pids.length > 0) {
@@ -331,26 +538,49 @@ export default function ScrimsScreen() {
       setNewName(''); setNewNotes(''); setNewTarget('5');
       toast('Session created', 'success');
       setTab('record');
-    }).catch(function() { toast('Failed to create session', 'error'); });
+    }).catch(function() { createSessionLocal(); });
   }
 
+
+  function lockGameLocal(gameNum) {
+    var results = {}; var comps = {};
+    Object.keys(scrimResults).forEach(function(pid) {
+      results[pid] = scrimResults[pid];
+      if (gameComps[pid]) comps[pid] = gameComps[pid];
+    });
+    var game = {id: 'game-' + Date.now(), results: results, comps: comps, note: gameNote, tag: gameTag, duration: timer, ts: Date.now(), gameNumber: gameNum, roundNumber: null, lobbyIndex: null};
+    setLocalSessions(function(prev) {
+      return prev.map(function(s) {
+        if (s.id !== activeId) return s;
+        return Object.assign({}, s, {games: s.games.concat([game])});
+      });
+    });
+    setScrimResults({}); setGameComps({}); setGameNote(''); setTimer(0); setTimerActive(false);
+    toast('Game locked (local)', 'success');
+  }
 
   function lockGame() {
     if (!activeId) { toast('Select a session first', 'error'); return; }
     if (!allPlaced) { toast('Set all placements first', 'error'); return; }
     var gameNum = session ? session.games.length + 1 : 1;
+    if (devMode || String(activeId).startsWith('local-')) { lockGameLocal(gameNum); return; }
     var resultRows = Object.keys(scrimResults).map(function(pid) {
       return {playerId: pid, placement: scrimResults[pid], comp: gameComps[pid] || null};
     });
     submitScrimResult(activeId, gameNum, resultRows, gameTag, gameNote, timer).then(function(res) {
-      if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
+      if (res.error) { lockGameLocal(gameNum); return; }
       reloadScrims();
       setScrimResults({}); setGameComps({}); setGameNote(''); setTimer(0); setTimerActive(false);
       toast('Game locked', 'success');
-    }).catch(function() { toast('Failed to save game', 'error'); });
+    }).catch(function() { lockGameLocal(gameNum); });
   }
 
   function stopSession(id) {
+    if (devMode || String(id).startsWith('local-')) {
+      setLocalSessions(function(prev) { return prev.map(function(s) { return s.id === id ? Object.assign({}, s, {active: false}) : s; }); });
+      toast('Session ended (local)', 'success');
+      return;
+    }
     endScrimDb(id).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims(); toast('Session ended', 'success');
@@ -366,6 +596,15 @@ export default function ScrimsScreen() {
   }
 
   function deleteGame(gameId) {
+    if (devMode || String(activeId).startsWith('local-')) {
+      setLocalSessions(function(prev) {
+        return prev.map(function(s) {
+          return Object.assign({}, s, {games: s.games.filter(function(g) { return g.id !== gameId; })});
+        });
+      });
+      setConfirmDelete(null); toast('Game deleted (local)', 'success');
+      return;
+    }
     deleteScrimGameDb(gameId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims(); setConfirmDelete(null); toast('Game deleted', 'success');
@@ -373,6 +612,12 @@ export default function ScrimsScreen() {
   }
 
   function deleteSession(sessionId) {
+    if (devMode || String(sessionId).startsWith('local-')) {
+      setLocalSessions(function(prev) { return prev.filter(function(s) { return s.id !== sessionId; }); });
+      if (activeId === sessionId) { setActiveId(null); setScrimRoster([]); setScrimResults({}); rosterDirtyRef.current = false; }
+      setConfirmDelete(null); toast('Session deleted (local)', 'success');
+      return;
+    }
     deleteScrimDb(sessionId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
       reloadScrims();
@@ -395,7 +640,18 @@ export default function ScrimsScreen() {
       return;
     }
     supabase.from('players').insert({username: name, role: 'guest'}).select().single().then(function(res) {
-      if (res.error) { toast('Failed to add guest: ' + res.error.message, 'error'); return; }
+      if (res.error) {
+        // Fallback: add as local-only guest (dev mode / no auth session)
+        var localId = 'guest-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+        var np = {id: localId, name: name, role: 'guest', rank: null, pts: 0, wins: 0, games: 0, top4: 0, avg: '0'};
+        setPlayers(function(prev) { return prev.concat([np]); });
+        rosterDirtyRef.current = true;
+        var base = scrimRoster.length > 0 ? scrimRoster : rosterForGame;
+        var newR = base.concat([np]);
+        setScrimRoster(newR);
+        toast(name + ' added as local guest', 'success');
+        return;
+      }
 
       var np = {id: res.data.id, name: res.data.username || name, role: 'guest', rank: null, pts: 0, wins: 0, games: 0, top4: 0, avg: '0'};
       setPlayers(function(prev) { return prev.concat([np]); });
@@ -410,6 +666,16 @@ export default function ScrimsScreen() {
 
   function syncRosterToDb(newRoster) {
     if (!activeId) return;
+    if (devMode || String(activeId).startsWith('local-')) {
+      // Update local session playerIds
+      setLocalSessions(function(prev) {
+        return prev.map(function(s) {
+          if (s.id !== activeId) return s;
+          return Object.assign({}, s, {playerIds: newRoster.map(function(p) { return p.id; })});
+        });
+      });
+      return;
+    }
     var ids = newRoster.map(function(p) { return p.id; });
     // Delete existing scrim_players and re-insert
     supabase.from('scrim_players').delete().eq('scrim_id', activeId).then(function() {
@@ -657,7 +923,7 @@ export default function ScrimsScreen() {
               {/* Session selector */}
               <div className="bg-surface-container-low rounded-sm p-5">
                 <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">Session</label>
-                <select value={activeId || ''} onChange={function(e) { var v = e.target.value || null; setActiveId(v); setScrimResults({}); setGameComps({}); rosterDirtyRef.current = false; if (v) setScrimRoster([]); }}
+                <select value={activeId || ''} onChange={function(e) { var v = e.target.value || null; setActiveId(v); setScrimResults({}); setGameComps({}); rosterDirtyRef.current = false; if (v) setScrimRoster([]); setLobbies(null); setLobbyResults({}); setLobbyComps({}); setRoundStandings(null); }}
                   className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary">
                   <option value="">- Select session -</option>
                   {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
@@ -673,7 +939,10 @@ export default function ScrimsScreen() {
                 <>
                   {/* Roster */}
                   <div className="bg-surface-container-low rounded-sm p-5">
-                    <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Roster ({rosterForGame.length} players)</label>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">Roster ({rosterForGame.length} players){isMultiLobby && <span className="text-tertiary ml-2">{Math.ceil(rosterForGame.length / 8)} lobbies</span>}</label>
+                      {isMultiLobby && <span className="text-[9px] font-sans-condensed bg-tertiary/15 text-tertiary px-2 py-0.5 uppercase tracking-widest">Multi-Lobby</span>}
+                    </div>
                     <PlayerSearch
                       players={players}
                       roster={rosterForGame}
@@ -687,6 +956,7 @@ export default function ScrimsScreen() {
                         }
                         setScrimRoster(newRoster);
                         syncRosterToDb(newRoster);
+                        setLobbies(null); setRoundStandings(null);
                       }}
                       onAddGuest={addGuestPlayer}
                     />
@@ -703,6 +973,7 @@ export default function ScrimsScreen() {
                                 setScrimRoster(override);
                                 syncRosterToDb(override);
                                 setScrimResults(function(prev) { var n = Object.assign({}, prev); delete n[p.id]; return n; });
+                                setLobbies(null); setRoundStandings(null);
                               }} className="text-primary/40 hover:text-error transition-colors text-sm leading-none bg-transparent border-0 cursor-pointer p-0 ml-0.5">x</button>
                             </div>
                           );
@@ -715,7 +986,7 @@ export default function ScrimsScreen() {
                   <div className="bg-surface-container-low rounded-sm p-5 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-sm text-on-surface-variant">
-                        Game {session ? session.games.length + 1 : 1}{session ? ' / ' + session.targetGames : ''}
+                        {isMultiLobby ? 'Round ' + (sessionRoundCount + 1) : 'Game ' + (session ? session.games.length + 1 : 1)}{session ? ' / ' + session.targetGames : ''}
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={'font-mono text-base font-bold w-14 ' + (timerActive ? 'text-primary' : 'text-on-surface-variant/40')}>{fmt(timer)}</div>
@@ -742,7 +1013,8 @@ export default function ScrimsScreen() {
                     </div>
                   </div>
 
-                  {rosterForGame.length >= 2 && (
+                  {/* ── Single lobby mode (8 or fewer) ── */}
+                  {!isMultiLobby && rosterForGame.length >= 2 && (
                     <div className="bg-surface-container-low rounded-sm p-5 space-y-5">
                       <div>
                         <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Placements - {placedCount}/{rosterForGame.length} set</label>
@@ -759,6 +1031,158 @@ export default function ScrimsScreen() {
                           className="w-full py-2.5 border border-error/30 text-error font-sans-condensed text-xs uppercase tracking-widest hover:bg-error/10 transition-colors">
                           End Session
                         </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* ── Multi-lobby mode (9+) ── */}
+                  {isMultiLobby && (
+                    <div className="space-y-4">
+                      {/* Seeding controls */}
+                      {!lobbies && !roundStandings && (
+                        <div className="bg-surface-container-low rounded-sm p-5 space-y-4">
+                          <div>
+                            <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Seeding Mode</label>
+                            <div className="flex gap-2">
+                              {[
+                                {id: 'random', label: 'Random', icon: 'shuffle', desc: 'Pure shuffle'},
+                                {id: 'swiss', label: 'Swiss', icon: 'swap_vert', desc: 'Group by points'},
+                                {id: 'snake', label: 'Snake', icon: 'route', desc: 'Balanced draft'}
+                              ].map(function(mode) {
+                                var isActive = seedMode === mode.id;
+                                var isDisabled = mode.id !== 'random' && sessionRoundCount === 0;
+                                return (
+                                  <button key={mode.id} onClick={function() { if (!isDisabled) setSeedMode(mode.id); }}
+                                    className={'flex-1 p-3 rounded-sm border transition-all text-left ' + (isActive ? 'border-primary bg-primary/10' : isDisabled ? 'border-outline-variant/10 opacity-30 cursor-not-allowed' : 'border-outline-variant/10 hover:border-primary/30')}>
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <Icon name={mode.icon} size={14} className={isActive ? 'text-primary' : 'text-on-surface-variant/40'}/>
+                                      <span className={'font-sans-condensed text-xs uppercase tracking-widest font-bold ' + (isActive ? 'text-primary' : 'text-on-surface')}>{mode.label}</span>
+                                    </div>
+                                    <div className="text-[10px] text-on-surface-variant/50">{mode.desc}{isDisabled ? ' (need round 1 first)' : ''}</div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <button onClick={generateLobbies}
+                            className="w-full py-3.5 bg-primary text-on-primary font-sans-condensed font-bold uppercase tracking-widest text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                            <Icon name="groups" size={16} className="text-current"/>Generate Lobbies - Round {sessionRoundCount + 1}
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Round standings (after locking) */}
+                      {roundStandings && (
+                        <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                          <div className="px-5 py-4 bg-surface-container flex items-center justify-between">
+                            <div>
+                              <h3 className="font-serif text-xl font-bold">Round {currentRound} Complete</h3>
+                              <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Cross-lobby standings</p>
+                            </div>
+                            <button onClick={nextRound}
+                              className="px-5 py-2.5 bg-primary text-on-primary font-sans-condensed font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-opacity flex items-center gap-2">
+                              <Icon name="skip_next" size={14} className="text-current"/>Next Round
+                            </button>
+                          </div>
+                          <div className="p-5">
+                            <table className="w-full">
+                              <thead>
+                                <tr style={{background: 'rgba(255,255,255,0.03)'}}>
+                                  {['#','Player','Lobby','Round Pts','Total Pts'].map(function(h, hi) {
+                                    return <th key={h} className={'py-2.5 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-4' : 'text-center px-3')}>{h}</th>;
+                                  })}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {roundStandings.map(function(s, si) {
+                                  var rankColor = si === 0 ? '#E8A838' : si === 1 ? '#C0C0C0' : si === 2 ? '#CD7F32' : 'rgba(255,255,255,0.2)';
+                                  var lobbyLetter = String.fromCharCode(65 + s.lobby);
+                                  return (
+                                    <tr key={s.name} style={{borderBottom: '1px solid rgba(255,255,255,0.04)', background: si === 0 ? 'rgba(232,168,56,0.03)' : 'transparent'}}>
+                                      <td className="px-4 py-3"><span className="font-mono font-black text-sm" style={{color: rankColor}}>{si + 1}</span></td>
+                                      <td className="px-4 py-3">
+                                        <div className="font-bold text-sm text-on-surface">{s.name}</div>
+                                        <div className="text-[10px] text-on-surface-variant/50">#{s.roundPlace} in lobby</div>
+                                      </td>
+                                      <td className="px-3 py-3 text-center"><span className="font-mono text-xs font-bold text-tertiary">{lobbyLetter}</span></td>
+                                      <td className="px-3 py-3 text-center"><span className="font-mono text-sm font-bold" style={{color: placeColor(s.roundPlace)}}>{s.roundPts}</span></td>
+                                      <td className="px-3 py-3 text-center"><span className="font-mono text-lg font-black text-primary">{s.totalPts}</span></td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                          {session && session.active && (
+                            <div className="px-5 pb-4">
+                              <button onClick={function() { stopSession(session.id); }}
+                                className="w-full py-2.5 border border-error/30 text-error font-sans-condensed text-xs uppercase tracking-widest hover:bg-error/10 transition-colors">
+                                End Session
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Side-by-side lobby boards */}
+                      {lobbies && !roundStandings && (
+                        <div className="space-y-4">
+                          <div className={'grid gap-4 ' + (lobbies.length === 2 ? 'grid-cols-1 xl:grid-cols-2' : lobbies.length === 3 ? 'grid-cols-1 xl:grid-cols-3' : 'grid-cols-1 xl:grid-cols-2')}>
+                            {lobbies.map(function(lobby, li) {
+                              var lr = lobbyResults[li] || {};
+                              var lc = lobbyComps[li] || {};
+                              var lobbyPlaced = Object.keys(lr).length;
+                              var lobbyLetter = String.fromCharCode(65 + li);
+                              var lobbyColor = li === 0 ? '#E8A838' : li === 1 ? '#4ECDC4' : li === 2 ? '#C4B5FD' : '#f97316';
+                              return (
+                                <div key={li} className="bg-surface-container-low rounded-sm overflow-hidden">
+                                  <div className="px-4 py-3 bg-surface-container flex items-center justify-between" style={{borderTop: '2px solid ' + lobbyColor}}>
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-mono text-sm font-black" style={{color: lobbyColor}}>Lobby {lobbyLetter}</span>
+                                      <span className="text-[10px] font-sans-condensed text-on-surface-variant">{lobby.length} players</span>
+                                    </div>
+                                    <span className={'font-mono text-xs font-bold ' + (lobbyPlaced >= lobby.length ? 'text-emerald-400' : 'text-on-surface-variant/40')}>{lobbyPlaced}/{lobby.length}</span>
+                                  </div>
+                                  <div className="p-4">
+                                    <PlacementBoard roster={lobby} results={lr}
+                                      onPlace={function(pid, place) {
+                                        setLobbyResults(function(prev) {
+                                          var updated = Object.assign({}, prev);
+                                          updated[li] = Object.assign({}, updated[li] || {});
+                                          updated[li][pid] = place;
+                                          return updated;
+                                        });
+                                      }}
+                                      comps={lc}
+                                      onComp={function(pid, val) {
+                                        setLobbyComps(function(prev) {
+                                          var updated = Object.assign({}, prev);
+                                          updated[li] = Object.assign({}, updated[li] || {});
+                                          updated[li][pid] = val;
+                                          return updated;
+                                        });
+                                      }}/>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <button onClick={lockRound} disabled={!allLobbiesPlaced}
+                            className="w-full py-3.5 bg-primary text-on-primary font-sans-condensed font-bold uppercase tracking-widest text-sm hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2">
+                            <Icon name="lock" size={15} className="text-current"/>Lock Round {currentRound} - {lobbies.length} Lobbies
+                          </button>
+                          <button onClick={function() { setLobbies(null); setLobbyResults({}); setLobbyComps({}); }}
+                            className="w-full py-2.5 border border-outline-variant/20 text-on-surface-variant font-sans-condensed text-xs uppercase tracking-widest hover:text-on-surface hover:border-outline-variant/40 transition-colors">
+                            Re-shuffle Lobbies
+                          </button>
+                          {session && session.active && (
+                            <button onClick={function() { stopSession(session.id); }}
+                              className="w-full py-2.5 border border-error/30 text-error font-sans-condensed text-xs uppercase tracking-widest hover:bg-error/10 transition-colors">
+                              End Session
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
@@ -786,7 +1210,8 @@ export default function ScrimsScreen() {
                       <div key={g.id} className="bg-surface-container-low rounded-sm overflow-hidden">
                         <div className="flex justify-between items-center px-4 py-2.5 bg-surface-container">
                           <div className="flex gap-2 items-center">
-                            <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber || (gi + 1)}</span>
+                            <span className="font-mono text-xs font-bold text-primary">{g.roundNumber ? 'R' + g.roundNumber : 'G' + (g.gameNumber || (gi + 1))}</span>
+                            {g.lobbyIndex != null && <span className="text-[9px] font-sans-condensed bg-tertiary/15 text-tertiary px-1.5 py-0.5 uppercase">Lobby {String.fromCharCode(65 + g.lobbyIndex)}</span>}
                             {g.tag !== 'standard' && <span className="text-[9px] font-sans-condensed bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
                             {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
                           </div>
@@ -1227,7 +1652,8 @@ export default function ScrimsScreen() {
                               <div key={g.id} className="bg-surface-container-high rounded-sm overflow-hidden">
                                 <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container-highest/50">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber}</span>
+                                    <span className="font-mono text-xs font-bold text-primary">{g.roundNumber ? 'R' + g.roundNumber : 'G' + g.gameNumber}</span>
+                                    {g.lobbyIndex != null && <span className="text-[9px] font-sans-condensed bg-tertiary/15 text-tertiary px-1.5 py-0.5 uppercase">Lobby {String.fromCharCode(65 + g.lobbyIndex)}</span>}
                                     {g.tag !== 'standard' && <span className="text-[9px] font-sans-condensed bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
                                     {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
                                     {!isEditing && g.note && <span className="text-[10px] text-on-surface-variant/50 italic">"{g.note}"</span>}

@@ -201,7 +201,8 @@ export default function AccountScreen() {
 
   var s = linkedPlayer ? getStats(linkedPlayer) : null;
   var rankColor = linkedPlayer ? rc(linkedPlayer.rank) : '#9B72CF';
-  var isPro = !!(subscription && (subscription.plan === 'pro' || subscription.plan === 'host'));
+  var subTier = subscription ? (subscription.tier || subscription.plan || 'free') : 'free';
+  var isPro = subTier === 'pro' || subTier === 'bundle' || subTier === 'host';
 
   var myAchievements = linkedPlayer ? ACHIEVEMENTS.filter(function(a) { try { return a.check(linkedPlayer); } catch(e) { return false; } }) : [];
   var myMilestones = linkedPlayer ? MILESTONES.filter(function(m) { try { return m.check(linkedPlayer); } catch(e) { return false; } }) : [];
@@ -222,7 +223,7 @@ export default function AccountScreen() {
 
   useEffect(function() {
     if (!user || !user.id) return;
-    supabase.from('subscriptions').select('plan,status').eq('user_id', user.id).single()
+    supabase.from('user_subscriptions').select('*').eq('user_id', user.id).single()
       .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); }).catch(function() {});
   }, [user && user.id]);
 
@@ -506,48 +507,54 @@ export default function AccountScreen() {
           <div className="space-y-6">
 
           {/* Subscription Status Card */}
-          {subscription ? (
-            <div className={'flex items-center gap-4 p-4 rounded-lg border ' + (subscription.plan === 'host' ? 'bg-primary/8 border-primary/30' : 'bg-secondary/8 border-secondary/30')}>
-              <div className={'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ' + (subscription.plan === 'host' ? 'bg-primary/20' : 'bg-secondary/20')}>
-                <Icon name={subscription.plan === 'host' ? 'shield_person' : 'star'} size={20} className={subscription.plan === 'host' ? 'text-primary' : 'text-secondary'} fill={true} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={'font-condensed font-bold uppercase tracking-widest text-sm ' + (subscription.plan === 'host' ? 'text-primary' : 'text-secondary')}>
-                    {subscription.plan === 'host' ? 'Host Plan' : 'Pro Plan'}
-                  </span>
-                  <span className="bg-success/20 text-success rounded-full px-2 py-0.5 font-condensed text-[10px] font-bold uppercase tracking-widest">Active</span>
+          {(function() {
+            var tierNames = { free: 'Free Plan', pro: 'Pro', scrim: 'Scrim Pass', bundle: 'Pro + Scrim', host: 'Host' };
+            var tierIcons = { free: 'person', pro: 'star', scrim: 'meeting_room', bundle: 'verified', host: 'shield_person' };
+            var tierDescs = { free: 'Compete in weekly clashes. Upgrade for custom profiles and hosting.', pro: 'Custom profile, Pro badge, and premium features', scrim: 'Create scrim rooms, multi-lobby seeding, scrim stats', bundle: 'All Pro and Scrim Pass features combined', host: 'Full tournament hosting access + all Pro and Scrim features' };
+            var isHost = subTier === 'host';
+            var isPaid = subTier !== 'free';
+            var accentClass = isHost ? 'text-tertiary' : 'text-primary';
+            var bgClass = isHost ? 'bg-tertiary/8 border-tertiary/30' : isPaid ? 'bg-primary/8 border-primary/30' : 'border-outline-variant/20 bg-surface-container-low';
+            var iconBg = isHost ? 'bg-tertiary/20' : isPaid ? 'bg-primary/20' : 'bg-surface-container';
+            var iconColor = isHost ? 'text-tertiary' : isPaid ? 'text-primary' : 'text-on-surface/40';
+
+            return (
+              <div className={'flex items-center gap-4 p-4 rounded-lg border ' + bgClass}>
+                <div className={'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ' + iconBg}>
+                  <Icon name={tierIcons[subTier] || 'person'} size={20} className={iconColor} fill={true} />
                 </div>
-                <p className="text-on-surface/50 text-xs font-body mt-0.5">
-                  {subscription.plan === 'host' ? 'Full tournament hosting access + all Pro features' : 'Custom profile, Pro badge, and premium features'}
-                </p>
-              </div>
-              <button
-                onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
-                className="flex-shrink-0 font-condensed text-xs uppercase tracking-widest text-on-surface/50 hover:text-on-surface transition-colors"
-              >
-                Manage
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-4 p-4 rounded-lg border border-outline-variant/20 bg-surface-container-low">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-surface-container">
-                <Icon name="person" size={20} className="text-on-surface/40" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-condensed font-bold uppercase tracking-widest text-sm text-on-surface">Free Plan</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={'font-condensed font-bold uppercase tracking-widest text-sm ' + (isPaid ? accentClass : 'text-on-surface')}>
+                      {tierNames[subTier] || 'Free Plan'}
+                    </span>
+                    {isPaid ? (
+                      <span className="bg-success/20 text-success rounded-full px-2 py-0.5 font-condensed text-[10px] font-bold uppercase tracking-widest">Active</span>
+                    ) : null}
+                    {subscription && subscription.cancel_at_period_end ? (
+                      <span className="bg-error/20 text-error rounded-full px-2 py-0.5 font-condensed text-[10px] font-bold uppercase tracking-widest">Cancels at period end</span>
+                    ) : null}
+                  </div>
+                  <p className="text-on-surface/50 text-xs font-body mt-0.5">
+                    {tierDescs[subTier] || tierDescs.free}
+                  </p>
+                  {subscription && subscription.current_period_end ? (
+                    <p className="text-on-surface/30 text-[10px] font-mono mt-1">
+                      {'Next billing: ' + new Date(subscription.current_period_end).toLocaleDateString()}
+                    </p>
+                  ) : null}
                 </div>
-                <p className="text-on-surface/50 text-xs font-body mt-0.5">Compete in weekly clashes. Upgrade for custom profiles and hosting.</p>
+                <button
+                  onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
+                  className={isPaid
+                    ? 'flex-shrink-0 font-condensed text-xs uppercase tracking-widest text-on-surface/50 hover:text-on-surface transition-colors'
+                    : 'flex-shrink-0 bg-primary text-on-primary px-4 py-2 rounded font-condensed text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity'}
+                >
+                  {isPaid ? 'Manage' : 'Upgrade'}
+                </button>
               </div>
-              <button
-                onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
-                className="flex-shrink-0 bg-primary text-on-primary px-4 py-2 rounded font-condensed text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
-              >
-                Upgrade
-              </button>
-            </div>
-          )}
+            );
+          })()}
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
@@ -844,7 +851,7 @@ export default function AccountScreen() {
                             <p className="font-body text-on-surface text-sm p-3 border-b border-outline-variant/20 flex-1">{user.username}</p>
                             {isPro && (
                               <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 font-sans-cond text-[9px] font-bold uppercase tracking-widest flex-shrink-0">
-                                {subscription && subscription.plan === 'host' ? 'HOST' : 'PRO'}
+                                {subTier === 'host' ? 'HOST' : subTier === 'bundle' ? 'PRO+SCRIM' : subTier === 'scrim' ? 'SCRIM' : 'PRO'}
                               </span>
                             )}
                           </div>
@@ -881,16 +888,16 @@ export default function AccountScreen() {
                       )}
 
                       {/* Subscription status */}
-                      {subscription ? (
-                        <div className={'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-sans-cond border ' + (subscription.plan === 'host' ? 'bg-primary/[0.12] border-primary/40 text-primary' : 'bg-secondary/[0.12] border-secondary/40 text-secondary-container')}>
-                          {subscription.plan === 'host' ? 'Host Plan' : 'Pro Plan'} - Active
+                      {subscription && subTier !== 'free' ? (
+                        <div className={'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-sans-cond border ' + (subTier === 'host' ? 'bg-tertiary/[0.12] border-tertiary/40 text-tertiary' : 'bg-primary/[0.12] border-primary/40 text-primary')}>
+                          {subTier === 'host' ? 'Host' : subTier === 'bundle' ? 'Pro + Scrim' : subTier === 'scrim' ? 'Scrim Pass' : 'Pro'} - Active
                         </div>
                       ) : (
                         <button
                           onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-secondary/30 text-secondary/70 hover:text-secondary text-xs font-sans-cond uppercase tracking-widest transition-colors"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-primary/30 text-primary/70 hover:text-primary text-xs font-sans-cond uppercase tracking-widest transition-colors"
                         >
-                          Upgrade to Pro
+                          Upgrade
                         </button>
                       )}
 

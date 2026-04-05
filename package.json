@@ -12,6 +12,7 @@
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
+    "@paypal/paypal-js": "^9.5.0",
     "@sentry/react": "^10.44.0",
     "@supabase/supabase-js": "^2.99.1",
     "@tabler/icons-webfont": "^3.40.0",
