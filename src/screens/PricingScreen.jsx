@@ -16,6 +16,7 @@ var FREE_FEATURES = [
 
 var PRO_FEATURES = [
   { text: 'Everything in Free, plus:', icon: 'add_circle', dim: true },
+  { text: 'Ad-free browsing', icon: 'block' },
   { text: 'Priority registration (10 min early)', icon: 'schedule' },
   { text: 'Pro badge on profile', icon: 'verified' },
   { text: 'Full career match history', icon: 'history' },
@@ -56,6 +57,7 @@ var HOST_FEATURES = [
 var COMPARISON_ROWS = [
   { label: 'Weekly clash entry',       free: true,       pro: true,       scrim: true,       bundle: true,       host: true,       type: 'bool' },
   { label: 'Match history',            free: 'Last 10',  pro: 'Full',     scrim: 'Last 10',  bundle: 'Full',     host: 'Full',     type: 'text' },
+  { label: 'Ad-free browsing',          free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
   { label: 'Priority registration',    free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
   { label: 'Pro badge',                free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
   { label: 'Advanced stats',           free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
