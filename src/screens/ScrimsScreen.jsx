@@ -6,28 +6,6 @@ import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
 
 // ── Bar Trend (replaces line sparkline) ──────────────────────────────────────
-function ScrimTrend(props) {
-  var placements = props.placements;
-  if (!placements || placements.length === 0) return null;
-  var last = placements.slice(-8);
-  var maxH = 28;
-  return (
-    <div className="flex items-end gap-px flex-shrink-0" style={{height: maxH + 'px'}}>
-      {last.map(function(pl, i) {
-        var barH = Math.max(3, Math.round(((9 - pl) / 8) * maxH));
-        var c = pl === 1 ? '#E8A838' : pl === 2 ? '#C0C0C0' : pl === 3 ? '#CD7F32' : pl <= 4 ? '#4ECDC4' : pl <= 6 ? '#facc15' : '#f87171';
-        return (
-          <div key={"bar-" + i} style={{
-            width: '5px', height: barH + 'px', background: c,
-            opacity: 0.35 + (i / Math.max(last.length - 1, 1)) * 0.65,
-            borderRadius: '2px 2px 0 0'
-          }}/>
-        );
-      })}
-    </div>
-  );
-}
-
 // ── Placement Board ───────────────────────────────────────────────────────────
 function PlacementBoard(props) {
   var roster = props.roster;
@@ -317,7 +295,7 @@ export default function ScrimsScreen() {
       winRate: ((wins / pGames.length) * 100).toFixed(0),
       ppg: (pts / pGames.length).toFixed(1)
     });
-  }).filter(Boolean).sort(function(a, b) { return parseFloat(a.avg) - parseFloat(b.avg); });
+  }).filter(Boolean).sort(function(a, b) { return b.pts - a.pts; });
 
   // Comp stats
   var compMap = {};
@@ -799,38 +777,45 @@ export default function ScrimsScreen() {
                   <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No games yet</div>
                 </div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {(session ? session.games.slice().reverse() : allGames.slice().reverse()).slice(0, 8).map(function(g, gi) {
                     var sorted = Object.entries(g.results).sort(function(a, b) { return a[1] - b[1]; });
+                    var winner = sorted[0];
+                    var winnerPlayer = winner ? players.find(function(pl) { return String(pl.id) === String(winner[0]); }) : null;
                     return (
-                      <div key={g.id} className="bg-surface-container-low rounded-sm p-3.5">
-                        <div className="flex justify-between items-center mb-2">
+                      <div key={g.id} className="bg-surface-container-low rounded-sm overflow-hidden">
+                        <div className="flex justify-between items-center px-4 py-2.5 bg-surface-container">
                           <div className="flex gap-2 items-center">
                             <span className="font-mono text-xs font-bold text-primary">G{g.gameNumber || (gi + 1)}</span>
                             {g.tag !== 'standard' && <span className="text-[9px] font-sans-condensed bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
                             {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
                           </div>
-                          {isAdmin && (
-                            <div className="flex gap-1">
-                              <button onClick={function() { setEditGame({id: g.id, note: g.note, tag: g.tag}); }}
-                                className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name="edit" size={12} className="text-current"/></button>
-                              <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
-                                className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {winnerPlayer && <span className="text-[10px] font-sans-condensed text-on-surface-variant/60">Winner: <span className="font-bold text-amber-400">{winnerPlayer.name}</span></span>}
+                            {isAdmin && (
+                              <div className="flex gap-1">
+                                <button onClick={function() { setEditGame({id: g.id, note: g.note, tag: g.tag}); }}
+                                  className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name="edit" size={12} className="text-current"/></button>
+                                <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
+                                  className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        {g.note && <div className="text-[10px] text-on-surface-variant/50 mb-2 italic">"{g.note}"</div>}
-                        <div className="space-y-1">
+                        {g.note && <div className="text-[10px] text-on-surface-variant/50 px-4 pt-2 italic">"{g.note}"</div>}
+                        <div className="px-4 py-2.5 divide-y divide-outline-variant/5">
                           {sorted.map(function(entry) {
                             var pid = entry[0]; var place = entry[1];
                             var p = players.find(function(pl) { return String(pl.id) === String(pid); });
                             if (!p) return null;
                             var c = placeColor(place);
+                            var pts = PTS[place] || 0;
                             return (
-                              <div key={pid} className="flex items-center justify-between gap-2">
-                                <span className="text-xs truncate" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
-                                {g.comps && g.comps[pid] && <span className="text-[9px] font-sans-condensed text-on-surface-variant/40 truncate flex-1 text-center">{g.comps[pid]}</span>}
-                                <div className="w-5 h-5 flex items-center justify-center flex-shrink-0 font-mono text-[10px] font-bold" style={{background: c + '25', border: '1px solid ' + c + '55', color: c}}>{place}</div>
+                              <div key={pid} className="flex items-center gap-2.5 py-1.5">
+                                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded-sm font-mono text-[10px] font-black" style={{background: c + '20', color: c}}>{place}</div>
+                                <span className="text-xs truncate flex-1" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
+                                {g.comps && g.comps[pid] && <span className="text-[9px] font-sans-condensed text-on-surface-variant/30 truncate max-w-[80px]">{g.comps[pid]}</span>}
+                                <span className="font-mono text-[10px] font-bold flex-shrink-0" style={{color: c}}>{pts}pt</span>
                               </div>
                             );
                           })}
@@ -899,14 +884,14 @@ export default function ScrimsScreen() {
                   <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
                     <div>
                       <h2 className="font-serif text-2xl font-bold">Player Leaderboard</h2>
-                      <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Sorted by average placement</p>
+                      <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Sorted by total points</p>
                     </div>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full border-separate border-spacing-0 min-w-[680px]">
                       <thead>
                         <tr style={{background: 'rgba(255,255,255,0.03)'}}>
-                          {['#','Player','AVG','WIN%','TOP4%','PTS','PPG','BEST','WORST','STREAK','TREND'].map(function(h, hi) {
+                          {['#','Player','PTS','PPG','AVG','WIN%','TOP4%'].map(function(h, hi) {
                             return <th key={h} className={'py-3 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-4' : 'text-center px-3')}>{h}</th>;
                           })}
                         </tr>
@@ -934,7 +919,14 @@ export default function ScrimsScreen() {
                                 </div>
                               </td>
                               <td className="px-3 py-4 text-center">
-                                <span className="font-mono text-xl font-black" style={{color: avgColor}}>{p.avg}</span>
+                                <span className="font-mono text-xl font-black text-primary">{p.pts}</span>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <span className="font-mono text-sm font-bold text-on-surface-variant">{p.ppg}</span>
+                                <div className="text-[9px] font-sans-condensed text-on-surface-variant/40 uppercase">pts/g</div>
+                              </td>
+                              <td className="px-3 py-4 text-center">
+                                <span className="font-mono text-sm font-bold" style={{color: avgColor}}>{p.avg}</span>
                               </td>
                               <td className="px-3 py-4 text-center">
                                 <div className="font-mono text-sm font-bold text-emerald-400">{p.winRate}%</div>
@@ -948,75 +940,6 @@ export default function ScrimsScreen() {
                                   <div className="h-full bg-secondary" style={{width: p.top4Rate + '%'}}/>
                                 </div>
                               </td>
-                              <td className="px-3 py-4 text-center">
-                                <span className="font-mono text-sm font-bold text-primary">{p.pts}</span>
-                              </td>
-                              <td className="px-3 py-4 text-center">
-                                <span className="font-mono text-xs text-on-surface-variant">{p.ppg}</span>
-                                <div className="text-[9px] font-sans-condensed text-on-surface-variant/40 uppercase">pts/g</div>
-                              </td>
-                              <td className="px-3 py-4 text-center">
-                                <div className="w-6 h-6 flex items-center justify-center mx-auto font-mono text-[10px] font-bold" style={{background: '#E8A83822', border: '1px solid #E8A83844', color: '#E8A838'}}>#{p.best}</div>
-                              </td>
-                              <td className="px-3 py-4 text-center">
-                                <div className="w-6 h-6 flex items-center justify-center mx-auto font-mono text-[10px] font-bold" style={{background: '#f8717122', border: '1px solid #f8717144', color: '#f87171'}}>#{p.worst}</div>
-                              </td>
-                              <td className="px-3 py-4 text-center">
-                                {p.streak > 0 ? (
-                                  <div className="inline-flex items-center gap-1 px-2 py-0.5" style={{background: p.streak >= 3 ? '#f9731620' : 'rgba(255,255,255,0.04)', border: '1px solid ' + (p.streak >= 3 ? '#f9731640' : 'rgba(255,255,255,0.06)')}}>
-                                    <span className="font-mono text-xs font-bold" style={{color: p.streak >= 3 ? '#f97316' : 'rgba(255,255,255,0.35)'}}>{p.streak}</span>
-                                  </div>
-                                ) : <span className="text-on-surface-variant/20 text-xs">-</span>}
-                              </td>
-                              <td className="px-3 py-4 text-center">
-                                <ScrimTrend placements={p.placements}/>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Placement heatmap */}
-                <div className="bg-surface-container-low rounded-sm overflow-hidden">
-                  <div className="px-6 py-4 bg-surface-container">
-                    <h2 className="font-serif text-2xl font-bold">Placement Distribution</h2>
-                    <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Frequency heatmap - brighter = more occurrences</p>
-                  </div>
-                  <div className="p-6 overflow-x-auto">
-                    <table className="border-separate border-spacing-1 min-w-[480px]">
-                      <thead>
-                        <tr>
-                          <th className="text-left text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest pr-4 w-28"/>
-                          {[1,2,3,4,5,6,7,8].map(function(n) {
-                            return <th key={n} className="text-center text-xs font-mono font-bold w-10" style={{color: placeColor(n)}}>#{n}</th>;
-                          })}
-                          <th className="text-center text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest pl-2">GP</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {scrimStats.map(function(p) {
-                          var counts = [1,2,3,4,5,6,7,8].map(function(n) { return p.placements.filter(function(x) { return x === n; }).length; });
-                          var maxC = Math.max.apply(null, counts) || 1;
-                          return (
-                            <tr key={p.id}>
-                              <td className="pr-4 py-1 font-bold text-xs text-on-surface">{p.name}</td>
-                              {counts.map(function(count, ci) {
-                                var n = ci + 1;
-                                var c = placeColor(n);
-                                var alpha = count > 0 ? Math.round((0.15 + (count / maxC) * 0.6) * 255).toString(16).padStart(2, '0') : '00';
-                                return (
-                                  <td key={n} className="text-center py-1">
-                                    <div className="w-10 h-10 flex items-center justify-center mx-auto font-mono text-xs font-bold"
-                                      style={{background: count > 0 ? c + alpha : 'rgba(255,255,255,0.03)', border: '1px solid ' + (count > 0 ? c + '44' : 'rgba(255,255,255,0.05)'), color: count > 0 ? c : 'rgba(255,255,255,0.15)'}}>
-                                      {count > 0 ? count : ''}
-                                    </div>
-                                  </td>
-                                );
-                              })}
-                              <td className="pl-2 text-center font-mono text-xs text-on-surface-variant">{p.games}</td>
                             </tr>
                           );
                         })}
@@ -1196,7 +1119,7 @@ export default function ScrimsScreen() {
                   var avg = (pl.reduce(function(s, v) { return s + v; }, 0) / pl.length).toFixed(2);
                   var pobj = players.find(function(p) { return String(p.id) === String(pid); });
                   return {name: pobj ? pobj.name : pid, avg: avg, games: pl.length, wins: pl.filter(function(x) { return x === 1; }).length, pts: pl.reduce(function(s, v) { return s + (PTS[v] || 0); }, 0)};
-                }).sort(function(a, b) { return parseFloat(a.avg) - parseFloat(b.avg); });
+                }).sort(function(a, b) { return b.pts - a.pts; });
 
                 return (
                   <div key={sess.id} className="bg-surface-container-low rounded-sm overflow-hidden">
@@ -1212,15 +1135,16 @@ export default function ScrimsScreen() {
                           {sess.notes && <span className="text-[10px] text-on-surface-variant/50 italic truncate">{sess.notes}</span>}
                         </div>
                       </div>
-                      {/* Mini summary */}
+                      {/* Mini podium */}
                       {sessStats.length > 0 && (
-                        <div className="hidden md:flex gap-3 flex-shrink-0">
+                        <div className="hidden md:flex gap-2 flex-shrink-0 items-center">
                           {sessStats.slice(0, 3).map(function(s, si) {
-                            var c = placeColor(Math.round(parseFloat(s.avg)));
+                            var medal = si === 0 ? '#E8A838' : si === 1 ? '#C0C0C0' : '#CD7F32';
                             return (
-                              <div key={s.name} className="text-right">
-                                <div className="font-mono text-xs font-bold" style={{color: c}}>{s.avg}</div>
-                                <div className="text-[9px] font-sans-condensed text-on-surface-variant/50">{s.name}</div>
+                              <div key={s.name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-sm" style={{background: medal + '10', border: '1px solid ' + medal + '25'}}>
+                                <span className="font-mono text-[10px] font-black" style={{color: medal}}>{si + 1}</span>
+                                <span className="text-[10px] font-sans-condensed text-on-surface truncate max-w-[60px]">{s.name}</span>
+                                <span className="font-mono text-[10px] font-bold text-primary">{s.pts}</span>
                               </div>
                             );
                           })}
