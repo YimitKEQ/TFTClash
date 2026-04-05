@@ -225,44 +225,47 @@ export function AppProvider(props) {
   }
 
   // ── Load players from normalized players table (primary source of truth) ──
+  var playerRetryCount=useRef(0);
+  function mapPlayerRow(r){
+    return{
+      id:r.id,name:r.username,username:r.username,
+      riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
+      bio:r.bio||'',discord_user_id:r.discord_user_id||null,
+      authUserId:r.auth_user_id||null,auth_user_id:r.auth_user_id||null,
+      twitch:(r.social_links&&r.social_links.twitch)||'',
+      twitter:(r.social_links&&r.social_links.twitter)||'',
+      youtube:(r.social_links&&r.social_links.youtube)||'',
+      pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
+      avg:r.avg_placement?String(r.avg_placement):"0",
+      banned:!!r.banned,dnpCount:r.dnp_count||0,notes:r.notes||'',checkedIn:!!r.checked_in,
+      profilePicUrl:r.avatar_url||r.profile_pic_url||'',
+      clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
+      tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
+      role:r.role||"player",sponsor:r.sponsor_json||null,
+      lastClashRank:r.last_clash_rank||null,consistencyGrade:r.consistency_grade||'',
+      tierOverride:r.tier_override||null
+    };
+  }
   function loadPlayersFromTable(){
     if(isSimulation())return; // Simulation injects its own players
     if(!supabase.from)return;
     supabase.from('players').select('*').order('username',{ascending:true})
       .then(function(res){
         if(res.error){
-          // On error, keep whatever is already in state -- do NOT overwrite with SEED
-          return;}
-        if(!res.data||!res.data.length){
-          // Only seed if the table is truly empty (count check)
-          supabase.from('players').select('id',{count:'exact',head:true}).then(function(countRes){
-            if(countRes.count===0){
-              if(supabase.from){supabase.from('players').upsert(SEED,{onConflict:'id'}).then(function(){setPlayers(SEED);}).catch(function(){setPlayers(SEED);});}else{setPlayers(SEED);}
-            }
-          }).catch(function(){/* leave state as-is if count fails */});
-          return;}
-        var mapped=res.data.map(function(r){
-          return{
-            id:r.id,name:r.username,username:r.username,
-            riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
-            bio:r.bio||'',discord_user_id:r.discord_user_id||null,
-            authUserId:r.auth_user_id||null,auth_user_id:r.auth_user_id||null,
-            twitch:(r.social_links&&r.social_links.twitch)||'',
-            twitter:(r.social_links&&r.social_links.twitter)||'',
-            youtube:(r.social_links&&r.social_links.youtube)||'',
-            pts:r.season_pts||0,wins:r.wins||0,top4:r.top4||0,games:r.games||0,
-            avg:r.avg_placement?String(r.avg_placement):"0",
-            banned:!!r.banned,dnpCount:r.dnp_count||0,notes:r.notes||'',checkedIn:!!r.checked_in,
-            profilePicUrl:r.avatar_url||r.profile_pic_url||'',
-            clashHistory:[],sparkline:[],bestStreak:0,currentStreak:0,
-            tiltStreak:0,bestHaul:0,attendanceStreak:0,lastClashId:null,
-            role:r.role||"player",sponsor:r.sponsor_json||null,
-            lastClashRank:r.last_clash_rank||null,consistencyGrade:r.consistency_grade||'',
-            tierOverride:r.tier_override||null
-          };
-        });
+          console.error('[TFT] Players load error:', res.error.message);
+          // Retry up to 3 times with backoff
+          if(playerRetryCount.current<3){
+            playerRetryCount.current++;
+            setTimeout(loadPlayersFromTable, playerRetryCount.current*2000);
+          }
+          return;
+        }
+        playerRetryCount.current=0;
+        if(!res.data||!res.data.length){return;}
+        var mapped=res.data.map(mapPlayerRow);
+        // Set players immediately so the UI is never empty while enrichment loads
+        setPlayers(mapped);
         // Enrich with game_results for detailed stats (clashHistory, streaks, etc.)
-        // Use freshly-fetched `mapped` array (not stale `players` state) to avoid race condition
         var freshMapped=mapped;
         supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
           .order('tournament_id',{ascending:true}).order('round_number',{ascending:true}).order('game_number',{ascending:true})
@@ -282,23 +285,19 @@ export function AppProvider(props) {
                 var wins=hist.filter(function(g){return g.placement===1;}).length;
                 var top4=hist.filter(function(g){return g.placement<=4;}).length;
                 var avgP=hist.reduce(function(s,g){return s+g.placement;},0)/hist.length;
-                // Count distinct tournaments attended
                 var tournamentSet={};
                 hist.forEach(function(g){if(g.tournamentId)tournamentSet[g.tournamentId]=true;});
                 var totalClashes=Object.keys(tournamentSet).length||hist.length;
-                // Compute win streaks from history (consecutive wins from most recent)
                 var curStreak=0;
                 for(var ci=hist.length-1;ci>=0;ci--){
                   if(hist[ci].placement===1)curStreak++;
                   else break;
                 }
-                // Compute best win streak across entire history
                 var bestStr=0, runStr=0;
                 for(var bi=0;bi<hist.length;bi++){
                   if(hist[bi].placement===1){runStr++;if(runStr>bestStr)bestStr=runStr;}
                   else{runStr=0;}
                 }
-                // Attendance streak: consecutive tournaments with results (last N)
                 var tidList=Object.keys(tournamentSet).sort();
                 var attStreak=tidList.length;
                 return Object.assign({},p,{
@@ -308,9 +307,15 @@ export function AppProvider(props) {
                   attendanceStreak:attStreak,totalClashes:totalClashes
                 });
               });
+              setPlayers(mapped);
             }
-            setPlayers(mapped);
-          }).catch(function(e){ setPlayers(freshMapped); });
+          }).catch(function(e){ console.error('[TFT] game_results enrich error:', e); });
+      }).catch(function(e){
+        console.error('[TFT] Players fetch failed:', e);
+        if(playerRetryCount.current<3){
+          playerRetryCount.current++;
+          setTimeout(loadPlayersFromTable, playerRetryCount.current*2000);
+        }
       });
   }
 
