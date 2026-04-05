@@ -1,9 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
-import { TIER_PRICES, TIER_LABELS, loadPayPal, renderSubscribeButton, activateSubscription, isPayPalConfigured } from '../lib/paypal'
+import { TIER_PRICES, getSubscribeUrl, isPayPalConfigured } from '../lib/paypal'
 
 // ─── Feature lists per tier ─────────────────────────────────────────────────
 
@@ -91,7 +90,7 @@ var FAQ_ITEMS = [
   },
   {
     q: 'Can I just buy Scrim without Pro?',
-    a: 'Yes. Scrim Pass and Pro are separate products for different needs. If you want both, the Pro + Scrim bundle saves you $2.99/mo.',
+    a: 'Yes. Scrim Pass and Pro are separate products for different needs. If you want both, the Pro + Scrim bundle saves you \u20AC2.99/mo.',
   },
 ]
 
@@ -113,80 +112,6 @@ function BoolCell(props) {
   )
 }
 
-function PayPalButtonContainer(props) {
-  var tier = props.tier
-  var authUserId = props.authUserId
-  var accent = props.accent || 'primary'
-  var supabase = props.supabase
-  var onSuccess = props.onSuccess
-  var sdkReady = props.sdkReady
-  var containerRef = useRef(null)
-  var _rendered = useState(false)
-  var rendered = _rendered[0]
-  var setRendered = _rendered[1]
-  var _error = useState(null)
-  var error = _error[0]
-  var setError = _error[1]
-
-  useEffect(function() {
-    if (!containerRef.current || rendered || !sdkReady) return
-
-    setRendered(true)
-    renderSubscribeButton(containerRef.current, tier, {
-      authUserId: authUserId,
-      onApprove: function(data) {
-        activateSubscription(supabase, authUserId, tier, data.subscriptionId)
-          .then(function(sub) {
-            if (onSuccess) onSuccess(sub)
-          })
-          .catch(function(err) {
-            setError('Failed to activate: ' + err.message)
-          })
-      },
-      onError: function(err) {
-        setError('PayPal error: ' + (err.message || 'Unknown error'))
-      },
-    }).catch(function(err) {
-      setError(err.message)
-      setRendered(false)
-    })
-  }, [tier, authUserId, sdkReady])
-
-  if (error) {
-    return (
-      <div className="text-center py-3">
-        <div className="text-xs text-on-surface-variant/50 bg-surface-container rounded-lg py-3 px-4">
-          {error}
-        </div>
-      </div>
-    )
-  }
-
-  if (!sdkReady) {
-    return (
-      <div className="text-center py-3">
-        <div className="text-xs text-on-surface-variant/40">Loading payment...</div>
-      </div>
-    )
-  }
-
-  // Wrap PayPal button in a styled container that clips to our button shape.
-  // The PayPal button is rendered at full opacity inside but the container
-  // is styled to match our design. Height is fixed to show only one button.
-  var accentBg = accent === 'tertiary' ? 'bg-tertiary/10 border-tertiary/30' : 'bg-primary/10 border-primary/30'
-
-  return (
-    <div className="relative">
-      <div className={'rounded-[20px] overflow-hidden border ' + accentBg} style={{ height: '45px' }}>
-        <div ref={containerRef} style={{ marginTop: '-2px' }} />
-      </div>
-      <div className="text-center mt-1.5">
-        <span className="text-[10px] text-on-surface-variant/30 font-mono">Powered by PayPal</span>
-      </div>
-    </div>
-  )
-}
-
 function TierCard(props) {
   var tier = props.tier
   var label = props.label
@@ -198,11 +123,8 @@ function TierCard(props) {
   var highlighted = props.highlighted
   var currentTier = props.currentTier
   var currentUser = props.currentUser
-  var supabase = props.supabase
-  var onSubscribed = props.onSubscribed
   var cta = props.cta
   var navigate = props.navigate
-  var sdkReady = props.sdkReady
 
   var isCurrent = currentTier === tier
   var accentText = accent === 'tertiary' ? 'text-tertiary' : 'text-primary'
@@ -272,14 +194,24 @@ function TierCard(props) {
             Apply Now
           </button>
         ) : currentUser ? (
-          <PayPalButtonContainer
-            tier={tier}
-            authUserId={currentUser.auth_user_id || currentUser.id}
-            accent={accent}
-            supabase={supabase}
-            onSuccess={onSubscribed}
-            sdkReady={sdkReady}
-          />
+          (function() {
+            var url = getSubscribeUrl(tier, currentUser.auth_user_id || currentUser.id)
+            if (!url) {
+              return (
+                <div className="w-full py-3 text-center rounded-[20px] bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+                  Coming Soon
+                </div>
+              )
+            }
+            return (
+              <a
+                href={url}
+                className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm text-center block ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
+              >
+                Subscribe
+              </a>
+            )
+          })()
         ) : (
           <button
             onClick={function() { navigate('/signup') }}
@@ -299,31 +231,8 @@ export default function PricingScreen() {
   var app = useApp()
   var currentUser = app.currentUser
   var userTier = app.userTier || 'free'
-  var supabase = app.supabase
   var navigate = useNavigate()
 
-  var _sdkReady = useState(false)
-  var sdkReady = _sdkReady[0]
-  var setSdkReady = _sdkReady[1]
-
-  // Load PayPal SDK once when a logged-in user views the page
-  useEffect(function() {
-    if (!currentUser || !isPayPalConfigured()) return
-    loadPayPal().then(function() {
-      setSdkReady(true)
-    }).catch(function() {
-      // SDK failed to load - buttons will show error
-    })
-  }, [currentUser])
-
-  function handleSubscribed(sub) {
-    if (app.setSubscriptions && currentUser) {
-      var updated = Object.assign({}, app.subscriptions || {})
-      updated[currentUser.id] = sub  // keyed by player ID for getUserTier lookup
-      app.setSubscriptions(updated)
-    }
-    navigate('/account?checkout=success')
-  }
 
   return (
     <PageLayout showSidebar={false}>
@@ -350,7 +259,7 @@ export default function PricingScreen() {
             features={FREE_FEATURES}
             currentTier={userTier}
             currentUser={currentUser}
-            supabase={supabase}
+
             navigate={navigate}
             cta="signup"
           />
@@ -363,10 +272,10 @@ export default function PricingScreen() {
             features={PRO_FEATURES}
             currentTier={userTier}
             currentUser={currentUser}
-            supabase={supabase}
-            onSubscribed={handleSubscribed}
+
+
             navigate={navigate}
-            sdkReady={sdkReady}
+
           />
 
           <TierCard
@@ -377,10 +286,10 @@ export default function PricingScreen() {
             features={SCRIM_FEATURES}
             currentTier={userTier}
             currentUser={currentUser}
-            supabase={supabase}
-            onSubscribed={handleSubscribed}
+
+
             navigate={navigate}
-            sdkReady={sdkReady}
+
           />
 
           <TierCard
@@ -393,10 +302,10 @@ export default function PricingScreen() {
             highlighted={true}
             currentTier={userTier}
             currentUser={currentUser}
-            supabase={supabase}
-            onSubscribed={handleSubscribed}
+
+
             navigate={navigate}
-            sdkReady={sdkReady}
+
           />
 
           <TierCard
@@ -409,10 +318,10 @@ export default function PricingScreen() {
             accent="tertiary"
             currentTier={userTier}
             currentUser={currentUser}
-            supabase={supabase}
-            onSubscribed={handleSubscribed}
+
+
             navigate={navigate}
-            sdkReady={sdkReady}
+
             cta="apply"
           />
 

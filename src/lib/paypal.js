@@ -1,11 +1,7 @@
-// PayPal Subscriptions integration
-// Usage: import { loadPayPal, PAYPAL_PLANS, TIER_PRICES } from './lib/paypal.js';
-
-import { loadScript } from '@paypal/paypal-js';
+// PayPal Subscriptions integration (link-based, no SDK)
+// Usage: import { getSubscribeUrl, PAYPAL_PLANS, TIER_PRICES } from './lib/paypal.js';
 
 // ─── Plan IDs ─────────────────────────────────────────────────────────────────
-// Set these in .env after creating Subscription Plans in PayPal dashboard.
-// Each plan maps to a tier in user_subscriptions.
 
 var CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || '';
 
@@ -32,88 +28,25 @@ export var TIER_LABELS = {
   host:   'Host',
 };
 
-// ─── SDK Loader ───────────────────────────────────────────────────────────────
-// Caches the loaded PayPal instance so we only load the script once.
+// ─── Subscribe URL ────────────────────────────────────────────────────────────
+// Builds a direct PayPal subscription URL. User clicks our styled button,
+// gets redirected to PayPal checkout, then comes back to /account?checkout=success.
 
-var _paypalPromise = null;
-var _paypalInstance = null;
-
-export function loadPayPal() {
-  if (_paypalInstance) return Promise.resolve(_paypalInstance);
-  if (_paypalPromise) return _paypalPromise;
-  if (!CLIENT_ID) {
-    return Promise.reject(new Error('VITE_PAYPAL_CLIENT_ID not configured'));
-  }
-  _paypalPromise = loadScript({
-    clientId: CLIENT_ID,
-    vault: true,
-    intent: 'subscription',
-  }).then(function(paypal) {
-    _paypalInstance = paypal;
-    return paypal;
-  }).catch(function(err) {
-    _paypalPromise = null;
-    throw err;
-  });
-  return _paypalPromise;
-}
-
-// ─── Render Subscribe Button ──────────────────────────────────────────────────
-// Renders a hidden PayPal button into a container. Returns a handle with
-// a .click() method so we can trigger it from our own styled button.
-
-export function renderSubscribeButton(container, tier, options) {
+export function getSubscribeUrl(tier, authUserId) {
   var planId = PAYPAL_PLANS[tier];
-  if (!planId) {
-    return Promise.reject(new Error('No PayPal plan configured for tier: ' + tier));
-  }
-
-  return loadPayPal().then(function(paypal) {
-    if (!paypal || !paypal.Buttons) {
-      throw new Error('PayPal SDK failed to load');
-    }
-
-    return paypal.Buttons({
-      style: {
-        shape: 'rect',
-        color: 'gold',
-        layout: 'vertical',
-        label: 'subscribe',
-      },
-      createSubscription: function(data, actions) {
-        return actions.subscription.create({
-          plan_id: planId,
-          custom_id: (options && options.authUserId) || '',
-          application_context: {
-            shipping_preference: 'NO_SHIPPING',
-          },
-        });
-      },
-      onApprove: function(data) {
-        if (options && options.onApprove) {
-          options.onApprove({
-            subscriptionId: data.subscriptionID,
-            tier: tier,
-          });
-        }
-      },
-      onError: function(err) {
-        if (options && options.onError) {
-          options.onError(err);
-        }
-      },
-      onCancel: function() {
-        if (options && options.onCancel) {
-          options.onCancel();
-        }
-      },
-    }).render(container);
-  });
+  if (!planId) return null;
+  var returnUrl = window.location.origin + '/#/account?checkout=success&tier=' + tier;
+  var cancelUrl = window.location.origin + '/#/pricing';
+  return 'https://www.paypal.com/webapps/billing/plans/subscribe'
+    + '?plan_id=' + encodeURIComponent(planId)
+    + '&custom_id=' + encodeURIComponent(authUserId || '')
+    + '&return_url=' + encodeURIComponent(returnUrl)
+    + '&cancel_url=' + encodeURIComponent(cancelUrl);
 }
 
 // ─── Activate Subscription (client-side) ──────────────────────────────────────
-// After PayPal approval, call the server to record the subscription.
-// This hits a Vercel serverless function that writes to user_subscriptions.
+// After PayPal redirects back, record the subscription in the DB.
+// The webhook will also fire and update the record, but this gives instant feedback.
 
 export function activateSubscription(supabase, userId, tier, subscriptionId) {
   return supabase
@@ -122,7 +55,7 @@ export function activateSubscription(supabase, userId, tier, subscriptionId) {
       user_id: userId,
       tier: tier,
       provider: 'paypal',
-      provider_subscription_id: subscriptionId,
+      provider_subscription_id: subscriptionId || '',
       status: 'active',
       current_period_start: new Date().toISOString(),
       current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -137,7 +70,6 @@ export function activateSubscription(supabase, userId, tier, subscriptionId) {
 }
 
 // ─── Cancel Subscription ──────────────────────────────────────────────────────
-// Marks subscription for cancellation at period end (no immediate revoke).
 
 export function cancelSubscription(supabase, userId) {
   return supabase

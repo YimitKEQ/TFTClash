@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats, ACHIEVEMENTS, MILESTONES, WEEKLY_CHALLENGES, DAILY_CHALLENGES, isHotStreak } from '../lib/stats.js'
 import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
+import { activateSubscription, TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
 
@@ -117,6 +118,7 @@ export default function AccountScreen() {
   var passwordRecovery = ctx.passwordRecovery;
   var setPasswordRecovery = ctx.setPasswordRecovery;
   var navigate = useNavigate();
+  var location = useLocation();
 
   var user = currentUser || {};
 
@@ -226,6 +228,25 @@ export default function AccountScreen() {
     supabase.from('user_subscriptions').select('*').eq('user_id', user.auth_user_id || user.id).single()
       .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); }).catch(function() {});
   }, [user && user.id]);
+
+  // Handle PayPal checkout return: /account?checkout=success&tier=pro
+  useEffect(function() {
+    var params = new URLSearchParams(location.search);
+    var checkout = params.get('checkout');
+    var tier = params.get('tier');
+    if (checkout !== 'success' || !tier || !user || !user.id) return;
+    var authId = user.auth_user_id || user.id;
+    activateSubscription(supabase, authId, tier)
+      .then(function(sub) {
+        setSubscription(sub);
+        toast('Subscription activated - welcome to ' + (TIER_LABELS[tier] || tier) + '!', 'success');
+      })
+      .catch(function(err) {
+        toast('Subscription recorded - it may take a moment to activate.', 'info');
+      });
+    // Clean up URL params
+    navigate('/account', { replace: true });
+  }, [location.search]);
 
   async function handleLogout() {
     try {
