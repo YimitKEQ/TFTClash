@@ -2344,7 +2344,7 @@ function ClashScreen(props) {
   }) || null
   var phase = props.tournamentState && props.tournamentState.phase;
   if (!phase || phase === 'idle') {
-    return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} />
+    return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} pastClashes={props.pastClashes} />
   }
 
   // For live/registration phases, redirect to the polished Bracket page

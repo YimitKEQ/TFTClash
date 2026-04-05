@@ -161,6 +161,10 @@ export default async function handler(req, res) {
       }, { onConflict: 'event_id', ignoreDuplicates: false })
       .select('processed_at')
       .single();
+    if (dedupRes.error) {
+      console.error('Webhook dedup check failed:', dedupRes.error.message);
+      return res.status(500).json({ error: 'Dedup check failed' });
+    }
     if (dedupRes.data && dedupRes.data.processed_at) {
       // Already fully processed this event
       return res.json({ received: true, duplicate: true });

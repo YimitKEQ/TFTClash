@@ -32,11 +32,14 @@ function NewsletterSignup(props) {
               .upsert({ email: val }, { onConflict: 'email' })
               .then(function(res) {
                 if (res.error) {
-                  if (toast) toast("Already subscribed or error occurred", "info");
+                  if (toast) toast("Something went wrong, try again", "error");
+                  return;
                 }
-              }).catch(function() {});
-            setSubmitted(true);
-            if (toast) toast("Subscribed! Welcome aboard.", "success");
+                setSubmitted(true);
+                if (toast) toast("Subscribed! Welcome aboard.", "success");
+              }).catch(function() {
+                if (toast) toast("Something went wrong, try again", "error");
+              });
           }}
           className="flex gap-2 max-w-[360px] mx-auto"
         >
