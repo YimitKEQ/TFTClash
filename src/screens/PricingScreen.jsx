@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
-import { TIER_PRICES, TIER_LABELS, renderSubscribeButton, activateSubscription, isPayPalConfigured } from '../lib/paypal'
+import { TIER_PRICES, TIER_LABELS, loadPayPal, renderSubscribeButton, activateSubscription, isPayPalConfigured } from '../lib/paypal'
 
 // ─── Feature lists per tier ─────────────────────────────────────────────────
 
@@ -118,22 +118,19 @@ function PayPalButtonContainer(props) {
   var authUserId = props.authUserId
   var supabase = props.supabase
   var onSuccess = props.onSuccess
+  var sdkReady = props.sdkReady
   var containerRef = useRef(null)
-  var _mounted = useState(false)
-  var mounted = _mounted[0]
-  var setMounted = _mounted[1]
+  var _rendered = useState(false)
+  var rendered = _rendered[0]
+  var setRendered = _rendered[1]
   var _error = useState(null)
   var error = _error[0]
   var setError = _error[1]
 
   useEffect(function() {
-    if (!containerRef.current || mounted) return
-    if (!isPayPalConfigured()) {
-      setError('PayPal not configured yet')
-      return
-    }
+    if (!containerRef.current || rendered || !sdkReady) return
 
-    setMounted(true)
+    setRendered(true)
     renderSubscribeButton(containerRef.current, tier, {
       authUserId: authUserId,
       onApprove: function(data) {
@@ -150,16 +147,24 @@ function PayPalButtonContainer(props) {
       },
     }).catch(function(err) {
       setError(err.message)
-      setMounted(false)
+      setRendered(false)
     })
-  }, [tier, authUserId])
+  }, [tier, authUserId, sdkReady])
 
   if (error) {
     return (
       <div className="text-center py-3">
         <div className="text-xs text-on-surface-variant/50 bg-surface-container rounded-lg py-3 px-4">
-          {error === 'PayPal not configured yet' ? 'Coming Soon' : error}
+          {error}
         </div>
+      </div>
+    )
+  }
+
+  if (!sdkReady) {
+    return (
+      <div className="text-center py-3">
+        <div className="text-xs text-on-surface-variant/40">Loading payment...</div>
       </div>
     )
   }
@@ -182,6 +187,7 @@ function TierCard(props) {
   var onSubscribed = props.onSubscribed
   var cta = props.cta
   var navigate = props.navigate
+  var sdkReady = props.sdkReady
 
   var isCurrent = currentTier === tier
   var accentText = accent === 'tertiary' ? 'text-tertiary' : 'text-primary'
@@ -256,6 +262,7 @@ function TierCard(props) {
             authUserId={currentUser.auth_user_id || currentUser.id}
             supabase={supabase}
             onSuccess={onSubscribed}
+            sdkReady={sdkReady}
           />
         ) : (
           <button
@@ -278,6 +285,20 @@ export default function PricingScreen() {
   var userTier = app.userTier || 'free'
   var supabase = app.supabase
   var navigate = useNavigate()
+
+  var _sdkReady = useState(false)
+  var sdkReady = _sdkReady[0]
+  var setSdkReady = _sdkReady[1]
+
+  // Load PayPal SDK once when a logged-in user views the page
+  useEffect(function() {
+    if (!currentUser || !isPayPalConfigured()) return
+    loadPayPal().then(function() {
+      setSdkReady(true)
+    }).catch(function() {
+      // SDK failed to load - buttons will show error
+    })
+  }, [currentUser])
 
   function handleSubscribed(sub) {
     if (app.setSubscriptions && currentUser) {
@@ -329,6 +350,7 @@ export default function PricingScreen() {
             supabase={supabase}
             onSubscribed={handleSubscribed}
             navigate={navigate}
+            sdkReady={sdkReady}
           />
 
           <TierCard
@@ -342,6 +364,7 @@ export default function PricingScreen() {
             supabase={supabase}
             onSubscribed={handleSubscribed}
             navigate={navigate}
+            sdkReady={sdkReady}
           />
 
           <TierCard
@@ -357,6 +380,7 @@ export default function PricingScreen() {
             supabase={supabase}
             onSubscribed={handleSubscribed}
             navigate={navigate}
+            sdkReady={sdkReady}
           />
 
           <TierCard
@@ -372,6 +396,7 @@ export default function PricingScreen() {
             supabase={supabase}
             onSubscribed={handleSubscribed}
             navigate={navigate}
+            sdkReady={sdkReady}
             cta="apply"
           />
 

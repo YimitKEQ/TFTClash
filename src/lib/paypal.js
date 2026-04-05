@@ -36,8 +36,10 @@ export var TIER_LABELS = {
 // Caches the loaded PayPal instance so we only load the script once.
 
 var _paypalPromise = null;
+var _paypalInstance = null;
 
 export function loadPayPal() {
+  if (_paypalInstance) return Promise.resolve(_paypalInstance);
   if (_paypalPromise) return _paypalPromise;
   if (!CLIENT_ID) {
     return Promise.reject(new Error('VITE_PAYPAL_CLIENT_ID not configured'));
@@ -46,6 +48,12 @@ export function loadPayPal() {
     clientId: CLIENT_ID,
     vault: true,
     intent: 'subscription',
+  }).then(function(paypal) {
+    _paypalInstance = paypal;
+    return paypal;
+  }).catch(function(err) {
+    _paypalPromise = null;
+    throw err;
   });
   return _paypalPromise;
 }
