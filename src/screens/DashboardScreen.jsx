@@ -1046,7 +1046,8 @@ export default function DashboardScreen() {
       supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
         .eq('tournament_id', tournamentState.dbTournamentId)
         .eq('player_id', linkedPlayer.id)
-        .then(function (r) { }).catch(function () {})
+        .then(function (r) { if (r.error) toast('Check-in may not have saved', 'error'); })
+        .catch(function () { toast('Check-in may not have saved', 'error'); })
     }
     toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
   }
@@ -1081,7 +1082,8 @@ export default function DashboardScreen() {
           player_id: linkedPlayer.id,
           status: 'registered'
         }, { onConflict: 'tournament_id,player_id' }).then(function (r) {
-        }).catch(function () {})
+          if (r.error) toast('Registration may not have saved', 'error');
+        }).catch(function () { toast('Registration may not have saved', 'error'); })
       }
       if (tournamentState.dbTournamentId) {
         doInsert(tournamentState.dbTournamentId)
@@ -1116,7 +1118,8 @@ export default function DashboardScreen() {
       supabase.from('registrations').delete()
         .eq('tournament_id', tournamentState.dbTournamentId)
         .eq('player_id', linkedPlayer.id)
-        .then(function (r) { }).catch(function () {})
+        .then(function (r) { if (r.error) toast('Unregister may not have saved', 'error'); })
+        .catch(function () { toast('Unregister may not have saved', 'error'); })
     }
     toast('Unregistered from ' + clashName, 'info')
     setTournamentState(function (ts2) {
