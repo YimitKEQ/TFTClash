@@ -76,12 +76,11 @@ export default function OpsComms() {
     var safeMsg = sanitize(broadMsg.trim())
     supabase.from('announcements').insert({
       type: broadType, message: safeMsg,
-      author_id: currentUser ? currentUser.id : null,
-      author_name: currentUser ? (currentUser.username || currentUser.email) : 'Admin'
+      created_by: currentUser ? currentUser.id : null
     }).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       setAnnouncement(broadType + ': ' + safeMsg)
-      setAnnouncements(function(a) { return [{ type: broadType, message: safeMsg, created_at: new Date().toISOString(), author_name: currentUser ? currentUser.username : 'Admin' }].concat(a) })
+      setAnnouncements(function(a) { return [{ type: broadType, message: safeMsg, created_at: new Date().toISOString(), created_by: currentUser ? currentUser.id : null }].concat(a) })
       addAudit('ACTION', 'Broadcast: [' + broadType + '] ' + safeMsg)
       toast('Broadcast sent!', 'success')
       setBroadMsg('')
