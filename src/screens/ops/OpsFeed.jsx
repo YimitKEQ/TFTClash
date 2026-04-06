@@ -1,17 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase.js'
+import { timeAgo } from '../../lib/utils.js'
 import { Panel, Btn, Icon } from '../../components/ui'
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '-'
-  var diff = Date.now() - new Date(dateStr).getTime()
-  var mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return mins + 'm ago'
-  var hrs = Math.floor(mins / 60)
-  if (hrs < 24) return hrs + 'h ago'
-  return Math.floor(hrs / 24) + 'd ago'
-}
 
 var ICON_MAP = {
   registration: 'how_to_reg',
@@ -63,11 +53,14 @@ export default function OpsFeed() {
       supabase.from('registrations').select('id, player_id, tournament_id, status, created_at, players(username), tournaments(name)').order('created_at', { ascending: false }).limit(20),
       supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(30),
     ]).then(function(results) {
+      if (results[0].error) console.warn('Activity feed query failed:', results[0].error.message)
+      if (results[1].error) console.warn('Registrations query failed:', results[1].error.message)
+      if (results[2].error) console.warn('Audit log query failed:', results[2].error.message)
       setActivity(results[0].data || [])
       setRecentRegs(results[1].data || [])
       setAuditLog(results[2].data || [])
       setLoading(false)
-    }).catch(function() { setLoading(false) })
+    }).catch(function(err) { console.warn('Feed fetch error:', err); setLoading(false) })
   }
 
   useEffect(function() { fetchFeed() }, [])

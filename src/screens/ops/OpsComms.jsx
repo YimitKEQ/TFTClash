@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
-import { sanitize } from '../../lib/utils.js'
+import { sanitize, timeAgo, addAudit as sharedAddAudit } from '../../lib/utils.js'
 import { Panel, Btn, Inp, Icon } from '../../components/ui'
 
 function Sel(props) {
@@ -10,17 +10,6 @@ function Sel(props) {
       {props.children}
     </select>
   )
-}
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '-'
-  var diff = Date.now() - new Date(dateStr).getTime()
-  var mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return mins + 'm ago'
-  var hrs = Math.floor(mins / 60)
-  if (hrs < 24) return hrs + 'h ago'
-  return Math.floor(hrs / 24) + 'd ago'
 }
 
 export default function OpsComms() {
@@ -80,15 +69,7 @@ export default function OpsComms() {
       }).catch(function() {})
   }, [])
 
-  function addAudit(type, msg) {
-    if (supabase.from && currentUser) {
-      supabase.from('audit_log').insert({
-        action: type, actor_id: currentUser.id || null,
-        actor_name: currentUser.username || currentUser.email || 'Admin',
-        target_type: 'admin_action', details: { message: msg, timestamp: Date.now() }
-      }).then(function() {}).catch(function() {})
-    }
-  }
+  function addAudit(type, msg) { sharedAddAudit(supabase, currentUser, type, msg) }
 
   function sendBroadcast() {
     if (!broadMsg.trim()) { toast('Message required', 'error'); return }

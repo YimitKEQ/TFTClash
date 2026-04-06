@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { RANKS, REGIONS } from '../../lib/constants.js'
-import { sanitize } from '../../lib/utils.js'
+import { sanitize, addAudit as sharedAddAudit } from '../../lib/utils.js'
 import { Panel, Btn, Inp, Icon } from '../../components/ui'
 
 function Sel(props) {
@@ -50,15 +50,7 @@ export default function OpsPlayers(props) {
   var sortBy = _sortBy[0]
   var setSortBy = _sortBy[1]
 
-  function addAudit(type, msg) {
-    if (supabase.from && currentUser) {
-      supabase.from('audit_log').insert({
-        action: type, actor_id: currentUser.id || null,
-        actor_name: currentUser.username || currentUser.email || 'Admin',
-        target_type: 'admin_action', details: { message: msg, timestamp: Date.now() }
-      }).then(function() {}).catch(function() {})
-    }
-  }
+  function addAudit(type, msg) { sharedAddAudit(supabase, currentUser, type, msg) }
 
   function ban(id, name) {
     if (!window.confirm('Ban ' + name + '? They will be removed from active play.')) return

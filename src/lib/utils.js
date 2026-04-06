@@ -40,3 +40,26 @@ export function isValidRiotId(id) {
   // Format: Name#TAG where Name is 3-16 chars, TAG is 3-5 alphanumeric chars
   return /^.{3,16}#[A-Za-z0-9]{3,5}$/.test((id || '').trim());
 }
+
+// ─── SHARED OPS HELPERS ─────────────────────────────────────────────────────
+
+export function timeAgo(dateStr) {
+  if (!dateStr) return '-';
+  var diff = Date.now() - new Date(dateStr).getTime();
+  var mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+export function addAudit(supabase, currentUser, type, msg) {
+  if (supabase.from && currentUser) {
+    supabase.from('audit_log').insert({
+      action: type, actor_id: currentUser.id || null,
+      actor_name: currentUser.username || currentUser.email || 'Admin',
+      target_type: 'admin_action', details: { message: msg, timestamp: Date.now() }
+    }).then(function() {}).catch(function() {});
+  }
+}

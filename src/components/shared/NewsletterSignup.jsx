@@ -28,8 +28,9 @@ function NewsletterSignup(props) {
               if (toast) toast("Enter a valid email", "error");
               return;
             }
+            var normalizedEmail = val.trim().toLowerCase();
             supabase.from('newsletter_subscribers')
-              .upsert({ email: val }, { onConflict: 'email' })
+              .upsert({ email: normalizedEmail }, { onConflict: 'email' })
               .then(function(res) {
                 if (res.error) {
                   if (toast) toast("Something went wrong, try again", "error");

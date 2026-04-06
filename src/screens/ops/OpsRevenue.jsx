@@ -150,7 +150,7 @@ export default function OpsRevenue() {
               {recentSubs.map(function(s, i) {
                 var player = s.players || {}
                 return (
-                  <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/5 last:border-0">
+                  <div key={s.user_id + '-' + (s.created_at || i)} className="flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/5 last:border-0">
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0" style={{ backgroundColor: tierColor(s.tier) }}>
                       {(player.username || '?').charAt(0).toUpperCase()}
                     </div>

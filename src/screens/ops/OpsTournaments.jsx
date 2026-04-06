@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
+import { timeAgo, addAudit as sharedAddAudit } from '../../lib/utils.js'
 import { Panel, Btn, Inp, Icon } from '../../components/ui'
 
 function Sel(props) {
@@ -14,17 +15,6 @@ function Sel(props) {
 var PHASE_STEPS = ['draft', 'registration', 'checkin', 'inprogress', 'complete']
 var PHASE_LABELS = { draft: 'Draft', registration: 'Registration', checkin: 'Check-in', inprogress: 'Live', complete: 'Complete' }
 var PHASE_COLORS = { draft: 'bg-on-surface/10 text-on-surface/40', registration: 'bg-tertiary/20 text-tertiary', checkin: 'bg-secondary/20 text-secondary', inprogress: 'bg-error/20 text-error', complete: 'bg-success/20 text-success' }
-
-function timeAgo(dateStr) {
-  if (!dateStr) return '-'
-  var diff = Date.now() - new Date(dateStr).getTime()
-  var mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'just now'
-  if (mins < 60) return mins + 'm ago'
-  var hrs = Math.floor(mins / 60)
-  if (hrs < 24) return hrs + 'h ago'
-  return Math.floor(hrs / 24) + 'd ago'
-}
 
 export default function OpsTournaments(props) {
   var tournaments = props.tournaments || []
@@ -63,15 +53,7 @@ export default function OpsTournaments(props) {
   var currentPhase = ts.phase || 'idle'
   var currentPhaseIdx = PHASE_STEPS.indexOf(currentPhase)
 
-  function addAudit(type, msg) {
-    if (supabase.from && currentUser) {
-      supabase.from('audit_log').insert({
-        action: type, actor_id: currentUser.id || null,
-        actor_name: currentUser.username || currentUser.email || 'Admin',
-        target_type: 'admin_action', details: { message: msg, timestamp: Date.now() }
-      }).then(function() {}).catch(function() {})
-    }
-  }
+  function addAudit(type, msg) { sharedAddAudit(supabase, currentUser, type, msg) }
 
   function setWeeklyPhase(phase) {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
@@ -114,8 +96,12 @@ export default function OpsTournaments(props) {
   }
 
   function deleteTournament(tId, name) {
-    if (!window.confirm('Delete tournament "' + name + '"? This cannot be undone.')) return
-    supabase.from('registrations').delete().eq('tournament_id', tId).then(function() {
+    if (!window.confirm('Delete tournament "' + name + '"? This removes all results and registrations.')) return
+    Promise.all([
+      supabase.from('game_results').delete().eq('tournament_id', tId),
+      supabase.from('point_adjustments').delete().eq('tournament_id', tId),
+      supabase.from('registrations').delete().eq('tournament_id', tId),
+    ]).then(function() {
       supabase.from('tournaments').delete().eq('id', tId).then(function(res) {
         if (res.error) { toast('Delete failed: ' + res.error.message, 'error'); return }
         addAudit('ACTION', 'Tournament deleted: ' + name)
