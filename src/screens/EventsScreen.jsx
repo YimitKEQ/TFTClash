@@ -552,7 +552,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
     supabase.from('registrations').upsert({
       tournament_id: t.id,
       player_id: currentUser.id,
-      player_username: currentUser.username
+      status: 'registered'
     }, { onConflict: 'tournament_id,player_id' }).then(function(res) {
       if (res.error) { if (toast) toast('Registration failed: ' + res.error.message, 'error'); return }
       setMyRegIds(function(ids) { return ids.concat([t.id]) })

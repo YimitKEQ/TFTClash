@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { Icon } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
@@ -197,7 +198,7 @@ var FILTER_TABS = [
 
 export default function TournamentsListScreen() {
   var ctx = useApp();
-  var setScreen = ctx.setScreen;
+  var navigate = useNavigate();
   var isAdmin = ctx.isAdmin;
 
   var [tournaments, setTournaments] = useState([]);
@@ -279,7 +280,7 @@ export default function TournamentsListScreen() {
               <FeaturedSpotlight
                 tournament={featured}
                 regCount={regCounts[featured.id] || 0}
-                onView={function() { setScreen('flash-' + featured.id); }}
+                onView={function() { navigate('/flash/' + featured.id); }}
               />
             )}
             {!featured && tournaments.length > 0 && (
@@ -322,7 +323,7 @@ export default function TournamentsListScreen() {
                   </div>
                   {isAdmin && (
                     <button
-                      onClick={function() { setScreen('admin'); }}
+                      onClick={function() { navigate('/admin'); }}
                       className="flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-5 py-2 rounded-full text-[11px] font-bold uppercase font-condensed hover:bg-primary hover:text-on-primary transition-all"
                     >
                       <Icon name="add" size={14} />
@@ -355,7 +356,7 @@ export default function TournamentsListScreen() {
                         key={t.id}
                         tournament={t}
                         regCount={regCounts[t.id] || 0}
-                        onClick={function() { setScreen('flash-' + t.id); }}
+                        onClick={function() { navigate('/flash/' + t.id); }}
                       />
                     );
                   })}
