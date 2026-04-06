@@ -205,7 +205,8 @@ export default function AccountScreen() {
   var s = linkedPlayer ? getStats(linkedPlayer) : null;
   var rankColor = linkedPlayer ? rc(linkedPlayer.rank) : '#9B72CF';
   var subTier = subscription ? (subscription.tier || subscription.plan || 'free') : 'free';
-  var isPro = subTier === 'pro' || subTier === 'bundle' || subTier === 'host';
+  var isActiveSub = subscription && subscription.status === 'active';
+  var isPro = isActiveSub && (subTier === 'pro' || subTier === 'bundle' || subTier === 'host');
 
   var myAchievements = linkedPlayer ? ACHIEVEMENTS.filter(function(a) { try { return a.check(linkedPlayer); } catch(e) { return false; } }) : [];
   var myMilestones = linkedPlayer ? MILESTONES.filter(function(m) { try { return m.check(linkedPlayer); } catch(e) { return false; } }) : [];
@@ -236,7 +237,8 @@ export default function AccountScreen() {
     var params = new URLSearchParams(location.search);
     var checkout = params.get('checkout');
     var tier = params.get('tier');
-    if (checkout !== 'success' || !tier || !user || !user.id) return;
+    var validTiers = ['pro', 'scrim', 'bundle', 'host'];
+    if (checkout !== 'success' || !tier || validTiers.indexOf(tier) === -1 || !user || !user.id) return;
     var authId = user.auth_user_id || user.id;
     activateSubscription(supabase, authId, tier)
       .then(function(sub) {

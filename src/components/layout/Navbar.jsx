@@ -193,7 +193,8 @@ export default function Navbar() {
   var navPlayer = currentUser && players && players.find(function(p) {
     return p.auth_user_id === currentUser.id || p.name === currentUser.username;
   });
-  var navPic = (navPlayer && navPlayer.profile_pic_url) || '';
+  var rawPic = (navPlayer && navPlayer.profile_pic_url) || '';
+  var navPic = rawPic && rawPic.indexOf('https://') === 0 ? rawPic : '';
 
   function DrawerSection(props) {
     var items = props.items;

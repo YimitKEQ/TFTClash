@@ -399,9 +399,9 @@ export function AppProvider(props) {
               setCurrentUser({
                 id:pRes.data.id,username:pRes.data.username,email:'levitate@tftclash.gg',
                 riotId:pRes.data.riot_id||'Levitate#EUW',rank:pRes.data.rank,region:pRes.data.region||'EUW',
-                is_admin:true,auth_user_id:pRes.data.auth_user_id||'dev-auth-levitate'
+                is_admin:pRes.data.is_admin===true,auth_user_id:pRes.data.auth_user_id||'dev-auth-levitate'
               });
-              setIsAdmin(true);
+              setIsAdmin(pRes.data.is_admin===true);
             }
             setIsAuthLoading(false);
           }).catch(function(){setIsAuthLoading(false);});
@@ -614,10 +614,10 @@ export function AppProvider(props) {
                 riotId: simUser.riotId || 'Levitate#EUW',
                 rank: simUser.rank,
                 region: simUser.region || 'EUW',
-                is_admin: true,
+                is_admin: false,
                 auth_user_id: 'sim-auth-levitate'
               });
-              setIsAdmin(true);
+              setIsAdmin(false);
             }
           }
         }
