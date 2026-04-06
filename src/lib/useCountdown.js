@@ -9,7 +9,6 @@ function getNextSaturday() {
   var cetNow = new Date(cetOffset)
   var daysUntilSat = (6 - cetNow.getDay() + 7) % 7
   if (daysUntilSat === 0 && cetNow.getHours() >= 20) daysUntilSat = 7
-  if (daysUntilSat === 0) daysUntilSat = 0 // today is Saturday, before 20:00
   var target = new Date(cetNow)
   target.setDate(cetNow.getDate() + daysUntilSat)
   target.setHours(20, 0, 0, 0)

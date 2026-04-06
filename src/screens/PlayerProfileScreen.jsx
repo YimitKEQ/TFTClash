@@ -336,8 +336,8 @@ export default function PlayerProfileScreen() {
       var sRes = results[0];
       var hRes = results[1];
       var grRes = results[2];
-      if (hRes.error || grRes.error) {
-        setDeepError((hRes.error || grRes.error).message || 'Failed to load deep stats');
+      if (sRes.error || hRes.error || grRes.error) {
+        setDeepError((sRes.error || hRes.error || grRes.error).message || 'Failed to load deep stats');
         setDeepLoading(false);
         return;
       }

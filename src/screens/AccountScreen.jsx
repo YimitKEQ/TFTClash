@@ -351,25 +351,26 @@ export default function AccountScreen() {
           });
         });
       }
+    }).then(function(pRes) {
+      if (!pRes || pRes.error) return;
+      var updated = Object.assign({}, user, meta, {
+        username: meta.username || user.username,
+        user_metadata: meta,
+        region: riotRegion,
+        mainRegion: riotRegion,
+        secondRiotId: secondRiotId,
+        secondRegion: secondRegion,
+        profilePic: profilePic,
+        bannerUrl: bannerUrl,
+        profileAccent: profileAccent,
+        riot_id_eu: riotIdEu.trim() || null,
+        riot_id_na: riotIdNa.trim() || null,
+      });
+      setCurrentUser(updated);
+      setProfileSaving(false);
+      setEdit(false);
+      toast('Profile updated', 'success');
     }).catch(function() { setProfileSaving(false); toast('Profile save failed', 'error'); });
-
-    var updated = Object.assign({}, user, meta, {
-      username: meta.username || user.username,
-      user_metadata: meta,
-      region: riotRegion,
-      mainRegion: riotRegion,
-      secondRiotId: secondRiotId,
-      secondRegion: secondRegion,
-      profilePic: profilePic,
-      bannerUrl: bannerUrl,
-      profileAccent: profileAccent,
-      riot_id_eu: riotIdEu.trim() || null,
-      riot_id_na: riotIdNa.trim() || null,
-    });
-    setCurrentUser(updated);
-    setProfileSaving(false);
-    setEdit(false);
-    toast('Profile updated', 'success');
   }
 
   async function requestChange(field) {
@@ -399,7 +400,7 @@ export default function AccountScreen() {
   async function handleChangePassword() {
     setChangePwError('');
     if (!changePw.trim()) { setChangePwError('Please enter a new password'); return; }
-    if (changePw.length < 6) { setChangePwError('Password must be at least 6 characters'); return; }
+    if (changePw.length < 8) { setChangePwError('Password must be at least 8 characters'); return; }
     if (changePw !== changePwConfirm) { setChangePwError('Passwords do not match'); return; }
     setChangePwSaving(true);
     var res = await supabase.auth.updateUser({ password: changePw });

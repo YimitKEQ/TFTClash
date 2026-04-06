@@ -229,7 +229,7 @@ export var ACHIEVEMENTS = [
   {id:"podium_hunter",  tier:"silver",    icon:"award-fill",  name:"Podium Hunter",      desc:"5 wins total",                                         check:function(p){ return p.wins>=5; }},
   {id:"clutch_god",     tier:"gold",      icon:"lightning-charge-fill",  name:"Clutch God",         desc:"Win a 1v1 final round",                                check:function(p){ return (p.clashHistory||[]).some(function(g){ return g.clutch; }); }},
   {id:"dynasty",        tier:"gold",      icon:"trophy-fill",  name:"Dynasty",            desc:"10 total wins - a true contender",                     check:function(p){ return p.wins>=10; }},
-  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"Finish in top 4 every game in a single clash",         check:function(p){ return (p.clashHistory||[]).some(function(g){ return (g.place||g.placement)<=4; })&&p.top4>=p.games; }},
+  {id:"untouchable",    tier:"legendary", icon:"diamond-half",  name:"Untouchable",        desc:"100% top 4 rate across all games played",              check:function(p){ return p.games>=3&&p.top4>=p.games; }},
   {id:"the_grind",      tier:"legendary", icon:"moon-fill",  name:"The Grind",          desc:"Play 30+ games over the season",                       check:function(p){ return p.games>=30; }},
   // STREAK ACHIEVEMENTS
   {id:"hot_start",      tier:"bronze",    icon:"fire",  name:"Hot Start",          desc:"Win your first clash of the season",                   check:function(p){ return p.wins>=1&&p.games<=8; }},

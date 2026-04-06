@@ -340,7 +340,7 @@ function BracketScreen(){
             lobby.forEach(function(lp){
               var place=parseInt(placementEntry[li].placements[lp.id]||"0");
               if(place<=0)return;
-              var updatedP=players.find(function(pp){return pp.id===lp.id;});
+              var updatedP=playersRef.current.find(function(pp){return pp.id===lp.id;});
               if(!updatedP)return;
               var newGames=(updatedP.games||0)+1;
               var newWins=(updatedP.wins||0)+(place===1?1:0);
@@ -351,7 +351,8 @@ function BracketScreen(){
                 season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
                 avg_placement:parseFloat(newAvg.toFixed(2))
               }).eq('id',lp.id).then(function(pr){
-              }).catch(function(){});
+                if(pr.error)console.warn('Player stat update failed:',pr.error.message);
+              }).catch(function(e){console.warn('Player stat update error:',e);});
             });
           }
         }).catch(function(){ toast('Failed to save game results','error'); });
