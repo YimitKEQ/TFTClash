@@ -61,47 +61,57 @@ export default function OpsPlayers(props) {
   }
 
   function ban(id, name) {
-    setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { banned: true, checkedIn: false }) : p }) })
+    if (!window.confirm('Ban ' + name + '? They will be removed from active play.')) return
     supabase.from('players').update({ banned: true, checked_in: false }).eq('id', id)
-      .then(function(r) { if (r.error) toast('Ban failed', 'error') })
+      .then(function(r) {
+        if (r.error) { toast('Ban failed: ' + r.error.message, 'error'); return }
+        setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { banned: true, checkedIn: false }) : p }) })
+        addAudit('WARN', 'Banned: ' + name)
+        toast(name + ' banned', 'success')
+      })
       .catch(function() { toast('Ban failed', 'error') })
-    addAudit('WARN', 'Banned: ' + name)
-    toast(name + ' banned', 'success')
   }
 
   function unban(id, name) {
-    setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { banned: false, dnpCount: 0 }) : p }) })
+    if (!window.confirm('Unban ' + name + '?')) return
     supabase.from('players').update({ banned: false, dnp_count: 0 }).eq('id', id)
-      .then(function(r) { if (r.error) toast('Unban failed', 'error') })
+      .then(function(r) {
+        if (r.error) { toast('Unban failed: ' + r.error.message, 'error'); return }
+        setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { banned: false, dnpCount: 0 }) : p }) })
+        addAudit('ACTION', 'Unbanned: ' + name)
+        toast(name + ' unbanned', 'success')
+      })
       .catch(function() { toast('Unban failed', 'error') })
-    addAudit('ACTION', 'Unbanned: ' + name)
-    toast(name + ' unbanned', 'success')
   }
 
   function remove(id, name) {
     if (!window.confirm('Delete ' + name + '? This cannot be undone.')) return
-    setPlayers(function(ps) { return ps.filter(function(p) { return p.id !== id }) })
     supabase.from('players').delete().eq('id', id)
-      .then(function(r) { if (r.error) toast('Delete failed', 'error') })
+      .then(function(r) {
+        if (r.error) { toast('Delete failed: ' + r.error.message, 'error'); return }
+        setPlayers(function(ps) { return ps.filter(function(p) { return p.id !== id }) })
+        addAudit('ACTION', 'Removed player: ' + name)
+        toast(name + ' removed', 'success')
+      })
       .catch(function() { toast('Delete failed', 'error') })
-    addAudit('ACTION', 'Removed player: ' + name)
-    toast(name + ' removed', 'success')
   }
 
   function saveEdit() {
     if (!editP) return
-    setPlayers(function(ps) { return ps.map(function(p) { return p.id === editP.id ? Object.assign({}, p, editP) : p }) })
     var updates = {
       username: editP.name, riot_id: editP.riotId, region: editP.region, rank: editP.rank,
       role: editP.role, season_pts: editP.pts, banned: editP.banned, dnp_count: editP.dnpCount || 0
     }
     supabase.from('players').update(updates).eq('id', editP.id)
-      .then(function(r) { if (r.error) toast('Save failed: ' + r.error.message, 'error') })
+      .then(function(r) {
+        if (r.error) { toast('Save failed: ' + r.error.message, 'error'); return }
+        setPlayers(function(ps) { return ps.map(function(p) { return p.id === editP.id ? Object.assign({}, p, editP) : p }) })
+        if (editP._ptsChanged) addAudit('DANGER', 'Season pts override: ' + editP.name + ' -> ' + editP.pts)
+        else addAudit('ACTION', 'Player updated: ' + editP.name)
+        toast('Saved ' + editP.name, 'success')
+        setEditP(null)
+      })
       .catch(function() { toast('Save failed', 'error') })
-    if (editP._ptsChanged) addAudit('DANGER', 'Season pts override: ' + editP.name + ' -> ' + editP.pts)
-    else addAudit('ACTION', 'Player updated: ' + editP.name)
-    toast('Saved ' + editP.name, 'success')
-    setEditP(null)
   }
 
   function saveNote() {
@@ -133,16 +143,18 @@ export default function OpsPlayers(props) {
   function adjustPoints(id, name, amount) {
     var newPts = (players.find(function(p) { return p.id === id }) || {}).pts || 0
     newPts = Math.max(0, newPts + amount)
-    setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { pts: newPts }) : p }) })
     supabase.from('players').update({ season_pts: newPts }).eq('id', id)
-      .then(function(r) { if (r.error) toast('Adjust failed', 'error') })
+      .then(function(r) {
+        if (r.error) { toast('Adjust failed: ' + r.error.message, 'error'); return }
+        setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { pts: newPts }) : p }) })
+        supabase.from('point_adjustments').insert({
+          player_id: id, amount: amount, reason: 'Admin adjustment from Command Center',
+          admin_id: currentUser ? currentUser.id : null
+        }).then(function() {}).catch(function() {})
+        addAudit('DANGER', 'Points adjusted: ' + name + ' ' + (amount > 0 ? '+' : '') + amount + ' -> ' + newPts)
+        toast(name + ': ' + (amount > 0 ? '+' : '') + amount + ' pts', 'success')
+      })
       .catch(function() { toast('Adjust failed', 'error') })
-    supabase.from('point_adjustments').insert({
-      player_id: id, amount: amount, reason: 'Admin adjustment from Command Center',
-      admin_id: currentUser ? currentUser.id : null
-    }).then(function() {}).catch(function() {})
-    addAudit('DANGER', 'Points adjusted: ' + name + ' ' + (amount > 0 ? '+' : '') + amount + ' -> ' + newPts)
-    toast(name + ': ' + (amount > 0 ? '+' : '') + amount + ' pts', 'success')
   }
 
   // Sort
@@ -194,7 +206,6 @@ export default function OpsPlayers(props) {
                 <option value="player">Player</option>
                 <option value="pro">Pro</option>
                 <option value="host">Host</option>
-                <option value="admin">Admin</option>
               </Sel>
             </div>
             <div>

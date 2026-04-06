@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase.js'
+import { TIER_PRICES } from '../../lib/paypal.js'
 import { Panel, Icon } from '../../components/ui'
 
 function tierColor(tier) {
@@ -11,11 +12,7 @@ function tierColor(tier) {
 }
 
 function tierPrice(tier) {
-  if (tier === 'host') return 24.99
-  if (tier === 'bundle') return 14.99
-  if (tier === 'pro') return 4.99
-  if (tier === 'scrim') return 9.99
-  return 0
+  return TIER_PRICES[tier] || 0
 }
 
 function TierBar(props) {
@@ -70,10 +67,10 @@ export default function OpsRevenue() {
   subs.forEach(function(s) { tierCounts[s.tier] = (tierCounts[s.tier] || 0) + 1 })
   var totalSubs = subs.length
 
-  var mrr = (tierCounts.pro || 0) * 4.99
-    + (tierCounts.scrim || 0) * 9.99
-    + (tierCounts.bundle || 0) * 14.99
-    + (tierCounts.host || 0) * 24.99
+  var mrr = (tierCounts.pro || 0) * TIER_PRICES.pro
+    + (tierCounts.scrim || 0) * TIER_PRICES.scrim
+    + (tierCounts.bundle || 0) * TIER_PRICES.bundle
+    + (tierCounts.host || 0) * TIER_PRICES.host
 
   var arr = mrr * 12
 

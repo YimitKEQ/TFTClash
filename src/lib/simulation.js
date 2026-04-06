@@ -6,7 +6,7 @@
 import { SEED, PTS, RANKS, RCOLS } from './constants.js'
 import { buildLobbies } from './tournament.js'
 
-var SIM_ACTIVE = typeof window !== 'undefined' && window.location.search.indexOf('sim=1') > -1
+var SIM_ACTIVE = import.meta.env.DEV && typeof window !== 'undefined' && window.location.search.indexOf('sim=1') > -1
 
 export function isSimulation() { return SIM_ACTIVE }
 

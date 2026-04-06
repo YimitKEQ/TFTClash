@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
+import { sanitize } from '../../lib/utils.js'
 import { Panel, Btn, Inp, Icon } from '../../components/ui'
 
 function Sel(props) {
@@ -91,15 +92,16 @@ export default function OpsComms() {
 
   function sendBroadcast() {
     if (!broadMsg.trim()) { toast('Message required', 'error'); return }
+    var safeMsg = sanitize(broadMsg.trim())
     supabase.from('announcements').insert({
-      type: broadType, message: broadMsg.trim(),
+      type: broadType, message: safeMsg,
       author_id: currentUser ? currentUser.id : null,
       author_name: currentUser ? (currentUser.username || currentUser.email) : 'Admin'
     }).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
-      setAnnouncement(broadType + ': ' + broadMsg.trim())
-      setAnnouncements(function(a) { return [{ type: broadType, message: broadMsg.trim(), created_at: new Date().toISOString(), author_name: currentUser ? currentUser.username : 'Admin' }].concat(a) })
-      addAudit('ACTION', 'Broadcast: [' + broadType + '] ' + broadMsg.trim())
+      setAnnouncement(broadType + ': ' + safeMsg)
+      setAnnouncements(function(a) { return [{ type: broadType, message: safeMsg, created_at: new Date().toISOString(), author_name: currentUser ? currentUser.username : 'Admin' }].concat(a) })
+      addAudit('ACTION', 'Broadcast: [' + broadType + '] ' + safeMsg)
       toast('Broadcast sent!', 'success')
       setBroadMsg('')
     }).catch(function() { toast('Broadcast failed', 'error') })
@@ -107,6 +109,8 @@ export default function OpsComms() {
 
   function sendNotification() {
     if (!notifMsg.trim()) { toast('Message required', 'error'); return }
+    if (notifMsg.trim().length > 500) { toast('Message too long (500 char max)', 'error'); return }
+    if (!window.confirm('Send notification to all players?')) return
     if (notifTarget === 'all') {
       supabase.from('players').select('id').then(function(res) {
         var playerIds = (res.data || []).map(function(p) { return p.id })

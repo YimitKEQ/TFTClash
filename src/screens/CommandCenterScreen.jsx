@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon, Btn } from '../components/ui'
+import { TIER_PRICES } from '../lib/paypal.js'
 import OpsOverview from './ops/OpsOverview'
 import OpsTournaments from './ops/OpsTournaments'
 import OpsPlayers from './ops/OpsPlayers'
@@ -116,23 +117,25 @@ export default function CommandCenterScreen() {
       setLastRefresh(new Date())
     }).catch(function() {
       setLoading(false)
+    }).finally(function() {
+      // Schedule next refresh only after current completes (no overlapping fetches)
+      refreshTimer.current = setTimeout(fetchAll, REFRESH_MS)
     })
   }
 
   useEffect(function() {
     fetchAll()
-    refreshTimer.current = setInterval(fetchAll, REFRESH_MS)
-    return function() { clearInterval(refreshTimer.current) }
+    return function() { clearTimeout(refreshTimer.current) }
   }, [])
 
   // Computed
   var tierCounts = {}
   subs.forEach(function(s) { tierCounts[s.tier] = (tierCounts[s.tier] || 0) + 1 })
 
-  var mrr = (tierCounts.pro || 0) * 4.99
-    + (tierCounts.scrim || 0) * 9.99
-    + (tierCounts.bundle || 0) * 14.99
-    + (tierCounts.host || 0) * 24.99
+  var mrr = (tierCounts.pro || 0) * TIER_PRICES.pro
+    + (tierCounts.scrim || 0) * TIER_PRICES.scrim
+    + (tierCounts.bundle || 0) * TIER_PRICES.bundle
+    + (tierCounts.host || 0) * TIER_PRICES.host
 
   var activeTournaments = tournaments.filter(function(t) {
     return t.phase === 'registration' || t.phase === 'live' || t.phase === 'inprogress' || t.phase === 'checkin'
@@ -186,7 +189,7 @@ export default function CommandCenterScreen() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Btn v="dark" s="sm" onClick={function() { setLoading(true); fetchAll() }}>
+            <Btn v="dark" s="sm" onClick={function() { clearTimeout(refreshTimer.current); setLoading(true); fetchAll() }}>
               <Icon name="refresh" size={14} /> Refresh
             </Btn>
           </div>

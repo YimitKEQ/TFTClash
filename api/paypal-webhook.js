@@ -20,12 +20,11 @@ var MAX_BODY_BYTES = 64 * 1024;
 var PLAN_TO_TIER = {};
 
 function buildPlanMap() {
-  // Server-side: use PAYPAL_PLAN_* (non-VITE_ prefixed) env vars.
-  // Falls back to VITE_ prefix for local dev compatibility.
-  var proPlan    = process.env.PAYPAL_PLAN_PRO    || process.env.VITE_PAYPAL_PLAN_PRO;
-  var scrimPlan  = process.env.PAYPAL_PLAN_SCRIM  || process.env.VITE_PAYPAL_PLAN_SCRIM;
-  var bundlePlan = process.env.PAYPAL_PLAN_BUNDLE || process.env.VITE_PAYPAL_PLAN_BUNDLE;
-  var hostPlan   = process.env.PAYPAL_PLAN_HOST   || process.env.VITE_PAYPAL_PLAN_HOST;
+  // Server-side only: use PAYPAL_PLAN_* env vars (VITE_ prefix not available server-side)
+  var proPlan    = process.env.PAYPAL_PLAN_PRO;
+  var scrimPlan  = process.env.PAYPAL_PLAN_SCRIM;
+  var bundlePlan = process.env.PAYPAL_PLAN_BUNDLE;
+  var hostPlan   = process.env.PAYPAL_PLAN_HOST;
   if (proPlan)    PLAN_TO_TIER[proPlan]    = 'pro';
   if (scrimPlan)  PLAN_TO_TIER[scrimPlan]  = 'scrim';
   if (bundlePlan) PLAN_TO_TIER[bundlePlan] = 'bundle';
@@ -56,7 +55,7 @@ function getRawBody(req) {
 // Uses PayPal's /v1/notifications/verify-webhook-signature endpoint.
 
 async function getPayPalAccessToken() {
-  var clientId = process.env.PAYPAL_CLIENT_ID || process.env.VITE_PAYPAL_CLIENT_ID;
+  var clientId = process.env.PAYPAL_CLIENT_ID;
   var secret = process.env.PAYPAL_CLIENT_SECRET;
   if (!clientId || !secret) throw new Error('PayPal credentials not configured');
 
@@ -78,7 +77,13 @@ async function getPayPalAccessToken() {
   return { token: data.access_token, baseUrl: baseUrl };
 }
 
-async function verifyWebhookSignature(headers, rawBody, webhookId) {
+async function verifyWebhookSignature(headers, rawBody, webhookId, parsedEvent) {
+  // Validate cert_url domain to prevent SSRF
+  var certUrl = headers['paypal-cert-url'] || '';
+  if (!/^https:\/\/api\.paypal\.com\//.test(certUrl) && !/^https:\/\/api-m\.paypal\.com\//.test(certUrl) && !/^https:\/\/api\.sandbox\.paypal\.com\//.test(certUrl) && !/^https:\/\/api-m\.sandbox\.paypal\.com\//.test(certUrl)) {
+    throw new Error('Invalid cert_url domain: ' + certUrl);
+  }
+
   var auth = await getPayPalAccessToken();
 
   var resp = await fetch(auth.baseUrl + '/v1/notifications/verify-webhook-signature', {
@@ -89,12 +94,12 @@ async function verifyWebhookSignature(headers, rawBody, webhookId) {
     },
     body: JSON.stringify({
       auth_algo: headers['paypal-auth-algo'],
-      cert_url: headers['paypal-cert-url'],
+      cert_url: certUrl,
       transmission_id: headers['paypal-transmission-id'],
       transmission_sig: headers['paypal-transmission-sig'],
       transmission_time: headers['paypal-transmission-time'],
       webhook_id: webhookId,
-      webhook_event: JSON.parse(rawBody.toString()),
+      webhook_event: parsedEvent,
     }),
   });
 
@@ -125,9 +130,18 @@ export default async function handler(req, res) {
     return res.status(413).json({ error: 'Request body too large' });
   }
 
+  // Parse body once
+  var event;
+  try {
+    event = JSON.parse(rawBody.toString());
+  } catch (parseErr) {
+    console.error('PayPal webhook: invalid JSON body');
+    return res.status(400).json({ error: 'Invalid JSON' });
+  }
+
   // Verify signature
   try {
-    var verified = await verifyWebhookSignature(req.headers, rawBody, webhookId);
+    var verified = await verifyWebhookSignature(req.headers, rawBody, webhookId, event);
     if (!verified) {
       console.error('PayPal webhook signature verification failed');
       return res.status(400).json({ error: 'Invalid signature' });
@@ -136,8 +150,6 @@ export default async function handler(req, res) {
     console.error('PayPal webhook verify error:', err.message);
     return res.status(400).json({ error: 'Signature verification error' });
   }
-
-  var event = JSON.parse(rawBody.toString());
   var eventType = event.event_type;
   var resource = event.resource || {};
 
@@ -199,7 +211,7 @@ export default async function handler(req, res) {
         var billingInfo = resource.billing_info || {};
         var nextBilling = billingInfo.next_billing_time || null;
 
-        await supabase.from('user_subscriptions').upsert({
+        var activateRes = await supabase.from('user_subscriptions').upsert({
           user_id: userId,
           tier: tier || 'pro',
           provider: 'paypal',
@@ -209,24 +221,27 @@ export default async function handler(req, res) {
           current_period_end: nextBilling,
           cancel_at_period_end: false,
         }, { onConflict: 'user_id' });
+        if (activateRes.error) throw new Error('ACTIVATED upsert failed: ' + activateRes.error.message);
         break;
       }
 
       case 'BILLING.SUBSCRIPTION.CANCELLED':
       case 'BILLING.SUBSCRIPTION.EXPIRED': {
-        await supabase.from('user_subscriptions')
+        var cancelRes = await supabase.from('user_subscriptions')
           .update({
             status: 'cancelled',
             cancel_at_period_end: true,
           })
           .eq('user_id', userId);
+        if (cancelRes.error) throw new Error('CANCELLED update failed: ' + cancelRes.error.message);
         break;
       }
 
       case 'BILLING.SUBSCRIPTION.SUSPENDED': {
-        await supabase.from('user_subscriptions')
+        var suspendRes = await supabase.from('user_subscriptions')
           .update({ status: 'suspended' })
           .eq('user_id', userId);
+        if (suspendRes.error) throw new Error('SUSPENDED update failed: ' + suspendRes.error.message);
         break;
       }
 
@@ -236,16 +251,18 @@ export default async function handler(req, res) {
         if (resource.billing_info && resource.billing_info.next_billing_time) {
           updates.current_period_end = resource.billing_info.next_billing_time;
         }
-        await supabase.from('user_subscriptions')
+        var updateRes = await supabase.from('user_subscriptions')
           .update(updates)
           .eq('user_id', userId);
+        if (updateRes.error) throw new Error('UPDATED update failed: ' + updateRes.error.message);
         break;
       }
 
       case 'BILLING.SUBSCRIPTION.PAYMENT.FAILED': {
-        await supabase.from('user_subscriptions')
+        var failRes = await supabase.from('user_subscriptions')
           .update({ status: 'past_due' })
           .eq('user_id', userId);
+        if (failRes.error) throw new Error('PAYMENT.FAILED update failed: ' + failRes.error.message);
         break;
       }
     }
