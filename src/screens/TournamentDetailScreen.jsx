@@ -430,7 +430,7 @@ export default function TournamentDetailScreen() {
               </div>
 
               {/* Host management link */}
-              {currentUser && event.dbTournamentId && currentUser.id === event.host_id && (
+              {currentUser && event.dbTournamentId && currentUser.auth_user_id === event.host_id && (
                 <button
                   onClick={function() { navigate('/host/dashboard'); }}
                   className="w-full flex items-center justify-center gap-2 bg-secondary/10 border border-secondary/20 text-secondary font-nav font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-[4px] hover:bg-secondary/20 transition-colors"

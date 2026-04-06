@@ -291,7 +291,7 @@ export default function PlayerProfileScreen() {
           setProfileSubTier(null);
         }
       }).catch(function() { setProfileSubTier(null); });
-  }, [player && player.auth_user_id]);
+  }, [player ? player.auth_user_id : null]);
 
   // Achievement sync for own profile
   useEffect(function() {
@@ -349,7 +349,7 @@ export default function PlayerProfileScreen() {
       setDeepError(e.message || 'Failed to load');
       setDeepLoading(false);
     });
-  }, [tab, player && player.id]);
+  }, [tab, player ? player.id : null]);
 
   if (!player) {
     return (
