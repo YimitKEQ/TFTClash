@@ -90,12 +90,12 @@ export default function ResultsTab() {
     var tId = ts.activeTournamentId || null
     var rows = lobbyPlayers.map(function(p) {
       var place = parseInt(getPlace(p.id))
-      return { player_id: p.id, placement: place, pts_earned: PTS[place] || 0, lobby: lobby, tournament_id: tId }
+      return { player_id: p.id, placement: place, points: PTS[place] || 0, game_number: lobby, round_number: 1, tournament_id: tId }
     })
 
     // On override: delete old results first to prevent double-counting in DB and local state
     var deleteStep = isPublished
-      ? supabase.from('game_results').delete().eq('lobby', lobby).eq('tournament_id', tId)
+      ? supabase.from('game_results').delete().eq('game_number', lobby).eq('tournament_id', tId)
       : Promise.resolve({ error: null })
 
     deleteStep.then(function(delRes) {
@@ -122,7 +122,7 @@ export default function ResultsTab() {
               var row = rows.find(function(rw) { return rw.player_id === p.id })
               if (!row) return p
               return Object.assign({}, p, {
-                pts: (p.pts || 0) + row.pts_earned,
+                pts: (p.pts || 0) + row.points,
                 games: (p.games || 0) + 1,
                 wins: row.placement === 1 ? (p.wins || 0) + 1 : (p.wins || 0),
                 top4: row.placement <= 4 ? (p.top4 || 0) + 1 : (p.top4 || 0)
@@ -130,12 +130,12 @@ export default function ResultsTab() {
             })
           })
           rows.forEach(function(row) {
-            if (row.pts_earned > 0) {
-              supabase.rpc('increment_player_stats', { p_player_id: row.player_id, p_pts: row.pts_earned, p_wins: row.placement === 1 ? 1 : 0 }).then(function(r2) {
+            if (row.points > 0) {
+              supabase.rpc('increment_player_stats', { p_player_id: row.player_id, p_pts: row.points, p_wins: row.placement === 1 ? 1 : 0 }).then(function(r2) {
                 if (r2.error) {
                   supabase.from('players').select('season_pts').eq('id', row.player_id).single().then(function(cur) {
                     if (!cur.error && cur.data) {
-                      supabase.from('players').update({ season_pts: (cur.data.season_pts || 0) + row.pts_earned }).eq('id', row.player_id)
+                      supabase.from('players').update({ season_pts: (cur.data.season_pts || 0) + row.points }).eq('id', row.player_id)
                     }
                   }).catch(function() {})
                 }

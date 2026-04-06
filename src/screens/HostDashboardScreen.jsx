@@ -1154,6 +1154,7 @@ export default function HostDashboardScreen() {
                                   supabase.from("game_results").insert({
                                     tournament_id: t.dbId,
                                     round_number: currentRound,
+                                    game_number: currentRound,
                                     player_id: playerId,
                                     placement: placement,
                                     points: pts
