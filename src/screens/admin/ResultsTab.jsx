@@ -95,7 +95,7 @@ export default function ResultsTab() {
 
     // On override: delete old results first to prevent double-counting in DB and local state
     var deleteStep = isPublished
-      ? supabase.from('game_results').delete().eq('lobby_id', lobby).eq('tournament_id', tId)
+      ? supabase.from('game_results').delete().eq('lobby', lobby).eq('tournament_id', tId)
       : Promise.resolve({ error: null })
 
     deleteStep.then(function(delRes) {

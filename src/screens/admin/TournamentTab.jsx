@@ -72,8 +72,12 @@ export default function TournamentTab() {
 
   function setPhase(phase) {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
-    supabase.from('tournaments').update({ phase: phase }).eq('type', 'weekly').then(function(r) {
-    }).catch(function() {})
+    var tId = ts.activeTournamentId || ts.dbTournamentId
+    if (tId) {
+      supabase.from('tournaments').update({ phase: phase }).eq('id', tId).then(function(r) {
+        if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
+      }).catch(function() { toast('DB phase update failed', 'error') })
+    }
     addAudit('ACTION', 'Phase set to: ' + phase)
     toast('Phase: ' + PHASE_LABELS[phase], 'success')
   }

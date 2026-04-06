@@ -458,7 +458,7 @@ export function AppProvider(props) {
           });
         });
     });
-  },[currentUser&&currentUser.id]);
+  },[currentUser?currentUser.id:null]);
 
   // ── useEffect: monitor realtime connection status for offline banner ──
   useEffect(function(){
@@ -622,7 +622,7 @@ export function AppProvider(props) {
           }
         }
 
-      });
+      }).catch(function(){ setIsLoadingData(false); });
 
     // realtime - push changes to all browsers instantly
     var ch=supabase.channel('shared_state')
@@ -867,7 +867,7 @@ export function AppProvider(props) {
       })
       .subscribe();
     return function(){supabase.removeChannel(prChannel);};
-  },[currentUser&&currentUser.id]);
+  },[currentUser?currentUser.id:null]);
 
   // ── Load all pending results for admin ──
   useEffect(function(){

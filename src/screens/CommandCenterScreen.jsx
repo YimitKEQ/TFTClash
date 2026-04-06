@@ -59,6 +59,7 @@ export default function CommandCenterScreen() {
   var setLoading = _loading[1]
 
   var refreshTimer = useRef(null)
+  var mountedRef = useRef(true)
 
   function fetchAll() {
     var promises = []
@@ -119,13 +120,13 @@ export default function CommandCenterScreen() {
       setLoading(false)
     }).finally(function() {
       // Schedule next refresh only after current completes (no overlapping fetches)
-      refreshTimer.current = setTimeout(fetchAll, REFRESH_MS)
+      if (mountedRef.current) refreshTimer.current = setTimeout(fetchAll, REFRESH_MS)
     })
   }
 
   useEffect(function() {
     fetchAll()
-    return function() { clearTimeout(refreshTimer.current) }
+    return function() { mountedRef.current = false; clearTimeout(refreshTimer.current) }
   }, [])
 
   // Computed

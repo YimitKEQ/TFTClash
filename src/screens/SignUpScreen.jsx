@@ -16,7 +16,7 @@ export default function SignUpScreen() {
       toast('Welcome back, ' + (currentUser.username || 'player') + '! You are already signed in.', 'info')
       setAuthScreen(null)
     }
-  }, [currentUser && currentUser.id])
+  }, [currentUser ? currentUser.id : null])
 
   async function handleDiscordSignUp() {
     var res = await supabase.auth.signInWithOAuth({

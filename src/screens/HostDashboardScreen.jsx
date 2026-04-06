@@ -169,7 +169,7 @@ export default function HostDashboardScreen() {
           });
         }
       }).catch(function() {});
-  }, [currentUser && currentUser.id]);
+  }, [currentUser ? currentUser.id : null]);
 
   function uploadImage(file, type) {
     if (!file || !supabase.storage) return;

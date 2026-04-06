@@ -360,8 +360,9 @@ function BracketScreen(){
 
     // Notify the current player if their lobby was just locked
     var myLobby=currentUser?lobbies[li]&&lobbies[li].some(function(p){return p.name===currentUser.username;}):false;
-    if(myLobby&&currentUser){
-      var myPlace=placements[checkedIn.find(function(p){return p.name===currentUser.username;}).id];
+    var myPlayer=myLobby?checkedIn.find(function(p){return p.name===currentUser.username;}):null;
+    if(myPlayer){
+      var myPlace=placements[myPlayer.id];
       var myPts=PTS[myPlace]||0;
       toast("Your results are in! You placed #"+myPlace+" (+"+myPts+"pts)","success");
     }else{

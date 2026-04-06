@@ -105,7 +105,7 @@ export default function ChallengesScreen() {
         if (res.data) setXpLog(res.data);
         setXpLogLoading(false);
       });
-  }, [mainTab, currentUser && currentUser.id]);
+  }, [mainTab, currentUser ? currentUser.id : null]);
 
   var dailyReset = getDailyReset();
   var weeklyReset = getWeeklyReset();
