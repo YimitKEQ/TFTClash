@@ -7,7 +7,7 @@ function Sel(props) {
     <select
       value={value}
       onChange={function(e) { onChange(e.target.value); }}
-      className={'bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm appearance-none cursor-pointer focus:outline-none focus:border-primary/40 ' + className}
+      className={'w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm appearance-none cursor-pointer focus:outline-none focus:border-primary/40 ' + className}
     >
       {children}
     </select>

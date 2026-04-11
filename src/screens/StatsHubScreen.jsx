@@ -242,7 +242,7 @@ function H2HPanel(props) {
               )}
             </div>
           ) : (
-            <Sel value={sel} onChange={function(e) { setSel(e.target.value); setShowAll(false); }}>
+            <Sel value={sel} onChange={function(v) { setSel(v); setShowAll(false); }}>
               <option value="">Select player...</option>
               {players.map(function(p) { return <option key={p.id} value={p.id}>{p.name}</option>; })}
             </Sel>
@@ -615,7 +615,7 @@ function SeasonTrend(props) {
           <span className="font-label text-xs uppercase tracking-widest text-on-surface/70">Season Trend</span>
         </div>
         {remaining.length > 0 && (
-          <Sel value={extra} onChange={function(e) { setExtra(e.target.value); }}>
+          <Sel value={extra} onChange={function(v) { setExtra(v); }}>
             <option value="">+ Add player...</option>
             {remaining.map(function(p) {
               return <option key={p.player_id} value={p.player_id}>{p.username}</option>;

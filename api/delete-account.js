@@ -52,6 +52,9 @@ export default async function handler(req, res) {
   try {
     // Look up the player's integer id from the players table
     var playerRes = await supabase.from('players').select('id').eq('auth_user_id', authUserId).single();
+    if (playerRes.error && playerRes.error.code !== 'PGRST116') {
+      console.error('[delete-account] player lookup error:', playerRes.error.message);
+    }
     var playerId = playerRes.data && playerRes.data.id;
 
     // Delete child rows that use player.id as FK

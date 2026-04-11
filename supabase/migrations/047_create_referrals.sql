@@ -17,7 +17,7 @@ CREATE POLICY "Users can view own referral" ON referrals
   FOR SELECT USING (referred_user_id = auth.uid());
 
 CREATE POLICY "Service role full access" ON referrals
-  FOR ALL USING (auth.role() = 'service_role');
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- Index for referrer lookups
 CREATE INDEX idx_referrals_referrer_code ON referrals (referrer_code);

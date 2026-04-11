@@ -6,7 +6,7 @@ import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import { activateSubscription, TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon, Inp, Sel } from '../components/ui'
+import { Panel, Btn, Icon, Inp } from '../components/ui'
 import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 

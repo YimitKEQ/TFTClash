@@ -1990,7 +1990,7 @@ function BracketScreen(props) {
                             playerSubmissions[li] && playerSubmissions[li][p.id] ? (
                               <div className="text-[10px] text-[#6EE7B7] font-bold shrink-0">#{playerSubmissions[li][p.id].placement} Submitted</div>
                             ) : (
-                              <Sel value="" onChange={function(v) { if (v) submitMyPlacement(li, p.id, p.name, v); }} style={{ width: 52, fontSize: 11, flexShrink: 0 }}>
+                              <Sel value="" onChange={function(v) { if (v) submitMyPlacement(li, p.id, p.name, v); }} className="w-[52px] text-[11px] shrink-0 py-1">
                                 <option value=""> - </option>
                                 {[1, 2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n}</option>; })}
                               </Sel>
@@ -2020,7 +2020,7 @@ function BracketScreen(props) {
                               return (
                                 <div key={p.id} className="flex items-center gap-2">
                                   <span className="text-xs text-on-surface flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{p.name}{wasSelfSubmitted && <span className="text-[9px] text-[#4ECDC4] font-bold ml-1">SELF</span>}</span>
-                                  <Sel value={placementEntry[li].placements[p.id] || "1"} onChange={function(v) { setPlace(li, p.id, v); }} style={{ width: 60, border: dup ? "1px solid #F87171" : undefined }}>
+                                  <Sel value={placementEntry[li].placements[p.id] || "1"} onChange={function(v) { setPlace(li, p.id, v); }} className={"w-[60px] py-1" + (dup ? " ring-1 ring-error" : "")}>
                                     {[1, 2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n}</option>; })}
                                     <option value="0">DNP</option>
                                   </Sel>

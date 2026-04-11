@@ -1,6 +1,6 @@
 function Sparkline(props) {
   var data = props.data;
-  var color = props.color;
+  var color = props.color || "#E8A838";
   var w = typeof props.width === "number" ? props.width : (typeof props.w === "number" ? props.w : 80);
   var h = props.height || props.h || 28;
 
