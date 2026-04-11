@@ -48,7 +48,7 @@ function PlacementBoard(props) {
               )}
             </div>
             {onComp && (
-              <div className="flex items-center gap-2 pl-26" style={{paddingLeft: '104px'}}>
+              <div className="flex items-center gap-2 pl-[104px]">
                 <input
                   type="text"
                   value={comps[p.id] || ''}
@@ -1090,7 +1090,7 @@ export default function ScrimsScreen() {
                           <div className="p-5">
                             <table className="w-full">
                               <thead>
-                                <tr style={{background: 'rgba(255,255,255,0.03)'}}>
+                                <tr className="bg-white/[0.03]">
                                   {['#','Player','Lobby','Round Pts','Total Pts'].map(function(h, hi) {
                                     return <th key={h} className={'py-2.5 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-4' : 'text-center px-3')}>{h}</th>;
                                   })}
@@ -1101,7 +1101,7 @@ export default function ScrimsScreen() {
                                   var rankColor = si === 0 ? '#E8A838' : si === 1 ? '#C0C0C0' : si === 2 ? '#CD7F32' : 'rgba(255,255,255,0.2)';
                                   var lobbyLetter = String.fromCharCode(65 + s.lobby);
                                   return (
-                                    <tr key={s.name} style={{borderBottom: '1px solid rgba(255,255,255,0.04)', background: si === 0 ? 'rgba(232,168,56,0.03)' : 'transparent'}}>
+                                    <tr key={s.name} className="border-b border-white/[0.04]" style={{background: si === 0 ? 'rgba(232,168,56,0.03)' : 'transparent'}}>
                                       <td className="px-4 py-3"><span className="font-mono font-black text-sm" style={{color: rankColor}}>{si + 1}</span></td>
                                       <td className="px-4 py-3">
                                         <div className="font-bold text-sm text-on-surface">{s.name}</div>
@@ -1326,7 +1326,7 @@ export default function ScrimsScreen() {
                   <div className="overflow-x-auto">
                     <table className="w-full border-separate border-spacing-0 min-w-[680px]">
                       <thead>
-                        <tr style={{background: 'rgba(255,255,255,0.03)'}}>
+                        <tr className="bg-white/[0.03]">
                           {['#','Player','PTS','PPG','AVG','WIN%','TOP4%'].map(function(h, hi) {
                             return <th key={h} className={'py-3 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-4' : 'text-center px-3')}>{h}</th>;
                           })}
@@ -1338,7 +1338,7 @@ export default function ScrimsScreen() {
                           var avgColor = avgV < 3 ? '#4ade80' : avgV <= 5 ? '#facc15' : '#f87171';
                           var rankColor = i === 0 ? '#E8A838' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'rgba(255,255,255,0.2)';
                           return (
-                            <tr key={p.id} style={{borderBottom: '1px solid rgba(255,255,255,0.04)', background: i === 0 ? 'rgba(232,168,56,0.03)' : 'transparent'}}>
+                            <tr key={p.id} className="border-b border-white/[0.04]" style={{background: i === 0 ? 'rgba(232,168,56,0.03)' : 'transparent'}}>
                               <td className="px-4 py-4 w-10 text-center">
                                 <span className="font-mono font-black text-base" style={{color: rankColor}}>{i + 1}</span>
                               </td>
@@ -1414,7 +1414,7 @@ export default function ScrimsScreen() {
                                 <td className="pr-4 py-1 font-bold text-xs text-on-surface">{p.name}</td>
                                 {safeSessions.map(function(sess) {
                                   var pGames = sess.games.filter(function(g) { return g.results[p.id] != null || g.results[String(p.id)] != null; });
-                                  if (pGames.length === 0) return <td key={sess.id} className="text-center py-1"><div className="w-[120px] h-10 flex items-center justify-center mx-auto text-on-surface-variant/20 text-xs" style={{background: 'rgba(255,255,255,0.02)'}}>-</div></td>;
+                                  if (pGames.length === 0) return <td key={sess.id} className="text-center py-1"><div className="w-[120px] h-10 flex items-center justify-center mx-auto text-on-surface-variant/20 text-xs bg-white/[0.02]">-</div></td>;
                                   var pls = pGames.map(function(g) { return g.results[p.id] != null ? g.results[p.id] : g.results[String(p.id)]; });
                                   var pts = pls.reduce(function(s, v) { return s + (PTS[v] || 0); }, 0);
                                   var avg = (pls.reduce(function(s, v) { return s + v; }, 0) / pls.length).toFixed(1);
@@ -1464,7 +1464,7 @@ export default function ScrimsScreen() {
                     <div className="overflow-x-auto">
                       <table className="w-full border-separate border-spacing-0 min-w-[520px]">
                         <thead>
-                          <tr style={{background: 'rgba(255,255,255,0.03)'}}>
+                          <tr className="bg-white/[0.03]">
                             {['#','Comp','Games','Play Rate','Win%','Top4%','Avg Place'].map(function(h, hi) {
                               return <th key={h} className={'py-3 text-[10px] font-sans-condensed font-bold text-on-surface-variant uppercase tracking-widest ' + (hi <= 1 ? 'text-left px-5' : 'text-center px-4')}>{h}</th>;
                             })}
@@ -1490,7 +1490,7 @@ export default function ScrimsScreen() {
                             var avgPlV = parseFloat(avgPlStr);
                             var avgPlColor = avgPlV < 3 ? '#4ade80' : avgPlV <= 5 ? '#facc15' : '#f87171';
                             return (
-                              <tr key={c.name} style={{borderBottom: '1px solid rgba(255,255,255,0.04)'}}>
+                              <tr key={c.name} className="border-b border-white/[0.04]">
                                 <td className="px-5 py-4 font-mono text-sm font-bold text-on-surface-variant/40 w-10">{i + 1}</td>
                                 <td className="px-5 py-4">
                                   <div className="font-bold text-sm text-on-surface">{c.name}</div>
@@ -1627,7 +1627,7 @@ export default function ScrimsScreen() {
                                   {sessStats.map(function(s, si) {
                                     var c = placeColor(Math.round(parseFloat(s.avg)));
                                     return (
-                                      <tr key={s.name} style={{borderTop: '1px solid rgba(255,255,255,0.04)'}}>
+                                      <tr key={s.name} className="border-t border-white/[0.04]">
                                         <td className="py-2 pr-2 font-mono text-xs font-bold text-on-surface-variant/40 w-6">{si + 1}</td>
                                         <td className="py-2 pr-4 font-bold text-xs text-on-surface">{s.name}</td>
                                         <td className="py-2 text-center font-mono text-xs text-on-surface-variant">{s.games}</td>
