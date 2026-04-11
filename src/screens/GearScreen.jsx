@@ -15,7 +15,7 @@ export default function GearScreen() {
     supabase.from('gear_items').select('*').order('sort_order').then(function(res) {
       if (res.data) setItems(res.data)
       setLoading(false)
-    })
+    }).catch(function() { setLoading(false) })
   }, [])
 
   var categories = []

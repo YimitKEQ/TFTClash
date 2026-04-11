@@ -399,7 +399,7 @@ export default function ResultsScreen() {
                     var col = PlacementColor(i)
                     var isComeback = isComebackEligible(p, clashIds)
                     var attStreak = p.attendanceStreak || 0
-                    var isHomie = HOMIES_IDS.includes(p.id)
+                    var isHomie = import.meta.env.DEV && HOMIES_IDS.includes(p.id)
 
                     return (
                       <div

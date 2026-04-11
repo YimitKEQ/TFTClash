@@ -392,7 +392,7 @@ export function AppProvider(props) {
         fetchAndSetCurrentUser(session.user, function(){setIsAuthLoading(false);});
       } else {
         // Dev-mode auto-login: on localhost with no session, load Levitate from DB
-        var isLocal=typeof window!=='undefined'&&(window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1');
+        var isLocal=import.meta.env.DEV&&typeof window!=='undefined'&&(window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1');
         if(isLocal&&supabase.from){
           supabase.from('players').select('*').eq('username','Levitate').single().then(function(pRes){
             if(pRes.data){
