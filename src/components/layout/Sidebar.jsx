@@ -65,7 +65,7 @@ export default function Sidebar() {
     return <div className="h-px bg-white/[0.05] mx-6 my-1.5" />;
   }
 
-  var clashBadge = phase === 'registration' ? 'Register' : phase === 'live' ? 'Live' : phase === 'complete' ? 'Done' : null;
+  var clashBadge = phase === 'registration' ? 'Register' : phase === 'inprogress' ? 'Live' : phase === 'complete' ? 'Done' : null;
 
   return (
     <aside className="hidden xl:flex fixed left-0 top-0 h-screen w-64 bg-[#13131A] border-r border-white/[0.05] flex-col z-40 pt-20">

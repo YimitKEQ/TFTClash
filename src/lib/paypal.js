@@ -17,7 +17,7 @@ export var TIER_PRICES = {
   pro:    4.99,
   scrim:  7.99,
   bundle: 9.99,
-  host:   24.99,
+  host:   19.99,
 };
 
 export var TIER_LABELS = {

@@ -50,10 +50,18 @@ export default async function handler(req, res) {
   var authUserId = userRes.data.user.id;
 
   try {
-    // Delete player data (cascade handles most, but be explicit for safety)
-    await supabase.from('registrations').delete().eq('player_id', authUserId).catch(function() {});
+    // Look up the player's integer id from the players table
+    var playerRes = await supabase.from('players').select('id').eq('auth_user_id', authUserId).single();
+    var playerId = playerRes.data && playerRes.data.id;
+
+    // Delete child rows that use player.id as FK
+    if (playerId) {
+      await supabase.from('registrations').delete().eq('player_id', playerId).catch(function() {});
+      await supabase.from('player_achievements').delete().eq('player_id', playerId).catch(function() {});
+    }
+
+    // Delete child rows that use auth UUID as FK
     await supabase.from('notifications').delete().eq('user_id', authUserId).catch(function() {});
-    await supabase.from('player_achievements').delete().eq('player_id', authUserId).catch(function() {});
     await supabase.from('user_roles').delete().eq('user_id', authUserId).catch(function() {});
     await supabase.from('host_profiles').delete().eq('user_id', authUserId).catch(function() {});
     await supabase.from('host_applications').delete().eq('user_id', authUserId).catch(function() {});

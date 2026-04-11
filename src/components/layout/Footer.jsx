@@ -18,7 +18,7 @@ function Footer() {
     ["/archive", "Archive"]
   ];
   var communityLinks = [
-    ["/featured", "Featured Events"],
+    ["/events/featured", "Featured Events"],
     ["/rules", "Rules"],
     ["/faq", "FAQ"],
     ["/gear", "Gear"],

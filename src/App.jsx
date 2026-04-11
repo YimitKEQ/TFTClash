@@ -197,6 +197,7 @@ function TFTClash(){
     // Direct match
     var mapped=ROUTE_TO_SCREEN[path];
     if(mapped){
+      if(mapped==="login"||mapped==="signup"){navSourceRef.current="router";setAuthScreen(mapped);return;}
       if(mapped!==screen){navSourceRef.current="router";setScreen(mapped);}
       return;
     }

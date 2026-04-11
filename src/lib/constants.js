@@ -197,7 +197,7 @@ export var PREMIUM_TIERS = [
     cta:"Go Pro", ctaV:"primary",
   },
   {
-    id:"host", name:"Host", price:"\u20AC24.99", period:"/ month", color:"#9B72CF",
+    id:"host", name:"Host", price:"\u20AC19.99", period:"/ month", color:"#9B72CF",
     desc:"Run your own TFT Clash circuit on our platform.",
     features:["Everything in Pro","Create & manage your own clash events","Custom branding on tournament pages","Private / invite-only clashes","Advanced admin dashboard","CSV data export","Dedicated support"],
     cta:"Apply to Host", ctaV:"purple",

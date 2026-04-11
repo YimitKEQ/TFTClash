@@ -131,14 +131,14 @@ export default function Navbar() {
 
   var navTo = useCallback(function(s) {
     var base = s.split('/')[0];
-    var canS = isAdmin || (currentUser && (scrimAccess || []).includes(currentUser.username));
+    var canS = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
     if (base === 'scrims' && !canS) { toast('Access restricted', 'error'); return; }
     setAuthScreen(null);
     setScreen(base);
     var route = SCREEN_TO_ROUTE[base];
     if (route) navigate(route);
     else navigate('/' + base);
-  }, [isAdmin, currentUser, scrimAccess, toast, navigate, setScreen, setAuthScreen]);
+  }, [isAdmin, currentUser, scrimAccess, scrimHostAccess, toast, navigate, setScreen, setAuthScreen]);
 
   function tryLogin() {
     supabase.auth.getSession().then(function(sess) {
@@ -288,7 +288,7 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
             {DESKTOP_LINKS.map(function(l) {
-              var isLive = l.id === 'clash' && phase === 'live';
+              var isLive = l.id === 'clash' && phase === 'inprogress';
               var isActive = screen === l.id;
               var label = isLive ? '\u25cf LIVE CLASH' : l.label;
               if (l.id === 'clash' && phase === 'registration') label = 'Clash - Register';

@@ -298,7 +298,7 @@ export default function HomeScreen() {
             ? (
               <HeroCountdown
                 tournamentState={tournamentState}
-                onRegister={currentUser ? function() { navigate('/dashboard'); } : handleSignUp}
+                onRegister={currentUser ? function() { navigate('/'); } : handleSignUp}
                 onViewStandings={handleViewStandings}
                 isLoggedIn={!!currentUser}
               />
@@ -313,7 +313,7 @@ export default function HomeScreen() {
                   </span>
                   <button
                     className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
-                    onClick={function() { navigate('/dashboard'); }}
+                    onClick={function() { navigate('/'); }}
                   >
                     Go to Dashboard
                   </button>
@@ -400,7 +400,7 @@ export default function HomeScreen() {
         {currentUser && (
           <section className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Dashboard', icon: 'dashboard', path: '/dashboard' },
+              { label: 'Dashboard', icon: 'dashboard', path: '/' },
               { label: 'My Stats', icon: 'bar_chart', path: '/player/' + (currentUser.username || '') },
               { label: 'Standings', icon: 'leaderboard', path: '/standings' },
               { label: 'Events', icon: 'event', path: '/events' },
@@ -524,7 +524,7 @@ export default function HomeScreen() {
         className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim shadow-[0_10px_30px_rgba(232,168,56,0.4)]"
         onClick={function() {
           if (currentUser) {
-            navigate('/dashboard');
+            navigate('/');
           } else {
             handleSignUp();
           }
