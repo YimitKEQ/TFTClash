@@ -14,6 +14,15 @@ export var RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamon
 
 export var RCOLS = {Iron:"#8C7B6B",Bronze:"#CD7F32",Silver:"#A8B2CC",Gold:"#E8A838",Platinum:"#4ECDC4",Emerald:"#52C47C",Diamond:"#6EA8E0",Master:"#9B72CF",Grandmaster:"#E85B5B",Challenger:"#FFD700"};
 
+// ─── THEME COLORS (single source of truth for dynamic JS usage) ──────────────
+export var MEDAL_COLORS = ["#E8A838", "#C0C0C0", "#CD7F32"];
+export var THEME = {
+  gold: "#E8A838", silver: "#C0C0C0", bronze: "#CD7F32",
+  primary: "#ffc66b", secondary: "#d9b9ff", tertiary: "#67e2d9",
+  success: "#6ee7b7", error: "#F87171", muted: "#9aabbf",
+  onSurface: "#e4e1ec", onSurfaceVariant: "#d5c4af",
+};
+
 export var REGIONS = ["EUW","EUNE","NA","KR","OCE","BR","JP","TR","LATAM"];
 
 // Fixed scoring - not configurable

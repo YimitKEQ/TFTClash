@@ -8,12 +8,12 @@ import Icon from '../components/ui/Icon'
 import Tag from '../components/ui/Tag'
 import { getStats } from '../lib/stats.js'
 import { isHotStreak, isComebackEligible, computeClashAwards } from '../lib/stats.js'
-import { HOMIES_IDS } from '../lib/constants.js'
+import { HOMIES_IDS, MEDAL_COLORS } from '../lib/constants.js'
 import { avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import ClashReportScreen from './ClashReportScreen'
 import AwardCard from '../components/shared/AwardCard'
 
-var PODIUM_COLORS = ['#E8A838', '#C0C0C0', '#CD7F32']
+var PODIUM_COLORS = MEDAL_COLORS
 var REWARDS = ['Clash Crown', 'Icon', 'Frame', 'Loot Orb', 'Loot Orb', '', '', '']
 
 function PlacementColor(i) {

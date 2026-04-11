@@ -2,12 +2,12 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
-import { REGIONS } from '../lib/constants.js'
+import { REGIONS, MEDAL_COLORS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 
-var MEDAL_COLORS = ['#E8A838', '#C0C0C0', '#CD7F32']
+// MEDAL_COLORS imported from constants.js
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
 
 var TIER_DIVIDERS = [
