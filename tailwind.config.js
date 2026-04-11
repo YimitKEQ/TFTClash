@@ -56,6 +56,10 @@ export default {
         "on-secondary-container": "#cea7ff",
         "success": "#6ee7b7",
         "warning": "#fb923c",
+        "medal-gold": "#e8a838",
+        "medal-silver": "#c0c0c0",
+        "medal-bronze": "#cd7f32",
+        "muted": "#9aabbf",
       },
       fontFamily: {
         // Primary tokens
