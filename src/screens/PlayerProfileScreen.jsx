@@ -845,7 +845,7 @@ export default function PlayerProfileScreen() {
                   return (
                     <div key={rk} className="text-center">
                       {v
-                        ? <span className="font-stats text-sm font-bold" style={{ color: v === 1 ? '#E8A838' : v <= 4 ? '#4ECDC4' : '#F87171' }}>{'#' + v}</span>
+                        ? <span className={'font-stats text-sm font-bold ' + (v === 1 ? 'text-primary' : v <= 4 ? 'text-tertiary' : 'text-error')}>{'#' + v}</span>
                         : <span className="text-on-surface/30 font-stats">-</span>
                       }
                     </div>
@@ -893,7 +893,7 @@ export default function PlayerProfileScreen() {
             )
             : (
               <div className="bg-surface-container-low rounded-lg overflow-hidden">
-                <div className="px-6 py-3 border-b border-on-surface/10 flex justify-between items-center" style={{ background: 'rgba(14,13,21,.6)' }}>
+                <div className="px-6 py-3 border-b border-on-surface/10 flex justify-between items-center bg-surface-container-lowest/60">
                   <span className="font-technical text-xs font-bold text-on-surface/40 uppercase tracking-widest">Shared lobbies</span>
                 </div>
                 {players.filter(function(op) {
@@ -930,7 +930,7 @@ export default function PlayerProfileScreen() {
                             <span className="text-on-surface/40 mx-1">-</span>
                             <span className="font-bold text-rose-400">{tW + 'L'}</span>
                           </div>
-                          <div className="font-technical text-[10px] font-bold mt-0.5" style={{ color: ahead ? '#6EE7B7' : tied ? '#E8A838' : '#F87171' }}>
+                          <div className={'font-technical text-[10px] font-bold mt-0.5 ' + (ahead ? 'text-success' : tied ? 'text-primary' : 'text-error')}>
                             {ahead ? "You're ahead" : tied ? 'All tied' : "They're ahead"}
                           </div>
                         </div>
@@ -1083,13 +1083,13 @@ export default function PlayerProfileScreen() {
                 style={{ opacity: unlocked ? 1 : 0.4, border: '1px solid ' + (unlocked ? 'rgba(232,168,56,.3)' : 'rgba(242,237,228,.07)') }}
               >
                 <div className="text-2xl mb-2">
-                  <Icon className="text-3xl" style={{ color: unlocked ? '#E8A838' : undefined }}>{a.icon || 'military_tech'}</Icon>
+                  <Icon className={'text-3xl ' + (unlocked ? 'text-primary' : '')}>{a.icon || 'military_tech'}</Icon>
                 </div>
-                <div className="font-technical font-bold text-sm mb-1" style={{ color: unlocked ? '#F2EDE4' : '#BECBD9' }}>{a.name}</div>
+                <div className={'font-technical font-bold text-sm mb-1 ' + (unlocked ? 'text-on-surface' : 'text-muted')}>{a.name}</div>
                 <div className="font-body text-xs text-on-surface/50 leading-relaxed">{a.desc}</div>
                 {unlocked && (
                   <div className="mt-3">
-                    <span className="font-technical text-[10px] px-2 py-1 rounded-sm" style={{ background: 'rgba(232,168,56,.15)', color: '#E8A838', border: '1px solid rgba(232,168,56,.3)' }}>
+                    <span className="font-technical text-[10px] px-2 py-1 rounded-sm bg-primary/15 text-primary border border-primary/30">
                       UNLOCKED
                     </span>
                   </div>

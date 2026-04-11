@@ -153,8 +153,7 @@ export default function HofScreen(props) {
             <div className="lg:col-span-7 relative group">
               <div className="absolute -inset-1 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
               <div
-                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-6 sm:p-8 bg-surface-container-low border-l-4 border-primary min-h-[280px] sm:min-h-[400px]"
-                style={{ boxShadow: '0 0 40px 10px rgba(253,186,73,0.15)' }}
+                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-6 sm:p-8 bg-surface-container-low border-l-4 border-primary min-h-[280px] sm:min-h-[400px] shadow-[0_0_40px_10px_rgba(253,186,73,0.15)]"
               >
                 {/* Trophy background icon */}
                 <Icon

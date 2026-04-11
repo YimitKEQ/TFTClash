@@ -68,11 +68,8 @@ function SparklineBars({ data }) {
         return (
           <div
             key={"bar-" + i}
-            className={'w-full rounded-t-sm ' + alphaClass}
-            style={{
-              height: pct + '%',
-              background: isLast ? 'linear-gradient(to top, rgba(217,185,255,0.4), rgba(217,185,255,1))' : undefined
-            }}
+            className={'w-full rounded-t-sm ' + alphaClass + (isLast ? ' bg-gradient-to-t from-secondary/40 to-secondary' : '')}
+            style={{ height: pct + '%' }}
           />
         )
       })}
@@ -156,8 +153,7 @@ function PulseHeader({
   if (D > 0) countdownStr = D + 'd ' + countdownStr
 
   return (
-    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6 bg-surface-container/60 backdrop-blur-2xl"
-      style={{ boxShadow: 'inset 0 0 20px rgba(217,185,255,0.15)' }}
+    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6 bg-surface-container/60 backdrop-blur-2xl shadow-[inset_0_0_20px_rgba(217,185,255,0.15)]"
     >
       {/* Top-right countdown */}
       <div className="absolute top-0 right-0 p-4 text-right">
@@ -180,8 +176,7 @@ function PulseHeader({
         {/* Avatar */}
         <div className="relative flex-shrink-0">
           <div
-            className="w-20 h-20 rounded-full border-4 border-secondary/40 p-1"
-            style={{ boxShadow: '0 0 20px rgba(217,185,255,0.3)' }}
+            className="w-20 h-20 rounded-full border-4 border-secondary/40 p-1 shadow-[0_0_20px_rgba(217,185,255,0.3)]"
           >
             <div className="w-full h-full rounded-full overflow-hidden bg-surface-container-high flex items-center justify-center">
               {linkedPlayer ? (

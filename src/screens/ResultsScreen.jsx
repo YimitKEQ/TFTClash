@@ -208,14 +208,12 @@ export default function ResultsScreen() {
 
         {/* Hero Champion Banner */}
         <section
-          className="relative overflow-hidden rounded-[20px] bg-surface-container-low min-h-[280px] flex items-center justify-center border border-outline-variant/10"
-          style={{ boxShadow: '0 0 60px rgba(232,168,56,.12)' }}
+          className="relative overflow-hidden rounded-[20px] bg-surface-container-low min-h-[280px] flex items-center justify-center border border-outline-variant/10 shadow-[0_0_60px_rgba(232,168,56,.12)]"
         >
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
           <div
-            className="absolute inset-0 opacity-[0.06]"
-            style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 50%, #E8A838, transparent)' }}
+            className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,_var(--md-primary),transparent)]"
           />
 
           <div className="relative z-10 text-center px-6 py-10">
@@ -226,12 +224,7 @@ export default function ResultsScreen() {
               Tournament Champion
             </div>
             <div
-              className="font-display text-primary uppercase leading-none mb-4"
-              style={{
-                fontSize: 'clamp(2.5rem, 8vw, 5rem)',
-                textShadow: '0 0 40px rgba(255,198,107,0.35)',
-                letterSpacing: '-0.02em',
-              }}
+              className="font-display text-primary uppercase leading-none mb-4 text-[clamp(2.5rem,8vw,5rem)] tracking-tight drop-shadow-[0_0_40px_rgba(255,198,107,0.35)]"
             >
               {champ.name}
             </div>
@@ -316,8 +309,7 @@ export default function ResultsScreen() {
                           className={'rounded-full mb-3 object-cover flex items-center justify-center bg-surface-container-highest shrink-0 ' + avatarSize + ' ' + avatarBorder}
                         >
                           <span
-                            className="font-display font-bold opacity-60"
-                            style={{ fontSize: isGold ? '1.5rem' : '1.1rem', color: isGold ? '#E8A838' : '#C0C0C0' }}
+                            className={'font-display font-bold opacity-60 ' + (isGold ? 'text-2xl text-primary' : 'text-lg text-medal-silver')}
                           >
                             {p.name ? p.name[0].toUpperCase() : '?'}
                           </span>
@@ -328,8 +320,7 @@ export default function ResultsScreen() {
                           style={barStyle}
                         >
                           <span
-                            className={'font-display opacity-40 ' + numColor}
-                            style={{ fontSize: isGold ? '3rem' : '2rem', lineHeight: 1 }}
+                            className={'font-display opacity-40 leading-none ' + numColor + (isGold ? ' text-5xl' : ' text-3xl')}
                           >
                             {actualRank + 1}
                           </span>
@@ -438,8 +429,7 @@ export default function ResultsScreen() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span
-                              className="text-sm truncate"
-                              style={{ fontWeight: isTop3 ? 700 : 600, color: isTop3 ? '#E4E1EC' : '#C8BFB0' }}
+                              className={'text-sm truncate ' + (isTop3 ? 'font-bold text-on-surface' : 'font-semibold text-on-surface-variant')}
                             >
                               {p.name}
                             </span>

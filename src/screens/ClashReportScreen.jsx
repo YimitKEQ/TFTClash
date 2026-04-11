@@ -55,8 +55,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
         <div className="relative z-10 mb-4">
           <Icon name="emoji_events" size={72} fill={true} className="text-primary" />
         </div>
-        <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-3 italic"
-          style={{ textShadow: '0 0 50px rgba(253,186,73,0.3)' }}>
+        <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-3 italic drop-shadow-[0_0_50px_rgba(253,186,73,0.3)]">
           {champion || 'TBD'}
         </h2>
         <p className="font-editorial text-xl md:text-2xl italic text-on-surface-variant max-w-xl mx-auto"
@@ -119,13 +118,10 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
           )}
 
           {/* 1st Place */}
-          <div className="order-1 md:order-2 z-10"
-            style={{ background: 'linear-gradient(135deg, #ffc66b 0%, #e8a838 100%)', padding: '1px', borderRadius: '0.75rem 0.75rem 0 0' }}>
-            <div className="bg-surface-container-highest p-8 rounded-t-xl flex flex-col items-center"
-              style={{ boxShadow: '0 20px 60px -15px rgba(255,198,107,0.3)' }}>
+          <div className="order-1 md:order-2 z-10 bg-gradient-to-br from-[#ffc66b] to-primary p-px rounded-t-xl">
+            <div className="bg-surface-container-highest p-8 rounded-t-xl flex flex-col items-center shadow-[0_20px_60px_-15px_rgba(255,198,107,0.3)]">
               <div className="relative mb-6">
-                <div className="w-28 h-28 rounded-full border-4 border-primary bg-surface-container flex items-center justify-center"
-                  style={{ boxShadow: '0 0 30px rgba(253,186,73,0.25)' }}>
+                <div className="w-28 h-28 rounded-full border-4 border-primary bg-surface-container flex items-center justify-center shadow-[0_0_30px_rgba(253,186,73,0.25)]">
                   <Icon name="person" size={48} className="text-primary" />
                 </div>
                 <div className="absolute -top-3 -right-3 bg-primary text-on-primary p-2 rounded-full animate-pulse">
@@ -228,12 +224,11 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                       </td>
                       {['r1', 'r2', 'r3', 'finals'].map(function(rk) {
                         var v = rp[rk]
-                        var valColor = v === 1 ? '#ffc66b' : v <= 4 ? '#67e2d9' : '#f87171'
+                        var valClass = v === 1 ? 'text-primary' : v <= 4 ? 'text-tertiary' : 'text-error'
                         return (
                           <td key={rk} className="px-4 py-3 text-right">
                             {v
-                              ? <span className="font-stats font-bold text-sm"
-                                  style={{ color: valColor }}>
+                              ? <span className={'font-stats font-bold text-sm ' + valClass}>
                                   {'#' + v}
                                 </span>
                               : <span className="text-on-surface/25 text-xs">-</span>

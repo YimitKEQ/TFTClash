@@ -105,8 +105,7 @@ function TableRow({ player, rank, isMe, onClick }) {
     return (
       <tr
         id="lb-me-row"
-        className="relative group cursor-pointer bg-secondary/5"
-        style={{ boxShadow: 'inset 0 0 15px rgba(217, 185, 255, 0.15)' }}
+        className="relative group cursor-pointer bg-secondary/5 shadow-[inset_0_0_15px_rgba(217,185,255,0.15)]"
         onClick={onClick}
       >
         <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-secondary font-bold text-sm">{rankLabel}</td>
@@ -161,7 +160,7 @@ function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick })
         <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
         <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
       </div>
-      <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
         <table className="w-full text-left border-collapse">
           <tbody className="divide-y divide-outline-variant/5">
             {players.map(function(player) {
@@ -374,7 +373,7 @@ export default function LeaderboardScreen(props) {
           <div className="bg-surface-container-low rounded-sm overflow-hidden border border-outline-variant/10">
 
             {/* Table header row */}
-            <div className="overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-surface-container-lowest/50">
                   <tr>
