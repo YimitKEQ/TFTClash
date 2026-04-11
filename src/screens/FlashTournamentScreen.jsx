@@ -7,21 +7,7 @@ import { buildFlashLobbies } from '../lib/tournament.js'
 import { createNotification } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
-
-// ── Sel component (inline, local) ─────────────────────────────────────────────
-function Sel(props){
-  return(
-    <div className="relative">
-      <select
-        value={props.value}
-        onChange={function(e){props.onChange(e.target.value);}}
-        className={"bg-surface-container-lowest border-none text-xs font-mono focus:ring-1 focus:ring-primary h-8 py-1 rounded appearance-none pr-6 pl-2 text-on-surface " + (props.className||"")}>
-        {props.children}
-      </select>
-      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/40 text-xs">{"v"}</div>
-    </div>
-  );
-}
+import { Sel } from '../components/ui'
 
 export default function FlashTournamentScreen(props) {
   var tournamentId = props.tournamentId;

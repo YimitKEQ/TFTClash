@@ -6,24 +6,9 @@ import { PTS } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
 import { applyCutLine, computeTournamentStandings } from '../lib/tournament.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
-import { Panel, Btn, Inp } from '../components/ui'
+import { Panel, Btn, Inp, Sel } from '../components/ui'
 import Icon from '../components/ui/Icon.jsx'
 import PageLayout from '../components/layout/PageLayout'
-
-// ── Sel component (inline, local) ─────────────────────────────────────────────
-function Sel({value,onChange,children,className}){
-  return(
-    <div className="relative">
-      <select
-        value={value}
-        onChange={function(e){onChange(e.target.value);}}
-        className={"bg-surface-container-lowest border-none text-xs font-mono focus:ring-1 focus:ring-primary h-8 py-1 rounded appearance-none pr-6 pl-2 text-on-surface " + (className||"")}>
-        {children}
-      </select>
-      <div className="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant/40 text-xs">{"v"}</div>
-    </div>
-  );
-}
 
 // ── LiveStandingsPanel ─────────────────────────────────────────────────────────
 function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){

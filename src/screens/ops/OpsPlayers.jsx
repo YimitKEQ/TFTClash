@@ -3,15 +3,7 @@ import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { RANKS, REGIONS } from '../../lib/constants.js'
 import { sanitize, addAudit as sharedAddAudit } from '../../lib/utils.js'
-import { Panel, Btn, Inp, Icon } from '../../components/ui'
-
-function Sel(props) {
-  return (
-    <select value={props.value} onChange={function(e) { props.onChange(e.target.value) }} className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm appearance-none cursor-pointer focus:outline-none focus:border-primary/40">
-      {props.children}
-    </select>
-  )
-}
+import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
 
 export default function OpsPlayers(props) {
   var navigate = props.navigate

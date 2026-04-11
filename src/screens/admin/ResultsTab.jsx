@@ -2,15 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { PTS } from '../../lib/constants.js'
-import { Panel, Btn, Icon } from '../../components/ui'
-
-function Sel({ value, onChange, children }) {
-  return (
-    <select value={value} onChange={function(e) { onChange(e.target.value) }} className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-2 py-1.5 text-on-surface text-sm appearance-none cursor-pointer focus:outline-none focus:border-primary/40">
-      {children}
-    </select>
-  )
-}
+import { Panel, Btn, Icon, Sel } from '../../components/ui'
 
 export default function ResultsTab() {
   var ctx = useApp()

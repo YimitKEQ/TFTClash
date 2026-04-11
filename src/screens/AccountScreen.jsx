@@ -6,85 +6,11 @@ import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import { activateSubscription, TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon, Inp } from '../components/ui'
+import { Panel, Btn, Icon, Inp, Sel } from '../components/ui'
+import Sparkline from '../components/shared/Sparkline'
+import PlacementDistribution from '../components/shared/PlacementDistribution'
 
-// ─── Inline select component ──────────────────────────────────────────────────
-function Sel({ value, onChange, children, style }) {
-  return (
-    <select
-      value={value}
-      onChange={function(e) { onChange(e.target.value); }}
-      style={Object.assign({
-        width: '100%',
-        background: '#0e0d15',
-        border: '1px solid rgba(80,69,53,.5)',
-        borderRadius: 4,
-        padding: '9px 12px',
-        color: '#e4e1ec',
-        fontSize: 13,
-        fontFamily: 'inherit',
-        cursor: 'pointer',
-      }, style || {})}
-    >
-      {children}
-    </select>
-  );
-}
-
-// ─── Sparkline ────────────────────────────────────────────────────────────────
-function Sparkline({ data, color, w, h }) {
-  var W = w || 200;
-  var H = h || 40;
-  if (!data || data.length < 2) return null;
-  var min = Math.min.apply(null, data);
-  var max = Math.max.apply(null, data);
-  var range = (max - min) || 1;
-  var pts = data.map(function(v, i) {
-    var x = (i / (data.length - 1)) * W;
-    var y = H - ((v - min) / range) * (H - 4) + 2;
-    return x + ',' + y;
-  }).join(' ');
-  return (
-    <svg width={W} height={H} className="overflow-visible">
-      <polyline points={pts} fill="none" stroke={color || '#ffc66b'} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      <circle
-        cx={(data.length - 1) / (data.length - 1) * W}
-        cy={H - ((data[data.length - 1] - min) / range) * (H - 4) + 2}
-        r="2.5"
-        fill={color || '#ffc66b'}
-      />
-    </svg>
-  );
-}
-
-// ─── Placement distribution bar chart ─────────────────────────────────────────
-function PlacementDistribution({ history }) {
-  var counts = [0, 0, 0, 0, 0, 0, 0, 0];
-  (history || []).forEach(function(g) {
-    var p = (g.place || g.placement || 1) - 1;
-    if (p >= 0 && p < 8) counts[p]++;
-  });
-  var total = counts.reduce(function(s, v) { return s + v; }, 0) || 1;
-  var colors = ['#ffc66b', '#C0C0C0', '#CD7F32', '#67e2d9', '#9AAABF', '#9AAABF', '#F87171', '#F87171'];
-
-  return (
-    <div className="bg-surface-container-high rounded p-4 mb-3">
-      <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-3">Placement Distribution</div>
-      {counts.map(function(count, i) {
-        var pct = Math.round((count / total) * 100);
-        return (
-          <div key={"place-" + (i + 1)} className="flex items-center gap-2 mb-1.5">
-            <div className="w-5 text-right text-xs font-bold flex-shrink-0" style={{ color: colors[i] }}>{'#' + (i + 1)}</div>
-            <div className="flex-1 h-2 bg-surface-container-lowest rounded-full overflow-hidden">
-              <div className="h-full rounded-full transition-all" style={{ width: pct + '%', background: colors[i] }} />
-            </div>
-            <div className="w-5 text-right text-xs text-on-surface/50 flex-shrink-0">{count}</div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// ─── Shared components ──────────────────────────────────���─────────────────────
 
 // ─── Riot ID validation ───────────────────────────────────────────────────────
 function validateRiotId(val) {

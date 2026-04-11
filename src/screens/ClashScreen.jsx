@@ -9,7 +9,7 @@ import { TOURNAMENT_FORMATS, buildLobbies, computeTournamentStandings, applyCutL
 import { ordinal, rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js';
 import { writeActivityEvent, createNotification } from '../lib/notifications.js';
 import { useApp } from '../context/AppContext';
-import { Panel, Btn, Icon, Tag, Inp, Divider, Skeleton } from '../components/ui';
+import { Panel, Btn, Icon, Tag, Inp, Divider, Skeleton, Sel } from '../components/ui';
 import RankBadge from '../components/shared/RankBadge';
 
 // ---- TIER THRESHOLDS (local, used by StandingsTable) ----
@@ -19,30 +19,6 @@ var TIER_THRESHOLDS = [
   { name: 'Challenger', minRank: 2, maxRank: 3, color: '#9B72CF', icon: 'diamond' },
   { name: 'Contender', minRank: 4, maxRank: 8, color: '#4ECDC4', icon: 'shield' }
 ];
-
-// ---- Sel (local select wrapper) ----
-
-function Sel(props) {
-  var value = props.value;
-  var onChange = props.onChange;
-  var children = props.children;
-  var style = props.style;
-  return (
-    <div style={Object.assign({ position: "relative" }, style && style.width ? { width: style.width } : {})}>
-      <select value={value} onChange={function(e) { onChange(e.target.value); }}
-        style={Object.assign({
-          width: "100%", background: "#141E30",
-          border: "1px solid rgba(242,237,228,.11)",
-          borderRadius: 8, padding: "12px 36px 12px 14px",
-          color: "#F2EDE4", fontSize: 15, minHeight: 46,
-          appearance: "none", cursor: "pointer"
-        }, style || {})}>
-        {children}
-      </select>
-      <div style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#BECBD9", fontSize: 11 }}>&#9660;</div>
-    </div>
-  );
-}
 
 // ---- hexToRgb helper ----
 

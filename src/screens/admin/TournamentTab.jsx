@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
-import { Panel, Btn, Inp, Icon } from '../../components/ui'
-
-function Sel({ value, onChange, children }) {
-  return (
-    <select value={value} onChange={function(e) { onChange(e.target.value) }} className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm appearance-none cursor-pointer focus:outline-none focus:border-primary/40">
-      {children}
-    </select>
-  )
-}
+import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
 
 var PHASE_STEPS = ['registration', 'checkin', 'inprogress', 'complete']
 var PHASE_LABELS = { registration: 'Registration', checkin: 'Check-in', inprogress: 'Live', complete: 'Complete' }

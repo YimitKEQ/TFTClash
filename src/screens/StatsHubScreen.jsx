@@ -1,20 +1,7 @@
 import { useState, useEffect } from 'react'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Icon } from '../components/ui'
+import { Panel, Icon, Sel } from '../components/ui'
 import { supabase } from '../lib/supabase'
-
-// ─── LOCAL SELECT WRAPPER ────────────────────────────────────────────────────
-function Sel(props) {
-  return (
-    <select
-      value={props.value}
-      onChange={props.onChange}
-      className="bg-surface-container border border-outline-variant/30 text-on-surface text-xs font-label rounded px-2 py-1.5 focus:outline-none cursor-pointer"
-    >
-      {props.children}
-    </select>
-  );
-}
 
 // ─── SKELETON ────────────────────────────────────────────────────────────────
 function Skeleton(props) {

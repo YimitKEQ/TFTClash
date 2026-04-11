@@ -1,21 +1,4 @@
-import { Icon } from '../../components/ui'
-
-// --- Local select wrapper ---
-function Sel(props) {
-  var value = props.value
-  var onChange = props.onChange
-  var children = props.children
-  var className = props.className
-  return (
-    <select
-      className={"w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono text-sm " + (className || "")}
-      value={value}
-      onChange={function(e) { onChange(e.target.value); }}
-    >
-      {children}
-    </select>
-  );
-}
+import { Icon, Sel } from '../../components/ui'
 
 // --- Small progress bar ---
 function Bar(props) {

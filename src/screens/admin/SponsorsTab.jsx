@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
-import { Panel, Btn, Inp, Icon } from '../../components/ui'
+import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
 
 var SPONSOR_TIERS = [
   { id: 'associate', label: 'Associate', color: '#67e2d9' },
@@ -28,17 +28,6 @@ var EMPTY_FORM = {
   contact_email: '',
   placements: [],
   notes: '',
-}
-
-function Sel(props) {
-  var value = props.value
-  var onChange = props.onChange
-  var children = props.children
-  return (
-    <select value={value} onChange={function(e) { onChange(e.target.value) }} className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm appearance-none cursor-pointer focus:outline-none focus:border-primary/40">
-      {children}
-    </select>
-  )
 }
 
 function SponsorCard(props) {
