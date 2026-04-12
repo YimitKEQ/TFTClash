@@ -11,6 +11,7 @@ import 'dotenv/config';
 
 import { startScheduler } from './scheduler.js';
 import { startListeners } from './listeners.js';
+import { startDashboard } from './dashboard/server.js';
 import { welcomeEmbed, welcomeDMEmbed } from './utils/embeds.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,6 +46,7 @@ client.once(Events.ClientReady, function(c) {
 
   startScheduler(client);
   startListeners(client);
+  startDashboard(client);
 });
 
 // ─── Slash commands ───────────────────────────────────────────────────────────

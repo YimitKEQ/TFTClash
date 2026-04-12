@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TFT Clash Bot Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a12;
+      --surface: #111827;
+      --surface-2: #1a1f2e;
+      --surface-3: #232938;
+      --border: rgba(255,255,255,0.06);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+      --purple: #9B72CF;
+      --gold: #E8A838;
+      --teal: #4ECDC4;
+      --red: #ef4444;
+      --green: #22c55e;
+      --blue: #3b82f6;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────────── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+    .header .subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .status-dot.offline { background: var(--red); animation: none; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .header-stats {
+      margin-left: auto;
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .header-stats strong { color: var(--text); }
+
+    /* ─── Layout ─────────────────────────────────────────────────────── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .full-width { grid-column: 1 / -1; }
+
+    /* ─── Cards ──────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-dim);
+    }
+    .card-header .icon { font-size: 16px; }
+    .card-body { padding: 18px; }
+
+    /* ─── Status cards ───────────────────────────────────────────────── */
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .stat-card {
+      background: var(--surface-2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      text-align: center;
+    }
+    .stat-card .label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .stat-card .value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .stat-card .value.purple { color: var(--purple); }
+    .stat-card .value.gold { color: var(--gold); }
+    .stat-card .value.teal { color: var(--teal); }
+    .stat-card .value.green { color: var(--green); }
+
+    /* ─── Phase badge ────────────────────────────────────────────────── */
+    .phase-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .phase-badge.registration { background: rgba(78,205,196,0.15); color: var(--teal); }
+    .phase-badge.checkin { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .phase-badge.inprogress { background: rgba(239,68,68,0.15); color: var(--red); }
+    .phase-badge.complete { background: rgba(34,197,94,0.15); color: var(--green); }
+    .phase-badge.idle { background: rgba(148,163,184,0.15); color: var(--text-muted); }
+
+    /* ─── Forms ──────────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--purple);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    select { cursor: pointer; }
+    select option { background: var(--surface); }
+
+    .radio-group {
+      display: flex;
+      gap: 12px;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-dim);
+      cursor: pointer;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+    }
+    .radio-group input[type="radio"] { width: auto; }
+
+    /* ─── Buttons ─────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-purple { background: var(--purple); color: #fff; }
+    .btn-purple:hover:not(:disabled) { background: #8b62bf; }
+    .btn-gold { background: var(--gold); color: #0a0a12; }
+    .btn-gold:hover:not(:disabled) { background: #d49a30; }
+    .btn-teal { background: var(--teal); color: #0a0a12; }
+    .btn-teal:hover:not(:disabled) { background: #3dbdb5; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover:not(:disabled) { background: #dc2626; }
+    .btn-dark {
+      background: var(--surface-2);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-dark:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ─── Quick Actions ──────────────────────────────────────────────── */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .quick-action {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .quick-action:hover { border-color: var(--purple); background: var(--surface-3); }
+    .quick-action .qa-icon { font-size: 24px; margin-bottom: 6px; }
+    .quick-action .qa-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    /* ─── Results form ───────────────────────────────────────────────── */
+    .placement-row {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .placement-row .pos {
+      text-align: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .placement-row:nth-child(1) .pos { color: var(--gold); }
+    .placement-row:nth-child(2) .pos { color: #c0c0c0; }
+    .placement-row:nth-child(3) .pos { color: #cd7f32; }
+
+    /* ─── Logs ───────────────────────────────────────────────────────── */
+    .log-feed {
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    .log-entry {
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      display: flex;
+      gap: 10px;
+    }
+    .log-entry .log-time {
+      color: var(--text-muted);
+      white-space: nowrap;
+      min-width: 80px;
+    }
+    .log-entry .log-msg { color: var(--text-dim); word-break: break-all; }
+    .log-entry.error .log-msg { color: var(--red); }
+
+    /* ─── Toast ──────────────────────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+      max-width: 360px;
+    }
+    .toast.success { background: rgba(34,197,94,0.9); color: #fff; }
+    .toast.error { background: rgba(239,68,68,0.9); color: #fff; }
+    @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* ─── Standings table ────────────────────────────────────────────── */
+    .standings-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .standings-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .standings-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .standings-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .rank-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+    .rank-badge.Challenger { background: rgba(232,168,56,0.15); color: var(--gold); }
+    .rank-badge.Grandmaster { background: rgba(155,114,207,0.15); color: var(--purple); }
+    .rank-badge.Master { background: rgba(155,114,207,0.15); color: var(--purple); }
+    .rank-badge.Diamond { background: rgba(78,205,196,0.15); color: var(--teal); }
+    .rank-badge.Platinum { background: rgba(63,182,139,0.15); color: #3FB68B; }
+
+    /* ─── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .container { grid-template-columns: 1fr; padding: 12px; }
+      .status-grid { grid-template-columns: repeat(2, 1fr); }
+      .quick-actions { grid-template-columns: 1fr; }
+      .header-stats { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="status-dot" id="statusDot"></div>
+    <div>
+      <h1>TFT Clash Bot</h1>
+      <div class="subtitle">Dashboard</div>
+    </div>
+    <div class="header-stats">
+      <span>Guild: <strong id="hGuild">-</strong></span>
+      <span>Members: <strong id="hMembers">-</strong></span>
+      <span>Ping: <strong id="hPing">-</strong></span>
+      <span>Uptime: <strong id="hUptime">-</strong></span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Status Overview -->
+    <div class="card full-width">
+      <div class="card-header">&#x1f4ca; Status Overview</div>
+      <div class="card-body">
+        <div class="status-grid">
+          <div class="stat-card">
+            <div class="label">Phase</div>
+            <div class="value" id="sPhase"><span class="phase-badge idle">Idle</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Clash</div>
+            <div class="value gold" id="sClash">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Registered</div>
+            <div class="value teal" id="sRegs">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Season</div>
+            <div class="value purple" id="sSeason">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header">&#x26a1; Quick Actions</div>
+      <div class="card-body">
+        <div class="quick-actions">
+          <div class="quick-action" onclick="triggerJob('standings')">
+            <div class="qa-icon">&#x1f3c6;</div>
+            <div class="qa-label">Post Standings</div>
+          </div>
+          <div class="quick-action" onclick="triggerJob('reminder24h')">
+            <div class="qa-icon">&#x23f0;</div>
+            <div class="qa-label">24h Reminder</div>
+          </div>
+          <div class="quick-action" onclick="triggerJob('reminder1h')">
+            <div class="qa-icon">&#x1f6a8;</div>
+            <div class="qa-label">1h Reminder</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Announce -->
+    <div class="card">
+      <div class="card-header">&#x1f4e3; Announce</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Channel</label>
+          <select id="annChannel" class="channel-select"></select>
+        </div>
+        <div class="form-group">
+          <label>Title</label>
+          <input type="text" id="annTitle" placeholder="Announcement title">
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="annMessage" placeholder="Write your announcement..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Mention</label>
+          <div class="radio-group">
+            <label><input type="radio" name="annMention" value="none" checked> None</label>
+            <label><input type="radio" name="annMention" value="here"> @here</label>
+            <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
+          </div>
+        </div>
+        <button class="btn btn-gold" onclick="sendAnnounce()">Send Announcement</button>
+      </div>
+    </div>
+
+    <!-- Send Message -->
+    <div class="card">
+      <div class="card-header">&#x1f4ac; Send Message</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Channel</label>
+          <select id="msgChannel" class="channel-select"></select>
+        </div>
+        <div class="form-group">
+          <label>Message</label>
+          <textarea id="msgContent" placeholder="Type a message..."></textarea>
+        </div>
+        <button class="btn btn-purple" onclick="sendMessage()">Send Message</button>
+      </div>
+    </div>
+
+    <!-- Post Results -->
+    <div class="card">
+      <div class="card-header">&#x1f451; Post Results</div>
+      <div class="card-body">
+        <div class="form-group">
+          <label>Clash Number</label>
+          <input type="number" id="resClash" placeholder="e.g. 16">
+        </div>
+        <div id="placementRows"></div>
+        <div style="margin-top: 12px;">
+          <button class="btn btn-gold" onclick="postResults()">Post Results</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Standings -->
+    <div class="card">
+      <div class="card-header">&#x1f4ca; Current Standings</div>
+      <div class="card-body">
+        <table class="standings-table">
+          <thead>
+            <tr><th>#</th><th>Player</th><th>Rank</th><th>Pts</th><th>W</th><th>Top4</th></tr>
+          </thead>
+          <tbody id="standingsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Logs -->
+    <div class="card full-width">
+      <div class="card-header">
+        &#x1f4cb; Live Logs
+        <span style="margin-left: auto; font-size: 10px; color: var(--text-muted); text-transform: none; letter-spacing: 0;">Auto-refreshes every 5s</span>
+      </div>
+      <div class="card-body">
+        <div class="log-feed" id="logFeed"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="toast-container" id="toasts"></div>
+
+  <script>
+    // ─── Helpers ──────────────────────────────────────────────────────
+    function $(id) { return document.getElementById(id); }
+
+    function toast(msg, type) {
+      var el = document.createElement('div');
+      el.className = 'toast ' + (type || 'success');
+      el.textContent = msg;
+      $('toasts').appendChild(el);
+      setTimeout(function() { el.remove(); }, 4000);
+    }
+
+    async function api(method, path, body) {
+      var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      var res = await fetch('/api' + path, opts);
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function formatUptime(ms) {
+      var s = Math.floor(ms / 1000);
+      var h = Math.floor(s / 3600);
+      var m = Math.floor((s % 3600) / 60);
+      if (h > 0) return h + 'h ' + m + 'm';
+      return m + 'm';
+    }
+
+    // ─── Status ──────────────────────────────────────────────────────
+    async function refreshStatus() {
+      try {
+        var data = await api('GET', '/status');
+        $('statusDot').className = 'status-dot' + (data.bot.status === 'online' ? '' : ' offline');
+        $('hGuild').textContent = data.guild ? data.guild.name : '-';
+        $('hMembers').textContent = data.guild ? data.guild.memberCount : '-';
+        $('hPing').textContent = data.bot.ping + 'ms';
+        $('hUptime').textContent = formatUptime(data.bot.uptime);
+
+        if (data.tournament) {
+          $('sPhase').innerHTML = '<span class="phase-badge ' + data.tournament.phase + '">' + data.tournament.phase + '</span>';
+          $('sClash').textContent = '#' + data.tournament.clashNumber;
+          $('sRegs').textContent = data.tournament.registeredCount;
+        } else {
+          $('sPhase').innerHTML = '<span class="phase-badge idle">Idle</span>';
+          $('sClash').textContent = '-';
+          $('sRegs').textContent = '-';
+        }
+
+        $('sSeason').textContent = data.season ? data.season.name : '-';
+      } catch (e) {
+        $('statusDot').className = 'status-dot offline';
+      }
+    }
+
+    // ─── Channels ────────────────────────────────────────────────────
+    async function loadChannels() {
+      try {
+        var channels = await api('GET', '/channels');
+        var selects = document.querySelectorAll('.channel-select');
+        selects.forEach(function(sel) {
+          sel.innerHTML = '';
+          channels.forEach(function(ch) {
+            var opt = document.createElement('option');
+            opt.value = ch.id;
+            opt.textContent = '#' + ch.name + (ch.category ? ' (' + ch.category + ')' : '');
+            sel.appendChild(opt);
+          });
+        });
+      } catch (e) {
+        console.error('Failed to load channels:', e);
+      }
+    }
+
+    // ─── Standings ───────────────────────────────────────────────────
+    async function loadStandings() {
+      try {
+        var data = await api('GET', '/standings');
+        var tbody = $('standingsBody');
+        tbody.innerHTML = '';
+        (data.players || []).forEach(function(p, i) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td style="color: ' + (i < 3 ? 'var(--gold)' : 'var(--text-dim)') + '; font-weight: 700;">' + (i + 1) + '</td>' +
+            '<td><strong>' + p.name + '</strong></td>' +
+            '<td><span class="rank-badge ' + p.rank + '">' + p.rank + '</span></td>' +
+            '<td>' + p.pts + '</td>' +
+            '<td>' + p.wins + '</td>' +
+            '<td>' + p.top4 + '</td>';
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error('Failed to load standings:', e);
+      }
+    }
+
+    // ─── Placement rows ─────────────────────────────────────────────
+    function buildPlacementRows() {
+      var container = $('placementRows');
+      var medals = ['&#x1f947;', '&#x1f948;', '&#x1f949;', '4th', '5th', '6th', '7th', '8th'];
+      for (var i = 0; i < 8; i++) {
+        var row = document.createElement('div');
+        row.className = 'placement-row';
+        row.innerHTML = '<div class="pos">' + medals[i] + '</div>' +
+          '<input type="text" class="res-name" placeholder="Player name">';
+        container.appendChild(row);
+      }
+    }
+
+    // ─── Logs ────────────────────────────────────────────────────────
+    var lastLogTs = null;
+    async function refreshLogs() {
+      try {
+        var url = '/logs' + (lastLogTs ? '?since=' + encodeURIComponent(lastLogTs) : '');
+        var logs = await api('GET', url);
+        if (!logs.length) return;
+
+        var feed = $('logFeed');
+        logs.forEach(function(l) {
+          var entry = document.createElement('div');
+          entry.className = 'log-entry' + (l.level === 'error' ? ' error' : '');
+          var time = new Date(l.ts);
+          entry.innerHTML = '<span class="log-time">' + time.toLocaleTimeString() + '</span>' +
+            '<span class="log-msg">' + escapeHtml(l.message) + '</span>';
+          feed.appendChild(entry);
+          lastLogTs = l.ts;
+        });
+
+        // Auto-scroll to bottom
+        feed.scrollTop = feed.scrollHeight;
+
+        // Limit DOM nodes
+        while (feed.children.length > 200) {
+          feed.removeChild(feed.firstChild);
+        }
+      } catch (e) {
+        // silently skip
+      }
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // ─── Actions ─────────────────────────────────────────────────────
+    async function triggerJob(job) {
+      var labels = { standings: 'Post Standings', reminder24h: '24h Reminder', reminder1h: '1h Reminder' };
+      if (!confirm('Trigger "' + labels[job] + '"? This will post to the Discord server.')) return;
+      try {
+        await api('POST', '/trigger', { job: job });
+        toast(labels[job] + ' sent!', 'success');
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    async function sendAnnounce() {
+      var channelId = $('annChannel').value;
+      var title = $('annTitle').value;
+      var message = $('annMessage').value;
+      var mention = document.querySelector('input[name="annMention"]:checked').value;
+
+      if (!message.trim()) { toast('Message is required', 'error'); return; }
+      if (!confirm('Send announcement to Discord?')) return;
+
+      try {
+        var res = await api('POST', '/announce', { channelId: channelId, title: title, message: message, mention: mention });
+        toast('Announcement sent to #' + res.channel, 'success');
+        $('annTitle').value = '';
+        $('annMessage').value = '';
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    async function sendMessage() {
+      var channelId = $('msgChannel').value;
+      var content = $('msgContent').value;
+
+      if (!content.trim()) { toast('Message is required', 'error'); return; }
+      if (!confirm('Send message to Discord?')) return;
+
+      try {
+        var res = await api('POST', '/send', { channelId: channelId, content: content });
+        toast('Message sent to #' + res.channel, 'success');
+        $('msgContent').value = '';
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    async function postResults() {
+      var clashNumber = parseInt($('resClash').value);
+      var names = document.querySelectorAll('.res-name');
+      var placements = [];
+
+      names.forEach(function(input, i) {
+        if (input.value.trim()) {
+          placements.push({ name: input.value.trim(), place: i + 1 });
+        }
+      });
+
+      if (!clashNumber) { toast('Clash number is required', 'error'); return; }
+      if (placements.length === 0) { toast('Enter at least one player name', 'error'); return; }
+      if (!confirm('Post results for Clash #' + clashNumber + '?')) return;
+
+      try {
+        var res = await api('POST', '/results', { clashNumber: clashNumber, placements: placements });
+        toast('Results posted' + (res.channel ? ' to #' + res.channel : ''), 'success');
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    // ─── Init ────────────────────────────────────────────────────────
+    buildPlacementRows();
+    refreshStatus();
+    loadChannels();
+    loadStandings();
+    refreshLogs();
+
+    setInterval(refreshStatus, 30000);
+    setInterval(refreshLogs, 5000);
+    setInterval(loadStandings, 60000);
+  </script>
+</body>
+</html>
