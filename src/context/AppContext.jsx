@@ -270,7 +270,7 @@ export function AppProvider(props) {
         var freshMapped=mapped;
         supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
           .order('tournament_id',{ascending:true}).order('round_number',{ascending:true}).order('game_number',{ascending:true})
-          .limit(5000)
+          .limit(50000)
           .then(function(gr){
             if(!gr.error&&gr.data&&gr.data.length>0){
               var historyMap={};

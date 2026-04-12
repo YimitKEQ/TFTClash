@@ -76,11 +76,13 @@ export default function TournamentTab() {
 
   function openCheckin() {
     if (currentPhase !== 'registration') { toast('Must be in Registration phase first', 'error'); return }
+    if (!window.confirm('Open check-in? Players will be notified to confirm attendance.')) return
     setPhase('checkin')
   }
 
   function startTournament() {
     if (currentPhase !== 'checkin') { toast('Must be in Check-in phase first', 'error'); return }
+    if (!window.confirm('Start the tournament? This will lock registrations and begin the first round.')) return
     setPhase('inprogress')
   }
 

@@ -55,7 +55,7 @@ export default function Sidebar() {
         <Icon name={icon} size={20} className={isActive ? 'opacity-100' : 'opacity-60'} />
         <span className="flex-1">{label}</span>
         {badge && (
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary">{badge}</span>
+          <span className={"text-[9px] font-bold px-1.5 py-0.5 rounded " + (badge === 'Live' ? "bg-success/20 text-success animate-pulse" : badge === 'Register' ? "bg-secondary/20 text-secondary" : "bg-tertiary/20 text-tertiary")}>{badge}</span>
         )}
       </button>
     );
@@ -65,7 +65,7 @@ export default function Sidebar() {
     return <div className="h-px bg-white/[0.05] mx-6 my-1.5" />;
   }
 
-  var clashBadge = phase === 'registration' ? 'Register' : phase === 'inprogress' ? 'Live' : phase === 'complete' ? 'Done' : null;
+  var clashBadge = phase === 'registration' ? 'Register' : phase === 'checkin' ? 'Check-In' : phase === 'inprogress' ? 'Live' : phase === 'complete' ? 'Done' : null;
 
   return (
     <aside className="hidden xl:flex fixed left-0 top-0 h-screen w-64 bg-[#13131A] border-r border-white/[0.05] flex-col z-40 pt-20">

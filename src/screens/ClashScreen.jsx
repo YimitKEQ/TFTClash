@@ -342,6 +342,14 @@ function ResultSubmitModal(props) {
     });
   }
 
+  var positions = rankings.map(function(r) { return r.position; });
+  var seen = {};
+  var hasDuplicates = false;
+  positions.forEach(function(p) {
+    if (seen[p]) hasDuplicates = true;
+    seen[p] = true;
+  });
+
   return (
     <div
       className="fixed inset-0 z-[9995] flex items-center justify-center"
@@ -354,13 +362,14 @@ function ResultSubmitModal(props) {
       >
         <h3 className="font-editorial mb-4 text-on-surface">Submit Results</h3>
         {rankings.map(function(r, i) {
+          var isDup = positions.filter(function(p) { return p === r.position; }).length > 1;
           return (
             <div key={r.player.username || r.player.name || r.player} className="flex items-center gap-2.5 mb-2">
               <span className="flex-1 text-[13px] text-on-surface">{r.player.username || r.player.name || r.player}</span>
               <select
                 value={r.position}
                 onChange={function(e) { handlePositionChange(i, e.target.value); }}
-                className="px-2.5 py-1.5 rounded-md bg-surface-container-lowest border border-on-surface/10 text-on-surface text-[13px]"
+                className={"px-2.5 py-1.5 rounded-md bg-surface-container-lowest border text-[13px] " + (isDup ? "border-error text-error" : "border-on-surface/10 text-on-surface")}
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(function(pos) {
                   return <option key={pos} value={pos}>{ordinal(pos)}</option>;
@@ -369,8 +378,13 @@ function ResultSubmitModal(props) {
             </div>
           );
         })}
+        {hasDuplicates && (
+          <div className="text-error text-xs mt-2 flex items-center gap-1">
+            <span>Each player must have a unique placement</span>
+          </div>
+        )}
         <div className="flex gap-[10px] mt-4">
-          <Btn v="primary" onClick={function() { props.onSubmit(rankings); }}>Submit</Btn>
+          <Btn v="primary" disabled={hasDuplicates} onClick={function() { if (!hasDuplicates) props.onSubmit(rankings); }}>Submit</Btn>
           <Btn v="ghost" onClick={props.onClose}>Cancel</Btn>
         </div>
       </div>
@@ -1488,19 +1502,7 @@ function BracketScreen(props) {
         supabase.from('game_results').insert(gameRows).then(function(res) {
           if (res.error) { toast("Failed to save game results", "error"); }
           else {
-            gameRows.forEach(function(row) {
-              var ptsGained = row.points || 0;
-              var winsGained = row.placement === 1 ? 1 : 0;
-              if (ptsGained === 0 && winsGained === 0) return;
-              supabase.rpc('increment_player_stats', {
-                p_player_id: row.player_id,
-                p_pts: ptsGained,
-                p_wins: winsGained
-              }).then(function(rpcRes) {
-                if (rpcRes.error) {
-                }
-              }).catch(function() {});
-            });
+            // DB trigger refresh_player_stats handles authoritative stat update
             setPlayers(function(ps) {
               return ps.map(function(p) {
                 var row = gameRows.find(function(r) { return r.player_id === p.id; });
@@ -1544,15 +1546,7 @@ function BracketScreen(props) {
     supabase.from('game_results').insert(gameRows).then(function(res) {
       if (res.error) { toast('Failed to save results: ' + res.error.message, 'error'); return; }
 
-      gameRows.forEach(function(row) {
-        supabase.rpc('increment_player_stats', {
-          p_player_id: row.player_id,
-          p_pts: row.points,
-          p_wins: row.placement === 1 ? 1 : 0
-        }).then(function(r) {
-        }).catch(function() {});
-      });
-
+      // DB trigger refresh_player_stats handles authoritative stat update
       setPlayers(function(ps) {
         return ps.map(function(p) {
           var row = gameRows.find(function(r) { return r.player_id === p.id; });

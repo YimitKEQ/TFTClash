@@ -25,6 +25,10 @@ export default function ResultsTab() {
   var published = _published[0]
   var setPublished = _published[1]
 
+  var _publishing = useState(false)
+  var publishing = _publishing[0]
+  var setPublishing = _publishing[1]
+
   function addAudit(type, msg) {
     var entry = { ts: Date.now(), type: type, msg: msg }
     setAuditLog(function(l) { return [entry].concat(l.slice(0, 199)) })
@@ -75,10 +79,12 @@ export default function ResultsTab() {
   }
 
   function publishResults() {
+    if (publishing) return
     if (isPublished) {
       if (!window.confirm('This lobby is already published. Override?')) return
     }
     if (!validate()) return
+    setPublishing(true)
     var tId = ts.activeTournamentId || null
     var rows = lobbyPlayers.map(function(p) {
       var place = parseInt(getPlace(p.id))
@@ -108,7 +114,7 @@ export default function ResultsTab() {
             }
           }).catch(function() {})
         } else {
-          // Fresh publish: update local state immediately
+          // Fresh publish: update local state immediately for UI, DB trigger handles authoritative stats
           setPlayers(function(ps) {
             return ps.map(function(p) {
               var row = rows.find(function(rw) { return rw.player_id === p.id })
@@ -121,25 +127,27 @@ export default function ResultsTab() {
               })
             })
           })
-          rows.forEach(function(row) {
-            if (row.points > 0) {
-              supabase.rpc('increment_player_stats', { p_player_id: row.player_id, p_pts: row.points, p_wins: row.placement === 1 ? 1 : 0 }).then(function(r2) {
-                if (r2.error) {
-                  supabase.from('players').select('season_pts').eq('id', row.player_id).single().then(function(cur) {
-                    if (!cur.error && cur.data) {
-                      supabase.from('players').update({ season_pts: (cur.data.season_pts || 0) + row.points }).eq('id', row.player_id)
-                    }
-                  }).catch(function() {})
-                }
-              }).catch(function() {})
-            }
-          })
+          // DB trigger refresh_player_stats handles authoritative stat update - reload after short delay
+          setTimeout(function() {
+            supabase.from('players').select('id, season_pts, wins, top4, games, avg_placement').then(function(freshRes) {
+              if (!freshRes.error && freshRes.data) {
+                setPlayers(function(ps) {
+                  return ps.map(function(p) {
+                    var fresh = freshRes.data.find(function(f) { return f.id === p.id })
+                    if (!fresh) return p
+                    return Object.assign({}, p, { pts: fresh.season_pts || 0, wins: fresh.wins || 0, top4: fresh.top4 || 0, games: fresh.games || 0 })
+                  })
+                })
+              }
+            }).catch(function() {})
+          }, 1500)
         }
         setPublished(function(pub) { return pub.concat([lobbyKey]) })
         addAudit('ACTION', 'Results ' + (isPublished ? 'overridden' : 'published') + ': Lobby ' + lobby + ', ' + rows.length + ' players')
         toast('Results ' + (isPublished ? 'updated' : 'published') + ' for Lobby ' + lobby + '!', 'success')
-      }).catch(function() { toast('Publish failed', 'error') })
-    }).catch(function() { toast('Operation failed', 'error') })
+        setPublishing(false)
+      }).catch(function() { toast('Publish failed', 'error'); setPublishing(false) })
+    }).catch(function() { toast('Operation failed', 'error'); setPublishing(false) })
   }
 
   if (checkedIn.length === 0) {
@@ -206,8 +214,8 @@ export default function ResultsTab() {
           })}
         </div>
 
-        <Btn variant="primary" onClick={publishResults}>
-          {isPublished ? 'Override Published Results' : 'Publish Results'}
+        <Btn variant="primary" onClick={publishResults} disabled={publishing}>
+          {publishing ? 'Publishing...' : isPublished ? 'Override Published Results' : 'Publish Results'}
         </Btn>
       </Panel>
     </div>
