@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS, RANKS } from '../lib/constants.js'
+import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies } from '../lib/tournament.js'
 import { createNotification } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -1036,14 +1037,29 @@ export default function FlashTournamentScreen(props) {
                   </div>
                 )}
 
-                {/* Dispute link */}
+                {/* Share + Dispute links */}
                 {myReport && !disputeForm.open && (
-                  <button
-                    onClick={function() { setDisputeForm({open: true, lobbyId: myLobby.id, claimed: myReport.reported_placement, reason: '', screenshotUrl: ''}); }}
-                    className="mt-3 bg-transparent text-error text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-error/20 rounded px-3 py-1.5 hover:bg-error/10 transition-colors"
-                  >
-                    Dispute this result
-                  </button>
+                  <div className="mt-3 flex gap-2 flex-wrap">
+                    <button
+                      onClick={function() {
+                        shareToTwitter(buildShareText('round', {
+                          placement: myReport.reported_placement,
+                          round: currentGameNumber,
+                          clashName: tournament ? tournament.name : 'TFT Clash',
+                        }));
+                      }}
+                      className="bg-transparent text-primary text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-primary/20 rounded px-3 py-1.5 hover:bg-primary/10 transition-colors flex items-center gap-1"
+                    >
+                      <Icon name="share" size={12} />
+                      Share Result
+                    </button>
+                    <button
+                      onClick={function() { setDisputeForm({open: true, lobbyId: myLobby.id, claimed: myReport.reported_placement, reason: '', screenshotUrl: ''}); }}
+                      className="bg-transparent text-error text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-error/20 rounded px-3 py-1.5 hover:bg-error/10 transition-colors"
+                    >
+                      Dispute this result
+                    </button>
+                  </div>
                 )}
 
                 {/* Dispute form */}

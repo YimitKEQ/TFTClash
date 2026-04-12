@@ -1,5 +1,6 @@
 import { useApp } from '../context/AppContext'
 import { getStats, computeClashAwards } from '../lib/stats.js'
+import { shareToTwitter, buildShareText } from '../lib/utils.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
 
@@ -167,7 +168,7 @@ export default function SeasonRecapScreen() {
       ' | ' + s.wins + ' wins' +
       ' | AVP ' + s.avgPlacement +
       ' | ' + awards.length + ' awards' +
-      ' | #TFTClash #TFT'
+      '\n\n#TFTClash #TFT\ntftclash.com'
     )
     if (navigator.clipboard) {
       navigator.clipboard.writeText(text).then(function() {
@@ -176,6 +177,81 @@ export default function SeasonRecapScreen() {
     } else {
       if (toast) toast('Copy: ' + text, 'info')
     }
+  }
+
+  function handleShareTwitter() {
+    shareToTwitter(buildShareText('season', {
+      seasonName: seasonName,
+      position: position,
+      pts: player.pts,
+      wins: s.wins,
+      avg: s.avgPlacement,
+    }))
+  }
+
+  function handleDownloadCard() {
+    var canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 420
+    var ctx2 = canvas.getContext('2d')
+    var bg = ctx2.createLinearGradient(0, 0, 800, 420)
+    bg.addColorStop(0, '#0A0F1A')
+    bg.addColorStop(1, '#08080F')
+    ctx2.fillStyle = bg
+    ctx2.fillRect(0, 0, 800, 420)
+    var gold = ctx2.createLinearGradient(0, 0, 800, 0)
+    gold.addColorStop(0, '#9B72CF')
+    gold.addColorStop(0.5, '#E8A838')
+    gold.addColorStop(1, '#9B72CF')
+    ctx2.fillStyle = gold
+    ctx2.fillRect(0, 0, 800, 3)
+    ctx2.font = 'bold 12px monospace'
+    ctx2.fillStyle = '#9B72CF'
+    ctx2.fillText('TFT CLASH  -  ' + seasonName.toUpperCase() + '  RECAP', 40, 40)
+    ctx2.font = 'bold 36px serif'
+    ctx2.fillStyle = '#F2EDE4'
+    ctx2.fillText(player.name, 40, 90)
+    ctx2.font = 'bold 16px monospace'
+    ctx2.fillStyle = '#E8A838'
+    ctx2.fillText('#' + position + ' overall', 40, 120)
+    ctx2.font = '13px monospace'
+    ctx2.fillStyle = '#BECBD9'
+    ctx2.fillText(topPct, 180, 120)
+    var stats = [
+      ['PTS', String(player.pts || 0)],
+      ['WINS', String(s.wins || 0)],
+      ['AVP', String(s.avgPlacement || '-')],
+      ['TOP 4%', String(s.top4Rate || 0) + '%'],
+      ['GAMES', String(s.games || 0)],
+      ['AWARDS', String(awards.length)],
+    ]
+    stats.forEach(function(pair, i) {
+      var x = 40 + (i % 3) * 250
+      var y = 160 + Math.floor(i / 3) * 80
+      ctx2.fillStyle = 'rgba(155,114,207,0.1)'
+      ctx2.beginPath()
+      ctx2.roundRect(x, y, 220, 60, 4)
+      ctx2.fill()
+      ctx2.font = '10px monospace'
+      ctx2.fillStyle = '#9B72CF'
+      ctx2.fillText(pair[0], x + 12, y + 20)
+      ctx2.font = 'bold 24px monospace'
+      ctx2.fillStyle = '#F2EDE4'
+      ctx2.fillText(pair[1], x + 12, y + 48)
+    })
+    ctx2.fillStyle = 'rgba(155,114,207,0.15)'
+    ctx2.fillRect(0, 388, 800, 32)
+    ctx2.font = 'bold 11px monospace'
+    ctx2.fillStyle = '#9B72CF'
+    ctx2.fillText('TFT CLASH  -  tftclash.com', 40, 408)
+    ctx2.font = '11px monospace'
+    ctx2.fillStyle = '#BECBD9'
+    ctx2.fillText('#TFTClash  #TFT', 620, 408)
+    var a = document.createElement('a')
+    a.download = 'TFTClash-' + seasonName.replace(/\s/g, '-') + '-' + player.name + '.png'
+    a.href = canvas.toDataURL('image/png')
+    a.click()
+    if (toast) toast('Season recap card downloaded', 'success')
   }
 
   return (
@@ -366,13 +442,30 @@ export default function SeasonRecapScreen() {
         </div>
 
         {/* CTA */}
-        <div className="mt-16 flex flex-col items-center">
-          <button
-            onClick={handleShare}
-            className="bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed font-condensed font-bold uppercase tracking-widest px-12 py-5 rounded-full hover:shadow-[0_0_30px_rgba(253,186,73,0.3)] transition-all active:scale-95 text-lg"
-          >
-            SHARE RECAP
-          </button>
+        <div className="mt-16 flex flex-col items-center gap-4">
+          <div className="flex gap-3 flex-wrap justify-center">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors px-8 py-4 rounded-full border border-outline-variant/10 font-condensed font-bold uppercase tracking-widest text-sm"
+            >
+              <Icon name="content_copy" size={16} />
+              Copy
+            </button>
+            <button
+              onClick={handleShareTwitter}
+              className="flex items-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors px-8 py-4 rounded-full border border-outline-variant/10 font-condensed font-bold uppercase tracking-widest text-sm"
+            >
+              <Icon name="share" size={16} className="text-primary" />
+              Share
+            </button>
+            <button
+              onClick={handleDownloadCard}
+              className="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed px-8 py-4 rounded-full hover:shadow-[0_0_30px_rgba(253,186,73,0.3)] transition-all active:scale-95 font-condensed font-bold uppercase tracking-widest text-sm"
+            >
+              <Icon name="download" size={16} />
+              Save Card
+            </button>
+          </div>
           <p className="mt-6 text-on-surface-variant font-mono text-xs uppercase tracking-tighter">
             {nextSeasonCountdown()}
           </p>

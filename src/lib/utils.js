@@ -24,16 +24,23 @@ export function shareToTwitter(text) {
 }
 
 export function buildShareText(type, data) {
+  var url = "tftclash.com";
   if (type === "result") {
-    return "Finished " + ordinal(data.placement) + " in " + data.clashName + " - " + data.points + " season pts on TFT Clash";
+    return "Finished " + ordinal(data.placement) + " in " + data.clashName + " - " + data.points + " season pts\n\n#TFTClash #TFT\n" + url;
   }
   if (type === "profile") {
-    return data.name + " - Rank #" + data.rank + " with " + data.pts + " pts on TFT Clash";
+    return data.name + " - Rank #" + data.rank + " with " + data.pts + " pts on TFT Clash\n\n#TFTClash\n" + url + "/player/" + data.name;
   }
   if (type === "recap") {
-    return data.winner + " won " + data.clashName + "! Full recap on TFT Clash";
+    return data.winner + " won " + data.clashName + "! Full recap on TFT Clash\n\n#TFTClash #TFT\n" + url;
   }
-  return "Competing on TFT Clash - the competitive TFT platform";
+  if (type === "season") {
+    return "My " + data.seasonName + " stats on TFT Clash: #" + data.position + " overall, " + data.pts + " pts, " + data.wins + " wins, AVP " + data.avg + "\n\n#TFTClash #TFT\n" + url;
+  }
+  if (type === "round") {
+    return "Just finished " + ordinal(data.placement) + " in Round " + data.round + " of " + data.clashName + " on TFT Clash\n\n#TFTClash #TFT\n" + url;
+  }
+  return "Competing on TFT Clash - free weekly TFT tournaments\n\n" + url;
 }
 
 export function isValidRiotId(id) {
