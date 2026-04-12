@@ -57,12 +57,13 @@ export async function execute(interaction) {
 
   const embed = resultsEmbed(clashNum, placements);
 
-  // Find the results channel and post there too
-  const resultsChannel = interaction.guild.channels.cache.find(function(c) { return c.name === 'results'; });
+  // Post to #results if it exists, otherwise just reply in current channel
+  var resultsChannel = interaction.guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('results'); });
   if (resultsChannel && resultsChannel.id !== interaction.channelId) {
     await resultsChannel.send({ embeds: [embed] });
     await interaction.editReply('Results for Clash #' + clashNum + ' posted to <#' + resultsChannel.id + '>');
   } else {
+    // No #results channel - post right here
     await interaction.editReply({ embeds: [embed] });
   }
 }

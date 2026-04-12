@@ -4,32 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TFT Clash Bot Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a12;
-      --surface: #111827;
-      --surface-2: #1a1f2e;
-      --surface-3: #232938;
+      --bg: #07080a;
+      --surface: #101111;
+      --surface-2: #161718;
+      --surface-3: #1b1c1e;
       --border: rgba(255,255,255,0.06);
-      --text: #e2e8f0;
-      --text-dim: #94a3b8;
-      --text-muted: #64748b;
-      --purple: #9B72CF;
-      --gold: #E8A838;
-      --teal: #4ECDC4;
-      --red: #ef4444;
-      --green: #22c55e;
-      --blue: #3b82f6;
+      --border-strong: hsl(195,5%,15%);
+      --text: #f9f9f9;
+      --text-secondary: #cecece;
+      --text-dim: #9c9c9d;
+      --text-muted: #6a6b6c;
+      --text-dark: #434345;
+      --red: #FF6363;
+      --green: #5fc992;
+      --blue: #55b3ff;
+      --yellow: #ffbc33;
       --radius: 12px;
+      --radius-lg: 16px;
+      --radius-sm: 6px;
+      --radius-pill: 86px;
+      --shadow-ring: rgb(27,28,30) 0px 0px 0px 1px, rgb(7,8,10) 0px 0px 0px 1px inset;
+      --shadow-btn: rgba(255,255,255,0.05) 0px 1px 0px 0px inset, rgba(255,255,255,0.1) 0px 0px 0px 1px, rgba(0,0,0,0.2) 0px -1px 0px 0px inset;
+      --shadow-subtle: rgba(0,0,0,0.28) 0px 1.189px 2.377px;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      font-feature-settings: 'calt', 'kern', 'liga', 'ss03';
       background: var(--bg);
       color: var(--text);
-      line-height: 1.5;
+      line-height: 1.6;
+      letter-spacing: 0.2px;
+      font-weight: 500;
       min-height: 100vh;
     }
 
@@ -37,52 +50,70 @@
     .header {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
+      box-shadow: var(--shadow-ring);
+      padding: 0 32px;
+      height: 56px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       position: sticky;
       top: 0;
       z-index: 100;
     }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
     .header h1 {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--gold);
-      letter-spacing: 0.5px;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: 0.3px;
     }
     .header .subtitle {
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
+      letter-spacing: 0.3px;
+      padding-left: 12px;
+      border-left: 1px solid var(--border-strong);
     }
+
     .status-dot {
-      width: 10px; height: 10px;
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: var(--green);
-      animation: pulse 2s ease-in-out infinite;
+      box-shadow: 0 0 8px rgba(95,201,146,0.4);
+      flex-shrink: 0;
     }
-    .status-dot.offline { background: var(--red); animation: none; }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .status-dot.offline {
+      background: var(--red);
+      box-shadow: 0 0 8px rgba(255,99,99,0.4);
+      animation: none;
+    }
 
     .header-stats {
       margin-left: auto;
       display: flex;
-      gap: 20px;
-      font-size: 12px;
+      gap: 24px;
+      font-size: 13px;
       color: var(--text-dim);
+      letter-spacing: 0.2px;
     }
-    .header-stats strong { color: var(--text); }
+    .header-stats strong {
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
 
     /* ─── Layout ─────────────────────────────────────────────────────── */
     .container {
-      max-width: 1280px;
+      max-width: 1200px;
       margin: 0 auto;
       padding: 24px;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      gap: 16px;
     }
     .full-width { grid-column: 1 / -1; }
 
@@ -90,23 +121,26 @@
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-ring);
       overflow: hidden;
     }
     .card-header {
-      padding: 14px 18px;
+      padding: 14px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: var(--text-dim);
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      color: var(--text-secondary);
     }
-    .card-header .icon { font-size: 16px; }
-    .card-body { padding: 18px; }
+    .card-header .ch-icon {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+    .card-body { padding: 20px; }
 
     /* ─── Status cards ───────────────────────────────────────────────── */
     .status-grid {
@@ -116,67 +150,76 @@
     }
     .stat-card {
       background: var(--surface-2);
-      border-radius: 10px;
-      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
       text-align: center;
+      box-shadow: var(--shadow-subtle);
     }
     .stat-card .label {
-      font-size: 10px;
+      font-size: 11px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 1.2px;
+      letter-spacing: 1px;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     .stat-card .value {
       font-size: 22px;
       font-weight: 700;
+      color: var(--text);
     }
-    .stat-card .value.purple { color: var(--purple); }
-    .stat-card .value.gold { color: var(--gold); }
-    .stat-card .value.teal { color: var(--teal); }
-    .stat-card .value.green { color: var(--green); }
+    .stat-card .value.accent-blue { color: var(--blue); }
+    .stat-card .value.accent-red { color: var(--red); }
+    .stat-card .value.accent-green { color: var(--green); }
+    .stat-card .value.accent-yellow { color: var(--yellow); }
 
     /* ─── Phase badge ────────────────────────────────────────────────── */
     .phase-badge {
       display: inline-block;
-      padding: 3px 10px;
-      border-radius: 20px;
+      padding: 3px 12px;
+      border-radius: var(--radius-pill);
       font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .phase-badge.registration { background: rgba(78,205,196,0.15); color: var(--teal); }
-    .phase-badge.checkin { background: rgba(59,130,246,0.15); color: var(--blue); }
-    .phase-badge.inprogress { background: rgba(239,68,68,0.15); color: var(--red); }
-    .phase-badge.complete { background: rgba(34,197,94,0.15); color: var(--green); }
-    .phase-badge.idle { background: rgba(148,163,184,0.15); color: var(--text-muted); }
+    .phase-badge.registration { background: rgba(95,201,146,0.12); color: var(--green); border: 1px solid rgba(95,201,146,0.15); }
+    .phase-badge.checkin { background: rgba(85,179,255,0.12); color: var(--blue); border: 1px solid rgba(85,179,255,0.15); }
+    .phase-badge.inprogress { background: rgba(255,99,99,0.12); color: var(--red); border: 1px solid rgba(255,99,99,0.15); }
+    .phase-badge.complete { background: rgba(95,201,146,0.12); color: var(--green); border: 1px solid rgba(95,201,146,0.15); }
+    .phase-badge.idle { background: rgba(106,107,108,0.12); color: var(--text-muted); border: 1px solid rgba(106,107,108,0.15); }
 
     /* ─── Forms ──────────────────────────────────────────────────────── */
-    .form-group { margin-bottom: 14px; }
+    .form-group { margin-bottom: 16px; }
     .form-group label {
       display: block;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      color: var(--text-dim);
       margin-bottom: 6px;
-      font-weight: 600;
     }
     input, textarea, select {
       width: 100%;
       padding: 10px 14px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
+      background: var(--bg);
+      border: 1px solid rgba(255,255,255,0.08);
       border-radius: 8px;
       color: var(--text);
-      font-size: 13px;
+      font-size: 14px;
       font-family: inherit;
+      font-weight: 500;
+      letter-spacing: 0.2px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input::placeholder, textarea::placeholder {
+      color: var(--text-muted);
     }
     input:focus, textarea:focus, select:focus {
-      border-color: var(--purple);
+      border-color: rgba(85,179,255,0.4);
+      box-shadow: 0 0 0 3px rgba(85,179,255,0.1);
     }
     textarea { resize: vertical; min-height: 80px; }
     select { cursor: pointer; }
@@ -184,52 +227,92 @@
 
     .radio-group {
       display: flex;
-      gap: 12px;
+      gap: 16px;
     }
     .radio-group label {
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-dim);
       cursor: pointer;
       text-transform: none;
-      letter-spacing: 0;
-      font-weight: 400;
+      letter-spacing: 0.2px;
+      font-weight: 500;
     }
-    .radio-group input[type="radio"] { width: auto; }
+    .radio-group input[type="radio"] {
+      width: auto;
+      accent-color: var(--blue);
+    }
 
     /* ─── Buttons ─────────────────────────────────────────────────────── */
     .btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      padding: 10px 20px;
+      padding: 9px 18px;
       border: none;
-      border-radius: 8px;
-      font-size: 13px;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
       font-weight: 600;
+      letter-spacing: 0.3px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: opacity 0.15s ease;
       font-family: inherit;
+      position: relative;
     }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-purple { background: var(--purple); color: #fff; }
-    .btn-purple:hover:not(:disabled) { background: #8b62bf; }
-    .btn-gold { background: var(--gold); color: #0a0a12; }
-    .btn-gold:hover:not(:disabled) { background: #d49a30; }
-    .btn-teal { background: var(--teal); color: #0a0a12; }
-    .btn-teal:hover:not(:disabled) { background: #3dbdb5; }
-    .btn-red { background: var(--red); color: #fff; }
-    .btn-red:hover:not(:disabled) { background: #dc2626; }
-    .btn-dark {
-      background: var(--surface-2);
+    .btn:hover:not(:disabled) { opacity: 0.7; }
+    .btn:active:not(:disabled) { opacity: 0.55; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-primary {
+      background: hsla(0,0%,100%,0.815);
+      color: #18191a;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-btn);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: hsl(0,0%,100%);
+      opacity: 1;
+    }
+
+    .btn-accent {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-pill);
+      box-shadow: rgba(255,255,255,0.1) 0px 1px 0px 0px inset;
+    }
+
+    .btn-blue {
+      background: rgba(85,179,255,0.12);
+      color: var(--blue);
+      border: 1px solid rgba(85,179,255,0.15);
+    }
+    .btn-green {
+      background: rgba(95,201,146,0.12);
+      color: var(--green);
+      border: 1px solid rgba(95,201,146,0.15);
+    }
+    .btn-red {
+      background: rgba(255,99,99,0.12);
+      color: var(--red);
+      border: 1px solid rgba(255,99,99,0.15);
+    }
+    .btn-ghost {
+      background: transparent;
       color: var(--text-dim);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-subtle);
     }
-    .btn-dark:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+    .btn-ghost:hover:not(:disabled) {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.1);
+      opacity: 1;
+    }
 
-    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
     /* ─── Quick Actions ──────────────────────────────────────────────── */
     .quick-actions {
@@ -240,19 +323,30 @@
     .quick-action {
       background: var(--surface-2);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: var(--radius);
+      padding: 20px 16px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: opacity 0.15s ease, border-color 0.2s ease;
+      box-shadow: var(--shadow-subtle);
     }
-    .quick-action:hover { border-color: var(--purple); background: var(--surface-3); }
-    .quick-action .qa-icon { font-size: 24px; margin-bottom: 6px; }
+    .quick-action:hover {
+      opacity: 0.7;
+      border-color: rgba(255,255,255,0.1);
+    }
+    .quick-action .qa-icon { font-size: 22px; margin-bottom: 8px; }
     .quick-action .qa-label {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-dim);
+      letter-spacing: 0.2px;
     }
+    .quick-action.qa-teal { border-color: rgba(95,201,146,0.2); }
+    .quick-action.qa-teal:hover { border-color: rgba(95,201,146,0.35); opacity: 1; }
+    .quick-action.qa-teal .qa-label { color: var(--green); }
+    .quick-action.qa-red { border-color: rgba(255,99,99,0.2); }
+    .quick-action.qa-red:hover { border-color: rgba(255,99,99,0.35); opacity: 1; }
+    .quick-action.qa-red .qa-label { color: var(--red); }
 
     /* ─── Results form ───────────────────────────────────────────────── */
     .placement-row {
@@ -268,7 +362,7 @@
       font-size: 14px;
       color: var(--text-muted);
     }
-    .placement-row:nth-child(1) .pos { color: var(--gold); }
+    .placement-row:nth-child(1) .pos { color: var(--yellow); }
     .placement-row:nth-child(2) .pos { color: #c0c0c0; }
     .placement-row:nth-child(3) .pos { color: #cd7f32; }
 
@@ -276,15 +370,20 @@
     .log-feed {
       max-height: 400px;
       overflow-y: auto;
-      font-family: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+      font-family: 'JetBrains Mono', 'Cascadia Code', 'Fira Code', monospace;
       font-size: 12px;
+      font-weight: 400;
       line-height: 1.8;
+      letter-spacing: 0.3px;
     }
+    .log-feed::-webkit-scrollbar { width: 6px; }
+    .log-feed::-webkit-scrollbar-track { background: transparent; }
+    .log-feed::-webkit-scrollbar-thumb { background: var(--text-dark); border-radius: 3px; }
     .log-entry {
       padding: 2px 0;
       border-bottom: 1px solid rgba(255,255,255,0.02);
       display: flex;
-      gap: 10px;
+      gap: 12px;
     }
     .log-entry .log-time {
       color: var(--text-muted);
@@ -306,86 +405,85 @@
     }
     .toast {
       padding: 12px 20px;
-      border-radius: 8px;
-      font-size: 13px;
+      border-radius: var(--radius);
+      font-size: 14px;
       font-weight: 500;
+      letter-spacing: 0.2px;
       animation: slideIn 0.3s ease;
-      max-width: 360px;
+      max-width: 380px;
+      box-shadow: var(--shadow-ring), 0 8px 24px rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
     }
-    .toast.success { background: rgba(34,197,94,0.9); color: #fff; }
-    .toast.error { background: rgba(239,68,68,0.9); color: #fff; }
-    @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast.success {
+      background: var(--surface);
+      color: var(--green);
+      border-left: 3px solid var(--green);
+    }
+    .toast.error {
+      background: var(--surface);
+      color: var(--red);
+      border-left: 3px solid var(--red);
+    }
+    @keyframes slideIn { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* ─── Standings table ────────────────────────────────────────────── */
-    .standings-table {
+    /* ─── Tables ─────────────────────────────────────────────────────── */
+    .standings-table, .member-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
     }
-    .standings-table th {
+    .standings-table th, .member-table th {
       text-align: left;
-      padding: 8px 12px;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
-    }
-    .standings-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
-    }
-    .standings-table tr:hover td { background: rgba(255,255,255,0.02); }
-    .rank-badge {
-      font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 11px;
       font-weight: 600;
-    }
-    .rank-badge.Challenger { background: rgba(232,168,56,0.15); color: var(--gold); }
-    .rank-badge.Grandmaster { background: rgba(155,114,207,0.15); color: var(--purple); }
-    .rank-badge.Master { background: rgba(155,114,207,0.15); color: var(--purple); }
-    .rank-badge.Diamond { background: rgba(78,205,196,0.15); color: var(--teal); }
-    .rank-badge.Platinum { background: rgba(63,182,139,0.15); color: #3FB68B; }
-
-    /* ─── Member/Role table ─────────────────────────────────────────── */
-    .member-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    .member-table th {
-      text-align: left;
-      padding: 8px 12px;
-      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.8px;
       color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-strong);
     }
-    .member-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
+    .standings-table td, .member-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
       vertical-align: middle;
     }
-    .member-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .standings-table tr:hover td, .member-table tr:hover td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .rank-badge {
+      font-size: 10px;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .rank-badge.Challenger { background: rgba(255,188,51,0.12); color: var(--yellow); border: 1px solid rgba(255,188,51,0.15); }
+    .rank-badge.Grandmaster { background: rgba(255,99,99,0.12); color: var(--red); border: 1px solid rgba(255,99,99,0.15); }
+    .rank-badge.Master { background: rgba(85,179,255,0.12); color: var(--blue); border: 1px solid rgba(85,179,255,0.15); }
+    .rank-badge.Diamond { background: rgba(95,201,146,0.12); color: var(--green); border: 1px solid rgba(95,201,146,0.15); }
+    .rank-badge.Platinum { background: rgba(206,206,206,0.12); color: var(--text-secondary); border: 1px solid rgba(206,206,206,0.1); }
+
+    /* ─── Role tags ──────────────────────────────────────────────────── */
     .role-tag {
       display: inline-block;
       font-size: 10px;
-      padding: 2px 8px;
-      border-radius: 10px;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
       font-weight: 600;
-      margin: 1px 2px;
+      margin: 1px 3px;
+      letter-spacing: 0.3px;
     }
-    .role-tag.Season-Champion { background: rgba(255,215,0,0.15); color: #FFD700; }
-    .role-tag.Host { background: rgba(232,168,56,0.15); color: var(--gold); }
-    .role-tag.Pro { background: rgba(155,114,207,0.15); color: var(--purple); }
-    .role-tag.Player { background: rgba(78,205,196,0.15); color: var(--teal); }
-    .role-tag.Challenger { background: rgba(255,215,0,0.15); color: #FFD700; }
-    .role-tag.Grandmaster { background: rgba(192,57,43,0.15); color: #C0392B; }
-    .role-tag.Master { background: rgba(155,114,207,0.15); color: var(--purple); }
-    .role-tag.Diamond { background: rgba(78,205,196,0.15); color: var(--teal); }
-    .role-tag.Platinum { background: rgba(63,182,139,0.15); color: #3FB68B; }
+    .role-tag.Season-Champion { background: rgba(255,188,51,0.12); color: var(--yellow); border: 1px solid rgba(255,188,51,0.15); }
+    .role-tag.Host { background: rgba(255,188,51,0.12); color: var(--yellow); border: 1px solid rgba(255,188,51,0.15); }
+    .role-tag.Pro { background: rgba(85,179,255,0.12); color: var(--blue); border: 1px solid rgba(85,179,255,0.15); }
+    .role-tag.Player { background: rgba(95,201,146,0.12); color: var(--green); border: 1px solid rgba(95,201,146,0.15); }
+    .role-tag.Challenger { background: rgba(255,188,51,0.12); color: var(--yellow); border: 1px solid rgba(255,188,51,0.15); }
+    .role-tag.Grandmaster { background: rgba(255,99,99,0.12); color: var(--red); border: 1px solid rgba(255,99,99,0.15); }
+    .role-tag.Master { background: rgba(85,179,255,0.12); color: var(--blue); border: 1px solid rgba(85,179,255,0.15); }
+    .role-tag.Diamond { background: rgba(95,201,146,0.12); color: var(--green); border: 1px solid rgba(95,201,146,0.15); }
+    .role-tag.Platinum { background: rgba(206,206,206,0.12); color: var(--text-secondary); border: 1px solid rgba(206,206,206,0.1); }
+
     .member-actions {
       display: flex;
       gap: 6px;
@@ -393,37 +491,38 @@
     }
     .member-actions select {
       width: auto;
-      padding: 4px 8px;
-      font-size: 11px;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: var(--radius-sm);
     }
     .member-actions .btn {
-      padding: 4px 10px;
-      font-size: 11px;
+      padding: 5px 12px;
+      font-size: 12px;
     }
-    .search-bar {
-      margin-bottom: 14px;
-    }
-    .search-bar input {
-      max-width: 300px;
-    }
+    .search-bar { margin-bottom: 14px; }
+    .search-bar input { max-width: 300px; }
     .toolbar {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
     }
     .member-scroll {
       max-height: 500px;
       overflow-y: auto;
     }
+    .member-scroll::-webkit-scrollbar { width: 6px; }
+    .member-scroll::-webkit-scrollbar-track { background: transparent; }
+    .member-scroll::-webkit-scrollbar-thumb { background: var(--text-dark); border-radius: 3px; }
 
     /* ─── Responsive ─────────────────────────────────────────────────── */
     @media (max-width: 768px) {
-      .container { grid-template-columns: 1fr; padding: 12px; }
+      .container { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
       .status-grid { grid-template-columns: repeat(2, 1fr); }
       .quick-actions { grid-template-columns: 1fr; }
       .header-stats { display: none; }
+      .header { padding: 0 16px; }
     }
   </style>
 </head>
@@ -431,8 +530,8 @@
 
   <!-- Header -->
   <header class="header">
-    <div class="status-dot" id="statusDot"></div>
-    <div>
+    <div class="header-brand">
+      <div class="status-dot" id="statusDot"></div>
       <h1>TFT Clash Bot</h1>
       <div class="subtitle">Dashboard</div>
     </div>
@@ -448,7 +547,7 @@
 
     <!-- Status Overview -->
     <div class="card full-width">
-      <div class="card-header">&#x1f4ca; Status Overview</div>
+      <div class="card-header"><span class="ch-icon">&#x1f4ca;</span> Status Overview</div>
       <div class="card-body">
         <div class="status-grid">
           <div class="stat-card">
@@ -457,15 +556,15 @@
           </div>
           <div class="stat-card">
             <div class="label">Clash</div>
-            <div class="value gold" id="sClash">-</div>
+            <div class="value accent-yellow" id="sClash">-</div>
           </div>
           <div class="stat-card">
             <div class="label">Registered</div>
-            <div class="value teal" id="sRegs">-</div>
+            <div class="value accent-green" id="sRegs">-</div>
           </div>
           <div class="stat-card">
             <div class="label">Season</div>
-            <div class="value purple" id="sSeason">-</div>
+            <div class="value accent-blue" id="sSeason">-</div>
           </div>
         </div>
       </div>
@@ -473,7 +572,7 @@
 
     <!-- Quick Actions -->
     <div class="card">
-      <div class="card-header">&#x26a1; Quick Actions</div>
+      <div class="card-header"><span class="ch-icon">&#x26a1;</span> Quick Actions</div>
       <div class="card-body">
         <div class="quick-actions">
           <div class="quick-action" onclick="triggerJob('standings')">
@@ -488,11 +587,11 @@
             <div class="qa-icon">&#x1f6a8;</div>
             <div class="qa-label">1h Reminder</div>
           </div>
-          <div class="quick-action" onclick="createLobbies()" style="border-color: var(--teal);">
+          <div class="quick-action qa-teal" onclick="createLobbies()">
             <div class="qa-icon">&#x1f3ae;</div>
             <div class="qa-label">Create Lobbies</div>
           </div>
-          <div class="quick-action" onclick="destroyLobbies()" style="border-color: var(--red, #C0392B);">
+          <div class="quick-action qa-red" onclick="destroyLobbies()">
             <div class="qa-icon">&#x1f5d1;</div>
             <div class="qa-label">Destroy Lobbies</div>
           </div>
@@ -502,7 +601,7 @@
 
     <!-- Announce -->
     <div class="card">
-      <div class="card-header">&#x1f4e3; Announce</div>
+      <div class="card-header"><span class="ch-icon">&#x1f4e3;</span> Announce</div>
       <div class="card-body">
         <div class="form-group">
           <label>Channel</label>
@@ -524,13 +623,13 @@
             <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
           </div>
         </div>
-        <button class="btn btn-gold" onclick="sendAnnounce()">Send Announcement</button>
+        <button class="btn btn-primary" onclick="sendAnnounce()">Send Announcement</button>
       </div>
     </div>
 
     <!-- Send Message -->
     <div class="card">
-      <div class="card-header">&#x1f4ac; Send Message</div>
+      <div class="card-header"><span class="ch-icon">&#x1f4ac;</span> Send Message</div>
       <div class="card-body">
         <div class="form-group">
           <label>Channel</label>
@@ -540,28 +639,28 @@
           <label>Message</label>
           <textarea id="msgContent" placeholder="Type a message..."></textarea>
         </div>
-        <button class="btn btn-purple" onclick="sendMessage()">Send Message</button>
+        <button class="btn btn-accent" onclick="sendMessage()">Send Message</button>
       </div>
     </div>
 
     <!-- Post Results -->
     <div class="card">
-      <div class="card-header">&#x1f451; Post Results</div>
+      <div class="card-header"><span class="ch-icon">&#x1f451;</span> Post Results</div>
       <div class="card-body">
         <div class="form-group">
           <label>Clash Number</label>
           <input type="number" id="resClash" placeholder="e.g. 16">
         </div>
         <div id="placementRows"></div>
-        <div style="margin-top: 12px;">
-          <button class="btn btn-gold" onclick="postResults()">Post Results</button>
+        <div style="margin-top: 14px;">
+          <button class="btn btn-primary" onclick="postResults()">Post Results</button>
         </div>
       </div>
     </div>
 
     <!-- Standings -->
     <div class="card">
-      <div class="card-header">&#x1f4ca; Current Standings</div>
+      <div class="card-header"><span class="ch-icon">&#x1f4ca;</span> Current Standings</div>
       <div class="card-body">
         <table class="standings-table">
           <thead>
@@ -574,11 +673,11 @@
 
     <!-- Role Management -->
     <div class="card full-width">
-      <div class="card-header">&#x1f6e1;&#xfe0f; Role Management</div>
+      <div class="card-header"><span class="ch-icon">&#x1f6e1;&#xfe0f;</span> Role Management</div>
       <div class="card-body">
         <div class="toolbar">
-          <button class="btn btn-purple" onclick="bulkSyncRoles()">Sync All Roles from DB</button>
-          <button class="btn btn-dark" onclick="loadMembers()">Refresh Members</button>
+          <button class="btn btn-accent" onclick="bulkSyncRoles()">Sync All Roles from DB</button>
+          <button class="btn btn-ghost" onclick="loadMembers()">Refresh Members</button>
           <input type="text" id="memberSearch" placeholder="Search members..." style="max-width: 220px;" oninput="filterMembers()">
         </div>
         <div class="member-scroll">
@@ -595,8 +694,8 @@
     <!-- Logs -->
     <div class="card full-width">
       <div class="card-header">
-        &#x1f4cb; Live Logs
-        <span style="margin-left: auto; font-size: 10px; color: var(--text-muted); text-transform: none; letter-spacing: 0;">Auto-refreshes every 5s</span>
+        <span class="ch-icon">&#x1f4cb;</span> Live Logs
+        <span style="margin-left: auto; font-size: 11px; color: var(--text-muted); font-weight: 400; letter-spacing: 0.2px;">Auto-refreshes every 5s</span>
       </div>
       <div class="card-body">
         <div class="log-feed" id="logFeed"></div>
@@ -706,7 +805,7 @@
         (data.players || []).forEach(function(p, i) {
           var tr = document.createElement('tr');
           tr.innerHTML =
-            '<td style="color: ' + (i < 3 ? 'var(--gold)' : 'var(--text-dim)') + '; font-weight: 700;">' + (i + 1) + '</td>' +
+            '<td style="color: ' + (i < 3 ? 'var(--yellow)' : 'var(--text-dim)') + '; font-weight: 700;">' + (i + 1) + '</td>' +
             '<td><strong>' + p.name + '</strong></td>' +
             '<td><span class="rank-badge ' + p.rank + '">' + p.rank + '</span></td>' +
             '<td>' + p.pts + '</td>' +
@@ -886,13 +985,13 @@
         }).join('');
 
         tr.innerHTML =
-          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size: 10px; color: var(--text-muted);">' + escapeHtml(m.tag) + '</div></td>' +
+          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size: 11px; color: var(--text-muted);">' + escapeHtml(m.tag) + '</div></td>' +
           '<td>' + roleTags + '</td>' +
           '<td><div class="member-actions">' +
             '<select class="role-sel-' + m.id + '">' + roleOptions + '</select>' +
-            '<button class="btn btn-teal" onclick="assignRole(\'' + m.id + '\', false)">+</button>' +
-            '<button class="btn btn-dark" onclick="assignRole(\'' + m.id + '\', true)">-</button>' +
-            '<button class="btn btn-dark" onclick="syncOneRole(\'' + m.id + '\')" title="Sync from DB">&#x1f504;</button>' +
+            '<button class="btn btn-green" onclick="assignRole(\'' + m.id + '\', false)">+</button>' +
+            '<button class="btn btn-ghost" onclick="assignRole(\'' + m.id + '\', true)">-</button>' +
+            '<button class="btn btn-ghost" onclick="syncOneRole(\'' + m.id + '\')" title="Sync from DB">&#x1f504;</button>' +
           '</div></td>';
         tbody.appendChild(tr);
       });

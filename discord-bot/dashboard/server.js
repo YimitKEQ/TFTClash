@@ -201,9 +201,14 @@ export function startDashboard(client) {
       var embed = resultsEmbed(clashNumber, placements);
 
       var guild = getGuild();
-      var resultsCh = guild ? guild.channels.cache.find(function(c) { return c.name === 'results'; }) : null;
+      // Try #results, then #clash-schedule, then #general as fallback
+      var resultsCh = guild ? (
+        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('results'); }) ||
+        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('clash-schedule'); }) ||
+        guild.channels.cache.find(function(c) { return c.type === 0 && c.name.includes('general'); })
+      ) : null;
       if (!resultsCh) {
-        return res.status(404).json({ error: 'No #results channel found in Discord. Create one first.' });
+        return res.status(404).json({ error: 'No suitable channel found in Discord (#results, #clash-schedule, or #general).' });
       }
       await resultsCh.send({ embeds: [embed] });
 

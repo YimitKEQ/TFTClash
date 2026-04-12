@@ -17,8 +17,12 @@ import { data as register }     from './commands/register.js';
 import { data as checkin }      from './commands/checkin.js';
 import { data as leaderboard }  from './commands/leaderboard.js';
 import { data as countdown }    from './commands/countdown.js';
+import { data as compare }      from './commands/compare.js';
+import { data as hype }         from './commands/hype.js';
+import { data as stats }        from './commands/stats.js';
+import { data as top }          from './commands/top.js';
 
-const commands = [standings, profile, link, clash, results, register, checkin, leaderboard, countdown].map(function(c) { return c.toJSON(); });
+const commands = [standings, profile, link, clash, results, register, checkin, leaderboard, countdown, compare, hype, stats, top].map(function(c) { return c.toJSON(); });
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 

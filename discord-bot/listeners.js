@@ -8,6 +8,7 @@ import { getTournamentState, getRegistrations } from './utils/data.js';
 import { phaseChangeEmbed, newRegistrationEmbed } from './utils/embeds.js';
 import { syncPlayerRoles } from './utils/roles.js';
 import { createLobbyChannels, destroyLobbyChannels } from './utils/lobbies.js';
+import { resolveChannel } from './utils/channels.js';
 
 let lastPhase = null;
 
@@ -17,10 +18,7 @@ let lastPhase = null;
  */
 export function startListeners(client) {
   const guild = function() { return client.guilds.cache.get(process.env.GUILD_ID); };
-  const ch = function(name) {
-    const g = guild();
-    return g ? g.channels.cache.find(function(c) { return c.name.includes(name); }) : null;
-  };
+  const ch = function(name) { return resolveChannel(guild(), name); };
 
   // ─── Tournament phase changes ────────────────────────────────────────────────
   supabase

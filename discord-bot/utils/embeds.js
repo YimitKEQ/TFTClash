@@ -139,6 +139,23 @@ export function standingsEmbed(players, season) {
 }
 
 // ─── PLAYER PROFILE ───────────────────────────────────────────────────────────
+function getPlayerTitle(player, standing, gamesPlayed) {
+  var winRate = gamesPlayed > 0 ? (player.wins / gamesPlayed) : 0;
+  var top4Rate = gamesPlayed > 0 ? (player.top4 / gamesPlayed) : 0;
+  var ppg = gamesPlayed > 0 ? (player.pts / gamesPlayed) : 0;
+
+  if (standing === 1) return 'Season Leader';
+  if (winRate >= 0.4 && gamesPlayed >= 3) return 'Clash Dominator';
+  if (top4Rate >= 0.8 && gamesPlayed >= 3) return 'Mr. Consistent';
+  if (ppg >= 6 && gamesPlayed >= 3) return 'Point Machine';
+  if (player.wins >= 5) return 'Veteran Winner';
+  if (gamesPlayed >= 10) return 'Iron Man';
+  if (player.rank === 'Challenger') return 'Challenger';
+  if (player.rank === 'Grandmaster') return 'Grandmaster';
+  if (gamesPlayed >= 3) return 'Competitor';
+  return 'Newcomer';
+}
+
 export function profileEmbed(player, standings, season) {
   standings = standings || [];
   const standing  = standings.findIndex(function(p) { return p.name === player.name; }) + 1;
@@ -148,14 +165,18 @@ export function profileEmbed(player, standings, season) {
   const gamesPlayed = player.games || 0;
   const winRate   = gamesPlayed > 0 ? Math.round((player.wins / gamesPlayed) * 100) : 0;
   const top4Rate  = gamesPlayed > 0 ? Math.round((player.top4 / gamesPlayed) * 100) : 0;
+  const ppg       = gamesPlayed > 0 ? (player.pts / gamesPlayed).toFixed(1) : '0.0';
+  const avgPlace  = gamesPlayed > 0 ? (((gamesPlayed * 8 - player.pts + gamesPlayed) / gamesPlayed) ).toFixed(1) : '-';
   const seasonName = (season && season.name) || 'Season 1';
   const currentClash = (season && season.currentClash) || '?';
   const totalClashes = (season && season.totalClashes) || '?';
+  const title = getPlayerTitle(player, standing, gamesPlayed);
 
   const embed = new EmbedBuilder()
     .setColor(color)
     .setAuthor({ name: 'TFT Clash - Player Card' })
     .setTitle(rIcon + '  ' + player.name)
+    .setDescription('*' + title + '*')
     .addFields(
       { name: '🎖️ Rank',      value: '' + player.rank,                               inline: true },
       { name: '🏅 Standing',  value: '#' + (standing || '?') + ' of ' + standings.length, inline: true },
@@ -163,6 +184,8 @@ export function profileEmbed(player, standings, season) {
       { name: '🏆 Wins',      value: '' + player.wins,                                 inline: true },
       { name: '🎯 Top 4s',    value: '' + player.top4,                                 inline: true },
       { name: '📊 Win Rate',  value: winRate + '%',                                    inline: true },
+      { name: '📈 Pts/Game',  value: '' + ppg,                                         inline: true },
+      { name: '🎮 Games',     value: '' + gamesPlayed,                                 inline: true },
     );
 
   if (player.riotId) {
@@ -226,9 +249,21 @@ export function clashInfoEmbed(ts, season, regCount) {
 }
 
 // ─── RESULTS ─────────────────────────────────────────────────────────────────
+var WIN_QUOTES = [
+  'absolutely dominant',
+  'making it look easy',
+  'on another level',
+  'built different',
+  'the lobby stood no chance',
+  'clean 1st',
+  'proving why they are the best',
+];
+
 export function resultsEmbed(clashNum, placements) {
   const sorted = [].concat(placements).sort(function(a, b) { return a.place - b.place; });
   const winner = sorted[0];
+
+  const winQuote = WIN_QUOTES[Math.floor(Math.random() * WIN_QUOTES.length)];
 
   const podium = sorted.slice(0, 3).map(function(p) {
     const pts = PTS[p.place] || 0;
@@ -240,16 +275,21 @@ export function resultsEmbed(clashNum, placements) {
     return (PLACE_ICONS[p.place] || '') + ' ' + p.name + '  +' + pts + 'pts';
   }).join('\n');
 
+  // Calculate total points awarded
+  var totalPts = 0;
+  sorted.forEach(function(p) { totalPts += (PTS[p.place] || 0); });
+
   return new EmbedBuilder()
     .setColor(GOLD)
     .setAuthor({ name: 'TFT Clash - Clash #' + clashNum + ' Results' })
     .setTitle('👑  ' + (winner ? winner.name : '?') + ' wins Clash #' + clashNum + '!')
+    .setDescription('*' + (winner ? winner.name : 'Winner') + ' - ' + winQuote + '.*')
     .addFields(
       { name: '🏆 Podium',   value: podium || '-',     inline: false },
       { name: '📋 Rest',     value: rest || '-',        inline: false },
-      { name: '\u200b',       value: 'Standings updated. Use `/standings` to see the full leaderboard.' },
+      { name: '\u200b',       value: totalPts + ' points awarded across ' + sorted.length + ' players. Use `/standings` for the full leaderboard.' },
     )
-    .setFooter({ text: 'TFT Clash' })
+    .setFooter({ text: 'TFT Clash - GG WP' })
     .setTimestamp();
 }
 
