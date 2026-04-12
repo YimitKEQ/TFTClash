@@ -3,418 +3,389 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TFT Clash - Command Center</title>
+  <title>TFT CLASH - Race Control</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #07080a;
-      --surface: #0d0e10;
-      --surface-2: #131416;
-      --surface-3: #1a1b1e;
-      --border: rgba(255,255,255,0.05);
-      --border-accent: rgba(85,179,255,0.12);
-      --text: #f0f0f0;
-      --text-2: #b8b8b8;
-      --text-3: #7a7a7c;
-      --text-4: #4a4a4c;
-      --accent: #55b3ff;
-      --accent-dim: rgba(85,179,255,0.08);
-      --accent-glow: rgba(85,179,255,0.15);
-      --red: #FF6363;
-      --green: #5fc992;
-      --yellow: #ffbc33;
-      --cyan: #4ecdc4;
-      --r: 10px;
-      --r-lg: 14px;
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-2: #181818;
+      --surface-3: #1e1e1e;
+      --border: rgba(255,255,255,0.06);
+      --red: #e10600;
+      --red-glow: rgba(225,6,0,0.25);
+      --green: #00d27a;
+      --green-dim: rgba(0,210,122,0.12);
+      --yellow: #ffd700;
+      --blue: #0090ff;
+      --cyan: #00c8ff;
+      --text: #e8e8e8;
+      --text-2: #999;
+      --text-3: #555;
+      --text-4: #333;
     }
 
     body {
-      font-family: 'Inter', system-ui, sans-serif;
-      font-feature-settings: 'calt', 'kern', 'liga', 'ss03';
+      font-family: 'Space Grotesk', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      letter-spacing: 0.2px;
-      font-weight: 500;
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    /* ─── Scrollbar ──────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--text-4); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-    /* ─── Ambient scan line ──────────────────────────────────────── */
-    .scan-line {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
-      opacity: 0.4;
-      z-index: 9999;
-      animation: scanMove 4s ease-in-out infinite;
-      pointer-events: none;
-    }
-    @keyframes scanMove {
-      0% { top: 0; opacity: 0; }
-      10% { opacity: 0.4; }
-      90% { opacity: 0.4; }
-      100% { top: 100vh; opacity: 0; }
-    }
-
-    /* ─── Header ─────────────────────────────────────────────────── */
+    /* ═══ HEADER ═══════════════════════════════════════════════════ */
     .header {
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 28px;
-      height: 52px;
+      border-bottom: 2px solid var(--red);
+      height: 48px;
+      padding: 0 24px;
       display: flex;
       align-items: center;
       gap: 16px;
       position: sticky;
       top: 0;
       z-index: 200;
-      backdrop-filter: blur(12px);
     }
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .pulse-ring {
-      position: relative;
-      width: 8px; height: 8px;
-    }
-    .pulse-ring .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      position: relative;
-      z-index: 1;
-    }
-    .pulse-ring .ring {
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 1px solid var(--green);
-      animation: ringPulse 2s ease-out infinite;
-      opacity: 0;
-    }
-    .pulse-ring.offline .dot { background: var(--red); }
-    .pulse-ring.offline .ring { border-color: var(--red); }
-    @keyframes ringPulse {
-      0% { transform: scale(0.5); opacity: 0.6; }
-      100% { transform: scale(2.2); opacity: 0; }
-    }
-
-    .header-title {
-      font-size: 14px;
+    .logo {
+      font-size: 16px;
       font-weight: 700;
-      letter-spacing: 0.5px;
-      color: var(--text);
+      letter-spacing: -0.5px;
+      color: var(--red);
     }
-    .header-title span {
-      color: var(--accent);
-      font-weight: 800;
+    .logo span { color: var(--text); font-weight: 600; }
+    .h-div {
+      width: 1px; height: 24px;
+      background: rgba(255,255,255,0.1);
     }
-    .header-sep {
-      width: 1px;
-      height: 20px;
-      background: var(--border);
-    }
-    .header-tag {
+    .h-status {
       font-size: 11px;
       font-weight: 600;
-      color: var(--text-3);
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-    }
-
-    .header-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .header-stat {
-      font-size: 12px;
-      color: var(--text-3);
+      color: var(--green);
       display: flex;
       align-items: center;
       gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .header-stat .val {
-      color: var(--text-2);
-      font-weight: 600;
+    .h-status .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: blink 1.5s infinite;
+    }
+    .h-status.offline { color: var(--red); }
+    .h-status.offline .dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+    .h-stats {
+      margin-left: auto;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+    .h-stat {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+    .h-stat b {
+      color: var(--text);
+      font-weight: 700;
       font-variant-numeric: tabular-nums;
     }
-    .cmd-hint {
+    .cmd-trigger {
       font-size: 11px;
-      color: var(--text-4);
+      color: var(--text-3);
       background: var(--surface-2);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 3px;
       padding: 3px 10px;
       cursor: pointer;
       transition: all 0.15s;
+      font-family: inherit;
     }
-    .cmd-hint:hover {
-      border-color: var(--accent);
-      color: var(--text-3);
-    }
-    .cmd-hint kbd {
-      font-family: 'Inter', sans-serif;
+    .cmd-trigger:hover { border-color: var(--red); color: var(--text-2); }
+    .cmd-trigger kbd {
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px;
       font-weight: 600;
       background: var(--surface-3);
-      border-radius: 3px;
+      border-radius: 2px;
       padding: 1px 4px;
       margin-right: 6px;
     }
 
-    /* ─── Time bar ───────────────────────────────────────────────── */
+    /* ═══ TICKER ═══════════════════════════════════════════════════ */
+    .ticker {
+      background: var(--red);
+      padding: 5px 24px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .ticker .tag {
+      opacity: 0.7;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+    .ticker .scroll-text {
+      animation: tickerScroll 30s linear infinite;
+    }
+    @keyframes tickerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ═══ TIME BAR ═════════════════════════════════════════════════ */
     .time-bar {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 6px 28px;
+      padding: 5px 24px;
       display: flex;
       align-items: center;
       gap: 24px;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
-      color: var(--text-4);
+      font-size: 10px;
+      color: var(--text-3);
       letter-spacing: 0.5px;
     }
-    .time-bar .clock { color: var(--accent); font-weight: 600; }
-    .time-bar .uptime-val { color: var(--text-3); }
+    .time-bar .clock { color: var(--red); font-weight: 600; }
+    .time-bar .up-val { color: var(--text-2); }
 
-    /* ─── Layout ─────────────────────────────────────────────────── */
+    /* ═══ GRID ═════════════════════════════════════════════════════ */
     .grid {
-      max-width: 1400px;
+      max-width: 1440px;
       margin: 0 auto;
-      padding: 20px 24px;
+      padding: 14px 18px;
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 14px;
+      grid-template-columns: 280px 1fr 1fr;
+      gap: 10px;
     }
-    .col-1 { grid-column: span 1; }
-    .col-2 { grid-column: span 2; }
-    .col-3 { grid-column: span 3; }
 
-    /* ─── Card ───────────────────────────────────────────────────── */
-    .card {
+    /* ═══ PANEL ════════════════════════════════════════════════════ */
+    .panel {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--r-lg);
+      border-radius: 4px;
       overflow: hidden;
-      position: relative;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(85,179,255,0.08), transparent);
-      pointer-events: none;
-    }
-    .card-h {
-      padding: 12px 18px;
+    .panel-h {
+      padding: 8px 14px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1.2px;
+      letter-spacing: 1.5px;
       color: var(--text-3);
-    }
-    .card-h .card-icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      background: var(--accent-dim);
+      gap: 8px;
     }
-    .card-h .badge {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-4);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .card-h .badge.live {
-      color: var(--green);
-      display: flex; align-items: center; gap: 4px;
-    }
-    .card-h .badge.live::before {
-      content: '';
+    .panel-h .live-dot {
       width: 5px; height: 5px;
       border-radius: 50%;
       background: var(--green);
-      animation: blink 1.5s infinite;
+      animation: blink 1s infinite;
     }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .card-b { padding: 16px 18px; }
+    .panel-h .badge {
+      margin-left: auto;
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-3);
+      letter-spacing: 0.5px;
+    }
+    .panel-h .badge.live { color: var(--green); }
+    .panel-b { padding: 12px 14px; }
 
-    /* ─── Vitals row ─────────────────────────────────────────────── */
-    .vitals {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
+    /* Span helpers */
+    .span-2 { grid-column: span 2; }
+    .span-3 { grid-column: span 3; }
+    .span-r3 { grid-row: span 3; }
+
+    /* ═══ TELEMETRY GAUGES ═════════════════════════════════════════ */
+    .gauges { display: flex; flex-direction: column; gap: 10px; }
+    .gauge { display: flex; align-items: center; gap: 10px; }
+    .gauge-label {
+      font-size: 10px; font-weight: 600; color: var(--text-3);
+      width: 70px; text-transform: uppercase; letter-spacing: 0.5px;
     }
-    .vital {
+    .gauge-bar {
+      flex: 1; height: 6px;
       background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px 16px;
-      position: relative;
+      border-radius: 1px;
       overflow: hidden;
     }
-    .vital::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--accent);
-      opacity: 0.15;
+    .gauge-fill {
+      height: 100%; border-radius: 1px;
+      transition: width 0.8s ease;
     }
-    .vital .v-label {
-      font-size: 10px;
+    .gauge-fill.green { background: var(--green); box-shadow: 0 0 8px rgba(0,210,122,0.3); }
+    .gauge-fill.red { background: var(--red); box-shadow: 0 0 8px rgba(225,6,0,0.3); }
+    .gauge-fill.blue { background: var(--blue); box-shadow: 0 0 8px rgba(0,144,255,0.3); }
+    .gauge-fill.yellow { background: var(--yellow); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+    .gauge-fill.cyan { background: var(--cyan); box-shadow: 0 0 8px rgba(0,200,255,0.3); }
+    .gauge-val {
+      font-size: 12px; font-weight: 700; color: var(--text);
+      font-variant-numeric: tabular-nums; min-width: 48px; text-align: right;
+    }
+
+    /* Phase text colors */
+    .phase-idle { color: var(--text-3); }
+    .phase-registration { color: var(--green); }
+    .phase-checkin { color: var(--blue); }
+    .phase-inprogress { color: var(--red); }
+    .phase-complete { color: var(--green); }
+
+    /* ═══ STANDINGS TOWER ══════════════════════════════════════════ */
+    .tower { list-style: none; }
+    .tower li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 12px;
+    }
+    .tower li:last-child { border: none; }
+    .t-pos {
+      width: 22px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-3);
+      text-align: center;
+      font-size: 11px;
+    }
+    .tower li:nth-child(1) .t-pos { color: var(--yellow); }
+    .tower li:nth-child(2) .t-pos { color: #c0c0c0; }
+    .tower li:nth-child(3) .t-pos { color: #cd7f32; }
+    .t-name {
+      flex: 1;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-4);
-      margin-bottom: 6px;
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .vital .v-value {
-      font-size: 24px;
+    .t-rank {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 2px;
+      letter-spacing: 0.3px;
+    }
+    .t-rank.Challenger { background: rgba(255,215,0,0.1); color: var(--yellow); }
+    .t-rank.Grandmaster { background: rgba(225,6,0,0.1); color: #ff4444; }
+    .t-rank.Master { background: rgba(0,144,255,0.1); color: var(--blue); }
+    .t-rank.Diamond { background: rgba(0,210,122,0.1); color: var(--green); }
+    .t-rank.Platinum { background: rgba(200,200,200,0.08); color: var(--text-2); }
+    .t-rank.Gold { background: rgba(255,215,0,0.06); color: #b8860b; }
+    .t-pts {
       font-weight: 800;
       font-variant-numeric: tabular-nums;
       color: var(--text);
-      line-height: 1;
+      font-size: 13px;
+      min-width: 36px;
+      text-align: right;
     }
-    .vital .v-value.blue { color: var(--accent); }
-    .vital .v-value.green { color: var(--green); }
-    .vital .v-value.yellow { color: var(--yellow); }
-    .vital .v-value.red { color: var(--red); }
-    .vital .v-value.cyan { color: var(--cyan); }
-    .vital .v-sub {
-      font-size: 11px;
-      color: var(--text-4);
-      margin-top: 4px;
+    .t-delta {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-3);
+      font-variant-numeric: tabular-nums;
+      min-width: 40px;
+      text-align: right;
     }
+    .tower li:first-child .t-delta { color: var(--red); font-weight: 700; }
 
-    /* Phase badge */
-    .phase {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .phase.idle { background: rgba(74,74,76,0.15); color: var(--text-4); }
-    .phase.registration { background: rgba(95,201,146,0.1); color: var(--green); }
-    .phase.checkin { background: rgba(85,179,255,0.1); color: var(--accent); }
-    .phase.inprogress { background: rgba(255,99,99,0.1); color: var(--red); }
-    .phase.complete { background: rgba(95,201,146,0.1); color: var(--green); }
-    .phase::before {
-      content: '';
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: currentColor;
-    }
-
-    /* ─── Quick Actions ──────────────────────────────────────────── */
+    /* ═══ ACTIONS GRID ═════════════════════════════════════════════ */
     .actions-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 8px;
     }
-    .action-btn {
+    .act-btn {
       background: var(--surface-2);
       border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px 10px;
+      border-left: 3px solid transparent;
+      border-radius: 4px;
+      padding: 14px 8px 10px;
       text-align: center;
       cursor: pointer;
       transition: all 0.15s;
       position: relative;
-      overflow: hidden;
     }
-    .action-btn:hover {
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(85,179,255,0.06);
+    .act-btn:hover { border-left-color: var(--red); background: #1a1a1a; }
+    .act-btn:active { transform: scale(0.97); }
+    .act-btn.danger { border-color: rgba(225,6,0,0.1); }
+    .act-btn.danger:hover { border-left-color: var(--red); }
+    .act-btn.success { border-color: rgba(0,210,122,0.08); }
+    .act-btn.success:hover { border-left-color: var(--green); }
+    .act-btn .a-icon { font-size: 18px; margin-bottom: 4px; }
+    .act-btn .a-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .action-btn:active { transform: scale(0.97); }
-    .action-btn .a-icon { font-size: 18px; margin-bottom: 6px; }
-    .action-btn .a-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-3);
-      letter-spacing: 0.3px;
-    }
-    .action-btn .a-key {
+    .act-btn .a-key {
       position: absolute;
-      top: 6px; right: 8px;
+      top: 4px; right: 6px;
       font-size: 9px;
       font-weight: 600;
-      color: var(--text-4);
-      background: var(--surface-3);
-      border-radius: 3px;
-      padding: 1px 5px;
+      color: var(--text-3);
       font-family: 'JetBrains Mono', monospace;
     }
-    .action-btn.danger { border-color: rgba(255,99,99,0.15); }
-    .action-btn.danger:hover { border-color: var(--red); box-shadow: 0 0 20px rgba(255,99,99,0.06); }
-    .action-btn.success { border-color: rgba(95,201,146,0.15); }
-    .action-btn.success:hover { border-color: var(--green); box-shadow: 0 0 20px rgba(95,201,146,0.06); }
 
-    /* ─── Forms ──────────────────────────────────────────────────── */
-    .fg { margin-bottom: 12px; }
+    /* ═══ FORMS ════════════════════════════════════════════════════ */
+    .fg { margin-bottom: 10px; }
     .fg label {
       display: block;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      color: var(--text-4);
-      margin-bottom: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-3);
       text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
     }
     input, textarea, select {
-      width: 100%;
-      padding: 9px 12px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      background: #0a0a0a;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 3px;
       color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 13px;
-      font-family: inherit;
-      font-weight: 500;
-      letter-spacing: 0.2px;
+      padding: 8px 12px;
+      width: 100%;
       outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    input::placeholder, textarea::placeholder { color: var(--text-4); }
+    input::placeholder, textarea::placeholder { color: var(--text-3); }
     input:focus, textarea:focus, select:focus {
-      border-color: rgba(85,179,255,0.35);
-      box-shadow: 0 0 0 3px rgba(85,179,255,0.06);
+      border-color: var(--red);
+      box-shadow: 0 0 0 2px rgba(225,6,0,0.15);
     }
-    textarea { resize: vertical; min-height: 72px; }
+    textarea { resize: vertical; min-height: 60px; }
     select { cursor: pointer; }
     select option { background: var(--surface); }
 
@@ -423,124 +394,127 @@
     }
     .radio-row label {
       display: flex; align-items: center; gap: 5px;
-      font-size: 13px; color: var(--text-3); cursor: pointer;
+      font-size: 12px; color: var(--text-2); cursor: pointer;
       text-transform: none; letter-spacing: 0; font-weight: 500;
     }
-    .radio-row input[type="radio"] { width: auto; accent-color: var(--accent); }
+    .radio-row input[type="radio"] { width: auto; accent-color: var(--red); }
 
-    /* ─── Buttons ─────────────────────────────────────────────────── */
+    /* ═══ BUTTONS ══════════════════════════════════════════════════ */
     .btn {
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 6px; padding: 8px 16px; border: none; border-radius: 8px;
-      font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
-      cursor: pointer; transition: all 0.12s; font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 20px;
+      border: none;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
     }
-    .btn:hover:not(:disabled) { opacity: 0.75; }
+    .btn:hover:not(:disabled) { filter: brightness(1.15); }
     .btn:active:not(:disabled) { transform: scale(0.97); }
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .btn-primary {
-      background: var(--accent);
-      color: #0a0b0d;
-    }
+    .btn-red { background: var(--red); color: #fff; }
     .btn-ghost {
-      background: var(--surface-2);
-      color: var(--text-3);
-      border: 1px solid var(--border);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-2);
     }
-    .btn-ghost:hover:not(:disabled) { color: var(--text); border-color: rgba(255,255,255,0.1); opacity: 1; }
-    .btn-green { background: rgba(95,201,146,0.12); color: var(--green); border: 1px solid rgba(95,201,146,0.15); }
-    .btn-red { background: rgba(255,99,99,0.12); color: var(--red); border: 1px solid rgba(255,99,99,0.15); }
+    .btn-ghost:hover:not(:disabled) { border-color: rgba(255,255,255,0.2); color: var(--text); filter: none; }
+    .btn-green { background: rgba(0,210,122,0.12); color: var(--green); border: 1px solid rgba(0,210,122,0.15); }
+    .btn-danger { background: rgba(225,6,0,0.12); color: var(--red); border: 1px solid rgba(225,6,0,0.15); }
 
-    /* ─── Tables ─────────────────────────────────────────────────── */
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th {
-      text-align: left; padding: 8px 12px;
-      font-size: 10px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      color: var(--text-4); border-bottom: 1px solid var(--border);
-    }
-    td {
-      padding: 8px 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
-      vertical-align: middle;
-    }
-    tr:hover td { background: rgba(85,179,255,0.02); }
-
-    .rank-badge, .role-tag {
-      display: inline-block; font-size: 9px; padding: 2px 8px;
-      border-radius: 20px; font-weight: 700; letter-spacing: 0.3px;
-    }
-    .rank-badge.Challenger, .role-tag.Season-Champion, .role-tag.Host, .role-tag.Challenger { background: rgba(255,188,51,0.1); color: var(--yellow); }
-    .rank-badge.Grandmaster, .role-tag.Grandmaster { background: rgba(255,99,99,0.1); color: var(--red); }
-    .rank-badge.Master, .role-tag.Master, .role-tag.Pro { background: rgba(85,179,255,0.1); color: var(--accent); }
-    .rank-badge.Diamond, .role-tag.Diamond, .role-tag.Player { background: rgba(95,201,146,0.1); color: var(--green); }
-    .rank-badge.Platinum, .role-tag.Platinum { background: rgba(206,206,206,0.08); color: var(--text-2); }
-
-    .role-tag { margin: 1px 2px; }
-
-    /* ─── Standings mini chart ────────────────────────────────────── */
-    .standing-row {
+    /* ═══ REGISTRATIONS ════════════════════════════════════════════ */
+    .reg-row {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
+      gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
     }
-    .standing-row:last-child { border: none; }
-    .standing-pos {
-      width: 22px;
+    .reg-row:last-child { border: none; }
+    .reg-pos {
+      width: 20px;
       font-size: 11px;
-      font-weight: 800;
-      color: var(--text-4);
+      font-weight: 700;
+      color: var(--text-3);
       text-align: center;
       font-variant-numeric: tabular-nums;
     }
-    .standing-row:nth-child(1) .standing-pos { color: var(--yellow); }
-    .standing-row:nth-child(2) .standing-pos { color: var(--text-2); }
-    .standing-row:nth-child(3) .standing-pos { color: #cd7f32; }
-    .standing-name {
-      flex: 1;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .standing-bar {
-      width: 100px;
-      height: 4px;
-      background: var(--surface-3);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .standing-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: width 0.6s ease;
-    }
-    .standing-pts {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-2);
-      font-variant-numeric: tabular-nums;
-      min-width: 40px;
-      text-align: right;
+    .reg-name { flex: 1; font-size: 12px; font-weight: 600; }
+    .reg-status {
+      font-size: 9px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    /* ─── Placement rows ─────────────────────────────────────────── */
+    /* ═══ PLACEMENT ROWS ═══════════════════════════════════════════ */
     .p-row {
-      display: grid; grid-template-columns: 32px 1fr;
-      gap: 8px; align-items: center; margin-bottom: 6px;
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
     }
     .p-row .p-pos {
-      text-align: center; font-weight: 800; font-size: 13px; color: var(--text-4);
+      text-align: center;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--text-3);
     }
     .p-row:nth-child(1) .p-pos { color: var(--yellow); }
     .p-row:nth-child(2) .p-pos { color: #c0c0c0; }
     .p-row:nth-child(3) .p-pos { color: #cd7f32; }
 
-    /* ─── Logs ───────────────────────────────────────────────────── */
+    /* ═══ ROLES TABLE ══════════════════════════════════════════════ */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      vertical-align: middle;
+    }
+    tr:hover td { background: rgba(225,6,0,0.02); }
+
+    .role-tag {
+      display: inline-block;
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 2px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      margin: 1px 2px;
+    }
+    .role-tag.Season-Champion, .role-tag.Host, .role-tag.Challenger { background: rgba(255,215,0,0.1); color: var(--yellow); }
+    .role-tag.Grandmaster { background: rgba(225,6,0,0.1); color: #ff4444; }
+    .role-tag.Master, .role-tag.Pro { background: rgba(0,144,255,0.1); color: var(--blue); }
+    .role-tag.Diamond, .role-tag.Player { background: rgba(0,210,122,0.1); color: var(--green); }
+    .role-tag.Platinum { background: rgba(200,200,200,0.08); color: var(--text-2); }
+
+    .member-actions { display: flex; gap: 4px; align-items: center; }
+    .member-actions select { width: auto; padding: 4px 8px; font-size: 11px; }
+    .member-actions .btn { padding: 4px 8px; font-size: 10px; }
+    .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .member-scroll { max-height: 400px; overflow-y: auto; }
+
+    /* ═══ LOG ═══════════════════════════════════════════════════════ */
     .log-feed {
-      max-height: 320px;
+      max-height: 300px;
       overflow-y: auto;
       font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
@@ -549,58 +523,67 @@
     .log-entry {
       padding: 1px 0;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       opacity: 0;
       animation: logIn 0.3s ease forwards;
     }
     @keyframes logIn { to { opacity: 1; } }
-    .log-entry .log-ts {
-      color: var(--text-4);
+    .log-ts {
+      color: var(--text-3);
       white-space: nowrap;
-      min-width: 72px;
+      min-width: 64px;
       font-variant-numeric: tabular-nums;
     }
-    .log-entry .log-msg { color: var(--text-3); word-break: break-all; }
+    .log-msg { color: var(--text-2); word-break: break-all; }
     .log-entry.error .log-msg { color: var(--red); }
-    .log-entry.error .log-ts { color: rgba(255,99,99,0.5); }
+    .log-entry.error .log-ts { color: rgba(225,6,0,0.5); }
+    .log-entry.ok .log-msg { color: var(--green); }
 
-    /* ─── Toast ──────────────────────────────────────────────────── */
+    /* ═══ TOAST ═════════════════════════════════════════════════════ */
     .toast-wrap {
-      position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+      position: fixed; bottom: 20px; right: 20px;
+      z-index: 9999;
       display: flex; flex-direction: column; gap: 6px;
     }
     .toast {
-      padding: 10px 16px; border-radius: var(--r);
-      font-size: 12px; font-weight: 600; letter-spacing: 0.2px;
+      padding: 10px 16px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
       animation: toastIn 0.3s ease;
       max-width: 360px;
       background: var(--surface-2);
       border: 1px solid var(--border);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      display: flex; align-items: center; gap: 8px;
+      border-left: 3px solid var(--green);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
     }
-    .toast .t-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-    .toast.success .t-dot { background: var(--green); box-shadow: 0 0 8px rgba(95,201,146,0.4); }
-    .toast.success { color: var(--green); }
-    .toast.error .t-dot { background: var(--red); box-shadow: 0 0 8px rgba(255,99,99,0.4); }
-    .toast.error { color: var(--red); }
-    @keyframes toastIn { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .toast.success { border-left-color: var(--green); }
+    .toast.error { border-left-color: var(--red); color: var(--red); }
+    @keyframes toastIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-    /* ─── Command Palette ────────────────────────────────────────── */
+    /* ═══ COMMAND PALETTE ═══════════════════════════════════════════ */
     .cmd-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
       backdrop-filter: blur(4px);
-      z-index: 10000; display: none;
-      align-items: flex-start; justify-content: center;
-      padding-top: 20vh;
+      z-index: 10000;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 18vh;
     }
     .cmd-overlay.open { display: flex; }
     .cmd-box {
       background: var(--surface);
-      border: 1px solid rgba(85,179,255,0.15);
-      border-radius: 14px;
+      border: 1px solid rgba(225,6,0,0.2);
+      border-radius: 6px;
       width: 520px;
-      box-shadow: 0 0 60px rgba(85,179,255,0.06), 0 20px 60px rgba(0,0,0,0.5);
+      box-shadow: 0 0 60px rgba(225,6,0,0.08), 0 20px 60px rgba(0,0,0,0.6);
       overflow: hidden;
     }
     .cmd-input-wrap {
@@ -610,159 +593,192 @@
       align-items: center;
       gap: 10px;
     }
-    .cmd-input-wrap .cmd-search-icon { color: var(--accent); font-size: 14px; font-weight: 700; }
+    .cmd-search-icon { color: var(--red); font-size: 13px; font-weight: 700; }
     .cmd-input {
-      flex: 1; background: none; border: none; outline: none;
-      color: var(--text); font-size: 15px; font-weight: 500;
-      font-family: inherit; letter-spacing: 0.2px;
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      letter-spacing: 0.2px;
+      box-shadow: none;
     }
-    .cmd-input::placeholder { color: var(--text-4); }
+    .cmd-input:focus { box-shadow: none; }
+    .cmd-input::placeholder { color: var(--text-3); }
     .cmd-results { max-height: 300px; overflow-y: auto; padding: 6px; }
     .cmd-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: 8px;
-      cursor: pointer; transition: background 0.1s;
-      font-size: 13px; font-weight: 500; color: var(--text-2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.1s;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-2);
+      border-left: 3px solid transparent;
     }
     .cmd-item:hover, .cmd-item.active {
-      background: var(--accent-dim);
+      background: rgba(225,6,0,0.06);
+      border-left-color: var(--red);
       color: var(--text);
     }
-    .cmd-item .cmd-item-icon { font-size: 14px; width: 24px; text-align: center; }
-    .cmd-item .cmd-item-hint {
+    .cmd-item .cmd-icon { font-size: 14px; width: 24px; text-align: center; }
+    .cmd-item .cmd-hint {
       margin-left: auto;
       font-size: 10px;
-      color: var(--text-4);
+      color: var(--text-3);
       font-family: 'JetBrains Mono', monospace;
     }
 
-    /* ─── Member/Role section ────────────────────────────────────── */
-    .member-actions { display: flex; gap: 5px; align-items: center; }
-    .member-actions select { width: auto; padding: 4px 8px; font-size: 11px; }
-    .member-actions .btn { padding: 4px 10px; font-size: 11px; }
-    .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    .member-scroll { max-height: 420px; overflow-y: auto; }
-
-    /* ─── Responsive ─────────────────────────────────────────────── */
-    @media (max-width: 1024px) {
-      .grid { grid-template-columns: 1fr 1fr; }
-      .col-3 { grid-column: span 2; }
-      .vitals { grid-template-columns: repeat(3, 1fr); }
+    /* ═══ RESPONSIVE ═══════════════════════════════════════════════ */
+    @media (max-width: 1100px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .span-r3 { grid-row: span 1; }
       .actions-grid { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 768px) {
-      .grid { grid-template-columns: 1fr; padding: 12px; }
-      .col-2, .col-3 { grid-column: span 1; }
-      .vitals { grid-template-columns: repeat(2, 1fr); }
+      .grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+      .span-2, .span-3 { grid-column: span 1; }
       .actions-grid { grid-template-columns: repeat(2, 1fr); }
-      .header-right { display: none; }
+      .h-stats { display: none; }
       .time-bar { display: none; }
+      .ticker { font-size: 10px; padding: 4px 14px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="scan-line"></div>
-
-  <!-- Header -->
+  <!-- ═══ HEADER ═══════════════════════════════════════════════ -->
   <header class="header">
-    <div class="header-left">
-      <div class="pulse-ring" id="statusDot"><div class="dot"></div><div class="ring"></div></div>
-      <div class="header-title"><span>TFT</span> CLASH</div>
-      <div class="header-sep"></div>
-      <div class="header-tag">Command Center</div>
+    <div class="logo">TFT <span>CLASH</span></div>
+    <div class="h-div"></div>
+    <div class="h-status" id="statusIndicator">
+      <div class="dot"></div>
+      <span id="statusText">CONNECTING</span>
     </div>
-    <div class="header-right">
-      <div class="header-stat">GUILD <span class="val" id="hGuild">-</span></div>
-      <div class="header-stat">MEMBERS <span class="val" id="hMembers">-</span></div>
-      <div class="header-stat">PING <span class="val" id="hPing">-</span></div>
-      <div class="cmd-hint" onclick="openCmd()"><kbd>Ctrl K</kbd>Command Palette</div>
+    <div class="h-stats">
+      <span class="h-stat">GUILD <b id="hGuild">-</b></span>
+      <span class="h-stat">MEMBERS <b id="hMembers">-</b></span>
+      <span class="h-stat">PING <b id="hPing">-</b></span>
+      <button class="cmd-trigger" onclick="openCmd()"><kbd>Ctrl K</kbd>Command Palette</button>
     </div>
   </header>
 
-  <!-- Time bar -->
-  <div class="time-bar">
-    <span>SYS <span class="clock" id="clock">--:--:--</span></span>
-    <span>UPTIME <span class="uptime-val" id="hUptime">0m</span></span>
-    <span>BOT <span class="uptime-val" id="hBotTag">-</span></span>
-    <span style="margin-left: auto;">REFRESH 30s / LOGS 5s / STANDINGS 60s</span>
+  <!-- ═══ TICKER ═══════════════════════════════════════════════ -->
+  <div class="ticker">
+    <span class="tag">LIVE</span>
+    <span id="tickerText">RACE CONTROL ACTIVE - LOADING STATUS...</span>
   </div>
 
+  <!-- ═══ TIME BAR ═════════════════════════════════════════════ -->
+  <div class="time-bar">
+    <span>SYS <span class="clock" id="clock">--:--:--</span></span>
+    <span>UPTIME <span class="up-val" id="hUptime">0m</span></span>
+    <span>BOT <span class="up-val" id="hBotTag">-</span></span>
+    <span style="margin-left:auto;">REFRESH 30s / LOGS 5s / STANDINGS 60s</span>
+  </div>
+
+  <!-- ═══ MAIN GRID ════════════════════════════════════════════ -->
   <div class="grid">
 
-    <!-- Vitals -->
-    <div class="col-3">
-      <div class="vitals" id="vitals">
-        <div class="vital">
-          <div class="v-label">Phase</div>
-          <div class="v-value" id="sPhase"><span class="phase idle">Idle</span></div>
-        </div>
-        <div class="vital">
-          <div class="v-label">Clash</div>
-          <div class="v-value yellow" id="sClash">-</div>
-        </div>
-        <div class="vital">
-          <div class="v-label">Registered</div>
-          <div class="v-value green" id="sRegs">-</div>
-        </div>
-        <div class="vital">
-          <div class="v-label">Season</div>
-          <div class="v-value blue" id="sSeason">-</div>
-        </div>
-        <div class="vital">
-          <div class="v-label">Channels</div>
-          <div class="v-value cyan" id="sChannels">-</div>
+    <!-- LEFT: Standings Tower -->
+    <div class="panel span-r3">
+      <div class="panel-h"><div class="live-dot"></div> SEASON STANDINGS <span class="badge live">LIVE</span></div>
+      <div class="panel-b" id="standingsWrap">
+        <div style="color:var(--text-3);font-size:11px;">Loading standings...</div>
+      </div>
+    </div>
+
+    <!-- TOP RIGHT: Telemetry -->
+    <div class="panel span-2">
+      <div class="panel-h">SYSTEM TELEMETRY</div>
+      <div class="panel-b">
+        <div class="gauges" id="gauges">
+          <div class="gauge">
+            <span class="gauge-label">Phase</span>
+            <div class="gauge-bar"><div class="gauge-fill green" id="gPhase" style="width:0%"></div></div>
+            <span class="gauge-val phase-idle" id="gPhaseVal">IDLE</span>
+          </div>
+          <div class="gauge">
+            <span class="gauge-label">Clash</span>
+            <div class="gauge-bar"><div class="gauge-fill red" id="gClash" style="width:0%"></div></div>
+            <span class="gauge-val" id="gClashVal">-</span>
+          </div>
+          <div class="gauge">
+            <span class="gauge-label">Registered</span>
+            <div class="gauge-bar"><div class="gauge-fill blue" id="gRegs" style="width:0%"></div></div>
+            <span class="gauge-val" id="gRegsVal">-</span>
+          </div>
+          <div class="gauge">
+            <span class="gauge-label">Season</span>
+            <div class="gauge-bar"><div class="gauge-fill yellow" id="gSeason" style="width:0%"></div></div>
+            <span class="gauge-val" id="gSeasonVal">-</span>
+          </div>
+          <div class="gauge">
+            <span class="gauge-label">Channels</span>
+            <div class="gauge-bar"><div class="gauge-fill cyan" id="gChannels" style="width:0%"></div></div>
+            <span class="gauge-val" id="gChannelsVal">-</span>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="card col-3">
-      <div class="card-h"><div class="card-icon">&#x26a1;</div> ACTIONS <span class="badge">KEYBOARD SHORTCUTS</span></div>
-      <div class="card-b">
+    <!-- ACTIONS: Race Control -->
+    <div class="panel span-2">
+      <div class="panel-h">RACE CONTROL <span class="badge">KEYBOARD SHORTCUTS</span></div>
+      <div class="panel-b">
         <div class="actions-grid">
-          <div class="action-btn" onclick="triggerJob('standings')">
+          <div class="act-btn" onclick="triggerJob('standings')">
             <div class="a-key">1</div>
             <div class="a-icon">&#x1f3c6;</div>
             <div class="a-label">Post Standings</div>
           </div>
-          <div class="action-btn" onclick="triggerJob('reminder24h')">
+          <div class="act-btn" onclick="triggerJob('reminder24h')">
             <div class="a-key">2</div>
             <div class="a-icon">&#x23f0;</div>
             <div class="a-label">24h Reminder</div>
           </div>
-          <div class="action-btn" onclick="triggerJob('reminder1h')">
+          <div class="act-btn" onclick="triggerJob('reminder1h')">
             <div class="a-key">3</div>
             <div class="a-icon">&#x1f6a8;</div>
             <div class="a-label">1h Reminder</div>
           </div>
-          <div class="action-btn success" onclick="createLobbies()">
+          <div class="act-btn success" onclick="createLobbies()">
             <div class="a-key">4</div>
             <div class="a-icon">&#x1f3ae;</div>
             <div class="a-label">Create Lobbies</div>
           </div>
-          <div class="action-btn danger" onclick="destroyLobbies()">
+          <div class="act-btn danger" onclick="destroyLobbies()">
             <div class="a-key">5</div>
             <div class="a-icon">&#x1f5d1;</div>
             <div class="a-label">Destroy Lobbies</div>
+          </div>
+          <div class="act-btn" onclick="bulkSyncRoles()">
+            <div class="a-key">6</div>
+            <div class="a-icon">&#x1f504;</div>
+            <div class="a-label">Sync Roles</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Standings -->
-    <div class="card col-1">
-      <div class="card-h"><div class="card-icon">&#x1f4ca;</div> STANDINGS <span class="badge live">LIVE</span></div>
-      <div class="card-b" id="standingsWrap"></div>
-    </div>
-
-    <!-- Announce -->
-    <div class="card col-1">
-      <div class="card-h"><div class="card-icon">&#x1f4e3;</div> ANNOUNCE</div>
-      <div class="card-b">
+    <!-- BROADCAST (Announce) -->
+    <div class="panel">
+      <div class="panel-h">BROADCAST</div>
+      <div class="panel-b">
         <div class="fg"><label>Channel</label><select id="annChannel" class="channel-select"></select></div>
         <div class="fg"><label>Title</label><input type="text" id="annTitle" placeholder="Announcement title"></div>
-        <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="Write your announcement..."></textarea></div>
+        <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="Write broadcast message..."></textarea></div>
         <div class="fg"><label>Mention</label>
           <div class="radio-row">
             <label><input type="radio" name="annMention" value="none" checked> None</label>
@@ -770,48 +786,48 @@
             <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
           </div>
         </div>
-        <button class="btn btn-primary" onclick="sendAnnounce()">Send Announcement</button>
+        <button class="btn btn-red" onclick="sendAnnounce()">TRANSMIT</button>
       </div>
     </div>
 
-    <!-- Send Message -->
-    <div class="card col-1">
-      <div class="card-h"><div class="card-icon">&#x1f4ac;</div> MESSAGE</div>
-      <div class="card-b">
+    <!-- DIRECT MESSAGE -->
+    <div class="panel">
+      <div class="panel-h">DIRECT MESSAGE</div>
+      <div class="panel-b">
         <div class="fg"><label>Channel</label><select id="msgChannel" class="channel-select"></select></div>
-        <div class="fg"><label>Message</label><textarea id="msgContent" placeholder="Type a message..."></textarea></div>
-        <button class="btn btn-primary" onclick="sendMessage()">Send Message</button>
+        <div class="fg"><label>Message</label><textarea id="msgContent" placeholder="Type message..."></textarea></div>
+        <button class="btn btn-red" onclick="sendMessage()">TRANSMIT</button>
       </div>
     </div>
 
-    <!-- Post Results -->
-    <div class="card col-1">
-      <div class="card-h"><div class="card-icon">&#x1f451;</div> POST RESULTS</div>
-      <div class="card-b">
+    <!-- POST RESULTS -->
+    <div class="panel">
+      <div class="panel-h">POST RESULTS</div>
+      <div class="panel-b">
         <div class="fg"><label>Clash Number</label><input type="number" id="resClash" placeholder="e.g. 16"></div>
         <div id="placementRows"></div>
-        <div style="margin-top: 10px;">
-          <button class="btn btn-primary" onclick="postResults()">Post Results</button>
+        <div style="margin-top:10px;">
+          <button class="btn btn-red" onclick="postResults()">TRANSMIT RESULTS</button>
         </div>
       </div>
     </div>
 
-    <!-- Registrations -->
-    <div class="card col-1">
-      <div class="card-h"><div class="card-icon">&#x1f3ab;</div> REGISTRATIONS <span class="badge" id="regBadge">-</span></div>
-      <div class="card-b" id="regsWrap" style="max-height: 300px; overflow-y: auto;">
-        <div style="color: var(--text-4); font-size: 12px;">Loading...</div>
+    <!-- REGISTRATIONS -->
+    <div class="panel">
+      <div class="panel-h"><div class="live-dot"></div> REGISTRATIONS <span class="badge" id="regBadge">-</span></div>
+      <div class="panel-b" id="regsWrap" style="max-height:280px;overflow-y:auto;">
+        <div style="color:var(--text-3);font-size:11px;">Loading...</div>
       </div>
     </div>
 
-    <!-- Role Management -->
-    <div class="card col-3">
-      <div class="card-h"><div class="card-icon">&#x1f6e1;</div> ROLE MANAGEMENT</div>
-      <div class="card-b">
+    <!-- ROLE MANAGEMENT -->
+    <div class="panel span-3">
+      <div class="panel-h">CREW MANAGEMENT <span class="badge">ROLES</span></div>
+      <div class="panel-b">
         <div class="toolbar">
-          <button class="btn btn-primary" onclick="bulkSyncRoles()">Sync All Roles</button>
-          <button class="btn btn-ghost" onclick="loadMembers()">Refresh</button>
-          <input type="text" id="memberSearch" placeholder="Search members..." style="max-width: 220px;" oninput="filterMembers()">
+          <button class="btn btn-red" onclick="bulkSyncRoles()">SYNC ALL ROLES</button>
+          <button class="btn btn-ghost" onclick="loadMembers()">REFRESH</button>
+          <input type="text" id="memberSearch" placeholder="Search crew..." style="max-width:220px;" oninput="filterMembers()">
         </div>
         <div class="member-scroll">
           <table>
@@ -822,23 +838,24 @@
       </div>
     </div>
 
-    <!-- Logs -->
-    <div class="card col-3">
-      <div class="card-h"><div class="card-icon">&#x1f4cb;</div> SYSTEM LOG <span class="badge live">LIVE</span></div>
-      <div class="card-b">
+    <!-- SYSTEM LOG -->
+    <div class="panel span-3">
+      <div class="panel-h"><div class="live-dot"></div> SYSTEM LOG <span class="badge live">LIVE</span></div>
+      <div class="panel-b">
         <div class="log-feed" id="logFeed"></div>
       </div>
     </div>
 
   </div>
 
+  <!-- Toast container -->
   <div class="toast-wrap" id="toasts"></div>
 
   <!-- Command Palette -->
   <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this)closeCmd()">
     <div class="cmd-box">
       <div class="cmd-input-wrap">
-        <span class="cmd-search-icon">&#x2318;</span>
+        <span class="cmd-search-icon">&#x25B6;</span>
         <input class="cmd-input" id="cmdInput" placeholder="Type a command..." oninput="filterCmds()" onkeydown="cmdKey(event)">
       </div>
       <div class="cmd-results" id="cmdResults"></div>
@@ -852,7 +869,7 @@
     function toast(msg, type) {
       var el = document.createElement('div');
       el.className = 'toast ' + (type || 'success');
-      el.innerHTML = '<div class="t-dot"></div>' + escapeHtml(msg);
+      el.innerHTML = escapeHtml(msg);
       $('toasts').appendChild(el);
       setTimeout(function() { el.remove(); }, 4000);
     }
@@ -904,34 +921,88 @@
     tickClock();
     setInterval(tickClock, 1000);
 
-    // ─── Status ──────────────────────────────────────────────────
+    // ─── Status + Telemetry ──────────────────────────────────────
     var channelCount = 0;
+    var lastPhase = 'idle';
+    var lastClashNum = 0;
+    var lastRegCount = 0;
+    var lastSeasonName = '';
+
     async function refreshStatus() {
       try {
         var data = await api('GET', '/status');
-        var dot = $('statusDot');
-        dot.className = 'pulse-ring' + (data.bot.status === 'online' ? '' : ' offline');
+
+        // Header status indicator
+        var indicator = $('statusIndicator');
+        var statusText = $('statusText');
+        if (data.bot.status === 'online') {
+          indicator.className = 'h-status';
+          statusText.textContent = 'SYSTEMS ONLINE';
+        } else {
+          indicator.className = 'h-status offline';
+          statusText.textContent = 'RECONNECTING';
+        }
+
+        // Header stats
         $('hGuild').textContent = data.guild ? data.guild.name : '-';
         $('hMembers').textContent = data.guild ? data.guild.memberCount : '-';
         $('hPing').textContent = data.bot.ping + 'ms';
         $('hUptime').textContent = formatUptime(data.bot.uptime);
         $('hBotTag').textContent = data.bot.tag || '-';
         channelCount = data.guild ? data.guild.channelCount : 0;
-        $('sChannels').textContent = channelCount;
 
+        // Telemetry gauges
         if (data.tournament) {
-          $('sPhase').innerHTML = '<span class="phase ' + data.tournament.phase + '">' + data.tournament.phase + '</span>';
-          $('sClash').textContent = '#' + data.tournament.clashNumber;
-          $('sRegs').textContent = data.tournament.registeredCount;
+          lastPhase = data.tournament.phase || 'idle';
+          lastClashNum = data.tournament.clashNumber || 0;
+          lastRegCount = data.tournament.registeredCount || 0;
+
+          var phaseMap = { idle: 0, registration: 35, checkin: 60, inprogress: 85, complete: 100 };
+          var phasePct = phaseMap[lastPhase] || 0;
+          $('gPhase').style.width = phasePct + '%';
+          $('gPhaseVal').textContent = lastPhase.toUpperCase();
+          $('gPhaseVal').className = 'gauge-val phase-' + lastPhase;
+
+          $('gClash').style.width = Math.min(lastClashNum * 5, 100) + '%';
+          $('gClashVal').textContent = '#' + lastClashNum;
+
+          $('gRegs').style.width = Math.min(lastRegCount * 5, 100) + '%';
+          $('gRegsVal').textContent = lastRegCount + '/20';
         } else {
-          $('sPhase').innerHTML = '<span class="phase idle">Idle</span>';
-          $('sClash').textContent = '-';
-          $('sRegs').textContent = '-';
+          $('gPhaseVal').textContent = 'IDLE';
+          $('gPhaseVal').className = 'gauge-val phase-idle';
         }
-        $('sSeason').textContent = data.season ? data.season.name : '-';
+
+        if (data.season) {
+          lastSeasonName = data.season.name || '';
+          var seasonMatch = lastSeasonName.match(/\d+/);
+          var sNum = seasonMatch ? parseInt(seasonMatch[0]) : 1;
+          $('gSeason').style.width = Math.min(sNum * 25, 100) + '%';
+          $('gSeasonVal').textContent = lastSeasonName;
+        }
+
+        $('gChannels').style.width = Math.min(channelCount * 2, 100) + '%';
+        $('gChannelsVal').textContent = channelCount;
+
+        // Update ticker
+        updateTicker();
+
       } catch (e) {
-        $('statusDot').className = 'pulse-ring offline';
+        $('statusIndicator').className = 'h-status offline';
+        $('statusText').textContent = 'OFFLINE';
       }
+    }
+
+    function updateTicker() {
+      var parts = [];
+      if (lastPhase && lastPhase !== 'idle') {
+        parts.push('PHASE: ' + lastPhase.toUpperCase());
+      }
+      if (lastClashNum) parts.push('CLASH #' + lastClashNum);
+      if (lastRegCount) parts.push(lastRegCount + ' REGISTERED');
+      if (lastSeasonName) parts.push(lastSeasonName.toUpperCase());
+      parts.push('RACE CONTROL ACTIVE');
+      $('tickerText').textContent = parts.join('  //  ');
     }
 
     // ─── Channels ────────────────────────────────────────────────
@@ -951,25 +1022,26 @@
       } catch (e) { /* skip */ }
     }
 
-    // ─── Standings ───────────────────────────────────────────────
+    // ─── Standings Tower ─────────────────────────────────────────
     async function loadStandings() {
       try {
         var data = await api('GET', '/standings');
         var wrap = $('standingsWrap');
         if (!data.players || !data.players.length) {
-          wrap.innerHTML = '<div style="color:var(--text-4);font-size:12px;">No data yet.</div>';
+          wrap.innerHTML = '<div style="color:var(--text-3);font-size:11px;">No standings data yet.</div>';
           return;
         }
-        var maxPts = data.players[0].pts || 1;
-        wrap.innerHTML = data.players.map(function(p, i) {
-          var pct = Math.round((p.pts / maxPts) * 100);
-          return '<div class="standing-row">' +
-            '<div class="standing-pos">' + (i + 1) + '</div>' +
-            '<div class="standing-name">' + escapeHtml(p.name) + ' <span class="rank-badge ' + p.rank + '">' + p.rank + '</span></div>' +
-            '<div class="standing-bar"><div class="standing-bar-fill" style="width:' + pct + '%"></div></div>' +
-            '<div class="standing-pts">' + p.pts + '</div>' +
-            '</div>';
-        }).join('');
+        var leader = data.players[0].pts || 1;
+        wrap.innerHTML = '<ul class="tower">' + data.players.map(function(p, i) {
+          var delta = i === 0 ? 'LEADER' : '-' + (leader - p.pts);
+          return '<li>' +
+            '<span class="t-pos">' + (i + 1) + '</span>' +
+            '<span class="t-name">' + escapeHtml(p.name) + '</span>' +
+            '<span class="t-rank ' + p.rank + '">' + p.rank + '</span>' +
+            '<span class="t-pts">' + p.pts + '</span>' +
+            '<span class="t-delta">' + delta + '</span>' +
+            '</li>';
+        }).join('') + '</ul>';
       } catch (e) { /* skip */ }
     }
 
@@ -979,30 +1051,30 @@
         var data = await api('GET', '/registrations');
         var wrap = $('regsWrap');
         var regs = data.registrations || [];
-        $('regBadge').textContent = regs.length + ' PLAYERS';
+        $('regBadge').textContent = regs.length + ' DRIVERS';
         if (!regs.length) {
-          wrap.innerHTML = '<div style="color:var(--text-4);font-size:12px;">No registrations for current clash.</div>';
+          wrap.innerHTML = '<div style="color:var(--text-3);font-size:11px;">No registrations for current clash.</div>';
           return;
         }
         wrap.innerHTML = regs.map(function(r, i) {
-          return '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.02);">' +
-            '<span style="width:20px;font-size:11px;font-weight:700;color:var(--text-4);text-align:center;">' + (i + 1) + '</span>' +
-            '<span style="flex:1;font-size:13px;font-weight:600;">' + escapeHtml(r.name) + '</span>' +
-            '<span class="rank-badge ' + r.rank + '">' + r.rank + '</span>' +
-            '<span style="font-size:10px;color:var(--text-4);text-transform:uppercase;">' + (r.status || '') + '</span>' +
+          return '<div class="reg-row">' +
+            '<span class="reg-pos">' + (i + 1) + '</span>' +
+            '<span class="reg-name">' + escapeHtml(r.name) + '</span>' +
+            '<span class="t-rank ' + r.rank + '">' + r.rank + '</span>' +
+            '<span class="reg-status">' + (r.status || '') + '</span>' +
             '</div>';
         }).join('');
       } catch (e) { /* skip */ }
     }
 
-    // ─── Placements ─────────────────────────────────────────────
+    // ─── Placement Rows ─────────────────────────────────────────
     function buildPlacementRows() {
       var container = $('placementRows');
       var medals = ['&#x1f947;', '&#x1f948;', '&#x1f949;', '4', '5', '6', '7', '8'];
       for (var i = 0; i < 8; i++) {
         var row = document.createElement('div');
         row.className = 'p-row';
-        row.innerHTML = '<div class="p-pos">' + medals[i] + '</div><input type="text" class="res-name" placeholder="Player name">';
+        row.innerHTML = '<div class="p-pos">' + medals[i] + '</div><input type="text" class="res-name" placeholder="Driver name">';
         container.appendChild(row);
       }
     }
@@ -1017,7 +1089,9 @@
         var feed = $('logFeed');
         logs.forEach(function(l) {
           var entry = document.createElement('div');
-          entry.className = 'log-entry' + (l.level === 'error' ? ' error' : '');
+          var isErr = l.level === 'error';
+          var isOk = !isErr && (l.message.indexOf('[sched]') > -1 || l.message.indexOf('active') > -1 || l.message.indexOf('online') > -1);
+          entry.className = 'log-entry' + (isErr ? ' error' : '') + (isOk ? ' ok' : '');
           var time = new Date(l.ts);
           entry.innerHTML = '<span class="log-ts">' + time.toLocaleTimeString('en-GB', { hour12: false }) + '</span><span class="log-msg">' + escapeHtml(l.message) + '</span>';
           feed.appendChild(entry);
@@ -1034,7 +1108,7 @@
       if (!confirm('Trigger "' + labels[job] + '"? This will post to Discord.')) return;
       try {
         await api('POST', '/trigger', { job: job });
-        toast(labels[job] + ' sent', 'success');
+        toast(labels[job] + ' transmitted', 'success');
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
 
@@ -1060,10 +1134,10 @@
       var message = $('annMessage').value;
       var mention = document.querySelector('input[name="annMention"]:checked').value;
       if (!message.trim()) { toast('Message is required', 'error'); return; }
-      if (!confirm('Send announcement to Discord?')) return;
+      if (!confirm('Transmit announcement to Discord?')) return;
       try {
         var res = await api('POST', '/announce', { channelId: channelId, title: title, message: message, mention: mention });
-        toast('Sent to #' + res.channel, 'success');
+        toast('Transmitted to #' + res.channel, 'success');
         $('annTitle').value = ''; $('annMessage').value = '';
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
@@ -1072,10 +1146,10 @@
       var channelId = $('msgChannel').value;
       var content = $('msgContent').value;
       if (!content.trim()) { toast('Message is required', 'error'); return; }
-      if (!confirm('Send message to Discord?')) return;
+      if (!confirm('Transmit message to Discord?')) return;
       try {
         var res = await api('POST', '/send', { channelId: channelId, content: content });
-        toast('Sent to #' + res.channel, 'success');
+        toast('Transmitted to #' + res.channel, 'success');
         $('msgContent').value = '';
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
@@ -1088,11 +1162,11 @@
         if (input.value.trim()) placements.push({ name: input.value.trim(), place: i + 1 });
       });
       if (!clashNumber) { toast('Clash number required', 'error'); return; }
-      if (!placements.length) { toast('Enter at least one player', 'error'); return; }
+      if (!placements.length) { toast('Enter at least one driver', 'error'); return; }
       if (!confirm('Post results for Clash #' + clashNumber + '?')) return;
       try {
         var res = await api('POST', '/results', { clashNumber: clashNumber, placements: placements });
-        toast('Results posted' + (res.channel ? ' to #' + res.channel : ''), 'success');
+        toast('Results transmitted' + (res.channel ? ' to #' + res.channel : ''), 'success');
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
 
@@ -1116,12 +1190,12 @@
         var tr = document.createElement('tr');
         var roleTags = m.roles.map(function(r) {
           return '<span class="role-tag ' + r.replace(/ /g, '-') + '">' + r + '</span>';
-        }).join(' ') || '<span style="color:var(--text-4);font-size:11px;">None</span>';
+        }).join(' ') || '<span style="color:var(--text-3);font-size:10px;">None</span>';
         var roleOptions = managedRoles.map(function(r) {
           return '<option value="' + r + '">' + r + '</option>';
         }).join('');
         tr.innerHTML =
-          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size:10px;color:var(--text-4);">' + escapeHtml(m.tag) + '</div></td>' +
+          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size:10px;color:var(--text-3);">' + escapeHtml(m.tag) + '</div></td>' +
           '<td>' + roleTags + '</td>' +
           '<td><div class="member-actions">' +
             '<select class="role-sel-' + m.id + '">' + roleOptions + '</select>' +
@@ -1174,7 +1248,7 @@
       if (!confirm('Sync all roles from the database?')) return;
       try {
         var res = await api('POST', '/roles/sync');
-        toast('Synced ' + res.total + ' players, ' + res.changed + ' updated', 'success');
+        toast('Synced ' + res.total + ' drivers, ' + res.changed + ' updated', 'success');
         loadMembers();
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
@@ -1186,10 +1260,10 @@
       { icon: '&#x1f6a8;', label: '1h Reminder', hint: '3', fn: function() { triggerJob('reminder1h'); } },
       { icon: '&#x1f3ae;', label: 'Create Lobbies', hint: '4', fn: function() { createLobbies(); } },
       { icon: '&#x1f5d1;', label: 'Destroy Lobbies', hint: '5', fn: function() { destroyLobbies(); } },
-      { icon: '&#x1f504;', label: 'Sync All Roles', hint: '', fn: function() { bulkSyncRoles(); } },
+      { icon: '&#x1f504;', label: 'Sync All Roles', hint: '6', fn: function() { bulkSyncRoles(); } },
       { icon: '&#x1f465;', label: 'Refresh Members', hint: '', fn: function() { loadMembers(); } },
       { icon: '&#x1f4ca;', label: 'Refresh Standings', hint: '', fn: function() { loadStandings(); } },
-      { icon: '&#x1f4e3;', label: 'Focus Announce', hint: '', fn: function() { $('annMessage').focus(); } },
+      { icon: '&#x1f4e3;', label: 'Focus Broadcast', hint: '', fn: function() { $('annMessage').focus(); } },
       { icon: '&#x1f4ac;', label: 'Focus Message', hint: '', fn: function() { $('msgContent').focus(); } },
     ];
     var cmdIdx = 0;
@@ -1215,8 +1289,8 @@
       var wrap = $('cmdResults');
       wrap.innerHTML = items.map(function(a, i) {
         return '<div class="cmd-item' + (i === cmdIdx ? ' active' : '') + '" onmouseenter="cmdIdx=' + i + ';renderCmds(cmdFiltered())" onclick="execCmd(' + i + ')">' +
-          '<span class="cmd-item-icon">' + a.icon + '</span>' + escapeHtml(a.label) +
-          (a.hint ? '<span class="cmd-item-hint">' + a.hint + '</span>' : '') +
+          '<span class="cmd-icon">' + a.icon + '</span>' + escapeHtml(a.label) +
+          (a.hint ? '<span class="cmd-hint">' + a.hint + '</span>' : '') +
           '</div>';
       }).join('');
     }
@@ -1241,23 +1315,19 @@
 
     // ─── Keyboard Shortcuts ──────────────────────────────────────
     document.addEventListener('keydown', function(e) {
-      // Ctrl+K or Cmd+K = command palette
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         if ($('cmdOverlay').classList.contains('open')) closeCmd();
         else openCmd();
         return;
       }
-
-      // Don't trigger shortcuts when typing in inputs
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
-
-      // Number keys for quick actions
       if (e.key === '1') triggerJob('standings');
       else if (e.key === '2') triggerJob('reminder24h');
       else if (e.key === '3') triggerJob('reminder1h');
       else if (e.key === '4') createLobbies();
       else if (e.key === '5') destroyLobbies();
+      else if (e.key === '6') bulkSyncRoles();
     });
 
     // ─── Init ────────────────────────────────────────────────────
