@@ -121,10 +121,12 @@ async function fetchRedditHot(supabase: any): Promise<any> {
 
   if (cached) return cached.data;
 
+  const redditUrl = "https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1";
   const endpoints = [
-    "https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1",
+    "https://api.allorigins.win/raw?url=" + encodeURIComponent(redditUrl),
+    "https://corsproxy.io/?" + encodeURIComponent(redditUrl),
+    redditUrl,
     "https://old.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1",
-    "https://api.reddit.com/r/CompetitiveTFT/hot?limit=15&raw_json=1",
   ];
   const ua = "web:app.tftclash:v1.0.0 (by /u/Levitate_TFT)";
   let lastErr = "";
