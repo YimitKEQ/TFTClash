@@ -12,7 +12,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-2.5-flash";
 
 const BRAND_BLOCK = `You are the content brain behind TFT Clash, the first dedicated competitive tournament platform for Teamfight Tactics friend groups.
 
@@ -122,9 +122,15 @@ async function fetchRedditHot(supabase: any): Promise<any> {
   if (cached) return cached.data;
 
   try {
-    const res = await fetch("https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=10", {
-      headers: { "User-Agent": "TFTClash-ContentEngine/1.0" },
+    const res = await fetch("https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1", {
+      headers: {
+        "User-Agent": "web:tftclash.app:v1.0 (by /u/tftclash)",
+        "Accept": "application/json",
+      },
     });
+    if (!res.ok) {
+      return { posts: [], error: `Reddit ${res.status}: ${await res.text().catch(() => "")}` };
+    }
     const json = await res.json();
     const posts = (json?.data?.children || []).map((c: any) => ({
       title: c.data.title,

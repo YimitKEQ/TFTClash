@@ -16,36 +16,50 @@ var PLATFORMS = [
 
 var CONTENT_TYPES = {
   twitter: [
-    { id: 'single_tweet',   label: 'Single Tweet',    icon: 'chat_bubble' },
-    { id: 'thread',         label: 'Thread 3-10',     icon: 'format_list_numbered' },
-    { id: 'poll',           label: 'Poll',            icon: 'how_to_vote' },
-    { id: 'hot_take',       label: 'Hot Take',        icon: 'local_fire_department' },
-    { id: 'engagement',     label: 'Engagement Bait', icon: 'psychology' },
-    { id: 'quote_response', label: 'Quote Response',  icon: 'format_quote' },
-    { id: 'meme_tweet',     label: 'Meme Tweet',      icon: 'sentiment_very_satisfied' },
-    { id: 'dev_log',        label: 'Dev Log',         icon: 'code' },
+    { id: 'single_tweet',    label: 'Single Tweet',      icon: 'chat_bubble' },
+    { id: 'thread',          label: 'Thread 3-10',       icon: 'format_list_numbered' },
+    { id: 'patch_hot_take',  label: 'Patch Hot Take',    icon: 'local_fire_department' },
+    { id: 'meta_comp',       label: 'Meta Comp Spotlight', icon: 'groups' },
+    { id: 'set17_hype',      label: 'Set 17 Hype',       icon: 'rocket_launch' },
+    { id: 'tourney_recap',   label: 'Tournament Recap',  icon: 'emoji_events' },
+    { id: 'leaderboard_flex',label: 'Leaderboard Flex',  icon: 'leaderboard' },
+    { id: 'poll',            label: 'Poll',              icon: 'how_to_vote' },
+    { id: 'dev_log',         label: 'Dev Log',           icon: 'code' },
+    { id: 'meme_tweet',      label: 'Meme Tweet',        icon: 'sentiment_very_satisfied' },
+    { id: 'quote_response',  label: 'Quote Response',    icon: 'format_quote' },
+    { id: 'engagement',      label: 'Engagement Bait',   icon: 'psychology' },
   ],
   reddit: [
-    { id: 'discussion',     label: 'Discussion Post', icon: 'forum' },
-    { id: 'dev_diary',      label: 'Dev Diary',       icon: 'build' },
-    { id: 'guide',          label: 'Guide / Analysis',icon: 'school' },
-    { id: 'announcement',   label: 'Announcement',    icon: 'campaign' },
-    { id: 'meme',           label: 'Meme Post',       icon: 'mood' },
-    { id: 'hot_take_reddit',label: 'Hot Take',        icon: 'local_fire_department' },
+    { id: 'discussion',      label: 'Discussion Post',   icon: 'forum' },
+    { id: 'patch_breakdown', label: 'Patch Breakdown',   icon: 'fact_check' },
+    { id: 'comp_guide',      label: 'Comp Guide',        icon: 'school' },
+    { id: 'augment_review',  label: 'Augment Review',    icon: 'auto_awesome' },
+    { id: 'hero_augment',    label: 'Hero Augment Tier', icon: 'military_tech' },
+    { id: 'tourney_recap',   label: 'Tournament Recap',  icon: 'emoji_events' },
+    { id: 'set17_prediction',label: 'Set 17 Prediction', icon: 'psychology_alt' },
+    { id: 'dev_diary',       label: 'Dev Diary',         icon: 'build' },
+    { id: 'clash_announce',  label: 'Clash Announcement',icon: 'campaign' },
+    { id: 'meme',            label: 'Meme Post',         icon: 'mood' },
+    { id: 'hot_take_reddit', label: 'Hot Take',          icon: 'local_fire_department' },
   ],
   medium: [
-    { id: 'dev_log',       label: 'Dev Log',             icon: 'code' },
-    { id: 'tft_analysis',  label: 'TFT Analysis',        icon: 'query_stats' },
-    { id: 'opinion',       label: 'Opinion / Hot Take',  icon: 'record_voice_over' },
-    { id: 'tutorial',      label: 'Tutorial',            icon: 'school' },
-    { id: 'launch',        label: 'Launch Announcement', icon: 'rocket_launch' },
-    { id: 'founder_story', label: 'Founder Story',       icon: 'auto_stories' },
+    { id: 'dev_log',         label: 'Dev Log',             icon: 'code' },
+    { id: 'patch_deep_dive', label: 'Patch Deep Dive',     icon: 'query_stats' },
+    { id: 'meta_analysis',   label: 'Meta Analysis',       icon: 'analytics' },
+    { id: 'champion_spot',   label: 'Champion Spotlight',  icon: 'star' },
+    { id: 'set17_preview',   label: 'Set 17 Preview',      icon: 'rocket_launch' },
+    { id: 'tutorial',        label: 'Tutorial',            icon: 'school' },
+    { id: 'opinion',         label: 'Opinion / Hot Take',  icon: 'record_voice_over' },
+    { id: 'launch',          label: 'Launch Announcement', icon: 'campaign' },
+    { id: 'founder_story',   label: 'Founder Story',       icon: 'auto_stories' },
   ],
   instagram: [
-    { id: 'caption',   label: 'Caption + Tags',  icon: 'text_fields' },
-    { id: 'carousel',  label: 'Carousel Script', icon: 'view_carousel' },
-    { id: 'reel',      label: 'Reel Script',     icon: 'movie' },
-    { id: 'story',     label: 'Story Sequence',  icon: 'amp_stories' },
+    { id: 'caption',        label: 'Caption + Tags',     icon: 'text_fields' },
+    { id: 'comp_carousel',  label: 'Comp Carousel',      icon: 'view_carousel' },
+    { id: 'patch_reel',     label: 'Patch Reel Script',  icon: 'movie' },
+    { id: 'clash_reel',     label: 'Clash Highlight Reel',icon: 'emoji_events' },
+    { id: 'tier_list',      label: 'Tier List Post',     icon: 'format_list_numbered' },
+    { id: 'story',          label: 'Story Sequence',     icon: 'amp_stories' },
   ],
 }
 
@@ -113,14 +127,14 @@ async function callEdgeFn(body) {
 
 // ═══════════════════════════════ SHARED STYLE HELPERS ═══════════════════════════════
 
-var goldBorder = { border: '1px solid rgba(232,168,56,0.25)' }
-var goldGlow = { boxShadow: '0 0 20px rgba(232,168,56,0.08), inset 0 1px 0 rgba(232,168,56,0.1)' }
-var surfaceBase = { background: 'linear-gradient(135deg, rgba(21,29,43,0.95), rgba(11,18,32,0.95))' }
+var goldBorder = { border: '1px solid rgba(255,255,255,0.08)' }
+var goldGlow = {}
+var surfaceBase = { background: 'rgba(255,255,255,0.02)' }
 
 function SectionLabel(props) {
   return (
-    <div className="text-[10px] uppercase font-bold tracking-[0.2em] mb-3"
-      style={{ color: '#E8A838', fontFamily: 'Barlow Condensed, sans-serif' }}>
+    <div className="text-[11px] uppercase font-semibold tracking-wider mb-2 text-on-surface/60"
+      style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
       {props.children}
     </div>
   )
@@ -130,15 +144,7 @@ function GoldChip(props) {
   var active = props.active
   return (
     <button onClick={props.onClick} disabled={props.disabled}
-      className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
-      style={{
-        background: active ? 'linear-gradient(135deg, rgba(232,168,56,0.25), rgba(232,168,56,0.1))' : 'rgba(255,255,255,0.03)',
-        border: '1px solid ' + (active ? 'rgba(232,168,56,0.6)' : 'rgba(255,255,255,0.08)'),
-        color: active ? '#E8A838' : '#BECBD9',
-        boxShadow: active ? '0 0 12px rgba(232,168,56,0.2)' : 'none',
-        fontFamily: 'Barlow Condensed, sans-serif',
-        letterSpacing: '0.05em',
-      }}>
+      className={'px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ' + (active ? 'bg-primary text-on-primary border-primary' : 'bg-white/[0.03] text-on-surface/70 border-white/10 hover:border-white/20')}>
       {props.children}
     </button>
   )
@@ -146,11 +152,10 @@ function GoldChip(props) {
 
 function StatPill(props) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
-      style={{ background: 'rgba(11,18,32,0.6)', ...goldBorder }}>
-      <Icon name={props.icon} size={14} style={{ color: '#E8A838' }}/>
+    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10">
+      <Icon name={props.icon} size={14} className="text-primary"/>
       <div>
-        <div className="text-[9px] uppercase tracking-wider text-on-surface/50 leading-none" style={{fontFamily:'Barlow Condensed'}}>{props.label}</div>
+        <div className="text-[10px] uppercase tracking-wider text-on-surface/50 leading-none" style={{fontFamily:'Barlow Condensed'}}>{props.label}</div>
         <div className="text-sm font-bold text-on-surface leading-tight">{props.value}</div>
       </div>
     </div>
