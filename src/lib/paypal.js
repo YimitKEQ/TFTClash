@@ -28,6 +28,16 @@ export var TIER_LABELS = {
   host:   'Host',
 };
 
+// ─── Donate URL ──────────────────────────────────────────────────────────────
+// One-time PayPal donation link. No account needed on our side.
+export var DONATE_URL = 'https://www.paypal.com/donate/?hosted_button_id=' + (import.meta.env.VITE_PAYPAL_DONATE_ID || '');
+
+export function getDonateUrl() {
+  var id = import.meta.env.VITE_PAYPAL_DONATE_ID || '';
+  if (!id) return null;
+  return 'https://www.paypal.com/donate/?hosted_button_id=' + encodeURIComponent(id);
+}
+
 // ─── Subscribe URL ────────────────────────────────────────────────────────────
 // Builds a direct PayPal subscription URL. User clicks our styled button,
 // gets redirected to PayPal checkout, then comes back to /account?checkout=success.

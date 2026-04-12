@@ -6,6 +6,7 @@ import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
+import { getDonateUrl } from '../lib/paypal'
 
 // ── HeroCountdown ─────────────────────────────────────────────────────────────
 
@@ -514,6 +515,17 @@ export default function HomeScreen() {
             >
               How to Play
             </button>
+            {getDonateUrl() ? (
+              <a
+                href={getDonateUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-error/10 px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-error/20 transition-colors border-0 cursor-pointer text-error inline-flex items-center gap-2 no-underline"
+              >
+                <Icon name="favorite" size={14} fill />
+                Support Us
+              </a>
+            ) : null}
           </div>
         </footer>
 

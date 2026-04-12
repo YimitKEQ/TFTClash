@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon } from '../components/ui'
-import { TIER_PRICES, getSubscribeUrl } from '../lib/paypal'
+import { TIER_PRICES, getSubscribeUrl, getDonateUrl } from '../lib/paypal'
 
 // ─── Feature lists per tier ─────────────────────────────────────────────────
 
@@ -352,6 +352,31 @@ export default function PricingScreen() {
           </div>
         </section>
 
+        {/* Donation Section */}
+        {getDonateUrl() ? (
+          <section className="mt-16 text-center">
+            <div className="inline-flex flex-col items-center bg-surface-container-low border border-outline-variant/10 rounded-[4px] px-10 py-8 max-w-lg">
+              <Icon name="favorite" size={28} className="text-error mb-3" fill />
+              <h3 className="font-serif text-2xl mb-2">Support TFT Clash</h3>
+              <p className="text-sm text-on-surface-variant mb-6 max-w-sm">
+                Running tournaments costs time and money. If you enjoy competing here, consider a one-time donation to help keep the lights on.
+              </p>
+              <a
+                href={getDonateUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-8 py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm hover:bg-primary/20 transition-all"
+              >
+                <Icon name="volunteer_activism" size={18} />
+                Donate via PayPal
+              </a>
+              <p className="text-[10px] text-on-surface-variant/40 mt-3 font-mono uppercase tracking-widest">
+                Every contribution helps
+              </p>
+            </div>
+          </section>
+        ) : null}
+
         {/* Feature Comparison Table */}
         <section className="mt-24">
           <h2 className="font-serif text-4xl mb-12">The Specification</h2>
@@ -425,6 +450,17 @@ export default function PricingScreen() {
               >
                 Host Application
               </button>
+              {getDonateUrl() ? (
+                <a
+                  href={getDonateUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-error/10 border border-error/30 text-error px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest hover:bg-error/20 transition-colors inline-flex items-center gap-2"
+                >
+                  <Icon name="favorite" size={16} fill />
+                  Donate
+                </a>
+              ) : null}
             </div>
           </div>
 
