@@ -258,9 +258,21 @@ export default function FlashTournamentScreen(props) {
     supabase.from('registrations').delete().eq('id', myReg.id).then(function(res) {
       setActionLoading(false);
       if (res.error) { toast('Failed to unregister: ' + res.error.message, 'error'); return; }
+      // Promote first waitlisted player if spot opened
+      var waitlisted = registrations.filter(function(r) { return r.status === 'waitlisted' && r.id !== myReg.id; }).sort(function(a, b) { return (a.waitlist_position || 999) - (b.waitlist_position || 999); });
+      if (waitlisted.length > 0 && myReg.status === 'registered') {
+        var next = waitlisted[0];
+        supabase.from('registrations').update({status: 'registered', waitlist_position: null}).eq('id', next.id).then(function() {
+          if (next.player_id) {
+            createNotification(next.player_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist!', 'celebration');
+          }
+          loadRegistrations();
+        }).catch(function() { loadRegistrations(); });
+      } else {
+        loadRegistrations();
+      }
       toast('Unregistered', 'success');
       broadcastUpdate('registration');
-      loadRegistrations();
     }).catch(function() { setActionLoading(false); toast('Failed to unregister', 'error'); });
   }
 
@@ -302,7 +314,15 @@ export default function FlashTournamentScreen(props) {
           var toPromote = waitlisted.slice(0, Math.max(0, openSpots));
           if (toPromote.length > 0) {
             var promoteIds = toPromote.map(function(r) { return r.id; });
-            supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', promoteIds).then(function() { loadRegistrations(); }).catch(function() { loadRegistrations(); });
+            supabase.from('registrations').update({status: 'checked_in', checked_in_at: new Date().toISOString()}).in('id', promoteIds).then(function() {
+              // Notify promoted players
+              toPromote.forEach(function(r) {
+                if (r.player_id) {
+                  createNotification(r.player_id, 'Spot Opened!', 'A spot opened in ' + (tournament ? tournament.name : 'the tournament') + ' and you have been promoted from the waitlist. You are now checked in!', 'celebration');
+                }
+              });
+              loadRegistrations();
+            }).catch(function() { loadRegistrations(); });
           } else {
             loadRegistrations();
           }
@@ -786,7 +806,13 @@ export default function FlashTournamentScreen(props) {
             </div>
           </div>
           <div className="w-full bg-surface-container-lowest rounded-full h-1.5 overflow-hidden mt-3">
-            <div className="h-full rounded-full bg-primary transition-all duration-500" style={{width: Math.min(100, Math.round((regCount / maxP) * 100)) + '%'}} />
+            <div className={"h-full rounded-full transition-all duration-500 " + (regCount >= maxP ? "bg-error" : "bg-primary")} style={{width: Math.min(100, Math.round((regCount / maxP) * 100)) + '%'}} />
+          </div>
+          <div className="flex justify-between items-center mt-1">
+            <span className="text-[10px] font-mono text-on-surface-variant/40">{regCount + "/" + maxP + " spots filled"}</span>
+            {regCount >= maxP && (
+              <span className="text-[10px] font-mono text-error font-bold">{registrations.filter(function(r) { return r.status === 'waitlisted'; }).length + " on waitlist"}</span>
+            )}
           </div>
         </div>
 
@@ -872,7 +898,16 @@ export default function FlashTournamentScreen(props) {
             {/* Right sidebar: Round progress */}
             <div className="lg:col-span-5 space-y-5">
               <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 p-5">
-                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Round Progress</h3>
+                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-3 text-on-surface">Round Progress</h3>
+                <div className="mb-4">
+                  <div className="flex justify-between text-[10px] font-mono text-on-surface-variant/50 mb-1">
+                    <span>{"Game " + currentGameNumber + " of " + totalGames}</span>
+                    <span>{Math.round(((currentGameNumber - (allLobbiesLocked ? 0 : 1)) / totalGames) * 100) + "%"}</span>
+                  </div>
+                  <div className="h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                    <div className={"h-full rounded-full transition-all duration-500 " + (isComplete ? "bg-tertiary" : "bg-primary")} style={{width: Math.round(((currentGameNumber - (allLobbiesLocked ? 0 : 1)) / totalGames) * 100) + '%'}}></div>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   {Array.from({length: totalGames}, function(_, idx) { return idx + 1; }).map(function(r) {
                     var isGameComplete = r < currentGameNumber || (r === currentGameNumber && allLobbiesLocked);
@@ -1192,9 +1227,9 @@ export default function FlashTournamentScreen(props) {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs text-on-surface-variant/40">{lobbyPlayers.length + " players"}</span>
-                          {isAdmin && isLive && !isLocked && (
+                          {isLive && !isLocked && (
                             <span className={"text-[10px] font-nav font-bold rounded px-2 py-0.5 border " + (allReported ? "text-tertiary bg-tertiary/10 border-tertiary/20" : "text-primary bg-primary/10 border-primary/20")}>
-                              {reportedCount + "/" + totalCount}
+                              {reportedCount + "/" + totalCount + " reported"}
                             </span>
                           )}
                           {lobby.lobby_code && (
@@ -1267,6 +1302,20 @@ export default function FlashTournamentScreen(props) {
                           );
                         })}
                       </div>
+
+                      {/* Lobby status bar (visible to all players) */}
+                      {isLive && !isLocked && !isAdmin && canLock && (
+                        <div className="border-t border-tertiary/20 p-3 bg-tertiary/5 flex items-center gap-2">
+                          <Icon name="check_circle" size={14} fill className="text-tertiary" />
+                          <span className="text-[10px] font-nav font-bold text-tertiary tracking-wider uppercase">All placements reported - waiting for admin to lock</span>
+                        </div>
+                      )}
+                      {isLive && !isLocked && !isAdmin && hasDuplicate && (
+                        <div className="border-t border-error/20 p-3 bg-error/5 flex items-center gap-2">
+                          <Icon name="warning" size={14} className="text-error" />
+                          <span className="text-[10px] font-nav font-bold text-error tracking-wider uppercase">Duplicate placements detected - awaiting resolution</span>
+                        </div>
+                      )}
 
                       {/* Admin lock button */}
                       {isAdmin && isLive && !isLocked && (
