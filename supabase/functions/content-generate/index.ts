@@ -112,8 +112,8 @@ async function fetchRedditHot(supabase: any): Promise<any> {
   const { data: cached } = await supabase
     .from("trend_cache")
     .select("data, fetched_at")
-    .eq("source", "reddit")
-    .eq("data_type", "hot_posts")
+    .eq("source", "gemini")
+    .eq("data_type", "tft_trends")
     .gt("expires_at", new Date().toISOString())
     .order("fetched_at", { ascending: false })
     .limit(1)
@@ -121,48 +121,34 @@ async function fetchRedditHot(supabase: any): Promise<any> {
 
   if (cached) return cached.data;
 
-  const redditUrl = "https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1";
-  const endpoints = [
-    "https://api.allorigins.win/raw?url=" + encodeURIComponent(redditUrl),
-    "https://corsproxy.io/?" + encodeURIComponent(redditUrl),
-    redditUrl,
-    "https://old.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1",
-  ];
-  const ua = "web:app.tftclash:v1.0.0 (by /u/Levitate_TFT)";
-  let lastErr = "";
-  let json: any = null;
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, {
-        headers: {
-          "User-Agent": ua,
-          "Accept": "application/json",
-        },
-      });
-      if (!res.ok) {
-        lastErr = `${ep} -> ${res.status}`;
-        continue;
-      }
-      json = await res.json();
-      break;
-    } catch (e) {
-      lastErr = `${ep} -> ${String(e)}`;
-    }
-  }
   try {
-    if (!json) return { posts: [], error: lastErr || "all reddit endpoints failed" };
-    const posts = (json?.data?.children || []).map((c: any) => ({
-      title: c.data.title,
-      score: c.data.score,
-      num_comments: c.data.num_comments,
-      url: "https://reddit.com" + c.data.permalink,
-      flair: c.data.link_flair_text,
-    }));
-    if (!posts.length) return { posts: [], error: "reddit returned 0 posts (likely blocked)" };
+    const prompt = `List 12 hot TFT (Teamfight Tactics) talking points right now, based on Set 17 "Space Gods" hype cycle (launches April 15 2026), current meta comps, patch buzz, augment debates, and r/CompetitiveTFT discussion themes. Mix meta analysis, hot takes, balance complaints, set prediction, and community drama.
+
+Output STRICT JSON only, no markdown fences, no preamble:
+{"posts":[{"title":"<short punchy title like a reddit post>","score":<int 100-3000>,"num_comments":<int 20-500>,"flair":"<Discussion|Patch Notes|Guide|Meta|Set 17>","url":"https://reddit.com/r/CompetitiveTFT"}]}`;
+
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!apiKey) return { posts: [], error: "GEMINI_API_KEY not set" };
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.9, maxOutputTokens: 2048, responseMimeType: "application/json" },
+      }),
+    });
+    if (!res.ok) return { posts: [], error: `Gemini ${res.status}: ${await res.text().catch(() => "")}` };
+    const json = await res.json();
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+    const parsed = JSON.parse(text);
+    const posts = parsed?.posts || [];
+    if (!posts.length) return { posts: [], error: "gemini returned no trends" };
+
     const expires = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
     await supabase.from("trend_cache").insert({
-      source: "reddit",
-      data_type: "hot_posts",
+      source: "gemini",
+      data_type: "tft_trends",
       data: { posts },
       expires_at: expires,
     });

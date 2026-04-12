@@ -932,7 +932,7 @@ function TrendsTab(props) {
   return (
     <div className="max-w-4xl">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-on-surface/60" style={{fontFamily:'Barlow Condensed', letterSpacing:'0.08em'}}>LIVE r/CompetitiveTFT HOT POSTS (CACHED 2H)</div>
+        <div className="text-sm text-on-surface/60" style={{fontFamily:'Barlow Condensed', letterSpacing:'0.08em'}}>AI-GENERATED TFT TALKING POINTS (CACHED 2H)</div>
         <Btn onClick={load} disabled={loading}>
           <Icon name="refresh" size={14}/>{loading ? ' Loading' : ' Refresh'}
         </Btn>
