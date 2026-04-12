@@ -135,6 +135,12 @@ export default function FlashTournamentScreen(props) {
     return function() { supabase.removeChannel(channel); channelRef.current = null; };
   }, [tournamentId]);
 
+  useEffect(function() {
+    if (phase === 'in_progress' && activeTab === 'info') {
+      setActiveTab('bracket');
+    }
+  }, [phase]);
+
   function broadcastUpdate(type) {
     if (channelRef.current) {
       channelRef.current.send({type: 'broadcast', event: 'update', payload: {type: type}});
@@ -154,6 +160,7 @@ export default function FlashTournamentScreen(props) {
   }
 
   function generateLobbies() {
+    if (!confirm('Generate lobbies for ' + checkedInCount + ' checked-in players? This will create ' + Math.ceil(checkedInCount / 8) + ' lobbies.')) return;
     setActionLoading(true);
     supabase.from('registrations').select('player_id, players(id, username, rank, riot_id, region)')
       .eq('tournament_id', tournamentId)
@@ -196,8 +203,9 @@ export default function FlashTournamentScreen(props) {
   var myReg = myPlayer ? registrations.find(function(r) { return r.player_id === myPlayer.id; }) : null;
   var regCount = registrations.filter(function(r) { return r.status === 'registered' || r.status === 'checked_in'; }).length;
   var currentGameNumber = tournament ? (tournament.current_round || 1) : 1;
-  var myLobby = lobbies.find(function(l) { return l.player_ids && l.player_ids.indexOf(myPlayer ? myPlayer.id : null) !== -1; });
-  var myReport = myPlayer ? reports.find(function(r) { return r.player_id === myPlayer.id; }) : null;
+  var currentLobbiesForMe = lobbies.filter(function(l) { return l.game_number === currentGameNumber; });
+  var myLobby = currentLobbiesForMe.find(function(l) { return l.player_ids && l.player_ids.indexOf(myPlayer ? myPlayer.id : null) !== -1; });
+  var myReport = myPlayer ? reports.find(function(r) { return r.player_id === myPlayer.id && r.game_number === currentGameNumber; }) : null;
   var openDisputeCount = disputes.filter(function(d) { return d.status === 'open'; }).length;
   var myDisputes = myPlayer ? disputes.filter(function(d) { return d.player_id === myPlayer.id; }) : [];
   var checkedInCount = registrations.filter(function(r) { return r.status === 'checked_in'; }).length;
@@ -207,7 +215,7 @@ export default function FlashTournamentScreen(props) {
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
-    if (!myPlayer || !myPlayer.riotId) {
+    if (!myPlayer || (!myPlayer.riotId && !myPlayer.riot_id_eu)) {
       toast('Set your Riot ID in your profile before registering', 'error');
       return;
     }
@@ -678,7 +686,7 @@ export default function FlashTournamentScreen(props) {
     return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
   });
 
-  var lobbyLetters = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+  var lobbyLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -713,6 +721,15 @@ export default function FlashTournamentScreen(props) {
                 {totalGames + " games - " + (tournament.seeding_method || 'snake') + " seeding"}
               </div>
             </div>
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            <button onClick={function() {
+              var url = window.location.origin + '/flash/' + tournamentId;
+              navigator.clipboard.writeText(url).then(function() { toast('Tournament link copied!', 'success'); });
+            }} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high border border-outline-variant/20 rounded text-xs font-nav font-bold tracking-wider uppercase text-on-surface-variant hover:text-primary transition-colors">
+              <Icon name="content_copy" size={14} />
+              Copy Link
+            </button>
           </div>
         </div>
 
@@ -1098,7 +1115,24 @@ export default function FlashTournamentScreen(props) {
                 <div className="text-sm text-on-surface-variant">Lobbies will appear once the admin generates them.</div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                {myPlayer && myLobby && (
+                  <div className="bg-secondary/8 border border-secondary/25 rounded-[4px] px-5 py-3 mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Icon name="my_location" size={18} className="text-secondary" />
+                      <span className="font-nav font-bold text-sm tracking-wider text-secondary">
+                        {"You are in Lobby " + (lobbyLetters[currentGameLobbies.findIndex(function(l) { return l.id === myLobby.id; })] || "?")}
+                      </span>
+                    </div>
+                    <button onClick={function() {
+                      var el = document.getElementById('lobby-' + myLobby.id);
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }} className="px-3 py-1.5 bg-secondary/20 text-secondary font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:bg-secondary/30 transition-colors">
+                      Jump to Lobby
+                    </button>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {currentGameLobbies.map(function(lobby, idx) {
                   var lobbyPlayers = (lobby.player_ids || []).map(function(pid) { return getPlayerById(pid); });
                   var hostId = lobby.host_player_id;
@@ -1121,6 +1155,7 @@ export default function FlashTournamentScreen(props) {
                   return (
                     <div
                       key={lobby.id}
+                      id={'lobby-' + lobby.id}
                       className={"bg-surface-container-high rounded-[4px] overflow-hidden border-2 transition-all " + (isMyLobby && !isLocked ? "border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]" : isLocked ? "border-tertiary/30" : hasDuplicate ? "border-error/40" : "border-outline-variant/15")}
                     >
                       {/* Lobby header */}
@@ -1238,7 +1273,7 @@ export default function FlashTournamentScreen(props) {
                       )}
 
                       {/* Host lobby code entry */}
-                      {iAmHost && !lobby.lobby_code && !isLocked && (
+                      {(iAmHost || isAdmin) && !lobby.lobby_code && !isLocked && (
                         <div className="border-t border-outline-variant/10 p-4 bg-surface-container-low flex gap-2 items-center">
                           <input
                             placeholder="Enter lobby code..."
@@ -1260,6 +1295,7 @@ export default function FlashTournamentScreen(props) {
                     </div>
                   );
                 })}
+              </div>
               </div>
             )}
           </div>

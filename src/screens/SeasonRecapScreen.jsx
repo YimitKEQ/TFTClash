@@ -190,7 +190,7 @@ export default function SeasonRecapScreen() {
           <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-condensed uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded-sm">
             Season Achievement Unlocked
           </div>
-          <h1 className="text-6xl md:text-8xl font-serif font-black tracking-tight leading-none mb-4">
+          <h1 className="text-6xl md:text-8xl font-editorial italic font-black tracking-tight leading-none mb-4">
             {seasonName + ' '}
             <span className="font-serif gold-gradient-text">
               Recap

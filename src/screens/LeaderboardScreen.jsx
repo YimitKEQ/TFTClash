@@ -259,7 +259,7 @@ export default function LeaderboardScreen(props) {
         {/* Header */}
         <header className="mb-16 text-center">
           <span className="font-label uppercase tracking-[0.2em] text-primary text-sm mb-2 block">Global Competition</span>
-          <h1 className="font-headline text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
+          <h1 className="font-editorial italic text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
           <p className="text-on-surface-variant max-w-2xl mx-auto font-body opacity-80">
             Behold the elite tacticians of the convergence. Only those with iron resolve and unmatched strategy ascend the Obsidian Arena.
           </p>

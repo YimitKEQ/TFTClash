@@ -156,7 +156,7 @@ export default function ChallengesScreen() {
           <div className="flex justify-between items-end mb-4">
             <div>
               <span className="font-condensed text-primary uppercase tracking-[0.2em] text-xs font-bold">{seasonName}</span>
-              <h1 className="font-serif text-5xl mt-2 italic">Challenges &amp; Progression</h1>
+              <h1 className="font-editorial italic text-5xl mt-2">Challenges &amp; Progression</h1>
             </div>
             <div className="text-right">
               {rankInfo.next && (

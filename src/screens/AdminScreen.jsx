@@ -52,7 +52,7 @@ export default function AdminScreen() {
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center gap-2 mb-6">
           <Icon name="admin_panel_settings" size={20} className="text-primary" />
-          <h1 className="font-display text-xl font-bold text-on-surface">Admin Panel</h1>
+          <h1 className="font-editorial italic text-xl font-bold text-on-surface">Admin Panel</h1>
         </div>
 
         <div className="flex flex-wrap gap-1 mb-6 border-b border-outline-variant/10 pb-4">

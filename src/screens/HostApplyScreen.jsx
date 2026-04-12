@@ -120,7 +120,7 @@ export default function HostApplyScreen() {
               <span className="font-label text-xs tracking-widest">Verified Partner Program</span>
             </div>
           </div>
-          <h1 className="font-headline text-6xl font-bold tracking-tight text-on-surface mb-2">
+          <h1 className="font-editorial italic text-6xl font-bold tracking-tight text-on-surface mb-2">
             Host Application
           </h1>
           <p className="text-on-surface-variant max-w-2xl text-lg font-light leading-relaxed">

@@ -229,7 +229,8 @@ export function AppProvider(props) {
   function mapPlayerRow(r){
     return{
       id:r.id,name:r.username,username:r.username,
-      riotId:r.riot_id||'',rank:r.rank||'Iron',region:r.region||'EUW',
+      riotId:r.riot_id||r.riot_id_eu||'',rank:r.rank||'Iron',region:r.region||'EUW',
+      riot_id_eu:r.riot_id_eu||null,riot_id_na:r.riot_id_na||null,
       bio:r.bio||'',discord_user_id:r.discord_user_id||null,
       authUserId:r.auth_user_id||null,auth_user_id:r.auth_user_id||null,
       twitch:(r.social_links&&r.social_links.twitch)||'',

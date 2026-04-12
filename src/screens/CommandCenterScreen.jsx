@@ -179,7 +179,7 @@ export default function CommandCenterScreen() {
               <div className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-success animate-pulse border-2 border-[#13131A]" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">Command Center</h1>
+              <h1 className="font-editorial italic text-2xl font-bold text-on-surface tracking-tight">Command Center</h1>
               <div className="font-nav text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
                 <span className={'w-1.5 h-1.5 rounded-full animate-pulse ' + (stats && stats.openDisputes > 0 ? 'bg-error' : 'bg-success')} />
                 <span>{stats && stats.openDisputes > 0 ? stats.openDisputes + ' open dispute' + (stats.openDisputes > 1 ? 's' : '') : 'All systems operational'}</span>

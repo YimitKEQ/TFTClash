@@ -237,7 +237,7 @@ export default function PricingScreen() {
 
         {/* Header */}
         <header className="text-center mb-16">
-          <h1 className="font-serif text-5xl md:text-7xl mb-4 text-on-surface">
+          <h1 className="font-editorial italic text-5xl md:text-7xl mb-4 text-on-surface">
             Competing is always free.
           </h1>
           <p className="font-sans text-sm uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">

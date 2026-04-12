@@ -75,7 +75,7 @@ export default function AccountScreen() {
   var _pwError = useState('');
   var pwError = _pwError[0]; var setPwError = _pwError[1];
 
-  var _riotIdEu = useState(currentUser ? (currentUser.riot_id_eu || '') : '');
+  var _riotIdEu = useState(currentUser ? (currentUser.riot_id_eu || currentUser.riotId || '') : '');
   var riotIdEu = _riotIdEu[0]; var setRiotIdEu = _riotIdEu[1];
   var _riotIdNa = useState(currentUser ? (currentUser.riot_id_na || '') : '');
   var riotIdNa = _riotIdNa[0]; var setRiotIdNa = _riotIdNa[1];
@@ -243,13 +243,9 @@ export default function AccountScreen() {
     }
 
     var socialLinks = { twitch: meta.twitch || '', twitter: meta.twitter || '', youtube: meta.youtube || '' };
-    var playerUpdate = { bio: meta.bio || '', region: riotRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null };
+    var playerUpdate = { bio: meta.bio || '', region: riotRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null, riot_id: riotIdEu.trim() || riotIdNa.trim() || null };
     if (!usernameChanged && meta.username) {
       playerUpdate.username = meta.username;
-    }
-    if (!riotIdSet && meta.riotId) {
-      playerUpdate.riot_id = meta.riotId;
-      playerUpdate.region = riotRegion;
     }
     var authUid = user.auth_user_id || user.id;
     supabase.from('players').update(playerUpdate).eq('auth_user_id', authUid).then(function(pRes) {
@@ -269,6 +265,7 @@ export default function AccountScreen() {
                 youtube: socialLinks.youtube,
                 riot_id_eu: playerUpdate.riot_id_eu,
                 riot_id_na: playerUpdate.riot_id_na,
+                riotId: playerUpdate.riot_id || p.riotId,
                 username: newUsername,
                 name: newUsername,
               });
@@ -416,7 +413,7 @@ export default function AccountScreen() {
         <header className="mb-12">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-serif text-5xl md:text-6xl text-on-surface mb-2">Account Settings</h1>
+              <h1 className="font-editorial italic text-5xl md:text-6xl text-on-surface mb-2">Account Settings</h1>
               <p className="text-on-surface/60 font-body max-w-2xl">
                 Manage your competitive identity, link external accounts, and customize your presence in the Obsidian Arena.
               </p>
@@ -876,49 +873,40 @@ export default function AccountScreen() {
               </div>
             </section>
 
-            {/* Riot ID Verification */}
+            {/* Riot Accounts */}
             <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8 flex flex-col justify-between border-l-4 border-tertiary">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Riot Verification</h3>
+                  <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Riot Accounts</h3>
                   {riotIdSet ? (
-                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider font-bold">Verified</span>
+                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider font-bold">Linked</span>
                   ) : (
-                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider">Unverified</span>
+                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider">Not Linked</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-4 mb-4">
                   <div className="w-12 h-12 bg-surface-container-lowest flex items-center justify-center rounded-lg flex-shrink-0">
-                    <Icon name="shield_person" size={24} className="text-tertiary" />
+                    <Icon name="sports_esports" size={24} className="text-tertiary" />
                   </div>
                   <div>
                     <div className="font-mono text-sm text-on-surface space-y-0.5">
                       {riotIdEu ? <div>{riotIdEu} <span className="text-tertiary text-[10px]">EU</span></div> : null}
                       {riotIdNa ? <div>{riotIdNa} <span className="text-primary text-[10px]">NA</span></div> : null}
-                      {!riotIdEu && !riotIdNa ? <span className="text-on-surface/40">Not linked</span> : null}
+                      {!riotIdEu && !riotIdNa ? <span className="text-on-surface/40">No Riot ID set</span> : null}
                     </div>
                     <div className="text-[10px] font-sans-cond text-on-surface/40 uppercase mt-1">
-                      {linkedPlayer && linkedPlayer.rank ? linkedPlayer.rank : (riotIdSet ? 'Linked' : 'No account linked')}
+                      {linkedPlayer && linkedPlayer.rank ? linkedPlayer.rank : (riotIdSet ? 'Linked' : 'Required for tournaments')}
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-on-surface/60 font-body mb-6">Your Riot ID is used to fetch match history and calculate competitive standings.</p>
+                <p className="text-xs text-on-surface/60 font-body mb-6">Your Riot ID is required to register for tournaments. Set your EU and/or NA account.</p>
               </div>
-              {riotIdSet ? (
-                <button
-                  onClick={function() { requestChange('riotId'); }}
-                  className="w-full bg-surface-variant/20 border border-outline-variant/30 py-3 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-surface-variant transition-colors"
-                >
-                  Update Riot ID
-                </button>
-              ) : (
-                <button
-                  onClick={function() { setEdit(true); setTab('account'); }}
-                  className="w-full bg-tertiary/10 border border-tertiary/30 text-tertiary py-3 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-tertiary/20 transition-colors"
-                >
-                  Link Riot ID
-                </button>
-              )}
+              <button
+                onClick={function() { setEdit(true); setTab('account'); }}
+                className={"w-full py-3 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] transition-colors " + (riotIdSet ? "bg-surface-variant/20 border border-outline-variant/30 hover:bg-surface-variant" : "bg-tertiary/10 border border-tertiary/30 text-tertiary hover:bg-tertiary/20")}
+              >
+                {riotIdSet ? 'Update Riot ID' : 'Link Riot ID'}
+              </button>
             </section>
 
             {/* Social Connections */}

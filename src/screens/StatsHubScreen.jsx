@@ -746,7 +746,7 @@ export default function StatsHubScreen() {
     <PageLayout>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-display text-3xl font-bold text-on-surface mb-1">Stats Hub</h1>
+        <h1 className="font-editorial italic text-3xl font-bold text-on-surface mb-1">Stats Hub</h1>
         <p className="text-on-surface/40 text-sm font-label">
           {consistency && consistency.length > 0
             ? (consistency.length + ' players with stats')

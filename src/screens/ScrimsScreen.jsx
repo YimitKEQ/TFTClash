@@ -754,7 +754,7 @@ export default function ScrimsScreen() {
         {/* Header */}
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-serif text-5xl font-black text-on-surface tracking-tight">Practice Arena</h1>
+            <h1 className="font-editorial italic text-5xl font-black text-on-surface tracking-tight">Practice Arena</h1>
             <p className="text-on-surface-variant text-sm mt-1">{allGames.length} games logged across {safeSessions.length} sessions</p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
