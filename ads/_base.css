@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Barlow+Condensed:wght@400;600;800;900&family=Cinzel:wght@700;900&family=Bebas+Neue&family=Space+Grotesk:wght@400;700&family=Orbitron:wght@700;900&family=Anton&family=Permanent+Marker&family=Archivo+Black&family=JetBrains+Mono:wght@700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#000;color:#fff;-webkit-font-smoothing:antialiased}
+.ad{position:relative;overflow:hidden}
+.tftc{display:inline-flex;align-items:center;gap:12px;line-height:.9}
+.tftc img{filter:drop-shadow(0 0 14px rgba(240,196,109,.5))}
+.tftc .tw{font-family:'Russo One',sans-serif;font-style:italic;letter-spacing:-.02em}
+.tftc .tw .l1{color:#f0c46d}
+.tftc .tw .l2{color:#fff}
+
+/* COMIC LOCKUP — two side-by-side comic panels for partnership signoff */
+.comic-lock{position:absolute;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:34px;z-index:9}
+.comic-lock .panel{background:#fff;border:5px solid #1a0b2e;padding:14px 22px;box-shadow:7px 7px 0 #1a0b2e;display:flex;align-items:center;justify-content:center}
+.comic-lock .panel.tilt-l{transform:rotate(-2deg)}
+.comic-lock .panel.tilt-r{transform:rotate(2deg)}
+.comic-lock .panel .tftc{gap:10px}
+.comic-lock .panel .tftc img{height:52px;width:52px;filter:drop-shadow(0 0 0 transparent)}
+.comic-lock .panel .tftc .tw .l1{color:#ff2626;font-size:30px;display:block;text-shadow:none}
+.comic-lock .panel .tftc .tw .l2{color:#1a0b2e;font-size:30px;display:block}
+.comic-lock .panel img.af{height:66px}
+
+/* COMIC STAMP CTA — red stamp-style call to action */
+.comic-stamp{position:absolute;z-index:10;background:#ff2626;color:#fff;font-family:'Anton',sans-serif;font-size:26px;letter-spacing:.14em;text-transform:uppercase;padding:14px 26px;border:5px solid #1a0b2e;box-shadow:7px 7px 0 #1a0b2e;transform:rotate(3deg);text-align:center;line-height:1}
+.comic-stamp.tilt-l{transform:rotate(-3deg)}
+.comic-stamp b{display:block;font-size:18px;letter-spacing:.3em;color:#f0c46d;margin-bottom:4px}
+
+/* ============ NEON SHARED ============ */
+.n-bg{background:#05020d}
+.n-bg-radial{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(255,0,170,.35) 0%,rgba(0,240,255,.12) 40%,#05020d 75%)}
+.n-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,240,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,255,.08) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(circle,#000 40%,transparent 80%)}
+.n-scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(0,240,255,.04) 3px,rgba(0,240,255,.04) 4px)}
+.n-kicker{font-family:'JetBrains Mono',monospace;letter-spacing:.55em;color:#00f0ff;text-transform:uppercase;text-shadow:0 0 20px rgba(0,240,255,.8)}
+.n-huge{font-family:'Orbitron',sans-serif;font-weight:900;color:transparent;-webkit-text-stroke:3px #00f0ff;text-transform:uppercase;letter-spacing:-.02em;filter:drop-shadow(0 0 35px rgba(0,240,255,.6))}
+.n-huge span{color:#fff;-webkit-text-stroke:0;text-shadow:0 0 40px rgba(255,0,170,.9),0 0 80px rgba(255,0,170,.5)}
+.n-chair{filter:drop-shadow(0 0 50px rgba(255,0,170,.65)) drop-shadow(0 0 120px rgba(0,240,255,.35))}
+.n-lock{position:absolute;display:flex;justify-content:center;align-items:center;gap:34px;z-index:9}
+.n-lock .tftc img{filter:drop-shadow(0 0 10px rgba(0,240,255,.5))}
+.n-lock .tftc .l1{font-family:'Orbitron',sans-serif;font-weight:900;color:#00f0ff;text-shadow:0 0 15px rgba(0,240,255,.8);display:block;line-height:1}
+.n-lock .tftc .l2{font-family:'Orbitron',sans-serif;font-weight:900;color:#ff00aa;text-shadow:0 0 15px rgba(255,0,170,.8);display:block;line-height:1}
+.n-lock .x{font-family:'JetBrains Mono',monospace;color:#fff}
+.n-lock .af{filter:invert(1)}
+.n-cta{font-family:'JetBrains Mono',monospace;letter-spacing:.35em;color:#00f0ff;text-transform:uppercase;text-shadow:0 0 18px rgba(0,240,255,.8)}
+.n-cta b{color:#ff00aa;text-shadow:0 0 18px rgba(255,0,170,.8)}
+
+/* ============ COMIC SHARED ============ */
+.c-bg{background:#f0c46d}
+.c-bg-radial{position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,#ffe9ba 0%,#f0c46d 50%,#c48528 100%)}
+.c-dots{position:absolute;inset:0;background-image:radial-gradient(#1a0b2e 2px,transparent 2.5px);background-size:22px 22px;opacity:.2}
+.c-kicker{display:inline-block;background:#1a0b2e;color:#f0c46d;font-family:'Archivo Black',sans-serif;letter-spacing:.3em;text-transform:uppercase;transform:rotate(-2deg)}
+.c-huge{font-family:'Anton',sans-serif;line-height:.82;color:#1a0b2e;text-transform:uppercase;text-shadow:8px 8px 0 #ff2626,16px 16px 0 rgba(0,0,0,.18)}
+.c-huge span{color:#ff2626}
+.c-chair{filter:drop-shadow(12px 12px 0 #1a0b2e) drop-shadow(0 25px 40px rgba(0,0,0,.35))}
+.c-bubble{background:#fff;border:5px solid #1a0b2e;border-radius:30px;box-shadow:8px 8px 0 #1a0b2e}
+.c-bubble .say{font-family:'Permanent Marker',cursive;color:#1a0b2e;line-height:1.15}
+.c-bubble .say b{color:#ff2626}
+.c-panel{background:#fff;border:5px solid #1a0b2e;box-shadow:7px 7px 0 #1a0b2e}
+.c-panel .tftc img{filter:none}
+.c-panel .tftc .tw .l1{color:#ff2626}
+.c-panel .tftc .tw .l2{color:#1a0b2e}
+.c-panel .af{filter:none}
+.c-cta{color:#fff;background:#ff2626;border:5px solid #1a0b2e;box-shadow:7px 7px 0 #1a0b2e;font-family:'Anton',sans-serif;letter-spacing:.18em;text-transform:uppercase}

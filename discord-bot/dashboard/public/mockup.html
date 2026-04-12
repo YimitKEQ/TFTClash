@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Mockups - Pick Your Vibe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ─── Picker ─────────────────────────────────────────────── */
+    .picker {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 9999;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 12px 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .picker-label {
+      font-size: 12px; font-weight: 700; color: #666;
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+    .picker-btn {
+      padding: 8px 24px; border-radius: 8px;
+      font-size: 13px; font-weight: 700; cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .picker-btn.f1 {
+      background: #111; color: #e10600; border-color: #e10600;
+    }
+    .picker-btn.spotify {
+      background: #111; color: #1db954; border-color: #1db954;
+    }
+    .picker-btn.active { color: #000; }
+    .picker-btn.f1.active { background: #e10600; }
+    .picker-btn.spotify.active { background: #1db954; }
+
+    .mockup { display: none; padding-top: 60px; }
+    .mockup.active { display: block; }
+
+    /* ═══════════════════════════════════════════════════════════
+       OPTION C: F1 RACE CONTROL
+       ═══════════════════════════════════════════════════════════ */
+    .f1-dash {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-2: #181818;
+      --border: rgba(255,255,255,0.06);
+      --red: #e10600;
+      --green: #00d27a;
+      --yellow: #ffd700;
+      --blue: #0090ff;
+      --text: #e8e8e8;
+      --text-2: #999;
+      --text-3: #555;
+      background: var(--bg);
+      min-height: 100vh;
+      font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+    }
+
+    /* F1 Header */
+    .f1-header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--red);
+      height: 48px;
+      padding: 0 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .f1-logo {
+      font-size: 16px; font-weight: 900; letter-spacing: -0.5px;
+      color: var(--red);
+    }
+    .f1-logo span { color: var(--text); font-weight: 700; }
+    .f1-divider {
+      width: 1px; height: 24px; background: rgba(255,255,255,0.1);
+    }
+    .f1-status {
+      font-size: 11px; font-weight: 600; color: var(--green);
+      display: flex; align-items: center; gap: 6px;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .f1-status::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 6px var(--green);
+    }
+    .f1-header-stats {
+      margin-left: auto; display: flex; gap: 24px;
+    }
+    .f1-hstat {
+      font-size: 11px; color: var(--text-3); font-weight: 500;
+    }
+    .f1-hstat b { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* F1 Ticker */
+    .f1-ticker {
+      background: var(--red);
+      padding: 4px 24px;
+      font-size: 11px; font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
+      display: flex; align-items: center; gap: 24px;
+      overflow: hidden;
+    }
+    .f1-ticker .label { opacity: 0.7; text-transform: uppercase; }
+
+    /* F1 Grid */
+    .f1-grid {
+      max-width: 1400px; margin: 0 auto;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 280px 1fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 12px;
+    }
+
+    /* F1 Panel */
+    .f1-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .f1-panel-h {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-3);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .f1-panel-h .f1-live {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--green); animation: f1blink 1s infinite;
+    }
+    @keyframes f1blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+    .f1-panel-b { padding: 12px 14px; }
+
+    /* F1 Telemetry gauges */
+    .f1-gauges {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .f1-gauge {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .f1-gauge-label {
+      font-size: 10px; font-weight: 600; color: var(--text-3);
+      width: 60px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .f1-gauge-bar {
+      flex: 1; height: 6px; background: var(--surface-2);
+      border-radius: 1px; overflow: hidden;
+    }
+    .f1-gauge-fill {
+      height: 100%; border-radius: 1px;
+      transition: width 0.8s ease;
+    }
+    .f1-gauge-fill.green { background: var(--green); box-shadow: 0 0 8px rgba(0,210,122,0.3); }
+    .f1-gauge-fill.red { background: var(--red); box-shadow: 0 0 8px rgba(225,6,0,0.3); }
+    .f1-gauge-fill.blue { background: var(--blue); box-shadow: 0 0 8px rgba(0,144,255,0.3); }
+    .f1-gauge-fill.yellow { background: var(--yellow); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+    .f1-gauge-val {
+      font-size: 12px; font-weight: 700; color: var(--text);
+      font-variant-numeric: tabular-nums; min-width: 36px; text-align: right;
+    }
+
+    /* F1 Leaderboard tower */
+    .f1-tower { list-style: none; }
+    .f1-tower li {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      font-size: 12px;
+    }
+    .f1-tower li:last-child { border: none; }
+    .f1-pos {
+      width: 22px; font-weight: 900; font-variant-numeric: tabular-nums;
+      color: var(--text-3); text-align: center; font-size: 11px;
+    }
+    .f1-tower li:nth-child(1) .f1-pos { color: var(--yellow); }
+    .f1-tower li:nth-child(2) .f1-pos { color: #c0c0c0; }
+    .f1-tower li:nth-child(3) .f1-pos { color: #cd7f32; }
+    .f1-driver {
+      flex: 1; font-weight: 700; font-size: 12px; color: var(--text);
+    }
+    .f1-team {
+      font-size: 10px; font-weight: 600; color: var(--text-3);
+    }
+    .f1-pts {
+      font-weight: 800; font-variant-numeric: tabular-nums;
+      color: var(--text); font-size: 13px;
+    }
+    .f1-delta {
+      font-size: 10px; font-weight: 600; color: var(--text-3);
+      font-variant-numeric: tabular-nums; min-width: 36px; text-align: right;
+    }
+    .f1-tower li:first-child .f1-delta { color: var(--red); font-weight: 700; }
+
+    /* F1 Actions */
+    .f1-actions {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    }
+    .f1-action {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 12px; text-align: center;
+      cursor: pointer; transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .f1-action:hover { border-left-color: var(--red); background: #1a1a1a; }
+    .f1-action .fa-icon { font-size: 16px; margin-bottom: 4px; }
+    .f1-action .fa-label { font-size: 10px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* F1 Log */
+    .f1-log {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; line-height: 1.6;
+      max-height: 200px; overflow-y: auto;
+    }
+    .f1-log-entry { display: flex; gap: 8px; padding: 1px 0; }
+    .f1-log-ts { color: var(--text-3); min-width: 64px; font-variant-numeric: tabular-nums; }
+    .f1-log-msg { color: var(--text-2); }
+    .f1-log-entry.err .f1-log-msg { color: var(--red); }
+    .f1-log-entry.ok .f1-log-msg { color: var(--green); }
+
+    /* F1 form inputs */
+    .f1-dash input, .f1-dash textarea, .f1-dash select {
+      background: #0a0a0a; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 3px; color: #e8e8e8; font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; padding: 8px 12px; width: 100%;
+    }
+    .f1-dash input:focus, .f1-dash textarea:focus {
+      border-color: var(--red); outline: none;
+      box-shadow: 0 0 0 2px rgba(225,6,0,0.15);
+    }
+    .f1-dash .f1-btn {
+      background: var(--red); color: #fff; border: none; border-radius: 3px;
+      padding: 8px 20px; font-size: 12px; font-weight: 700; cursor: pointer;
+      font-family: inherit; text-transform: uppercase; letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .f1-dash .f1-btn:hover { background: #ff1a0e; }
+    .f1-dash .f1-btn.ghost {
+      background: transparent; border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-2);
+    }
+    .f1-fg { margin-bottom: 10px; }
+    .f1-fg label {
+      display: block; font-size: 10px; font-weight: 700; color: #555;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       OPTION B: SPOTIFY / LINEAR
+       ═══════════════════════════════════════════════════════════ */
+    .sp-dash {
+      --bg: #000000;
+      --surface: #121212;
+      --surface-2: #1a1a1a;
+      --surface-3: #242424;
+      --border: rgba(255,255,255,0.07);
+      --green: #1db954;
+      --text: #ffffff;
+      --text-2: #b3b3b3;
+      --text-3: #6a6a6a;
+      background: var(--bg);
+      min-height: 100vh;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    /* Spotify Nav */
+    .sp-nav {
+      background: transparent;
+      padding: 20px 32px 0;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .sp-brand {
+      font-size: 22px; font-weight: 800; color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .sp-brand span { color: var(--green); }
+    .sp-nav-links {
+      display: flex; gap: 4px; margin-left: 32px;
+      background: var(--surface); border-radius: 8px; padding: 4px;
+    }
+    .sp-nav-link {
+      padding: 6px 16px; border-radius: 6px;
+      font-size: 13px; font-weight: 600; color: var(--text-2);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .sp-nav-link.active { background: var(--surface-3); color: #fff; }
+    .sp-nav-link:hover:not(.active) { color: #fff; }
+    .sp-nav-right {
+      margin-left: auto; display: flex; align-items: center; gap: 12px;
+    }
+    .sp-online {
+      font-size: 12px; font-weight: 600; color: var(--green);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sp-online::before {
+      content: ''; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green);
+    }
+
+    /* Spotify Content */
+    .sp-content {
+      max-width: 1200px; margin: 0 auto; padding: 32px;
+    }
+
+    /* Hero section */
+    .sp-hero {
+      margin-bottom: 40px;
+    }
+    .sp-hero h1 {
+      font-size: 48px; font-weight: 900; letter-spacing: -1.5px;
+      line-height: 1.1; margin-bottom: 8px;
+    }
+    .sp-hero p {
+      font-size: 16px; color: var(--text-2); font-weight: 500;
+    }
+
+    /* Spotify Stats Row */
+    .sp-stats {
+      display: flex; gap: 20px; margin-bottom: 40px;
+    }
+    .sp-stat {
+      flex: 1;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      transition: background 0.2s;
+    }
+    .sp-stat:hover { background: var(--surface-2); }
+    .sp-stat-val {
+      font-size: 36px; font-weight: 800; letter-spacing: -1px;
+      line-height: 1;
+    }
+    .sp-stat-val.green { color: var(--green); }
+    .sp-stat-label {
+      font-size: 14px; color: var(--text-2); font-weight: 500;
+      margin-top: 6px;
+    }
+
+    /* Spotify Grid */
+    .sp-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    .sp-full { grid-column: span 2; }
+
+    /* Spotify Card */
+    .sp-card {
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .sp-card:hover { background: var(--surface-2); }
+    .sp-card-h {
+      padding: 20px 24px 0;
+      font-size: 18px; font-weight: 800; letter-spacing: -0.3px;
+      color: #fff;
+    }
+    .sp-card-sub {
+      padding: 4px 24px 0;
+      font-size: 13px; color: var(--text-3); font-weight: 500;
+    }
+    .sp-card-b { padding: 16px 24px 24px; }
+
+    /* Spotify Leaderboard */
+    .sp-leader-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+      border-radius: 6px;
+      padding-left: 8px; padding-right: 8px;
+    }
+    .sp-leader-row:hover { background: rgba(255,255,255,0.05); }
+    .sp-leader-row:last-child { border: none; }
+    .sp-leader-pos {
+      width: 20px; font-size: 14px; font-weight: 700;
+      color: var(--text-3); text-align: center;
+    }
+    .sp-leader-row:nth-child(1) .sp-leader-pos { color: #ffd700; font-size: 16px; }
+    .sp-leader-row:nth-child(2) .sp-leader-pos { color: #c0c0c0; }
+    .sp-leader-row:nth-child(3) .sp-leader-pos { color: #cd7f32; }
+    .sp-leader-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--surface-3); display: flex;
+      align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: var(--text-2);
+    }
+    .sp-leader-row:nth-child(1) .sp-leader-avatar { background: rgba(255,215,0,0.15); color: #ffd700; }
+    .sp-leader-info { flex: 1; }
+    .sp-leader-name { font-size: 15px; font-weight: 700; }
+    .sp-leader-rank { font-size: 12px; color: var(--text-3); font-weight: 500; }
+    .sp-leader-bar {
+      width: 120px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.06);
+    }
+    .sp-leader-fill {
+      height: 100%; border-radius: 2px; background: var(--green);
+    }
+    .sp-leader-pts {
+      font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums;
+      min-width: 40px; text-align: right;
+    }
+
+    /* Spotify Actions */
+    .sp-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .sp-action-btn {
+      background: var(--surface-3); border: none; border-radius: 500px;
+      padding: 10px 24px; font-size: 13px; font-weight: 700;
+      color: #fff; cursor: pointer; font-family: inherit;
+      transition: all 0.15s; display: flex; align-items: center; gap: 8px;
+    }
+    .sp-action-btn:hover { background: #333; transform: scale(1.03); }
+    .sp-action-btn.primary { background: var(--green); color: #000; }
+    .sp-action-btn.primary:hover { background: #1ed760; }
+    .sp-action-btn.danger { color: #ff4444; }
+
+    /* Spotify Inputs */
+    .sp-dash input, .sp-dash textarea, .sp-dash select {
+      background: rgba(255,255,255,0.07); border: none;
+      border-radius: 8px; color: #fff; font-family: inherit;
+      font-size: 14px; font-weight: 500; padding: 12px 16px; width: 100%;
+    }
+    .sp-dash input:focus, .sp-dash textarea:focus {
+      outline: none; box-shadow: 0 0 0 2px var(--green);
+    }
+    .sp-dash input::placeholder, .sp-dash textarea::placeholder { color: #666; }
+    .sp-fg { margin-bottom: 14px; }
+    .sp-fg label {
+      display: block; font-size: 13px; font-weight: 700; color: var(--text-2);
+      margin-bottom: 6px;
+    }
+
+    /* Spotify Log */
+    .sp-log {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px; line-height: 1.7;
+      max-height: 200px; overflow-y: auto;
+      background: #0a0a0a; border-radius: 8px; padding: 14px;
+    }
+    .sp-log-line { display: flex; gap: 10px; padding: 1px 0; }
+    .sp-log-ts { color: #444; font-variant-numeric: tabular-nums; }
+    .sp-log-msg { color: #888; }
+  </style>
+</head>
+<body>
+
+  <!-- Picker -->
+  <div class="picker">
+    <span class="picker-label">Pick your vibe</span>
+    <button class="picker-btn f1 active" onclick="show('f1')">F1 Race Control</button>
+    <button class="picker-btn spotify" onclick="show('spotify')">Spotify / Linear</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       F1 RACE CONTROL
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mockup f1-dash active" id="mockup-f1">
+
+    <div class="f1-header">
+      <div class="f1-logo">TFT <span>CLASH</span></div>
+      <div class="f1-divider"></div>
+      <div class="f1-status">SYSTEMS ONLINE</div>
+      <div class="f1-header-stats">
+        <span class="f1-hstat">GUILD <b>TFT Clash</b></span>
+        <span class="f1-hstat">MEMBERS <b>24</b></span>
+        <span class="f1-hstat">PING <b>42ms</b></span>
+        <span class="f1-hstat">UPTIME <b>6h 23m</b></span>
+      </div>
+    </div>
+
+    <div class="f1-ticker">
+      <span class="label">LIVE</span>
+      <span>CLASH #16 - REGISTRATION OPEN - 12 REGISTERED - SUNDAY 8:00 PM GMT - SEASON 1</span>
+    </div>
+
+    <div class="f1-grid">
+
+      <!-- Left: Standings Tower -->
+      <div class="f1-panel" style="grid-row: span 3;">
+        <div class="f1-panel-h"><div class="f1-live"></div> SEASON STANDINGS</div>
+        <div class="f1-panel-b">
+          <ul class="f1-tower">
+            <li><span class="f1-pos">1</span><span class="f1-driver">Levitate</span><span class="f1-team">Challenger</span><span class="f1-pts">1024</span><span class="f1-delta">LEADER</span></li>
+            <li><span class="f1-pos">2</span><span class="f1-driver">Zounderkite</span><span class="f1-team">Grandmaster</span><span class="f1-pts">891</span><span class="f1-delta">-133</span></li>
+            <li><span class="f1-pos">3</span><span class="f1-driver">Uri</span><span class="f1-team">Master</span><span class="f1-pts">847</span><span class="f1-delta">-177</span></li>
+            <li><span class="f1-pos">4</span><span class="f1-driver">BingBing</span><span class="f1-team">Master</span><span class="f1-pts">803</span><span class="f1-delta">-221</span></li>
+            <li><span class="f1-pos">5</span><span class="f1-driver">Wiwi</span><span class="f1-team">Diamond</span><span class="f1-pts">756</span><span class="f1-delta">-268</span></li>
+            <li><span class="f1-pos">6</span><span class="f1-driver">Ole</span><span class="f1-team">Diamond</span><span class="f1-pts">712</span><span class="f1-delta">-312</span></li>
+            <li><span class="f1-pos">7</span><span class="f1-driver">Sybor</span><span class="f1-team">Diamond</span><span class="f1-pts">698</span><span class="f1-delta">-326</span></li>
+            <li><span class="f1-pos">8</span><span class="f1-driver">Ivdim</span><span class="f1-team">Platinum</span><span class="f1-pts">654</span><span class="f1-delta">-370</span></li>
+            <li><span class="f1-pos">9</span><span class="f1-driver">Vlad</span><span class="f1-team">Platinum</span><span class="f1-pts">601</span><span class="f1-delta">-423</span></li>
+            <li><span class="f1-pos">10</span><span class="f1-driver">Dishsoap</span><span class="f1-team">Gold</span><span class="f1-pts">534</span><span class="f1-delta">-490</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Top: Telemetry -->
+      <div class="f1-panel" style="grid-column: span 2;">
+        <div class="f1-panel-h">SYSTEM TELEMETRY</div>
+        <div class="f1-panel-b">
+          <div class="f1-gauges">
+            <div class="f1-gauge">
+              <span class="f1-gauge-label">Phase</span>
+              <div class="f1-gauge-bar"><div class="f1-gauge-fill green" style="width:35%"></div></div>
+              <span class="f1-gauge-val" style="color:#00d27a;">REG</span>
+            </div>
+            <div class="f1-gauge">
+              <span class="f1-gauge-label">Clash</span>
+              <div class="f1-gauge-bar"><div class="f1-gauge-fill red" style="width:80%"></div></div>
+              <span class="f1-gauge-val">#16</span>
+            </div>
+            <div class="f1-gauge">
+              <span class="f1-gauge-label">Players</span>
+              <div class="f1-gauge-bar"><div class="f1-gauge-fill blue" style="width:60%"></div></div>
+              <span class="f1-gauge-val">12/20</span>
+            </div>
+            <div class="f1-gauge">
+              <span class="f1-gauge-label">Season</span>
+              <div class="f1-gauge-bar"><div class="f1-gauge-fill yellow" style="width:80%"></div></div>
+              <span class="f1-gauge-val">16/20</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="f1-panel" style="grid-column: span 2;">
+        <div class="f1-panel-h">RACE CONTROL</div>
+        <div class="f1-panel-b">
+          <div class="f1-actions">
+            <div class="f1-action"><div class="fa-icon">&#x1f3c6;</div><div class="fa-label">Post Standings</div></div>
+            <div class="f1-action"><div class="fa-icon">&#x23f0;</div><div class="fa-label">24h Reminder</div></div>
+            <div class="f1-action"><div class="fa-icon">&#x1f6a8;</div><div class="fa-label">1h Reminder</div></div>
+            <div class="f1-action"><div class="fa-icon">&#x1f3ae;</div><div class="fa-label">Create Lobbies</div></div>
+            <div class="f1-action"><div class="fa-icon">&#x1f5d1;</div><div class="fa-label">Destroy Lobbies</div></div>
+            <div class="f1-action"><div class="fa-icon">&#x1f504;</div><div class="fa-label">Sync Roles</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Announce + Log -->
+      <div class="f1-panel">
+        <div class="f1-panel-h">BROADCAST</div>
+        <div class="f1-panel-b">
+          <div class="f1-fg"><label>Channel</label><select><option>#announcements</option><option>#clash-schedule</option></select></div>
+          <div class="f1-fg"><label>Message</label><textarea placeholder="Write message..." style="min-height:60px;resize:vertical;"></textarea></div>
+          <button class="f1-btn">TRANSMIT</button>
+        </div>
+      </div>
+
+      <div class="f1-panel">
+        <div class="f1-panel-h"><div class="f1-live"></div> SYSTEM LOG</div>
+        <div class="f1-panel-b">
+          <div class="f1-log">
+            <div class="f1-log-entry ok"><span class="f1-log-ts">14:23:01</span><span class="f1-log-msg">[sched] Jobs active</span></div>
+            <div class="f1-log-entry"><span class="f1-log-ts">14:23:01</span><span class="f1-log-msg">[listeners] Realtime subscriptions active</span></div>
+            <div class="f1-log-entry ok"><span class="f1-log-ts">14:23:02</span><span class="f1-log-msg">[dashboard] http://localhost:3737</span></div>
+            <div class="f1-log-entry"><span class="f1-log-ts">14:23:03</span><span class="f1-log-msg">[roles] Startup sync: 9 checked, 2 updated</span></div>
+            <div class="f1-log-entry"><span class="f1-log-ts">14:25:11</span><span class="f1-log-msg">[listener] New registration: BingBing (#12)</span></div>
+            <div class="f1-log-entry err"><span class="f1-log-ts">14:26:44</span><span class="f1-log-msg">[error] /profile: Player not found</span></div>
+            <div class="f1-log-entry"><span class="f1-log-ts">14:28:00</span><span class="f1-log-msg">[listener] Phase changed to: registration</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       SPOTIFY / LINEAR
+       ════════════════════════════════════════════════════════════ -->
+  <div class="mockup sp-dash" id="mockup-spotify">
+
+    <div class="sp-nav">
+      <div class="sp-brand">TFT <span>Clash</span></div>
+      <div class="sp-nav-links">
+        <div class="sp-nav-link active">Overview</div>
+        <div class="sp-nav-link">Announce</div>
+        <div class="sp-nav-link">Results</div>
+        <div class="sp-nav-link">Roles</div>
+        <div class="sp-nav-link">Logs</div>
+      </div>
+      <div class="sp-nav-right">
+        <div class="sp-online">Online</div>
+      </div>
+    </div>
+
+    <div class="sp-content">
+
+      <div class="sp-hero">
+        <h1>Good evening, Levitate.</h1>
+        <p>Clash #16 is open for registration. 12 players signed up. Sunday at 8 PM.</p>
+      </div>
+
+      <div class="sp-stats">
+        <div class="sp-stat">
+          <div class="sp-stat-val green">12</div>
+          <div class="sp-stat-label">Registered</div>
+        </div>
+        <div class="sp-stat">
+          <div class="sp-stat-val">Registration</div>
+          <div class="sp-stat-label">Current Phase</div>
+        </div>
+        <div class="sp-stat">
+          <div class="sp-stat-val">#16</div>
+          <div class="sp-stat-label">Clash Number</div>
+        </div>
+        <div class="sp-stat">
+          <div class="sp-stat-val">42ms</div>
+          <div class="sp-stat-label">Bot Ping</div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="sp-actions" style="margin-bottom: 32px;">
+        <button class="sp-action-btn primary">Post Standings</button>
+        <button class="sp-action-btn">24h Reminder</button>
+        <button class="sp-action-btn">1h Reminder</button>
+        <button class="sp-action-btn">Create Lobbies</button>
+        <button class="sp-action-btn danger">Destroy Lobbies</button>
+        <button class="sp-action-btn">Sync All Roles</button>
+      </div>
+
+      <div class="sp-grid">
+
+        <!-- Standings -->
+        <div class="sp-card">
+          <div class="sp-card-h">Season Standings</div>
+          <div class="sp-card-sub">Top 10 - Season 1</div>
+          <div class="sp-card-b">
+            <div class="sp-leader-row">
+              <span class="sp-leader-pos">1</span>
+              <div class="sp-leader-avatar">L</div>
+              <div class="sp-leader-info"><div class="sp-leader-name">Levitate</div><div class="sp-leader-rank">Challenger</div></div>
+              <div class="sp-leader-bar"><div class="sp-leader-fill" style="width:100%"></div></div>
+              <span class="sp-leader-pts">1024</span>
+            </div>
+            <div class="sp-leader-row">
+              <span class="sp-leader-pos">2</span>
+              <div class="sp-leader-avatar">Z</div>
+              <div class="sp-leader-info"><div class="sp-leader-name">Zounderkite</div><div class="sp-leader-rank">Grandmaster</div></div>
+              <div class="sp-leader-bar"><div class="sp-leader-fill" style="width:87%"></div></div>
+              <span class="sp-leader-pts">891</span>
+            </div>
+            <div class="sp-leader-row">
+              <span class="sp-leader-pos">3</span>
+              <div class="sp-leader-avatar">U</div>
+              <div class="sp-leader-info"><div class="sp-leader-name">Uri</div><div class="sp-leader-rank">Master</div></div>
+              <div class="sp-leader-bar"><div class="sp-leader-fill" style="width:83%"></div></div>
+              <span class="sp-leader-pts">847</span>
+            </div>
+            <div class="sp-leader-row">
+              <span class="sp-leader-pos">4</span>
+              <div class="sp-leader-avatar">B</div>
+              <div class="sp-leader-info"><div class="sp-leader-name">BingBing</div><div class="sp-leader-rank">Master</div></div>
+              <div class="sp-leader-bar"><div class="sp-leader-fill" style="width:78%"></div></div>
+              <span class="sp-leader-pts">803</span>
+            </div>
+            <div class="sp-leader-row">
+              <span class="sp-leader-pos">5</span>
+              <div class="sp-leader-avatar">W</div>
+              <div class="sp-leader-info"><div class="sp-leader-name">Wiwi</div><div class="sp-leader-rank">Diamond</div></div>
+              <div class="sp-leader-bar"><div class="sp-leader-fill" style="width:74%"></div></div>
+              <span class="sp-leader-pts">756</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Announce -->
+        <div class="sp-card">
+          <div class="sp-card-h">Send Announcement</div>
+          <div class="sp-card-sub">Broadcast to any channel</div>
+          <div class="sp-card-b">
+            <div class="sp-fg"><label>Channel</label><select><option>#announcements</option><option>#clash-schedule</option><option>#general</option></select></div>
+            <div class="sp-fg"><label>Title</label><input type="text" placeholder="Optional title"></div>
+            <div class="sp-fg"><label>Message</label><textarea placeholder="What do you want to say?" style="min-height:80px;resize:vertical;"></textarea></div>
+            <button class="sp-action-btn primary" style="width:100%;justify-content:center;">Send Announcement</button>
+          </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="sp-card sp-full">
+          <div class="sp-card-h">System Log</div>
+          <div class="sp-card-sub">Live feed - auto refreshes</div>
+          <div class="sp-card-b">
+            <div class="sp-log">
+              <div class="sp-log-line"><span class="sp-log-ts">14:23:01</span><span class="sp-log-msg">[sched] Jobs active</span></div>
+              <div class="sp-log-line"><span class="sp-log-ts">14:23:01</span><span class="sp-log-msg">[listeners] Realtime subscriptions active</span></div>
+              <div class="sp-log-line"><span class="sp-log-ts">14:23:02</span><span class="sp-log-msg">[dashboard] http://localhost:3737</span></div>
+              <div class="sp-log-line"><span class="sp-log-ts">14:23:03</span><span class="sp-log-msg">[roles] Startup sync: 9 checked, 2 updated</span></div>
+              <div class="sp-log-line"><span class="sp-log-ts">14:25:11</span><span class="sp-log-msg">[listener] New registration: BingBing (#12)</span></div>
+              <div class="sp-log-line"><span class="sp-log-ts">14:28:00</span><span class="sp-log-msg">[listener] Phase changed to: registration</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function show(which) {
+      document.querySelectorAll('.mockup').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.picker-btn').forEach(function(el) { el.classList.remove('active'); });
+      document.getElementById('mockup-' + which).classList.add('active');
+      document.querySelector('.picker-btn.' + (which === 'f1' ? 'f1' : 'spotify')).classList.add('active');
+    }
+  </script>
+</body>
+</html>
