@@ -121,17 +121,34 @@ async function fetchRedditHot(supabase: any): Promise<any> {
 
   if (cached) return cached.data;
 
-  try {
-    const res = await fetch("https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1", {
-      headers: {
-        "User-Agent": "web:tftclash.app:v1.0 (by /u/tftclash)",
-        "Accept": "application/json",
-      },
-    });
-    if (!res.ok) {
-      return { posts: [], error: `Reddit ${res.status}: ${await res.text().catch(() => "")}` };
+  const endpoints = [
+    "https://www.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1",
+    "https://old.reddit.com/r/CompetitiveTFT/hot.json?limit=15&raw_json=1",
+    "https://api.reddit.com/r/CompetitiveTFT/hot?limit=15&raw_json=1",
+  ];
+  const ua = "web:app.tftclash:v1.0.0 (by /u/Levitate_TFT)";
+  let lastErr = "";
+  let json: any = null;
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        headers: {
+          "User-Agent": ua,
+          "Accept": "application/json",
+        },
+      });
+      if (!res.ok) {
+        lastErr = `${ep} -> ${res.status}`;
+        continue;
+      }
+      json = await res.json();
+      break;
+    } catch (e) {
+      lastErr = `${ep} -> ${String(e)}`;
     }
-    const json = await res.json();
+  }
+  try {
+    if (!json) return { posts: [], error: lastErr || "all reddit endpoints failed" };
     const posts = (json?.data?.children || []).map((c: any) => ({
       title: c.data.title,
       score: c.data.score,
@@ -139,6 +156,7 @@ async function fetchRedditHot(supabase: any): Promise<any> {
       url: "https://reddit.com" + c.data.permalink,
       flair: c.data.link_flair_text,
     }));
+    if (!posts.length) return { posts: [], error: "reddit returned 0 posts (likely blocked)" };
     const expires = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
     await supabase.from("trend_cache").insert({
       source: "reddit",

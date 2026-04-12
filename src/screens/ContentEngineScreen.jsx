@@ -939,6 +939,13 @@ function TrendsTab(props) {
       </div>
       <div className="rounded-xl p-2" style={{...surfaceBase, ...goldBorder}}>
         {!trends && <div className="text-on-surface/50 text-sm p-6 text-center">No data yet</div>}
+        {trends && trends.error && (!trends.posts || !trends.posts.length) && (
+          <div className="p-6 text-center">
+            <div className="text-error text-sm mb-2">Reddit fetch blocked</div>
+            <div className="text-on-surface/50 text-xs break-all">{trends.error}</div>
+            <div className="text-on-surface/40 text-xs mt-3">Reddit blocks Supabase Edge IPs. Trends may need a different source.</div>
+          </div>
+        )}
         {trends && trends.posts && trends.posts.map(function(p,i){
           return (
             <a key={i} href={p.url} target="_blank" rel="noopener noreferrer"
