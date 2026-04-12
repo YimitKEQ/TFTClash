@@ -3,34 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TFT CLASH - Race Control</title>
+  <title>TFT Clash - Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0a;
-      --surface: #111111;
-      --surface-2: #181818;
-      --surface-3: #1e1e1e;
-      --border: rgba(255,255,255,0.06);
-      --red: #e10600;
-      --red-glow: rgba(225,6,0,0.25);
-      --green: #00d27a;
-      --green-dim: rgba(0,210,122,0.12);
+      --bg: #000000;
+      --surface: #121212;
+      --surface-2: #1a1a1a;
+      --surface-3: #242424;
+      --surface-4: #2a2a2a;
+      --border: rgba(255,255,255,0.07);
+      --green: #1db954;
+      --green-bright: #1ed760;
+      --green-dim: rgba(29,185,84,0.1);
+      --red: #ff4444;
+      --red-dim: rgba(255,68,68,0.1);
       --yellow: #ffd700;
-      --blue: #0090ff;
-      --cyan: #00c8ff;
-      --text: #e8e8e8;
-      --text-2: #999;
-      --text-3: #555;
-      --text-4: #333;
+      --blue: #4a9eff;
+      --text: #ffffff;
+      --text-2: #b3b3b3;
+      --text-3: #6a6a6a;
+      --text-4: #404040;
     }
 
     body {
-      font-family: 'Space Grotesk', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
@@ -38,434 +39,407 @@
       overflow-x: hidden;
     }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-    ::-webkit-scrollbar-thumb:hover { background: #555; }
+    ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--surface-4); }
 
-    /* ═══ HEADER ═══════════════════════════════════════════════════ */
-    .header {
-      background: var(--surface);
-      border-bottom: 2px solid var(--red);
-      height: 48px;
-      padding: 0 24px;
+    /* ═══ NAV BAR ══════════════════════════════════════════════════ */
+    .nav {
+      background: transparent;
+      padding: 20px 32px 0;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 20px;
       position: sticky;
       top: 0;
       z-index: 200;
+      background: var(--bg);
     }
-    .logo {
-      font-size: 16px;
-      font-weight: 700;
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
       letter-spacing: -0.5px;
-      color: var(--red);
     }
-    .logo span { color: var(--text); font-weight: 600; }
-    .h-div {
-      width: 1px; height: 24px;
-      background: rgba(255,255,255,0.1);
+    .brand span { color: var(--green); }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+      margin-left: 32px;
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 4px;
     }
-    .h-status {
-      font-size: 11px;
+    .nav-tab {
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+    .nav-tab.active { background: var(--surface-3); color: #fff; }
+    .nav-tab:hover:not(.active) { color: #fff; }
+
+    .nav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .online-badge {
+      font-size: 12px;
       font-weight: 600;
       color: var(--green);
       display: flex;
       align-items: center;
       gap: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
-    .h-status .dot {
-      width: 6px; height: 6px;
+    .online-badge .dot {
+      width: 8px; height: 8px;
       border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 6px var(--green);
-      animation: blink 1.5s infinite;
+      animation: pulse 2s ease-in-out infinite;
     }
-    .h-status.offline { color: var(--red); }
-    .h-status.offline .dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
-    @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+    .online-badge.offline { color: var(--red); }
+    .online-badge.offline .dot { background: var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
 
-    .h-stats {
-      margin-left: auto;
-      display: flex;
-      gap: 24px;
-      align-items: center;
+    .cmd-trigger {
+      font-size: 12px;
+      color: var(--text-3);
+      background: var(--surface);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.15s;
     }
-    .h-stat {
+    .cmd-trigger:hover { background: var(--surface-2); color: var(--text-2); }
+    .cmd-trigger kbd {
+      font-family: inherit;
       font-size: 11px;
+      font-weight: 600;
+      background: var(--surface-3);
+      border-radius: 4px;
+      padding: 2px 6px;
+      margin-right: 8px;
+    }
+    .ping-val {
+      font-size: 12px;
+      color: var(--text-3);
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ═══ CONTENT AREA ═════════════════════════════════════════════ */
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    /* Tab pages */
+    .tab-page { display: none; }
+    .tab-page.active { display: block; }
+
+    /* ═══ HERO ═════════════════════════════════════════════════════ */
+    .hero { margin-bottom: 36px; }
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    /* ═══ STAT CARDS ═══════════════════════════════════════════════ */
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      flex: 1;
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 24px;
+      transition: background 0.2s;
+    }
+    .stat-card:hover { background: var(--surface-2); }
+    .stat-val {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-val.green { color: var(--green); }
+    .stat-val.blue { color: var(--blue); }
+    .stat-val.yellow { color: var(--yellow); }
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-2);
+      font-weight: 500;
+      margin-top: 6px;
+    }
+
+    /* ═══ PILL BUTTONS ═════════════════════════════════════════════ */
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    .pill {
+      background: var(--surface-3);
+      border: none;
+      border-radius: 500px;
+      padding: 10px 24px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill:hover { background: #333; transform: scale(1.03); }
+    .pill:active { transform: scale(0.98); }
+    .pill.primary { background: var(--green); color: #000; }
+    .pill.primary:hover { background: var(--green-bright); }
+    .pill.danger { color: var(--red); }
+    .pill.danger:hover { background: rgba(255,68,68,0.15); }
+    .pill .pill-key {
+      font-size: 10px;
+      font-weight: 600;
+      background: rgba(0,0,0,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      opacity: 0.6;
+    }
+    .pill.primary .pill-key { background: rgba(0,0,0,0.15); }
+
+    /* ═══ CARDS ═════════════════════════════════════════════════════ */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .grid-full { grid-column: span 2; }
+
+    .card {
+      background: var(--surface);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: background 0.2s;
+    }
+    .card:hover { background: var(--surface-2); }
+    .card-h {
+      padding: 20px 24px 0;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+    .card-sub {
+      padding: 4px 24px 0;
+      font-size: 13px;
       color: var(--text-3);
       font-weight: 500;
     }
-    .h-stat b {
-      color: var(--text);
+    .card-b { padding: 16px 24px 24px; }
+
+    /* ═══ LEADERBOARD ══════════════════════════════════════════════ */
+    .leader-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .leader-row:hover { background: rgba(255,255,255,0.05); }
+    .leader-row:last-child { border: none; }
+    .leader-pos {
+      width: 20px;
+      font-size: 14px;
       font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-    .cmd-trigger {
-      font-size: 11px;
-      color: var(--text-3);
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 3px;
-      padding: 3px 10px;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-    }
-    .cmd-trigger:hover { border-color: var(--red); color: var(--text-2); }
-    .cmd-trigger kbd {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 10px;
-      font-weight: 600;
-      background: var(--surface-3);
-      border-radius: 2px;
-      padding: 1px 4px;
-      margin-right: 6px;
-    }
-
-    /* ═══ TICKER ═══════════════════════════════════════════════════ */
-    .ticker {
-      background: var(--red);
-      padding: 5px 24px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-    .ticker .tag {
-      opacity: 0.7;
-      text-transform: uppercase;
-      font-size: 10px;
-      letter-spacing: 1px;
-    }
-    .ticker .scroll-text {
-      animation: tickerScroll 30s linear infinite;
-    }
-    @keyframes tickerScroll {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* ═══ TIME BAR ═════════════════════════════════════════════════ */
-    .time-bar {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 5px 24px;
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 10px;
-      color: var(--text-3);
-      letter-spacing: 0.5px;
-    }
-    .time-bar .clock { color: var(--red); font-weight: 600; }
-    .time-bar .up-val { color: var(--text-2); }
-
-    /* ═══ GRID ═════════════════════════════════════════════════════ */
-    .grid {
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 14px 18px;
-      display: grid;
-      grid-template-columns: 280px 1fr 1fr;
-      gap: 10px;
-    }
-
-    /* ═══ PANEL ════════════════════════════════════════════════════ */
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .panel-h {
-      padding: 8px 14px;
-      border-bottom: 1px solid var(--border);
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--text-3);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .panel-h .live-dot {
-      width: 5px; height: 5px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: blink 1s infinite;
-    }
-    .panel-h .badge {
-      margin-left: auto;
-      font-size: 9px;
-      font-weight: 600;
-      color: var(--text-3);
-      letter-spacing: 0.5px;
-    }
-    .panel-h .badge.live { color: var(--green); }
-    .panel-b { padding: 12px 14px; }
-
-    /* Span helpers */
-    .span-2 { grid-column: span 2; }
-    .span-3 { grid-column: span 3; }
-    .span-r3 { grid-row: span 3; }
-
-    /* ═══ TELEMETRY GAUGES ═════════════════════════════════════════ */
-    .gauges { display: flex; flex-direction: column; gap: 10px; }
-    .gauge { display: flex; align-items: center; gap: 10px; }
-    .gauge-label {
-      font-size: 10px; font-weight: 600; color: var(--text-3);
-      width: 70px; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .gauge-bar {
-      flex: 1; height: 6px;
-      background: var(--surface-2);
-      border-radius: 1px;
-      overflow: hidden;
-    }
-    .gauge-fill {
-      height: 100%; border-radius: 1px;
-      transition: width 0.8s ease;
-    }
-    .gauge-fill.green { background: var(--green); box-shadow: 0 0 8px rgba(0,210,122,0.3); }
-    .gauge-fill.red { background: var(--red); box-shadow: 0 0 8px rgba(225,6,0,0.3); }
-    .gauge-fill.blue { background: var(--blue); box-shadow: 0 0 8px rgba(0,144,255,0.3); }
-    .gauge-fill.yellow { background: var(--yellow); box-shadow: 0 0 8px rgba(255,215,0,0.3); }
-    .gauge-fill.cyan { background: var(--cyan); box-shadow: 0 0 8px rgba(0,200,255,0.3); }
-    .gauge-val {
-      font-size: 12px; font-weight: 700; color: var(--text);
-      font-variant-numeric: tabular-nums; min-width: 48px; text-align: right;
-    }
-
-    /* Phase text colors */
-    .phase-idle { color: var(--text-3); }
-    .phase-registration { color: var(--green); }
-    .phase-checkin { color: var(--blue); }
-    .phase-inprogress { color: var(--red); }
-    .phase-complete { color: var(--green); }
-
-    /* ═══ STANDINGS TOWER ══════════════════════════════════════════ */
-    .tower { list-style: none; }
-    .tower li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
-      font-size: 12px;
-    }
-    .tower li:last-child { border: none; }
-    .t-pos {
-      width: 22px;
-      font-weight: 900;
-      font-variant-numeric: tabular-nums;
       color: var(--text-3);
       text-align: center;
-      font-size: 11px;
-    }
-    .tower li:nth-child(1) .t-pos { color: var(--yellow); }
-    .tower li:nth-child(2) .t-pos { color: #c0c0c0; }
-    .tower li:nth-child(3) .t-pos { color: #cd7f32; }
-    .t-name {
-      flex: 1;
-      font-weight: 700;
-      font-size: 12px;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .t-rank {
-      font-size: 9px;
-      font-weight: 600;
-      padding: 1px 6px;
-      border-radius: 2px;
-      letter-spacing: 0.3px;
-    }
-    .t-rank.Challenger { background: rgba(255,215,0,0.1); color: var(--yellow); }
-    .t-rank.Grandmaster { background: rgba(225,6,0,0.1); color: #ff4444; }
-    .t-rank.Master { background: rgba(0,144,255,0.1); color: var(--blue); }
-    .t-rank.Diamond { background: rgba(0,210,122,0.1); color: var(--green); }
-    .t-rank.Platinum { background: rgba(200,200,200,0.08); color: var(--text-2); }
-    .t-rank.Gold { background: rgba(255,215,0,0.06); color: #b8860b; }
-    .t-pts {
-      font-weight: 800;
       font-variant-numeric: tabular-nums;
-      color: var(--text);
-      font-size: 13px;
-      min-width: 36px;
-      text-align: right;
     }
-    .t-delta {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-3);
+    .leader-row:nth-child(1) .leader-pos { color: var(--yellow); font-size: 16px; }
+    .leader-row:nth-child(2) .leader-pos { color: #c0c0c0; }
+    .leader-row:nth-child(3) .leader-pos { color: #cd7f32; }
+    .leader-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+    .leader-row:nth-child(1) .leader-avatar { background: rgba(255,215,0,0.15); color: var(--yellow); }
+    .leader-row:nth-child(2) .leader-avatar { background: rgba(192,192,192,0.12); color: #c0c0c0; }
+    .leader-row:nth-child(3) .leader-avatar { background: rgba(205,127,50,0.12); color: #cd7f32; }
+    .leader-info { flex: 1; min-width: 0; }
+    .leader-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .leader-rank { font-size: 12px; color: var(--text-3); font-weight: 500; }
+    .leader-bar {
+      width: 100px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .leader-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--green);
+      transition: width 0.6s ease;
+    }
+    .leader-pts {
+      font-size: 15px;
+      font-weight: 800;
       font-variant-numeric: tabular-nums;
       min-width: 40px;
       text-align: right;
     }
-    .tower li:first-child .t-delta { color: var(--red); font-weight: 700; }
-
-    /* ═══ ACTIONS GRID ═════════════════════════════════════════════ */
-    .actions-grid {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 8px;
-    }
-    .act-btn {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-left: 3px solid transparent;
-      border-radius: 4px;
-      padding: 14px 8px 10px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s;
-      position: relative;
-    }
-    .act-btn:hover { border-left-color: var(--red); background: #1a1a1a; }
-    .act-btn:active { transform: scale(0.97); }
-    .act-btn.danger { border-color: rgba(225,6,0,0.1); }
-    .act-btn.danger:hover { border-left-color: var(--red); }
-    .act-btn.success { border-color: rgba(0,210,122,0.08); }
-    .act-btn.success:hover { border-left-color: var(--green); }
-    .act-btn .a-icon { font-size: 18px; margin-bottom: 4px; }
-    .act-btn .a-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-2);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .act-btn .a-key {
-      position: absolute;
-      top: 4px; right: 6px;
-      font-size: 9px;
-      font-weight: 600;
-      color: var(--text-3);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    /* ═══ FORMS ════════════════════════════════════════════════════ */
-    .fg { margin-bottom: 10px; }
-    .fg label {
-      display: block;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 4px;
-    }
-    input, textarea, select {
-      background: #0a0a0a;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 3px;
-      color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px;
-      padding: 8px 12px;
-      width: 100%;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    input::placeholder, textarea::placeholder { color: var(--text-3); }
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--red);
-      box-shadow: 0 0 0 2px rgba(225,6,0,0.15);
-    }
-    textarea { resize: vertical; min-height: 60px; }
-    select { cursor: pointer; }
-    select option { background: var(--surface); }
-
-    .radio-row {
-      display: flex; gap: 14px;
-    }
-    .radio-row label {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 12px; color: var(--text-2); cursor: pointer;
-      text-transform: none; letter-spacing: 0; font-weight: 500;
-    }
-    .radio-row input[type="radio"] { width: auto; accent-color: var(--red); }
-
-    /* ═══ BUTTONS ══════════════════════════════════════════════════ */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 8px 20px;
-      border: none;
-      border-radius: 3px;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-    }
-    .btn:hover:not(:disabled) { filter: brightness(1.15); }
-    .btn:active:not(:disabled) { transform: scale(0.97); }
-    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .btn-red { background: var(--red); color: #fff; }
-    .btn-ghost {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-2);
-    }
-    .btn-ghost:hover:not(:disabled) { border-color: rgba(255,255,255,0.2); color: var(--text); filter: none; }
-    .btn-green { background: rgba(0,210,122,0.12); color: var(--green); border: 1px solid rgba(0,210,122,0.15); }
-    .btn-danger { background: rgba(225,6,0,0.12); color: var(--red); border: 1px solid rgba(225,6,0,0.15); }
 
     /* ═══ REGISTRATIONS ════════════════════════════════════════════ */
     .reg-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 5px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.03);
+      gap: 12px;
+      padding: 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
     }
-    .reg-row:last-child { border: none; }
-    .reg-pos {
-      width: 20px;
-      font-size: 11px;
+    .reg-row:hover { background: rgba(255,255,255,0.04); }
+    .reg-num {
+      width: 24px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--text-3);
       text-align: center;
-      font-variant-numeric: tabular-nums;
     }
-    .reg-name { flex: 1; font-size: 12px; font-weight: 600; }
-    .reg-status {
-      font-size: 9px;
-      color: var(--text-3);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+    .reg-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--surface-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-2);
+      flex-shrink: 0;
     }
+    .reg-name { flex: 1; font-size: 14px; font-weight: 600; }
+    .rank-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 500px;
+    }
+    .rank-pill.Challenger { background: rgba(255,215,0,0.1); color: var(--yellow); }
+    .rank-pill.Grandmaster { background: rgba(255,68,68,0.1); color: var(--red); }
+    .rank-pill.Master { background: rgba(74,158,255,0.1); color: var(--blue); }
+    .rank-pill.Diamond { background: rgba(29,185,84,0.1); color: var(--green); }
+    .rank-pill.Platinum { background: rgba(180,180,180,0.08); color: var(--text-2); }
+    .rank-pill.Gold { background: rgba(255,215,0,0.06); color: #b8860b; }
+
+    /* ═══ FORMS ════════════════════════════════════════════════════ */
+    .fg { margin-bottom: 14px; }
+    .fg label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-2);
+      margin-bottom: 6px;
+    }
+    input, textarea, select {
+      background: rgba(255,255,255,0.07);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 12px 16px;
+      width: 100%;
+      outline: none;
+      transition: box-shadow 0.15s;
+    }
+    input::placeholder, textarea::placeholder { color: #555; }
+    input:focus, textarea:focus, select:focus {
+      box-shadow: 0 0 0 2px var(--green);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+    select { cursor: pointer; }
+    select option { background: var(--surface); }
+
+    .radio-row {
+      display: flex; gap: 16px;
+    }
+    .radio-row label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; color: var(--text-2); cursor: pointer;
+      font-weight: 500;
+    }
+    .radio-row input[type="radio"] { width: auto; accent-color: var(--green); }
+
+    .send-btn {
+      width: 100%;
+      background: var(--green);
+      color: #000;
+      border: none;
+      border-radius: 500px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      margin-top: 4px;
+    }
+    .send-btn:hover { background: var(--green-bright); transform: scale(1.01); }
+    .send-btn:active { transform: scale(0.98); }
 
     /* ═══ PLACEMENT ROWS ═══════════════════════════════════════════ */
     .p-row {
       display: grid;
-      grid-template-columns: 32px 1fr;
-      gap: 8px;
+      grid-template-columns: 36px 1fr;
+      gap: 10px;
       align-items: center;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
-    .p-row .p-pos {
+    .p-pos {
       text-align: center;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-3);
     }
     .p-row:nth-child(1) .p-pos { color: var(--yellow); }
@@ -473,104 +447,133 @@
     .p-row:nth-child(3) .p-pos { color: #cd7f32; }
 
     /* ═══ ROLES TABLE ══════════════════════════════════════════════ */
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .member-scroll { max-height: 460px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; }
     th {
       text-align: left;
-      padding: 8px 10px;
-      font-size: 9px;
+      padding: 10px 12px;
+      font-size: 12px;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
       color: var(--text-3);
       border-bottom: 1px solid var(--border);
     }
     td {
-      padding: 7px 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.02);
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
       vertical-align: middle;
+      font-size: 14px;
     }
-    tr:hover td { background: rgba(225,6,0,0.02); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
 
     .role-tag {
       display: inline-block;
-      font-size: 9px;
-      padding: 1px 6px;
-      border-radius: 2px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 500px;
+      font-weight: 600;
       margin: 1px 2px;
     }
     .role-tag.Season-Champion, .role-tag.Host, .role-tag.Challenger { background: rgba(255,215,0,0.1); color: var(--yellow); }
-    .role-tag.Grandmaster { background: rgba(225,6,0,0.1); color: #ff4444; }
-    .role-tag.Master, .role-tag.Pro { background: rgba(0,144,255,0.1); color: var(--blue); }
-    .role-tag.Diamond, .role-tag.Player { background: rgba(0,210,122,0.1); color: var(--green); }
-    .role-tag.Platinum { background: rgba(200,200,200,0.08); color: var(--text-2); }
+    .role-tag.Grandmaster { background: var(--red-dim); color: var(--red); }
+    .role-tag.Master, .role-tag.Pro { background: rgba(74,158,255,0.1); color: var(--blue); }
+    .role-tag.Diamond, .role-tag.Player { background: var(--green-dim); color: var(--green); }
+    .role-tag.Platinum { background: rgba(180,180,180,0.08); color: var(--text-2); }
 
-    .member-actions { display: flex; gap: 4px; align-items: center; }
-    .member-actions select { width: auto; padding: 4px 8px; font-size: 11px; }
-    .member-actions .btn { padding: 4px 8px; font-size: 10px; }
-    .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-    .member-scroll { max-height: 400px; overflow-y: auto; }
+    .member-actions { display: flex; gap: 6px; align-items: center; }
+    .member-actions select { width: auto; padding: 6px 10px; font-size: 12px; border-radius: 6px; }
+    .mini-pill {
+      background: var(--surface-3);
+      border: none;
+      border-radius: 500px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .mini-pill:hover { background: #333; }
+    .mini-pill.green { background: var(--green-dim); color: var(--green); }
+    .mini-pill.green:hover { background: rgba(29,185,84,0.2); }
 
     /* ═══ LOG ═══════════════════════════════════════════════════════ */
-    .log-feed {
-      max-height: 300px;
-      overflow-y: auto;
+    .log-wrap {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11px;
+      font-size: 12px;
       line-height: 1.7;
+      max-height: 360px;
+      overflow-y: auto;
+      background: #0a0a0a;
+      border-radius: 8px;
+      padding: 14px;
     }
-    .log-entry {
-      padding: 1px 0;
+    .log-line {
       display: flex;
-      gap: 8px;
+      gap: 10px;
+      padding: 1px 0;
       opacity: 0;
-      animation: logIn 0.3s ease forwards;
+      animation: fadeIn 0.3s ease forwards;
     }
-    @keyframes logIn { to { opacity: 1; } }
+    @keyframes fadeIn { to { opacity: 1; } }
     .log-ts {
-      color: var(--text-3);
+      color: #444;
+      font-variant-numeric: tabular-nums;
       white-space: nowrap;
       min-width: 64px;
-      font-variant-numeric: tabular-nums;
     }
-    .log-msg { color: var(--text-2); word-break: break-all; }
-    .log-entry.error .log-msg { color: var(--red); }
-    .log-entry.error .log-ts { color: rgba(225,6,0,0.5); }
-    .log-entry.ok .log-msg { color: var(--green); }
+    .log-msg { color: #888; word-break: break-all; }
+    .log-line.error .log-msg { color: var(--red); }
+    .log-line.error .log-ts { color: rgba(255,68,68,0.4); }
+    .log-line.ok .log-msg { color: var(--green); }
 
     /* ═══ TOAST ═════════════════════════════════════════════════════ */
     .toast-wrap {
-      position: fixed; bottom: 20px; right: 20px;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
       z-index: 9999;
-      display: flex; flex-direction: column; gap: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     .toast {
-      padding: 10px 16px;
-      border-radius: 3px;
-      font-size: 12px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: 600;
-      letter-spacing: 0.2px;
-      animation: toastIn 0.3s ease;
-      max-width: 360px;
+      animation: slideIn 0.3s ease;
+      max-width: 380px;
       background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--green);
+      color: var(--text);
       box-shadow: 0 8px 32px rgba(0,0,0,0.5);
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: var(--text);
+      gap: 10px;
     }
-    .toast.success { border-left-color: var(--green); }
-    .toast.error { border-left-color: var(--red); color: var(--red); }
-    @keyframes toastIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    .toast .t-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .toast.success .t-dot { background: var(--green); box-shadow: 0 0 8px rgba(29,185,84,0.4); }
+    .toast.success { color: var(--green); }
+    .toast.error .t-dot { background: var(--red); box-shadow: 0 0 8px rgba(255,68,68,0.4); }
+    .toast.error { color: var(--red); }
+    @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
     /* ═══ COMMAND PALETTE ═══════════════════════════════════════════ */
     .cmd-overlay {
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
       z-index: 10000;
       display: none;
       align-items: flex-start;
@@ -580,272 +583,277 @@
     .cmd-overlay.open { display: flex; }
     .cmd-box {
       background: var(--surface);
-      border: 1px solid rgba(225,6,0,0.2);
-      border-radius: 6px;
-      width: 520px;
-      box-shadow: 0 0 60px rgba(225,6,0,0.08), 0 20px 60px rgba(0,0,0,0.6);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 540px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
       overflow: hidden;
     }
     .cmd-input-wrap {
-      padding: 14px 18px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .cmd-search-icon { color: var(--red); font-size: 13px; font-weight: 700; }
+    .cmd-search-icon { color: var(--green); font-size: 16px; }
     .cmd-input {
       flex: 1;
       background: none;
       border: none;
       outline: none;
       color: var(--text);
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 500;
       font-family: inherit;
-      letter-spacing: 0.2px;
-      box-shadow: none;
+      box-shadow: none !important;
     }
-    .cmd-input:focus { box-shadow: none; }
     .cmd-input::placeholder { color: var(--text-3); }
-    .cmd-results { max-height: 300px; overflow-y: auto; padding: 6px; }
+    .cmd-results { max-height: 320px; overflow-y: auto; padding: 8px; }
     .cmd-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 4px;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
       cursor: pointer;
       transition: background 0.1s;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--text-2);
-      border-left: 3px solid transparent;
     }
     .cmd-item:hover, .cmd-item.active {
-      background: rgba(225,6,0,0.06);
-      border-left-color: var(--red);
+      background: var(--green-dim);
       color: var(--text);
     }
-    .cmd-item .cmd-icon { font-size: 14px; width: 24px; text-align: center; }
+    .cmd-item .cmd-icon { font-size: 16px; width: 28px; text-align: center; }
     .cmd-item .cmd-hint {
       margin-left: auto;
-      font-size: 10px;
+      font-size: 11px;
       color: var(--text-3);
       font-family: 'JetBrains Mono', monospace;
     }
 
     /* ═══ RESPONSIVE ═══════════════════════════════════════════════ */
-    @media (max-width: 1100px) {
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .span-r3 { grid-row: span 1; }
-      .actions-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 900px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .grid-full { grid-column: span 1; }
+      .stats-row { flex-wrap: wrap; }
+      .stat-card { min-width: calc(50% - 8px); }
+      .hero h1 { font-size: 32px; }
+      .nav-tabs { display: none; }
+      .content { padding: 20px; }
     }
-    @media (max-width: 768px) {
-      .grid {
-        grid-template-columns: 1fr;
-        padding: 10px;
-      }
-      .span-2, .span-3 { grid-column: span 1; }
-      .actions-grid { grid-template-columns: repeat(2, 1fr); }
-      .h-stats { display: none; }
-      .time-bar { display: none; }
-      .ticker { font-size: 10px; padding: 4px 14px; }
+    @media (max-width: 600px) {
+      .nav { padding: 14px 16px 0; }
+      .nav-right { display: none; }
+      .content { padding: 16px; }
+      .pill-row { gap: 6px; }
+      .pill { padding: 8px 16px; font-size: 12px; }
+      .hero h1 { font-size: 28px; }
+      .stat-card { min-width: 100%; }
+    }
+
+    /* Mobile tab bar */
+    .mobile-tabs {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 8px 4px;
+      z-index: 200;
+      justify-content: space-around;
+    }
+    .mobile-tab {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-3);
+      text-align: center;
+      cursor: pointer;
+      padding: 4px 8px;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+    .mobile-tab.active { color: var(--green); }
+    @media (max-width: 900px) {
+      .mobile-tabs { display: flex; }
+      body { padding-bottom: 56px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ═══ HEADER ═══════════════════════════════════════════════ -->
-  <header class="header">
-    <div class="logo">TFT <span>CLASH</span></div>
-    <div class="h-div"></div>
-    <div class="h-status" id="statusIndicator">
-      <div class="dot"></div>
-      <span id="statusText">CONNECTING</span>
+  <!-- ═══ NAV ══════════════════════════════════════════════════ -->
+  <nav class="nav">
+    <div class="brand">TFT <span>Clash</span></div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('overview')">Overview</button>
+      <button class="nav-tab" onclick="switchTab('announce')">Announce</button>
+      <button class="nav-tab" onclick="switchTab('results')">Results</button>
+      <button class="nav-tab" onclick="switchTab('roles')">Roles</button>
+      <button class="nav-tab" onclick="switchTab('logs')">Logs</button>
     </div>
-    <div class="h-stats">
-      <span class="h-stat">GUILD <b id="hGuild">-</b></span>
-      <span class="h-stat">MEMBERS <b id="hMembers">-</b></span>
-      <span class="h-stat">PING <b id="hPing">-</b></span>
-      <button class="cmd-trigger" onclick="openCmd()"><kbd>Ctrl K</kbd>Command Palette</button>
+    <div class="nav-right">
+      <div class="online-badge" id="statusBadge">
+        <div class="dot"></div>
+        <span id="statusText">Online</span>
+      </div>
+      <span class="ping-val" id="pingVal">-</span>
+      <button class="cmd-trigger" onclick="openCmd()"><kbd>Ctrl K</kbd>Search</button>
     </div>
-  </header>
+  </nav>
 
-  <!-- ═══ TICKER ═══════════════════════════════════════════════ -->
-  <div class="ticker">
-    <span class="tag">LIVE</span>
-    <span id="tickerText">RACE CONTROL ACTIVE - LOADING STATUS...</span>
+  <!-- ═══ CONTENT ══════════════════════════════════════════════ -->
+  <div class="content">
+
+    <!-- ═══ TAB: OVERVIEW ═══════════════════════════════════════ -->
+    <div class="tab-page active" id="tab-overview">
+
+      <div class="hero">
+        <h1 id="heroTitle">Good evening.</h1>
+        <p id="heroSub">Loading dashboard status...</p>
+      </div>
+
+      <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-val green" id="sRegs">-</div>
+          <div class="stat-label">Registered</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="sPhase">-</div>
+          <div class="stat-label">Current Phase</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val yellow" id="sClash">-</div>
+          <div class="stat-label">Clash Number</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val blue" id="sPing">-</div>
+          <div class="stat-label">Bot Ping</div>
+        </div>
+      </div>
+
+      <div class="pill-row">
+        <button class="pill primary" onclick="triggerJob('standings')"><span class="pill-key">1</span> Post Standings</button>
+        <button class="pill" onclick="triggerJob('reminder24h')"><span class="pill-key">2</span> 24h Reminder</button>
+        <button class="pill" onclick="triggerJob('reminder1h')"><span class="pill-key">3</span> 1h Reminder</button>
+        <button class="pill" onclick="createLobbies()"><span class="pill-key">4</span> Create Lobbies</button>
+        <button class="pill danger" onclick="destroyLobbies()"><span class="pill-key">5</span> Destroy Lobbies</button>
+        <button class="pill" onclick="bulkSyncRoles()"><span class="pill-key">6</span> Sync Roles</button>
+      </div>
+
+      <div class="grid-2">
+        <!-- Standings -->
+        <div class="card">
+          <div class="card-h">Season Standings</div>
+          <div class="card-sub" id="standingsSub">Top players</div>
+          <div class="card-b" id="standingsWrap">
+            <div style="color:var(--text-3);font-size:13px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Registrations -->
+        <div class="card">
+          <div class="card-h">Registrations</div>
+          <div class="card-sub" id="regSub">Current clash sign-ups</div>
+          <div class="card-b" id="regsWrap" style="max-height:400px;overflow-y:auto;">
+            <div style="color:var(--text-3);font-size:13px;">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: ANNOUNCE ═══════════════════════════════════════ -->
+    <div class="tab-page" id="tab-announce">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-h">Send Announcement</div>
+          <div class="card-sub">Broadcast an embed to any channel</div>
+          <div class="card-b">
+            <div class="fg"><label>Channel</label><select id="annChannel" class="channel-select"></select></div>
+            <div class="fg"><label>Title</label><input type="text" id="annTitle" placeholder="Optional title"></div>
+            <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="What do you want to say?"></textarea></div>
+            <div class="fg"><label>Mention</label>
+              <div class="radio-row">
+                <label><input type="radio" name="annMention" value="none" checked> None</label>
+                <label><input type="radio" name="annMention" value="here"> @here</label>
+                <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
+              </div>
+            </div>
+            <button class="send-btn" onclick="sendAnnounce()">Send Announcement</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h">Direct Message</div>
+          <div class="card-sub">Send a plain text message to any channel</div>
+          <div class="card-b">
+            <div class="fg"><label>Channel</label><select id="msgChannel" class="channel-select"></select></div>
+            <div class="fg"><label>Message</label><textarea id="msgContent" placeholder="Type a message..."></textarea></div>
+            <button class="send-btn" onclick="sendMessage()">Send Message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: RESULTS ════════════════════════════════════════ -->
+    <div class="tab-page" id="tab-results">
+      <div class="card" style="max-width:600px;">
+        <div class="card-h">Post Clash Results</div>
+        <div class="card-sub">Enter placements and broadcast to Discord</div>
+        <div class="card-b">
+          <div class="fg"><label>Clash Number</label><input type="number" id="resClash" placeholder="e.g. 16"></div>
+          <div id="placementRows"></div>
+          <div style="margin-top:14px;">
+            <button class="send-btn" onclick="postResults()">Post Results</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: ROLES ══════════════════════════════════════════ -->
+    <div class="tab-page" id="tab-roles">
+      <div class="card grid-full">
+        <div class="card-h">Role Management</div>
+        <div class="card-sub">Manage Discord roles for all members</div>
+        <div class="card-b">
+          <div class="toolbar">
+            <button class="pill primary" onclick="bulkSyncRoles()">Sync All Roles</button>
+            <button class="pill" onclick="loadMembers()">Refresh</button>
+            <input type="text" id="memberSearch" placeholder="Search members..." style="max-width:240px;" oninput="filterMembers()">
+          </div>
+          <div class="member-scroll">
+            <table>
+              <thead><tr><th>Member</th><th>Roles</th><th>Actions</th></tr></thead>
+              <tbody id="memberBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: LOGS ═══════════════════════════════════════════ -->
+    <div class="tab-page" id="tab-logs">
+      <div class="card grid-full">
+        <div class="card-h">System Log</div>
+        <div class="card-sub">Live feed - auto refreshes every 5 seconds</div>
+        <div class="card-b">
+          <div class="log-wrap" id="logFeed"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- ═══ TIME BAR ═════════════════════════════════════════════ -->
-  <div class="time-bar">
-    <span>SYS <span class="clock" id="clock">--:--:--</span></span>
-    <span>UPTIME <span class="up-val" id="hUptime">0m</span></span>
-    <span>BOT <span class="up-val" id="hBotTag">-</span></span>
-    <span style="margin-left:auto;">REFRESH 30s / LOGS 5s / STANDINGS 60s</span>
-  </div>
-
-  <!-- ═══ MAIN GRID ════════════════════════════════════════════ -->
-  <div class="grid">
-
-    <!-- LEFT: Standings Tower -->
-    <div class="panel span-r3">
-      <div class="panel-h"><div class="live-dot"></div> SEASON STANDINGS <span class="badge live">LIVE</span></div>
-      <div class="panel-b" id="standingsWrap">
-        <div style="color:var(--text-3);font-size:11px;">Loading standings...</div>
-      </div>
-    </div>
-
-    <!-- TOP RIGHT: Telemetry -->
-    <div class="panel span-2">
-      <div class="panel-h">SYSTEM TELEMETRY</div>
-      <div class="panel-b">
-        <div class="gauges" id="gauges">
-          <div class="gauge">
-            <span class="gauge-label">Phase</span>
-            <div class="gauge-bar"><div class="gauge-fill green" id="gPhase" style="width:0%"></div></div>
-            <span class="gauge-val phase-idle" id="gPhaseVal">IDLE</span>
-          </div>
-          <div class="gauge">
-            <span class="gauge-label">Clash</span>
-            <div class="gauge-bar"><div class="gauge-fill red" id="gClash" style="width:0%"></div></div>
-            <span class="gauge-val" id="gClashVal">-</span>
-          </div>
-          <div class="gauge">
-            <span class="gauge-label">Registered</span>
-            <div class="gauge-bar"><div class="gauge-fill blue" id="gRegs" style="width:0%"></div></div>
-            <span class="gauge-val" id="gRegsVal">-</span>
-          </div>
-          <div class="gauge">
-            <span class="gauge-label">Season</span>
-            <div class="gauge-bar"><div class="gauge-fill yellow" id="gSeason" style="width:0%"></div></div>
-            <span class="gauge-val" id="gSeasonVal">-</span>
-          </div>
-          <div class="gauge">
-            <span class="gauge-label">Channels</span>
-            <div class="gauge-bar"><div class="gauge-fill cyan" id="gChannels" style="width:0%"></div></div>
-            <span class="gauge-val" id="gChannelsVal">-</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ACTIONS: Race Control -->
-    <div class="panel span-2">
-      <div class="panel-h">RACE CONTROL <span class="badge">KEYBOARD SHORTCUTS</span></div>
-      <div class="panel-b">
-        <div class="actions-grid">
-          <div class="act-btn" onclick="triggerJob('standings')">
-            <div class="a-key">1</div>
-            <div class="a-icon">&#x1f3c6;</div>
-            <div class="a-label">Post Standings</div>
-          </div>
-          <div class="act-btn" onclick="triggerJob('reminder24h')">
-            <div class="a-key">2</div>
-            <div class="a-icon">&#x23f0;</div>
-            <div class="a-label">24h Reminder</div>
-          </div>
-          <div class="act-btn" onclick="triggerJob('reminder1h')">
-            <div class="a-key">3</div>
-            <div class="a-icon">&#x1f6a8;</div>
-            <div class="a-label">1h Reminder</div>
-          </div>
-          <div class="act-btn success" onclick="createLobbies()">
-            <div class="a-key">4</div>
-            <div class="a-icon">&#x1f3ae;</div>
-            <div class="a-label">Create Lobbies</div>
-          </div>
-          <div class="act-btn danger" onclick="destroyLobbies()">
-            <div class="a-key">5</div>
-            <div class="a-icon">&#x1f5d1;</div>
-            <div class="a-label">Destroy Lobbies</div>
-          </div>
-          <div class="act-btn" onclick="bulkSyncRoles()">
-            <div class="a-key">6</div>
-            <div class="a-icon">&#x1f504;</div>
-            <div class="a-label">Sync Roles</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- BROADCAST (Announce) -->
-    <div class="panel">
-      <div class="panel-h">BROADCAST</div>
-      <div class="panel-b">
-        <div class="fg"><label>Channel</label><select id="annChannel" class="channel-select"></select></div>
-        <div class="fg"><label>Title</label><input type="text" id="annTitle" placeholder="Announcement title"></div>
-        <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="Write broadcast message..."></textarea></div>
-        <div class="fg"><label>Mention</label>
-          <div class="radio-row">
-            <label><input type="radio" name="annMention" value="none" checked> None</label>
-            <label><input type="radio" name="annMention" value="here"> @here</label>
-            <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
-          </div>
-        </div>
-        <button class="btn btn-red" onclick="sendAnnounce()">TRANSMIT</button>
-      </div>
-    </div>
-
-    <!-- DIRECT MESSAGE -->
-    <div class="panel">
-      <div class="panel-h">DIRECT MESSAGE</div>
-      <div class="panel-b">
-        <div class="fg"><label>Channel</label><select id="msgChannel" class="channel-select"></select></div>
-        <div class="fg"><label>Message</label><textarea id="msgContent" placeholder="Type message..."></textarea></div>
-        <button class="btn btn-red" onclick="sendMessage()">TRANSMIT</button>
-      </div>
-    </div>
-
-    <!-- POST RESULTS -->
-    <div class="panel">
-      <div class="panel-h">POST RESULTS</div>
-      <div class="panel-b">
-        <div class="fg"><label>Clash Number</label><input type="number" id="resClash" placeholder="e.g. 16"></div>
-        <div id="placementRows"></div>
-        <div style="margin-top:10px;">
-          <button class="btn btn-red" onclick="postResults()">TRANSMIT RESULTS</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- REGISTRATIONS -->
-    <div class="panel">
-      <div class="panel-h"><div class="live-dot"></div> REGISTRATIONS <span class="badge" id="regBadge">-</span></div>
-      <div class="panel-b" id="regsWrap" style="max-height:280px;overflow-y:auto;">
-        <div style="color:var(--text-3);font-size:11px;">Loading...</div>
-      </div>
-    </div>
-
-    <!-- ROLE MANAGEMENT -->
-    <div class="panel span-3">
-      <div class="panel-h">CREW MANAGEMENT <span class="badge">ROLES</span></div>
-      <div class="panel-b">
-        <div class="toolbar">
-          <button class="btn btn-red" onclick="bulkSyncRoles()">SYNC ALL ROLES</button>
-          <button class="btn btn-ghost" onclick="loadMembers()">REFRESH</button>
-          <input type="text" id="memberSearch" placeholder="Search crew..." style="max-width:220px;" oninput="filterMembers()">
-        </div>
-        <div class="member-scroll">
-          <table>
-            <thead><tr><th>Member</th><th>Roles</th><th>Actions</th></tr></thead>
-            <tbody id="memberBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- SYSTEM LOG -->
-    <div class="panel span-3">
-      <div class="panel-h"><div class="live-dot"></div> SYSTEM LOG <span class="badge live">LIVE</span></div>
-      <div class="panel-b">
-        <div class="log-feed" id="logFeed"></div>
-      </div>
-    </div>
-
+  <!-- Mobile tab bar -->
+  <div class="mobile-tabs">
+    <button class="mobile-tab active" onclick="switchTab('overview')">Overview</button>
+    <button class="mobile-tab" onclick="switchTab('announce')">Announce</button>
+    <button class="mobile-tab" onclick="switchTab('results')">Results</button>
+    <button class="mobile-tab" onclick="switchTab('roles')">Roles</button>
+    <button class="mobile-tab" onclick="switchTab('logs')">Logs</button>
   </div>
 
   <!-- Toast container -->
@@ -855,8 +863,8 @@
   <div class="cmd-overlay" id="cmdOverlay" onclick="if(event.target===this)closeCmd()">
     <div class="cmd-box">
       <div class="cmd-input-wrap">
-        <span class="cmd-search-icon">&#x25B6;</span>
-        <input class="cmd-input" id="cmdInput" placeholder="Type a command..." oninput="filterCmds()" onkeydown="cmdKey(event)">
+        <span class="cmd-search-icon">&#x1f50d;</span>
+        <input class="cmd-input" id="cmdInput" placeholder="What do you want to do?" oninput="filterCmds()" onkeydown="cmdKey(event)">
       </div>
       <div class="cmd-results" id="cmdResults"></div>
     </div>
@@ -869,7 +877,7 @@
     function toast(msg, type) {
       var el = document.createElement('div');
       el.className = 'toast ' + (type || 'success');
-      el.innerHTML = escapeHtml(msg);
+      el.innerHTML = '<div class="t-dot"></div>' + escapeHtml(msg);
       $('toasts').appendChild(el);
       setTimeout(function() { el.remove(); }, 4000);
     }
@@ -913,96 +921,95 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // ─── Clock ───────────────────────────────────────────────────
-    function tickClock() {
-      var now = new Date();
-      $('clock').textContent = now.toLocaleTimeString('en-GB', { hour12: false });
+    function getGreeting() {
+      var h = new Date().getHours();
+      if (h < 12) return 'Good morning';
+      if (h < 17) return 'Good afternoon';
+      return 'Good evening';
     }
-    tickClock();
-    setInterval(tickClock, 1000);
 
-    // ─── Status + Telemetry ──────────────────────────────────────
-    var channelCount = 0;
+    // ─── Tab Navigation ──────────────────────────────────────────
+    function switchTab(name) {
+      document.querySelectorAll('.tab-page').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.nav-tab').forEach(function(el) { el.classList.remove('active'); });
+      document.querySelectorAll('.mobile-tab').forEach(function(el) { el.classList.remove('active'); });
+      $('tab-' + name).classList.add('active');
+      document.querySelectorAll('.nav-tab').forEach(function(el) {
+        if (el.textContent.toLowerCase() === name) el.classList.add('active');
+      });
+      document.querySelectorAll('.mobile-tab').forEach(function(el) {
+        if (el.textContent.toLowerCase() === name) el.classList.add('active');
+      });
+    }
+
+    // ─── Status ──────────────────────────────────────────────────
     var lastPhase = 'idle';
     var lastClashNum = 0;
     var lastRegCount = 0;
     var lastSeasonName = '';
+    var guildName = '';
 
     async function refreshStatus() {
       try {
         var data = await api('GET', '/status');
 
-        // Header status indicator
-        var indicator = $('statusIndicator');
-        var statusText = $('statusText');
+        var badge = $('statusBadge');
         if (data.bot.status === 'online') {
-          indicator.className = 'h-status';
-          statusText.textContent = 'SYSTEMS ONLINE';
+          badge.className = 'online-badge';
+          $('statusText').textContent = 'Online';
         } else {
-          indicator.className = 'h-status offline';
-          statusText.textContent = 'RECONNECTING';
+          badge.className = 'online-badge offline';
+          $('statusText').textContent = 'Reconnecting';
         }
+        $('pingVal').textContent = data.bot.ping + 'ms';
+        guildName = data.guild ? data.guild.name : '';
 
-        // Header stats
-        $('hGuild').textContent = data.guild ? data.guild.name : '-';
-        $('hMembers').textContent = data.guild ? data.guild.memberCount : '-';
-        $('hPing').textContent = data.bot.ping + 'ms';
-        $('hUptime').textContent = formatUptime(data.bot.uptime);
-        $('hBotTag').textContent = data.bot.tag || '-';
-        channelCount = data.guild ? data.guild.channelCount : 0;
+        // Stat cards
+        $('sPing').textContent = data.bot.ping + 'ms';
 
-        // Telemetry gauges
         if (data.tournament) {
           lastPhase = data.tournament.phase || 'idle';
           lastClashNum = data.tournament.clashNumber || 0;
           lastRegCount = data.tournament.registeredCount || 0;
-
-          var phaseMap = { idle: 0, registration: 35, checkin: 60, inprogress: 85, complete: 100 };
-          var phasePct = phaseMap[lastPhase] || 0;
-          $('gPhase').style.width = phasePct + '%';
-          $('gPhaseVal').textContent = lastPhase.toUpperCase();
-          $('gPhaseVal').className = 'gauge-val phase-' + lastPhase;
-
-          $('gClash').style.width = Math.min(lastClashNum * 5, 100) + '%';
-          $('gClashVal').textContent = '#' + lastClashNum;
-
-          $('gRegs').style.width = Math.min(lastRegCount * 5, 100) + '%';
-          $('gRegsVal').textContent = lastRegCount + '/20';
+          $('sRegs').textContent = lastRegCount;
+          $('sPhase').textContent = lastPhase.charAt(0).toUpperCase() + lastPhase.slice(1);
+          $('sClash').textContent = '#' + lastClashNum;
         } else {
-          $('gPhaseVal').textContent = 'IDLE';
-          $('gPhaseVal').className = 'gauge-val phase-idle';
+          $('sRegs').textContent = '0';
+          $('sPhase').textContent = 'Idle';
+          $('sClash').textContent = '-';
         }
 
         if (data.season) {
           lastSeasonName = data.season.name || '';
-          var seasonMatch = lastSeasonName.match(/\d+/);
-          var sNum = seasonMatch ? parseInt(seasonMatch[0]) : 1;
-          $('gSeason').style.width = Math.min(sNum * 25, 100) + '%';
-          $('gSeasonVal').textContent = lastSeasonName;
         }
 
-        $('gChannels').style.width = Math.min(channelCount * 2, 100) + '%';
-        $('gChannelsVal').textContent = channelCount;
-
-        // Update ticker
-        updateTicker();
+        // Hero text
+        $('heroTitle').textContent = getGreeting() + ', Levitate.';
+        updateHeroSub();
 
       } catch (e) {
-        $('statusIndicator').className = 'h-status offline';
-        $('statusText').textContent = 'OFFLINE';
+        $('statusBadge').className = 'online-badge offline';
+        $('statusText').textContent = 'Offline';
       }
     }
 
-    function updateTicker() {
+    function updateHeroSub() {
       var parts = [];
-      if (lastPhase && lastPhase !== 'idle') {
-        parts.push('PHASE: ' + lastPhase.toUpperCase());
+      if (lastPhase === 'registration') {
+        parts.push('Clash #' + lastClashNum + ' is open for registration');
+        if (lastRegCount) parts.push(lastRegCount + ' players signed up');
+      } else if (lastPhase === 'checkin') {
+        parts.push('Clash #' + lastClashNum + ' check-in is open');
+      } else if (lastPhase === 'inprogress') {
+        parts.push('Clash #' + lastClashNum + ' is live right now');
+      } else if (lastPhase === 'complete') {
+        parts.push('Clash #' + lastClashNum + ' is complete');
+      } else {
+        parts.push('No active clash');
       }
-      if (lastClashNum) parts.push('CLASH #' + lastClashNum);
-      if (lastRegCount) parts.push(lastRegCount + ' REGISTERED');
-      if (lastSeasonName) parts.push(lastSeasonName.toUpperCase());
-      parts.push('RACE CONTROL ACTIVE');
-      $('tickerText').textContent = parts.join('  //  ');
+      if (lastSeasonName) parts.push(lastSeasonName);
+      $('heroSub').textContent = parts.join('. ') + '.';
     }
 
     // ─── Channels ────────────────────────────────────────────────
@@ -1022,26 +1029,29 @@
       } catch (e) { /* skip */ }
     }
 
-    // ─── Standings Tower ─────────────────────────────────────────
+    // ─── Standings ───────────────────────────────────────────────
     async function loadStandings() {
       try {
         var data = await api('GET', '/standings');
         var wrap = $('standingsWrap');
         if (!data.players || !data.players.length) {
-          wrap.innerHTML = '<div style="color:var(--text-3);font-size:11px;">No standings data yet.</div>';
+          wrap.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No standings data yet.</div>';
           return;
         }
-        var leader = data.players[0].pts || 1;
-        wrap.innerHTML = '<ul class="tower">' + data.players.map(function(p, i) {
-          var delta = i === 0 ? 'LEADER' : '-' + (leader - p.pts);
-          return '<li>' +
-            '<span class="t-pos">' + (i + 1) + '</span>' +
-            '<span class="t-name">' + escapeHtml(p.name) + '</span>' +
-            '<span class="t-rank ' + p.rank + '">' + p.rank + '</span>' +
-            '<span class="t-pts">' + p.pts + '</span>' +
-            '<span class="t-delta">' + delta + '</span>' +
-            '</li>';
-        }).join('') + '</ul>';
+        var maxPts = data.players[0].pts || 1;
+        $('standingsSub').textContent = 'Top ' + data.players.length + (data.season ? ' - ' + data.season.name : '');
+
+        wrap.innerHTML = data.players.map(function(p, i) {
+          var pct = Math.round((p.pts / maxPts) * 100);
+          var initial = p.name.charAt(0).toUpperCase();
+          return '<div class="leader-row">' +
+            '<span class="leader-pos">' + (i + 1) + '</span>' +
+            '<div class="leader-avatar">' + initial + '</div>' +
+            '<div class="leader-info"><div class="leader-name">' + escapeHtml(p.name) + '</div><div class="leader-rank">' + p.rank + '</div></div>' +
+            '<div class="leader-bar"><div class="leader-fill" style="width:' + pct + '%"></div></div>' +
+            '<span class="leader-pts">' + p.pts + '</span>' +
+            '</div>';
+        }).join('');
       } catch (e) { /* skip */ }
     }
 
@@ -1051,17 +1061,19 @@
         var data = await api('GET', '/registrations');
         var wrap = $('regsWrap');
         var regs = data.registrations || [];
-        $('regBadge').textContent = regs.length + ' DRIVERS';
+        $('regSub').textContent = regs.length + ' players signed up' + (data.clashNumber ? ' for Clash #' + data.clashNumber : '');
+
         if (!regs.length) {
-          wrap.innerHTML = '<div style="color:var(--text-3);font-size:11px;">No registrations for current clash.</div>';
+          wrap.innerHTML = '<div style="color:var(--text-3);font-size:13px;">No registrations for the current clash.</div>';
           return;
         }
         wrap.innerHTML = regs.map(function(r, i) {
+          var initial = r.name.charAt(0).toUpperCase();
           return '<div class="reg-row">' +
-            '<span class="reg-pos">' + (i + 1) + '</span>' +
+            '<span class="reg-num">' + (i + 1) + '</span>' +
+            '<div class="reg-avatar">' + initial + '</div>' +
             '<span class="reg-name">' + escapeHtml(r.name) + '</span>' +
-            '<span class="t-rank ' + r.rank + '">' + r.rank + '</span>' +
-            '<span class="reg-status">' + (r.status || '') + '</span>' +
+            '<span class="rank-pill ' + r.rank + '">' + r.rank + '</span>' +
             '</div>';
         }).join('');
       } catch (e) { /* skip */ }
@@ -1074,7 +1086,7 @@
       for (var i = 0; i < 8; i++) {
         var row = document.createElement('div');
         row.className = 'p-row';
-        row.innerHTML = '<div class="p-pos">' + medals[i] + '</div><input type="text" class="res-name" placeholder="Driver name">';
+        row.innerHTML = '<div class="p-pos">' + medals[i] + '</div><input type="text" class="res-name" placeholder="Player name">';
         container.appendChild(row);
       }
     }
@@ -1091,7 +1103,7 @@
           var entry = document.createElement('div');
           var isErr = l.level === 'error';
           var isOk = !isErr && (l.message.indexOf('[sched]') > -1 || l.message.indexOf('active') > -1 || l.message.indexOf('online') > -1);
-          entry.className = 'log-entry' + (isErr ? ' error' : '') + (isOk ? ' ok' : '');
+          entry.className = 'log-line' + (isErr ? ' error' : '') + (isOk ? ' ok' : '');
           var time = new Date(l.ts);
           entry.innerHTML = '<span class="log-ts">' + time.toLocaleTimeString('en-GB', { hour12: false }) + '</span><span class="log-msg">' + escapeHtml(l.message) + '</span>';
           feed.appendChild(entry);
@@ -1108,7 +1120,7 @@
       if (!confirm('Trigger "' + labels[job] + '"? This will post to Discord.')) return;
       try {
         await api('POST', '/trigger', { job: job });
-        toast(labels[job] + ' transmitted', 'success');
+        toast(labels[job] + ' sent', 'success');
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
 
@@ -1134,10 +1146,10 @@
       var message = $('annMessage').value;
       var mention = document.querySelector('input[name="annMention"]:checked').value;
       if (!message.trim()) { toast('Message is required', 'error'); return; }
-      if (!confirm('Transmit announcement to Discord?')) return;
+      if (!confirm('Send announcement to Discord?')) return;
       try {
         var res = await api('POST', '/announce', { channelId: channelId, title: title, message: message, mention: mention });
-        toast('Transmitted to #' + res.channel, 'success');
+        toast('Sent to #' + res.channel, 'success');
         $('annTitle').value = ''; $('annMessage').value = '';
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
@@ -1146,10 +1158,10 @@
       var channelId = $('msgChannel').value;
       var content = $('msgContent').value;
       if (!content.trim()) { toast('Message is required', 'error'); return; }
-      if (!confirm('Transmit message to Discord?')) return;
+      if (!confirm('Send message to Discord?')) return;
       try {
         var res = await api('POST', '/send', { channelId: channelId, content: content });
-        toast('Transmitted to #' + res.channel, 'success');
+        toast('Sent to #' + res.channel, 'success');
         $('msgContent').value = '';
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
@@ -1162,11 +1174,11 @@
         if (input.value.trim()) placements.push({ name: input.value.trim(), place: i + 1 });
       });
       if (!clashNumber) { toast('Clash number required', 'error'); return; }
-      if (!placements.length) { toast('Enter at least one driver', 'error'); return; }
+      if (!placements.length) { toast('Enter at least one player', 'error'); return; }
       if (!confirm('Post results for Clash #' + clashNumber + '?')) return;
       try {
         var res = await api('POST', '/results', { clashNumber: clashNumber, placements: placements });
-        toast('Results transmitted' + (res.channel ? ' to #' + res.channel : ''), 'success');
+        toast('Results posted' + (res.channel ? ' to #' + res.channel : ''), 'success');
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
 
@@ -1190,18 +1202,18 @@
         var tr = document.createElement('tr');
         var roleTags = m.roles.map(function(r) {
           return '<span class="role-tag ' + r.replace(/ /g, '-') + '">' + r + '</span>';
-        }).join(' ') || '<span style="color:var(--text-3);font-size:10px;">None</span>';
+        }).join(' ') || '<span style="color:var(--text-3);font-size:12px;">None</span>';
         var roleOptions = managedRoles.map(function(r) {
           return '<option value="' + r + '">' + r + '</option>';
         }).join('');
         tr.innerHTML =
-          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size:10px;color:var(--text-3);">' + escapeHtml(m.tag) + '</div></td>' +
+          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size:11px;color:var(--text-3);">' + escapeHtml(m.tag) + '</div></td>' +
           '<td>' + roleTags + '</td>' +
           '<td><div class="member-actions">' +
             '<select class="role-sel-' + m.id + '">' + roleOptions + '</select>' +
-            '<button class="btn btn-green" onclick="assignRole(\'' + m.id + '\',false)">+</button>' +
-            '<button class="btn btn-ghost" onclick="assignRole(\'' + m.id + '\',true)">-</button>' +
-            '<button class="btn btn-ghost" onclick="syncOneRole(\'' + m.id + '\')" title="Sync from DB">&#x1f504;</button>' +
+            '<button class="mini-pill green" onclick="assignRole(\'' + m.id + '\',false)">+</button>' +
+            '<button class="mini-pill" onclick="assignRole(\'' + m.id + '\',true)">-</button>' +
+            '<button class="mini-pill" onclick="syncOneRole(\'' + m.id + '\')" title="Sync from DB">&#x1f504;</button>' +
           '</div></td>';
         tbody.appendChild(tr);
       });
@@ -1248,7 +1260,7 @@
       if (!confirm('Sync all roles from the database?')) return;
       try {
         var res = await api('POST', '/roles/sync');
-        toast('Synced ' + res.total + ' drivers, ' + res.changed + ' updated', 'success');
+        toast('Synced ' + res.total + ' players, ' + res.changed + ' updated', 'success');
         loadMembers();
       } catch (e) { toast('Failed: ' + e.message, 'error'); }
     }
@@ -1263,8 +1275,10 @@
       { icon: '&#x1f504;', label: 'Sync All Roles', hint: '6', fn: function() { bulkSyncRoles(); } },
       { icon: '&#x1f465;', label: 'Refresh Members', hint: '', fn: function() { loadMembers(); } },
       { icon: '&#x1f4ca;', label: 'Refresh Standings', hint: '', fn: function() { loadStandings(); } },
-      { icon: '&#x1f4e3;', label: 'Focus Broadcast', hint: '', fn: function() { $('annMessage').focus(); } },
-      { icon: '&#x1f4ac;', label: 'Focus Message', hint: '', fn: function() { $('msgContent').focus(); } },
+      { icon: '&#x1f4e3;', label: 'Go to Announce', hint: '', fn: function() { switchTab('announce'); $('annMessage').focus(); } },
+      { icon: '&#x1f4ac;', label: 'Go to Results', hint: '', fn: function() { switchTab('results'); } },
+      { icon: '&#x1f6e1;', label: 'Go to Roles', hint: '', fn: function() { switchTab('roles'); } },
+      { icon: '&#x1f4cb;', label: 'Go to Logs', hint: '', fn: function() { switchTab('logs'); } },
     ];
     var cmdIdx = 0;
 
