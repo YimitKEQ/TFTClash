@@ -619,10 +619,26 @@
       setTimeout(function() { el.remove(); }, 4000);
     }
 
+    var dashToken = localStorage.getItem('dashboard_token') || '';
+
     async function api(method, path, body) {
       var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+      if (dashToken) opts.headers['x-dashboard-token'] = dashToken;
       if (body) opts.body = JSON.stringify(body);
       var res = await fetch('/api' + path, opts);
+      if (res.status === 401) {
+        var token = prompt('Dashboard token required (set DASHBOARD_SECRET in .env):');
+        if (token) {
+          localStorage.setItem('dashboard_token', token);
+          dashToken = token;
+          return api(method, path, body);
+        }
+        throw new Error('Unauthorized');
+      }
+      var ct = res.headers.get('content-type') || '';
+      if (!ct.includes('application/json')) {
+        throw new Error('Server returned non-JSON response (status ' + res.status + '). Is the dashboard running?');
+      }
       var data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Request failed');
       return data;

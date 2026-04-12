@@ -56,6 +56,18 @@ export function startDashboard(client) {
   app.use(express.json());
   app.use(express.static(path.join(__dirname, 'public')));
 
+  // ─── Dashboard auth (optional DASHBOARD_SECRET env var) ─────────────────────
+  var dashSecret = process.env.DASHBOARD_SECRET || '';
+  if (dashSecret) {
+    app.use('/api', function(req, res, next) {
+      var token = req.headers['x-dashboard-token'] || req.query.token;
+      if (token !== dashSecret) {
+        return res.status(401).json({ error: 'Unauthorized. Set token in dashboard.' });
+      }
+      next();
+    });
+  }
+
   // Helper to get the guild
   function getGuild() {
     return client.guilds.cache.get(process.env.GUILD_ID);
@@ -190,12 +202,13 @@ export function startDashboard(client) {
 
       var guild = getGuild();
       var resultsCh = guild ? guild.channels.cache.find(function(c) { return c.name === 'results'; }) : null;
-      if (resultsCh) {
-        await resultsCh.send({ embeds: [embed] });
+      if (!resultsCh) {
+        return res.status(404).json({ error: 'No #results channel found in Discord. Create one first.' });
       }
+      await resultsCh.send({ embeds: [embed] });
 
       console.log('[dashboard] Results posted for Clash #' + clashNumber);
-      res.json({ ok: true, channel: resultsCh ? resultsCh.name : null });
+      res.json({ ok: true, channel: resultsCh.name });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

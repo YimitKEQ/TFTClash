@@ -45,15 +45,7 @@ async function getPlayerTier(authUserId) {
  * Check if a player is the season champion.
  */
 async function isSeasonChampion(username) {
-  var res = await supabase
-    .from('site_settings')
-    .select('value')
-    .eq('key', 'season_config')
-    .single();
-  if (res.error || !res.data) return false;
   try {
-    var config = JSON.parse(res.data.value);
-    // Check if this player is #1 in standings
     var standings = await supabase
       .from('players')
       .select('username')
@@ -199,7 +191,7 @@ export async function syncAllRoles(guild) {
     try {
       var result = await syncPlayerRoles(guild, res.data[i]);
       results.push(result);
-      if (result.added.length || result.removed.length) {
+      if (result.added && (result.added.length || result.removed.length)) {
         console.log('[roles] ' + result.player + ': +[' + result.added.join(',') + '] -[' + result.removed.join(',') + ']');
       }
     } catch (e) {

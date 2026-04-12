@@ -10,7 +10,8 @@ export async function linkAccount(discordId, _discordTag, platformName) {
   const { error } = await supabase
     .from('players')
     .update({ discord_user_id: discordId })
-    .ilike('username', platformName);
+    .ilike('username', platformName)
+    .limit(1);
   if (error) throw new Error(error.message);
 }
 
