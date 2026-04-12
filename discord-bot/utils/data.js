@@ -1,34 +1,5 @@
-// ─── Data helpers — live from Supabase, SEED fallback ─────────────────────────
+// ─── Data helpers — live from Supabase ───────────────────────────────────────
 import { supabase } from './supabase.js';
-
-// Local fallback used when Supabase is not configured or query fails
-const SEED_PLAYERS = [
-  { id: 1,  name: 'Levitate',    rank: 'Challenger', pts: 1024, wins: 16, top4: 22 },
-  { id: 2,  name: 'Zounderkite', rank: 'Grandmaster', pts: 847, wins: 11, top4: 19 },
-  { id: 3,  name: 'Uri',         rank: 'Grandmaster', pts: 791, wins: 9,  top4: 17 },
-  { id: 4,  name: 'BingBing',    rank: 'Master',      pts: 734, wins: 8,  top4: 15 },
-  { id: 5,  name: 'Wiwi',        rank: 'Master',      pts: 698, wins: 7,  top4: 14 },
-  { id: 6,  name: 'Ole',         rank: 'Diamond',     pts: 621, wins: 6,  top4: 12 },
-  { id: 7,  name: 'Sybor',       rank: 'Diamond',     pts: 574, wins: 5,  top4: 11 },
-  { id: 8,  name: 'Ivdim',       rank: 'Diamond',     pts: 512, wins: 4,  top4: 10 },
-  { id: 9,  name: 'Vlad',        rank: 'Platinum',    pts: 443, wins: 3,  top4: 8  },
-];
-
-export const SEASON = {
-  number: 1,
-  name: 'Season 1',
-  champion: 'Levitate',
-  totalClashes: 20,
-  currentClash: 15,
-};
-
-export const NEXT_CLASH = {
-  number: 16,
-  date: 'Saturday, March 22 2026',
-  time: '8:00 PM GMT',
-  format: 'Single Lobby — 8 Players',
-  registrationUrl: 'https://tft-clash.vercel.app',
-};
 
 export const PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
 
@@ -39,17 +10,47 @@ export const RANK_COLORS = {
   Diamond:      0x4ECDC4,
   Platinum:     0x3FB68B,
   Gold:         0xE8A838,
+  Iron:         0x888888,
 };
 
-/** Returns top-10 players sorted by season points from Supabase. */
-export async function getStandings() {
+/** Fetch season config from site_settings. */
+export async function getSeasonConfig() {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'season_config')
+    .single();
+  if (error || !data) return { number: 1, name: 'Season 1', totalClashes: 20, currentClash: 1, champion: '' };
+  try { return JSON.parse(data.value); } catch { return { number: 1, name: 'Season 1', totalClashes: 20, currentClash: 1, champion: '' }; }
+}
+
+/** Fetch tournament_state from site_settings. */
+export async function getTournamentState() {
+  const { data, error } = await supabase
+    .from('site_settings')
+    .select('value')
+    .eq('key', 'tournament_state')
+    .single();
+  if (error || !data) return null;
+  try { return JSON.parse(data.value); } catch { return null; }
+}
+
+/** Returns top-N players sorted by season points from Supabase. */
+export async function getStandings(limit = 10) {
   const { data, error } = await supabase
     .from('players')
-    .select('username,rank,season_pts,wins,top4')
+    .select('username,rank,season_pts,wins,top4,games_played')
     .order('season_pts', { ascending: false })
-    .limit(10);
-  if (error || !data?.length) return [...SEED_PLAYERS].sort((a, b) => b.pts - a.pts);
-  return data.map(r => ({ name: r.username, rank: r.rank, pts: r.season_pts, wins: r.wins, top4: r.top4 }));
+    .limit(limit);
+  if (error || !data || !data.length) return [];
+  return data.map(r => ({
+    name: r.username,
+    rank: r.rank || 'Iron',
+    pts: r.season_pts || 0,
+    wins: r.wins || 0,
+    top4: r.top4 || 0,
+    games: r.games_played || 0,
+  }));
 }
 
 /** Looks up a single player by username (case-insensitive). */
@@ -59,8 +60,23 @@ export async function getPlayer(name) {
     .select('*')
     .ilike('username', name)
     .single();
-  if (error || !data) return SEED_PLAYERS.find(p => p.name.toLowerCase() === name.toLowerCase()) ?? null;
-  return { name: data.username, rank: data.rank, pts: data.season_pts, wins: data.wins, top4: data.top4, riotId: data.riot_id, region: data.region };
+  if (error || !data) return null;
+  return {
+    id: data.id,
+    name: data.username,
+    rank: data.rank || 'Iron',
+    pts: data.season_pts || 0,
+    wins: data.wins || 0,
+    top4: data.top4 || 0,
+    games: data.games_played || 0,
+    riotId: data.riot_id_eu || data.riot_id || '',
+    riotIdEu: data.riot_id_eu || '',
+    riotIdNa: data.riot_id_na || '',
+    region: data.region || 'EUW',
+    bio: data.bio || '',
+    auth_user_id: data.auth_user_id,
+    discord_user_id: data.discord_user_id,
+  };
 }
 
 /** Looks up a player by their linked Discord user ID. */
@@ -71,5 +87,61 @@ export async function getPlayerByDiscordId(discordUserId) {
     .eq('discord_user_id', discordUserId)
     .single();
   if (error || !data) return null;
-  return { name: data.username, rank: data.rank, pts: data.season_pts, wins: data.wins, top4: data.top4, riotId: data.riot_id, region: data.region };
+  return {
+    id: data.id,
+    name: data.username,
+    rank: data.rank || 'Iron',
+    pts: data.season_pts || 0,
+    wins: data.wins || 0,
+    top4: data.top4 || 0,
+    games: data.games_played || 0,
+    riotId: data.riot_id_eu || data.riot_id || '',
+    riotIdEu: data.riot_id_eu || '',
+    riotIdNa: data.riot_id_na || '',
+    region: data.region || 'EUW',
+    auth_user_id: data.auth_user_id,
+  };
+}
+
+/** Get registrations for the current clash. */
+export async function getRegistrations() {
+  const ts = await getTournamentState();
+  if (!ts || !ts.clashNumber) return [];
+  const { data, error } = await supabase
+    .from('registrations')
+    .select('player_id,status,players(username,rank,riot_id_eu,riot_id)')
+    .eq('clash_number', ts.clashNumber);
+  if (error || !data) return [];
+  return data.map(r => ({
+    playerId: r.player_id,
+    status: r.status,
+    name: r.players ? r.players.username : 'Unknown',
+    rank: r.players ? r.players.rank : 'Iron',
+    riotId: r.players ? (r.players.riot_id_eu || r.players.riot_id || '') : '',
+  }));
+}
+
+/** Get latest game_results for a given clash number. */
+export async function getClashResults(clashNumber) {
+  const { data, error } = await supabase
+    .from('game_results')
+    .select('player_id,placement,game_number,players(username)')
+    .eq('clash_number', clashNumber)
+    .order('placement', { ascending: true });
+  if (error || !data) return [];
+  return data.map(r => ({
+    playerId: r.player_id,
+    name: r.players ? r.players.username : 'Unknown',
+    place: r.placement,
+    gameNumber: r.game_number,
+  }));
+}
+
+/** Count total registered players. */
+export async function getPlayerCount() {
+  const { count, error } = await supabase
+    .from('players')
+    .select('id', { count: 'exact', head: true });
+  if (error) return 0;
+  return count || 0;
 }

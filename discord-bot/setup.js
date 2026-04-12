@@ -12,6 +12,7 @@ import {
   rulesEmbed, verifyEmbed, verifyButton,
   standingsEmbed, clashInfoEmbed, seasonIntroEmbed,
 } from './utils/embeds.js';
+import { getStandings, getSeasonConfig, getTournamentState, getRegistrations } from './utils/data.js';
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -206,24 +207,30 @@ client.once('ready', async () => {
     console.log('  ✓ verify');
   }
 
+  // Fetch live data for embeds
+  const season = await getSeasonConfig();
+  const ts = await getTournamentState();
+  const players = await getStandings(10);
+  const regs = await getRegistrations();
+
   // Announcements
   const annCh = get('announcements');
   if (annCh) {
-    await annCh.send({ embeds: [seasonIntroEmbed()] });
+    await annCh.send({ embeds: [seasonIntroEmbed(season)] });
     console.log('  ✓ announcements');
   }
 
   // Clash schedule
   const schedCh = get('clashschedule');
   if (schedCh) {
-    await schedCh.send({ embeds: [clashInfoEmbed()] });
+    await schedCh.send({ embeds: [clashInfoEmbed(ts, season, regs.length)] });
     console.log('  ✓ clash-schedule');
   }
 
   // Standings
   const standCh = get('standings');
   if (standCh) {
-    await standCh.send({ embeds: [standingsEmbed()] });
+    await standCh.send({ embeds: [standingsEmbed(players, season)] });
     console.log('  ✓ standings');
   }
 

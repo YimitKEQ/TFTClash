@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { Btn, Inp, Icon } from '../ui'
 import { supabase } from '../../lib/supabase'
-import { REGIONS } from '../../lib/constants'
 
 function OnboardingFlow(props) {
   var currentUser = props.currentUser;
@@ -14,12 +13,12 @@ function OnboardingFlow(props) {
   var _step = useState(1);
   var step = _step[0];
   var setStep = _step[1];
-  var _riotId = useState("");
-  var riotId = _riotId[0];
-  var setRiotId = _riotId[1];
-  var _region = useState("EUW");
-  var region = _region[0];
-  var setRegion = _region[1];
+  var _riotIdEu = useState("");
+  var riotIdEu = _riotIdEu[0];
+  var setRiotIdEu = _riotIdEu[1];
+  var _riotIdNa = useState("");
+  var riotIdNa = _riotIdNa[0];
+  var setRiotIdNa = _riotIdNa[1];
   var _linking = useState(false);
   var linking = _linking[0];
   var setLinking = _linking[1];
@@ -44,46 +43,54 @@ function OnboardingFlow(props) {
     );
   }
 
-  // Screen 2: Link Riot ID
+  // Screen 2: Link Riot ID (EU + NA)
   if (step === 2) {
+    var hasAnyId = (riotIdEu && riotIdEu.includes("#")) || (riotIdNa && riotIdNa.includes("#"));
     return (
       <div className="fixed inset-0 bg-[#08080F] flex flex-col items-center justify-center z-[10000] p-8">
         <div className="max-w-[360px] w-full text-center">
           <h2 className="display text-on-surface mb-2">Link Your Riot ID</h2>
           <p className="text-[13px] text-on-surface-variant mb-6">
-            So we can track your placements and build your legacy.
+            So we can track your placements and build your legacy. Add at least one.
           </p>
+          <div className="text-left mb-1">
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-widest">EU (EUW / EUNE)</span>
+          </div>
           <Inp
             placeholder="Name#TAG"
-            value={riotId}
-            onChange={function(e) { setRiotId(e.target.value); }}
-            className="mb-3 text-center"
+            value={riotIdEu}
+            onChange={function(e) { setRiotIdEu(e.target.value); }}
+            className="mb-4 text-center"
           />
-          <select
-            value={region}
-            onChange={function(e) { setRegion(e.target.value); }}
-            className="w-full px-3.5 py-2.5 rounded-[10px] bg-surface-container border border-white/10 text-on-surface text-[13px] mb-4"
-          >
-            {REGIONS.map(function(r) {
-              return <option key={r} value={r}>{r}</option>;
-            })}
-          </select>
+          <div className="text-left mb-1">
+            <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-widest">NA</span>
+          </div>
+          <Inp
+            placeholder="Name#TAG"
+            value={riotIdNa}
+            onChange={function(e) { setRiotIdNa(e.target.value); }}
+            className="mb-4 text-center"
+          />
           <Btn
             v="primary"
             full={true}
-            disabled={linking}
+            disabled={linking || !hasAnyId}
             onClick={function() {
-              if (!riotId.includes("#")) return;
               setLinking(true);
               setLinkError('');
+              var update = {
+                riot_id_eu: riotIdEu.trim() || null,
+                riot_id_na: riotIdNa.trim() || null,
+                riot_id: riotIdEu.trim() || riotIdNa.trim() || null
+              };
               supabase
                 .from("players")
-                .update({ riot_id: riotId, region: region })
+                .update(update)
                 .eq("auth_user_id", currentUser.auth_user_id || currentUser.id)
                 .then(function(res) {
                   setLinking(false);
                   if (res.error) { setLinkError('Failed to save: ' + res.error.message); return; }
-                  if (onRiotLinked) onRiotLinked(riotId, region);
+                  if (onRiotLinked) onRiotLinked(riotIdEu.trim(), riotIdNa.trim());
                   setStep(3);
                 });
             }}
@@ -106,8 +113,8 @@ function OnboardingFlow(props) {
 
   // Screen 3: Your Player Card
   if (step === 3) {
-    var displayName = riotId || (currentUser ? currentUser.username : "Player");
-    var displayRegion = region || "EUW";
+    var displayName = riotIdEu || riotIdNa || (currentUser ? currentUser.username : "Player");
+    var displayRegion = riotIdEu ? "EU" : riotIdNa ? "NA" : "EUW";
 
     return (
       <div className="fixed inset-0 bg-[#08080F] flex flex-col items-center justify-center z-[10000] p-8">

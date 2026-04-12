@@ -229,7 +229,7 @@ function BracketScreen(){
   function findMyLobby(){
     var q=mySearch.trim().toLowerCase();
     if(!q)return;
-    var li=lobbies.findIndex(function(lobby){return lobby.some(function(p){return (p.name||'').toLowerCase().includes(q)||(p.riotId&&p.riotId.toLowerCase().includes(q));});});
+    var li=lobbies.findIndex(function(lobby){return lobby.some(function(p){var rid=(p.riotId||p.riot_id_eu||p.riot_id_na||'').toLowerCase();return (p.name||'').toLowerCase().includes(q)||rid.includes(q);});});
     if(li>=0){setHighlightLobby(li);toast("Found in Lobby "+(li+1)+"!","success");}
     else toast("Not found in active lobbies","error");
   }
@@ -471,7 +471,7 @@ function BracketScreen(){
         var newRH=Object.assign({},ts.roundHistory||{});
         if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0)newRH[round]=ts.lockedPlacements;
         var newRL=Object.assign({},ts.roundLobbies||{});
-        newRL[round]=lobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId};});});
+        newRL[round]=lobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});});
         return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRH,roundLobbies:newRL});
       });
       toast("Auto-advanced to Game "+nextRound,"success");
@@ -674,7 +674,7 @@ function BracketScreen(){
                       }
                       var newRoundLobbies=Object.assign({},ts.roundLobbies||{});
                       newRoundLobbies[round]=lobbies.map(function(lobby){
-                        return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId};});
+                        return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});
                       });
                       return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRoundHistory,roundLobbies:newRoundLobbies});
                     });

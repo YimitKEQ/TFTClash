@@ -1,14 +1,14 @@
 import { SlashCommandBuilder } from 'discord.js';
-import { standingsEmbed } from '../utils/embeds.js';
+import { leaderboardEmbed } from '../utils/embeds.js';
 import { getStandings, getSeasonConfig } from '../utils/data.js';
 
 export const data = new SlashCommandBuilder()
-  .setName('standings')
-  .setDescription('Show current TFT Clash season standings');
+  .setName('leaderboard')
+  .setDescription('Show the full TFT Clash season leaderboard (top 20)');
 
 export async function execute(interaction) {
   await interaction.deferReply();
-  const players = await getStandings(10);
+  const players = await getStandings(20);
   const season = await getSeasonConfig();
-  await interaction.editReply({ embeds: [standingsEmbed(players, season)] });
+  await interaction.editReply({ embeds: [leaderboardEmbed(players, season)] });
 }

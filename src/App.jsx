@@ -566,7 +566,7 @@ function TFTClash(){
         currentUser:currentUser,
         onComplete:function(){setShowOnboarding(false);},
         onRegister:function(){setScreen("home");},
-        onRiotLinked:function(riotId,region){setCurrentUser(function(u){return Object.assign({},u,{riotId:riotId,riot_id:riotId,region:region});});},
+        onRiotLinked:function(euId,naId){setCurrentUser(function(u){return Object.assign({},u,{riotId:euId||naId||'',riot_id:euId||naId||'',riot_id_eu:euId||null,riot_id_na:naId||null});});},
         nextClash:(tournamentState&&tournamentState.clashDate)||"Saturday",
         playerCount:players.length
       })}

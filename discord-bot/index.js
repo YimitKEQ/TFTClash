@@ -10,6 +10,7 @@ import path from 'path';
 import 'dotenv/config';
 
 import { startScheduler } from './scheduler.js';
+import { startListeners } from './listeners.js';
 import { welcomeEmbed, welcomeDMEmbed } from './utils/embeds.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,30 +24,31 @@ const client = new Client({
 
 // ─── Load slash commands ──────────────────────────────────────────────────────
 client.commands = new Collection();
-const commandFiles = readdirSync(path.join(__dirname, 'commands')).filter(f => f.endsWith('.js'));
+const commandFiles = readdirSync(path.join(__dirname, 'commands')).filter(function(f) { return f.endsWith('.js'); });
 for (const file of commandFiles) {
   const url = pathToFileURL(path.join(__dirname, 'commands', file)).href;
   const cmd = await import(url);
   if (cmd.data && cmd.execute) {
     client.commands.set(cmd.data.name, cmd);
-    console.log(`[cmd] ${cmd.data.name}`);
+    console.log('[cmd] ' + cmd.data.name);
   }
 }
 
 // ─── Ready ────────────────────────────────────────────────────────────────────
-client.once(Events.ClientReady, (c) => {
-  console.log(`\n⚡ TFT Clash Bot online as ${c.user.tag}`);
+client.once(Events.ClientReady, function(c) {
+  console.log('\n⚡ TFT Clash Bot online as ' + c.user.tag);
 
   c.user.setPresence({
-    activities: [{ name: 'TFT Clash · /clash', type: ActivityType.Playing }],
+    activities: [{ name: 'TFT Clash - /clash', type: ActivityType.Playing }],
     status: 'online',
   });
 
   startScheduler(client);
+  startListeners(client);
 });
 
 // ─── Slash commands ───────────────────────────────────────────────────────────
-client.on(Events.InteractionCreate, async (interaction) => {
+client.on(Events.InteractionCreate, async function(interaction) {
   // Slash command
   if (interaction.isChatInputCommand()) {
     const cmd = client.commands.get(interaction.commandName);
@@ -54,12 +56,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
     try {
       await cmd.execute(interaction);
     } catch (err) {
-      console.error(`[error] /${interaction.commandName}:`, err);
+      console.error('[error] /' + interaction.commandName + ':', err);
       logError(interaction.guild, interaction.user.tag, interaction.commandName, err);
       const msg = { content: '❌ Something went wrong. Try again or contact a Host.', ephemeral: true };
-      interaction.deferred || interaction.replied
-        ? await interaction.editReply(msg)
-        : await interaction.reply(msg);
+      if (interaction.deferred || interaction.replied) {
+        await interaction.editReply(msg);
+      } else {
+        await interaction.reply(msg);
+      }
     }
     return;
   }
@@ -68,14 +72,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
   if (interaction.isButton() && interaction.customId === 'verify') {
     const guild      = interaction.guild;
     const member     = interaction.member;
-    const playerRole = guild.roles.cache.find(r => r.name === 'Player');
+    const playerRole = guild.roles.cache.find(function(r) { return r.name === 'Player'; });
 
     if (!playerRole) {
-      return interaction.reply({ content: '⚠️ Player role not found — contact a Host.', ephemeral: true });
+      return interaction.reply({ content: '⚠️ Player role not found - contact a Host.', ephemeral: true });
     }
 
     if (member.roles.cache.has(playerRole.id)) {
-      return interaction.reply({ content: '✅ You\'re already verified!', ephemeral: true });
+      return interaction.reply({ content: '✅ You are already verified!', ephemeral: true });
     }
 
     try {
@@ -83,33 +87,33 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       await interaction.reply({
         content:
-          `✅ **Verified!** You now have access to the full server.\n\n` +
-          `Next step: link your TFT Clash account with \`/link account <username>\``,
+          '✅ **Verified!** You now have access to the full server.\n\n' +
+          'Next step: link your TFT Clash account with `/link account <username>`',
         ephemeral: true,
       });
 
       // Post welcome in #general
-      const general = guild.channels.cache.find(c => c.name.includes('general'));
+      const general = guild.channels.cache.find(function(c) { return c.name.includes('general'); });
       if (general) {
         await general.send({ embeds: [welcomeEmbed(member)] });
       }
 
-      console.log(`[verify] ${member.user.tag} verified`);
+      console.log('[verify] ' + member.user.tag + ' verified');
     } catch (err) {
       console.error('[verify error]', err);
-      await interaction.reply({ content: '❌ Could not assign role — check bot permissions.', ephemeral: true });
+      await interaction.reply({ content: '❌ Could not assign role - check bot permissions.', ephemeral: true });
     }
   }
 });
 
 // ─── New member join ──────────────────────────────────────────────────────────
-client.on(Events.GuildMemberAdd, async (member) => {
-  console.log(`[join] ${member.user.tag}`);
+client.on(Events.GuildMemberAdd, async function(member) {
+  console.log('[join] ' + member.user.tag);
 
   // DM welcome
   try {
     await member.send({ embeds: [welcomeDMEmbed(member)] });
-  } catch {
+  } catch (e) {
     // DMs closed, silently skip
   }
 });
@@ -117,9 +121,9 @@ client.on(Events.GuildMemberAdd, async (member) => {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function logError(guild, userTag, command, err) {
   if (!guild) return;
-  const logCh = guild.channels.cache.find(c => c.name.includes('bot-logs'));
+  const logCh = guild.channels.cache.find(function(c) { return c.name.includes('bot-logs'); });
   if (logCh) {
-    logCh.send(`**Error** \`/${command}\` by ${userTag}\n\`\`\`${err.message}\`\`\``).catch(() => {});
+    logCh.send('**Error** `/' + command + '` by ' + userTag + '\n```' + err.message + '```').catch(function() {});
   }
 }
 

@@ -60,10 +60,6 @@ export default function AccountScreen() {
   var [profilePic, setProfilePic] = useState((user.user_metadata && user.user_metadata.profilePic) || user.profilePic || '');
   var [bannerUrl, setBannerUrl] = useState((user.user_metadata && user.user_metadata.bannerUrl) || user.bannerUrl || '');
   var [profileAccent, setProfileAccent] = useState((user.user_metadata && user.user_metadata.profileAccent) || user.profileAccent || '');
-  var [riotId, setRiotId] = useState((user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id)) || '');
-  var [riotRegion, setRiotRegion] = useState((user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region)) || 'EUW');
-  var [secondRiotId, setSecondRiotId] = useState((user.user_metadata && user.user_metadata.secondRiotId) || user.secondRiotId || '');
-  var [secondRegion, setSecondRegion] = useState((user.user_metadata && user.user_metadata.secondRegion) || user.secondRegion || 'EUW');
   var [subscription, setSubscription] = useState(null);
 
   var _newPw = useState('');
@@ -114,11 +110,7 @@ export default function AccountScreen() {
   var changePwSaving = _changePwSaving[0]; var setChangePwSaving = _changePwSaving[1];
 
   var usernameChanged = !!(user.user_metadata && user.user_metadata.username_changed);
-  var riotIdSet = !!(
-    (user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id)) ||
-    riotIdEu
-  );
-  var EU_NA = ['EUW', 'EUNE', 'NA'];
+  var riotIdSet = !!(riotIdEu || riotIdNa);
 
   var linkedPlayer = players.find(function(p) {
     if (user.auth_user_id && p.auth_user_id && p.auth_user_id === user.auth_user_id) return true;
@@ -216,8 +208,6 @@ export default function AccountScreen() {
       twitch: twitch,
       twitter: twitter,
       youtube: youtube,
-      secondRiotId: secondRiotId,
-      secondRegion: secondRegion,
       profilePic: profilePic,
       bannerUrl: bannerUrl,
       profileAccent: profileAccent,
@@ -243,7 +233,8 @@ export default function AccountScreen() {
     }
 
     var socialLinks = { twitch: meta.twitch || '', twitter: meta.twitter || '', youtube: meta.youtube || '' };
-    var playerUpdate = { bio: meta.bio || '', region: riotRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null, riot_id: riotIdEu.trim() || riotIdNa.trim() || null };
+    var derivedRegion = riotIdEu.trim() ? 'EUW' : riotIdNa.trim() ? 'NA' : (user.region || 'EUW');
+    var playerUpdate = { bio: meta.bio || '', region: derivedRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null, riot_id: riotIdEu.trim() || riotIdNa.trim() || null };
     if (!usernameChanged && meta.username) {
       playerUpdate.username = meta.username;
     }
@@ -279,10 +270,8 @@ export default function AccountScreen() {
       var updated = Object.assign({}, user, meta, {
         username: meta.username || user.username,
         user_metadata: meta,
-        region: riotRegion,
-        mainRegion: riotRegion,
-        secondRiotId: secondRiotId,
-        secondRegion: secondRegion,
+        region: derivedRegion,
+        mainRegion: derivedRegion,
         profilePic: profilePic,
         bannerUrl: bannerUrl,
         profileAccent: profileAccent,
@@ -351,8 +340,8 @@ export default function AccountScreen() {
     : null;
 
   var avatarInitial = (user.username || 'U').charAt(0).toUpperCase();
-  var riotIdDisplay = riotIdEu || (user.user_metadata && (user.user_metadata.riotId || user.user_metadata.riot_id));
-  var riotRegionDisplay = riotIdEu ? 'EUW' : (user.user_metadata && (user.user_metadata.riotRegion || user.user_metadata.riot_region || user.user_metadata.region));
+  var riotIdDisplay = riotIdEu || riotIdNa || '';
+  var riotRegionDisplay = riotIdEu ? 'EUW' : riotIdNa ? 'NA' : (user.region || 'EUW');
 
   if (passwordRecovery) {
     return (
