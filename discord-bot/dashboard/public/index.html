@@ -46,7 +46,6 @@
 
     /* ═══ NAV BAR ══════════════════════════════════════════════════ */
     .nav {
-      background: transparent;
       padding: 20px 32px 0;
       display: flex;
       align-items: center;
@@ -63,29 +62,6 @@
       letter-spacing: -0.5px;
     }
     .brand span { color: var(--green); }
-
-    .nav-tabs {
-      display: flex;
-      gap: 4px;
-      margin-left: 32px;
-      background: var(--surface);
-      border-radius: 8px;
-      padding: 4px;
-    }
-    .nav-tab {
-      padding: 6px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-2);
-      cursor: pointer;
-      transition: all 0.15s;
-      border: none;
-      background: none;
-      font-family: inherit;
-    }
-    .nav-tab.active { background: var(--surface-3); color: #fff; }
-    .nav-tab:hover:not(.active) { color: #fff; }
 
     .nav-right {
       margin-left: auto;
@@ -140,19 +116,15 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* ═══ CONTENT AREA ═════════════════════════════════════════════ */
+    /* ═══ CONTENT ══════════════════════════════════════════════════ */
     .content {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 32px;
+      padding: 28px 32px 48px;
     }
 
-    /* Tab pages */
-    .tab-page { display: none; }
-    .tab-page.active { display: block; }
-
     /* ═══ HERO ═════════════════════════════════════════════════════ */
-    .hero { margin-bottom: 36px; }
+    .hero { margin-bottom: 32px; }
     .hero h1 {
       font-size: 48px;
       font-weight: 900;
@@ -170,7 +142,7 @@
     .stats-row {
       display: flex;
       gap: 16px;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
     .stat-card {
       flex: 1;
@@ -202,7 +174,7 @@
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
     .pill {
       background: var(--surface-3);
@@ -235,8 +207,8 @@
     }
     .pill.primary .pill-key { background: rgba(0,0,0,0.15); }
 
-    /* ═══ CARDS ═════════════════════════════════════════════════════ */
-    .grid-2 {
+    /* ═══ GRID ═════════════════════════════════════════════════════ */
+    .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 20px;
@@ -244,6 +216,7 @@
     }
     .grid-full { grid-column: span 2; }
 
+    /* ═══ CARDS ═════════════════════════════════════════════════════ */
     .card {
       background: var(--surface);
       border-radius: 12px;
@@ -308,15 +281,13 @@
     .leader-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .leader-rank { font-size: 12px; color: var(--text-3); font-weight: 500; }
     .leader-bar {
-      width: 100px;
-      height: 4px;
+      width: 100px; height: 4px;
       border-radius: 2px;
       background: rgba(255,255,255,0.06);
       flex-shrink: 0;
     }
     .leader-fill {
-      height: 100%;
-      border-radius: 2px;
+      height: 100%; border-radius: 2px;
       background: var(--green);
       transition: width 0.6s ease;
     }
@@ -534,6 +505,15 @@
     .log-line.error .log-ts { color: rgba(255,68,68,0.4); }
     .log-line.ok .log-msg { color: var(--green); }
 
+    /* ═══ SECTION HEADINGS ═════════════════════════════════════════ */
+    .section-h {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+      margin-top: 12px;
+    }
+
     /* ═══ TOAST ═════════════════════════════════════════════════════ */
     .toast-wrap {
       position: fixed;
@@ -636,50 +616,22 @@
 
     /* ═══ RESPONSIVE ═══════════════════════════════════════════════ */
     @media (max-width: 900px) {
-      .grid-2 { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
       .grid-full { grid-column: span 1; }
       .stats-row { flex-wrap: wrap; }
       .stat-card { min-width: calc(50% - 8px); }
       .hero h1 { font-size: 32px; }
-      .nav-tabs { display: none; }
       .content { padding: 20px; }
     }
     @media (max-width: 600px) {
       .nav { padding: 14px 16px 0; }
-      .nav-right { display: none; }
+      .nav-right { gap: 8px; }
+      .cmd-trigger { display: none; }
       .content { padding: 16px; }
       .pill-row { gap: 6px; }
       .pill { padding: 8px 16px; font-size: 12px; }
       .hero h1 { font-size: 28px; }
       .stat-card { min-width: 100%; }
-    }
-
-    /* Mobile tab bar */
-    .mobile-tabs {
-      display: none;
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 8px 4px;
-      z-index: 200;
-      justify-content: space-around;
-    }
-    .mobile-tab {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--text-3);
-      text-align: center;
-      cursor: pointer;
-      padding: 4px 8px;
-      border: none;
-      background: none;
-      font-family: inherit;
-    }
-    .mobile-tab.active { color: var(--green); }
-    @media (max-width: 900px) {
-      .mobile-tabs { display: flex; }
-      body { padding-bottom: 56px; }
     }
   </style>
 </head>
@@ -688,13 +640,6 @@
   <!-- ═══ NAV ══════════════════════════════════════════════════ -->
   <nav class="nav">
     <div class="brand">TFT <span>Clash</span></div>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchTab('overview')">Overview</button>
-      <button class="nav-tab" onclick="switchTab('announce')">Announce</button>
-      <button class="nav-tab" onclick="switchTab('results')">Results</button>
-      <button class="nav-tab" onclick="switchTab('roles')">Roles</button>
-      <button class="nav-tab" onclick="switchTab('logs')">Logs</button>
-    </div>
     <div class="nav-right">
       <div class="online-badge" id="statusBadge">
         <div class="dot"></div>
@@ -708,99 +653,94 @@
   <!-- ═══ CONTENT ══════════════════════════════════════════════ -->
   <div class="content">
 
-    <!-- ═══ TAB: OVERVIEW ═══════════════════════════════════════ -->
-    <div class="tab-page active" id="tab-overview">
+    <!-- Hero -->
+    <div class="hero">
+      <h1 id="heroTitle">Good evening.</h1>
+      <p id="heroSub">Loading dashboard status...</p>
+    </div>
 
-      <div class="hero">
-        <h1 id="heroTitle">Good evening.</h1>
-        <p id="heroSub">Loading dashboard status...</p>
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val green" id="sRegs">-</div>
+        <div class="stat-label">Registered</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-val" id="sPhase">-</div>
+        <div class="stat-label">Current Phase</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val yellow" id="sClash">-</div>
+        <div class="stat-label">Clash Number</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val blue" id="sPing">-</div>
+        <div class="stat-label">Bot Ping</div>
+      </div>
+    </div>
 
-      <div class="stats-row" id="statsRow">
-        <div class="stat-card">
-          <div class="stat-val green" id="sRegs">-</div>
-          <div class="stat-label">Registered</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val" id="sPhase">-</div>
-          <div class="stat-label">Current Phase</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val yellow" id="sClash">-</div>
-          <div class="stat-label">Clash Number</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-val blue" id="sPing">-</div>
-          <div class="stat-label">Bot Ping</div>
+    <!-- Quick Actions -->
+    <div class="pill-row">
+      <button class="pill primary" onclick="triggerJob('standings')"><span class="pill-key">1</span> Post Standings</button>
+      <button class="pill" onclick="triggerJob('reminder24h')"><span class="pill-key">2</span> 24h Reminder</button>
+      <button class="pill" onclick="triggerJob('reminder1h')"><span class="pill-key">3</span> 1h Reminder</button>
+      <button class="pill" onclick="createLobbies()"><span class="pill-key">4</span> Create Lobbies</button>
+      <button class="pill danger" onclick="destroyLobbies()"><span class="pill-key">5</span> Destroy Lobbies</button>
+      <button class="pill" onclick="bulkSyncRoles()"><span class="pill-key">6</span> Sync Roles</button>
+    </div>
+
+    <!-- Standings + Registrations -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-h">Season Standings</div>
+        <div class="card-sub" id="standingsSub">Top players</div>
+        <div class="card-b" id="standingsWrap">
+          <div style="color:var(--text-3);font-size:13px;">Loading...</div>
         </div>
       </div>
-
-      <div class="pill-row">
-        <button class="pill primary" onclick="triggerJob('standings')"><span class="pill-key">1</span> Post Standings</button>
-        <button class="pill" onclick="triggerJob('reminder24h')"><span class="pill-key">2</span> 24h Reminder</button>
-        <button class="pill" onclick="triggerJob('reminder1h')"><span class="pill-key">3</span> 1h Reminder</button>
-        <button class="pill" onclick="createLobbies()"><span class="pill-key">4</span> Create Lobbies</button>
-        <button class="pill danger" onclick="destroyLobbies()"><span class="pill-key">5</span> Destroy Lobbies</button>
-        <button class="pill" onclick="bulkSyncRoles()"><span class="pill-key">6</span> Sync Roles</button>
-      </div>
-
-      <div class="grid-2">
-        <!-- Standings -->
-        <div class="card">
-          <div class="card-h">Season Standings</div>
-          <div class="card-sub" id="standingsSub">Top players</div>
-          <div class="card-b" id="standingsWrap">
-            <div style="color:var(--text-3);font-size:13px;">Loading...</div>
-          </div>
-        </div>
-
-        <!-- Registrations -->
-        <div class="card">
-          <div class="card-h">Registrations</div>
-          <div class="card-sub" id="regSub">Current clash sign-ups</div>
-          <div class="card-b" id="regsWrap" style="max-height:400px;overflow-y:auto;">
-            <div style="color:var(--text-3);font-size:13px;">Loading...</div>
-          </div>
+      <div class="card">
+        <div class="card-h">Registrations</div>
+        <div class="card-sub" id="regSub">Current clash sign-ups</div>
+        <div class="card-b" id="regsWrap" style="max-height:400px;overflow-y:auto;">
+          <div style="color:var(--text-3);font-size:13px;">Loading...</div>
         </div>
       </div>
     </div>
 
-    <!-- ═══ TAB: ANNOUNCE ═══════════════════════════════════════ -->
-    <div class="tab-page" id="tab-announce">
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-h">Send Announcement</div>
-          <div class="card-sub">Broadcast an embed to any channel</div>
-          <div class="card-b">
-            <div class="fg"><label>Channel</label><select id="annChannel" class="channel-select"></select></div>
-            <div class="fg"><label>Title</label><input type="text" id="annTitle" placeholder="Optional title"></div>
-            <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="What do you want to say?"></textarea></div>
-            <div class="fg"><label>Mention</label>
-              <div class="radio-row">
-                <label><input type="radio" name="annMention" value="none" checked> None</label>
-                <label><input type="radio" name="annMention" value="here"> @here</label>
-                <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
-              </div>
+    <!-- Announce + Message -->
+    <div class="section-h">Communicate</div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-h">Send Announcement</div>
+        <div class="card-sub">Broadcast an embed to any channel</div>
+        <div class="card-b">
+          <div class="fg"><label>Channel</label><select id="annChannel" class="channel-select"></select></div>
+          <div class="fg"><label>Title</label><input type="text" id="annTitle" placeholder="Optional title"></div>
+          <div class="fg"><label>Message</label><textarea id="annMessage" placeholder="What do you want to say?"></textarea></div>
+          <div class="fg"><label>Mention</label>
+            <div class="radio-row">
+              <label><input type="radio" name="annMention" value="none" checked> None</label>
+              <label><input type="radio" name="annMention" value="here"> @here</label>
+              <label><input type="radio" name="annMention" value="everyone"> @everyone</label>
             </div>
-            <button class="send-btn" onclick="sendAnnounce()">Send Announcement</button>
           </div>
+          <button class="send-btn" onclick="sendAnnounce()">Send Announcement</button>
         </div>
-
-        <div class="card">
-          <div class="card-h">Direct Message</div>
-          <div class="card-sub">Send a plain text message to any channel</div>
-          <div class="card-b">
-            <div class="fg"><label>Channel</label><select id="msgChannel" class="channel-select"></select></div>
-            <div class="fg"><label>Message</label><textarea id="msgContent" placeholder="Type a message..."></textarea></div>
-            <button class="send-btn" onclick="sendMessage()">Send Message</button>
-          </div>
+      </div>
+      <div class="card">
+        <div class="card-h">Direct Message</div>
+        <div class="card-sub">Send a plain text message to any channel</div>
+        <div class="card-b">
+          <div class="fg"><label>Channel</label><select id="msgChannel" class="channel-select"></select></div>
+          <div class="fg"><label>Message</label><textarea id="msgContent" placeholder="Type a message..."></textarea></div>
+          <button class="send-btn" onclick="sendMessage()">Send Message</button>
         </div>
       </div>
     </div>
 
-    <!-- ═══ TAB: RESULTS ════════════════════════════════════════ -->
-    <div class="tab-page" id="tab-results">
-      <div class="card" style="max-width:600px;">
+    <!-- Post Results -->
+    <div class="grid">
+      <div class="card">
         <div class="card-h">Post Clash Results</div>
         <div class="card-sub">Enter placements and broadcast to Discord</div>
         <div class="card-b">
@@ -813,10 +753,11 @@
       </div>
     </div>
 
-    <!-- ═══ TAB: ROLES ══════════════════════════════════════════ -->
-    <div class="tab-page" id="tab-roles">
+    <!-- Role Management -->
+    <div class="section-h">Role Management</div>
+    <div class="grid">
       <div class="card grid-full">
-        <div class="card-h">Role Management</div>
+        <div class="card-h">Crew</div>
         <div class="card-sub">Manage Discord roles for all members</div>
         <div class="card-b">
           <div class="toolbar">
@@ -834,26 +775,18 @@
       </div>
     </div>
 
-    <!-- ═══ TAB: LOGS ═══════════════════════════════════════════ -->
-    <div class="tab-page" id="tab-logs">
+    <!-- System Log -->
+    <div class="section-h">System Log</div>
+    <div class="grid">
       <div class="card grid-full">
-        <div class="card-h">System Log</div>
-        <div class="card-sub">Live feed - auto refreshes every 5 seconds</div>
+        <div class="card-h">Live Feed</div>
+        <div class="card-sub">Auto refreshes every 5 seconds</div>
         <div class="card-b">
           <div class="log-wrap" id="logFeed"></div>
         </div>
       </div>
     </div>
 
-  </div>
-
-  <!-- Mobile tab bar -->
-  <div class="mobile-tabs">
-    <button class="mobile-tab active" onclick="switchTab('overview')">Overview</button>
-    <button class="mobile-tab" onclick="switchTab('announce')">Announce</button>
-    <button class="mobile-tab" onclick="switchTab('results')">Results</button>
-    <button class="mobile-tab" onclick="switchTab('roles')">Roles</button>
-    <button class="mobile-tab" onclick="switchTab('logs')">Logs</button>
   </div>
 
   <!-- Toast container -->
@@ -928,26 +861,11 @@
       return 'Good evening';
     }
 
-    // ─── Tab Navigation ──────────────────────────────────────────
-    function switchTab(name) {
-      document.querySelectorAll('.tab-page').forEach(function(el) { el.classList.remove('active'); });
-      document.querySelectorAll('.nav-tab').forEach(function(el) { el.classList.remove('active'); });
-      document.querySelectorAll('.mobile-tab').forEach(function(el) { el.classList.remove('active'); });
-      $('tab-' + name).classList.add('active');
-      document.querySelectorAll('.nav-tab').forEach(function(el) {
-        if (el.textContent.toLowerCase() === name) el.classList.add('active');
-      });
-      document.querySelectorAll('.mobile-tab').forEach(function(el) {
-        if (el.textContent.toLowerCase() === name) el.classList.add('active');
-      });
-    }
-
     // ─── Status ──────────────────────────────────────────────────
     var lastPhase = 'idle';
     var lastClashNum = 0;
     var lastRegCount = 0;
     var lastSeasonName = '';
-    var guildName = '';
 
     async function refreshStatus() {
       try {
@@ -962,9 +880,6 @@
           $('statusText').textContent = 'Reconnecting';
         }
         $('pingVal').textContent = data.bot.ping + 'ms';
-        guildName = data.guild ? data.guild.name : '';
-
-        // Stat cards
         $('sPing').textContent = data.bot.ping + 'ms';
 
         if (data.tournament) {
@@ -984,7 +899,6 @@
           lastSeasonName = data.season.name || '';
         }
 
-        // Hero text
         $('heroTitle').textContent = getGreeting() + ', Levitate.';
         updateHeroSub();
 
@@ -1275,10 +1189,8 @@
       { icon: '&#x1f504;', label: 'Sync All Roles', hint: '6', fn: function() { bulkSyncRoles(); } },
       { icon: '&#x1f465;', label: 'Refresh Members', hint: '', fn: function() { loadMembers(); } },
       { icon: '&#x1f4ca;', label: 'Refresh Standings', hint: '', fn: function() { loadStandings(); } },
-      { icon: '&#x1f4e3;', label: 'Go to Announce', hint: '', fn: function() { switchTab('announce'); $('annMessage').focus(); } },
-      { icon: '&#x1f4ac;', label: 'Go to Results', hint: '', fn: function() { switchTab('results'); } },
-      { icon: '&#x1f6e1;', label: 'Go to Roles', hint: '', fn: function() { switchTab('roles'); } },
-      { icon: '&#x1f4cb;', label: 'Go to Logs', hint: '', fn: function() { switchTab('logs'); } },
+      { icon: '&#x1f4e3;', label: 'Focus Announce', hint: '', fn: function() { $('annMessage').focus(); } },
+      { icon: '&#x1f4ac;', label: 'Focus Message', hint: '', fn: function() { $('msgContent').focus(); } },
     ];
     var cmdIdx = 0;
 
