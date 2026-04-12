@@ -42,6 +42,7 @@ var StatsHubScreenNew = React.lazy(function(){ return import('./screens/StatsHub
 
 var SponsorsScreenNew = React.lazy(function(){ return import('./screens/SponsorsScreen'); });
 var CommandCenterScreen = React.lazy(function(){ return import('./screens/CommandCenterScreen'); });
+var ContentEngineScreen = React.lazy(function(){ return import('./screens/ContentEngineScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -190,7 +191,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -632,6 +633,7 @@ function TFTClash(){
         {screen==="admin"&&<AdminScreenNew/>}
 
         {screen==="ops"&&<CommandCenterScreen/>}
+        {screen==="content-engine"&&<ContentEngineScreen/>}
 
         {screen==="not-found"&&<NotFoundScreen/>}
 
