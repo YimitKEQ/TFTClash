@@ -348,6 +348,76 @@
     .rank-badge.Diamond { background: rgba(78,205,196,0.15); color: var(--teal); }
     .rank-badge.Platinum { background: rgba(63,182,139,0.15); color: #3FB68B; }
 
+    /* ─── Member/Role table ─────────────────────────────────────────── */
+    .member-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .member-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .member-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.02);
+      vertical-align: middle;
+    }
+    .member-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .role-tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+      margin: 1px 2px;
+    }
+    .role-tag.Season-Champion { background: rgba(255,215,0,0.15); color: #FFD700; }
+    .role-tag.Host { background: rgba(232,168,56,0.15); color: var(--gold); }
+    .role-tag.Pro { background: rgba(155,114,207,0.15); color: var(--purple); }
+    .role-tag.Player { background: rgba(78,205,196,0.15); color: var(--teal); }
+    .role-tag.Challenger { background: rgba(255,215,0,0.15); color: #FFD700; }
+    .role-tag.Grandmaster { background: rgba(192,57,43,0.15); color: #C0392B; }
+    .role-tag.Master { background: rgba(155,114,207,0.15); color: var(--purple); }
+    .role-tag.Diamond { background: rgba(78,205,196,0.15); color: var(--teal); }
+    .role-tag.Platinum { background: rgba(63,182,139,0.15); color: #3FB68B; }
+    .member-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .member-actions select {
+      width: auto;
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+    .member-actions .btn {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
+    .search-bar {
+      margin-bottom: 14px;
+    }
+    .search-bar input {
+      max-width: 300px;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .member-scroll {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
     /* ─── Responsive ─────────────────────────────────────────────────── */
     @media (max-width: 768px) {
       .container { grid-template-columns: 1fr; padding: 12px; }
@@ -417,6 +487,14 @@
           <div class="quick-action" onclick="triggerJob('reminder1h')">
             <div class="qa-icon">&#x1f6a8;</div>
             <div class="qa-label">1h Reminder</div>
+          </div>
+          <div class="quick-action" onclick="createLobbies()" style="border-color: var(--teal);">
+            <div class="qa-icon">&#x1f3ae;</div>
+            <div class="qa-label">Create Lobbies</div>
+          </div>
+          <div class="quick-action" onclick="destroyLobbies()" style="border-color: var(--red, #C0392B);">
+            <div class="qa-icon">&#x1f5d1;</div>
+            <div class="qa-label">Destroy Lobbies</div>
           </div>
         </div>
       </div>
@@ -491,6 +569,26 @@
           </thead>
           <tbody id="standingsBody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Role Management -->
+    <div class="card full-width">
+      <div class="card-header">&#x1f6e1;&#xfe0f; Role Management</div>
+      <div class="card-body">
+        <div class="toolbar">
+          <button class="btn btn-purple" onclick="bulkSyncRoles()">Sync All Roles from DB</button>
+          <button class="btn btn-dark" onclick="loadMembers()">Refresh Members</button>
+          <input type="text" id="memberSearch" placeholder="Search members..." style="max-width: 220px;" oninput="filterMembers()">
+        </div>
+        <div class="member-scroll">
+          <table class="member-table">
+            <thead>
+              <tr><th>Member</th><th>Current Roles</th><th>Assign / Remove</th></tr>
+            </thead>
+            <tbody id="memberBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -665,6 +763,26 @@
       }
     }
 
+    async function createLobbies() {
+      if (!confirm('Create lobby channels in Discord? This will create text + voice channels for each lobby.')) return;
+      try {
+        var res = await api('POST', '/lobbies/create', {});
+        toast('Created ' + res.result.created + ' lobby channels', 'success');
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    async function destroyLobbies() {
+      if (!confirm('Destroy ALL lobby channels? This cannot be undone.')) return;
+      try {
+        var res = await api('POST', '/lobbies/destroy', {});
+        toast('Destroyed ' + res.result.destroyed + ' lobby channels', 'success');
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
     async function sendAnnounce() {
       var channelId = $('annChannel').value;
       var title = $('annTitle').value;
@@ -723,11 +841,106 @@
       }
     }
 
+    // ─── Role Management ─────────────────────────────────────────────
+    var allMembers = [];
+    var managedRoles = [];
+
+    async function loadMembers() {
+      try {
+        var data = await api('GET', '/members');
+        allMembers = data.members || [];
+        managedRoles = data.managedRoles || [];
+        renderMembers(allMembers);
+      } catch (e) {
+        console.error('Failed to load members:', e);
+      }
+    }
+
+    function renderMembers(members) {
+      var tbody = $('memberBody');
+      tbody.innerHTML = '';
+      members.forEach(function(m) {
+        var tr = document.createElement('tr');
+        var roleTags = m.roles.map(function(r) {
+          return '<span class="role-tag ' + r.replace(/ /g, '-') + '">' + r + '</span>';
+        }).join(' ') || '<span style="color: var(--text-muted); font-size: 12px;">No managed roles</span>';
+
+        var roleOptions = managedRoles.map(function(r) {
+          return '<option value="' + r + '">' + r + '</option>';
+        }).join('');
+
+        tr.innerHTML =
+          '<td><strong>' + escapeHtml(m.displayName) + '</strong><div style="font-size: 10px; color: var(--text-muted);">' + escapeHtml(m.tag) + '</div></td>' +
+          '<td>' + roleTags + '</td>' +
+          '<td><div class="member-actions">' +
+            '<select class="role-sel-' + m.id + '">' + roleOptions + '</select>' +
+            '<button class="btn btn-teal" onclick="assignRole(\'' + m.id + '\', false)">+</button>' +
+            '<button class="btn btn-dark" onclick="assignRole(\'' + m.id + '\', true)">-</button>' +
+            '<button class="btn btn-dark" onclick="syncOneRole(\'' + m.id + '\')" title="Sync from DB">&#x1f504;</button>' +
+          '</div></td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterMembers() {
+      var q = $('memberSearch').value.toLowerCase();
+      if (!q) { renderMembers(allMembers); return; }
+      var filtered = allMembers.filter(function(m) {
+        return m.displayName.toLowerCase().includes(q) || m.tag.toLowerCase().includes(q) ||
+          m.roles.some(function(r) { return r.toLowerCase().includes(q); });
+      });
+      renderMembers(filtered);
+    }
+
+    async function assignRole(memberId, remove) {
+      var sel = document.querySelector('.role-sel-' + memberId);
+      if (!sel) return;
+      var roleName = sel.value;
+      var action = remove ? 'Remove' : 'Assign';
+      if (!confirm(action + ' "' + roleName + '"?')) return;
+      try {
+        await api('POST', '/roles/assign', { memberId: memberId, roleName: roleName, remove: remove });
+        toast(action + 'd ' + roleName, 'success');
+        loadMembers();
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    async function syncOneRole(discordId) {
+      try {
+        var res = await api('POST', '/roles/sync-one', { discordId: discordId });
+        var r = res.result;
+        if (r.added && (r.added.length || r.removed.length)) {
+          toast('Synced: +' + r.added.join(',') + ' -' + r.removed.join(','), 'success');
+        } else if (r.skipped) {
+          toast(r.reason || 'Skipped', 'error');
+        } else {
+          toast('Already in sync', 'success');
+        }
+        loadMembers();
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
+    async function bulkSyncRoles() {
+      if (!confirm('Sync all linked players roles from the database? This may take a moment.')) return;
+      try {
+        var res = await api('POST', '/roles/sync');
+        toast('Synced ' + res.total + ' players, ' + res.changed + ' updated', 'success');
+        loadMembers();
+      } catch (e) {
+        toast('Failed: ' + e.message, 'error');
+      }
+    }
+
     // ─── Init ────────────────────────────────────────────────────────
     buildPlacementRows();
     refreshStatus();
     loadChannels();
     loadStandings();
+    loadMembers();
     refreshLogs();
 
     setInterval(refreshStatus, 30000);

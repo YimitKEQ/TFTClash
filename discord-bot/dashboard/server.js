@@ -10,6 +10,9 @@ import { EmbedBuilder } from 'discord.js';
 import { getStandings, getSeasonConfig, getTournamentState, getRegistrations, getClashResults } from '../utils/data.js';
 import { standingsEmbed, resultsEmbed, clashInfoEmbed, GOLD, PURPLE, TEAL } from '../utils/embeds.js';
 import { postStandings, postReminder24h, postReminder1h } from '../scheduler.js';
+import { syncAllRoles, syncPlayerRoles, manualRoleAssign, getMemberRoles, ALL_MANAGED } from '../utils/roles.js';
+import { createLobbyChannels, destroyLobbyChannels } from '../utils/lobbies.js';
+import { supabase } from '../utils/supabase.js';
 
 var __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -274,6 +277,111 @@ export function startDashboard(client) {
 
       console.log('[dashboard] Custom embed sent to #' + channel.name);
       res.json({ ok: true, channel: channel.name });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── GET /api/members ─────────────────────────────────────────────────────
+  app.get('/api/members', async function(req, res) {
+    try {
+      var guild = getGuild();
+      if (!guild) return res.json([]);
+      var members = await getMemberRoles(guild);
+      res.json({ members: members, managedRoles: ALL_MANAGED });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── POST /api/roles/sync ───────────────────────────────────────────────────
+  app.post('/api/roles/sync', async function(req, res) {
+    try {
+      var guild = getGuild();
+      if (!guild) return res.status(400).json({ error: 'Guild not found' });
+      var results = await syncAllRoles(guild);
+      var changed = results.filter(function(r) { return r.added && (r.added.length || r.removed.length); });
+      console.log('[dashboard] Bulk role sync: ' + results.length + ' checked, ' + changed.length + ' updated');
+      res.json({ ok: true, total: results.length, changed: changed.length, details: changed });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── POST /api/roles/assign ─────────────────────────────────────────────────
+  app.post('/api/roles/assign', async function(req, res) {
+    try {
+      var memberId = req.body.memberId;
+      var roleName = req.body.roleName;
+      var remove = req.body.remove || false;
+
+      if (!memberId || !roleName) {
+        return res.status(400).json({ error: 'memberId and roleName are required' });
+      }
+
+      var guild = getGuild();
+      if (!guild) return res.status(400).json({ error: 'Guild not found' });
+
+      var result = await manualRoleAssign(guild, memberId, roleName, remove);
+      res.json({ ok: true, result: result });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── POST /api/roles/sync-one ───────────────────────────────────────────────
+  app.post('/api/roles/sync-one', async function(req, res) {
+    try {
+      var discordId = req.body.discordId;
+      if (!discordId) return res.status(400).json({ error: 'discordId is required' });
+
+      var guild = getGuild();
+      if (!guild) return res.status(400).json({ error: 'Guild not found' });
+
+      // Look up player by discord ID
+      var pRes = await supabase
+        .from('players')
+        .select('id,username,rank,auth_user_id,discord_user_id')
+        .eq('discord_user_id', discordId)
+        .single();
+
+      if (pRes.error || !pRes.data) {
+        return res.status(404).json({ error: 'No linked player for this Discord user' });
+      }
+
+      var result = await syncPlayerRoles(guild, pRes.data);
+      res.json({ ok: true, result: result });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── POST /api/lobbies/create ─────────────────────────────────────────────────
+  app.post('/api/lobbies/create', async function(req, res) {
+    try {
+      var guild = getGuild();
+      if (!guild) return res.status(400).json({ error: 'Guild not found' });
+
+      var ts = await getTournamentState();
+      if (!ts) return res.status(400).json({ error: 'No tournament state found' });
+
+      var result = await createLobbyChannels(guild, ts);
+      console.log('[dashboard] Lobby channels created: ' + result.created);
+      res.json({ ok: true, result: result });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ─── POST /api/lobbies/destroy ──────────────────────────────────────────────
+  app.post('/api/lobbies/destroy', async function(req, res) {
+    try {
+      var guild = getGuild();
+      if (!guild) return res.status(400).json({ error: 'Guild not found' });
+
+      var result = await destroyLobbyChannels(guild);
+      console.log('[dashboard] Lobby channels destroyed: ' + result.destroyed);
+      res.json({ ok: true, result: result });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

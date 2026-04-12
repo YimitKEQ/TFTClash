@@ -12,6 +12,7 @@ import 'dotenv/config';
 import { startScheduler } from './scheduler.js';
 import { startListeners } from './listeners.js';
 import { startDashboard } from './dashboard/server.js';
+import { syncAllRoles } from './utils/roles.js';
 import { welcomeEmbed, welcomeDMEmbed } from './utils/embeds.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -47,6 +48,15 @@ client.once(Events.ClientReady, function(c) {
   startScheduler(client);
   startListeners(client);
   startDashboard(client);
+
+  // Sync all Discord roles on startup
+  var guild = client.guilds.cache.get(process.env.GUILD_ID);
+  if (guild) {
+    syncAllRoles(guild).then(function(results) {
+      var changed = results.filter(function(r) { return r.added && (r.added.length || r.removed.length); });
+      console.log('[roles] Startup sync complete: ' + results.length + ' players checked, ' + changed.length + ' updated');
+    }).catch(function(e) { console.error('[roles] Startup sync failed:', e.message); });
+  }
 });
 
 // ─── Slash commands ───────────────────────────────────────────────────────────
