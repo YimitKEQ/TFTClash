@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
-import { Btn, Icon } from '../components/ui'
+import { Btn, Icon, Panel } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 import { getDonateUrl } from '../lib/paypal'
 
@@ -48,12 +48,9 @@ function HeroCountdown(props) {
             <span className="font-label text-[10px] uppercase opacity-40">Secs</span>
           </div>
         </div>
-        <button
-          className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
-          onClick={onRegister}
-        >
+        <Btn variant="primary" size="xl" onClick={onRegister}>
           {isLoggedIn ? 'Go to Dashboard' : 'Join This Tournament'}
-        </button>
+        </Btn>
         <a
           href="/standings"
           className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
@@ -77,19 +74,19 @@ function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig })
 
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
+      <Panel padding="none" className="p-4 sm:p-6 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Community</span>
         <span className="font-mono text-lg sm:text-xl text-primary font-bold">Free to Play</span>
-      </div>
-      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
+      </Panel>
+      <Panel padding="none" className="p-4 sm:p-6 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Players</span>
         <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{playerCount}</span>
-      </div>
-      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
+      </Panel>
+      <Panel padding="none" className="p-4 sm:p-6 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Clashes Run</span>
         <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{clashCount}</span>
-      </div>
-      <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg border border-outline-variant/5 hover:bg-surface-container transition-colors">
+      </Panel>
+      <Panel padding="none" className="p-4 sm:p-6 hover:bg-surface-container transition-colors">
         <span className="block font-label text-[10px] text-on-surface-variant tracking-widest uppercase mb-1">Status</span>
         {isLive
           ? (
@@ -102,7 +99,7 @@ function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig })
             <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{seasonName}</span>
           )
         }
-      </div>
+      </Panel>
     </section>
   )
 }
@@ -118,12 +115,9 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
         <h2 className="font-headline text-3xl italic">
           Elite <span className="text-primary">Leaderboard</span>
         </h2>
-        <button
-          className="font-label text-xs uppercase tracking-widest text-primary hover:underline underline-offset-4 bg-transparent border-0 cursor-pointer"
-          onClick={onViewAll}
-        >
+        <Btn variant="link" onClick={onViewAll}>
           View All Standings
-        </button>
+        </Btn>
       </div>
 
       <div className="space-y-3">
@@ -312,12 +306,9 @@ export default function HomeScreen() {
                   <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
                     {'Welcome back, ' + (currentUser.username || 'Challenger')}
                   </span>
-                  <button
-                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
-                    onClick={function() { navigate('/'); }}
-                  >
+                  <Btn variant="primary" size="xl" onClick={function() { navigate('/'); }}>
                     Go to Dashboard
-                  </button>
+                  </Btn>
                   <a
                     href="/standings"
                     className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
@@ -335,12 +326,9 @@ export default function HomeScreen() {
                   <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
                     Takes 10 seconds with Discord
                   </span>
-                  <button
-                    className="w-full py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
-                    onClick={handleSignUp}
-                  >
+                  <Btn variant="primary" size="xl" onClick={handleSignUp}>
                     Join This Week's Tournament
-                  </button>
+                  </Btn>
                   <a
                     href="/standings"
                     className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
@@ -361,27 +349,27 @@ export default function HomeScreen() {
               How It <span className="text-primary">Works</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 text-center space-y-3">
+              <Panel padding="default" className="text-center space-y-3">
                 <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon name="login" size={24} className="text-primary" />
                 </div>
                 <h3 className="font-label text-sm font-bold uppercase tracking-wider text-on-surface">Sign in with Discord</h3>
                 <p className="text-xs text-on-surface-variant leading-relaxed">One click. No passwords, no emails to verify. You already have Discord open.</p>
-              </div>
-              <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 text-center space-y-3">
+              </Panel>
+              <Panel padding="default" className="text-center space-y-3">
                 <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon name="sports_esports" size={24} className="text-primary" />
                 </div>
                 <h3 className="font-label text-sm font-bold uppercase tracking-wider text-on-surface">Join a Tournament</h3>
                 <p className="text-xs text-on-surface-variant leading-relaxed">Register for the next weekly clash. Check in when it starts, get assigned a lobby, play your games.</p>
-              </div>
-              <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 text-center space-y-3">
+              </Panel>
+              <Panel padding="default" className="text-center space-y-3">
                 <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
                   <Icon name="trending_up" size={24} className="text-primary" />
                 </div>
                 <h3 className="font-label text-sm font-bold uppercase tracking-wider text-on-surface">Climb the Leaderboard</h3>
                 <p className="text-xs text-on-surface-variant leading-relaxed">Earn points based on placement. Track your stats, build streaks, compete for the season title.</p>
-              </div>
+              </Panel>
             </div>
           </section>
         )}
@@ -465,22 +453,22 @@ export default function HomeScreen() {
               Common <span className="text-primary">Questions</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+              <Panel padding="none" className="p-5 space-y-2">
                 <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Is it really free?</h3>
                 <p className="text-sm text-on-surface-variant leading-relaxed">Yes, forever. Competing in clashes and climbing the leaderboard costs nothing. Pro and Host tiers add optional extras.</p>
-              </div>
-              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+              </Panel>
+              <Panel padding="none" className="p-5 space-y-2">
                 <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Do I need to be good?</h3>
                 <p className="text-sm text-on-surface-variant leading-relaxed">All skill levels are welcome. The points system rewards consistency, not just wins. Iron to Challenger, everyone competes.</p>
-              </div>
-              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+              </Panel>
+              <Panel padding="none" className="p-5 space-y-2">
                 <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">How long does a clash take?</h3>
                 <p className="text-sm text-on-surface-variant leading-relaxed">Each clash runs a set of TFT games in one session. Register in advance, check in when it starts, and play your games. Usually a couple of hours.</p>
-              </div>
-              <div className="bg-surface-container-low p-5 rounded-lg border border-outline-variant/10 space-y-2">
+              </Panel>
+              <Panel padding="none" className="p-5 space-y-2">
                 <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Is my Discord data safe?</h3>
                 <p className="text-sm text-on-surface-variant leading-relaxed">We only access your public Discord profile (username and avatar). We never read your messages, servers, or friends list.</p>
-              </div>
+              </Panel>
             </div>
           </section>
         )}
@@ -491,30 +479,21 @@ export default function HomeScreen() {
             <p className="text-on-surface-variant text-sm">
               {players.length > 0 ? players.length.toLocaleString() + ' players are already on the leaderboard.' : 'Your spot on the leaderboard is waiting.'}
             </p>
-            <button
-              className="px-8 py-4 rounded-xl font-label text-sm font-bold text-on-primary-fixed uppercase tracking-widest active:scale-[0.98] transition-all hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] bg-gradient-to-br from-primary to-primary-fixed-dim border-0 cursor-pointer"
-              onClick={handleSignUp}
-            >
+            <Btn variant="primary" size="lg" onClick={handleSignUp}>
               Join This Week's Tournament
-            </button>
+            </Btn>
           </section>
         )}
 
         {/* ── Footer Links ──────────────────────────────────────────────────── */}
         <footer className="pt-12 border-t border-outline-variant/10 text-center space-y-4">
           <div className="flex justify-center gap-4 flex-wrap">
-            <button
-              className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
-              onClick={handleViewRules}
-            >
+            <Btn variant="secondary" size="md" onClick={handleViewRules}>
               Tournament Rules
-            </button>
-            <button
-              className="bg-surface-container-high px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-surface-container-highest transition-colors border-0 cursor-pointer text-inherit"
-              onClick={handleViewFaq}
-            >
+            </Btn>
+            <Btn variant="secondary" size="md" onClick={handleViewFaq}>
               How to Play
-            </button>
+            </Btn>
             {getDonateUrl() ? (
               <a
                 href={getDonateUrl()}
