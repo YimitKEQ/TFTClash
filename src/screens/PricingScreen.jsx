@@ -28,7 +28,7 @@ var PRO_FEATURES = [
 
 var SCRIM_FEATURES = [
   { text: 'Everything in Free, plus:', icon: 'add_circle', dim: true },
-  { text: 'Create scrim rooms (up to 32 players)', icon: 'meeting_room' },
+  { text: 'Create scrim rooms (up to 8 players, one lobby)', icon: 'meeting_room' },
   { text: 'Multi-lobby seeding (Swiss, Snake, Random)', icon: 'swap_vert' },
   { text: 'Full scrim stats and leaderboards', icon: 'analytics' },
   { text: 'Scrim tournaments and seasons', icon: 'account_tree' },
@@ -38,6 +38,7 @@ var SCRIM_FEATURES = [
 var BUNDLE_FEATURES = [
   { text: 'All Pro features', icon: 'verified', highlight: true },
   { text: 'All Scrim Pass features', icon: 'meeting_room', highlight: true },
+  { text: 'Scrim rooms up to 16 players (two lobbies)', icon: 'meeting_room', highlight: true },
   { text: 'Best value - save 2.99/mo', icon: 'savings' },
 ]
 
@@ -64,7 +65,7 @@ var COMPARISON_ROWS = [
   { label: 'Custom banner',            free: false,      pro: true,       scrim: false,       bundle: true,       host: true,       type: 'bool' },
   { label: 'Join scrim rooms',         free: true,       pro: true,       scrim: true,        bundle: true,       host: true,       type: 'bool' },
   { label: 'Create scrim rooms',       free: false,      pro: false,      scrim: true,        bundle: true,       host: true,       type: 'bool' },
-  { label: 'Max scrim players',        free: '-',        pro: '-',        scrim: '32',        bundle: '32',       host: '32',       type: 'text' },
+  { label: 'Max scrim players',        free: '-',        pro: '-',        scrim: '8',         bundle: '16',       host: '32',       type: 'text' },
   { label: 'Multi-lobby seeding',      free: false,      pro: false,      scrim: true,        bundle: true,       host: true,       type: 'bool' },
   { label: 'Scrim stats',              free: false,      pro: false,      scrim: true,        bundle: true,       host: true,       type: 'bool' },
   { label: 'Tournament hosting',       free: false,      pro: false,      scrim: false,       bundle: false,      host: true,       type: 'bool' },
@@ -84,7 +85,7 @@ var FAQ_ITEMS = [
   },
   {
     q: 'What is a Scrim Pass?',
-    a: 'The Scrim Pass lets you create private practice rooms for up to 32 players with multi-lobby seeding. Perfect for friend groups and practice squads.',
+    a: 'The Scrim Pass lets you create private practice rooms for up to 8 players (one lobby). Upgrade to the Pro + Scrim bundle for two-lobby seeding with up to 16 players. Host tier unlocks 32 players.',
   },
   {
     q: 'How does Host work?',

@@ -34,8 +34,8 @@ export var DONATE_URL = 'https://www.paypal.com/donate/?hosted_button_id=' + (im
 
 export function getDonateUrl() {
   var id = import.meta.env.VITE_PAYPAL_DONATE_ID || '';
-  if (!id) return null;
-  return 'https://www.paypal.com/donate/?hosted_button_id=' + encodeURIComponent(id);
+  if (id) return 'https://www.paypal.com/donate/?hosted_button_id=' + encodeURIComponent(id);
+  return 'https://paypal.me/monkelodie';
 }
 
 // ─── Subscribe URL ────────────────────────────────────────────────────────────
