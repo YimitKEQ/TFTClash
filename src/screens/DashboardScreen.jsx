@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase.js'
 import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
+import SponsorShowcase from '../components/shared/SponsorShowcase'
 
 // --- TIER CONFIG ---
 
@@ -1197,6 +1198,10 @@ export default function DashboardScreen() {
 
   return (
     <PageLayout maxWidth="max-w-[1200px]">
+      <div className="mb-8">
+        <SponsorShowcase placement="dashboard" variant="featured" />
+      </div>
+
       <ClashCard />
 
       {/* Announcements */}

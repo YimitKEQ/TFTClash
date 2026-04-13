@@ -6,6 +6,7 @@ import { REGIONS, MEDAL_COLORS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon, Panel } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
+import SponsorShowcase from '../components/shared/SponsorShowcase'
 
 // MEDAL_COLORS imported from constants.js
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
@@ -191,12 +192,7 @@ export default function LeaderboardScreen(props) {
   var currentUser = ctx.currentUser
   var setProfilePlayer = ctx.setProfilePlayer
   var setScreen = ctx.setScreen
-  var orgSponsors = ctx.orgSponsors || []
   var navigate = useNavigate()
-
-  var lbSponsors = orgSponsors.filter(function(s) {
-    return s.status === 'active' && s.placements && s.placements.indexOf('leaderboard') > -1
-  })
 
   var _search = useState('')
   var search = _search[0]
@@ -266,22 +262,9 @@ export default function LeaderboardScreen(props) {
         </header>
 
         {/* Leaderboard Sponsors */}
-        {lbSponsors.length > 0 && (
-          <div className="flex items-center justify-center gap-6 flex-wrap py-4 mb-8 border-y border-outline-variant/10">
-            <span className="text-[9px] font-bold text-on-surface/30 uppercase tracking-widest">Leaderboard Powered By</span>
-            {lbSponsors.map(function(sp) {
-              return (
-                <div key={sp.name} className="flex items-center gap-2 opacity-50 hover:opacity-90 transition-opacity">
-                  {sp.logo_url ? (
-                    <img src={sp.logo_url} alt={sp.name} className="h-5 object-contain" />
-                  ) : (
-                    <span className="text-xs font-bold" style={{ color: sp.color || '#9B72CF' }}>{sp.name}</span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <div className="mb-8">
+          <SponsorShowcase placement="leaderboard" variant="strip" />
+        </div>
 
         {/* Podium */}
         {top3.length >= 3 && (

@@ -7,6 +7,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon, Panel } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader'
 import AdBanner from '../components/shared/AdBanner'
+import SponsorShowcase from '../components/shared/SponsorShowcase'
 import { getDonateUrl } from '../lib/paypal'
 
 // ── HeroCountdown ─────────────────────────────────────────────────────────────
@@ -232,12 +233,7 @@ export default function HomeScreen() {
   var setAuthScreen = ctx.setAuthScreen
   var pastClashes = ctx.pastClashes || []
   var seasonConfig = ctx.seasonConfig || {}
-  var orgSponsors = ctx.orgSponsors || []
   var navigate = useNavigate()
-
-  var homepageSponsors = orgSponsors.filter(function(s) {
-    return s.status === 'active' && s.placements && s.placements.indexOf('homepage') > -1
-  })
 
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var top5 = sorted.slice(0, 5)
@@ -437,22 +433,7 @@ export default function HomeScreen() {
         )}
 
         {/* ── Sponsor Strip ─────────────────────────────────────────────────── */}
-        {homepageSponsors.length > 0 && (
-          <div className="flex items-center justify-center gap-6 flex-wrap py-6 px-4 border-y border-outline-variant/10">
-            <span className="text-[9px] font-bold text-on-surface/30 uppercase tracking-widest">Partnered With</span>
-            {homepageSponsors.map(function(sp) {
-              return (
-                <div key={sp.name} className="flex items-center gap-2 opacity-40 hover:opacity-80 transition-opacity">
-                  {sp.logo_url ? (
-                    <img src={sp.logo_url} alt={sp.name} className="h-5 object-contain grayscale hover:grayscale-0 transition-all" />
-                  ) : (
-                    <span className="text-xs font-bold" style={{ color: sp.color || '#9B72CF' }}>{sp.name}</span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <SponsorShowcase placement="homepage" variant="strip" />
 
         {/* ── Ad Banner ─────────────────────────────────────────────────────── */}
         <AdBanner size="banner" className="w-full" />
