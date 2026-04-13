@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon } from '../components/ui'
+import SectionHeader from '../components/shared/SectionHeader.jsx'
 
 // ── Registration progress bar ──────────────────────────────────────────────────
 
@@ -60,52 +61,54 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   var actionBtn = null
   if (isLive) {
     actionBtn = (
-      <button
-        className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all glass-panel"
+      <Btn
+        variant="secondary"
+        size="md"
+        className="w-full"
         onClick={function() { navigate('/tournament/' + (ev.dbTournamentId || ev.id)) }}
       >
-        WATCH BROADCAST
-      </button>
+        Watch Broadcast
+      </Btn>
     )
   } else if (amRegistered) {
     actionBtn = (
-      <button
-        className="w-full py-3 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest cursor-default glass-panel"
-      >
-        REGISTERED
-      </button>
+      <Btn variant="secondary" size="md" className="w-full" disabled>
+        Registered
+      </Btn>
     )
   } else if (evFull) {
     actionBtn = (
-      <button
-        className="w-full py-3 border border-outline-variant/30 text-on-surface/50 cursor-not-allowed font-label text-xs font-bold uppercase tracking-widest glass-panel"
-      >
-        FULL
-      </button>
+      <Btn variant="secondary" size="md" className="w-full" disabled>
+        Full
+      </Btn>
     )
   } else if (!currentUser) {
     actionBtn = (
-      <button
-        className="w-full py-3 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all bg-gradient-to-br from-primary to-primary-fixed-dim"
+      <Btn
+        variant="primary"
+        size="md"
+        className="w-full"
         onClick={function(e) {
           e.stopPropagation()
           if (onAuthClick) onAuthClick('login')
         }}
       >
-        SIGN IN TO REGISTER
-      </button>
+        Sign In to Register
+      </Btn>
     )
   } else {
     actionBtn = (
-      <button
-        className="w-full py-3 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all bg-gradient-to-br from-primary to-primary-fixed-dim"
+      <Btn
+        variant="primary"
+        size="md"
+        className="w-full"
         onClick={function(e) {
           e.stopPropagation()
           if (onRegister) onRegister(ev)
         }}
       >
-        REGISTER NOW
-      </button>
+        Register Now
+      </Btn>
     )
   }
 
@@ -120,7 +123,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
           {badgeEl}
         </div>
         <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end z-20">
-          <div className="text-on-surface font-stats font-bold text-xl">
+          <div className="text-on-surface font-mono font-bold text-xl">
             {ev.prizePool || '--'}
           </div>
           <div className="text-tertiary font-label text-[10px] uppercase tracking-widest">Prize Pool</div>
@@ -286,7 +289,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                 Featured Event
               </span>
               {hero.prizePool && (
-                <span className="flex items-center text-tertiary font-stats text-sm font-bold">
+                <span className="flex items-center text-tertiary font-mono text-sm font-bold">
                   <Icon name="payments" size={16} className="mr-1" />
                   {hero.prizePool + ' PRIZE POOL'}
                 </span>
@@ -304,15 +307,17 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
             </p>
             <div className="flex flex-wrap gap-4">
               {!currentUser ? (
-                <button
-                  className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
+                <Btn
+                  variant="primary"
+                  size="lg"
                   onClick={function() { onAuthClick('login') }}
                 >
-                  REGISTER NOW
-                </button>
+                  Register Now
+                </Btn>
               ) : (
-                <button
-                  className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
+                <Btn
+                  variant="primary"
+                  size="lg"
                   onClick={function() {
                     var evRegIds = hero.registeredIds || []
                     var alreadyIn = evRegIds.indexOf(currentUser.username) !== -1
@@ -321,15 +326,16 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                     handleRegister(hero)
                   }}
                 >
-                  REGISTER NOW
-                </button>
+                  Register Now
+                </Btn>
               )}
-              <button
-                className="px-8 py-4 border border-outline-variant/20 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-surface hover:bg-surface-variant/40 transition-colors glass-panel"
+              <Btn
+                variant="secondary"
+                size="lg"
                 onClick={function() { navigate('/tournament/' + hero.id) }}
               >
-                VIEW SCHEDULE
-              </button>
+                View Schedule
+              </Btn>
             </div>
           </div>
         </section>
@@ -337,7 +343,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
 
       {/* No events empty state */}
       {allEvents.length === 0 && (
-        <section className="relative h-[500px] w-full mb-16 overflow-hidden bg-surface-container rounded-lg border border-outline-variant/10 flex items-center justify-center">
+        <Panel elevation="elevated" padding="none" className="relative h-[500px] w-full mb-16 overflow-hidden flex items-center justify-center">
           <div className="text-center">
             <Icon name="event" size={48} className="text-on-surface-variant/20 block mb-4" />
             <h3 className="font-headline text-3xl font-bold text-on-surface mb-2">No Featured Events Yet</h3>
@@ -345,7 +351,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
               Featured tournaments and community events will appear here once created by event organizers.
             </p>
           </div>
-        </section>
+        </Panel>
       )}
 
       {/* Tournament Filters */}
@@ -401,7 +407,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
 
         {/* Bento info panels - shown when we have at least some events or always */}
         <div className="col-span-1 md:col-span-2 xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-surface-container-high p-8 flex flex-col justify-between border-l-4 border-primary">
+          <Panel elevation="highest" padding="spacious" accent="gold" className="flex flex-col justify-between">
             <div>
               <span className="font-label text-xs text-primary uppercase tracking-widest mb-4 block">Quick FAQ</span>
               <h4 className="font-headline text-3xl font-bold mb-4">How to Join Community Events?</h4>
@@ -409,15 +415,16 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                 Most community tournaments are open to all ranks. Ensure your Riot account is linked to your TFT Clash profile to automatically sync your stats and eligibility.
               </p>
             </div>
-            <button
-              className="inline-flex items-center text-primary font-label text-xs font-bold uppercase tracking-widest hover:translate-x-2 transition-transform w-fit"
+            <Btn
+              variant="link"
+              icon="arrow_forward"
+              iconPosition="right"
               onClick={function() { navigate('/faq') }}
             >
               Learn More
-              <Icon name="arrow_forward" size={16} className="ml-2" />
-            </button>
-          </div>
-          <div className="bg-surface-container p-8 border border-outline-variant/10">
+            </Btn>
+          </Panel>
+          <Panel elevation="elevated" padding="spacious">
             <div className="flex items-center space-x-4 mb-6">
               <div
                 className="w-12 h-12 rounded-full flex items-center justify-center text-tertiary glass-panel"
@@ -430,9 +437,9 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
               All tournaments are monitored by TFT Clash staff and community moderators. Cheating or unsportsmanlike behavior results in permanent bans from the platform.
             </p>
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-[#9AAABF]">Community moderated</span>
+              <span className="text-xs text-on-surface-variant">Community moderated</span>
             </div>
-          </div>
+          </Panel>
         </div>
       </div>
 
@@ -443,9 +450,10 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
           <div className="flex flex-col gap-3">
             {past.map(function(ev) {
               return (
-                <div
+                <Panel
                   key={ev.id}
-                  className="bg-surface-container-low border border-outline-variant/10 px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
+                  padding="none"
+                  className="px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
                   onClick={function() { navigate('/tournament/' + ev.id) }}
                 >
                   <div className="flex-1 min-w-0">
@@ -464,7 +472,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                     </div>
                   )}
                   <Icon name="chevron_right" size={18} className="text-on-surface-variant/40 flex-shrink-0" />
-                </div>
+                </Panel>
               )
             })}
           </div>
@@ -472,27 +480,29 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
       )}
 
       {/* Host CTA */}
-      <div className="mt-16 bg-surface-container-high p-10 border border-outline-variant/10 text-center">
+      <Panel elevation="highest" padding="none" className="mt-16 p-10 text-center">
         <Icon name="sports_esports" size={40} className="text-primary block mx-auto mb-4" />
         <h3 className="font-headline text-3xl font-bold text-on-surface mb-3">Run Your Own Tournament</h3>
         <p className="text-on-surface-variant text-sm leading-relaxed max-w-md mx-auto mb-8">
           Get featured here. Create and manage TFT tournaments with our full host suite.
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <button
-            className="px-8 py-4 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-primary hover:scale-105 transition-transform bg-gradient-to-br from-primary to-primary-fixed-dim obsidian-shadow"
+          <Btn
+            variant="primary"
+            size="lg"
             onClick={function() { navigate(currentUser ? '/host/apply' : '/signup') }}
           >
             Apply to Host
-          </button>
-          <button
-            className="px-8 py-4 border border-outline-variant/20 rounded-full font-label font-bold text-sm uppercase tracking-widest text-on-surface hover:bg-surface-variant/40 transition-colors glass-panel"
+          </Btn>
+          <Btn
+            variant="secondary"
+            size="lg"
             onClick={function() { navigate('/pricing') }}
           >
             View Host Plans
-          </button>
+          </Btn>
         </div>
-      </div>
+      </Panel>
     </div>
   )
 }
@@ -569,20 +579,12 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
     complete: 'Completed',
   }
 
-  var phaseBadgeBg = {
-    draft: 'rgba(154,170,191,0.1)',
-    registration: 'rgba(103,226,217,0.15)',
-    check_in: 'rgba(232,168,56,0.15)',
-    in_progress: 'rgba(255,198,107,0.15)',
-    complete: 'rgba(78,205,196,0.15)',
-  }
-
-  var phaseBadgeColor = {
-    draft: '#9AAABF',
-    registration: '#67e2d9',
-    check_in: '#E8A838',
-    in_progress: '#ffc66b',
-    complete: '#67e2d9',
+  var phaseBadgeClasses = {
+    draft: 'bg-surface-variant/40 text-on-surface-variant',
+    registration: 'bg-tertiary/15 text-tertiary',
+    check_in: 'bg-secondary/15 text-secondary',
+    in_progress: 'bg-primary/15 text-primary',
+    complete: 'bg-tertiary/15 text-tertiary',
   }
 
   if (loading) {
@@ -595,13 +597,13 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
 
   if (tournaments.length === 0) {
     return (
-      <div className="bg-surface-container-low border border-outline-variant/10 p-16 text-center">
+      <Panel padding="none" className="p-16 text-center">
         <Icon name="bolt" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
         <div className="font-headline text-2xl font-bold text-on-surface mb-2">No Tournaments Yet</div>
         <div className="text-sm text-on-surface-variant leading-relaxed">
           Flash tournaments will appear here when admins create them.
         </div>
-      </div>
+      </Panel>
     )
   }
 
@@ -622,8 +624,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
             ? new Date(t.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
             : 'TBD'
           var prizes = Array.isArray(t.prize_pool_json) ? t.prize_pool_json : []
-          var badgeBg = phaseBadgeBg[t.phase] || 'rgba(154,170,191,0.1)'
-          var badgeColor = phaseBadgeColor[t.phase] || '#9AAABF'
+          var badgeClass = phaseBadgeClasses[t.phase] || 'bg-surface-variant/40 text-on-surface-variant'
 
           var now = new Date()
           var tDate = t.date ? new Date(t.date) : null
@@ -645,14 +646,13 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
                   <span
-                    className="text-[11px] font-bold rounded px-3 py-1 uppercase tracking-widest font-label"
-                    style={{ background: badgeBg, color: badgeColor }}
+                    className={'text-[11px] font-bold rounded px-3 py-1 uppercase tracking-widest font-label ' + badgeClass}
                   >
                     {phaseLabels[t.phase] || t.phase}
                   </span>
                   <div className="flex items-center gap-2">
                     {countdownStr && (
-                      <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 font-stats">
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 font-mono">
                         {countdownStr}
                       </span>
                     )}
@@ -702,30 +702,34 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
                 </div>
 
                 {t.phase === 'in_progress' && (
-                  <button
-                    className="w-full py-2.5 border border-primary/20 text-primary font-label text-xs font-bold uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-all"
+                  <Btn
+                    variant="secondary"
+                    size="sm"
+                    className="w-full"
                     onClick={function(e) { e.stopPropagation(); navigate('/flash/' + t.id) }}
                   >
-                    WATCH LIVE
-                  </button>
+                    Watch Live
+                  </Btn>
                 )}
                 {t.phase !== 'in_progress' && myRegIds.indexOf(t.id) !== -1 && (
-                  <button className="w-full py-2.5 border border-success/30 text-success font-label text-xs font-bold uppercase tracking-widest cursor-default">
-                    REGISTERED
-                  </button>
+                  <Btn variant="secondary" size="sm" className="w-full" disabled>
+                    Registered
+                  </Btn>
                 )}
                 {t.phase !== 'in_progress' && myRegIds.indexOf(t.id) === -1 && regCount >= maxP && (
-                  <button className="w-full py-2.5 border border-outline-variant/30 text-on-surface/40 cursor-not-allowed font-label text-xs font-bold uppercase tracking-widest">
-                    FULL
-                  </button>
+                  <Btn variant="secondary" size="sm" className="w-full" disabled>
+                    Full
+                  </Btn>
                 )}
                 {t.phase !== 'in_progress' && myRegIds.indexOf(t.id) === -1 && regCount < maxP && (
-                  <button
-                    className="w-full py-2.5 font-label text-xs font-bold uppercase tracking-widest text-on-primary hover:opacity-90 transition-all bg-gradient-to-br from-primary to-primary-fixed-dim"
+                  <Btn
+                    variant="primary"
+                    size="sm"
+                    className="w-full"
                     onClick={function(e) { e.stopPropagation(); handleRegister(t) }}
                   >
-                    REGISTER NOW
-                  </button>
+                    Register Now
+                  </Btn>
                 )}
               </div>
             </article>
@@ -743,11 +747,11 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
 
   if (clashes.length === 0) {
     return (
-      <div className="bg-surface-container-low border border-outline-variant/10 p-16 text-center">
+      <Panel padding="none" className="p-16 text-center">
         <Icon name="archive" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
         <div className="font-headline text-2xl font-bold text-on-surface mb-2">No Past Clashes</div>
         <div className="text-sm text-on-surface-variant">Completed clashes will be archived here.</div>
-      </div>
+      </Panel>
     )
   }
 
@@ -755,12 +759,13 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
     <div className="flex flex-col gap-3">
       {clashes.map(function(clash, idx) {
         return (
-          <div
+          <Panel
             key={clash.id || clash.name}
-            className="bg-surface-container-low border border-outline-variant/10 px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
+            padding="none"
+            className="px-6 py-4 flex items-center gap-4 cursor-pointer transition-colors hover:border-primary/30"
             onClick={function() { navigate('/results', { state: { clash: clash } }) }}
           >
-            <div className="flex-shrink-0 w-10 h-10 bg-surface-container-high border border-outline-variant/20 flex items-center justify-center font-bold text-primary font-stats text-sm">
+            <div className="flex-shrink-0 w-10 h-10 bg-surface-container-high border border-outline-variant/20 flex items-center justify-center font-bold text-primary font-mono text-sm">
               {'#' + (clashes.length - idx)}
             </div>
             <div className="flex-1 min-w-0">
@@ -782,7 +787,7 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
               </div>
             )}
             <Icon name="chevron_right" size={18} className="text-on-surface-variant/40 flex-shrink-0" />
-          </div>
+          </Panel>
         )
       })}
     </div>
