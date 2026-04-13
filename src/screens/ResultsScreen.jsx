@@ -194,7 +194,7 @@ export default function ResultsScreen() {
           </button>
 
           <div className="flex-1 min-w-0">
-            <div className="font-technical text-[11px] font-bold text-secondary uppercase tracking-widest mb-1">
+            <div className="font-label text-[11px] font-bold text-secondary uppercase tracking-widest mb-1">
               Season 1
             </div>
             <h1 className="font-editorial italic text-3xl md:text-4xl font-black text-on-surface leading-none">
@@ -220,7 +220,7 @@ export default function ResultsScreen() {
             <div className="flex justify-center mb-4">
               <Icon name="emoji_events" fill size={72} className="text-primary" />
             </div>
-            <div className="font-technical text-primary text-lg tracking-[0.25em] uppercase mb-2">
+            <div className="font-label text-primary text-lg tracking-[0.25em] uppercase mb-2">
               Tournament Champion
             </div>
             <div
@@ -253,7 +253,7 @@ export default function ResultsScreen() {
                     className="bg-surface-container-high px-5 py-2 rounded-full border border-outline-variant/20 flex items-center gap-2"
                   >
                     <span className="font-mono font-bold text-sm" style={{ color: item[2] }}>{item[1]}</span>
-                    <span className="font-technical text-[10px] uppercase tracking-wider text-on-surface/50">{item[0]}</span>
+                    <span className="font-label text-[10px] uppercase tracking-wider text-on-surface/50">{item[0]}</span>
                   </div>
                 )
               })}
@@ -325,7 +325,7 @@ export default function ResultsScreen() {
                             {actualRank + 1}
                           </span>
                           <div className="text-center px-2">
-                            <p className={'font-technical font-bold uppercase truncate w-full ' + (isGold ? 'text-sm md:text-base' : 'text-xs md:text-sm') + ' ' + nameColor}>
+                            <p className={'font-label font-bold uppercase truncate w-full ' + (isGold ? 'text-sm md:text-base' : 'text-xs md:text-sm') + ' ' + nameColor}>
                               {p.name}
                             </p>
                             <div className="flex justify-center gap-2 mt-1">
@@ -371,7 +371,7 @@ export default function ResultsScreen() {
               <div className="rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container-low">
                 {/* Table header label row */}
                 <div className="px-6 py-4 flex justify-between items-center border-b border-outline-variant/10">
-                  <h3 className="font-technical text-on-surface-variant tracking-[0.1em] uppercase text-sm">
+                  <h3 className="font-label text-on-surface-variant tracking-[0.1em] uppercase text-sm">
                     Final Tournament Standings
                   </h3>
                   <span className="font-mono text-xs text-primary/50">
@@ -385,7 +385,7 @@ export default function ResultsScreen() {
                 >
                   {['Rank', 'Player', 'Points', 'Avg', 'Wins', 'T4%', 'Reward'].map(function(h) {
                     return (
-                      <span key={h} className="font-technical text-[10px] font-bold uppercase tracking-widest text-on-surface/40">
+                      <span key={h} className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/40">
                         {h}
                       </span>
                     )
@@ -506,7 +506,7 @@ export default function ResultsScreen() {
                 >
                   <Icon name="redeem" size={24} className="text-secondary flex-shrink-0" />
                   <div className="flex-1">
-                    <div className="font-technical text-sm text-secondary mb-0.5 uppercase tracking-wider">Milestone Rewards Unlocked</div>
+                    <div className="font-label text-sm text-secondary mb-0.5 uppercase tracking-wider">Milestone Rewards Unlocked</div>
                     <div className="text-sm text-on-surface/60">Some players earned new milestones this clash.</div>
                   </div>
                   <Btn variant="secondary" size="sm" onClick={function() { setScreen('milestones'); navigate('/milestones') }}>
@@ -551,7 +551,7 @@ export default function ResultsScreen() {
 
             {/* Tournament Honors sidebar card */}
             <div className="rounded-xl bg-surface-container-low border border-outline-variant/10 p-6">
-              <h3 className="font-technical text-on-surface-variant tracking-[0.1em] uppercase text-sm mb-5">
+              <h3 className="font-label text-on-surface-variant tracking-[0.1em] uppercase text-sm mb-5">
                 Tournament Honors
               </h3>
               <div className="space-y-3">
@@ -577,7 +577,7 @@ export default function ResultsScreen() {
             <div className="rounded-xl bg-surface-container-low border border-outline-variant/10 p-6 relative">
               <div className="flex items-center gap-3 mb-5">
                 <Icon name="psychology" fill size={20} className="text-tertiary" />
-                <h3 className="font-technical text-tertiary tracking-[0.1em] uppercase text-sm">
+                <h3 className="font-label text-tertiary tracking-[0.1em] uppercase text-sm">
                   Clash Narrative
                 </h3>
               </div>
@@ -596,7 +596,7 @@ export default function ResultsScreen() {
                 )}
               </div>
               <div className="mt-5 pt-4 border-t border-outline-variant/10">
-                <span className="font-technical text-[10px] text-on-surface/40 uppercase tracking-wider">
+                <span className="font-label text-[10px] text-on-surface/40 uppercase tracking-wider">
                   {'Season 1 - ' + sorted.length + ' players - ' + Math.ceil(sorted.length / 8) + ' lobbies'}
                 </span>
               </div>
@@ -612,11 +612,11 @@ export default function ResultsScreen() {
                   className="flex items-center justify-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors py-3 rounded-full border border-outline-variant/10"
                 >
                   <Icon name="share" size={14} className="text-primary" />
-                  <span className="font-technical font-bold text-xs uppercase text-on-surface">Share</span>
+                  <span className="font-label font-bold text-xs uppercase text-on-surface">Share</span>
                 </button>
                 <button
                   onClick={downloadCard}
-                  className="flex items-center justify-center gap-2 bg-primary text-on-primary py-3 rounded-full font-technical font-bold text-xs uppercase transition-transform hover:scale-[1.02]"
+                  className="flex items-center justify-center gap-2 bg-primary text-on-primary py-3 rounded-full font-label font-bold text-xs uppercase transition-transform hover:scale-[1.02]"
                 >
                   <Icon name="download" size={14} />
                   <span>Save Card</span>
@@ -628,14 +628,14 @@ export default function ResultsScreen() {
                   className="flex items-center justify-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors py-3 rounded-full border border-outline-variant/10"
                 >
                   <Icon name="forum" size={14} className="text-secondary" />
-                  <span className="font-technical font-bold text-xs uppercase text-on-surface">Discord</span>
+                  <span className="font-label font-bold text-xs uppercase text-on-surface">Discord</span>
                 </button>
                 <button
                   onClick={copyResults}
                   className="flex items-center justify-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors py-3 rounded-full border border-outline-variant/10"
                 >
                   <Icon name="content_copy" size={14} className="text-on-surface/60" />
-                  <span className="font-technical font-bold text-xs uppercase text-on-surface">Copy</span>
+                  <span className="font-label font-bold text-xs uppercase text-on-surface">Copy</span>
                 </button>
               </div>
             </div>

@@ -155,7 +155,7 @@ export default function ChallengesScreen() {
         <header className="mb-12">
           <div className="flex justify-between items-end mb-4">
             <div>
-              <span className="font-condensed text-primary uppercase tracking-[0.2em] text-xs font-bold">{seasonName}</span>
+              <span className="font-label text-primary uppercase tracking-[0.2em] text-xs font-bold">{seasonName}</span>
               <h1 className="font-editorial italic text-5xl mt-2">Challenges &amp; Progression</h1>
             </div>
             <div className="text-right">
@@ -189,7 +189,7 @@ export default function ChallengesScreen() {
               <button
                 key={t}
                 onClick={function() { setMainTab(t); }}
-                className={'font-condensed text-xs py-1 px-4 rounded-full border transition-colors ' + (isActive
+                className={'font-label text-xs py-1 px-4 rounded-full border transition-colors ' + (isActive
                   ? 'border-primary/30 text-primary bg-primary/5'
                   : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
               >
@@ -206,11 +206,11 @@ export default function ChallengesScreen() {
             {/* Active Challenges Column */}
             <div className="col-span-12 lg:col-span-8 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Active Quests</h2>
+                <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Active Quests</h2>
                 <div className="flex gap-4">
                   <button
                     onClick={function() { setQuestTab('daily'); }}
-                    className={'font-condensed text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'daily'
+                    className={'font-label text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'daily'
                       ? 'border-primary/30 text-primary bg-primary/5'
                       : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
                   >
@@ -218,7 +218,7 @@ export default function ChallengesScreen() {
                   </button>
                   <button
                     onClick={function() { setQuestTab('weekly'); }}
-                    className={'font-condensed text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'weekly'
+                    className={'font-label text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'weekly'
                       ? 'border-primary/30 text-primary bg-primary/5'
                       : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
                   >
@@ -293,7 +293,7 @@ export default function ChallengesScreen() {
 
               {/* Activity Heatmap */}
               <div className="bg-surface-container p-6 border-t-2 border-primary/20">
-                <h2 className="font-condensed text-xs uppercase tracking-[0.2em] text-on-surface/40 mb-6">Activity Frequency</h2>
+                <h2 className="font-label text-xs uppercase tracking-[0.2em] text-on-surface/40 mb-6">Activity Frequency</h2>
                 <div className="grid grid-cols-7 gap-1">
                   {buildHeatmapCells(challengeCompletions).map(function(cls, i) {
                     return (
@@ -320,7 +320,7 @@ export default function ChallengesScreen() {
               <div className="glass-panel p-6 border border-outline-variant/10">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <span className="font-condensed text-xs uppercase text-on-surface/50">COMPLETION RATE</span>
+                    <span className="font-label text-xs uppercase text-on-surface/50">COMPLETION RATE</span>
                     <span className="font-mono text-primary">
                       {completedChallenges.length > 0
                         ? Math.round((completedChallenges.length / (dailyChallenges.length + weeklyChallenges.length)) * 100) + '%'
@@ -328,13 +328,13 @@ export default function ChallengesScreen() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-condensed text-xs uppercase text-on-surface/50">CURRENT STREAK</span>
+                    <span className="font-label text-xs uppercase text-on-surface/50">CURRENT STREAK</span>
                     <span className="font-mono text-secondary">
                       {linked && linked.currentStreak ? (linked.currentStreak + ' DAYS') : '0 DAYS'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-condensed text-xs uppercase text-on-surface/50">TOTAL EARNED XP</span>
+                    <span className="font-label text-xs uppercase text-on-surface/50">TOTAL EARNED XP</span>
                     <span className="font-mono text-tertiary">
                       {xp >= 1000 ? (xp / 1000).toFixed(1) + 'K' : xp}
                     </span>
@@ -356,14 +356,14 @@ export default function ChallengesScreen() {
         {mainTab === 'completed' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Completed Challenges</h2>
+              <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Completed Challenges</h2>
               <span className="font-mono text-xs text-on-surface/40">{completedChallenges.length + ' TOTAL'}</span>
             </div>
 
             {completedChallenges.length === 0 ? (
               <div className="bg-surface-container-low p-12 text-center">
                 <Icon name="workspace_premium" size={56} className="text-on-surface/20 block mb-4 mx-auto" />
-                <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No completed challenges yet</p>
+                <p className="font-label text-on-surface/40 uppercase tracking-widest text-sm">No completed challenges yet</p>
                 <p className="text-xs text-on-surface/30 mt-2 font-body">Keep playing to unlock rewards</p>
               </div>
             ) : (
@@ -390,7 +390,7 @@ export default function ChallengesScreen() {
         {mainTab === 'xp-log' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-condensed text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
+              <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
             </div>
             {xpLogLoading && (
               <div className="text-center py-10 text-on-surface/40 text-sm">Loading...</div>
@@ -398,7 +398,7 @@ export default function ChallengesScreen() {
             {!xpLogLoading && xpLog.length === 0 && (
               <div className="bg-surface-container-low p-12 text-center">
                 <Icon name="history" size={56} className="text-on-surface/20 block mb-4 mx-auto" />
-                <p className="font-condensed text-on-surface/40 uppercase tracking-widest text-sm">No XP history yet</p>
+                <p className="font-label text-on-surface/40 uppercase tracking-widest text-sm">No XP history yet</p>
                 <p className="text-xs text-on-surface/30 mt-2 font-body">Complete challenges to build your XP history</p>
               </div>
             )}

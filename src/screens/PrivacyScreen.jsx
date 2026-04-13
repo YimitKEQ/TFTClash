@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon'
+import { Btn } from '../components/ui'
 import { DISCORD_URL } from '../lib/constants.js'
 
 var PRIVACY_SECTIONS = [
@@ -93,7 +94,7 @@ export default function PrivacyScreen() {
         <aside className="w-full md:w-64 shrink-0">
           <div className="md:sticky md:top-28 flex flex-col gap-1">
             <div className="mb-5">
-              <span className="font-condensed text-xs uppercase tracking-widest text-primary font-bold">Legal Directory</span>
+              <span className="font-label text-xs uppercase tracking-widest text-primary font-bold">Legal Directory</span>
               <h2 className="font-editorial text-3xl mt-1 text-on-surface">Resources</h2>
             </div>
 
@@ -102,7 +103,7 @@ export default function PrivacyScreen() {
               className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary transition-all w-full text-left"
             >
               <Icon name="gavel" size={18} />
-              <span className="font-condensed text-sm font-bold uppercase tracking-wide">Privacy Policy</span>
+              <span className="font-label text-sm font-bold uppercase tracking-wide">Privacy Policy</span>
             </button>
 
             <button
@@ -110,11 +111,11 @@ export default function PrivacyScreen() {
               className="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all w-full text-left"
             >
               <Icon name="description" size={18} />
-              <span className="font-condensed text-sm font-bold uppercase tracking-wide">Terms of Service</span>
+              <span className="font-label text-sm font-bold uppercase tracking-wide">Terms of Service</span>
             </button>
 
             <div className="mt-8 p-5 bg-surface-container-low rounded border border-outline-variant/15">
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">Last Updated</span>
+              <span className="font-label text-[10px] uppercase tracking-widest text-tertiary">Last Updated</span>
               <p className="font-mono text-sm mt-1 text-on-surface">{lastUpdated}</p>
             </div>
 
@@ -139,7 +140,7 @@ export default function PrivacyScreen() {
         {/* Main Content */}
         <section className="flex-1 pb-16 min-w-0">
           <div className="mb-10">
-            <span className="font-condensed text-xs uppercase tracking-widest text-secondary">Compliance &amp; Protection</span>
+            <span className="font-label text-xs uppercase tracking-widest text-secondary">Compliance &amp; Protection</span>
             <h1 className="font-editorial text-5xl md:text-6xl mt-2 leading-tight text-on-surface">Privacy Policy</h1>
             <p className="text-on-surface-variant mt-4 max-w-2xl leading-relaxed">
               At TFT Clash, we take your competitive integrity and data security seriously. This document outlines how we handle player data across our tournament platform.
@@ -184,7 +185,7 @@ export default function PrivacyScreen() {
                         {sec.cards.map(function (card) {
                           return (
                             <div key={card.label} className="p-4 bg-surface-container-high rounded">
-                              <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">{card.label}</span>
+                              <span className="font-label text-[10px] uppercase tracking-widest text-tertiary">{card.label}</span>
                               <p className="text-sm mt-2 text-on-surface-variant">{card.text}</p>
                             </div>
                           )
@@ -219,14 +220,9 @@ export default function PrivacyScreen() {
                   <h4 className="font-editorial text-xl text-on-surface">Have questions about your data?</h4>
                   <p className="text-on-surface-variant text-sm mt-1">Our compliance team is available for inquiries regarding GDPR and CCPA.</p>
                 </div>
-                <a
-                  href={DISCORD_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-8 py-3 bg-primary text-on-primary font-bold rounded-full font-condensed text-sm uppercase tracking-wide hover:bg-primary/90 active:scale-95 transition-all no-underline whitespace-nowrap"
-                >
+                <Btn variant="primary" size="md" href={DISCORD_URL}>
                   Contact via Discord
-                </a>
+                </Btn>
               </div>
             </div>
           </div>

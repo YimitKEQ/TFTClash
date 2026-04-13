@@ -2,7 +2,7 @@ import { useApp } from '../context/AppContext'
 import { getStats, computeClashAwards } from '../lib/stats.js'
 import { shareToTwitter, buildShareText } from '../lib/utils.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Icon } from '../components/ui'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -263,7 +263,7 @@ export default function SeasonRecapScreen() {
 
         {/* Hero header */}
         <header className="text-center mb-16 pt-10 relative">
-          <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-condensed uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded">
+          <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-label uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded">
             Season Achievement Unlocked
           </div>
           <h1 className="text-6xl md:text-8xl font-editorial italic font-black tracking-tight leading-none mb-4">
@@ -292,7 +292,7 @@ export default function SeasonRecapScreen() {
                 <span className="font-mono text-primary font-bold text-sm">{topPct}</span>
               </div>
             </div>
-            <h2 className="font-condensed text-on-surface-variant uppercase tracking-widest text-sm mb-1 mt-2">
+            <h2 className="font-label text-on-surface-variant uppercase tracking-widest text-sm mb-1 mt-2">
               Final Tier
             </h2>
             <div className="text-4xl font-serif font-bold text-on-surface">{rankLabel}</div>
@@ -314,7 +314,7 @@ export default function SeasonRecapScreen() {
             </p>
             <div className="mt-8 flex items-center gap-4">
               <div className="h-px flex-1 bg-gradient-to-r from-primary/40 to-transparent" />
-              <span className="font-condensed uppercase tracking-widest text-primary text-xs">
+              <span className="font-label uppercase tracking-widest text-primary text-xs">
                 Tactical Review AI
               </span>
             </div>
@@ -322,7 +322,7 @@ export default function SeasonRecapScreen() {
 
           {/* Stats row - 4 x col-span-3 */}
           <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center border-b border-primary/20">
-            <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
+            <h3 className="font-label text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Total Clash Points
             </h3>
             <div className="font-mono text-4xl font-bold text-primary">{(player.pts || 0).toLocaleString()}</div>
@@ -333,7 +333,7 @@ export default function SeasonRecapScreen() {
           </div>
 
           <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center">
-            <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
+            <h3 className="font-label text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Total Victories
             </h3>
             <div className="font-mono text-4xl font-bold text-on-surface">{s.wins}</div>
@@ -343,7 +343,7 @@ export default function SeasonRecapScreen() {
           </div>
 
           <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center">
-            <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
+            <h3 className="font-label text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Avg Placement
             </h3>
             <div className="font-mono text-4xl font-bold text-on-surface">{s.avgPlacement}</div>
@@ -353,10 +353,10 @@ export default function SeasonRecapScreen() {
           </div>
 
           <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center">
-            <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
+            <h3 className="font-label text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Top 4 Rate
             </h3>
-            <div className="font-condensed text-2xl font-bold text-secondary-fixed-dim uppercase tracking-tight mt-2">
+            <div className="font-label text-2xl font-bold text-secondary-fixed-dim uppercase tracking-tight mt-2">
               {s.top4Rate + '%'}
             </div>
             <div className="mt-2 text-[10px] text-on-surface-variant font-mono">
@@ -373,7 +373,7 @@ export default function SeasonRecapScreen() {
             </div>
             <div className="absolute bottom-8 left-8 z-20">
               <h4 className="font-serif text-3xl font-bold">The Obsidian Trophy</h4>
-              <p className="font-condensed text-primary uppercase tracking-widest text-sm">
+              <p className="font-label text-primary uppercase tracking-widest text-sm">
                 {seasonName + ' Commemorative Item'}
               </p>
             </div>
@@ -384,7 +384,7 @@ export default function SeasonRecapScreen() {
 
           {/* Season highlights list */}
           <div className="md:col-span-12 lg:col-span-7 bg-surface-container-low rounded p-8">
-            <h3 className="font-condensed text-on-surface-variant uppercase tracking-[0.3em] text-xs mb-8">
+            <h3 className="font-label text-on-surface-variant uppercase tracking-[0.3em] text-xs mb-8">
               Season Highlights
             </h3>
             {highlights.length === 0 ? (
@@ -415,7 +415,7 @@ export default function SeasonRecapScreen() {
 
             {awards.length > 0 && (
               <div className="mt-6 pt-6 border-t border-outline-variant/30">
-                <p className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-3">
+                <p className="font-label text-on-surface-variant uppercase tracking-widest text-xs mb-3">
                   Awards Earned
                 </p>
                 <div className="flex flex-wrap gap-2">
@@ -444,27 +444,15 @@ export default function SeasonRecapScreen() {
         {/* CTA */}
         <div className="mt-16 flex flex-col items-center gap-4">
           <div className="flex gap-3 flex-wrap justify-center">
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors px-8 py-4 rounded-full border border-outline-variant/10 font-condensed font-bold uppercase tracking-widest text-sm"
-            >
-              <Icon name="content_copy" size={16} />
+            <Btn variant="secondary" size="lg" icon="content_copy" onClick={handleShare}>
               Copy
-            </button>
-            <button
-              onClick={handleShareTwitter}
-              className="flex items-center gap-2 bg-surface-container-high hover:bg-surface-container-highest transition-colors px-8 py-4 rounded-full border border-outline-variant/10 font-condensed font-bold uppercase tracking-widest text-sm"
-            >
-              <Icon name="share" size={16} className="text-primary" />
+            </Btn>
+            <Btn variant="secondary" size="lg" icon="share" onClick={handleShareTwitter}>
               Share
-            </button>
-            <button
-              onClick={handleDownloadCard}
-              className="flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed px-8 py-4 rounded-full hover:shadow-[0_0_30px_rgba(253,186,73,0.3)] transition-all active:scale-95 font-condensed font-bold uppercase tracking-widest text-sm"
-            >
-              <Icon name="download" size={16} />
+            </Btn>
+            <Btn variant="primary" size="lg" icon="download" onClick={handleDownloadCard}>
               Save Card
-            </button>
+            </Btn>
           </div>
           <p className="mt-6 text-on-surface-variant font-mono text-xs uppercase tracking-tighter">
             {nextSeasonCountdown()}

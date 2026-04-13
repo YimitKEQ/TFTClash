@@ -71,7 +71,7 @@ export default function OpsFeed() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-on-surface/30 text-xs font-nav uppercase tracking-widest">Loading feed...</div>
+      <div className="py-12 text-center text-on-surface/30 text-xs font-label uppercase tracking-widest">Loading feed...</div>
     )
   }
 
@@ -84,7 +84,7 @@ export default function OpsFeed() {
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Icon name="dynamic_feed" size={18} className="text-tertiary" />
-                <span className="font-nav text-xs font-bold uppercase tracking-widest text-on-surface/60">
+                <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
                   Activity Feed ({activity.length})
                 </span>
               </div>
@@ -108,7 +108,7 @@ export default function OpsFeed() {
               </div>
             </div>
             {filteredActivity.length === 0 ? (
-              <div className="py-12 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">No activity yet</div>
+              <div className="py-12 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">No activity yet</div>
             ) : (
               <div className="max-h-[500px] overflow-y-auto">
                 {filteredActivity.map(function(a) {
@@ -136,12 +136,12 @@ export default function OpsFeed() {
           <Panel className="!p-0 overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-2">
               <Icon name="assignment" size={16} className="text-on-surface/40" />
-              <span className="font-nav text-xs font-bold uppercase tracking-widest text-on-surface/60">
+              <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
                 Audit Log ({auditLog.length})
               </span>
             </div>
             {auditLog.length === 0 ? (
-              <div className="py-8 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">No audit entries</div>
+              <div className="py-8 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">No audit entries</div>
             ) : (
               <div className="max-h-[300px] overflow-y-auto">
                 {auditLog.map(function(entry, i) {
@@ -169,10 +169,10 @@ export default function OpsFeed() {
         <Panel className="!p-0 overflow-hidden">
           <div className="px-4 py-3 border-b border-outline-variant/10 flex items-center gap-2">
             <Icon name="how_to_reg" size={16} className="text-tertiary" />
-            <span className="font-nav text-[10px] font-bold uppercase tracking-widest text-on-surface/50">Recent Registrations</span>
+            <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/50">Recent Registrations</span>
           </div>
           {recentRegs.length === 0 ? (
-            <div className="py-8 text-center text-on-surface/20 text-[10px] font-nav uppercase tracking-widest">No registrations</div>
+            <div className="py-8 text-center text-on-surface/20 text-[10px] font-label uppercase tracking-widest">No registrations</div>
           ) : (
             <div className="max-h-[400px] overflow-y-auto">
               {recentRegs.map(function(r) {
@@ -185,7 +185,7 @@ export default function OpsFeed() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-on-surface truncate">{player.username || 'Unknown'}</div>
-                      <div className="font-nav text-[10px] text-on-surface/25 truncate">{tournament.name || 'Unknown tournament'}</div>
+                      <div className="font-label text-[10px] text-on-surface/25 truncate">{tournament.name || 'Unknown tournament'}</div>
                     </div>
                     <div className="font-mono text-[10px] text-on-surface/25 shrink-0">{timeAgo(r.created_at)}</div>
                   </div>

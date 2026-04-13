@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import Icon from '../components/ui/Icon'
+import { Btn } from '../components/ui'
 import PageLayout from '../components/layout/PageLayout'
 
 // ClashReport: detailed round-by-round breakdown for a single clash
@@ -65,21 +66,21 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
         <div className="mt-6 flex gap-4 flex-wrap justify-center">
           {sorted[0] && (
             <div className="bg-surface-container-high px-5 py-2 rounded-lg border border-outline-variant/10">
-              <p className="font-technical text-xs text-on-surface-variant uppercase tracking-widest mb-0.5"
+              <p className="font-label text-xs text-on-surface-variant uppercase tracking-widest mb-0.5"
                 >
                 Points Secured
               </p>
-              <p className="font-stats text-2xl text-primary"
+              <p className="font-mono text-2xl text-primary"
                 >
                 {sorted[0].entry ? (sorted[0].entry.clashPts || sorted[0].entry.pts || 0) : 0}
               </p>
             </div>
           )}
           <div className="bg-surface-container-high px-5 py-2 rounded-lg border border-outline-variant/10">
-            <p className="font-technical text-xs text-on-surface-variant uppercase tracking-widest mb-0.5">
+            <p className="font-label text-xs text-on-surface-variant uppercase tracking-widest mb-0.5">
               Players
             </p>
-            <p className="font-stats text-2xl text-tertiary">
+            <p className="font-mono text-2xl text-tertiary">
               {sorted.length}
             </p>
           </div>
@@ -104,11 +105,11 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                 >
                 {top3[1].name}
               </h3>
-              <p className="font-technical text-xs text-outline tracking-widest uppercase mb-2"
+              <p className="font-label text-xs text-outline tracking-widest uppercase mb-2"
                 >
                 Silver Medalist
               </p>
-              <div className="font-stats text-lg text-on-surface"
+              <div className="font-mono text-lg text-on-surface"
                 >
                 {(top3[1].entry ? (top3[1].entry.clashPts || top3[1].entry.pts || 0) : 0) + ' PTS'}
               </div>
@@ -132,11 +133,11 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                 >
                 {top3[0].name}
               </h3>
-              <p className="font-technical text-xs text-primary tracking-widest uppercase mb-4"
+              <p className="font-label text-xs text-primary tracking-widest uppercase mb-4"
                 >
                 Clash Champion
               </p>
-              <div className="font-stats text-3xl font-bold text-on-surface"
+              <div className="font-mono text-3xl font-bold text-on-surface"
                 >
                 {(top3[0].entry ? (top3[0].entry.clashPts || top3[0].entry.pts || 0) : 0) + ' PTS'}
               </div>
@@ -158,10 +159,10 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                 >
                 {top3[2].name}
               </h3>
-              <p className="font-technical text-xs tracking-widest uppercase mb-2 text-[#CD7F32]">
+              <p className="font-label text-xs tracking-widest uppercase mb-2 text-[#CD7F32]">
                 Bronze Medalist
               </p>
-              <div className="font-stats text-lg text-on-surface"
+              <div className="font-mono text-lg text-on-surface"
                 >
                 {(top3[2].entry ? (top3[2].entry.clashPts || top3[2].entry.pts || 0) : 0) + ' PTS'}
               </div>
@@ -177,10 +178,10 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
         {/* Full Standings Table */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex justify-between items-end">
-            <h4 className="font-technical text-sm tracking-widest text-on-surface-variant uppercase">
+            <h4 className="font-label text-sm tracking-widest text-on-surface-variant uppercase">
               Final Standings
             </h4>
-            <span className="font-technical text-xs opacity-50 uppercase">
+            <span className="font-label text-xs opacity-50 uppercase">
               {sorted.length + ' Players'}
             </span>
           </div>
@@ -191,7 +192,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   {['Rank', 'Player', 'R1', 'R2', 'R3', 'Finals', 'Points'].map(function(h) {
                     return (
                       <th key={h}
-                        className={'px-4 py-3 font-technical text-xs tracking-widest uppercase text-on-surface-variant ' + (h === 'Player' ? 'text-left' : 'text-right')}>
+                        className={'px-4 py-3 font-label text-xs tracking-widest uppercase text-on-surface-variant ' + (h === 'Player' ? 'text-left' : 'text-right')}>
                         {h}
                       </th>
                     )
@@ -208,7 +209,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   return (
                     <tr key={p.id || p.name}
                       className="hover:bg-surface-container-high transition-colors border-b border-outline-variant/5">
-                      <td className="px-4 py-3 font-stats font-bold text-right"
+                      <td className="px-4 py-3 font-mono font-bold text-right"
                         style={{ color: rankColor }}>
                         {rankStr}
                       </td>
@@ -216,7 +217,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-on-surface">{p.name}</span>
                           {p.name === mostImproved && (
-                            <span className="text-tertiary text-[10px] px-2 py-0.5 rounded border border-tertiary/20 font-technical uppercase bg-tertiary/10">
+                            <span className="text-tertiary text-[10px] px-2 py-0.5 rounded border border-tertiary/20 font-label uppercase bg-tertiary/10">
                               Most Improved
                             </span>
                           )}
@@ -228,7 +229,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                         return (
                           <td key={rk} className="px-4 py-3 text-right">
                             {v
-                              ? <span className={'font-stats font-bold text-sm ' + valClass}>
+                              ? <span className={'font-mono font-bold text-sm ' + valClass}>
                                   {'#' + v}
                                 </span>
                               : <span className="text-on-surface/25 text-xs">-</span>
@@ -237,7 +238,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                         )
                       })}
                       <td className="px-4 py-3 text-right">
-                        <span className="font-stats font-bold text-sm text-primary"
+                        <span className="font-mono font-bold text-sm text-primary"
                           >
                           {'+' + clashPts}
                         </span>
@@ -254,7 +255,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
         <div className="space-y-4">
           {/* Glass recap panel */}
           <div className="p-6 rounded-xl border border-outline-variant/15 relative bg-surface-container/60 backdrop-blur-2xl">
-            <div className="absolute -top-3 left-5 bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-widest font-condensed">
+            <div className="absolute -top-3 left-5 bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-widest font-label">
               Clash Recap
             </div>
             <h4 className="font-editorial text-xl mb-3 italic mt-1">
@@ -267,21 +268,21 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
             </p>
             <div className="mt-6 pt-5 border-t border-outline-variant/10 grid grid-cols-2 gap-4">
               <div className="flex flex-col">
-                <span className="text-[10px] font-technical text-on-surface-variant uppercase tracking-widest mb-1"
+                <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1"
                   >
                   Total Players
                 </span>
-                <span className="font-stats text-xl text-primary"
+                <span className="font-mono text-xl text-primary"
                   >
                   {sorted.length}
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-[10px] font-technical text-on-surface-variant uppercase tracking-widest mb-1"
+                <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1"
                   >
                   Season
                 </span>
-                <span className="font-stats text-xl text-secondary"
+                <span className="font-mono text-xl text-secondary"
                   >
                   {(clashData && clashData.season) || 'S1'}
                 </span>
@@ -291,7 +292,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
 
           {/* Awards */}
           <div className="space-y-3">
-            <h4 className="font-technical text-xs tracking-widest text-on-surface-variant uppercase">
+            <h4 className="font-label text-xs tracking-widest text-on-surface-variant uppercase">
               Match Awards
             </h4>
             {mostImproved && (
@@ -304,7 +305,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                     >
                     Most Improved
                   </p>
-                  <p className="font-technical text-[10px] text-on-surface-variant uppercase tracking-widest"
+                  <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest"
                     >
                     {mostImproved + ' - Above avg'}
                   </p>
@@ -321,7 +322,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                     >
                     Biggest Upset
                   </p>
-                  <p className="font-technical text-[10px] text-on-surface-variant uppercase tracking-widest"
+                  <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest"
                     >
                     {biggestUpset}
                   </p>
@@ -338,7 +339,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                     >
                     Champion
                   </p>
-                  <p className="font-technical text-[10px] text-on-surface-variant uppercase tracking-widest"
+                  <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest"
                     >
                     {champion || 'TBD'}
                   </p>
@@ -365,12 +366,15 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                 toast('Could not copy to clipboard', 'error')
               })
             }}
-            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
+            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-label tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
             >
             <Icon name="share" size={16} className="text-on-surface-variant" />
             Share Summary
           </button>
-          <button
+          <Btn
+            variant="primary"
+            size="md"
+            icon="download"
             onClick={function() {
               var rows = [['Place', 'Player', 'Points', 'R1', 'R2', 'R3', 'Finals']]
               sorted.forEach(function(p, i) {
@@ -396,14 +400,12 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
               URL.revokeObjectURL(url)
               toast('Results exported', 'success')
             }}
-            className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-technical font-bold tracking-widest uppercase text-sm flex items-center gap-2 active:scale-95 transition-transform"
-            >
-            <Icon name="download" size={16} className="text-on-primary" />
+          >
             Export Results
-          </button>
+          </Btn>
           <button
             onClick={function() { navigate('/events') }}
-            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-technical tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
+            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-label tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
             >
             <Icon name="sports_esports" size={16} className="text-on-surface-variant" />
             Join Next Clash

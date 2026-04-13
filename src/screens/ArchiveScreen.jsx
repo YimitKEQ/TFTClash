@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Icon } from '../components/ui'
 
 function SeasonHero(props) {
   var season = props.season
@@ -55,11 +55,11 @@ function SeasonHero(props) {
       {/* Status badge */}
       <div className="absolute top-6 left-6">
         {isLegacy ? (
-          <span className="bg-surface-variant px-4 py-1 text-on-surface-variant font-condensed font-bold uppercase tracking-tighter rounded text-sm">
+          <span className="bg-surface-variant px-4 py-1 text-on-surface-variant font-label font-bold uppercase tracking-tighter rounded text-sm">
             LEGACY
           </span>
         ) : (
-          <span className="bg-primary px-4 py-1 text-on-primary font-condensed font-bold uppercase tracking-tighter rounded text-sm">
+          <span className="bg-primary px-4 py-1 text-on-primary font-label font-bold uppercase tracking-tighter rounded text-sm">
             ACTIVE ERA
           </span>
         )}
@@ -86,7 +86,7 @@ function SeasonCard(props) {
               <h2 className={'font-serif text-4xl text-on-surface' + (isLegacy ? ' opacity-80' : '')}>
                 {season.title}
               </h2>
-              <p className="font-condensed text-slate-500 uppercase tracking-widest text-sm">
+              <p className="font-label text-slate-500 uppercase tracking-widest text-sm">
                 {season.subtitle + ' - ' + season.year}
               </p>
             </div>
@@ -94,7 +94,7 @@ function SeasonCard(props) {
             {/* Champion spotlight */}
             <div className={'flex items-center gap-4 p-4' + (isLegacy ? ' bg-surface-container-lowest/50 border-l-4 border-slate-700' : ' bg-surface-container-lowest border-l-4 border-primary')}>
               <div className="flex flex-col">
-                <span className="font-condensed text-xs text-slate-500 uppercase">CHAMPION</span>
+                <span className="font-label text-xs text-slate-500 uppercase">CHAMPION</span>
                 <span className={'font-display text-xl tracking-tight' + (isLegacy ? ' text-on-surface opacity-70' : ' text-primary')}>
                   {season.champion.toUpperCase()}
                 </span>
@@ -113,32 +113,32 @@ function SeasonCard(props) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-on-surface')}>{season.participants}</p>
-              <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>PARTICIPANTS</p>
+              <p className={'font-label text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>PARTICIPANTS</p>
             </div>
             <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-on-surface')}>{season.clashes}</p>
-              <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>CLASHES PLAYED</p>
+              <p className={'font-label text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>CLASHES PLAYED</p>
             </div>
             <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-tertiary')}>{season.topScore}</p>
-              <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>TOP SCORE</p>
+              <p className={'font-label text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>TOP SCORE</p>
             </div>
             <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-secondary')}>{season.players}</p>
-              <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>TOTAL PLAYERS</p>
+              <p className={'font-label text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>TOTAL PLAYERS</p>
             </div>
           </div>
 
           {/* Action row */}
           <div className="flex justify-end items-center gap-4">
             {isLegacy ? (
-              <span className="font-condensed uppercase tracking-wider flex items-center gap-2 text-sm text-slate-600 cursor-default">
+              <span className="font-label uppercase tracking-wider flex items-center gap-2 text-sm text-slate-600 cursor-default">
                 SEASON COMPLETE
                 <Icon name="lock" className="text-sm" />
               </span>
             ) : (
               <button
-                className="font-condensed uppercase tracking-wider flex items-center gap-2 text-sm transition-colors text-slate-400 hover:text-on-surface"
+                className="font-label uppercase tracking-wider flex items-center gap-2 text-sm transition-colors text-slate-400 hover:text-on-surface"
                 onClick={function() { navigate('/standings') }}
               >
                 VIEW STANDINGS
@@ -146,16 +146,17 @@ function SeasonCard(props) {
               </button>
             )}
             {isLegacy ? (
-              <span className="px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full text-sm bg-surface-variant/30 text-on-surface-variant/40 border border-white/5 cursor-default select-none">
+              <span className="px-8 py-3 font-label font-bold uppercase tracking-widest rounded-full text-sm bg-surface-variant/30 text-on-surface-variant/40 border border-white/5 cursor-default select-none">
                 ARCHIVED
               </span>
             ) : (
-              <button
-                className="px-8 py-3 font-condensed font-bold uppercase tracking-widest rounded-full transition-all text-sm bg-gradient-to-br from-primary to-primary-fixed-dim text-[#281800] hover:scale-105"
+              <Btn
+                variant="primary"
+                size="md"
                 onClick={function() { navigate('/season-recap') }}
               >
-                SEASON RECAP
-              </button>
+                Season Recap
+              </Btn>
             )}
           </div>
         </div>
@@ -245,7 +246,7 @@ export default function ArchiveScreen() {
           {/* Minor Tournaments Table */}
           <div className="mt-4 bg-surface-container-low rounded p-1">
             <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5">
-              <h3 className="font-condensed text-xl uppercase tracking-widest text-primary flex items-center gap-3">
+              <h3 className="font-label text-xl uppercase tracking-widest text-primary flex items-center gap-3">
                 <Icon name="summarize" className="text-xl" />
                 Minor Tournaments and Qualifiers
               </h3>
@@ -268,7 +269,7 @@ export default function ArchiveScreen() {
             <div className="overflow-x-auto">
               <table className="w-full text-left font-body">
                 <thead>
-                  <tr className="font-condensed uppercase text-xs text-slate-500 tracking-tighter border-b border-white/5">
+                  <tr className="font-label uppercase text-xs text-slate-500 tracking-tighter border-b border-white/5">
                     <th className="px-8 py-4">Event Name</th>
                     <th className="px-8 py-4">Winner</th>
                     <th className="px-8 py-4">Entries</th>

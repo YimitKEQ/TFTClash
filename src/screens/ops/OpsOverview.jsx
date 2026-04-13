@@ -12,10 +12,10 @@ function KpiCard(props) {
       {pulse && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error animate-pulse" />}
       <div className="flex items-center gap-2 text-on-surface/40">
         <Icon name={icon} size={16} />
-        <span className="font-nav text-[10px] uppercase tracking-widest font-bold">{label}</span>
+        <span className="font-label text-[10px] uppercase tracking-widest font-bold">{label}</span>
       </div>
       <div className={'font-mono text-3xl font-black leading-none ' + accent}>{value}</div>
-      {sub && <div className="font-nav text-[10px] text-on-surface/30 uppercase tracking-wider">{sub}</div>}
+      {sub && <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-wider">{sub}</div>}
     </div>
   )
 }
@@ -31,7 +31,7 @@ function AlertBanner(props) {
       className={'flex items-center gap-2 px-4 py-2.5 border rounded transition-colors ' + (onClick ? 'cursor-pointer hover:opacity-80 ' : '') + color}
     >
       <Icon name={icon} size={16} />
-      <span className="font-nav text-xs font-bold uppercase tracking-wider">{text}</span>
+      <span className="font-label text-xs font-bold uppercase tracking-wider">{text}</span>
     </div>
   )
 }
@@ -112,7 +112,7 @@ export default function OpsOverview(props) {
         <Panel className="!p-4">
           <div className="flex items-center gap-2 mb-3">
             <Icon name="bolt" size={16} className="text-primary" />
-            <span className="font-nav text-[10px] font-bold uppercase tracking-widest text-on-surface/50">Quick Actions</span>
+            <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/50">Quick Actions</span>
           </div>
           <div className="space-y-2">
             <QuickAction icon="add_circle" label="Create Tournament" color="text-primary" onClick={function() { goTab('tournaments') }} />
@@ -129,35 +129,35 @@ export default function OpsOverview(props) {
         <Panel className="!p-4">
           <div className="flex items-center gap-2 mb-3">
             <Icon name="monitor_heart" size={16} className="text-success" />
-            <span className="font-nav text-[10px] font-bold uppercase tracking-widest text-on-surface/50">System Status</span>
+            <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/50">System Status</span>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-on-surface/40 font-nav uppercase tracking-wider">Database</span>
+              <span className="text-xs text-on-surface/40 font-label uppercase tracking-wider">Database</span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
                 <span className="text-xs font-bold text-success">Connected</span>
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-on-surface/40 font-nav uppercase tracking-wider">Active Tournaments</span>
+              <span className="text-xs text-on-surface/40 font-label uppercase tracking-wider">Active Tournaments</span>
               <span className="text-xs font-bold text-on-surface/60">
                 {activeTournaments.length > 0 ? activeTournaments.length + ' running' : 'None'}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-on-surface/40 font-nav uppercase tracking-wider">Auto-refresh</span>
+              <span className="text-xs text-on-surface/40 font-label uppercase tracking-wider">Auto-refresh</span>
               <span className="text-xs font-bold text-on-surface/60">Every 30s</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-on-surface/40 font-nav uppercase tracking-wider">Last Refresh</span>
+              <span className="text-xs text-on-surface/40 font-label uppercase tracking-wider">Last Refresh</span>
               <span className="text-xs font-bold text-on-surface/60">
                 {lastRefresh ? lastRefresh.toLocaleTimeString() : '-'}
               </span>
             </div>
             <div className="border-t border-outline-variant/10 pt-3 mt-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-on-surface/40 font-nav uppercase tracking-wider">Platform</span>
+                <span className="text-xs text-on-surface/40 font-label uppercase tracking-wider">Platform</span>
                 <span className="text-xs font-bold text-primary">TFT Clash v1.0</span>
               </div>
             </div>
@@ -168,7 +168,7 @@ export default function OpsOverview(props) {
         <Panel className="!p-4">
           <div className="flex items-center gap-2 mb-3">
             <Icon name="analytics" size={16} className="text-primary" />
-            <span className="font-nav text-[10px] font-bold uppercase tracking-widest text-on-surface/50">At a Glance</span>
+            <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/50">At a Glance</span>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-outline-variant/5">

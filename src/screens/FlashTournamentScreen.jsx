@@ -8,7 +8,7 @@ import { buildFlashLobbies } from '../lib/tournament.js'
 import { createNotification } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
-import { Sel } from '../components/ui'
+import { Btn, Sel } from '../components/ui'
 
 export default function FlashTournamentScreen(props) {
   var tournamentId = props.tournamentId;
@@ -593,7 +593,7 @@ export default function FlashTournamentScreen(props) {
       <PageLayout>
         <div className="max-w-5xl mx-auto text-center py-20">
           <Icon name="hourglass_empty" size={40} className="text-on-surface-variant/30 mx-auto mb-4" />
-          <div className="text-on-surface-variant text-sm font-nav tracking-wider uppercase">Loading tournament...</div>
+          <div className="text-on-surface-variant text-sm font-label tracking-wider uppercase">Loading tournament...</div>
         </div>
       </PageLayout>
     );
@@ -606,11 +606,9 @@ export default function FlashTournamentScreen(props) {
           <Icon name="error_outline" size={48} className="text-on-surface-variant/30 mx-auto mb-4" />
           <h2 className="text-on-surface text-xl font-bold mb-2">Tournament Not Found</h2>
           <p className="text-on-surface-variant text-sm mb-6">This tournament may have been removed or the link is invalid.</p>
-          <button
-            onClick={function() { navigate('/events'); }}
-            className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+          <Btn variant="primary" size="sm" onClick={function() { navigate('/events'); }}>
             Back to Events
-          </button>
+          </Btn>
         </div>
       </PageLayout>
     );
@@ -717,7 +715,7 @@ export default function FlashTournamentScreen(props) {
         {/* Back nav */}
         <button
           onClick={function() { navigate('/events'); }}
-          className="flex items-center gap-1.5 text-on-surface-variant/50 hover:text-primary text-xs font-nav font-bold tracking-wider uppercase mb-6 bg-transparent border-0 cursor-pointer transition-colors"
+          className="flex items-center gap-1.5 text-on-surface-variant/50 hover:text-primary text-xs font-label font-bold tracking-wider uppercase mb-6 bg-transparent border-0 cursor-pointer transition-colors"
         >
           <Icon name="arrow_back" size={14} />
           {"Back to Events"}
@@ -730,7 +728,7 @@ export default function FlashTournamentScreen(props) {
               {tournament.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
-              <span className={"px-3 py-1 rounded font-nav text-xs tracking-wider font-bold border " + (phaseBgs[phase] || 'bg-surface-container-high border-outline-variant/20') + " " + (phaseColors[phase] || 'text-on-surface-variant')}>
+              <span className={"px-3 py-1 rounded font-label text-xs tracking-wider font-bold border " + (phaseBgs[phase] || 'bg-surface-container-high border-outline-variant/20') + " " + (phaseColors[phase] || 'text-on-surface-variant')}>
                 {phaseLabels[phase] || phase}
               </span>
               <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
@@ -747,7 +745,7 @@ export default function FlashTournamentScreen(props) {
             <button onClick={function() {
               var url = window.location.origin + '/flash/' + tournamentId;
               navigator.clipboard.writeText(url).then(function() { toast('Tournament link copied!', 'success'); });
-            }} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high border border-outline-variant/20 rounded text-xs font-nav font-bold tracking-wider uppercase text-on-surface-variant hover:text-primary transition-colors">
+            }} className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-high border border-outline-variant/20 rounded text-xs font-label font-bold tracking-wider uppercase text-on-surface-variant hover:text-primary transition-colors">
               <Icon name="content_copy" size={14} />
               Copy Link
             </button>
@@ -760,7 +758,7 @@ export default function FlashTournamentScreen(props) {
             <div className="absolute top-0 right-0 p-3 opacity-5">
               <Icon name="emoji_events" size={64} />
             </div>
-            <div className="font-nav font-bold text-xs tracking-widest uppercase text-primary mb-4">Prize Pool</div>
+            <div className="font-label font-bold text-xs tracking-widest uppercase text-primary mb-4">Prize Pool</div>
             <div className="flex gap-3 flex-wrap">
               {prizes.map(function(p, i) {
                 var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70'];
@@ -784,7 +782,7 @@ export default function FlashTournamentScreen(props) {
                 <span className="font-mono text-2xl font-bold text-on-surface">{regCount}</span>
                 <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + maxP}</span>
               </div>
-              <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
+              <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
                 {"players registered" + (phase === 'check_in' ? ' - ' + checkedInCount + ' checked in' : '')}
               </div>
             </div>
@@ -792,14 +790,14 @@ export default function FlashTournamentScreen(props) {
               <button
                 onClick={regBtnAction}
                 disabled={regBtnDisabled || actionLoading}
-                className={"px-5 py-2.5 font-nav font-bold text-xs tracking-widest uppercase rounded transition-all disabled:opacity-40 disabled:pointer-events-none " + regBtnClass}>
+                className={"px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded transition-all disabled:opacity-40 disabled:pointer-events-none " + regBtnClass}>
                 {actionLoading ? '...' : regBtnLabel}
               </button>
               {canUnregister && (
                 <button
                   onClick={handleUnregister}
                   disabled={actionLoading}
-                  className="px-3 py-2 bg-surface-container-high text-on-surface-variant font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:bg-error/10 hover:text-error transition-colors">
+                  className="px-3 py-2 bg-surface-container-high text-on-surface-variant font-label font-bold text-[10px] tracking-widest uppercase rounded hover:bg-error/10 hover:text-error transition-colors">
                   Unregister
                 </button>
               )}
@@ -820,7 +818,7 @@ export default function FlashTournamentScreen(props) {
         {isLive && allLobbiesLocked && (
           <div className="mb-6 bg-tertiary/8 border border-tertiary/25 rounded px-5 py-3 flex items-center gap-3">
             <Icon name="check_circle" size={18} fill className="text-tertiary" />
-            <span className="text-tertiary font-nav font-bold text-sm tracking-wider flex-1">
+            <span className="text-tertiary font-label font-bold text-sm tracking-wider flex-1">
               {"All lobbies locked" + (isLastGame ? " - ready to finalize!" : " - ready for next game!")}
             </span>
           </div>
@@ -845,7 +843,7 @@ export default function FlashTournamentScreen(props) {
               <button
                 key={t.id}
                 onClick={function() { setActiveTab(t.id); }}
-                className={"shrink-0 flex items-center gap-1.5 border-0 border-b-2 px-4 py-2.5 font-nav text-xs tracking-wider uppercase cursor-pointer transition-all " + (active ? 'bg-primary/5 border-b-primary font-bold text-primary' : 'bg-transparent border-b-transparent font-bold text-on-surface-variant/50 hover:text-on-surface-variant')}
+                className={"shrink-0 flex items-center gap-1.5 border-0 border-b-2 px-4 py-2.5 font-label text-xs tracking-wider uppercase cursor-pointer transition-all " + (active ? 'bg-primary/5 border-b-primary font-bold text-primary' : 'bg-transparent border-b-transparent font-bold text-on-surface-variant/50 hover:text-on-surface-variant')}
               >
                 <Icon name={t.icon} size={14} />
                 {t.label}
@@ -864,7 +862,7 @@ export default function FlashTournamentScreen(props) {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="tune" size={18} className="text-primary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Details</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Details</span>
                 </div>
                 <div className="grid grid-cols-2 gap-px bg-outline-variant/5">
                   {[
@@ -875,7 +873,7 @@ export default function FlashTournamentScreen(props) {
                   ].map(function(item) {
                     return (
                       <div key={item.label} className="bg-surface-container-low p-4">
-                        <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-1">{item.label}</div>
+                        <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-1">{item.label}</div>
                         <div className="font-mono text-sm font-bold text-on-surface">{item.value}</div>
                       </div>
                     );
@@ -888,7 +886,7 @@ export default function FlashTournamentScreen(props) {
                 <div className="bg-primary/5 rounded border border-primary/15 p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <Icon name="campaign" size={16} className="text-primary" />
-                    <span className="text-xs font-nav font-bold text-primary tracking-widest uppercase">Announcement</span>
+                    <span className="text-xs font-label font-bold text-primary tracking-widest uppercase">Announcement</span>
                   </div>
                   <div className="text-sm text-on-surface leading-relaxed">{tournament.announcement}</div>
                 </div>
@@ -898,7 +896,7 @@ export default function FlashTournamentScreen(props) {
             {/* Right sidebar: Round progress */}
             <div className="lg:col-span-5 space-y-5">
               <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
-                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-3 text-on-surface">Round Progress</h3>
+                <h3 className="font-label text-sm font-bold tracking-widest uppercase mb-3 text-on-surface">Round Progress</h3>
                 <div className="mb-4">
                   <div className="flex justify-between text-[10px] font-mono text-on-surface-variant/50 mb-1">
                     <span>{"Game " + currentGameNumber + " of " + totalGames}</span>
@@ -924,7 +922,7 @@ export default function FlashTournamentScreen(props) {
                           }
                         </div>
                         <div className="flex-1">
-                          <div className={"text-xs font-nav font-bold uppercase tracking-widest " + (isGameComplete ? "text-tertiary" : isCurrent ? "text-primary" : "text-on-surface-variant/40")}>
+                          <div className={"text-xs font-label font-bold uppercase tracking-widest " + (isGameComplete ? "text-tertiary" : isCurrent ? "text-primary" : "text-on-surface-variant/40")}>
                             {"Game " + r}
                           </div>
                         </div>
@@ -954,11 +952,11 @@ export default function FlashTournamentScreen(props) {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
-                      <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase mb-1">Lobbies</div>
+                      <div className="text-[10px] font-label text-on-surface-variant/50 uppercase mb-1">Lobbies</div>
                       <div className="font-mono text-lg font-bold text-primary">{currentGameLobbies.length}</div>
                     </div>
                     <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
-                      <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase mb-1">Checked In</div>
+                      <div className="text-[10px] font-label text-on-surface-variant/50 uppercase mb-1">Checked In</div>
                       <div className="font-mono text-lg font-bold text-tertiary">{checkedInCount}</div>
                     </div>
                   </div>
@@ -975,7 +973,7 @@ export default function FlashTournamentScreen(props) {
           <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
               <Icon name="group" size={18} className="text-primary" />
-              <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">{"Registered Players (" + registrations.length + ")"}</span>
+              <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{"Registered Players (" + registrations.length + ")"}</span>
             </div>
             {sortedRegs.length === 0 ? (
               <div className="text-center py-16 px-5">
@@ -1002,7 +1000,7 @@ export default function FlashTournamentScreen(props) {
                         <div className={"text-sm font-semibold " + (isMe ? "text-secondary" : "text-on-surface")}>{pData.username || 'Player'}</div>
                         <div className="text-[10px] text-on-surface-variant/40">{(pData.rank || 'Unranked') + " - " + (pData.region || '')}</div>
                       </div>
-                      <span className={"text-[10px] font-nav font-bold tracking-widest uppercase rounded px-2 py-0.5 border " + (isCheckedIn ? "text-tertiary bg-tertiary/10 border-tertiary/20" : isWait ? "text-primary bg-primary/10 border-primary/20" : isDropped ? "text-error bg-error/10 border-error/20" : "text-secondary bg-secondary/10 border-secondary/20")}>
+                      <span className={"text-[10px] font-label font-bold tracking-widest uppercase rounded px-2 py-0.5 border " + (isCheckedIn ? "text-tertiary bg-tertiary/10 border-tertiary/20" : isWait ? "text-primary bg-primary/10 border-primary/20" : isDropped ? "text-error bg-error/10 border-error/20" : "text-secondary bg-secondary/10 border-secondary/20")}>
                         {r.status === 'checked_in' ? 'Checked In' : r.status}
                       </span>
                     </div>
@@ -1027,7 +1025,7 @@ export default function FlashTournamentScreen(props) {
                 </div>
                 <div className="flex items-center gap-2 mb-3">
                   <Icon name="edit_note" size={18} className="text-secondary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">{"Game " + currentGameNumber + " - Report Your Placement"}</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{"Game " + currentGameNumber + " - Report Your Placement"}</span>
                 </div>
                 {myReport ? (
                   <div>
@@ -1038,7 +1036,7 @@ export default function FlashTournamentScreen(props) {
                       </span>
                       <button
                         onClick={function() { setMyPlacement(myReport.reported_placement); }}
-                        className="bg-transparent text-secondary text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-secondary/30 rounded px-2.5 py-1 hover:bg-secondary/10 transition-colors"
+                        className="bg-transparent text-secondary text-[10px] font-label font-bold tracking-widest uppercase cursor-pointer border border-secondary/30 rounded px-2.5 py-1 hover:bg-secondary/10 transition-colors"
                       >
                         Update
                       </button>
@@ -1050,8 +1048,8 @@ export default function FlashTournamentScreen(props) {
                             return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
                           })}
                         </Sel>
-                        <button onClick={function() { submitReport(myPlacement); }} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Submit</button>
-                        <button onClick={function() { setMyPlacement(0); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
+                        <button onClick={function() { submitReport(myPlacement); }} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Submit</button>
+                        <button onClick={function() { setMyPlacement(0); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
                       </div>
                     )}
                   </div>
@@ -1063,12 +1061,14 @@ export default function FlashTournamentScreen(props) {
                         return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
                       })}
                     </Sel>
-                    <button
+                    <Btn
+                      variant="primary"
+                      size="sm"
                       onClick={function() { if (myPlacement > 0) submitReport(myPlacement); else toast('Select a placement first', 'error'); }}
                       disabled={myPlacement === 0}
-                      className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                    >
                       Submit
-                    </button>
+                    </Btn>
                   </div>
                 )}
 
@@ -1083,14 +1083,14 @@ export default function FlashTournamentScreen(props) {
                           clashName: tournament ? tournament.name : 'TFT Clash',
                         }));
                       }}
-                      className="bg-transparent text-primary text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-primary/20 rounded px-3 py-1.5 hover:bg-primary/10 transition-colors flex items-center gap-1"
+                      className="bg-transparent text-primary text-[10px] font-label font-bold tracking-widest uppercase cursor-pointer border border-primary/20 rounded px-3 py-1.5 hover:bg-primary/10 transition-colors flex items-center gap-1"
                     >
                       <Icon name="share" size={12} />
                       Share Result
                     </button>
                     <button
                       onClick={function() { setDisputeForm({open: true, lobbyId: myLobby.id, claimed: myReport.reported_placement, reason: '', screenshotUrl: ''}); }}
-                      className="bg-transparent text-error text-[10px] font-nav font-bold tracking-widest uppercase cursor-pointer border border-error/20 rounded px-3 py-1.5 hover:bg-error/10 transition-colors"
+                      className="bg-transparent text-error text-[10px] font-label font-bold tracking-widest uppercase cursor-pointer border border-error/20 rounded px-3 py-1.5 hover:bg-error/10 transition-colors"
                     >
                       Dispute this result
                     </button>
@@ -1100,7 +1100,7 @@ export default function FlashTournamentScreen(props) {
                 {/* Dispute form */}
                 {disputeForm.open && disputeForm.lobbyId === myLobby.id && (
                   <div className="mt-4 p-4 rounded bg-error/5 border border-error/15">
-                    <div className="font-nav font-bold text-xs text-error tracking-widest uppercase mb-3">Submit Dispute</div>
+                    <div className="font-label font-bold text-xs text-error tracking-widest uppercase mb-3">Submit Dispute</div>
                     <div className="flex gap-2 mb-2 flex-wrap items-center">
                       <label className="text-xs text-on-surface-variant min-w-[100px]">Actual placement:</label>
                       <Sel value={String(disputeForm.claimed)} onChange={function(v) { setDisputeForm(Object.assign({}, disputeForm, {claimed: parseInt(v) || 0})); }}>
@@ -1124,8 +1124,8 @@ export default function FlashTournamentScreen(props) {
                       className="w-full bg-surface-container-lowest border border-error/15 rounded text-xs text-on-surface px-3 py-2 mb-3 focus:outline-none focus:ring-1 focus:ring-error box-border"
                     />
                     <div className="flex gap-2">
-                      <button onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason} className="px-4 py-2 bg-error text-on-error font-nav font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">Submit Dispute</button>
-                      <button onClick={function() { setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''}); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
+                      <button onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason} className="px-4 py-2 bg-error text-on-error font-label font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">Submit Dispute</button>
+                      <button onClick={function() { setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''}); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
                     </div>
                   </div>
                 )}
@@ -1135,7 +1135,7 @@ export default function FlashTournamentScreen(props) {
             {/* My disputes */}
             {isLive && myPlayer && myDisputes.length > 0 && (
               <div className="bg-primary/5 rounded border border-primary/15 p-5">
-                <div className="font-nav font-bold text-xs text-primary tracking-widest uppercase mb-3">Your Disputes</div>
+                <div className="font-label font-bold text-xs text-primary tracking-widest uppercase mb-3">Your Disputes</div>
                 <div className="space-y-2">
                   {myDisputes.map(function(d) {
                     var isPending = d.status === 'open';
@@ -1144,7 +1144,7 @@ export default function FlashTournamentScreen(props) {
                       <div key={d.id} className="bg-surface-container-lowest rounded px-4 py-2.5 border border-outline-variant/10">
                         <div className="flex items-center gap-2">
                           <div className={"w-2 h-2 rounded-full shrink-0 " + (isPending ? "bg-primary" : isAccepted ? "bg-tertiary" : "bg-error")} />
-                          <div className={"text-xs font-nav font-bold tracking-wider " + (isPending ? "text-primary" : isAccepted ? "text-tertiary" : "text-error")}>
+                          <div className={"text-xs font-label font-bold tracking-wider " + (isPending ? "text-primary" : isAccepted ? "text-tertiary" : "text-error")}>
                             {isPending ? 'Pending review' : isAccepted ? 'Accepted' : 'Rejected'}
                           </div>
                           {d.claimed_placement && (
@@ -1171,14 +1171,14 @@ export default function FlashTournamentScreen(props) {
                   <div className="bg-secondary/8 border border-secondary/25 rounded px-5 py-3 mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Icon name="my_location" size={18} className="text-secondary" />
-                      <span className="font-nav font-bold text-sm tracking-wider text-secondary">
+                      <span className="font-label font-bold text-sm tracking-wider text-secondary">
                         {"You are in Lobby " + (lobbyLetters[currentGameLobbies.findIndex(function(l) { return l.id === myLobby.id; })] || "?")}
                       </span>
                     </div>
                     <button onClick={function() {
                       var el = document.getElementById('lobby-' + myLobby.id);
                       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }} className="px-3 py-1.5 bg-secondary/20 text-secondary font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:bg-secondary/30 transition-colors">
+                    }} className="px-3 py-1.5 bg-secondary/20 text-secondary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:bg-secondary/30 transition-colors">
                       Jump to Lobby
                     </button>
                   </div>
@@ -1216,10 +1216,10 @@ export default function FlashTournamentScreen(props) {
                             {"LOBBY " + lobbyLetter}
                           </span>
                           {isMyLobby && !isLocked && (
-                            <span className="bg-secondary/20 text-[10px] text-secondary px-2 py-0.5 rounded font-nav font-bold tracking-tighter">YOUR LOBBY</span>
+                            <span className="bg-secondary/20 text-[10px] text-secondary px-2 py-0.5 rounded font-label font-bold tracking-tighter">YOUR LOBBY</span>
                           )}
                           {isLocked && (
-                            <span className="bg-tertiary/10 text-[10px] text-tertiary px-2 py-0.5 rounded font-nav font-bold tracking-tighter flex items-center gap-1">
+                            <span className="bg-tertiary/10 text-[10px] text-tertiary px-2 py-0.5 rounded font-label font-bold tracking-tighter flex items-center gap-1">
                               <Icon name="lock" size={10} fill />
                               LOCKED
                             </span>
@@ -1228,7 +1228,7 @@ export default function FlashTournamentScreen(props) {
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-xs text-on-surface-variant/40">{lobbyPlayers.length + " players"}</span>
                           {isLive && !isLocked && (
-                            <span className={"text-[10px] font-nav font-bold rounded px-2 py-0.5 border " + (allReported ? "text-tertiary bg-tertiary/10 border-tertiary/20" : "text-primary bg-primary/10 border-primary/20")}>
+                            <span className={"text-[10px] font-label font-bold rounded px-2 py-0.5 border " + (allReported ? "text-tertiary bg-tertiary/10 border-tertiary/20" : "text-primary bg-primary/10 border-primary/20")}>
                               {reportedCount + "/" + totalCount + " reported"}
                             </span>
                           )}
@@ -1262,7 +1262,7 @@ export default function FlashTournamentScreen(props) {
                               <div className="flex-1 min-w-0">
                                 <div className={"text-sm font-semibold flex items-center gap-1.5 " + (isMe ? "text-secondary" : "text-on-surface")}>
                                   {p.username || p.name || 'Unknown'}
-                                  {isHost && <span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
+                                  {isHost && <span className="text-[8px] font-label font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
                                 </div>
                                 <div className="text-[10px] text-on-surface-variant/40">{p.rank || 'Iron'}</div>
                                 {(p.riotId || p.riot_id) && (
@@ -1288,7 +1288,7 @@ export default function FlashTournamentScreen(props) {
                                   {"#" + playerReport.reported_placement}
                                 </span>
                               ) : isLive ? (
-                                <span className="text-[10px] text-on-surface-variant/30 font-nav">Pending</span>
+                                <span className="text-[10px] text-on-surface-variant/30 font-label">Pending</span>
                               ) : null}
 
                               {/* Admin override */}
@@ -1307,13 +1307,13 @@ export default function FlashTournamentScreen(props) {
                       {isLive && !isLocked && !isAdmin && canLock && (
                         <div className="border-t border-tertiary/20 p-3 bg-tertiary/5 flex items-center gap-2">
                           <Icon name="check_circle" size={14} fill className="text-tertiary" />
-                          <span className="text-[10px] font-nav font-bold text-tertiary tracking-wider uppercase">All placements reported - waiting for admin to lock</span>
+                          <span className="text-[10px] font-label font-bold text-tertiary tracking-wider uppercase">All placements reported - waiting for admin to lock</span>
                         </div>
                       )}
                       {isLive && !isLocked && !isAdmin && hasDuplicate && (
                         <div className="border-t border-error/20 p-3 bg-error/5 flex items-center gap-2">
                           <Icon name="warning" size={14} className="text-error" />
-                          <span className="text-[10px] font-nav font-bold text-error tracking-wider uppercase">Duplicate placements detected - awaiting resolution</span>
+                          <span className="text-[10px] font-label font-bold text-error tracking-wider uppercase">Duplicate placements detected - awaiting resolution</span>
                         </div>
                       )}
 
@@ -1321,17 +1321,17 @@ export default function FlashTournamentScreen(props) {
                       {isAdmin && isLive && !isLocked && (
                         <div className="border-t border-outline-variant/10 p-4 bg-surface-container-low flex items-center gap-3 flex-wrap">
                           {hasDuplicate && (
-                            <span className="text-[10px] font-nav font-bold text-error tracking-wider">Duplicate placements - resolve first</span>
+                            <span className="text-[10px] font-label font-bold text-error tracking-wider">Duplicate placements - resolve first</span>
                           )}
                           {lobbyDisputes.length > 0 && (
-                            <span className="text-[10px] font-nav font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5">
+                            <span className="text-[10px] font-label font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5">
                               {lobbyDisputes.length + " dispute" + (lobbyDisputes.length === 1 ? "" : "s")}
                             </span>
                           )}
                           <button
                             onClick={function() { lockLobby(lobby.id); }}
                             disabled={!canLock}
-                            className="ml-auto px-4 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                            className="ml-auto px-4 py-2 bg-tertiary text-on-tertiary font-label font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
                             {canLock ? 'Lock Lobby' : 'Cannot Lock Yet'}
                           </button>
                         </div>
@@ -1346,7 +1346,7 @@ export default function FlashTournamentScreen(props) {
                             onChange={function(e) { var v = e.target.value; setLobbyCodeInputs(function(prev) { var next = Object.assign({}, prev); next[codeKey] = v; return next; }); }}
                             className="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded text-sm text-on-surface font-mono placeholder:text-on-surface-variant/30 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                           />
-                          <button onClick={function() { submitLobbyCode(lobby.id, codeInput); }} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Save</button>
+                          <button onClick={function() { submitLobbyCode(lobby.id, codeInput); }} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Save</button>
                         </div>
                       )}
 
@@ -1354,7 +1354,7 @@ export default function FlashTournamentScreen(props) {
                       {isLocked && (
                         <div className="px-4 py-2.5 bg-tertiary/5 border-t border-tertiary/10 flex items-center justify-center gap-2">
                           <Icon name="lock" size={14} fill className="text-tertiary" />
-                          <span className="font-nav text-[10px] font-bold tracking-widest uppercase text-tertiary">Results Locked</span>
+                          <span className="font-label text-[10px] font-bold tracking-widest uppercase text-tertiary">Results Locked</span>
                         </div>
                       )}
                     </div>
@@ -1378,7 +1378,7 @@ export default function FlashTournamentScreen(props) {
                 <div className="absolute top-0 right-0 p-4 opacity-5">
                   <Icon name="emoji_events" size={80} />
                 </div>
-                <div className="text-center font-nav font-bold text-xs text-primary mb-8 tracking-[3px] uppercase">Final Results</div>
+                <div className="text-center font-label font-bold text-xs text-primary mb-8 tracking-[3px] uppercase">Final Results</div>
                 <div className="flex gap-3 justify-center items-end flex-wrap">
                   {[1, 0, 2].map(function(rankIdx) {
                     var entry = standings[rankIdx];
@@ -1405,7 +1405,7 @@ export default function FlashTournamentScreen(props) {
                         <div className={"font-bold text-center leading-tight " + (colors[rankIdx]) + " " + (isFirst ? "text-base" : "text-sm")}>{entry.name}</div>
                         <div className={"font-mono text-xs font-bold rounded px-2.5 py-0.5 " + (pos === 1 ? "bg-primary/20 text-primary" : "bg-on-surface-variant/10 text-on-surface-variant")}>{entry.totalPts + " pts"}</div>
                         {prizeEntry && (
-                          <div className={"font-nav font-bold text-[10px] tracking-wider uppercase rounded px-2.5 py-1 border " + (pos === 1 ? "text-primary bg-primary/15 border-primary/30" : "text-on-surface-variant bg-surface-container-high border-outline-variant/15")}>
+                          <div className={"font-label font-bold text-[10px] tracking-wider uppercase rounded px-2.5 py-1 border " + (pos === 1 ? "text-primary bg-primary/15 border-primary/30" : "text-on-surface-variant bg-surface-container-high border-outline-variant/15")}>
                             {prizeEntry.prize}
                           </div>
                         )}
@@ -1427,7 +1427,7 @@ export default function FlashTournamentScreen(props) {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="bar_chart" size={18} className="text-primary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
                     {"Standings - Game " + (allGameNums.length > 0 ? allGameNums[allGameNums.length - 1] : currentGameNumber) + " of " + totalGames}
                   </span>
                 </div>
@@ -1435,17 +1435,17 @@ export default function FlashTournamentScreen(props) {
                   <table className="w-full text-sm min-w-[400px] border-collapse table-auto">
                     <thead>
                       <tr className="bg-surface-container border-b border-outline-variant/10">
-                        <th className="py-2.5 pl-5 pr-2 text-left font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap sticky left-0 z-[3] bg-surface-container">#</th>
-                        <th className="py-2.5 px-2.5 text-left font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap sticky left-[40px] z-[3] bg-surface-container">Player</th>
-                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-primary uppercase tracking-widest whitespace-nowrap">Pts</th>
-                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">Avg</th>
-                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">W</th>
-                        <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">T4</th>
+                        <th className="py-2.5 pl-5 pr-2 text-left font-label font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap sticky left-0 z-[3] bg-surface-container">#</th>
+                        <th className="py-2.5 px-2.5 text-left font-label font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap sticky left-[40px] z-[3] bg-surface-container">Player</th>
+                        <th className="py-2.5 px-2.5 text-center font-label font-bold text-[10px] text-primary uppercase tracking-widest whitespace-nowrap">Pts</th>
+                        <th className="py-2.5 px-2.5 text-center font-label font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">Avg</th>
+                        <th className="py-2.5 px-2.5 text-center font-label font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">W</th>
+                        <th className="py-2.5 px-2.5 text-center font-label font-bold text-[10px] text-on-surface-variant/50 uppercase tracking-widest whitespace-nowrap">T4</th>
                         {allGameNums.map(function(gn) {
-                          return (<th key={gn} className="py-2.5 px-2 text-center font-nav font-bold text-[10px] text-secondary uppercase tracking-widest whitespace-nowrap">{"G" + gn}</th>);
+                          return (<th key={gn} className="py-2.5 px-2 text-center font-label font-bold text-[10px] text-secondary uppercase tracking-widest whitespace-nowrap">{"G" + gn}</th>);
                         })}
                         {isComplete && prizes.length > 0 && (
-                          <th className="py-2.5 px-2.5 text-center font-nav font-bold text-[10px] text-tertiary uppercase tracking-widest whitespace-nowrap">Prize</th>
+                          <th className="py-2.5 px-2.5 text-center font-label font-bold text-[10px] text-tertiary uppercase tracking-widest whitespace-nowrap">Prize</th>
                         )}
                       </tr>
                     </thead>
@@ -1489,7 +1489,7 @@ export default function FlashTournamentScreen(props) {
                             {isComplete && prizes.length > 0 && (
                               <td className="py-2.5 px-2.5 text-center whitespace-nowrap">
                                 {prizeEntry ? (
-                                  <span className="text-xs font-nav font-bold text-tertiary bg-tertiary/10 rounded px-2 py-0.5">{prizeEntry.prize}</span>
+                                  <span className="text-xs font-label font-bold text-tertiary bg-tertiary/10 rounded px-2 py-0.5">{prizeEntry.prize}</span>
                                 ) : (
                                   <span className="text-on-surface-variant/20 font-mono text-xs">{"-"}</span>
                                 )}
@@ -1513,9 +1513,9 @@ export default function FlashTournamentScreen(props) {
           <div className="bg-surface-container-low rounded border border-primary/15 overflow-hidden mt-6">
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
               <Icon name="gavel" size={18} className="text-primary" />
-              <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Disputes</span>
+              <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Disputes</span>
               {openDisputeCount > 0 && (
-                <span className="text-[10px] font-nav font-bold text-primary bg-primary/15 rounded px-2 py-0.5 border border-primary/20">
+                <span className="text-[10px] font-label font-bold text-primary bg-primary/15 rounded px-2 py-0.5 border border-primary/20">
                   {openDisputeCount + " open"}
                 </span>
               )}
@@ -1532,8 +1532,8 @@ export default function FlashTournamentScreen(props) {
                       <div className="flex-1 min-w-0">
                         <div className="flex gap-2 items-center flex-wrap mb-1">
                           <span className="font-semibold text-sm text-on-surface">{pData.username || 'Player'}</span>
-                          <span className="text-[10px] text-secondary font-nav font-bold tracking-wider">{lobbyLabel}</span>
-                          <span className={"text-[10px] font-nav font-bold rounded px-1.5 py-0.5 border " + (isOpen ? "text-primary bg-primary/10 border-primary/20" : "text-tertiary bg-tertiary/10 border-tertiary/20")}>
+                          <span className="text-[10px] text-secondary font-label font-bold tracking-wider">{lobbyLabel}</span>
+                          <span className={"text-[10px] font-label font-bold rounded px-1.5 py-0.5 border " + (isOpen ? "text-primary bg-primary/10 border-primary/20" : "text-tertiary bg-tertiary/10 border-tertiary/20")}>
                             {d.status === 'open' ? 'Open' : d.status === 'resolved_accepted' ? 'Accepted' : 'Rejected'}
                           </span>
                         </div>
@@ -1545,8 +1545,8 @@ export default function FlashTournamentScreen(props) {
                       </div>
                       {isOpen && (
                         <div className="flex gap-2 shrink-0">
-                          <button onClick={function() { resolveDispute(d.id, true); }} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Accept</button>
-                          <button onClick={function() { resolveDispute(d.id, false); }} className="px-3 py-1.5 bg-error text-on-error font-nav font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Reject</button>
+                          <button onClick={function() { resolveDispute(d.id, true); }} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Accept</button>
+                          <button onClick={function() { resolveDispute(d.id, false); }} className="px-3 py-1.5 bg-error text-on-error font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Reject</button>
                         </div>
                       )}
                     </div>
@@ -1564,48 +1564,48 @@ export default function FlashTournamentScreen(props) {
           <div className="bg-surface-container-lowest rounded border border-error/15 overflow-hidden mt-6">
             <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
               <Icon name="admin_panel_settings" size={18} className="text-error" />
-              <span className="font-nav font-bold text-sm tracking-widest uppercase text-error">Admin Controls</span>
+              <span className="font-label font-bold text-sm tracking-widest uppercase text-error">Admin Controls</span>
             </div>
             <div className="p-5">
               <div className="flex gap-2 flex-wrap">
                 {phase === 'draft' && (
-                  <button onClick={adminOpenRegistration} className="px-4 py-2 bg-secondary text-on-secondary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  <button onClick={adminOpenRegistration} className="px-4 py-2 bg-secondary text-on-secondary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
                     Open Registration
                   </button>
                 )}
                 {phase === 'registration' && (
-                  <button onClick={adminOpenCheckIn} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                  <button onClick={adminOpenCheckIn} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
                     Open Check-In
                   </button>
                 )}
                 {phase === 'check_in' && (
-                  <button onClick={adminCloseCheckIn} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  <button onClick={adminCloseCheckIn} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
                     Close Check-In
                   </button>
                 )}
                 {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
-                  <button onClick={generateLobbies} disabled={actionLoading} className="px-4 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                  <button onClick={generateLobbies} disabled={actionLoading} className="px-4 py-2 bg-tertiary text-on-tertiary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
                     {actionLoading ? 'Generating...' : 'Generate Lobbies'}
                   </button>
                 )}
                 {phase === 'check_in' && lobbies.length > 0 && (
-                  <span className="flex items-center gap-1.5 text-[10px] font-nav font-bold text-tertiary bg-tertiary/10 rounded px-3 py-2 border border-tertiary/20">
+                  <span className="flex items-center gap-1.5 text-[10px] font-label font-bold text-tertiary bg-tertiary/10 rounded px-3 py-2 border border-tertiary/20">
                     <Icon name="check" size={12} />
                     {lobbies.length + " lobbies ready"}
                   </span>
                 )}
                 {(phase === 'check_in' || phase === 'registration') && (
-                  <button onClick={adminStartTournament} className="px-4 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                  <button onClick={adminStartTournament} className="px-4 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
                     Start Tournament
                   </button>
                 )}
                 {isLive && allLobbiesLocked && !isLastGame && (
-                  <button onClick={startNextGame} className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                  <button onClick={startNextGame} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
                     {"Start Game " + (currentGameNumber + 1)}
                   </button>
                 )}
                 {isLive && allLobbiesLocked && isLastGame && (
-                  <button onClick={finalizeTournament} className="px-4 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 hover:brightness-110 transition-all">
+                  <button onClick={finalizeTournament} className="px-4 py-2 bg-tertiary text-on-tertiary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 hover:brightness-110 transition-all">
                     Finalize Tournament
                   </button>
                 )}

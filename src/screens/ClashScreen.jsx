@@ -136,7 +136,7 @@ function ClashRecap(props) {
   return (
     <div className="relative overflow-hidden rounded-xl mx-4 mb-5 p-5 bg-[rgba(17,24,39,.8)] border border-[rgba(52,211,153,.15)]">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#34D399] to-transparent" />
-      <div className="font-condensed text-[10px] uppercase tracking-[.12em] font-bold mb-[10px] text-[#34D399]">{recap.clashName + " Recap"}</div>
+      <div className="font-label text-[10px] uppercase tracking-[.12em] font-bold mb-[10px] text-[#34D399]">{recap.clashName + " Recap"}</div>
       <div className="text-[14px] text-on-surface leading-[1.8]">
         {recap.lines.map(function(line, i) {
           return <p key={"line-" + i} className="mb-2">{line}</p>;
@@ -652,7 +652,7 @@ function LiveStandingsTable(props) {
   if (standings.length === 0) return null;
   return (
     <div className="rounded-xl overflow-hidden mx-4 mb-5 bg-[rgba(8,8,15,.6)] border border-on-surface/[.06]">
-      <div className="grid px-3.5 py-2 font-condensed text-[10px] uppercase tracking-[.06em] text-on-surface-variant border-b border-on-surface/[.04]" style={{ gridTemplateColumns: "36px 1fr 60px 50px" }}>
+      <div className="grid px-3.5 py-2 font-label text-[10px] uppercase tracking-[.06em] text-on-surface-variant border-b border-on-surface/[.04]" style={{ gridTemplateColumns: "36px 1fr 60px 50px" }}>
         <span>#</span>
         <span>Player</span>
         <span className="text-right">Pts</span>
@@ -722,7 +722,7 @@ function YourFinishCard(props) {
       }}
     >
       <div>
-        <div className="font-condensed text-[10px] uppercase tracking-[.1em] mb-1 text-on-surface-variant">Your Finish</div>
+        <div className="font-label text-[10px] uppercase tracking-[.1em] mb-1 text-on-surface-variant">Your Finish</div>
         <div className="font-editorial text-[24px] font-black text-secondary">
           {found.position <= 3 ? (medals[found.position - 1] + " ") : ""}
           {"#" + found.position}
@@ -1799,7 +1799,7 @@ function BracketScreen(props) {
         <Btn v="dark" s="sm" onClick={function() { setScreen("home"); }}>{"<-"} Back</Btn>
         <h2 className="text-on-surface text-xl m-0 flex-1 flex items-center gap-2.5 flex-wrap">
           <span>Game {round}/{tournamentState.totalGames || 4}</span>
-          <span className="font-condensed text-[10px] font-bold px-2.5 py-0.5 rounded-xl tracking-widest uppercase" style={{
+          <span className="font-label text-[10px] font-bold px-2.5 py-0.5 rounded-xl tracking-widest uppercase" style={{
             background: tournamentState.phase === "inprogress" ? "rgba(82,196,124,.12)" : tournamentState.phase === "complete" ? "rgba(78,205,196,.12)" : "rgba(155,114,207,.12)",
             color: tournamentState.phase === "inprogress" ? "#6EE7B7" : tournamentState.phase === "complete" ? "#4ECDC4" : "#C4B5FD",
             border: "1px solid " + (tournamentState.phase === "inprogress" ? "rgba(82,196,124,.3)" : tournamentState.phase === "complete" ? "rgba(78,205,196,.3)" : "rgba(155,114,207,.3)")
@@ -1909,7 +1909,7 @@ function BracketScreen(props) {
                   background: r < round ? "rgba(82,196,124,.08)" : r === round ? "rgba(232,168,56,.08)" : "rgba(255,255,255,.02)",
                   border: "1px solid " + (r < round ? "rgba(82,196,124,.3)" : r === round ? "rgba(232,168,56,.4)" : "rgba(242,237,228,.08)")
                 }}>
-                  <div className="font-condensed text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF" }}>Round {r}</div>
+                  <div className="font-label text-[11px] font-bold tracking-widest uppercase mb-0.5" style={{ color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF" }}>Round {r}</div>
                   <div className="text-[11px]" style={{ color: r < round ? "#6EE7B7" : r === round ? "#E8A838" : "#9AAABF" }}>{r < round ? "Complete" : r === round ? "In Progress" : "Upcoming"}</div>
                 </div>
               );
@@ -2006,7 +2006,7 @@ function BracketScreen(props) {
                         </div>
                       ) : (
                         <div className="p-3 bg-tertiary/[.03] border-t border-tertiary/[.12]">
-                          <div className="font-condensed text-[11px] font-bold text-[#4ECDC4] mb-2.5 uppercase tracking-widest">Enter Placements - Round {round}</div>
+                          <div className="font-label text-[11px] font-bold text-[#4ECDC4] mb-2.5 uppercase tracking-widest">Enter Placements - Round {round}</div>
                           <div className="flex flex-col gap-1.5 mb-2.5">
                             {[].concat(lobby).sort(function(a, b) { return b.pts - a.pts; }).map(function(p) {
                               var dup = lobby.filter(function(x) { return placementEntry[li].placements[x.id] === placementEntry[li].placements[p.id]; }).length > 1;
@@ -2201,7 +2201,7 @@ function ClashScreen(props) {
     ].filter(Boolean);
     awardsEl = (
       <div className="mx-4 mb-5">
-        <div className="font-condensed text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold mb-2.5">Awards</div>
+        <div className="font-label text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold mb-2.5">Awards</div>
         <div className="flex gap-2 flex-wrap">
           {awardsList.map(function(a, i) {
             return (
@@ -2212,7 +2212,7 @@ function ClashScreen(props) {
               }}>
                 <Icon name={a.icon} style={{ fontSize: 18, color: a.color, flexShrink: 0 }} />
                 <div className="min-w-0">
-                  <div className="font-condensed text-[10px] font-bold uppercase tracking-widest" style={{ color: a.color }}>{a.label}</div>
+                  <div className="font-label text-[10px] font-bold uppercase tracking-widest" style={{ color: a.color }}>{a.label}</div>
                   <div className="text-[13px] font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{a.name}</div>
                 </div>
               </div>
@@ -2243,9 +2243,9 @@ function ClashScreen(props) {
             boxShadow: phase === "live" ? "0 0 12px " + accentColor + ", 0 0 24px " + accentColor : "none",
             animation: phase === "live" ? "live-dot 1.5s ease infinite" : "none"
           }} />
-          <span className="font-condensed text-[11px] uppercase tracking-[.1em] font-bold" style={{ color: accentColor }}>{phaseLabels[phase] || "Clash"}</span>
+          <span className="font-label text-[11px] uppercase tracking-[.1em] font-bold" style={{ color: accentColor }}>{phaseLabels[phase] || "Clash"}</span>
           {phase === "live" && (
-            <span className="font-condensed text-[10px] tracking-[.06em] ml-auto text-primary/70">LIVE</span>
+            <span className="font-label text-[10px] tracking-[.06em] ml-auto text-primary/70">LIVE</span>
           )}
         </div>
       </div>
@@ -2254,8 +2254,8 @@ function ClashScreen(props) {
       {phase === "registration" && registeredPlayers.length > 0 && (
         <div className="mx-4 mb-5">
           <div className="flex items-center justify-between mb-2.5">
-            <div className="font-condensed text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold">{"Registered - " + registeredPlayers.length + " players"}</div>
-            <div className="font-condensed text-[10px] text-[#9AAABF]">Scout the field</div>
+            <div className="font-label text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold">{"Registered - " + registeredPlayers.length + " players"}</div>
+            <div className="font-label text-[10px] text-[#9AAABF]">Scout the field</div>
           </div>
           <div className="flex flex-col gap-1.5">
             {registeredPlayers.map(function(p, idx) {
@@ -2313,7 +2313,7 @@ function ClashScreen(props) {
 
       {/* Swiss reseed banner */}
       {phase === "live" && props.tournamentState.seedAlgo === "swiss" && props.tournamentState.round > 1 && props.tournamentState.round % 2 === 0 && (
-        <div className="flex items-center justify-center gap-2 px-4 py-2 mx-4 mb-3 rounded-lg font-condensed text-[11px] tracking-[.04em]" style={{
+        <div className="flex items-center justify-center gap-2 px-4 py-2 mx-4 mb-3 rounded-lg font-label text-[11px] tracking-[.04em]" style={{
           background: "rgba(232,168,56,.04)", border: "1px solid rgba(232,168,56,.12)",
           maxHeight: 48, color: "#E8A838"
         }}>

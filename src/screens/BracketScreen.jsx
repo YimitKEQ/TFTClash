@@ -30,7 +30,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
     <div className="mt-6 bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
       <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
         <Icon name="bar_chart" size={18} className="text-primary" />
-        <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
+        <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
           {"Live Standings - Game " + round + "/" + totalGames}
         </span>
         <span className="text-xs text-on-surface-variant/50 font-mono ml-auto">
@@ -38,7 +38,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
         </span>
       </div>
       {showCutLine&&(
-        <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-nav tracking-wider">
+        <div className="px-5 py-2 bg-primary/5 border-b border-primary/15 text-xs text-primary font-label tracking-wider">
           {"Cut line: " + cutLine + " pts - players at or below are eliminated after Game " + cutAfterGame}
         </div>
       )}
@@ -56,10 +56,10 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
                 {row.name}
               </span>
               {belowCut&&(
-                <span className="text-[9px] font-bold font-nav tracking-widest text-error bg-error/10 border border-error/25 px-1.5 py-0.5 rounded">CUT</span>
+                <span className="text-[9px] font-bold font-label tracking-widest text-error bg-error/10 border border-error/25 px-1.5 py-0.5 rounded">CUT</span>
               )}
               {nearCut&&(
-                <span className="text-[10px] font-bold font-nav tracking-wider text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded">BUBBLE</span>
+                <span className="text-[10px] font-bold font-label tracking-wider text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded">BUBBLE</span>
               )}
               <span className={"font-mono text-xs font-bold " + (belowCut?"text-error":row.earned>0?"text-tertiary":"text-on-surface-variant/40")}>
                 {row.earned>0?"+"+row.earned+" pts":"- pts"}
@@ -586,7 +586,7 @@ function BracketScreen(){
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={function(){setShowFinalizeConfirm(false);}}
-                  className="px-5 py-2.5 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                  className="px-5 py-2.5 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
                   Cancel
                 </button>
                 <button
@@ -596,7 +596,7 @@ function BracketScreen(){
                     setTournamentState(function(ts){return Object.assign({},ts,{phase:"complete",lockedLobbies:[],savedLobbies:[]});});
                     toast("Clash complete! View results","success");
                   }}
-                  className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                  className="px-5 py-2.5 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
                   Finalize Clash
                 </button>
               </div>
@@ -621,7 +621,7 @@ function BracketScreen(){
               </span>
             </h1>
             <div className="flex items-center gap-4 flex-wrap">
-              <span className={"px-3 py-1 rounded font-nav text-xs tracking-wider border " + (isLive?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
+              <span className={"px-3 py-1 rounded font-label text-xs tracking-wider border " + (isLive?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
                 {isLive?"ACTIVE TOURNAMENT":tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN OPEN":"SETUP"}
               </span>
               <div className="flex items-center gap-2 text-on-surface-variant/60 font-mono text-sm">
@@ -637,7 +637,7 @@ function BracketScreen(){
               <button
                 disabled={round<=1}
                 onClick={function(){setTournamentState(function(ts){return Object.assign({},ts,{round:ts.round-1,lockedLobbies:[],savedLobbies:[]});});}}
-                className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold font-nav uppercase tracking-widest opacity-40 hover:opacity-70 disabled:pointer-events-none transition-opacity">
+                className="px-4 py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-bold font-label uppercase tracking-widest opacity-40 hover:opacity-70 disabled:pointer-events-none transition-opacity">
                 Prev Round
               </button>
               <button
@@ -681,13 +681,13 @@ function BracketScreen(){
                     toast("Advanced to Game "+nextRound+cutMsg,"success");
                   }
                 }}
-                className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold font-nav uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-110">
+                className="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-bold font-label uppercase tracking-widest shadow-lg shadow-primary/20 disabled:opacity-40 disabled:pointer-events-none transition-all hover:brightness-110">
                 {round>=(tournamentState.totalGames||4)?"Finalize Clash":"Next Game"}
               </button>
               {allLocked&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<totalGames&&(
                 <button
                   onClick={cancelAutoAdvance}
-                  className="px-4 py-2 rounded-lg bg-surface-container-high text-error text-xs font-bold font-nav uppercase tracking-widest border border-error/20 hover:bg-error/10 transition-colors">
+                  className="px-4 py-2 rounded-lg bg-surface-container-high text-error text-xs font-bold font-label uppercase tracking-widest border border-error/20 hover:bg-error/10 transition-colors">
                   {"Cancel Auto (" + autoAdvanceCountdown + "s)"}
                 </button>
               )}
@@ -699,7 +699,7 @@ function BracketScreen(){
         {allLocked&&checkedIn.length>0&&(
           <div className="mb-6 bg-tertiary/8 border border-tertiary/25 rounded px-5 py-3 flex items-center gap-3">
             <Icon name="check_circle" size={18} fill className="text-tertiary" />
-            <span className="text-tertiary font-nav font-bold text-sm tracking-wider flex-1">
+            <span className="text-tertiary font-label font-bold text-sm tracking-wider flex-1">
               {"All " + lobbies.length + " lobbies locked - " + (round>=(totalGames)?"ready to finalize!":"ready for next game!")}
               {isAdmin&&autoAdvanceCountdown!==null&&autoAdvanceCountdown>0&&round<totalGames?" Auto-advancing in "+autoAdvanceCountdown+"s...":""}
             </span>
@@ -711,7 +711,7 @@ function BracketScreen(){
           <div className="mb-6 bg-error/8 border border-error/25 rounded px-5 py-4">
             <div className="flex items-center gap-3 mb-2">
               <Icon name="content_cut" size={18} className="text-error" />
-              <span className="text-error font-nav font-bold text-sm tracking-wider">
+              <span className="text-error font-label font-bold text-sm tracking-wider">
                 {"Cut after Game " + (tournamentState.cutAfterGame||4) + " - " + tournamentState.eliminatedIds.length + " players eliminated (below " + (tournamentState.cutLine||0) + " pts)"}
               </span>
             </div>
@@ -744,11 +744,9 @@ function BracketScreen(){
               <div className="font-bold text-primary text-base mb-0.5">Clash Complete!</div>
               <div className="text-on-surface-variant text-sm">All rounds locked. View final standings on the Leaderboard.</div>
             </div>
-            <button
-              onClick={function(){navigate("/leaderboard");}}
-              className="px-4 py-2 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+            <Btn variant="primary" size="sm" onClick={function(){navigate("/leaderboard");}}>
               View Results
-            </button>
+            </Btn>
           </div>
         )}
 
@@ -765,17 +763,13 @@ function BracketScreen(){
               {tournamentState&&tournamentState.phase==="complete"?"The last tournament has been finalized. Check Results for the full breakdown.":tournamentState&&isLive?"Players need to check in to join the bracket.":"No tournament is running right now. Check back when the next clash is announced!"}
             </p>
             <div className="flex gap-3 justify-center">
-              <button
-                onClick={function(){navigate("/");}}
-                className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+              <Btn variant="primary" size="sm" onClick={function(){navigate("/");}}>
                 Back to Home
-              </button>
+              </Btn>
               {tournamentState&&tournamentState.phase==="complete"&&(
-                <button
-                  onClick={function(){navigate("/results");}}
-                  className="px-5 py-2.5 bg-surface-container-high text-on-surface font-nav font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                <Btn variant="secondary" size="sm" onClick={function(){navigate("/results");}}>
                   View Results
-                </button>
+                </Btn>
               )}
             </div>
           </div>
@@ -806,11 +800,11 @@ function BracketScreen(){
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
-                    <div className="text-[10px] font-nav text-on-surface-variant/60 uppercase mb-1">Lobbies</div>
+                    <div className="text-[10px] font-label text-on-surface-variant/60 uppercase mb-1">Lobbies</div>
                     <div className="font-mono text-lg font-bold text-primary">{lobbies.length}</div>
                   </div>
                   <div className="bg-surface-container-lowest p-3 border border-outline-variant/10">
-                    <div className="text-[10px] font-nav text-on-surface-variant/60 uppercase mb-1">Players</div>
+                    <div className="text-[10px] font-label text-on-surface-variant/60 uppercase mb-1">Players</div>
                     <div className="font-mono text-lg font-bold text-tertiary">{checkedIn.length}</div>
                   </div>
                 </div>
@@ -819,7 +813,7 @@ function BracketScreen(){
                 {lobbies.length>0&&isLive&&(
                   <div className="mt-4">
                     <div className="flex justify-between items-center mb-1.5">
-                      <span className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider">Lobbies Locked</span>
+                      <span className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider">Lobbies Locked</span>
                       <span className={"text-xs font-mono font-bold " + (allLocked?"text-tertiary":"text-primary")}>{lockedCount+"/"+lobbies.length}</span>
                     </div>
                     <div className="w-full bg-surface-container-lowest rounded-full h-1.5 overflow-hidden">
@@ -834,7 +828,7 @@ function BracketScreen(){
 
               {/* Find my lobby */}
               <div className="bg-surface-container-low rounded p-5 border border-outline-variant/15">
-                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Find Your Lobby</h3>
+                <h3 className="font-label text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Find Your Lobby</h3>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -845,7 +839,7 @@ function BracketScreen(){
                     className="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded text-sm text-on-surface placeholder:text-on-surface-variant/30 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary" />
                   <button
                     onClick={findMyLobby}
-                    className="px-4 py-2 bg-secondary-container text-on-secondary-container font-nav font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                    className="px-4 py-2 bg-secondary-container text-on-secondary-container font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
                     Find
                   </button>
                 </div>
@@ -859,7 +853,7 @@ function BracketScreen(){
 
               {/* Round progress */}
               <div className="bg-surface-container-low rounded p-5 border border-outline-variant/15">
-                <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Round Progress</h3>
+                <h3 className="font-label text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Round Progress</h3>
                 <div className="space-y-2">
                   {Array.from({length:totalGames},function(_,idx){return idx+1;}).map(function(r){
                     var isComplete=r<round;
@@ -877,7 +871,7 @@ function BracketScreen(){
                           }
                         </div>
                         <div className="flex-1">
-                          <div className={"text-xs font-nav font-bold uppercase tracking-widest " + (isComplete?"text-tertiary":isCurrent?"text-primary":"text-on-surface-variant/40")}>
+                          <div className={"text-xs font-label font-bold uppercase tracking-widest " + (isComplete?"text-tertiary":isCurrent?"text-primary":"text-on-surface-variant/40")}>
                             {"Round " + r}
                           </div>
                         </div>
@@ -934,7 +928,7 @@ function BracketScreen(){
                   return(
                     <div className="mt-3 bg-surface-container-lowest rounded border border-tertiary/15 overflow-hidden">
                       <div className="px-4 py-2.5 border-b border-tertiary/10 flex items-center justify-between">
-                        <span className="font-nav text-xs font-bold uppercase tracking-widest text-tertiary">{"Round " + viewingRound + " Results"}</span>
+                        <span className="font-label text-xs font-bold uppercase tracking-widest text-tertiary">{"Round " + viewingRound + " Results"}</span>
                         <button onClick={function(){setViewingRound(null);}} className="text-on-surface-variant/40 hover:text-on-surface bg-transparent border-0 cursor-pointer">
                           <Icon name="close" size={14} />
                         </button>
@@ -945,7 +939,7 @@ function BracketScreen(){
                             <div key={lg.idx}>
                               <div className="px-4 py-2 bg-surface-container-low/50 border-b border-outline-variant/10 flex items-center gap-2">
                                 <Icon name="groups" size={14} className="text-on-surface-variant/40" />
-                                <span className="font-nav text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">{"Lobby " + String.fromCharCode(65+lg.idx)}</span>
+                                <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">{"Lobby " + String.fromCharCode(65+lg.idx)}</span>
                               </div>
                               <div className="divide-y divide-outline-variant/5">
                                 {lg.players.map(function(r,ri){
@@ -957,11 +951,11 @@ function BracketScreen(){
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5">
                                           <span className={"text-sm truncate " + (ri===0?"text-primary font-bold":"text-on-surface")}>{r.name}</span>
-                                          {ri===0&&<span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
+                                          {ri===0&&<span className="text-[8px] font-label font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
                                         </div>
                                         {r.riotId&&<div className="text-[10px] text-on-surface-variant/30 truncate">{r.riotId}</div>}
                                       </div>
-                                      <span className="text-[10px] text-on-surface-variant/30 font-nav uppercase">{r.rank}</span>
+                                      <span className="text-[10px] text-on-surface-variant/30 font-label uppercase">{r.rank}</span>
                                       <span className="font-mono text-xs text-tertiary font-bold">{r.total+" pts"}</span>
                                       <span className="font-mono text-[10px] text-tertiary/60">{"+"+r.gained}</span>
                                     </div>
@@ -980,7 +974,7 @@ function BracketScreen(){
               {/* Admin quick actions */}
               {isAdmin&&(
                 <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 rounded">
-                  <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface-variant/60">Admin Quick Actions</h3>
+                  <h3 className="font-label text-sm font-bold tracking-widest uppercase mb-4 text-on-surface-variant/60">Admin Quick Actions</h3>
                   <div className="space-y-2">
                     <button
                       onClick={function(){
@@ -1039,10 +1033,10 @@ function BracketScreen(){
                             {"LOBBY " + lobbyLetter}
                           </span>
                           {isMyLobby&&(
-                            <span className="bg-secondary/20 text-[10px] text-secondary px-2 py-0.5 rounded font-nav font-bold tracking-tighter">YOUR LOBBY</span>
+                            <span className="bg-secondary/20 text-[10px] text-secondary px-2 py-0.5 rounded font-label font-bold tracking-tighter">YOUR LOBBY</span>
                           )}
                           {locked&&!isMyLobby&&(
-                            <span className="bg-tertiary/10 text-[10px] text-tertiary px-2 py-0.5 rounded font-nav font-bold tracking-tighter flex items-center gap-1">
+                            <span className="bg-tertiary/10 text-[10px] text-tertiary px-2 py-0.5 rounded font-label font-bold tracking-tighter flex items-center gap-1">
                               <Icon name="lock" size={10} fill />
                               LOCKED
                             </span>
@@ -1053,7 +1047,7 @@ function BracketScreen(){
                           {locked&&isAdmin&&(
                             <button
                               onClick={function(){unlockLobby(li);}}
-                              className="text-[10px] text-error font-bold font-nav cursor-pointer bg-error/8 border border-error/25 rounded px-2 py-0.5 hover:bg-error/15 transition-colors">
+                              className="text-[10px] text-error font-bold font-label cursor-pointer bg-error/8 border border-error/25 rounded px-2 py-0.5 hover:bg-error/15 transition-colors">
                               Unlock
                             </button>
                           )}
@@ -1081,7 +1075,7 @@ function BracketScreen(){
                                   <div className={"text-sm font-semibold flex items-center gap-1 " + (isMe?"text-secondary":isMyLobby?"text-on-surface":"text-on-surface-variant/90")}>
                                     {p.name}
                                     {isHotStreak(p)&&<Icon name="local_fire_department" size={12} fill className="text-orange-400" />}
-                                    {pi===0&&<span className="text-[8px] font-nav font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
+                                    {pi===0&&<span className="text-[8px] font-label font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
                                   </div>
                                   <div className="text-[10px] text-on-surface-variant/40">{p.rank}</div>
                                   {(p.riotId||p.riot_id_eu)&&<div className="flex items-center gap-1">
@@ -1130,13 +1124,13 @@ function BracketScreen(){
                             <div className="p-4 bg-surface-container-low">
                               <button
                                 onClick={function(){openPlacementEntry(li);}}
-                                className="w-full py-2 bg-secondary text-on-secondary font-bold font-nav text-xs rounded shadow-sm hover:brightness-110 transition-all uppercase tracking-widest">
+                                className="w-full py-2 bg-secondary text-on-secondary font-bold font-label text-xs rounded shadow-sm hover:brightness-110 transition-all uppercase tracking-widest">
                                 {"Enter Placements" + (playerSubmissions[li]?" ("+Object.keys(playerSubmissions[li]).length+" submitted)":"")}
                               </button>
                             </div>
                           ):(
                             <div className="p-4 bg-secondary/3 border-t border-secondary/10">
-                              <div className="text-[11px] font-nav font-bold text-secondary/70 uppercase tracking-widest mb-3">
+                              <div className="text-[11px] font-label font-bold text-secondary/70 uppercase tracking-widest mb-3">
                                 {"Enter Placements - Round " + round}
                               </div>
                               <div className="space-y-2 mb-3">
@@ -1167,12 +1161,12 @@ function BracketScreen(){
                                 <button
                                   disabled={!placementValid(li)}
                                   onClick={function(){applyGameResults(li);}}
-                                  className="flex-1 py-2 bg-tertiary text-on-tertiary font-nav font-bold text-xs uppercase tracking-widest rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                                  className="flex-1 py-2 bg-tertiary text-on-tertiary font-label font-bold text-xs uppercase tracking-widest rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
                                   Confirm and Lock
                                 </button>
                                 <button
                                   onClick={function(){setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:false})});});}}
-                                  className="px-4 py-2 bg-surface-container-high text-on-surface font-nav font-bold text-xs uppercase tracking-widest rounded hover:bg-surface-container-highest transition-colors">
+                                  className="px-4 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs uppercase tracking-widest rounded hover:bg-surface-container-highest transition-colors">
                                   Cancel
                                 </button>
                               </div>
@@ -1185,7 +1179,7 @@ function BracketScreen(){
                       {locked&&(
                         <div className="px-4 py-3 bg-tertiary/5 border-t border-tertiary/10 flex items-center justify-center gap-2">
                           <Icon name="lock" size={14} fill className="text-tertiary" />
-                          <span className="text-xs font-nav font-bold text-tertiary uppercase tracking-wider">Results Locked</span>
+                          <span className="text-xs font-label font-bold text-tertiary uppercase tracking-wider">Results Locked</span>
                         </div>
                       )}
                     </div>

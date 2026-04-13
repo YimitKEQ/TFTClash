@@ -23,7 +23,7 @@ function TierBar(props) {
   var revenue = count * tierPrice(tier)
   return (
     <div className="flex items-center gap-3 py-2">
-      <div className="font-nav text-[10px] uppercase tracking-wider font-bold w-16 text-on-surface/50">{tier}</div>
+      <div className="font-label text-[10px] uppercase tracking-wider font-bold w-16 text-on-surface/50">{tier}</div>
       <div className="flex-1 h-3 bg-surface-container rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all duration-500" style={{ width: pct + '%', backgroundColor: tierColor(tier) }} />
       </div>
@@ -76,7 +76,7 @@ export default function OpsRevenue() {
 
   if (loading) {
     return (
-      <div className="py-12 text-center text-on-surface/30 text-xs font-nav uppercase tracking-widest">Loading revenue data...</div>
+      <div className="py-12 text-center text-on-surface/30 text-xs font-label uppercase tracking-widest">Loading revenue data...</div>
     )
   }
 
@@ -85,24 +85,24 @@ export default function OpsRevenue() {
       {/* Revenue KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
-          <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">MRR</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">MRR</div>
           <div className="font-mono text-3xl font-black text-primary">${mrr.toFixed(0)}</div>
-          <div className="font-nav text-[10px] text-on-surface/30 uppercase">Monthly recurring</div>
+          <div className="font-label text-[10px] text-on-surface/30 uppercase">Monthly recurring</div>
         </div>
         <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
-          <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">ARR</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">ARR</div>
           <div className="font-mono text-3xl font-black text-on-surface">${arr.toFixed(0)}</div>
-          <div className="font-nav text-[10px] text-on-surface/30 uppercase">Annual projected</div>
+          <div className="font-label text-[10px] text-on-surface/30 uppercase">Annual projected</div>
         </div>
         <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
-          <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">Active Subs</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">Active Subs</div>
           <div className="font-mono text-3xl font-black text-tertiary">{totalSubs}</div>
-          <div className="font-nav text-[10px] text-on-surface/30 uppercase">Paying users</div>
+          <div className="font-label text-[10px] text-on-surface/30 uppercase">Paying users</div>
         </div>
         <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
-          <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">Newsletter</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">Newsletter</div>
           <div className="font-mono text-3xl font-black text-on-surface">{newsletter}</div>
-          <div className="font-nav text-[10px] text-on-surface/30 uppercase">Subscribers</div>
+          <div className="font-label text-[10px] text-on-surface/30 uppercase">Subscribers</div>
         </div>
       </div>
 
@@ -114,21 +114,21 @@ export default function OpsRevenue() {
             <span className="font-bold text-sm text-on-surface">Subscription Tiers</span>
           </div>
           {totalSubs === 0 ? (
-            <div className="text-center py-6 text-on-surface/20 text-xs font-nav uppercase tracking-widest">No active subscriptions yet</div>
+            <div className="text-center py-6 text-on-surface/20 text-xs font-label uppercase tracking-widest">No active subscriptions yet</div>
           ) : (
             <div>
               <div className="flex items-center gap-3 py-1 mb-2">
                 <div className="w-16" />
-                <div className="flex-1 text-[10px] text-on-surface/30 font-nav uppercase tracking-wider">Distribution</div>
-                <div className="w-8 text-[10px] text-on-surface/30 font-nav uppercase tracking-wider text-right">#</div>
-                <div className="w-16 text-[10px] text-on-surface/30 font-nav uppercase tracking-wider text-right">Rev</div>
+                <div className="flex-1 text-[10px] text-on-surface/30 font-label uppercase tracking-wider">Distribution</div>
+                <div className="w-8 text-[10px] text-on-surface/30 font-label uppercase tracking-wider text-right">#</div>
+                <div className="w-16 text-[10px] text-on-surface/30 font-label uppercase tracking-wider text-right">Rev</div>
               </div>
               <TierBar tier="host" count={tierCounts.host || 0} total={totalSubs} />
               <TierBar tier="bundle" count={tierCounts.bundle || 0} total={totalSubs} />
               <TierBar tier="pro" count={tierCounts.pro || 0} total={totalSubs} />
               <TierBar tier="scrim" count={tierCounts.scrim || 0} total={totalSubs} />
               <div className="border-t border-outline-variant/10 mt-3 pt-3 flex justify-between items-center">
-                <span className="font-nav text-[10px] uppercase tracking-wider text-on-surface/40 font-bold">Total MRR</span>
+                <span className="font-label text-[10px] uppercase tracking-wider text-on-surface/40 font-bold">Total MRR</span>
                 <span className="font-mono text-xl font-black text-primary">${mrr.toFixed(2)}</span>
               </div>
             </div>
@@ -139,12 +139,12 @@ export default function OpsRevenue() {
         <Panel className="!p-0 overflow-hidden">
           <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-2">
             <Icon name="receipt_long" size={16} className="text-tertiary" />
-            <span className="font-nav text-xs font-bold uppercase tracking-widest text-on-surface/60">
+            <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
               Recent Subscription Activity
             </span>
           </div>
           {recentSubs.length === 0 ? (
-            <div className="py-8 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">No subscriptions yet</div>
+            <div className="py-8 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">No subscriptions yet</div>
           ) : (
             <div className="max-h-[350px] overflow-y-auto">
               {recentSubs.map(function(s, i) {
@@ -156,7 +156,7 @@ export default function OpsRevenue() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-on-surface truncate">{player.username || 'Unknown'}</div>
-                      <div className="font-nav text-[10px] text-on-surface/25 uppercase">{s.tier} / {s.status}</div>
+                      <div className="font-label text-[10px] text-on-surface/25 uppercase">{s.tier} / {s.status}</div>
                     </div>
                     <span className="font-mono text-xs font-bold" style={{ color: tierColor(s.tier) }}>${tierPrice(s.tier)}/mo</span>
                     <span className="font-mono text-[10px] text-on-surface/25 shrink-0">

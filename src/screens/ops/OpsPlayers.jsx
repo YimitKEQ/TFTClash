@@ -311,7 +311,7 @@ export default function OpsPlayers(props) {
       </div>
 
       {/* Stats bar */}
-      <div className="flex flex-wrap gap-4 text-xs font-nav uppercase tracking-wider text-on-surface/40">
+      <div className="flex flex-wrap gap-4 text-xs font-label uppercase tracking-wider text-on-surface/40">
         <span>{players.length} total</span>
         <span>{players.filter(function(p) { return p.banned }).length} banned</span>
         <span>{players.filter(function(p) { return (p.games || 0) > 0 }).length} active</span>
@@ -321,7 +321,7 @@ export default function OpsPlayers(props) {
       <Panel className="!p-0 overflow-hidden">
         <div className="max-h-[600px] overflow-y-auto">
           {filtered.length === 0 ? (
-            <div className="py-12 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">
+            <div className="py-12 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">
               {search ? 'No matches' : 'No players yet'}
             </div>
           ) : filtered.map(function(p) {
@@ -342,7 +342,7 @@ export default function OpsPlayers(props) {
                     {p.role === 'admin' && <span className="text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold rounded uppercase">Admin</span>}
                     {p.role === 'host' && <span className="text-[9px] px-1.5 py-0.5 bg-secondary/20 text-secondary font-bold rounded uppercase">Host</span>}
                   </div>
-                  <div className="font-nav text-[10px] text-on-surface/25 uppercase">
+                  <div className="font-label text-[10px] text-on-surface/25 uppercase">
                     {p.rank || 'Unranked'} / {p.region || '?'} / {p.games || 0} games
                   </div>
                 </div>

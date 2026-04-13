@@ -91,7 +91,7 @@ export default function OverviewTab({ setTab }) {
                 <Icon name={s.icon} size={16} className={s.color} />
                 <span className="text-[11px] text-on-surface/50 font-bold uppercase tracking-wider">{s.label}</span>
               </div>
-              <div className={'font-stats text-3xl font-black ' + s.color}>{s.value}</div>
+              <div className={'font-mono text-3xl font-black ' + s.color}>{s.value}</div>
             </Panel>
           )
         })}

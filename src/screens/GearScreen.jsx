@@ -50,7 +50,7 @@ export default function GearScreen() {
             return (
               <div key={cat}>
                 <div
-                  className="font-condensed text-xs font-bold uppercase tracking-widest mb-3 text-secondary"
+                  className="font-label text-xs font-bold uppercase tracking-widest mb-3 text-secondary"
                 >
                   {cat}
                 </div>
@@ -84,12 +84,12 @@ export default function GearScreen() {
                                 href={item.external_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-3 py-1 bg-primary/10 border border-primary/20 rounded text-xs font-condensed uppercase tracking-wider text-primary hover:bg-primary/20 transition-colors no-underline"
+                                className="px-3 py-1 bg-primary/10 border border-primary/20 rounded text-xs font-label uppercase tracking-wider text-primary hover:bg-primary/20 transition-colors no-underline"
                               >
                                 Buy Now
                               </a>
                             ) : (
-                              <span className="px-3 py-1 bg-surface-variant/20 rounded text-xs font-condensed uppercase tracking-wider text-on-surface/30">
+                              <span className="px-3 py-1 bg-surface-variant/20 rounded text-xs font-label uppercase tracking-wider text-on-surface/30">
                                 Coming Soon
                               </span>
                             )}

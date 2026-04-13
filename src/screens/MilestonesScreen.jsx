@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { ACHIEVEMENTS, MILESTONES } from '../lib/stats.js'
-import { Icon } from '../components/ui'
+import { Btn, Icon } from '../components/ui'
 import PageLayout from '../components/layout/PageLayout'
 
 var TIER_ORDER = ['bronze', 'silver', 'gold', 'legendary'];
@@ -94,7 +94,7 @@ function AchievementCard(props) {
         <div className={'w-12 h-12 ' + colors.bg + ' flex items-center justify-center ' + colors.text + ' mb-6'}>
           <Icon name={iconName} fill={unlocked} size={28} />
         </div>
-        <span className={'px-2 py-0.5 text-[10px] font-sans-condensed font-bold uppercase tracking-widest rounded ' + statusBgClass + ' ' + statusTextClass}>
+        <span className={'px-2 py-0.5 text-[10px] font-label font-bold uppercase tracking-widest rounded ' + statusBgClass + ' ' + statusTextClass}>
           {statusLabel}
         </span>
       </div>
@@ -134,7 +134,7 @@ function MilestoneRow(props) {
           <div className="flex items-center gap-3 mb-1 flex-wrap">
             <span className="font-serif text-lg text-on-surface">{m.name}</span>
             {myUnlocked && (
-              <span className="bg-tertiary/10 text-tertiary px-2 py-0.5 text-[10px] font-sans-condensed font-bold uppercase tracking-widest rounded">Unlocked</span>
+              <span className="bg-tertiary/10 text-tertiary px-2 py-0.5 text-[10px] font-label font-bold uppercase tracking-widest rounded">Unlocked</span>
             )}
           </div>
           {m.pts && (
@@ -178,7 +178,7 @@ function LeaderboardRow(props) {
     >
       <span className={'font-mono text-sm font-black w-6 flex-shrink-0 ' + rankColor}>{i + 1}</span>
       <div className="flex-1 min-w-0">
-        <div className="font-sans-condensed font-bold text-sm text-on-surface uppercase tracking-wide mb-1">{p.name}</div>
+        <div className="font-label font-bold text-sm text-on-surface uppercase tracking-wide mb-1">{p.name}</div>
         <div className="flex gap-2">
           {legendary > 0 && (
             <span className="text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded">{legendary} Legendary</span>
@@ -190,7 +190,7 @@ function LeaderboardRow(props) {
       </div>
       <div className="text-right">
         <div className="font-mono text-lg font-black text-secondary">{earned.length}</div>
-        <div className="text-[10px] font-sans-condensed uppercase tracking-widest text-on-surface-variant">achievements</div>
+        <div className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">achievements</div>
       </div>
     </div>
   );
@@ -262,14 +262,14 @@ export default function MilestonesScreen() {
         <section className="mb-14">
           <div className="flex justify-between items-end mb-4 flex-wrap gap-4">
             <div>
-              <span className="font-sans-condensed uppercase tracking-widest text-xs text-primary font-bold">Current Standing</span>
+              <span className="font-label uppercase tracking-widest text-xs text-primary font-bold">Current Standing</span>
               <h2 className="font-serif text-3xl text-on-surface">
                 {currentTierLabel}
                 <span className="text-on-surface-variant font-mono text-xl ml-3 tracking-tighter">{myPts.toLocaleString()} pts</span>
               </h2>
             </div>
             <div className="text-right">
-              <span className="font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant">Next Milestone</span>
+              <span className="font-label uppercase tracking-widest text-xs text-on-surface-variant">Next Milestone</span>
               <div className="font-mono text-sm text-secondary">{nextTierLabel} Tier ({progressPct}% complete)</div>
             </div>
           </div>
@@ -294,7 +294,7 @@ export default function MilestonesScreen() {
             {RANK_TIERS.map(function(tier, idx) {
               var isActive = idx === tierIndex;
               return (
-                <span key={tier} className={'font-sans-condensed uppercase tracking-tighter text-[10px] ' + (isActive ? 'text-primary font-bold' : 'text-on-surface-variant')}>
+                <span key={tier} className={'font-label uppercase tracking-tighter text-[10px] ' + (isActive ? 'text-primary font-bold' : 'text-on-surface-variant')}>
                   {tier}
                 </span>
               );
@@ -312,7 +312,7 @@ export default function MilestonesScreen() {
               <button
                 key={v}
                 onClick={function() { setTab(v); }}
-                className={'px-5 py-2 rounded-full text-xs font-sans-condensed uppercase tracking-widest transition-all ' + (active ? 'bg-primary text-on-primary font-bold' : 'text-on-surface-variant hover:text-on-surface')}
+                className={'px-5 py-2 rounded-full text-xs font-label uppercase tracking-widest transition-all ' + (active ? 'bg-primary text-on-primary font-bold' : 'text-on-surface-variant hover:text-on-surface')}
               >
                 {l}
               </button>
@@ -332,7 +332,7 @@ export default function MilestonesScreen() {
                 <div className="bg-surface-container-low p-6 border border-secondary/20">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                      <div className="font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant mb-3">Your Progress</div>
+                      <div className="font-label uppercase tracking-widest text-xs text-on-surface-variant mb-3">Your Progress</div>
                       <div className="flex gap-3 flex-wrap">
                         {TIER_ORDER.map(function(tier) {
                           var earned = ACHIEVEMENTS.filter(function(a) {
@@ -342,7 +342,7 @@ export default function MilestonesScreen() {
                           var colors = TIER_COLORS[tier];
                           return (
                             <div key={tier} className="bg-surface-container-highest px-4 py-2 text-center">
-                              <div className={'font-sans-condensed uppercase text-[10px] font-bold tracking-widest ' + colors.text}>{TIER_LABELS[tier]}</div>
+                              <div className={'font-label uppercase text-[10px] font-bold tracking-widest ' + colors.text}>{TIER_LABELS[tier]}</div>
                               <div className={'font-mono text-lg font-black ' + colors.text}>
                                 {earned}<span className="text-xs text-on-surface-variant font-normal">/{total}</span>
                               </div>
@@ -353,7 +353,7 @@ export default function MilestonesScreen() {
                     </div>
                     <div className="text-center">
                       <div className="font-mono text-4xl font-black text-secondary">{totalUnlocked}</div>
-                      <div className="font-sans-condensed uppercase text-[10px] tracking-widest text-on-surface-variant">of {ACHIEVEMENTS.length} unlocked</div>
+                      <div className="font-label uppercase text-[10px] tracking-widest text-on-surface-variant">of {ACHIEVEMENTS.length} unlocked</div>
                     </div>
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export default function MilestonesScreen() {
 
               {/* Tier filter + label row */}
               <div className="flex items-center justify-between flex-wrap gap-3">
-                <h3 className="font-sans-condensed uppercase tracking-widest text-lg font-bold">Achievement Vault</h3>
+                <h3 className="font-label uppercase tracking-widest text-lg font-bold">Achievement Vault</h3>
                 <div className="flex gap-2 flex-wrap">
                   {[['all', 'All'], ['bronze', 'Bronze'], ['silver', 'Silver'], ['gold', 'Gold'], ['legendary', 'Legendary']].map(function(item) {
                     var v = item[0];
@@ -372,7 +372,7 @@ export default function MilestonesScreen() {
                       <button
                         key={v}
                         onClick={function() { setFilterTier(v); }}
-                        className={'px-4 py-1.5 rounded-full text-xs font-sans-condensed uppercase tracking-widest transition-colors border ' + (active
+                        className={'px-4 py-1.5 rounded-full text-xs font-label uppercase tracking-widest transition-colors border ' + (active
                           ? (v === 'all' ? 'bg-surface-container-highest text-on-surface border-outline-variant/40' : colors.bg + ' ' + colors.text + ' ' + colors.border)
                           : 'text-on-surface-variant border-outline-variant/10 hover:bg-surface-container-high'
                         )}
@@ -388,7 +388,7 @@ export default function MilestonesScreen() {
               {filteredAch.length === 0 && (
                 <div className="text-center py-16">
                   <Icon name="military_tech" size={40} className="text-on-surface-variant mb-4 mx-auto block" />
-                  <div className="font-sans-condensed uppercase tracking-widest text-sm text-on-surface mb-2">No achievements match this filter</div>
+                  <div className="font-label uppercase tracking-widest text-sm text-on-surface mb-2">No achievements match this filter</div>
                   <div className="text-on-surface-variant text-xs">Try selecting a different tier.</div>
                 </div>
               )}
@@ -406,7 +406,7 @@ export default function MilestonesScreen() {
             {/* Activity Feed - 4 cols */}
             <aside className="lg:col-span-4 space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="font-sans-condensed uppercase tracking-widest text-lg font-bold">Activity Feed</h3>
+                <h3 className="font-label uppercase tracking-widest text-lg font-bold">Activity Feed</h3>
                 <Icon name="history" size={20} className="text-on-surface-variant" />
               </div>
 
@@ -451,7 +451,7 @@ export default function MilestonesScreen() {
                 )}
 
                 <button
-                  className="w-full py-4 text-center font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/10 rounded hover:bg-surface-container-high"
+                  className="w-full py-4 text-center font-label uppercase tracking-widest text-xs text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/10 rounded hover:bg-surface-container-high"
                   onClick={function() { navigate('/leaderboard'); }}
                 >
                   View Leaderboard
@@ -465,7 +465,7 @@ export default function MilestonesScreen() {
         {tab === 'milestones' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-3">
-              <h3 className="font-sans-condensed uppercase tracking-widest text-lg font-bold mb-2">Season Milestones</h3>
+              <h3 className="font-label uppercase tracking-widest text-lg font-bold mb-2">Season Milestones</h3>
               {MILESTONES.map(function(m) {
                 var myUnlocked = myPlayer ? (function() { try { return m.check(myPlayer); } catch(e) { return false; } })() : false;
                 var earnedBy = players.filter(function(p) { try { return m.check(p); } catch(e) { return false; } }).length;
@@ -477,22 +477,22 @@ export default function MilestonesScreen() {
 
             {/* Sidebar context */}
             <aside className="lg:col-span-4 space-y-4">
-              <h3 className="font-sans-condensed uppercase tracking-widest text-lg font-bold">Your Progress</h3>
+              <h3 className="font-label uppercase tracking-widest text-lg font-bold">Your Progress</h3>
               <div className="bg-surface-container-low p-6">
-                <div className="font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant mb-4">Season Points</div>
+                <div className="font-label uppercase tracking-widest text-xs text-on-surface-variant mb-4">Season Points</div>
                 <div className="font-mono text-4xl font-black text-primary mb-1">{myPts}</div>
-                <div className="font-sans-condensed uppercase tracking-widest text-[10px] text-on-surface-variant mb-4">points this season</div>
+                <div className="font-label uppercase tracking-widest text-[10px] text-on-surface-variant mb-4">points this season</div>
                 <div className="h-1 bg-surface-container-highest mb-4">
                   <div className="h-full bg-gradient-to-r from-primary-container to-primary transition-all duration-500" style={{ width: progressPct + '%' }}></div>
                 </div>
-                <div className="font-sans-condensed text-xs text-on-surface-variant">{currentTierLabel} tier - {100 - progressPct}% to {nextTierLabel}</div>
+                <div className="font-label text-xs text-on-surface-variant">{currentTierLabel} tier - {100 - progressPct}% to {nextTierLabel}</div>
               </div>
               <div className="bg-surface-container-low p-6">
-                <div className="font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant mb-4">Milestones Unlocked</div>
+                <div className="font-label uppercase tracking-widest text-xs text-on-surface-variant mb-4">Milestones Unlocked</div>
                 <div className="font-mono text-4xl font-black text-secondary mb-1">
                   {myPlayer ? MILESTONES.filter(function(m) { try { return m.check(myPlayer); } catch(e) { return false; } }).length : 0}
                 </div>
-                <div className="font-sans-condensed uppercase tracking-widest text-[10px] text-on-surface-variant">of {MILESTONES.length} total</div>
+                <div className="font-label uppercase tracking-widest text-[10px] text-on-surface-variant">of {MILESTONES.length} total</div>
               </div>
             </aside>
           </div>
@@ -503,7 +503,7 @@ export default function MilestonesScreen() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="font-sans-condensed uppercase tracking-widest text-lg font-bold">Achievement Leaders</h3>
+                <h3 className="font-label uppercase tracking-widest text-lg font-bold">Achievement Leaders</h3>
                 <p className="text-on-surface-variant text-sm mt-1">Most achievements earned this season</p>
               </div>
               <Icon name="leaderboard" size={22} className="text-on-surface-variant" />
@@ -518,7 +518,7 @@ export default function MilestonesScreen() {
               {sorted.length === 0 && (
                 <div className="text-center py-16 text-on-surface-variant">
                   <Icon name="group" size={40} className="mx-auto block mb-4" />
-                  <div className="font-sans-condensed uppercase tracking-widest text-sm">No players yet</div>
+                  <div className="font-label uppercase tracking-widest text-sm">No players yet</div>
                 </div>
               )}
             </div>
@@ -537,7 +537,7 @@ export default function MilestonesScreen() {
           </div>
 
           <div className="relative z-10 flex-1 text-center md:text-left">
-            <span className="bg-primary text-on-primary px-3 py-1 text-xs font-sans-condensed font-bold uppercase tracking-widest mb-4 inline-block">
+            <span className="bg-primary text-on-primary px-3 py-1 text-xs font-label font-bold uppercase tracking-widest mb-4 inline-block">
               Challenger Tier Exclusive
             </span>
             <h3 className="font-serif text-4xl lg:text-5xl text-on-surface mb-4">Season Champion Rewards</h3>
@@ -546,15 +546,12 @@ export default function MilestonesScreen() {
             </p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <div className="px-6 py-3 bg-surface-container-high border border-outline-variant/20">
-                <span className="font-sans-condensed uppercase tracking-widest text-xs block text-on-surface-variant mb-1">Season Progress</span>
+                <span className="font-label uppercase tracking-widest text-xs block text-on-surface-variant mb-1">Season Progress</span>
                 <span className="font-mono text-primary font-bold">{progressPct}% to Challenger</span>
               </div>
-              <button
-                className="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary font-sans-condensed font-bold uppercase tracking-widest hover:scale-105 transition-transform active:scale-95"
-                onClick={function() { navigate('/pricing'); }}
-              >
+              <Btn variant="primary" size="md" onClick={function() { navigate('/pricing'); }}>
                 View Rewards
-              </button>
+              </Btn>
             </div>
           </div>
         </section>

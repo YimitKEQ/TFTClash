@@ -192,7 +192,7 @@ export default function OpsTournaments(props) {
           <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Icon name="how_to_reg" size={16} className="text-tertiary" />
-              <span className="font-nav text-xs font-bold uppercase tracking-widest text-on-surface/60">
+              <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
                 Registrations ({registrations.length})
               </span>
             </div>
@@ -203,7 +203,7 @@ export default function OpsTournaments(props) {
           {regLoading ? (
             <div className="py-6 text-center text-on-surface/30 text-xs">Loading...</div>
           ) : registrations.length === 0 ? (
-            <div className="py-6 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">No registrations</div>
+            <div className="py-6 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">No registrations</div>
           ) : (
             <div className="max-h-[300px] overflow-y-auto">
               {registrations.map(function(r) {
@@ -215,7 +215,7 @@ export default function OpsTournaments(props) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-bold text-on-surface truncate">{p.username || 'Unknown'}</div>
-                      <div className="font-nav text-[10px] text-on-surface/25 uppercase">{p.rank || '?'} / {p.region || '?'}</div>
+                      <div className="font-label text-[10px] text-on-surface/25 uppercase">{p.rank || '?'} / {p.region || '?'}</div>
                     </div>
                     <span className="font-mono text-[10px] text-on-surface/30">{timeAgo(r.created_at)}</span>
                     <Btn v="ghost" s="sm" onClick={function() { removeRegistration(r.id) }}>
@@ -332,7 +332,7 @@ export default function OpsTournaments(props) {
         <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon name="emoji_events" size={18} className="text-primary" />
-            <span className="font-nav text-xs font-bold uppercase tracking-widest text-on-surface/60">
+            <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
               All Tournaments ({tournaments.length})
             </span>
           </div>
@@ -341,7 +341,7 @@ export default function OpsTournaments(props) {
           </Btn>
         </div>
         {tournaments.length === 0 ? (
-          <div className="py-12 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">
+          <div className="py-12 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">
             No tournaments yet. Create your first one!
           </div>
         ) : (
@@ -353,7 +353,7 @@ export default function OpsTournaments(props) {
                 <div key={t.id} className="flex items-center gap-3 py-3 px-5 border-b border-outline-variant/5 last:border-0 hover:bg-white/[0.02] transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold text-on-surface truncate">{t.name || 'Unnamed'}</div>
-                    <div className="font-nav text-[10px] text-on-surface/30 uppercase tracking-wider mt-0.5">
+                    <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-wider mt-0.5">
                       {t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} {t.region ? '/ ' + t.region : ''} / {t.type || 'weekly'}
                     </div>
                   </div>

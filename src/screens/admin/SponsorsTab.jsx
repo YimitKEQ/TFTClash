@@ -314,17 +314,17 @@ export default function SponsorsTab() {
       {/* Header stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-surface-container rounded-xl p-4 border border-outline-variant/10 text-center">
-          <div className="font-stats text-2xl font-black text-primary">{sponsors.length}</div>
+          <div className="font-mono text-2xl font-black text-primary">{sponsors.length}</div>
           <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Total Sponsors</div>
         </div>
         <div className="bg-surface-container rounded-xl p-4 border border-outline-variant/10 text-center">
-          <div className="font-stats text-2xl font-black text-secondary">{active.length}</div>
+          <div className="font-mono text-2xl font-black text-secondary">{active.length}</div>
           <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Active</div>
         </div>
         {SPONSOR_TIERS.map(function(t) {
           return (
             <div key={t.id} className="bg-surface-container rounded-xl p-4 border border-outline-variant/10 text-center">
-              <div className="font-stats text-2xl font-black" style={{ color: t.color }}>{tierCounts[t.id] || 0}</div>
+              <div className="font-mono text-2xl font-black" style={{ color: t.color }}>{tierCounts[t.id] || 0}</div>
               <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">{t.label}</div>
             </div>
           )

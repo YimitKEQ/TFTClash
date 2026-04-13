@@ -170,7 +170,7 @@ export default function OpsComms() {
           </div>
           {announcements.length > 0 && (
             <div className="mt-4 border-t border-outline-variant/10 pt-3">
-              <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-2">Recent</div>
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-2">Recent</div>
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {announcements.slice(0, 10).map(function(a, i) {
                   return (
@@ -241,14 +241,14 @@ export default function OpsComms() {
       <Panel className="!p-0 overflow-hidden">
         <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-2">
           <Icon name="gavel" size={18} className={openDisputes.length > 0 ? 'text-error' : 'text-on-surface/40'} />
-          <span className="font-nav text-xs font-bold uppercase tracking-widest text-on-surface/60">
+          <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60">
             Disputes ({openDisputes.length} open, {closedDisputes.length} resolved)
           </span>
         </div>
         {disputesLoading ? (
           <div className="py-6 text-center text-on-surface/30 text-xs">Loading...</div>
         ) : disputes.length === 0 ? (
-          <div className="py-8 text-center text-on-surface/20 text-xs font-nav uppercase tracking-widest">No disputes</div>
+          <div className="py-8 text-center text-on-surface/20 text-xs font-label uppercase tracking-widest">No disputes</div>
         ) : (
           <div className="max-h-[400px] overflow-y-auto">
             {disputes.map(function(d) {

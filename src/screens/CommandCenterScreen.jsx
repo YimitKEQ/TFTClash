@@ -161,7 +161,7 @@ export default function CommandCenterScreen() {
       <PageLayout>
         <div className="flex items-center justify-center min-h-[60vh] gap-3 text-on-surface/30">
           <Icon name="radar" size={24} className="animate-spin" />
-          <span className="font-nav text-sm uppercase tracking-widest">Initializing Command Center...</span>
+          <span className="font-label text-sm uppercase tracking-widest">Initializing Command Center...</span>
         </div>
       </PageLayout>
     )
@@ -180,7 +180,7 @@ export default function CommandCenterScreen() {
             </div>
             <div>
               <h1 className="font-editorial italic text-2xl font-bold text-on-surface tracking-tight">Command Center</h1>
-              <div className="font-nav text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
+              <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-widest flex items-center gap-2">
                 <span className={'w-1.5 h-1.5 rounded-full animate-pulse ' + (stats && stats.openDisputes > 0 ? 'bg-error' : 'bg-success')} />
                 <span>{stats && stats.openDisputes > 0 ? stats.openDisputes + ' open dispute' + (stats.openDisputes > 1 ? 's' : '') : 'All systems operational'}</span>
                 {lastRefresh && (

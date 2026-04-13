@@ -218,13 +218,9 @@ export default function HostApplyScreen() {
                 <Icon name="info" size={16} />
                 <span className="text-xs italic">Review takes up to 48 hours</span>
               </div>
-              <button
-                type="button"
-                onClick={submit}
-                className="px-12 py-4 bg-gradient-to-r from-primary to-primary-container text-on-primary font-label font-bold text-lg tracking-widest rounded-full hover:shadow-[0_0_20px_rgba(253,186,73,0.3)] transition-all uppercase"
-              >
+              <Btn variant="primary" size="lg" type="button" onClick={submit}>
                 Apply Now
-              </button>
+              </Btn>
             </div>
           </div>
         </div>

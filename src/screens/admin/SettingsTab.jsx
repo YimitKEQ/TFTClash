@@ -244,15 +244,15 @@ export default function SettingsTab() {
         </div>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-surface-container p-3 rounded">
-            <div className="font-stats text-2xl font-black text-primary">{(players || []).length}</div>
+            <div className="font-mono text-2xl font-black text-primary">{(players || []).length}</div>
             <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Players</div>
           </div>
           <div className="bg-surface-container p-3 rounded">
-            <div className="font-stats text-2xl font-black text-secondary">{totalPts}</div>
+            <div className="font-mono text-2xl font-black text-secondary">{totalPts}</div>
             <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Total Pts</div>
           </div>
           <div className="bg-surface-container p-3 rounded">
-            <div className="font-stats text-2xl font-black text-tertiary">{totalGames}</div>
+            <div className="font-mono text-2xl font-black text-tertiary">{totalGames}</div>
             <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Games</div>
           </div>
         </div>

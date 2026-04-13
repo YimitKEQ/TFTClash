@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Icon } from '../components/ui'
 
 export default function NotFoundScreen() {
   var navigate = useNavigate()
@@ -26,13 +26,9 @@ export default function NotFoundScreen() {
         <p className="text-on-surface/50 text-sm max-w-sm mb-8">
           This URL does not match any page in TFT Clash. It may have moved or never existed.
         </p>
-        <button
-          onClick={goHome}
-          className="flex items-center gap-2 px-8 py-3 bg-primary text-on-primary font-condensed font-bold uppercase tracking-widest rounded-full hover:scale-105 transition-transform text-sm"
-        >
-          <Icon name="home" size={16} />
+        <Btn variant="primary" size="md" icon="home" onClick={goHome}>
           Go Home
-        </button>
+        </Btn>
       </div>
     </PageLayout>
   )

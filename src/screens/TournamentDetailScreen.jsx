@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { Icon } from '../components/ui'
+import { Btn, Icon } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 
@@ -85,11 +85,9 @@ export default function TournamentDetailScreen() {
           <Icon name="error_outline" size={48} className="text-on-surface-variant/20 mx-auto mb-4" />
           <h2 className="text-on-surface text-xl font-bold mb-2">Tournament Not Found</h2>
           <p className="text-on-surface-variant text-sm mb-6">This tournament may have been removed or the link is invalid.</p>
-          <button
-            onClick={function() { navigate('/events'); }}
-            className="px-5 py-2.5 bg-primary text-on-primary font-nav font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+          <Btn variant="primary" size="sm" onClick={function() { navigate('/events'); }}>
             Back to Events
-          </button>
+          </Btn>
         </div>
       </PageLayout>
     )
@@ -165,7 +163,7 @@ export default function TournamentDetailScreen() {
         {/* Back nav */}
         <button
           onClick={function() { navigate('/events'); }}
-          className="flex items-center gap-1.5 text-on-surface-variant/50 hover:text-primary text-xs font-nav font-bold tracking-wider uppercase mb-6 bg-transparent border-0 cursor-pointer transition-colors"
+          className="flex items-center gap-1.5 text-on-surface-variant/50 hover:text-primary text-xs font-label font-bold tracking-wider uppercase mb-6 bg-transparent border-0 cursor-pointer transition-colors"
         >
           <Icon name="arrow_back" size={14} />
           {"Back to Events"}
@@ -179,7 +177,7 @@ export default function TournamentDetailScreen() {
               {event.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
-              <span className={"px-3 py-1 rounded font-nav text-xs tracking-wider font-bold border " + (isCompleted ? "bg-primary/10 text-primary border-primary/20" : event.status === 'live' ? "bg-tertiary/10 text-tertiary border-tertiary/20" : "bg-secondary/10 text-secondary border-secondary/20")}>
+              <span className={"px-3 py-1 rounded font-label text-xs tracking-wider font-bold border " + (isCompleted ? "bg-primary/10 text-primary border-primary/20" : event.status === 'live' ? "bg-tertiary/10 text-tertiary border-tertiary/20" : "bg-secondary/10 text-secondary border-secondary/20")}>
                 {isCompleted ? 'COMPLETED' : event.status === 'live' ? 'LIVE' : 'UPCOMING'}
               </span>
               {event.date && (
@@ -205,7 +203,7 @@ export default function TournamentDetailScreen() {
               <div className="flex gap-2 flex-wrap mt-3">
                 {(event.tags || []).map(function(t) {
                   return (
-                    <span key={t} className="bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-nav px-2 py-0.5 rounded uppercase tracking-wider">
+                    <span key={t} className="bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-label px-2 py-0.5 rounded uppercase tracking-wider">
                       {t}
                     </span>
                   )
@@ -221,7 +219,7 @@ export default function TournamentDetailScreen() {
             <div className="absolute top-0 right-0 p-3 opacity-5">
               <Icon name="emoji_events" size={64} />
             </div>
-            <div className="font-nav font-bold text-xs tracking-widest uppercase text-primary mb-4">Prize Pool</div>
+            <div className="font-label font-bold text-xs tracking-widest uppercase text-primary mb-4">Prize Pool</div>
             <div className="flex gap-3 flex-wrap">
               {prizes.map(function(p, i) {
                 var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70']
@@ -245,7 +243,7 @@ export default function TournamentDetailScreen() {
                 <span className="font-mono text-2xl font-bold text-on-surface">{event.registered || 0}</span>
                 <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + (event.size || 0)}</span>
               </div>
-              <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
+              <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
                 {"players registered (" + regPercent + "%)"}
               </div>
             </div>
@@ -253,28 +251,24 @@ export default function TournamentDetailScreen() {
               {!isCompleted && currentUser && isRegistered && (
                 <button
                   onClick={handleRegister}
-                  className="px-5 py-2.5 font-nav font-bold text-xs tracking-widest uppercase rounded transition-all border border-success/30 text-success bg-success/10 hover:bg-success/20">
+                  className="px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded transition-all border border-success/30 text-success bg-success/10 hover:bg-success/20">
                   Registered - Withdraw
                 </button>
               )}
               {!isCompleted && currentUser && canRegister && (
-                <button
-                  onClick={handleRegister}
-                  className="px-5 py-2.5 font-nav font-bold text-xs tracking-widest uppercase rounded transition-all bg-primary text-on-primary shadow-lg shadow-primary/20 hover:brightness-110">
+                <Btn variant="primary" size="sm" onClick={handleRegister}>
                   Register Now
-                </button>
+                </Btn>
               )}
               {!isCompleted && currentUser && isFull && !isRegistered && (
-                <button disabled className="px-5 py-2.5 font-nav font-bold text-xs tracking-widest uppercase rounded bg-surface-container-high text-on-surface-variant/50 cursor-not-allowed">
+                <button disabled className="px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded bg-surface-container-high text-on-surface-variant/50 cursor-not-allowed">
                   Tournament Full
                 </button>
               )}
               {!isCompleted && !currentUser && (
-                <button
-                  onClick={function() { setAuthScreen('login'); }}
-                  className="px-5 py-2.5 font-nav font-bold text-xs tracking-widest uppercase rounded transition-all bg-primary text-on-primary shadow-lg shadow-primary/20 hover:brightness-110">
+                <Btn variant="primary" size="sm" onClick={function() { setAuthScreen('login'); }}>
                   Sign In to Register
-                </button>
+                </Btn>
               )}
             </div>
           </div>
@@ -306,7 +300,7 @@ export default function TournamentDetailScreen() {
               <button
                 key={t.id}
                 onClick={function() { setDetailTab(t.id); }}
-                className={"shrink-0 flex items-center gap-1.5 border-0 border-b-2 px-4 py-2.5 font-nav text-xs tracking-wider uppercase cursor-pointer transition-all " + (active ? 'bg-primary/5 border-b-primary font-bold text-primary' : 'bg-transparent border-b-transparent font-bold text-on-surface-variant/50 hover:text-on-surface-variant')}
+                className={"shrink-0 flex items-center gap-1.5 border-0 border-b-2 px-4 py-2.5 font-label text-xs tracking-wider uppercase cursor-pointer transition-all " + (active ? 'bg-primary/5 border-b-primary font-bold text-primary' : 'bg-transparent border-b-transparent font-bold text-on-surface-variant/50 hover:text-on-surface-variant')}
               >
                 <Icon name={t.icon} size={14} />
                 {t.label}
@@ -324,7 +318,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="tune" size={18} className="text-primary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Details</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Details</span>
                 </div>
                 <div className="grid grid-cols-2 gap-px bg-outline-variant/5">
                   {[
@@ -335,7 +329,7 @@ export default function TournamentDetailScreen() {
                   ].map(function(item) {
                     return (
                       <div key={item.label} className="bg-surface-container-low p-4">
-                        <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-1">{item.label}</div>
+                        <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-1">{item.label}</div>
                         <div className="font-mono text-sm font-bold text-on-surface">{item.value}</div>
                       </div>
                     )
@@ -348,7 +342,7 @@ export default function TournamentDetailScreen() {
                 <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <Icon name="description" size={16} className="text-primary" />
-                    <span className="text-xs font-nav font-bold text-primary tracking-widest uppercase">About</span>
+                    <span className="text-xs font-label font-bold text-primary tracking-widest uppercase">About</span>
                   </div>
                   <div className="text-sm text-on-surface leading-relaxed">{event.description}</div>
                 </div>
@@ -358,13 +352,13 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="leaderboard" size={18} className="text-tertiary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Scoring</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Scoring</span>
                 </div>
                 <div className="grid grid-cols-4 gap-px bg-outline-variant/5">
                   {PLACE_POINTS.map(function(pp) {
                     return (
                       <div key={pp.place} className={"p-4 text-center " + pp.bg}>
-                        <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-1">{pp.place}</div>
+                        <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-1">{pp.place}</div>
                         <div className={"font-mono text-lg font-bold " + pp.color}>{"+" + pp.pts.replace(' PTS', '')}</div>
                       </div>
                     )
@@ -383,7 +377,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="group" size={18} className="text-primary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
                     {"Players (" + registeredIds.length + ")"}
                   </span>
                 </div>
@@ -402,13 +396,13 @@ export default function TournamentDetailScreen() {
                             <Icon name="person" size={14} className="text-on-surface-variant/40" />
                           </div>
                           <span className="font-mono text-sm font-bold text-on-surface flex-1">{username}</span>
-                          <span className="text-[10px] font-nav text-on-surface-variant/40 tracking-wider">{"#" + (i + 1)}</span>
+                          <span className="text-[10px] font-label text-on-surface-variant/40 tracking-wider">{"#" + (i + 1)}</span>
                         </div>
                       )
                     })}
                     {registeredIds.length > 12 && (
                       <div className="text-center py-3">
-                        <span className="text-[10px] font-nav text-on-surface-variant/40 uppercase tracking-wider">
+                        <span className="text-[10px] font-label text-on-surface-variant/40 uppercase tracking-wider">
                           {"+" + (registeredIds.length - 12) + " more"}
                         </span>
                       </div>
@@ -419,11 +413,11 @@ export default function TournamentDetailScreen() {
 
               {/* Host info */}
               <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5 text-center">
-                <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-2">Hosted By</div>
+                <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-2">Hosted By</div>
                 <div className="font-editorial italic text-xl text-primary">{event.host || 'TFT Clash'}</div>
                 {event.sponsor && (
                   <div className="mt-4 pt-4 border-t border-outline-variant/10">
-                    <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-2">Presented By</div>
+                    <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-2">Presented By</div>
                     <div className="font-editorial italic text-lg text-on-surface/60">{event.sponsor}</div>
                   </div>
                 )}
@@ -433,7 +427,7 @@ export default function TournamentDetailScreen() {
               {currentUser && event.dbTournamentId && currentUser.auth_user_id === event.host_id && (
                 <button
                   onClick={function() { navigate('/host/dashboard'); }}
-                  className="w-full flex items-center justify-center gap-2 bg-secondary/10 border border-secondary/20 text-secondary font-nav font-bold text-xs uppercase tracking-widest px-5 py-3 rounded hover:bg-secondary/20 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-secondary/10 border border-secondary/20 text-secondary font-label font-bold text-xs uppercase tracking-widest px-5 py-3 rounded hover:bg-secondary/20 transition-colors"
                 >
                   <Icon name="manage_accounts" size={16} />
                   Manage Tournament
@@ -449,7 +443,7 @@ export default function TournamentDetailScreen() {
             {loadingResults && (
               <div className="text-center py-16">
                 <Icon name="hourglass_empty" size={32} className="text-on-surface-variant/30 mx-auto mb-3 animate-spin" />
-                <span className="font-nav uppercase tracking-widest text-sm text-on-surface-variant">Loading bracket...</span>
+                <span className="font-label uppercase tracking-widest text-sm text-on-surface-variant">Loading bracket...</span>
               </div>
             )}
             {!loadingResults && tournamentResults.length === 0 && (
@@ -467,7 +461,7 @@ export default function TournamentDetailScreen() {
                     <div key={rk} className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                       <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                         <Icon name="emoji_events" size={18} className="text-tertiary" />
-                        <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">{rk}</span>
+                        <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">{rk}</span>
                       </div>
                       <div className="divide-y divide-outline-variant/5">
                         {roundResults.map(function(r) {
@@ -498,7 +492,7 @@ export default function TournamentDetailScreen() {
             {loadingResults && (
               <div className="text-center py-16">
                 <Icon name="hourglass_empty" size={32} className="text-on-surface-variant/30 mx-auto mb-3 animate-spin" />
-                <span className="font-nav uppercase tracking-widest text-sm text-on-surface-variant">Loading standings...</span>
+                <span className="font-label uppercase tracking-widest text-sm text-on-surface-variant">Loading standings...</span>
               </div>
             )}
             {!loadingResults && standings.length === 0 && (
@@ -512,7 +506,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="bar_chart" size={18} className="text-tertiary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">
                     {isCompleted ? 'Final Results' : 'Current Standings'}
                   </span>
                 </div>
@@ -527,7 +521,7 @@ export default function TournamentDetailScreen() {
                         <span className={"flex-1 text-sm " + (i === 0 ? "text-primary font-bold" : "text-on-surface")}>
                           {s.playerName}
                         </span>
-                        <span className="text-[10px] font-nav text-on-surface-variant/40 uppercase tracking-wider">
+                        <span className="text-[10px] font-label text-on-surface-variant/40 uppercase tracking-wider">
                           {s.games.length + " games"}
                         </span>
                         <span className="font-mono text-sm font-bold text-tertiary min-w-[3rem] text-right">
@@ -551,7 +545,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="leaderboard" size={18} className="text-primary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Points System</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Points System</span>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse text-sm">
@@ -559,14 +553,14 @@ export default function TournamentDetailScreen() {
                       <tr>
                         {['Place', '1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'].map(function(h) {
                           return (
-                            <th key={h} className="py-3 px-2 border-b border-outline-variant/10 text-center font-nav font-bold uppercase tracking-wider text-on-surface-variant/50 text-[10px]">{h}</th>
+                            <th key={h} className="py-3 px-2 border-b border-outline-variant/10 text-center font-label font-bold uppercase tracking-wider text-on-surface-variant/50 text-[10px]">{h}</th>
                           )
                         })}
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="py-3 px-2 text-center font-nav text-[10px] uppercase tracking-wider text-on-surface-variant/50">Pts</td>
+                        <td className="py-3 px-2 text-center font-label text-[10px] uppercase tracking-wider text-on-surface-variant/50">Pts</td>
                         {[8, 7, 6, 5, 4, 3, 2, 1].map(function(p, i) {
                           return (
                             <td key={p} className={"py-3 px-2 text-center font-mono font-bold " + (i === 0 ? 'text-primary' : 'text-on-surface/70')}>{p}</td>
@@ -582,7 +576,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="gavel" size={18} className="text-secondary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tiebreaker Rules</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Tiebreaker Rules</span>
                 </div>
                 <div className="divide-y divide-outline-variant/5">
                   {TIEBREAKERS.map(function(tb) {
@@ -590,7 +584,7 @@ export default function TournamentDetailScreen() {
                       <div key={tb.n} className="flex gap-4 items-start px-5 py-3">
                         <span className="font-mono text-xs font-bold text-secondary flex-shrink-0 mt-0.5">{tb.n}</span>
                         <div>
-                          <div className="font-nav font-bold text-xs text-on-surface uppercase tracking-wider mb-0.5">{tb.title}</div>
+                          <div className="font-label font-bold text-xs text-on-surface uppercase tracking-wider mb-0.5">{tb.title}</div>
                           <div className="text-xs text-on-surface-variant/60">{tb.desc}</div>
                         </div>
                       </div>
@@ -603,7 +597,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="description" size={18} className="text-tertiary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Rules</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Rules</span>
                 </div>
                 <div className="px-5 py-4 text-sm text-on-surface/70 leading-relaxed whitespace-pre-wrap">
                   {event.rulesText || event.rules_text || event.rules || 'Standard TFT Clash ruleset applies. All participants must adhere to the code of conduct and Riot Terms of Service.'}
@@ -616,7 +610,7 @@ export default function TournamentDetailScreen() {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="info" size={18} className="text-primary" />
-                  <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Quick Reference</span>
+                  <span className="font-label font-bold text-sm tracking-widest uppercase text-on-surface">Quick Reference</span>
                 </div>
                 <div className="divide-y divide-outline-variant/5">
                   {[
@@ -627,7 +621,7 @@ export default function TournamentDetailScreen() {
                   ].filter(Boolean).map(function(item) {
                     return (
                       <div key={item.label} className="flex justify-between items-center px-5 py-3">
-                        <span className="text-[10px] font-nav uppercase tracking-wider text-on-surface-variant/50">{item.label}</span>
+                        <span className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/50">{item.label}</span>
                         <span className="font-mono text-sm font-bold text-on-surface">{item.value}</span>
                       </div>
                     )

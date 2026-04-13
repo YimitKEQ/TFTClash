@@ -387,7 +387,7 @@ export default function HostDashboardScreen() {
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Tournament Name</label>
+              <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Tournament Name</label>
               <input
                 className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
                 value={wizData.name}
@@ -396,7 +396,7 @@ export default function HostDashboardScreen() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Date</label>
+              <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Date</label>
               <input
                 className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
                 value={wizData.date}
@@ -407,13 +407,13 @@ export default function HostDashboardScreen() {
           </div>
           <div className="flex items-center gap-4">
             <button
-              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-2 hover:bg-white/5 transition-all"
+              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-2 hover:bg-white/5 transition-all"
               onClick={function() { setShowCreate(false); setWizStep(0); }}
             >
               Cancel
             </button>
             <button
-              className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+              className="bg-primary text-on-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
               onClick={function() { if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; } setWizStep(1); }}
             >
               Next: Format
@@ -428,7 +428,7 @@ export default function HostDashboardScreen() {
         <div className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-2">
-              <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Format</label>
+              <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Format</label>
               <Sel value={wizData.type} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { type: v }); }); }}>
                 <option value="swiss">Swiss System</option>
                 <option value="standard">Single Elimination</option>
@@ -436,20 +436,20 @@ export default function HostDashboardScreen() {
               </Sel>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Player Limit</label>
+              <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Player Limit</label>
               <Sel value={String(wizData.maxPlayers)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { maxPlayers: parseInt(v) }); }); }}>
                 {[8, 16, 24, 32, 48, 64, 96, 128].map(function(n) { return <option key={n} value={n}>{n + " Players"}</option>; })}
               </Sel>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Check-in Window</label>
+              <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Check-in Window</label>
               <Sel value={String(wizData.totalGames)} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { totalGames: parseInt(v) }); }); }}>
                 {[2, 3, 4, 5, 6, 7, 8].map(function(n) { return <option key={n} value={n}>{n + " games"}</option>; })}
               </Sel>
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Entry Fee <span className="text-on-surface-variant/50 normal-case font-normal">(optional, requires admin approval)</span></label>
+            <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Entry Fee <span className="text-on-surface-variant/50 normal-case font-normal">(optional, requires admin approval)</span></label>
             <input
               className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
               value={wizData.entryFee}
@@ -458,7 +458,7 @@ export default function HostDashboardScreen() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Custom Rules <span className="text-on-surface-variant/50 normal-case font-normal">(optional)</span></label>
+            <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Custom Rules <span className="text-on-surface-variant/50 normal-case font-normal">(optional)</span></label>
             <textarea
               className="w-full bg-surface-container-lowest border-b border-outline-variant/20 px-0 py-3 text-on-background text-sm resize-y min-h-16 outline-none font-mono"
               value={wizData.rules}
@@ -476,8 +476,8 @@ export default function HostDashboardScreen() {
             <span className="text-sm text-on-surface-variant">Invite-only registration</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(0); }}>Back</button>
-            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(2); }}>Next: Branding</button>
+            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(0); }}>Back</button>
+            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(2); }}>Next: Branding</button>
           </div>
         </div>
       );
@@ -486,7 +486,7 @@ export default function HostDashboardScreen() {
       return (
         <div className="space-y-8">
           <div className="space-y-3">
-            <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Accent Color</label>
+            <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Accent Color</label>
             <div className="flex gap-2 flex-wrap">
               {ACCENT_COLORS.map(function(c) {
                 return (
@@ -502,13 +502,13 @@ export default function HostDashboardScreen() {
             </div>
           </div>
           <div className="bg-surface-container p-4 rounded border-l-4" style={{ borderColor: wizData.accentColor }}>
-            <div className="text-xs text-on-surface-variant font-condensed uppercase tracking-widest mb-1">Preview</div>
+            <div className="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Preview</div>
             <div className="font-bold text-on-surface font-editorial">{wizData.name || "Tournament Name"}</div>
             <div className="text-xs font-mono mt-1" style={{ color: wizData.accentColor }}>{wizData.type === "swiss" ? "Swiss" : "Standard"} - {wizData.maxPlayers} players</div>
           </div>
           <div className="flex items-center gap-4">
-            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(1); }}>Back</button>
-            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(3); }}>Review</button>
+            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(1); }}>Back</button>
+            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(3); }}>Review</button>
           </div>
         </div>
       );
@@ -529,7 +529,7 @@ export default function HostDashboardScreen() {
             ].map(function(arr) {
               return (
                 <div key={arr[0]} className="bg-surface-container-high p-3 rounded">
-                  <div className="text-xs font-condensed uppercase tracking-widest text-on-surface-variant mb-1">{arr[0]}</div>
+                  <div className="text-xs font-label uppercase tracking-widest text-on-surface-variant mb-1">{arr[0]}</div>
                   <div className="text-sm font-mono text-on-surface">{arr[1]}</div>
                 </div>
               );
@@ -547,9 +547,9 @@ export default function HostDashboardScreen() {
           </div>
         )}
         <div className="flex items-center gap-4">
-          <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(2); }}>Back</button>
+          <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(2); }}>Back</button>
           <button
-            className="bg-primary text-on-primary px-10 py-4 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+            className="bg-primary text-on-primary px-10 py-4 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
             onClick={submitWizard}
             disabled={wizCreating}
           >
@@ -573,7 +573,7 @@ export default function HostDashboardScreen() {
           </div>
           <div className="flex gap-4">
             <button
-              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-condensed font-bold uppercase tracking-wider text-secondary flex items-center gap-2 hover:bg-white/5 transition-all"
+              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-secondary flex items-center gap-2 hover:bg-white/5 transition-all"
               onClick={function() {
                 var data = JSON.stringify(tournaments, null, 2);
                 var blob = new Blob([data], { type: 'application/json' });
@@ -590,7 +590,7 @@ export default function HostDashboardScreen() {
               Export Data
             </button>
             <button
-              className="bg-gradient-to-br from-primary to-primary-container px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest text-on-primary flex items-center gap-2 active:scale-95 transition-all"
+              className="bg-gradient-to-br from-primary to-primary-container px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest text-on-primary flex items-center gap-2 active:scale-95 transition-all"
               onClick={function() { setShowCreate(function(s) { return !s; }); setWizStep(0); }}
             >
               <Icon name="add" size={20} />
@@ -606,12 +606,12 @@ export default function HostDashboardScreen() {
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h3 className="font-editorial text-xl mb-1">Tournament History</h3>
-                <p className="font-condensed text-xs text-slate-500 uppercase tracking-widest">{tournaments.length + ' tournament' + (tournaments.length !== 1 ? 's' : '') + ' hosted'}</p>
+                <p className="font-label text-xs text-slate-500 uppercase tracking-widest">{tournaments.length + ' tournament' + (tournaments.length !== 1 ? 's' : '') + ' hosted'}</p>
               </div>
             </div>
             {/* Real bar chart from tournament data */}
             {tournaments.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-slate-500 text-sm font-condensed uppercase tracking-widest">No analytics data yet</div>
+              <div className="h-48 flex items-center justify-center text-slate-500 text-sm font-label uppercase tracking-widest">No analytics data yet</div>
             ) : (
               <div className="h-48 w-full flex items-end gap-1 px-2">
                 {tournaments.slice(-9).map(function(t, i) {
@@ -632,21 +632,21 @@ export default function HostDashboardScreen() {
             {/* Stats row */}
             <div className="mt-4 flex gap-8 border-t border-outline-variant/10 pt-4">
               <div>
-                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Completed</div>
+                <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-1">Completed</div>
                 <div className="font-mono text-lg font-bold text-on-surface">{completedTournaments.length}</div>
               </div>
               <div>
-                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Avg Fill</div>
+                <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-1">Avg Fill</div>
                 <div className="font-mono text-lg font-bold text-on-surface">
                   {tournaments.length === 0 ? "--" : Math.round(tournaments.reduce(function(s, t) { return s + (t.size > 0 ? (t.registered / t.size) : 0); }, 0) / tournaments.length * 100) + "%"}
                 </div>
               </div>
               <div>
-                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Total Players</div>
+                <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-1">Total Players</div>
                 <div className="font-mono text-lg font-bold text-on-surface">{totalPlayers}</div>
               </div>
               <div>
-                <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-1">Live Now</div>
+                <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-1">Live Now</div>
                 <div className="font-mono text-lg font-bold text-tertiary">{liveTournaments.length}</div>
               </div>
             </div>
@@ -666,13 +666,13 @@ export default function HostDashboardScreen() {
                     : (
                       <>
                         <Icon name="cloud_upload" size={28} className="text-slate-500 mb-2" />
-                        <span className="text-[10px] font-condensed uppercase text-slate-400">Upload Logo</span>
+                        <span className="text-[10px] font-label uppercase text-slate-400">Upload Logo</span>
                       </>
                     )
                   }
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-condensed uppercase text-slate-400">Primary Color</span>
+                  <span className="text-xs font-label uppercase text-slate-400">Primary Color</span>
                   <div className="flex gap-1">
                     {ACCENT_COLORS.slice(0, 3).map(function(c) {
                       return (
@@ -712,7 +712,7 @@ export default function HostDashboardScreen() {
                           <div className={'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all border ' + (wizStep === i ? 'bg-primary/20 border-primary/50 text-primary' : wizStep > i ? 'bg-tertiary/15 border-tertiary/40 text-tertiary' : 'bg-white/[0.06] border-white/10 text-on-surface-variant')}>
                             {wizStep > i ? <Icon name="check" size={12} /> : (i + 1)}
                           </div>
-                          {wizStep === i && <span className="text-xs font-condensed text-primary hidden sm:inline">{label}</span>}
+                          {wizStep === i && <span className="text-xs font-label text-primary hidden sm:inline">{label}</span>}
                         </div>
                         {i < WIZ_STEPS.length - 1 && <div className={'w-4 h-px ' + (wizStep > i ? 'bg-tertiary/30' : 'bg-white/[0.08]')} />}
                       </div>
@@ -731,7 +731,7 @@ export default function HostDashboardScreen() {
               <div className="bg-surface-container-low rounded-lg p-6 relative aspect-video flex flex-col items-center justify-center">
                 <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent opacity-60"></div>
                 <div className="relative z-10 text-center">
-                  <p className="font-condensed text-[10px] uppercase tracking-[0.4em] text-primary mb-2">Live Broadcast Overlay</p>
+                  <p className="font-label text-[10px] uppercase tracking-[0.4em] text-primary mb-2">Live Broadcast Overlay</p>
                   <div className="flex items-center justify-center gap-4">
                     <div className="w-12 h-0.5 bg-primary"></div>
                     <span className="font-display text-2xl uppercase tracking-tighter">VERSUS</span>
@@ -745,13 +745,13 @@ export default function HostDashboardScreen() {
               </div>
               <div className="p-6 bg-surface-container-high rounded-lg space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-condensed uppercase text-slate-400">Host Status</span>
+                  <span className="text-xs font-label uppercase text-slate-400">Host Status</span>
                   <span className="flex items-center gap-1.5 text-xs font-mono text-tertiary">
                     <span className="w-2 h-2 rounded-full bg-tertiary"></span> Online
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-condensed uppercase text-slate-400">Stream Delay</span>
+                  <span className="text-xs font-label uppercase text-slate-400">Stream Delay</span>
                   <span className="text-xs font-mono text-slate-200">120s (Standard)</span>
                 </div>
               </div>
@@ -769,7 +769,7 @@ export default function HostDashboardScreen() {
                   <button
                     key={f}
                     onClick={function() { setFilterStatus(f); }}
-                    className={"px-4 py-1 text-xs font-condensed uppercase tracking-widest transition-colors " + (filterStatus === f ? "bg-primary text-on-primary" : "text-slate-500 hover:text-slate-300")}
+                    className={"px-4 py-1 text-xs font-label uppercase tracking-widest transition-colors " + (filterStatus === f ? "bg-primary text-on-primary" : "text-slate-500 hover:text-slate-300")}
                   >
                     {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
                   </button>
@@ -808,7 +808,7 @@ export default function HostDashboardScreen() {
                       <h4 className={"font-editorial text-lg " + (isComplete ? "text-slate-400" : isDraft ? "text-slate-300" : "text-on-background")}>
                         {t.name}
                       </h4>
-                      {t.invite && <span className="px-2 py-0.5 bg-secondary/10 text-secondary font-condensed text-[10px] uppercase rounded">Invite Only</span>}
+                      {t.invite && <span className="px-2 py-0.5 bg-secondary/10 text-secondary font-label text-[10px] uppercase rounded">Invite Only</span>}
                     </div>
                     <div className="flex gap-6 flex-wrap">
                       <span className={"text-xs font-mono flex items-center gap-1 " + (isComplete ? "text-slate-600" : "text-slate-500")}>
@@ -837,7 +837,7 @@ export default function HostDashboardScreen() {
                   <div className="flex gap-2 shrink-0 items-center">
                     {t.status === "upcoming" && (
                       <button
-                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
+                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
                         onClick={function() {
                           updateTournamentAndFeatured(t.id, { status: "live" });
                           if (supabase.from) {
@@ -850,11 +850,11 @@ export default function HostDashboardScreen() {
                       </button>
                     )}
                     {t.status === "pending_approval" && (
-                      <span className="text-xs text-primary font-condensed font-bold uppercase tracking-wider">Awaiting Approval</span>
+                      <span className="text-xs text-primary font-label font-bold uppercase tracking-wider">Awaiting Approval</span>
                     )}
                     {t.status === "live" && (
                       <button
-                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
+                        className="px-4 py-2 bg-secondary/10 text-secondary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-secondary/20 transition-colors"
                         onClick={function() {
                           updateTournamentAndFeatured(t.id, { status: "closed" });
                           if (supabase.from && (t.dbId || t.id)) {
@@ -868,7 +868,7 @@ export default function HostDashboardScreen() {
                     )}
                     {(t.status === "live" || t.status === "closed") && (
                       <button
-                        className="px-4 py-2 bg-primary/10 text-primary text-xs font-condensed font-bold uppercase tracking-wider rounded-full hover:bg-primary/20 transition-colors"
+                        className="px-4 py-2 bg-primary/10 text-primary text-xs font-label font-bold uppercase tracking-wider rounded-full hover:bg-primary/20 transition-colors"
                         onClick={function() {
                           var champ = prompt("Enter champion name:");
                           if (champ && champ.trim()) {
@@ -942,14 +942,14 @@ export default function HostDashboardScreen() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-5">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Send to</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Send to</label>
                   <Sel value={announceTo} onChange={setAnnounceTo}>
                     <option value="all">All registered players</option>
                     {tournaments.map(function(t) { return <option key={t.id} value={t.name}>{t.name}</option>; })}
                   </Sel>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Message</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Message</label>
                   <textarea
                     className="w-full bg-surface-container-lowest border-b border-outline-variant/20 px-0 py-3 text-on-background text-sm resize-y min-h-24 outline-none font-mono"
                     value={announceMsg}
@@ -957,13 +957,9 @@ export default function HostDashboardScreen() {
                     placeholder="e.g. Check-in is now open! Join the Discord for lobby codes..."
                   />
                 </div>
-                <button
-                  className="bg-primary text-on-primary px-8 py-3 rounded-full font-condensed font-bold uppercase tracking-widest flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
-                  onClick={sendAnnouncement}
-                >
-                  <Icon name="campaign" size={18} />
+                <Btn variant="primary" size="md" icon="campaign" onClick={sendAnnouncement}>
                   Send Announcement
-                </button>
+                </Btn>
               </div>
               <div>
                 <h3 className="font-editorial text-lg text-on-background mb-4">Sent</h3>
@@ -975,7 +971,7 @@ export default function HostDashboardScreen() {
                     return (
                       <div key={a.id} className="bg-surface-container-low p-3 rounded-lg space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded font-condensed uppercase">To: {a.to}</span>
+                          <span className="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded font-label uppercase">To: {a.to}</span>
                           <span className="text-xs text-slate-500">{a.sentAt}</span>
                         </div>
                         <p className="text-sm text-slate-400">{a.msg}</p>
@@ -995,7 +991,7 @@ export default function HostDashboardScreen() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2 space-y-8 p-8 rounded-lg border border-outline-variant/5 bg-surface-container/60 backdrop-blur-2xl">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-primary font-bold">Org / Display Name</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Org / Display Name</label>
                   <input
                     className="w-full bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono"
                     value={brandName}
@@ -1004,7 +1000,7 @@ export default function HostDashboardScreen() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Brand Color</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Brand Color</label>
                   <div className="flex gap-2 flex-wrap mb-2">
                     {ACCENT_COLORS.map(function(c) {
                       return (
@@ -1025,7 +1021,7 @@ export default function HostDashboardScreen() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Bio / Description</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Bio / Description</label>
                   <textarea
                     className="w-full bg-surface-container-lowest border-b border-outline-variant/20 px-0 py-3 text-on-background text-sm resize-y min-h-20 outline-none font-mono"
                     value={brandBio}
@@ -1034,7 +1030,7 @@ export default function HostDashboardScreen() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Logo Image</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Logo Image</label>
                   <div className="flex gap-3 items-center">
                     <input
                       className="flex-1 bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono text-sm"
@@ -1042,7 +1038,7 @@ export default function HostDashboardScreen() {
                       onChange={function(e) { setBrandLogoUrl(e.target.value); }}
                       placeholder="https://example.com/logo.png"
                     />
-                    <label className="bg-secondary/10 border border-secondary/30 rounded-full px-4 py-2 text-xs font-bold text-secondary cursor-pointer whitespace-nowrap hover:bg-secondary/20 transition-colors font-condensed uppercase tracking-wider">
+                    <label className="bg-secondary/10 border border-secondary/30 rounded-full px-4 py-2 text-xs font-bold text-secondary cursor-pointer whitespace-nowrap hover:bg-secondary/20 transition-colors font-label uppercase tracking-wider">
                       {uploadingLogo ? "Uploading..." : "Upload"}
                       <input type="file" accept="image/*" className="hidden" onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "logo"); }} />
                     </label>
@@ -1050,7 +1046,7 @@ export default function HostDashboardScreen() {
                   {brandLogoUrl && <img src={brandLogoUrl} alt="Logo preview" className="w-12 h-12 rounded object-cover border border-outline-variant/20 mt-1" />}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-condensed uppercase tracking-widest text-slate-500">Banner Image</label>
+                  <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Banner Image</label>
                   <div className="flex gap-3 items-center">
                     <input
                       className="flex-1 bg-surface-container-lowest border-none border-b border-outline-variant/20 focus:border-primary focus:ring-0 text-on-background py-3 font-mono text-sm"
@@ -1058,19 +1054,16 @@ export default function HostDashboardScreen() {
                       onChange={function(e) { setBrandBannerUrl(e.target.value); }}
                       placeholder="https://example.com/banner.png"
                     />
-                    <label className="bg-secondary/10 border border-secondary/30 rounded-full px-4 py-2 text-xs font-bold text-secondary cursor-pointer whitespace-nowrap hover:bg-secondary/20 transition-colors font-condensed uppercase tracking-wider">
+                    <label className="bg-secondary/10 border border-secondary/30 rounded-full px-4 py-2 text-xs font-bold text-secondary cursor-pointer whitespace-nowrap hover:bg-secondary/20 transition-colors font-label uppercase tracking-wider">
                       {uploadingBanner ? "Uploading..." : "Upload"}
                       <input type="file" accept="image/*" className="hidden" onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "banner"); }} />
                     </label>
                   </div>
                   {brandBannerUrl && <img src={brandBannerUrl} alt="Banner preview" className="w-full max-h-28 rounded object-cover border border-outline-variant/20 mt-1" />}
                 </div>
-                <button
-                  className="bg-primary text-on-primary px-10 py-4 rounded-full font-condensed font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
-                  onClick={saveBranding}
-                >
+                <Btn variant="primary" size="lg" onClick={saveBranding}>
                   {brandSaved ? "Saved!" : "Save Branding"}
-                </button>
+                </Btn>
               </div>
 
               {/* Branding Preview */}
@@ -1086,7 +1079,7 @@ export default function HostDashboardScreen() {
                     </div>
                     <div>
                       <div className="font-bold text-on-surface text-sm">{brandName || "Your Org"}</div>
-                      <div className="text-xs font-condensed" style={{ color: brandColor }}>Host Partner</div>
+                      <div className="text-xs font-label" style={{ color: brandColor }}>Host Partner</div>
                     </div>
                   </div>
                   {brandBio && <p className="text-xs text-slate-400 leading-relaxed">{brandBio}</p>}
@@ -1094,13 +1087,13 @@ export default function HostDashboardScreen() {
                 {/* Host status panel */}
                 <div className="p-6 bg-surface-container-high rounded-lg space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-condensed uppercase text-slate-400">Host Status</span>
+                    <span className="text-xs font-label uppercase text-slate-400">Host Status</span>
                     <span className="flex items-center gap-1.5 text-xs font-mono text-tertiary">
                       <span className="w-2 h-2 rounded-full bg-tertiary"></span> Online
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-condensed uppercase text-slate-400">Tournaments Hosted</span>
+                    <span className="text-xs font-label uppercase text-slate-400">Tournaments Hosted</span>
                     <span className="text-xs font-mono text-slate-200">{totalHosted}</span>
                   </div>
                 </div>
@@ -1129,15 +1122,15 @@ export default function HostDashboardScreen() {
                 <div key={t.id} className="bg-surface-container-low p-6 rounded-lg border border-tertiary/20">
                   <div className="flex items-center gap-3 mb-5">
                     <h3 className="font-editorial text-lg text-on-surface flex-1">{t.name}</h3>
-                    <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded">Round {currentRound}/{roundCount}</span>
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-condensed text-[10px] uppercase tracking-tighter rounded">{regIds.length} players</span>
+                    <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">Round {currentRound}/{roundCount}</span>
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-tighter rounded">{regIds.length} players</span>
                   </div>
                   {regIds.length === 0 && (
                     <p className="text-slate-500 text-sm text-center py-6">No players registered yet.</p>
                   )}
                   {regIds.length > 0 && (
                     <div className="space-y-4">
-                      <div className="text-xs font-condensed uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
+                      <div className="text-xs font-label uppercase tracking-widest text-slate-500 mb-2">Enter placements for Round {currentRound}</div>
                       <div className="space-y-2">
                         {regIds.map(function(username) {
                           return (
@@ -1177,7 +1170,7 @@ export default function HostDashboardScreen() {
                       </div>
                       <div className="flex gap-3 pt-2">
                         <button
-                          className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-condensed font-bold uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all"
+                          className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label font-bold uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all"
                           onClick={function() {
                             if (currentRound < roundCount) {
                               updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
@@ -1194,7 +1187,7 @@ export default function HostDashboardScreen() {
                           {currentRound < roundCount ? "Advance to Round " + (currentRound + 1) : "Finalize Tournament"}
                         </button>
                         <button
-                          className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-2.5 rounded-full font-condensed font-bold uppercase tracking-wider text-on-surface-variant text-sm hover:bg-white/5 transition-all"
+                          className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-2.5 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant text-sm hover:bg-white/5 transition-all"
                           onClick={function() { setScreen("tournament-host-" + t.id); }}
                         >
                           View Public Page
@@ -1219,7 +1212,7 @@ export default function HostDashboardScreen() {
                 <div key={t.id} className="bg-surface-container-low p-5 rounded-lg">
                   <div className="flex items-center gap-3 mb-4">
                     <h3 className="font-editorial text-base text-on-surface flex-1">{t.name}</h3>
-                    <span className={"px-2 py-0.5 font-condensed text-[10px] uppercase tracking-tighter rounded " + (t.status === "live" ? "bg-tertiary-container/10 text-tertiary" : "bg-primary/10 text-primary")}>
+                    <span className={"px-2 py-0.5 font-label text-[10px] uppercase tracking-tighter rounded " + (t.status === "live" ? "bg-tertiary-container/10 text-tertiary" : "bg-primary/10 text-primary")}>
                       {regIds.length + "/" + t.size}
                     </span>
                   </div>
@@ -1232,7 +1225,7 @@ export default function HostDashboardScreen() {
                         <div key={username} className="flex items-center gap-3 py-2.5 border-b border-outline-variant/5 last:border-0">
                           <span className="text-xs font-mono text-slate-500 w-5">{i + 1}</span>
                           <span className="flex-1 text-sm font-mono text-on-surface">{username}</span>
-                          <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded">Registered</span>
+                          <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-label text-[10px] uppercase tracking-tighter rounded">Registered</span>
                           <button
                             onClick={function() {
                               if (confirm("Remove " + username + "?")) {
@@ -1250,7 +1243,7 @@ export default function HostDashboardScreen() {
                                 toast(username + " removed", "info");
                               }
                             }}
-                            className="text-xs font-condensed uppercase text-error/70 hover:text-error transition-colors"
+                            className="text-xs font-label uppercase text-error/70 hover:text-error transition-colors"
                           >
                             Remove
                           </button>
@@ -1470,7 +1463,7 @@ export default function HostDashboardScreen() {
                 <button
                   key={arr[0]}
                   onClick={function() { setTab(arr[0]); }}
-                  className={"px-5 py-2 rounded-full font-condensed font-bold uppercase tracking-widest text-xs transition-all " + (tab === arr[0] ? "bg-primary text-on-primary" : "bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5")}
+                  className={"px-5 py-2 rounded-full font-label font-bold uppercase tracking-widest text-xs transition-all " + (tab === arr[0] ? "bg-primary text-on-primary" : "bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5")}
                 >
                   {arr[1]}
                 </button>
@@ -1478,7 +1471,7 @@ export default function HostDashboardScreen() {
             })}
             <button
               onClick={function() { setTab("overview"); navigate("/host/dashboard"); }}
-              className="px-5 py-2 rounded-full font-condensed font-bold uppercase tracking-widest text-xs bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5 transition-all"
+              className="px-5 py-2 rounded-full font-label font-bold uppercase tracking-widest text-xs bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5 transition-all"
             >
               Back to Overview
             </button>
@@ -1487,14 +1480,14 @@ export default function HostDashboardScreen() {
 
         {/* Footer */}
         <footer className="pt-8 mt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] font-condensed uppercase tracking-[0.3em] text-slate-500">
+          <p className="text-[10px] font-label uppercase tracking-[0.3em] text-slate-500">
             TFT Clash Engine | Host Dashboard | System Status: Optimal
           </p>
           <div className="flex gap-8">
-            <button onClick={function() { setTab("announce"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Announce</button>
-            <button onClick={function() { setTab("branding"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Branding</button>
-            <button onClick={function() { setTab("game-flow"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Game Flow</button>
-            <button onClick={function() { navigate("/bracket"); }} className="text-[10px] font-condensed uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">View Bracket</button>
+            <button onClick={function() { setTab("announce"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Announce</button>
+            <button onClick={function() { setTab("branding"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Branding</button>
+            <button onClick={function() { setTab("game-flow"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">Game Flow</button>
+            <button onClick={function() { navigate("/bracket"); }} className="text-[10px] font-label uppercase tracking-widest text-slate-400 hover:text-primary transition-colors">View Bracket</button>
           </div>
         </footer>
 
