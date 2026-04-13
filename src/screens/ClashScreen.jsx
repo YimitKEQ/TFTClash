@@ -179,7 +179,7 @@ function FileDisputeModal(props) {
             <Icon name="flag" className="text-sm mr-1" />File Dispute
           </div>
           <div className="text-[13px] text-[#C8D4E0] mb-5">
-            Flagging <span className="text-on-surface font-bold">{targetPlayer}</span> - claimed <span className="text-primary font-extrabold font-sans">#{claimPlacement}</span>
+            Flagging <span className="text-on-surface font-bold">{targetPlayer}</span> - claimed <span className="text-primary font-extrabold font-mono">#{claimPlacement}</span>
           </div>
           <label className="block text-[11px] text-[#C8D4E0] mb-1.5 font-bold uppercase tracking-[.06em]">Reason <span className="text-error">*</span></label>
           <Inp value={reason} onChange={setReason} placeholder="Why is this placement wrong?" className="mb-3.5" />
@@ -463,7 +463,7 @@ function LobbyCard(props) {
     <Panel glow={!locked} style={{ border: locked ? "1px solid rgba(82,196,124,.3)" : undefined, animation: locked ? "lock-flash .9s ease" : undefined }}>
       <div className="px-3.5 py-3 bg-[#0A0F1A] border-b border-on-surface/[.07] flex justify-between items-center gap-2 flex-wrap">
         <div className="flex items-center gap-2.5">
-          <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center text-xs font-extrabold font-sans shrink-0" style={{
+          <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center text-xs font-extrabold font-mono shrink-0" style={{
             background: locked ? "rgba(82,196,124,.1)" : "rgba(232,168,56,.1)",
             border: "1px solid " + (locked ? "rgba(82,196,124,.3)" : "rgba(232,168,56,.28)"),
             color: locked ? "#6EE7B7" : "#E8A838"
