@@ -1,6 +1,7 @@
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Panel, Icon } from '../components/ui'
+import SectionHeader from '../components/shared/SectionHeader.jsx'
 
 /* ─── DATA ─── */
 
@@ -151,46 +152,46 @@ var WHAT_WE_GAIN = [
 
 function StatCard(props) {
   return (
-    <div className="group flex flex-col items-center justify-center bg-surface-container rounded-xl p-6 border border-outline-variant hover:border-primary/40 transition-colors">
+    <Panel elevation="elevated" radius="xl" padding="default" className="group flex flex-col items-center justify-center hover:border-primary/40 transition-colors">
       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
         <Icon name={props.icon} className="text-primary text-lg" />
       </div>
-      <span className="font-playfair text-4xl font-bold text-primary mb-1">{props.value}</span>
-      <span className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant">{props.label}</span>
-    </div>
+      <span className="font-headline text-4xl font-bold text-primary mb-1">{props.value}</span>
+      <span className="font-label text-xs tracking-widest uppercase text-on-surface-variant">{props.label}</span>
+    </Panel>
   )
 }
 
 function DeliverableCard(props) {
   return (
-    <div className="flex gap-4 items-start bg-surface-container rounded-xl p-5 border border-outline-variant hover:border-primary/30 transition-colors">
+    <Panel elevation="elevated" radius="xl" padding="default" className="flex gap-4 items-start hover:border-primary/30 transition-colors">
       <div className="shrink-0 w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
         <Icon name={props.icon} className="text-primary text-xl" />
       </div>
       <div>
-        <p className="font-barlow text-sm tracking-widest uppercase text-on-surface font-semibold mb-1">{props.title}</p>
+        <p className="font-label text-sm tracking-widest uppercase text-on-surface font-semibold mb-1">{props.title}</p>
         <p className="text-on-surface-variant text-sm leading-relaxed">{props.desc}</p>
       </div>
-    </div>
+    </Panel>
   )
 }
 
 function WhyCard(props) {
   return (
-    <div className="bg-surface-container rounded-xl p-6 border border-outline-variant hover:border-primary/30 transition-colors">
+    <Panel elevation="elevated" radius="xl" padding="default" className="hover:border-primary/30 transition-colors">
       <div className="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center mb-4">
         <Icon name={props.icon} className="text-primary text-xl" />
       </div>
-      <p className="font-barlow text-sm tracking-widest uppercase text-primary font-semibold mb-2">{props.title}</p>
+      <p className="font-label text-sm tracking-widest uppercase text-primary font-semibold mb-2">{props.title}</p>
       <p className="text-on-surface-variant text-sm leading-relaxed">{props.body}</p>
-    </div>
+    </Panel>
   )
 }
 
 function TierCard(props) {
   var tier = props.tier
   var isFeatured = tier.featured
-  var borderClass = isFeatured ? 'border-primary ring-1 ring-primary/20' : 'border-outline-variant'
+  var borderClass = isFeatured ? 'border-primary ring-1 ring-primary/20' : 'border-outline-variant/10'
   var headClass = isFeatured ? 'bg-primary' : 'bg-surface-container-high'
   var headTextClass = isFeatured ? 'text-on-primary' : 'text-on-surface'
   var headSubClass = isFeatured ? 'text-on-primary/60' : 'text-on-surface-variant'
@@ -200,13 +201,13 @@ function TierCard(props) {
       <div className={'px-5 py-5 ' + headClass}>
         <div className="flex items-center gap-2 mb-1">
           <Icon name={tier.icon} className={'text-lg ' + headTextClass} />
-          <p className={'font-barlow text-base tracking-widest uppercase font-bold ' + headTextClass}>{tier.name}</p>
+          <p className={'font-label text-base tracking-widest uppercase font-bold ' + headTextClass}>{tier.name}</p>
         </div>
-        <p className={'font-barlow text-xs tracking-wider uppercase mt-1 ' + headSubClass}>{tier.tag}</p>
+        <p className={'font-label text-xs tracking-wider uppercase mt-1 ' + headSubClass}>{tier.tag}</p>
       </div>
       <div className="bg-surface-container p-5 flex-1">
         <ul className="space-y-3">
-          {tier.items.map(function(item, i) {
+          {tier.items.map(function(item) {
             return (
               <li key={item} className="flex items-start gap-2 text-sm text-on-surface-variant leading-snug">
                 <Icon name="check" className="text-primary text-base shrink-0 mt-0.5" />
@@ -216,18 +217,6 @@ function TierCard(props) {
           })}
         </ul>
       </div>
-    </div>
-  )
-}
-
-function SectionHeader(props) {
-  return (
-    <div className={props.center ? 'text-center' : ''}>
-      <p className="font-barlow text-xs tracking-widest uppercase text-primary mb-3">{props.tag}</p>
-      <h2 className="font-playfair text-3xl font-bold text-on-surface mb-2">{props.title}</h2>
-      {props.subtitle && (
-        <p className={'text-on-surface-variant leading-relaxed ' + (props.center ? 'max-w-2xl mx-auto' : '')}>{props.subtitle}</p>
-      )}
     </div>
   )
 }
@@ -252,16 +241,16 @@ function CurrentPartners(props) {
   return (
     <div className="mb-16">
       <SectionHeader
-        tag="Current Partners"
+        eyebrow="Current Partners"
         title="Our Sponsors"
-        subtitle="These brands support the TFT Clash competitive community."
-        center
+        description="These brands support the TFT Clash competitive community."
+        align="center"
       />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
         {sorted.map(function(sp) {
           var tierColor = TIER_COLORS[sp.tier] || '#9B72CF'
           return (
-            <div key={sp.name} className="group bg-surface-container rounded-xl border border-outline-variant hover:border-primary/30 transition-colors p-6 text-center">
+            <Panel key={sp.name} elevation="elevated" radius="xl" padding="default" className="group hover:border-primary/30 transition-colors text-center">
               {sp.logo_url ? (
                 <img src={sp.logo_url} alt={sp.name} className="h-12 mx-auto mb-4 object-contain group-hover:scale-105 transition-transform" />
               ) : (
@@ -269,7 +258,7 @@ function CurrentPartners(props) {
                   {(sp.name || '?').charAt(0).toUpperCase()}
                 </div>
               )}
-              <p className="font-barlow text-sm tracking-widest uppercase font-semibold text-on-surface mb-1">{sp.name}</p>
+              <p className="font-label text-sm tracking-widest uppercase font-semibold text-on-surface mb-1">{sp.name}</p>
               <p className="text-xs font-semibold mb-2" style={{ color: tierColor }}>
                 {TIER_LABELS[sp.tier] || 'Partner'}
               </p>
@@ -284,7 +273,7 @@ function CurrentPartners(props) {
                   <p className="text-sm font-mono font-bold text-on-surface">{sp.discount_code}</p>
                 </div>
               )}
-            </div>
+            </Panel>
           )
         })}
       </div>
@@ -304,7 +293,7 @@ export default function SponsorsScreen() {
       <CurrentPartners sponsors={activeSponsors} />
 
       {/* ── HERO ── */}
-      <div className="relative overflow-hidden rounded-xl bg-surface-container border border-outline-variant mb-16">
+      <Panel elevation="elevated" radius="xl" padding="none" className="relative overflow-hidden mb-16">
         {/* Grid background */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
@@ -319,10 +308,10 @@ export default function SponsorsScreen() {
           {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-2 mb-8">
             <Icon name="handshake" className="text-primary text-sm" />
-            <span className="font-barlow text-xs tracking-widest uppercase text-primary font-semibold">Partnership Opportunities</span>
+            <span className="font-label text-xs tracking-widest uppercase text-primary font-semibold">Partnership Opportunities</span>
           </div>
 
-          <h1 className="font-playfair text-4xl sm:text-5xl md:text-6xl font-bold text-on-surface mb-5 leading-tight">
+          <h1 className="font-editorial italic text-4xl sm:text-5xl md:text-6xl font-bold text-on-surface mb-5 leading-tight">
             Put Your Brand Where<br />
             <span className="text-primary">Competitors Are Watching</span>
           </h1>
@@ -332,27 +321,19 @@ export default function SponsorsScreen() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              href="mailto:contact@tftclash.com"
-              className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl px-8 py-3.5 font-barlow tracking-widest uppercase text-sm font-semibold hover:opacity-90 transition-opacity no-underline"
-            >
-              <Icon name="mail" className="text-base" />
+            <Btn variant="primary" size="lg" icon="mail" href="mailto:contact@tftclash.com">
               Get In Touch
-            </a>
-            <a
-              href="#tiers"
-              className="inline-flex items-center justify-center gap-2 bg-surface-container-high text-on-surface rounded-xl px-8 py-3.5 font-barlow tracking-widest uppercase text-sm font-semibold border border-outline-variant hover:border-primary/40 transition-colors no-underline"
-            >
-              <Icon name="arrow_downward" className="text-base" />
+            </Btn>
+            <Btn variant="secondary" size="lg" icon="arrow_downward" href="#tiers">
               View Tiers
-            </a>
+            </Btn>
           </div>
         </div>
-      </div>
+      </Panel>
 
       {/* ── STATS BAR ── */}
       <div className="mb-16">
-        <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant text-center mb-6">Platform at a Glance</p>
+        <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant text-center mb-6">Platform at a Glance</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {STATS.map(function(s) {
             return <StatCard key={s.label} value={s.value} label={s.label} icon={s.icon} />
@@ -362,7 +343,7 @@ export default function SponsorsScreen() {
 
       {/* ── ABOUT ── */}
       <div className="mb-16">
-        <SectionHeader tag="01 - Who We Are" title="What is TFT Clash?" />
+        <SectionHeader eyebrow="01 - Who We Are" title="What is TFT Clash?" />
         <div className="space-y-4 text-on-surface-variant leading-relaxed mt-5">
           <p>
             TFT Clash is a fully custom-built competitive tournament platform for the global Teamfight Tactics community.
@@ -377,7 +358,7 @@ export default function SponsorsScreen() {
           </p>
         </div>
         <div className="mt-6 p-5 rounded-xl bg-primary-container/30 border border-primary/20">
-          <p className="font-barlow text-xs tracking-widest uppercase text-primary mb-2">Why Now</p>
+          <p className="font-label text-xs tracking-widest uppercase text-primary mb-2">Why Now</p>
           <p className="text-sm text-on-surface-variant leading-relaxed">
             TFT is in its strongest competitive moment. The Esports World Cup 2026 TFT prize pool reached $500,000.
             The Las Vegas Open returns end of 2026 as the biggest open-bracket event on the global TFT calendar.
@@ -389,7 +370,7 @@ export default function SponsorsScreen() {
 
       {/* ── WHY US ── */}
       <div className="mb-16">
-        <SectionHeader tag="02 - Why Partner With Us" title="What Makes This Different" />
+        <SectionHeader eyebrow="02 - Why Partner With Us" title="What Makes This Different" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           {WHY_US.map(function(w) {
             return <WhyCard key={w.title} icon={w.icon} title={w.title} body={w.body} />
@@ -400,16 +381,16 @@ export default function SponsorsScreen() {
       {/* ── MUTUAL EXPOSURE ── */}
       <div className="mb-16">
         <SectionHeader
-          tag="03 - Mutual Exposure"
+          eyebrow="03 - Mutual Exposure"
           title="What Both Sides Gain"
-          subtitle="This works because the interests are genuinely aligned, not a one-sided sponsorship ask."
+          description="This works because the interests are genuinely aligned, not a one-sided sponsorship ask."
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           {/* What You Receive */}
-          <div className="bg-surface-container rounded-xl border border-outline-variant p-6">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-outline-variant">
+          <Panel elevation="elevated" radius="xl" padding="default">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-outline-variant/10">
               <Icon name="arrow_downward" className="text-tertiary text-sm" />
-              <p className="font-barlow text-xs tracking-widest uppercase text-tertiary font-semibold">
+              <p className="font-label text-xs tracking-widest uppercase text-tertiary font-semibold">
                 What You Receive
               </p>
             </div>
@@ -423,12 +404,12 @@ export default function SponsorsScreen() {
                 )
               })}
             </ul>
-          </div>
+          </Panel>
           {/* What We Gain */}
-          <div className="bg-surface-container rounded-xl border border-outline-variant p-6">
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-outline-variant">
+          <Panel elevation="elevated" radius="xl" padding="default">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-outline-variant/10">
               <Icon name="arrow_upward" className="text-primary text-sm" />
-              <p className="font-barlow text-xs tracking-widest uppercase text-primary font-semibold">
+              <p className="font-label text-xs tracking-widest uppercase text-primary font-semibold">
                 What We Gain
               </p>
             </div>
@@ -442,16 +423,16 @@ export default function SponsorsScreen() {
                 )
               })}
             </ul>
-          </div>
+          </Panel>
         </div>
       </div>
 
       {/* ── DELIVERABLES ── */}
       <div className="mb-16">
         <SectionHeader
-          tag="04 - Deliverables"
+          eyebrow="04 - Deliverables"
           title="What Sponsors Receive"
-          subtitle="Every partnership is tailored. These are the core activations available at all tiers."
+          description="Every partnership is tailored. These are the core activations available at all tiers."
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
           {DELIVERABLES.map(function(d) {
@@ -463,9 +444,9 @@ export default function SponsorsScreen() {
       {/* ── TIERS ── */}
       <div id="tiers" className="mb-16 scroll-mt-24">
         <SectionHeader
-          tag="05 - Partnership Tiers"
+          eyebrow="05 - Partnership Tiers"
           title="How We Work Together"
-          subtitle="Three entry points, fully flexible. We build the partnership around what works for both sides. Every tier includes a personal point of contact before any agreement is signed."
+          description="Three entry points, fully flexible. We build the partnership around what works for both sides. Every tier includes a personal point of contact before any agreement is signed."
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 items-start">
           {TIERS.map(function(tier) {
@@ -476,17 +457,17 @@ export default function SponsorsScreen() {
 
       {/* ── PLATFORM FEATURES ── */}
       <div className="mb-16">
-        <SectionHeader tag="06 - Platform" title="What is Inside TFT Clash" />
+        <SectionHeader eyebrow="06 - Platform" title="What is Inside TFT Clash" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
           {PLATFORM_FEATURES.map(function(f) {
             return (
-              <div key={f.title} className="flex gap-4 items-start bg-surface-container rounded-xl p-5 border border-outline-variant border-l-2 border-l-primary hover:border-l-primary transition-colors">
+              <Panel key={f.title} elevation="elevated" radius="xl" padding="default" className="flex gap-4 items-start border-l-2 border-l-primary hover:border-l-primary transition-colors">
                 <Icon name={f.icon} className="text-primary text-xl shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-barlow text-xs tracking-widest uppercase text-on-surface font-semibold mb-1">{f.title}</p>
+                  <p className="font-label text-xs tracking-widest uppercase text-on-surface font-semibold mb-1">{f.title}</p>
                   <p className="text-on-surface-variant text-sm leading-relaxed">{f.body}</p>
                 </div>
-              </div>
+              </Panel>
             )
           })}
         </div>
@@ -495,61 +476,51 @@ export default function SponsorsScreen() {
       {/* ── ECOSYSTEM ── */}
       <div className="mb-16">
         <SectionHeader
-          tag="07 - Ecosystem"
+          eyebrow="07 - Ecosystem"
           title="Connected to the TFT Scene"
-          subtitle="TFT Clash operates within the broader Riot Games and TFT competitive ecosystem."
+          description="TFT Clash operates within the broader Riot Games and TFT competitive ecosystem."
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
-          <div className="bg-surface-container rounded-xl border border-outline-variant p-6 text-center">
-            <p className="font-playfair text-3xl font-bold text-primary mb-1">100K+</p>
-            <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant mb-2">TFT Discord Members</p>
+          <Panel elevation="elevated" radius="xl" padding="default" className="text-center">
+            <p className="font-headline text-3xl font-bold text-primary mb-1">100K+</p>
+            <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant mb-2">TFT Discord Members</p>
             <p className="text-on-surface-variant/60 text-xs">Active in the official Riot-partnered TFT community</p>
-          </div>
-          <div className="bg-surface-container rounded-xl border border-outline-variant p-6 text-center">
-            <p className="font-playfair text-3xl font-bold text-primary mb-1">$500K</p>
-            <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant mb-2">EWC 2026 Prize Pool</p>
+          </Panel>
+          <Panel elevation="elevated" radius="xl" padding="default" className="text-center">
+            <p className="font-headline text-3xl font-bold text-primary mb-1">$500K</p>
+            <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant mb-2">EWC 2026 Prize Pool</p>
             <p className="text-on-surface-variant/60 text-xs">TFT at its peak competitive moment</p>
-          </div>
-          <div className="bg-surface-container rounded-xl border border-outline-variant p-6 text-center">
-            <p className="font-playfair text-3xl font-bold text-primary mb-1">Top 50</p>
-            <p className="font-barlow text-xs tracking-widest uppercase text-on-surface-variant mb-2">Pro Player Network</p>
+          </Panel>
+          <Panel elevation="elevated" radius="xl" padding="default" className="text-center">
+            <p className="font-headline text-3xl font-bold text-primary mb-1">Top 50</p>
+            <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant mb-2">Pro Player Network</p>
             <p className="text-on-surface-variant/60 text-xs">Direct relationships with competitive players and creators</p>
-          </div>
+          </Panel>
         </div>
       </div>
 
       {/* ── FINAL CTA ── */}
-      <div className="rounded-xl bg-primary-container/40 border border-primary/20 p-8 md:p-12 text-center mb-4">
+      <Panel elevation="elevated" radius="xl" padding="spacious" className="border-primary/20 bg-primary-container/40 text-center mb-4">
         <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-5">
           <Icon name="handshake" className="text-on-primary text-2xl" />
         </div>
-        <h2 className="font-playfair text-3xl font-bold text-on-surface mb-3">Ready to Partner?</h2>
+        <h2 className="font-headline text-3xl font-bold text-on-surface mb-3">Ready to Partner?</h2>
         <p className="text-on-surface-variant max-w-lg mx-auto mb-8 leading-relaxed">
           The grassroots tier is where brand loyalty is built. Players remember who showed up before they went pro.
           Let us build something that works for both of us.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href="mailto:contact@tftclash.com"
-            className="inline-flex items-center justify-center gap-2 bg-primary text-on-primary rounded-xl px-8 py-3.5 font-barlow tracking-widest uppercase text-sm font-semibold hover:opacity-90 transition-opacity no-underline"
-          >
-            <Icon name="mail" className="text-base" />
+          <Btn variant="primary" size="lg" icon="mail" href="mailto:contact@tftclash.com">
             Email Us
-          </a>
-          <a
-            href="https://twitter.com/tftclash"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 bg-surface-container text-on-surface rounded-xl px-8 py-3.5 font-barlow tracking-widest uppercase text-sm font-semibold border border-outline-variant hover:border-primary/40 transition-colors no-underline"
-          >
-            <Icon name="open_in_new" className="text-base" />
+          </Btn>
+          <Btn variant="secondary" size="lg" icon="open_in_new" href="https://twitter.com/tftclash">
             Twitter / X
-          </a>
+          </Btn>
         </div>
-        <p className="text-on-surface-variant text-xs mt-6 font-barlow tracking-wider">
+        <p className="text-on-surface-variant text-xs mt-6 font-label tracking-wider">
           We respond to all partnership enquiries within 48 hours.
         </p>
-      </div>
+      </Panel>
 
     </PageLayout>
   )
