@@ -54,8 +54,8 @@ function PodiumCard({ player, rank, onClick }) {
     return (
       <div className="order-1 md:order-2 flex flex-col items-center -translate-y-8">
         <div className="relative group cursor-pointer mb-6" onClick={onClick}>
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-            <Icon name="workspace_premium" fill size={48} className="text-primary" />
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20">
+            <Icon name="emoji_events" fill size={52} className="text-primary drop-shadow-[0_2px_8px_rgba(255,206,120,0.6)]" />
           </div>
           <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center gold-glow-boss">
             <span className="font-headline text-5xl font-bold text-primary">{initial}</span>
