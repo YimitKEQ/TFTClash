@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Panel, Icon } from '../components/ui'
 import { PTS, DISCORD_URL } from '../lib/constants.js'
 
 var QUICK_FACTS = [
@@ -81,9 +81,9 @@ function ScoringTable() {
       <table className="w-full text-left">
         <thead>
           <tr className="border-b border-outline-variant/20">
-            <th className="py-4 font-condensed uppercase tracking-widest text-xs text-slate-500">Placement</th>
-            <th className="py-4 font-condensed uppercase tracking-widest text-xs text-slate-500">Points</th>
-            <th className="py-4 font-condensed uppercase tracking-widest text-xs text-slate-500">Bonus</th>
+            <th className="py-4 font-label uppercase tracking-widest text-xs text-slate-500">Placement</th>
+            <th className="py-4 font-label uppercase tracking-widest text-xs text-slate-500">Points</th>
+            <th className="py-4 font-label uppercase tracking-widest text-xs text-slate-500">Bonus</th>
           </tr>
         </thead>
         <tbody className="font-mono text-sm">
@@ -146,10 +146,10 @@ export default function RulesScreen() {
         {/* Header & Search */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <span className="font-condensed text-primary uppercase tracking-[0.2em] text-sm mb-2 block">
+            <span className="font-label text-primary uppercase tracking-[0.2em] text-sm mb-2 block">
               Handbook v4.2
             </span>
-            <h1 className="font-editorial text-5xl md:text-7xl text-on-surface">
+            <h1 className="font-headline text-5xl md:text-7xl font-bold text-on-surface">
               Rules &amp; Regulations
             </h1>
           </div>
@@ -162,7 +162,7 @@ export default function RulesScreen() {
               placeholder="SEARCH RULES..."
               value={search}
               onChange={function (e) { setSearch(e.target.value) }}
-              className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-condensed tracking-wider py-4 pl-12 pr-4 transition-all placeholder:text-slate-600 outline-none"
+              className="w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface font-label tracking-wider py-4 pl-12 pr-4 transition-all placeholder:text-slate-600 outline-none"
             />
           </div>
         </div>
@@ -171,23 +171,24 @@ export default function RulesScreen() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {QUICK_FACTS.map(function (fact) {
             return (
-              <div
+              <Panel
                 key={fact.label}
-                className="bg-surface-container-low p-8 relative overflow-hidden group"
+                padding="spacious"
+                className="relative overflow-hidden group"
               >
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none">
                   <Icon name={fact.icon} size={80} />
                 </div>
-                <h3 className="font-condensed text-primary uppercase tracking-widest text-xs mb-4">
+                <h3 className="font-label text-primary uppercase tracking-widest text-xs font-bold mb-4">
                   {fact.label}
                 </h3>
-                <p className="font-editorial text-2xl text-on-surface mb-2 leading-tight">
+                <p className="font-headline text-2xl font-bold text-on-surface mb-2 leading-tight">
                   {fact.title}
                 </p>
-                <p className="text-slate-400 text-sm leading-relaxed">
+                <p className="font-body text-slate-400 text-sm leading-relaxed">
                   {fact.desc}
                 </p>
-              </div>
+              </Panel>
             )
           })}
         </div>
@@ -198,7 +199,7 @@ export default function RulesScreen() {
           {/* Left: Accordions */}
           <div className="lg:col-span-7 space-y-4">
             {filtered.length === 0 && (
-              <div className="text-center py-10 text-sm text-slate-500">
+              <div className="text-center py-10 text-sm font-body text-slate-500">
                 {'No results for "' + search + '". Try a different search term.'}
               </div>
             )}
@@ -206,9 +207,10 @@ export default function RulesScreen() {
             {filtered.map(function (acc) {
               var isOpen = expanded === acc.id
               return (
-                <div
+                <Panel
                   key={acc.id}
-                  className={'bg-surface-container-low group' + (isOpen ? ' border-l-2 border-primary' : '')}
+                  padding="none"
+                  className={'group overflow-hidden' + (isOpen ? ' border-l-2 border-l-primary' : '')}
                 >
                   <button
                     onClick={function () { toggleSection(acc.id) }}
@@ -216,7 +218,7 @@ export default function RulesScreen() {
                   >
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-primary text-sm">{acc.num}</span>
-                      <span className="font-editorial text-xl">{acc.title}</span>
+                      <span className="font-headline text-xl font-bold text-on-surface">{acc.title}</span>
                     </div>
                     <span className={'transition-colors ' + (isOpen ? 'text-primary' : 'text-slate-500 group-hover:text-primary')}>
                       <Icon name={isOpen ? 'remove' : 'add'} size={20} />
@@ -224,7 +226,7 @@ export default function RulesScreen() {
                   </button>
 
                   {isOpen && (
-                    <div className="px-14 pb-6 text-slate-400 leading-relaxed text-sm">
+                    <div className="px-14 pb-6 font-body text-slate-400 leading-relaxed text-sm">
                       {acc.type === 'scoring' ? (
                         <ScoringTable />
                       ) : acc.id === 'tiebreakers' ? (
@@ -232,9 +234,7 @@ export default function RulesScreen() {
                           {TIEBREAKER_ITEMS.map(function (item, i) {
                             return (
                               <li key={item} className="flex items-start gap-3">
-                                <span
-                                  className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-xs font-bold font-condensed rounded bg-primary/[0.12] text-primary"
-                                >
+                                <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-xs font-label font-bold rounded bg-primary/[0.12] text-primary">
                                   {i + 1}
                                 </span>
                                 <span className="text-sm leading-relaxed pt-0.5">{item}</span>
@@ -247,7 +247,7 @@ export default function RulesScreen() {
                       )}
                     </div>
                   )}
-                </div>
+                </Panel>
               )
             })}
           </div>
@@ -255,11 +255,9 @@ export default function RulesScreen() {
           {/* Right: Sticky Cards */}
           <div className="lg:col-span-5 space-y-6">
 
-            {/* Need Assistance glass panel */}
-            <div
-              className="p-8 rounded-xl border border-white/5 bg-surface-container/60 backdrop-blur-2xl"
-            >
-              <h4 className="font-condensed text-secondary uppercase tracking-widest text-xs mb-6">
+            {/* Need Assistance panel */}
+            <Panel padding="spacious" radius="xl" glass>
+              <h4 className="font-label text-secondary uppercase tracking-widest text-xs font-bold mb-6">
                 Need Assistance?
               </h4>
               <div className="flex items-start gap-4 mb-6">
@@ -269,19 +267,14 @@ export default function RulesScreen() {
                   </span>
                 </div>
                 <div>
-                  <p className="font-editorial text-lg text-on-surface mb-1">Live Admin Support</p>
-                  <p className="text-sm text-slate-400">Reach us on Discord</p>
+                  <p className="font-headline text-lg font-bold text-on-surface mb-1">Live Admin Support</p>
+                  <p className="font-body text-sm text-slate-400">Reach us on Discord</p>
                 </div>
               </div>
-              <a
-                href={DISCORD_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[rgba(103,226,217,0.08)] border border-[rgba(103,226,217,0.2)] text-[#67E2D9] text-sm font-semibold transition-colors hover:bg-[rgba(103,226,217,0.12)] no-underline"
-              >
+              <Btn href={DISCORD_URL} variant="tertiary" size="sm" icon="discord">
                 Join Discord
-              </a>
-            </div>
+              </Btn>
+            </Panel>
 
           </div>
         </div>

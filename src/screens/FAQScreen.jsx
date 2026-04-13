@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
-import Icon from '../components/ui/Icon'
+import { Btn, Panel, Icon } from '../components/ui'
 import { FAQ_DATA, DISCORD_URL } from '../lib/constants.js'
 
 var CATEGORIES = FAQ_DATA.map(function (cat) {
@@ -55,6 +55,10 @@ export default function FAQScreen() {
     setOpenKey(null)
   }
 
+  function handleBackHome() {
+    navigate('/')
+  }
+
   var allItems = filteredData.reduce(function (acc, cat) {
     return acc.concat(cat.items.map(function (item) {
       return { item: item, catName: cat.cat }
@@ -66,7 +70,7 @@ export default function FAQScreen() {
 
       {/* Hero Header & Search */}
       <section className="text-center mb-16 mt-4">
-        <h1 className="text-5xl md:text-7xl font-editorial text-on-background mb-6 leading-tight">
+        <h1 className="text-5xl md:text-7xl font-headline font-bold text-on-background mb-6 leading-tight">
           {'How can we '}
           <span className="text-primary italic">assist</span>
           {' you?'}
@@ -97,7 +101,7 @@ export default function FAQScreen() {
                 key={cat}
                 onClick={function () { handleTabClick(cat) }}
                 className={
-                  'px-6 py-2 rounded-full font-condensed font-bold uppercase tracking-wider text-sm transition-all ' +
+                  'px-6 py-2 rounded-full font-label font-bold uppercase tracking-wider text-sm transition-all ' +
                   (isActive
                     ? 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20'
                     : 'bg-surface-container-high text-slate-400 hover:text-on-surface')
@@ -114,19 +118,22 @@ export default function FAQScreen() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* Left Column: Featured Card */}
-        <div className="lg:col-span-4 bg-surface-container-low p-8 flex flex-col justify-between border-l-2 border-primary">
+        <Panel
+          padding="spacious"
+          className="lg:col-span-4 flex flex-col justify-between border-l-2 border-l-primary"
+        >
           <div>
             <span className="text-primary font-mono text-xs uppercase tracking-[0.2em] mb-4 block">
               {FEATURED.label}
             </span>
-            <h3 className="text-2xl font-editorial leading-tight mb-4 text-on-surface">
+            <h3 className="text-2xl font-headline font-bold leading-tight mb-4 text-on-surface">
               {FEATURED.q}
             </h3>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-body">
               {FEATURED.a}
             </p>
           </div>
-          <div className="h-20 bg-surface-container-high flex items-center justify-center">
+          <div className="h-20 bg-surface-container-high flex items-center justify-center rounded">
             <div className="flex gap-3">
               {[1,2,3,4,5,6,7,8].map(function (place) {
                 var pts = [8,7,6,5,4,3,2,1][place - 1]
@@ -143,16 +150,16 @@ export default function FAQScreen() {
               })}
             </div>
           </div>
-        </div>
+        </Panel>
 
         {/* Right Column: Accordion List */}
         <div className="lg:col-span-8 space-y-3">
           {allItems.length === 0 && (
-            <div className="bg-surface-container-low p-8 text-center text-on-surface-variant font-body">
+            <Panel padding="spacious" className="text-center text-on-surface-variant font-body">
               {faqSearch
                 ? 'No results for "' + faqSearch + '". Try a different search term.'
                 : 'No questions in this category.'}
-            </div>
+            </Panel>
           )}
 
           {allItems.map(function (entry) {
@@ -160,15 +167,16 @@ export default function FAQScreen() {
             var key = entry.catName + '|' + item.q
             var isOpen = openKey === key
             return (
-              <div
+              <Panel
                 key={key}
-                className={'bg-surface-container-low group ' + (isOpen ? '' : 'hover:bg-surface-container transition-colors')}
+                padding="none"
+                className={'group overflow-hidden ' + (isOpen ? '' : 'hover:bg-surface-container transition-colors')}
               >
                 <button
                   onClick={function () { toggleItem(key) }}
                   className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
                 >
-                  <span className="text-xl font-editorial text-on-surface pr-4">
+                  <span className="text-xl font-headline font-bold text-on-surface pr-4">
                     {item.q}
                   </span>
                   <Icon
@@ -184,7 +192,7 @@ export default function FAQScreen() {
                     {item.a}
                   </div>
                 )}
-              </div>
+              </Panel>
             )
           })}
         </div>
@@ -192,10 +200,10 @@ export default function FAQScreen() {
 
       {/* CTA Banner */}
       <section className="mt-24 mb-12">
-        <div className="relative bg-surface-container-low p-12 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-white/5">
+        <Panel padding="none" className="relative overflow-hidden p-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-primary/5 rounded-full blur-[100px]"></div>
           <div className="relative z-10 max-w-xl">
-            <h2 className="text-3xl font-editorial mb-4 text-on-background">
+            <h2 className="text-3xl font-headline font-bold mb-4 text-on-background">
               {'Still need '}
               <span className="italic text-primary">human</span>
               {' support?'}
@@ -205,22 +213,14 @@ export default function FAQScreen() {
             </p>
           </div>
           <div className="relative z-10 flex gap-4 flex-wrap">
-            <a
-              href={DISCORD_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface inline-block"
-            >
+            <Btn href={DISCORD_URL} variant="secondary" size="lg">
               Join Discord
-            </a>
-            <button
-              onClick={function () { navigate('/') }}
-              className="bg-surface-variant/30 border border-outline-variant px-8 py-4 font-condensed font-bold uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95 text-on-surface"
-            >
+            </Btn>
+            <Btn variant="secondary" size="lg" onClick={handleBackHome}>
               Back to Home
-            </button>
+            </Btn>
           </div>
-        </div>
+        </Panel>
       </section>
 
       {/* Footer Stats */}
