@@ -7,6 +7,7 @@ import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import { activateSubscription, TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
+import SectionHeader from '../components/shared/SectionHeader.jsx'
 import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 
@@ -329,7 +330,7 @@ export default function AccountScreen() {
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Icon name="account_circle" size={48} className="text-on-surface/30 mb-4" />
           <h2 className="font-serif text-2xl text-on-surface mb-3">Sign in to view your account</h2>
-          <Btn v="primary" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
+          <Btn variant="primary" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
         </div>
       </PageLayout>
     );
@@ -347,7 +348,7 @@ export default function AccountScreen() {
     return (
       <PageLayout>
         <div className="max-w-md mx-auto px-8 py-24">
-          <Panel className="p-8">
+          <Panel padding="spacious">
             <div className="flex items-center gap-3 mb-6">
               <Icon name="lock_reset" size={28} className="text-primary" />
               <h2 className="font-serif text-2xl text-on-surface">Set New Password</h2>
@@ -357,7 +358,7 @@ export default function AccountScreen() {
             </p>
             <div className="space-y-4">
               <div>
-                <label className="font-condensed text-xs uppercase tracking-widest text-on-surface/70 block mb-2">New Password</label>
+                <label className="font-label text-xs uppercase tracking-widest text-on-surface/70 block mb-2">New Password</label>
                 <input
                   type="password"
                   value={newPw}
@@ -367,7 +368,7 @@ export default function AccountScreen() {
                 />
               </div>
               <div>
-                <label className="font-condensed text-xs uppercase tracking-widest text-on-surface/70 block mb-2">Confirm Password</label>
+                <label className="font-label text-xs uppercase tracking-widest text-on-surface/70 block mb-2">Confirm Password</label>
                 <input
                   type="password"
                   value={confirmPw}
@@ -377,15 +378,16 @@ export default function AccountScreen() {
                 />
               </div>
               {pwError && (
-                <p className="text-error text-xs font-condensed uppercase tracking-wide">{pwError}</p>
+                <p className="text-error text-xs font-label uppercase tracking-wide">{pwError}</p>
               )}
               <Btn
-                v="primary"
+                variant="primary"
                 onClick={handleSetNewPassword}
                 disabled={pwSaving}
+                loading={pwSaving}
                 className="w-full"
               >
-                {pwSaving ? 'Saving...' : 'Save New Password'}
+                {pwSaving ? 'Saving' : 'Save New Password'}
               </Btn>
             </div>
           </Panel>
@@ -409,23 +411,25 @@ export default function AccountScreen() {
             </div>
             <div className="flex items-center gap-3">
               {linkedPlayer && (
-                <button
+                <Btn
+                  variant="secondary"
+                  size="sm"
+                  icon="share"
                   onClick={function() {
                     shareToTwitter(buildShareText('profile', { name: user.username, rank: seasonRank, pts: linkedPlayer.pts }));
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-on-surface/70 hover:text-on-surface font-sans-cond text-xs uppercase tracking-widest transition-colors"
                 >
-                  <Icon name="share" size={16} />
                   Share
-                </button>
+                </Btn>
               )}
-              <button
+              <Btn
+                variant="destructive"
+                size="sm"
+                icon="logout"
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container border border-outline-variant/30 rounded text-error/70 hover:text-error font-sans-cond text-xs uppercase tracking-widest transition-colors"
               >
-                <Icon name="logout" size={16} />
                 Sign Out
-              </button>
+              </Btn>
             </div>
           </div>
         </header>
@@ -439,7 +443,7 @@ export default function AccountScreen() {
               <button
                 key={v}
                 onClick={function() { setTab(v); }}
-                className={'pb-4 border-b-2 font-sans-cond uppercase tracking-[0.2em] text-sm transition-colors ' + (tab === v ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface/40 hover:text-on-surface')}
+                className={'pb-4 border-b-2 font-label uppercase tracking-[0.2em] text-sm transition-colors ' + (tab === v ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface/40 hover:text-on-surface')}
               >
                 {l}
               </button>
@@ -459,25 +463,24 @@ export default function AccountScreen() {
             var isHost = subTier === 'host';
             var isPaid = subTier !== 'free';
             var accentClass = isHost ? 'text-tertiary' : 'text-primary';
-            var bgClass = isHost ? 'bg-tertiary/8 border-tertiary/30' : isPaid ? 'bg-primary/8 border-primary/30' : 'border-outline-variant/20 bg-surface-container-low';
             var iconBg = isHost ? 'bg-tertiary/20' : isPaid ? 'bg-primary/20' : 'bg-surface-container';
             var iconColor = isHost ? 'text-tertiary' : isPaid ? 'text-primary' : 'text-on-surface/40';
 
             return (
-              <div className={'flex items-center gap-4 p-4 rounded-lg border ' + bgClass}>
+              <Panel padding="tight" className="flex items-center gap-4">
                 <div className={'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ' + iconBg}>
                   <Icon name={tierIcons[subTier] || 'person'} size={20} className={iconColor} fill={true} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={'font-condensed font-bold uppercase tracking-widest text-sm ' + (isPaid ? accentClass : 'text-on-surface')}>
+                    <span className={'font-label font-bold uppercase tracking-widest text-sm ' + (isPaid ? accentClass : 'text-on-surface')}>
                       {tierNames[subTier] || 'Free Plan'}
                     </span>
                     {isPaid ? (
-                      <span className="bg-success/20 text-success rounded-full px-2 py-0.5 font-condensed text-[10px] font-bold uppercase tracking-widest">Active</span>
+                      <span className="bg-success/20 text-success rounded-full px-2 py-0.5 font-label text-[10px] font-bold uppercase tracking-widest">Active</span>
                     ) : null}
                     {subscription && subscription.cancel_at_period_end ? (
-                      <span className="bg-error/20 text-error rounded-full px-2 py-0.5 font-condensed text-[10px] font-bold uppercase tracking-widest">Cancels at period end</span>
+                      <span className="bg-error/20 text-error rounded-full px-2 py-0.5 font-label text-[10px] font-bold uppercase tracking-widest">Cancels at period end</span>
                     ) : null}
                   </div>
                   <p className="text-on-surface/50 text-xs font-body mt-0.5">
@@ -489,22 +492,21 @@ export default function AccountScreen() {
                     </p>
                   ) : null}
                 </div>
-                <button
+                <Btn
+                  variant={isPaid ? 'ghost' : 'primary'}
+                  size="sm"
                   onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
-                  className={isPaid
-                    ? 'flex-shrink-0 font-condensed text-xs uppercase tracking-widest text-on-surface/50 hover:text-on-surface transition-colors'
-                    : 'flex-shrink-0 bg-primary text-on-primary px-4 py-2 rounded font-condensed text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity'}
                 >
                   {isPaid ? 'Manage' : 'Upgrade'}
-                </button>
-              </div>
+                </Btn>
+              </Panel>
             );
           })()}
 
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 
             {/* Profile Identity Card */}
-            <section className="md:col-span-8 bg-surface-container-low rounded-lg p-8 relative overflow-hidden">
+            <Panel padding="spacious" className="md:col-span-8 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
               <div className="flex flex-col md:flex-row gap-8 items-start relative z-10">
 
@@ -579,18 +581,20 @@ export default function AccountScreen() {
                       {/* Username + Email row */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">
+                          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">
                             Username {usernameChanged && <span className="text-secondary/70">(locked)</span>}
                           </label>
                           {usernameChanged ? (
                             <div className="flex gap-2 items-center">
                               <div className="flex-1 bg-surface-container-lowest border-0 border-b border-outline-variant/30 p-3 text-on-surface/50 text-sm font-body">{user.username}</div>
-                              <button
+                              <Btn
+                                variant="secondary"
+                                size="sm"
+                                className="flex-shrink-0"
                                 onClick={function() { requestChange('username'); }}
-                                className="px-3 py-2 bg-surface-container border border-outline-variant/30 rounded font-sans-cond text-xs uppercase tracking-widest text-on-surface/60 hover:text-on-surface transition-colors flex-shrink-0"
                               >
                                 Request
-                              </button>
+                              </Btn>
                             </div>
                           ) : (
                             <div>
@@ -606,7 +610,7 @@ export default function AccountScreen() {
                           )}
                         </div>
                         <div className="space-y-1">
-                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Email Address</label>
+                          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Email Address</label>
                           <input
                             type="email"
                             value={user.email || ''}
@@ -618,7 +622,7 @@ export default function AccountScreen() {
 
                       {/* Bio */}
                       <div className="space-y-1">
-                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Bio / Tagline</label>
+                        <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Bio / Tagline</label>
                         <textarea
                           value={bio}
                           onChange={function(e) { setBio(e.target.value); }}
@@ -635,18 +639,18 @@ export default function AccountScreen() {
                       {/* Appearance - Pro only */}
                       <div className="pt-4 border-t border-outline-variant/10">
                         <div className="flex items-center gap-2 mb-4">
-                          <span className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface">Appearance</span>
+                          <span className="font-label text-xs font-bold uppercase tracking-widest text-on-surface">Appearance</span>
                           {isPro ? (
-                            <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 text-[9px] font-bold font-sans-cond uppercase">PRO</span>
+                            <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 text-[9px] font-bold font-label uppercase">PRO</span>
                           ) : (
-                            <span className="text-on-surface/30 text-xs font-sans-cond">(Pro feature)</span>
+                            <span className="text-on-surface/30 text-xs font-label">(Pro feature)</span>
                           )}
                         </div>
 
                         {isPro ? (
                           <div className="space-y-4">
                             <div className="space-y-2">
-                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Picture</label>
+                              <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Profile Picture</label>
                               <div className="flex items-center gap-4">
                                 <div
                                   className="w-16 h-16 rounded-lg border-2 border-outline-variant/30 flex-shrink-0 overflow-hidden flex items-center justify-center relative group cursor-pointer"
@@ -687,7 +691,7 @@ export default function AccountScreen() {
                                   </label>
                                 </div>
                                 <div className="flex-1 space-y-1">
-                                  <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/30">Or paste URL</label>
+                                  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/30">Or paste URL</label>
                                   <input
                                     type="text"
                                     value={profilePic}
@@ -699,11 +703,11 @@ export default function AccountScreen() {
                               </div>
                             </div>
                             <div className="space-y-2">
-                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Banner Image</label>
+                              <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Banner Image</label>
                               {bannerUrl && <div className="h-16 rounded border border-outline-variant/20" style={{ background: 'url(' + bannerUrl + ') center/cover' }} />}
                               <label className="flex items-center gap-3 bg-surface-container border border-outline-variant/20 rounded px-4 py-3 cursor-pointer hover:bg-surface-container-high transition-colors">
                                 <Icon name="photo_camera" size={18} className="text-on-surface/60" />
-                                <span className="font-sans-cond text-xs uppercase tracking-widest text-on-surface/60">Upload Banner</span>
+                                <span className="font-label text-xs uppercase tracking-widest text-on-surface/60">Upload Banner</span>
                                 <input
                                   type="file"
                                   accept="image/*"
@@ -725,7 +729,7 @@ export default function AccountScreen() {
                                 />
                               </label>
                               <div className="space-y-1">
-                                <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/30">Or paste URL</label>
+                                <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/30">Or paste URL</label>
                                 <input
                                   type="text"
                                   value={bannerUrl}
@@ -737,7 +741,7 @@ export default function AccountScreen() {
                               </div>
                             </div>
                             <div className="space-y-2">
-                              <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Profile Accent Color</label>
+                              <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Profile Accent Color</label>
                               <div className="flex gap-2 flex-wrap">
                                 {['', '#9B72CF', '#ffc66b', '#67e2d9', '#F87171', '#6EE7B7', '#60A5FA', '#FB923C', '#EC4899', '#8B5CF6'].map(function(clr) {
                                   var isActive = profileAccent === clr;
@@ -756,33 +760,37 @@ export default function AccountScreen() {
                           </div>
                         ) : (
                           <div className="bg-primary/5 border border-primary/20 border-dashed rounded-lg p-4 text-center">
-                            <div className="font-sans-cond text-sm font-bold text-primary mb-1">Unlock Profile Customization</div>
+                            <div className="font-label text-sm font-bold text-primary mb-1">Unlock Profile Customization</div>
                             <p className="text-on-surface/50 text-xs mb-3">Set a custom avatar, banner, and accent color.</p>
-                            <button
+                            <Btn
+                              variant="primary"
+                              size="sm"
                               onClick={function() { setScreen('pricing'); navigate('/pricing'); setEdit(false); }}
-                              className="bg-primary text-on-primary px-4 py-2 rounded font-sans-cond text-xs font-bold uppercase tracking-widest hover:opacity-90 transition-opacity"
                             >
                               Go Pro - EUR 4.99/mo
-                            </button>
+                            </Btn>
                           </div>
                         )}
                       </div>
 
                       {/* Save / Cancel */}
                       <div className="flex justify-end gap-3 pt-2">
-                        <button
+                        <Btn
+                          variant="secondary"
+                          size="sm"
                           onClick={function() { setEdit(false); }}
-                          className="px-6 py-2.5 bg-surface-container border border-outline-variant/30 rounded-full font-sans-cond text-xs uppercase tracking-widest text-on-surface/60 hover:text-on-surface transition-colors"
                         >
                           Cancel
-                        </button>
-                        <button
+                        </Btn>
+                        <Btn
+                          variant="primary"
+                          size="sm"
                           onClick={save}
                           disabled={profileSaving}
-                          className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-2.5 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all disabled:opacity-60"
+                          loading={profileSaving}
                         >
-                          {profileSaving ? 'Saving...' : 'Save Changes'}
-                        </button>
+                          {profileSaving ? 'Saving' : 'Save Changes'}
+                        </Btn>
                       </div>
                     </div>
                   ) : (
@@ -791,25 +799,25 @@ export default function AccountScreen() {
                       {/* Username + Email display */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Username</label>
+                          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Username</label>
                           <div className="flex items-center gap-2">
                             <p className="font-body text-on-surface text-sm p-3 border-b border-outline-variant/20 flex-1">{user.username}</p>
                             {isPro && (
-                              <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 font-sans-cond text-[9px] font-bold uppercase tracking-widest flex-shrink-0">
+                              <span className="bg-primary text-on-primary rounded-full px-2 py-0.5 font-label text-[9px] font-bold uppercase tracking-widest flex-shrink-0">
                                 {subTier === 'host' ? 'HOST' : subTier === 'bundle' ? 'PRO+SCRIM' : subTier === 'scrim' ? 'SCRIM' : 'PRO'}
                               </span>
                             )}
                           </div>
                         </div>
                         <div className="space-y-1">
-                          <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Email Address</label>
+                          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Email Address</label>
                           <p className="font-body text-on-surface/60 text-sm p-3 border-b border-outline-variant/20">{user.email}</p>
                         </div>
                       </div>
 
                       {/* Bio display */}
                       <div className="space-y-1">
-                        <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40">Bio / Tagline</label>
+                        <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Bio / Tagline</label>
                         {((user.user_metadata && user.user_metadata.bio) || user.bio) ? (
                           <p className="font-body text-on-surface text-sm p-3 border-b border-outline-variant/20 h-24 overflow-auto leading-relaxed">
                             {(user.user_metadata && user.user_metadata.bio) || user.bio}
@@ -826,7 +834,7 @@ export default function AccountScreen() {
                         <div className="flex items-start gap-3 p-3 bg-primary/5 border border-primary/20 rounded mt-2">
                           <Icon name="warning" size={18} className="text-primary flex-shrink-0 mt-0.5" />
                           <div>
-                            <div className="text-primary text-xs font-bold font-sans-cond uppercase tracking-widest mb-0.5">Set your Riot ID to join tournaments</div>
+                            <div className="text-primary text-xs font-bold font-label uppercase tracking-widest mb-0.5">Set your Riot ID to join tournaments</div>
                             <div className="text-on-surface/50 text-xs">You need a Riot ID to register for flash tournaments.</div>
                           </div>
                         </div>
@@ -834,43 +842,44 @@ export default function AccountScreen() {
 
                       {/* Subscription status */}
                       {subscription && subTier !== 'free' ? (
-                        <div className={'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-sans-cond border ' + (subTier === 'host' ? 'bg-tertiary/[0.12] border-tertiary/40 text-tertiary' : 'bg-primary/[0.12] border-primary/40 text-primary')}>
+                        <div className={'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-label border ' + (subTier === 'host' ? 'bg-tertiary/[0.12] border-tertiary/40 text-tertiary' : 'bg-primary/[0.12] border-primary/40 text-primary')}>
                           {subTier === 'host' ? 'Host' : subTier === 'bundle' ? 'Pro + Scrim' : subTier === 'scrim' ? 'Scrim Pass' : 'Pro'} - Active
                         </div>
                       ) : (
-                        <button
+                        <Btn
+                          variant="link"
                           onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full border border-primary/30 text-primary/70 hover:text-primary text-xs font-sans-cond uppercase tracking-widest transition-colors"
                         >
                           Upgrade
-                        </button>
+                        </Btn>
                       )}
 
                       {/* Edit button */}
                       <div className="flex justify-end">
-                        <button
+                        <Btn
+                          variant="secondary"
+                          size="sm"
+                          icon="edit"
                           onClick={function() { setEdit(true); }}
-                          className="flex items-center gap-1.5 px-5 py-2 bg-surface-variant/20 border border-outline-variant/30 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] hover:bg-surface-variant transition-colors"
                         >
-                          <Icon name="edit" size={16} />
                           Edit Profile
-                        </button>
+                        </Btn>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
-            </section>
+            </Panel>
 
             {/* Riot Accounts */}
-            <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8 flex flex-col justify-between border-l-4 border-tertiary">
+            <Panel padding="spacious" className="md:col-span-4 flex flex-col justify-between border-l-4 border-tertiary">
               <div>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Riot Accounts</h3>
+                  <h3 className="font-label text-sm font-bold uppercase tracking-widest">Riot Accounts</h3>
                   {riotIdSet ? (
-                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded font-sans-cond text-[10px] uppercase tracking-wider font-bold">Linked</span>
+                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded font-label text-[10px] uppercase tracking-wider font-bold">Linked</span>
                   ) : (
-                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded font-sans-cond text-[10px] uppercase tracking-wider">Not Linked</span>
+                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded font-label text-[10px] uppercase tracking-wider">Not Linked</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-4 mb-4">
@@ -883,24 +892,26 @@ export default function AccountScreen() {
                       {riotIdNa ? <div>{riotIdNa} <span className="text-primary text-[10px]">NA</span></div> : null}
                       {!riotIdEu && !riotIdNa ? <span className="text-on-surface/40">No Riot ID set</span> : null}
                     </div>
-                    <div className="text-[10px] font-sans-cond text-on-surface/40 uppercase mt-1">
+                    <div className="text-[10px] font-label text-on-surface/40 uppercase mt-1">
                       {linkedPlayer && linkedPlayer.rank ? linkedPlayer.rank : (riotIdSet ? 'Linked' : 'Required for tournaments')}
                     </div>
                   </div>
                 </div>
                 <p className="text-xs text-on-surface/60 font-body mb-6">Your Riot ID is required to register for tournaments. Set your EU and/or NA account.</p>
               </div>
-              <button
+              <Btn
+                variant={riotIdSet ? 'secondary' : 'tertiary'}
+                size="md"
+                className="w-full"
                 onClick={function() { setEdit(true); setTab('account'); }}
-                className={"w-full py-3 rounded-full font-sans-cond text-xs uppercase tracking-[0.15em] transition-colors " + (riotIdSet ? "bg-surface-variant/20 border border-outline-variant/30 hover:bg-surface-variant" : "bg-tertiary/10 border border-tertiary/30 text-tertiary hover:bg-tertiary/20")}
               >
                 {riotIdSet ? 'Update Riot ID' : 'Link Riot ID'}
-              </button>
-            </section>
+              </Btn>
+            </Panel>
 
             {/* Social Connections */}
-            <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8">
-              <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest mb-8">Social Connections</h3>
+            <Panel padding="spacious" className="md:col-span-4">
+              <h3 className="font-label text-sm font-bold uppercase tracking-widest mb-8">Social Connections</h3>
               <div className="space-y-4">
 
                 {/* Discord */}
@@ -911,11 +922,13 @@ export default function AccountScreen() {
                     </svg>
                     <div>
                       <span className="font-body text-sm text-on-surface">Discord</span>
-                      {discordName && <div className="font-sans-cond text-[10px] text-on-surface/40 uppercase">{discordName}</div>}
+                      {discordName && <div className="font-label text-[10px] text-on-surface/40 uppercase">{discordName}</div>}
                     </div>
                   </div>
                   {discordId ? (
-                    <button
+                    <Btn
+                      variant="link"
+                      className="text-error/70 hover:text-error hover:no-underline"
                       onClick={async function() {
                         if (!window.confirm('Disconnect Discord? You will need a password to log in.')) return;
                         try {
@@ -926,17 +939,16 @@ export default function AccountScreen() {
                           toast('Could not disconnect: ' + e.message, 'error');
                         }
                       }}
-                      className="text-error/60 hover:text-error font-sans-cond text-[10px] uppercase tracking-widest transition-colors"
                     >
                       Disconnect
-                    </button>
+                    </Btn>
                   ) : (
-                    <button
+                    <Btn
+                      variant="link"
                       onClick={async function() { await supabase.auth.linkIdentity({ provider: 'discord', options: { redirectTo: CANONICAL_ORIGIN + '#account' } }); }}
-                      className="text-primary font-sans-cond text-xs uppercase tracking-widest font-bold"
                     >
                       Connect
-                    </button>
+                    </Btn>
                   )}
                 </div>
 
@@ -947,7 +959,7 @@ export default function AccountScreen() {
                     <div>
                       <span className="font-body text-sm text-on-surface">Twitch</span>
                       {((user.user_metadata && user.user_metadata.twitch) || user.twitch) && (
-                        <div className="font-sans-cond text-[10px] text-on-surface/40 uppercase">{(user.user_metadata && user.user_metadata.twitch) || user.twitch}</div>
+                        <div className="font-label text-[10px] text-on-surface/40 uppercase">{(user.user_metadata && user.user_metadata.twitch) || user.twitch}</div>
                       )}
                     </div>
                   </div>
@@ -960,9 +972,9 @@ export default function AccountScreen() {
                       className="w-28 bg-surface-container border border-outline-variant/20 rounded px-2 py-1 text-xs text-on-surface font-body focus:border-primary focus:ring-0 transition-colors"
                     />
                   ) : (
-                    <button onClick={function() { setEdit(true); }} className="text-primary font-sans-cond text-xs uppercase tracking-widest font-bold">
+                    <Btn variant="link" onClick={function() { setEdit(true); }}>
                       {((user.user_metadata && user.user_metadata.twitch) || user.twitch) ? 'Edit' : 'Connect'}
-                    </button>
+                    </Btn>
                   )}
                 </div>
 
@@ -973,7 +985,7 @@ export default function AccountScreen() {
                     <div>
                       <span className="font-body text-sm text-on-surface">Twitter / X</span>
                       {((user.user_metadata && user.user_metadata.twitter) || user.twitter) && (
-                        <div className="font-sans-cond text-[10px] text-on-surface/40 uppercase">{'@' + ((user.user_metadata && user.user_metadata.twitter) || user.twitter)}</div>
+                        <div className="font-label text-[10px] text-on-surface/40 uppercase">{'@' + ((user.user_metadata && user.user_metadata.twitter) || user.twitter)}</div>
                       )}
                     </div>
                   </div>
@@ -986,18 +998,18 @@ export default function AccountScreen() {
                       className="w-28 bg-surface-container border border-outline-variant/20 rounded px-2 py-1 text-xs text-on-surface font-body focus:border-primary focus:ring-0 transition-colors"
                     />
                   ) : (
-                    <button onClick={function() { setEdit(true); }} className="text-primary font-sans-cond text-xs uppercase tracking-widest font-bold">
+                    <Btn variant="link" onClick={function() { setEdit(true); }}>
                       {((user.user_metadata && user.user_metadata.twitter) || user.twitter) ? 'Edit' : 'Connect'}
-                    </button>
+                    </Btn>
                   )}
                 </div>
 
               </div>
-            </section>
+            </Panel>
 
-            {/* Riot Accounts */}
-            <section className="md:col-span-4 bg-surface-container-low rounded-lg p-8">
-              <Panel className="mt-4">
+            {/* Riot Accounts (detailed) */}
+            <div className="md:col-span-4">
+              <Panel padding="none">
                 <div className="flex items-center gap-2 p-4 border-b border-white/[0.05]">
                   <Icon name="sports_esports" size={18} className="text-primary" />
                   <span className="font-label text-sm font-bold uppercase tracking-wide">Riot Accounts</span>
@@ -1039,23 +1051,25 @@ export default function AccountScreen() {
                   {riotIdError && <div className="text-[11px] text-error">{riotIdError}</div>}
 
                   <div className="flex justify-end pt-2">
-                    <button
+                    <Btn
+                      variant="primary"
+                      size="sm"
                       onClick={save}
                       disabled={profileSaving}
-                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2.5 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all disabled:opacity-60"
+                      loading={profileSaving}
                     >
-                      {profileSaving ? 'Saving...' : 'Save Riot IDs'}
-                    </button>
+                      {profileSaving ? 'Saving' : 'Save Riot IDs'}
+                    </Btn>
                   </div>
 
                 </div>
               </Panel>
-            </section>
+            </div>
 
             {/* Custom Banner */}
-            <section className="md:col-span-8 bg-surface-container-low rounded-lg p-8">
+            <Panel padding="spacious" className="md:col-span-8">
               <div className="flex justify-between items-center mb-8">
-                <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Custom Banner</h3>
+                <h3 className="font-label text-sm font-bold uppercase tracking-widest">Custom Banner</h3>
                 {isPro ? (
                   <span className="font-mono text-[10px] text-primary/60 uppercase">Premium Unlocks: Active</span>
                 ) : (
@@ -1073,7 +1087,7 @@ export default function AccountScreen() {
                         style={{ background: bannerUrl ? ('url(' + bannerUrl + ') center/cover') : ('linear-gradient(135deg,' + (profileAccent || rankColor) + '88,#13131a 80%)') }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
-                        <span className="font-sans-cond text-[10px] uppercase tracking-widest text-primary">Active Banner</span>
+                        <span className="font-label text-[10px] uppercase tracking-widest text-primary">Active Banner</span>
                       </div>
                       <div className="absolute top-2 right-2">
                         <Icon name="check_circle" size={16} fill={true} className="text-primary" />
@@ -1089,17 +1103,14 @@ export default function AccountScreen() {
                         <Icon name="lock" size={20} className="text-on-surface/20" />
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
-                        <span className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/20">Locked</span>
+                        <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/20">Locked</span>
                       </div>
                     </div>
                   </div>
                   <div className="mt-8 flex justify-end">
-                    <button
-                      onClick={save}
-                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all"
-                    >
+                    <Btn variant="primary" size="md" onClick={save}>
                       Save Changes
-                    </button>
+                    </Btn>
                   </div>
                 </div>
               ) : (
@@ -1118,7 +1129,7 @@ export default function AccountScreen() {
                               <Icon name="lock" size={20} className="text-on-surface/20" />
                             </div>
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
-                              <span className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/20">{item.label}</span>
+                              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/20">{item.label}</span>
                             </div>
                           </div>
                         );
@@ -1127,7 +1138,7 @@ export default function AccountScreen() {
                         <div key={item.label} className={'relative h-24 rounded-lg overflow-hidden border group ' + (item.active ? 'border-2 border-primary cursor-pointer' : 'border-outline-variant/20 cursor-pointer opacity-50')}>
                           <div className={'w-full h-full ' + (i === 0 ? 'bg-gradient-to-br from-[#1a2a3a] to-[#0e1f2f]' : 'bg-gradient-to-br from-[#2a1a3a] to-[#1a0e2f]')} />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
-                            <span className={'font-sans-cond text-[10px] uppercase tracking-widest ' + (item.active ? 'text-primary' : 'text-on-surface/60')}>{item.label}</span>
+                            <span className={'font-label text-[10px] uppercase tracking-widest ' + (item.active ? 'text-primary' : 'text-on-surface/60')}>{item.label}</span>
                           </div>
                           {item.active && (
                             <div className="absolute top-2 right-2">
@@ -1139,63 +1150,64 @@ export default function AccountScreen() {
                     })}
                   </div>
                   <div className="flex justify-end">
-                    <button
+                    <Btn
+                      variant="primary"
+                      size="md"
                       onClick={function() { setScreen('pricing'); navigate('/pricing'); }}
-                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3 rounded-full font-sans-cond font-bold uppercase tracking-widest text-xs hover:scale-[0.98] transition-all"
                     >
                       Go Pro to Unlock
-                    </button>
+                    </Btn>
                   </div>
                 </div>
               )}
-            </section>
+            </Panel>
 
             {/* Competitive Stats QuickView */}
             {linkedPlayer && s ? (
               <section className="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-primary/20">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Win Rate</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Win Rate</div>
                   <div className="font-mono text-3xl text-primary">{s.top1Rate + '%'}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-tertiary/20">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Top 4 Rate</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Top 4 Rate</div>
                   <div className="font-mono text-3xl text-tertiary">{s.top4Rate + '%'}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-secondary/20">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Clash Trophies</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Clash Trophies</div>
                   <div className="font-mono text-3xl text-secondary">{String(linkedPlayer.wins).padStart(2, '0')}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-on-surface/10">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Tournament LP</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Tournament LP</div>
                   <div className="font-mono text-3xl text-on-surface">{linkedPlayer.pts.toLocaleString()}</div>
                 </div>
               </section>
             ) : linkedPlayer ? (
               <section className="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-primary/20">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Clash Points</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Clash Points</div>
                   <div className="font-mono text-3xl text-primary">{linkedPlayer.pts}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-tertiary/20">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Total Wins</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Total Wins</div>
                   <div className="font-mono text-3xl text-tertiary">{linkedPlayer.wins}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-secondary/20">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Games</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Games</div>
                   <div className="font-mono text-3xl text-secondary">{linkedPlayer.games}</div>
                 </div>
                 <div className="bg-surface-container-high p-6 rounded-lg text-center border-b-2 border-on-surface/10">
-                  <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Rank</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-2">Rank</div>
                   <div className="font-mono text-xl text-on-surface">{linkedPlayer.rank || '-'}</div>
                 </div>
               </section>
             ) : null}
 
             {/* Notification Preferences */}
-            <section className="md:col-span-6 bg-surface-container-low rounded-lg p-8">
+            <Panel padding="spacious" className="md:col-span-6">
               <div className="flex items-center gap-2 mb-6">
                 <Icon name="notifications" size={20} className="text-primary" />
-                <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Notification Preferences</h3>
+                <h3 className="font-label text-sm font-bold uppercase tracking-widest">Notification Preferences</h3>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-outline-variant/10">
@@ -1223,17 +1235,17 @@ export default function AccountScreen() {
                   </button>
                 </div>
               </div>
-            </section>
+            </Panel>
 
             {/* Change Password */}
-            <section className="md:col-span-6 bg-surface-container-low rounded-lg p-8">
+            <Panel padding="spacious" className="md:col-span-6">
               <div className="flex items-center gap-2 mb-6">
                 <Icon name="lock_reset" size={20} className="text-primary" />
-                <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Change Password</h3>
+                <h3 className="font-label text-sm font-bold uppercase tracking-widest">Change Password</h3>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">New Password</label>
+                  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">New Password</label>
                   <input
                     type="password"
                     value={changePw}
@@ -1243,7 +1255,7 @@ export default function AccountScreen() {
                   />
                 </div>
                 <div>
-                  <label className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">Confirm Password</label>
+                  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 block mb-2">Confirm Password</label>
                   <input
                     type="password"
                     value={changePwConfirm}
@@ -1253,31 +1265,37 @@ export default function AccountScreen() {
                   />
                 </div>
                 {changePwError && (
-                  <p className="text-error text-xs font-sans-cond uppercase tracking-wide">{changePwError}</p>
+                  <p className="text-error text-xs font-label uppercase tracking-wide">{changePwError}</p>
                 )}
-                <button
+                <Btn
+                  variant="secondary"
+                  size="md"
+                  className="w-full"
                   onClick={handleChangePassword}
                   disabled={changePwSaving || !changePw}
-                  className="w-full bg-surface-container border border-outline-variant/30 rounded py-3 font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface hover:bg-surface-container-high transition-colors disabled:opacity-40"
+                  loading={changePwSaving}
                 >
-                  {changePwSaving ? 'Updating...' : 'Update Password'}
-                </button>
+                  {changePwSaving ? 'Updating' : 'Update Password'}
+                </Btn>
               </div>
-            </section>
+            </Panel>
 
             {/* Danger Zone */}
-            <section className="md:col-span-12">
-              <div className="bg-error/5 border border-error/20 rounded-lg p-5">
-                <div className="font-sans-cond text-xs font-bold uppercase tracking-widest text-error mb-1">Danger Zone</div>
+            <div className="md:col-span-12">
+              <Panel padding="tight" className="bg-error/5 border-error/20">
+                <div className="font-label text-xs font-bold uppercase tracking-widest text-error mb-1">Danger Zone</div>
                 <p className="text-on-surface/40 text-xs mb-3">Sign out of your account or permanently delete all your data.</p>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <button
+                  <Btn
+                    variant="secondary"
+                    size="sm"
                     onClick={handleLogout}
-                    className="px-4 py-2 bg-surface-container border border-outline-variant/30 rounded font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface/70 hover:text-on-surface transition-colors"
                   >
                     Sign Out
-                  </button>
-                  <button
+                  </Btn>
+                  <Btn
+                    variant="destructive"
+                    size="sm"
                     onClick={async function() {
                       if (!window.confirm('Delete your account permanently? This cannot be undone.')) return;
                       try {
@@ -1313,13 +1331,12 @@ export default function AccountScreen() {
                         navigate('/');
                       }
                     }}
-                    className="px-4 py-2 bg-error/10 border border-error/40 rounded font-sans-cond text-xs font-bold uppercase tracking-widest text-error hover:bg-error/20 transition-colors"
                   >
                     Delete Account
-                  </button>
+                  </Btn>
                 </div>
-              </div>
-            </section>
+              </Panel>
+            </div>
 
           </div>
           </div>
@@ -1336,7 +1353,7 @@ export default function AccountScreen() {
                     var n = myAchievements.filter(function(a) { return a.tier === tier; }).length;
                     if (!n) return null;
                     return (
-                      <span key={tier} className="px-3 py-0.5 rounded-full text-xs font-bold font-sans-cond uppercase" style={{ background: tierCols[tier] + '22', color: tierCols[tier], border: '1px solid ' + tierCols[tier] + '44' }}>
+                      <span key={tier} className="px-3 py-0.5 rounded-full text-xs font-bold font-label uppercase" style={{ background: tierCols[tier] + '22', color: tierCols[tier], border: '1px solid ' + tierCols[tier] + '44' }}>
                         {n} {tier}
                       </span>
                     );
@@ -1345,7 +1362,7 @@ export default function AccountScreen() {
 
                 {/* Milestones progress */}
                 <div className="mb-8">
-                  <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-4">Season Milestones</h3>
+                  <h3 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface mb-4">Season Milestones</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {MILESTONES.map(function(m) {
                       var reached = false;
@@ -1357,14 +1374,14 @@ export default function AccountScreen() {
                         >
                           <div className="flex items-center gap-2">
                             <span className={reached ? 'text-primary' : 'text-on-surface-variant'}><Icon name={reached ? 'emoji_events' : 'military_tech'} size={18} /></span>
-                            <span className={'font-sans-cond text-xs font-bold uppercase tracking-widest ' + (reached ? 'text-primary' : 'text-on-surface-variant')}>{m.name}</span>
+                            <span className={'font-label text-xs font-bold uppercase tracking-widest ' + (reached ? 'text-primary' : 'text-on-surface-variant')}>{m.name}</span>
                           </div>
                           {m.pts && (
                             <div className="font-mono text-xs text-on-surface/40">{m.pts + ' pts required'}</div>
                           )}
                           <div className="text-on-surface/50 text-xs font-body">{m.reward}</div>
                           {reached && (
-                            <div className="flex items-center gap-1 text-tertiary text-xs font-sans-cond uppercase tracking-widest">
+                            <div className="flex items-center gap-1 text-tertiary text-xs font-label uppercase tracking-widest">
                               <Icon name="check_circle" size={14} />
                               Reached
                             </div>
@@ -1376,7 +1393,7 @@ export default function AccountScreen() {
                 </div>
 
                 {/* Achievements */}
-                <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-4">Achievements</h3>
+                <h3 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface mb-4">Achievements</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {ACHIEVEMENTS.map(function(a) {
                     var unlocked = false;
@@ -1399,7 +1416,7 @@ export default function AccountScreen() {
                           style={{ color: unlocked ? col : '#9AAABF' }}
                         />
                         <div className="min-w-0">
-                          <div className="font-sans-cond text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : '#9AAABF' }}>{a.name}</div>
+                          <div className="font-label text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : '#9AAABF' }}>{a.name}</div>
                           <div className="text-on-surface/40 text-xs font-body mt-0.5">{a.desc}</div>
                         </div>
                         {unlocked && <Icon name="check_circle" size={16} fill={true} className="text-tertiary ml-auto flex-shrink-0" />}
@@ -1411,7 +1428,7 @@ export default function AccountScreen() {
             ) : (
               <div className="text-center py-16 text-on-surface/40">
                 <Icon name="military_tech" size={40} className="block mb-3" />
-                <p className="font-sans-cond uppercase tracking-widest text-xs">No player data linked yet.</p>
+                <p className="font-label uppercase tracking-widest text-xs">No player data linked yet.</p>
               </div>
             )}
           </div>
@@ -1428,7 +1445,7 @@ export default function AccountScreen() {
 
                 {/* Daily Challenges */}
                 <div className="mb-6">
-                  <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-3">Daily Challenges</h3>
+                  <h3 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface mb-3">Daily Challenges</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {DAILY_CHALLENGES.map(function(ch) {
                       var pct = ch.goal > 0 ? Math.min(100, Math.round((ch.progress / ch.goal) * 100)) : 0;
@@ -1441,7 +1458,7 @@ export default function AccountScreen() {
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <span className={done ? 'text-tertiary' : 'text-on-surface-variant'}><Icon name="bolt" size={16} /></span>
-                              <span className={'font-sans-cond text-xs font-bold uppercase tracking-widest ' + (done ? 'text-tertiary' : 'text-on-surface')}>{ch.name}</span>
+                              <span className={'font-label text-xs font-bold uppercase tracking-widest ' + (done ? 'text-tertiary' : 'text-on-surface')}>{ch.name}</span>
                             </div>
                             <span className="font-mono text-xs font-bold text-primary">{'+' + ch.xp + ' XP'}</span>
                           </div>
@@ -1449,7 +1466,7 @@ export default function AccountScreen() {
                           <div className="h-1 rounded-full bg-surface-container-highest">
                             <div className={'h-1 rounded-full transition-all ' + (done ? 'bg-tertiary' : 'bg-secondary')} style={{ width: pct + '%' }} />
                           </div>
-                          <div className="text-on-surface/30 text-[10px] font-sans-cond uppercase tracking-widest">
+                          <div className="text-on-surface/30 text-[10px] font-label uppercase tracking-widest">
                             {ch.progress + ' / ' + ch.goal}
                           </div>
                         </div>
@@ -1460,7 +1477,7 @@ export default function AccountScreen() {
 
                 {/* Weekly Challenges */}
                 <div className="mb-6">
-                  <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface mb-3">Weekly Challenges</h3>
+                  <h3 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface mb-3">Weekly Challenges</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {WEEKLY_CHALLENGES.map(function(ch) {
                       var pct = ch.goal > 0 ? Math.min(100, Math.round((ch.progress / ch.goal) * 100)) : 0;
@@ -1473,7 +1490,7 @@ export default function AccountScreen() {
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               <span className={done ? 'text-secondary' : 'text-on-surface-variant'}><Icon name="calendar_month" size={16} /></span>
-                              <span className={'font-sans-cond text-xs font-bold uppercase tracking-widest ' + (done ? 'text-secondary' : 'text-on-surface')}>{ch.name}</span>
+                              <span className={'font-label text-xs font-bold uppercase tracking-widest ' + (done ? 'text-secondary' : 'text-on-surface')}>{ch.name}</span>
                             </div>
                             <span className="font-mono text-xs font-bold text-primary">{'+' + ch.xp + ' XP'}</span>
                           </div>
@@ -1481,7 +1498,7 @@ export default function AccountScreen() {
                           <div className="h-1 rounded-full bg-surface-container-highest">
                             <div className={'h-1 rounded-full transition-all ' + (done ? 'bg-secondary' : 'bg-primary')} style={{ width: pct + '%' }} />
                           </div>
-                          <div className="text-on-surface/30 text-[10px] font-sans-cond uppercase tracking-widest">
+                          <div className="text-on-surface/30 text-[10px] font-label uppercase tracking-widest">
                             {ch.progress + ' / ' + ch.goal}
                           </div>
                         </div>
@@ -1505,7 +1522,7 @@ export default function AccountScreen() {
                     return (
                       <div key={item.l} className="bg-surface-container-high p-4 rounded-lg text-center">
                         <div className="font-mono text-2xl font-bold" style={{ color: item.c }}>{item.v}</div>
-                        <div className="font-sans-cond text-[10px] uppercase tracking-widest text-on-surface/40 mt-1">{item.l}</div>
+                        <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mt-1">{item.l}</div>
                       </div>
                     );
                   })}
@@ -1513,18 +1530,18 @@ export default function AccountScreen() {
 
                 {/* Sparkline */}
                 {linkedPlayer.sparkline && linkedPlayer.sparkline.length > 1 && (
-                  <div className="bg-surface-container-low rounded-lg p-5 mb-4">
-                    <div className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface/60 mb-3">Points Trend</div>
+                  <Panel padding="tight" className="mb-4">
+                    <div className="font-label text-xs font-bold uppercase tracking-widest text-on-surface/60 mb-3">Points Trend</div>
                     <Sparkline data={linkedPlayer.sparkline} color="#ffc66b" h={60} />
-                  </div>
+                  </Panel>
                 )}
 
                 <PlacementDistribution history={linkedPlayer.clashHistory || []} />
 
                 {/* Clash History */}
-                <div className="bg-surface-container-low rounded-lg overflow-hidden mt-4">
+                <Panel padding="none" className="overflow-hidden mt-4">
                   <div className="p-4 border-b border-outline-variant/10">
-                    <h3 className="font-sans-cond text-xs font-bold uppercase tracking-widest text-on-surface">Clash History</h3>
+                    <h3 className="font-label text-xs font-bold uppercase tracking-widest text-on-surface">Clash History</h3>
                   </div>
                   {(linkedPlayer.clashHistory || []).length > 0 ? (
                     (linkedPlayer.clashHistory || []).map(function(g, i) {
@@ -1551,14 +1568,14 @@ export default function AccountScreen() {
                       );
                     })
                   ) : (
-                    <div className="text-center py-10 text-on-surface/30 font-sans-cond text-xs uppercase tracking-widest">No clash history yet.</div>
+                    <div className="text-center py-10 text-on-surface/30 font-label text-xs uppercase tracking-widest">No clash history yet.</div>
                   )}
-                </div>
+                </Panel>
               </div>
             ) : (
               <div className="text-center py-16 text-on-surface/40">
                 <Icon name="sports_esports" size={40} className="block mb-3" />
-                <p className="font-sans-cond uppercase tracking-widest text-xs">No stats linked to your account yet.</p>
+                <p className="font-label uppercase tracking-widest text-xs">No stats linked to your account yet.</p>
                 <p className="text-on-surface/30 text-xs mt-2">Your account name must match a registered player.</p>
               </div>
             )}
