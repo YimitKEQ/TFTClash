@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Icon, Panel } from '../components/ui'
 import { TIER_PRICES, getSubscribeUrl, getDonateUrl } from '../lib/paypal'
 
 // ─── Feature lists per tier ─────────────────────────────────────────────────
@@ -131,22 +131,31 @@ function TierCard(props) {
   var isCurrent = currentTier === tier
   var subscribeUrl = currentUser ? getSubscribeUrl(tier, currentUser.auth_user_id || currentUser.id) : null
   var accentText = accent === 'tertiary' ? 'text-tertiary' : 'text-primary'
-  var accentBorder = accent === 'tertiary' ? 'border-tertiary/50' : 'border-primary'
-  var accentBg = accent === 'tertiary' ? 'bg-tertiary/10' : 'bg-primary/10'
+  var panelClass = 'relative flex flex-col transition-all hover:bg-surface-container'
+  if (highlighted) {
+    panelClass += ' ring-2 ring-primary/40 -mt-2 z-10'
+  }
+
+  function handleSignupClick() {
+    navigate(currentUser ? '/dashboard' : '/signup')
+  }
+  function handleApplyClick() {
+    navigate('/host/apply')
+  }
+  function handleSubscribeClick() {
+    navigate('/signup')
+  }
 
   return (
-    <div className={
-      'relative flex flex-col bg-surface-container-low p-6 rounded transition-all hover:bg-surface-container' +
-      (highlighted ? ' border-t-4 ' + accentBorder + ' ring-1 ring-primary/20 -mt-2 z-10' : ' border-t-2 border-outline-variant/20')
-    }>
+    <Panel padding="default" className={panelClass}>
       {highlighted ? (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 rounded-full font-sans font-bold text-[10px] tracking-tighter uppercase whitespace-nowrap">
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-on-primary px-4 py-1 rounded-full font-label font-bold text-[10px] tracking-tighter uppercase whitespace-nowrap">
           Best Value
         </div>
       ) : null}
 
       <div className="mb-6">
-        <span className={'font-sans uppercase tracking-widest text-xs font-bold ' + accentText}>
+        <span className={'font-label uppercase tracking-widest text-xs font-bold ' + accentText}>
           {subtitle}
         </span>
         <h3 className="font-serif text-3xl mt-1">{label}</h3>
@@ -169,7 +178,7 @@ function TierCard(props) {
         {features.map(function(f) {
           return (
             <div key={f.text} className={'flex items-start gap-2.5' + (f.dim ? ' opacity-50' : '')}>
-              <Icon name={f.icon} size={18} className={(f.highlight ? accentText : accentText) + ' shrink-0 mt-0.5'} />
+              <Icon name={f.icon} size={18} className={accentText + ' shrink-0 mt-0.5'} />
               <span className="text-sm leading-snug">{f.text}</span>
             </div>
           )
@@ -183,42 +192,33 @@ function TierCard(props) {
             Current Plan
           </div>
         ) : cta === 'signup' ? (
-          <button
-            onClick={function() { navigate(currentUser ? '/dashboard' : '/signup') }}
-            className="w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm bg-surface-variant/20 border border-outline-variant/15 hover:bg-surface-variant transition-all"
-          >
+          <Btn variant="secondary" size="xl" onClick={handleSignupClick}>
             Get Started
-          </button>
+          </Btn>
         ) : cta === 'apply' ? (
-          <button
-            onClick={function() { navigate('/host/apply') }}
-            className={'w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border border-tertiary/30 text-tertiary hover:bg-tertiary/20 transition-all'}
-          >
+          <Btn variant="tertiary" size="xl" onClick={handleApplyClick}>
             Apply Now
-          </button>
+          </Btn>
         ) : currentUser ? (
           subscribeUrl ? (
             <a
               href={subscribeUrl}
-              className={'w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm text-center block ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 py-5 text-sm min-h-[56px] bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-lg shadow-primary/10 hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] hover:scale-[1.02] active:scale-95"
             >
               Subscribe
             </a>
           ) : (
-            <div className="w-full py-3 text-center rounded-xl bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+            <div className="w-full py-3 text-center rounded-full bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-label font-semibold tracking-widest uppercase cursor-default select-none">
               Coming Soon
             </div>
           )
         ) : (
-          <button
-            onClick={function() { navigate('/signup') }}
-            className={'w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
-          >
+          <Btn variant="primary" size="xl" onClick={handleSubscribeClick}>
             Sign Up to Subscribe
-          </button>
+          </Btn>
         )}
       </div>
-    </div>
+    </Panel>
   )
 }
 
@@ -230,6 +230,9 @@ export default function PricingScreen() {
   var userTier = app.userTier || 'free'
   var navigate = useNavigate()
 
+  function handleHostApplyClick() {
+    navigate('/host/apply')
+  }
 
   return (
     <PageLayout showSidebar={false}>
@@ -240,7 +243,7 @@ export default function PricingScreen() {
           <h1 className="font-editorial italic text-5xl md:text-7xl mb-4 text-on-surface">
             Competing is always free.
           </h1>
-          <p className="font-sans text-sm uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">
+          <p className="font-label text-sm uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">
             Pro gives you the edge. Scrim Pass unlocks private practice. Host runs your league.
           </p>
         </header>
@@ -325,7 +328,7 @@ export default function PricingScreen() {
         </div>
 
         {/* Free-to-compete banner */}
-        <section className="mt-20 relative overflow-hidden rounded bg-surface-container-lowest p-10 border border-outline-variant/10 text-center">
+        <Panel padding="spacious" elevation="low" className="mt-20 relative overflow-hidden text-center">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
           <div className="relative z-10">
             <h2 className="font-display text-3xl mb-3 tracking-tighter">
@@ -350,12 +353,12 @@ export default function PricingScreen() {
               </div>
             </div>
           </div>
-        </section>
+        </Panel>
 
         {/* Donation Section */}
         {getDonateUrl() ? (
           <section className="mt-16 text-center">
-            <div className="inline-flex flex-col items-center bg-surface-container-low border border-outline-variant/10 rounded px-10 py-8 max-w-lg">
+            <Panel padding="spacious" className="inline-flex flex-col items-center max-w-lg">
               <Icon name="favorite" size={28} className="text-error mb-3" fill />
               <h3 className="font-serif text-2xl mb-2">Support TFT Clash</h3>
               <p className="text-sm text-on-surface-variant mb-6 max-w-sm">
@@ -365,7 +368,7 @@ export default function PricingScreen() {
                 href={getDonateUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-8 py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm hover:bg-primary/20 transition-all"
+                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest text-sm hover:bg-primary/20 transition-all"
               >
                 <Icon name="volunteer_activism" size={18} />
                 Donate via PayPal
@@ -373,7 +376,7 @@ export default function PricingScreen() {
               <p className="text-[10px] text-on-surface-variant/40 mt-3 font-mono uppercase tracking-widest">
                 Every contribution helps
               </p>
-            </div>
+            </Panel>
           </section>
         ) : null}
 
@@ -383,7 +386,7 @@ export default function PricingScreen() {
           <div className="w-full overflow-x-auto">
             <div className="min-w-[700px]">
               {/* Header */}
-              <div className="grid grid-cols-6 gap-2 pb-4 border-b border-outline-variant/20 font-sans uppercase tracking-[0.15em] text-[10px] text-on-surface-variant">
+              <div className="grid grid-cols-6 gap-2 pb-4 border-b border-outline-variant/20 font-label uppercase tracking-[0.15em] text-[10px] text-on-surface-variant">
                 <div>Feature</div>
                 <div className="text-center">Free</div>
                 <div className="text-center text-primary">Pro</div>
@@ -430,7 +433,7 @@ export default function PricingScreen() {
         {/* FAQ Section */}
         <section className="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12">
           <div>
-            <h4 className="font-sans uppercase tracking-widest text-xs text-primary mb-2">
+            <h4 className="font-label uppercase tracking-widest text-xs text-primary mb-2">
               Inquiries
             </h4>
             <h2 className="font-serif text-4xl mb-6">Frequently Asked Questions</h2>
@@ -440,22 +443,19 @@ export default function PricingScreen() {
             <div className="mt-8 flex gap-4 flex-wrap">
               <a
                 href="mailto:support@tftclash.com"
-                className="bg-surface-container-highest px-6 py-3 rounded-xl text-sm font-sans font-bold uppercase tracking-widest border border-outline-variant/20 hover:bg-surface-variant transition-colors"
+                className="inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 py-3 px-6 text-sm min-h-[44px] bg-surface-container-high text-on-surface border border-outline-variant/15 hover:bg-surface-container-highest"
               >
                 Email Support
               </a>
-              <button
-                onClick={function() { navigate('/host/apply') }}
-                className="bg-tertiary/10 border border-tertiary/30 text-tertiary px-6 py-3 rounded-xl text-sm font-sans font-bold uppercase tracking-widest hover:bg-tertiary/20 transition-colors"
-              >
+              <Btn variant="tertiary" size="md" onClick={handleHostApplyClick}>
                 Host Application
-              </button>
+              </Btn>
               {getDonateUrl() ? (
                 <a
                   href={getDonateUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-error/10 border border-error/30 text-error px-6 py-3 rounded-xl text-sm font-sans font-bold uppercase tracking-widest hover:bg-error/20 transition-colors inline-flex items-center gap-2"
+                  className="bg-error/10 border border-error/30 text-error px-6 py-3 rounded-full text-sm font-label font-bold uppercase tracking-widest hover:bg-error/20 transition-colors inline-flex items-center gap-2"
                 >
                   <Icon name="favorite" size={16} fill />
                   Donate
@@ -467,10 +467,10 @@ export default function PricingScreen() {
           <div className="space-y-4">
             {FAQ_ITEMS.map(function(item) {
               return (
-                <div key={item.q} className="p-5 bg-surface-container-low rounded">
+                <Panel key={item.q} padding="tight">
                   <h5 className="font-bold mb-2 text-sm">{item.q}</h5>
                   <p className="text-sm text-on-surface-variant">{item.a}</p>
-                </div>
+                </Panel>
               )
             })}
           </div>
