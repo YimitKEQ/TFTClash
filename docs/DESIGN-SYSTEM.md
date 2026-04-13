@@ -92,6 +92,15 @@ git grep -nE 'rounded-2xl\b' src/
 git grep -nE 'rounded-3xl\b' src/
 git grep -nE 'font-sans\b' src/screens/
 git grep -nE 'font-condensed\b' src/screens/
+git grep -nE 'font-sans-condensed\b' src/screens/
+git grep -nE 'font-sans-cond\b' src/screens/
+git grep -nE 'font-technical\b' src/screens/
+git grep -nE 'font-stats\b' src/screens/
+git grep -nE 'font-nav\b' src/screens/
+
+# Zero matches — these are not defined in tailwind.config.js and produce no CSS:
+git grep -nE 'font-barlow\b' src/
+git grep -nE 'font-playfair\b' src/
 
 # Fewer than 5 matches (only justified inline buttons):
 git grep -n '<button className' src/screens/
