@@ -6,6 +6,7 @@ import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/util
 import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Badge, Tag, StatCard } from '../components/ui'
+import SectionHeader from '../components/shared/SectionHeader.jsx'
 import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 import { supabase } from '../lib/supabase'
@@ -16,8 +17,8 @@ function RateBar({ label, value, color }) {
   return (
     <div className="mb-3">
       <div className="flex justify-between mb-1">
-        <span className="text-xs font-technical text-on-surface/60">{label}</span>
-        <span className="font-stats text-xs font-bold" style={{ color: color }}>{value}</span>
+        <span className="text-xs font-label text-on-surface/60">{label}</span>
+        <span className="font-mono text-xs font-bold" style={{ color: color }}>{value}</span>
       </div>
       <div className="h-1 rounded-full bg-surface-container-high overflow-hidden">
         <div className="h-full rounded-t-sm" style={{ width: pct + '%', backgroundColor: color, transition: 'width 0.5s' }} />
@@ -39,7 +40,7 @@ function renderSparklineSvg(clashHistory) {
   var hist = (clashHistory || []).slice().reverse();
   if (hist.length < 2) {
     return (
-      <div className="flex items-center justify-center h-full text-on-surface/20 font-technical text-xs uppercase tracking-widest">
+      <div className="flex items-center justify-center h-full text-on-surface/20 font-label text-xs uppercase tracking-widest">
         Not enough data
       </div>
     );
@@ -100,28 +101,28 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
           <span className={'font-display text-xl ' + (place === 1 ? 'text-tertiary' : place <= 4 ? 'text-tertiary' : 'text-on-surface-variant') + (isDropped ? ' line-through' : '')}>
             {place}
           </span>
-          <span className={'font-technical text-[8px] -mt-1 uppercase ' + (place === 1 ? 'text-tertiary/60' : 'text-white/20')}>
+          <span className={'font-label text-[8px] -mt-1 uppercase ' + (place === 1 ? 'text-tertiary/60' : 'text-white/20')}>
             {typeof place === 'number' ? ordinalSuffix(place) : ''}
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
-          <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
+          <div className="font-label font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
+          <div className="font-label text-xs text-on-surface/40">{g.date || ''}</div>
           <div className="flex gap-1 flex-wrap mt-1">
-            {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-secondary/15 text-secondary-container border border-secondary/30">Clutch</span>}
-            {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-on-surface/10 text-on-surface-variant border border-on-surface/20">Dropped</span>}
-            {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-tertiary/10 text-tertiary border border-tertiary/25">Comeback +2</span>}
-            {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/25">{g.attendanceMilestone + '-Streak Bonus'}</span>}
+            {g.claimedClutch && <span className="font-label text-[10px] px-2 py-0.5 rounded bg-secondary/15 text-secondary-container border border-secondary/30">Clutch</span>}
+            {isDropped && <span className="font-label text-[10px] px-2 py-0.5 rounded bg-on-surface/10 text-on-surface-variant border border-on-surface/20">Dropped</span>}
+            {g.comebackTriggered && <span className="font-label text-[10px] px-2 py-0.5 rounded bg-tertiary/10 text-tertiary border border-tertiary/25">Comeback +2</span>}
+            {g.attendanceMilestone && <span className="font-label text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/25">{g.attendanceMilestone + '-Streak Bonus'}</span>}
           </div>
         </div>
         <div className="text-right flex-shrink-0">
-          <div className={'font-stats text-base font-bold ' + (isDropped ? 'text-on-surface-variant line-through' : 'text-primary')}>
+          <div className={'font-mono text-base font-bold ' + (isDropped ? 'text-on-surface-variant line-through' : 'text-primary')}>
             {'+' + g.pts + 'pts'}
           </div>
           {(g.bonusPts || 0) > 0 && !isDropped && (
-            <div className="font-stats text-xs text-emerald-400">{'+' + g.bonusPts + ' bonus'}</div>
+            <div className="font-mono text-xs text-emerald-400">{'+' + g.bonusPts + ' bonus'}</div>
           )}
-          <div className="font-technical text-[10px] text-on-surface/40 uppercase">
+          <div className="font-label text-[10px] text-on-surface/40 uppercase">
             {place === 1 ? 'Champion' : place <= 4 ? 'Top 4' : 'Bot 4'}
           </div>
         </div>
@@ -157,8 +158,8 @@ function renderDeepScoreCards(deepStats, deepGr) {
   ];
   return scoreCards.map(function(sc) {
     return (
-      <div key={sc.label} className="bg-surface-container p-3 rounded-lg">
-        <div className="font-technical text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{sc.label}</div>
+      <div key={sc.label} className="bg-surface-container-high p-3 rounded border border-outline-variant/10">
+        <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{sc.label}</div>
         <div className={'font-display text-xl font-bold ' + sc.color}>{sc.value}<span className="text-sm text-on-surface/30 ml-0.5">{sc.suffix}</span></div>
       </div>
     );
@@ -179,11 +180,11 @@ function renderDeepPlacementBars(deepGr) {
     var color = barColors[n - 1];
     return (
       <div key={n} className="flex items-center gap-3 mb-2">
-        <span className="font-technical text-xs text-on-surface/50 w-6 text-right shrink-0">{'#' + n}</span>
+        <span className="font-label text-xs text-on-surface/50 w-6 text-right shrink-0">{'#' + n}</span>
         <div className="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
           <div className="h-full rounded-full transition-all" style={{ width: pct + '%', backgroundColor: color }} />
         </div>
-        <span className="font-stats text-xs text-on-surface/60 w-8 text-right shrink-0">{pct + '%'}</span>
+        <span className="font-mono text-xs text-on-surface/60 w-8 text-right shrink-0">{pct + '%'}</span>
       </div>
     );
   });
@@ -398,12 +399,12 @@ export default function PlayerProfileScreen() {
               {!pPic && player.name.charAt(0)}
             </div>
             {isChampion && (
-              <div className="absolute -bottom-2 right-4 z-20 bg-primary text-on-primary-fixed font-technical font-bold px-3 py-1 rounded-full text-xs tracking-tighter">
+              <div className="absolute -bottom-2 right-4 z-20 bg-primary text-on-primary-fixed font-label font-bold px-3 py-1 rounded-full text-xs tracking-tighter">
                 CHAMPION
               </div>
             )}
             {!isChampion && s.games > 0 && (
-              <div className="absolute -bottom-2 right-4 z-20 bg-primary text-on-primary-fixed font-technical font-bold px-3 py-1 rounded-full text-xs tracking-tighter">
+              <div className="absolute -bottom-2 right-4 z-20 bg-primary text-on-primary-fixed font-label font-bold px-3 py-1 rounded-full text-xs tracking-tighter">
                 {'LVL ' + Math.max(1, s.games)}
               </div>
             )}
@@ -413,12 +414,12 @@ export default function PlayerProfileScreen() {
             <div className="flex items-center gap-4 mb-1 flex-wrap">
               <h1 className="text-3xl sm:text-5xl font-editorial text-on-surface">{player.name}</h1>
               {player.rank && (
-                <div className="bg-tertiary/10 text-tertiary px-3 py-1 rounded font-technical text-xs tracking-widest border border-tertiary/20">
+                <div className="bg-tertiary/10 text-tertiary px-3 py-1 rounded font-label text-xs tracking-widest border border-tertiary/20">
                   {player.rank.toUpperCase()}
                 </div>
               )}
               {isChampion && (
-                <div className="bg-primary/10 text-primary px-3 py-1 rounded font-technical text-xs tracking-widest border border-primary/20">
+                <div className="bg-primary/10 text-primary px-3 py-1 rounded font-label text-xs tracking-widest border border-primary/20">
                   {champion.title.toUpperCase()}
                 </div>
               )}
@@ -426,7 +427,7 @@ export default function PlayerProfileScreen() {
                 var badgeLabels = { pro: 'PRO', scrim: 'SCRIM', bundle: 'PRO+SCRIM', host: 'HOST' };
                 var isHostTier = profileSubTier === 'host';
                 return (
-                  <div className={(isHostTier ? 'bg-tertiary/10 text-tertiary border-tertiary/20' : 'bg-primary/10 text-primary border-primary/20') + ' px-3 py-1 rounded font-technical text-xs tracking-widest border flex items-center gap-1.5'}>
+                  <div className={(isHostTier ? 'bg-tertiary/10 text-tertiary border-tertiary/20' : 'bg-primary/10 text-primary border-primary/20') + ' px-3 py-1 rounded font-label text-xs tracking-widest border flex items-center gap-1.5'}>
                     <Icon name={isHostTier ? 'shield_person' : 'verified'} size={14} fill />
                     {badgeLabels[profileSubTier] || profileSubTier.toUpperCase()}
                   </div>
@@ -447,48 +448,37 @@ export default function PlayerProfileScreen() {
                 {'Season ' + (seasonConfig && seasonConfig.season ? seasonConfig.season : '1') + ' competitor.'}
               </p>
             )}
-            <div className="flex gap-4 mt-2 flex-wrap">
-              <button
-                className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
-                onClick={handleShare}
-              >
-                <Icon className="text-lg">share</Icon>
-                <span className="font-technical text-xs tracking-widest uppercase">Share</span>
-              </button>
+            <div className="flex gap-3 mt-2 flex-wrap">
+              <Btn variant="secondary" size="sm" icon="share" onClick={handleShare}>
+                Share
+              </Btn>
               {!isOwnProfile && (
-                <button
-                  className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
+                <Btn
+                  variant="secondary"
+                  size="sm"
+                  icon="person_add"
                   onClick={function() {
                     navigate('/standings');
                     if (toast) toast('View full rankings on the Standings page', 'info');
                   }}
                 >
-                  <Icon className="text-lg">person_add</Icon>
-                  <span className="font-technical text-xs tracking-widest uppercase">Compare</span>
-                </button>
+                  Compare
+                </Btn>
               )}
               {isOwnProfile && (
-                <button
-                  className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
-                  onClick={function() { navigate('/account'); }}
-                >
-                  <Icon className="text-lg">edit</Icon>
-                  <span className="font-technical text-xs tracking-widest uppercase">Edit Profile</span>
-                </button>
+                <Btn variant="secondary" size="sm" icon="edit" onClick={function() { navigate('/account'); }}>
+                  Edit Profile
+                </Btn>
               )}
-              <button
-                className="flex items-center gap-2 text-on-surface/60 hover:text-primary transition-colors"
-                onClick={downloadStatsCard}
-              >
-                <Icon className="text-lg">download</Icon>
-                <span className="font-technical text-xs tracking-widest uppercase">Download Card</span>
-              </button>
+              <Btn variant="secondary" size="sm" icon="download" onClick={downloadStatsCard}>
+                Download Card
+              </Btn>
             </div>
           </div>
 
           {/* Regional Rank */}
           <div className="hidden lg:flex flex-col items-end gap-2 mb-2">
-            <span className="font-technical text-on-surface/40 uppercase text-xs tracking-[0.2em]">Regional Rank</span>
+            <span className="font-label text-on-surface/40 uppercase text-xs tracking-[0.2em]">Regional Rank</span>
             <span className="text-4xl font-display text-primary tracking-tighter">
               {'#' + (seasonRank < 10 ? '0' + seasonRank : seasonRank)}
             </span>
@@ -499,54 +489,54 @@ export default function PlayerProfileScreen() {
       {/* 4-Column Stat Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {/* Stat 1: Total LP Points */}
-        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group hover:bg-surface-container transition-colors">
+        <Panel className="relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Icon className="text-6xl">military_tech</Icon>
           </div>
-          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Total Pts</span>
+          <span className="font-label text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Total Pts</span>
           <div className="flex items-end gap-2 flex-wrap">
-            <span className="text-3xl sm:text-4xl font-stats text-on-surface font-bold">{player.pts}</span>
+            <span className="text-3xl sm:text-4xl font-mono text-on-surface font-bold">{player.pts}</span>
             {ppg > 0 && (
-              <span className="text-primary text-sm font-stats mb-1">{'+' + ppg + ' PPG'}</span>
+              <span className="text-primary text-sm font-mono mb-1">{'+' + ppg + ' PPG'}</span>
             )}
           </div>
-        </div>
+        </Panel>
 
         {/* Stat 2: Total Wins */}
-        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group hover:bg-surface-container transition-colors">
+        <Panel className="relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Icon className="text-6xl">workspace_premium</Icon>
           </div>
-          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Wins</span>
+          <span className="font-label text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Wins</span>
           <div className="flex items-end gap-2 flex-wrap">
-            <span className="text-3xl sm:text-4xl font-stats text-on-surface font-bold">{s.wins}</span>
-            <span className="text-on-surface/40 text-sm font-stats mb-1">{'/ ' + s.games}</span>
+            <span className="text-3xl sm:text-4xl font-mono text-on-surface font-bold">{s.wins}</span>
+            <span className="text-on-surface/40 text-sm font-mono mb-1">{'/ ' + s.games}</span>
           </div>
-        </div>
+        </Panel>
 
         {/* Stat 3: Avg Placement */}
-        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group hover:bg-surface-container transition-colors">
+        <Panel className="relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <Icon className="text-6xl">analytics</Icon>
           </div>
-          <span className="font-technical text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Avg Place</span>
+          <span className="font-label text-on-surface/40 uppercase text-xs tracking-widest mb-3 block">Avg Place</span>
           <div className="flex items-end gap-2">
-            <span className="text-3xl sm:text-4xl font-stats text-on-surface font-bold">{s.avgPlacement}</span>
+            <span className="text-3xl sm:text-4xl font-mono text-on-surface font-bold">{s.avgPlacement}</span>
             <div className="w-8 h-1 bg-tertiary rounded-full mb-3"></div>
           </div>
-        </div>
+        </Panel>
 
         {/* Stat 4: Win Streak */}
-        <div className="bg-surface-container-low p-4 sm:p-6 rounded-lg relative overflow-hidden group border-b-2 border-primary/20 hover:bg-surface-container transition-colors">
+        <Panel accent="gold" className="relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <Icon className="text-primary text-6xl">local_fire_department</Icon>
           </div>
-          <span className="font-technical text-primary uppercase text-xs tracking-widest mb-3 block">Streak</span>
+          <span className="font-label text-primary uppercase text-xs tracking-widest mb-3 block">Streak</span>
           <div className="flex items-end gap-2">
-            <span className="text-3xl sm:text-4xl font-stats text-primary font-bold">{player.currentStreak || 0}</span>
-            <span className="text-primary/60 text-xs font-technical uppercase tracking-widest mb-1">Wins</span>
+            <span className="text-3xl sm:text-4xl font-mono text-primary font-bold">{player.currentStreak || 0}</span>
+            <span className="text-primary/60 text-xs font-label uppercase tracking-widest mb-1">Wins</span>
           </div>
-        </div>
+        </Panel>
       </div>
 
       {/* Tabs */}
@@ -558,7 +548,7 @@ export default function PlayerProfileScreen() {
             <button
               key={t}
               onClick={function() { setTab(t); }}
-              className={'flex-shrink-0 px-4 sm:px-5 py-3 min-h-[44px] font-technical text-xs uppercase tracking-widest transition-all ' + (isActive ? 'text-primary border-b-2 border-primary -mb-px' : 'text-on-surface/40 hover:text-on-surface')}
+              className={'flex-shrink-0 px-4 sm:px-5 py-3 min-h-[44px] font-label text-xs uppercase tracking-widest transition-all ' + (isActive ? 'text-primary border-b-2 border-primary -mb-px' : 'text-on-surface/40 hover:text-on-surface')}
             >
               {label}
             </button>
@@ -578,7 +568,7 @@ export default function PlayerProfileScreen() {
                 <div className="font-bold text-sm text-primary">{champion.title}</div>
                 <div className="text-xs text-on-surface/60">{'Reigning champion since ' + champion.since}</div>
               </div>
-              <div className="bg-primary/10 text-primary px-3 py-1 rounded font-technical text-xs tracking-widest border border-primary/20">
+              <div className="bg-primary/10 text-primary px-3 py-1 rounded font-label text-xs tracking-widest border border-primary/20">
                 {'SEASON ' + champion.season}
               </div>
             </div>
@@ -605,52 +595,52 @@ export default function PlayerProfileScreen() {
           {/* Visual Analytics Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Placement Distribution */}
-            <div className="lg:col-span-1 bg-surface-container-low p-8 rounded-lg">
+            <Panel padding="spacious" className="lg:col-span-1">
               <PlacementDistribution history={player.clashHistory || []} />
-            </div>
+            </Panel>
 
             {/* Season Trajectory Sparkline */}
-            <div className="lg:col-span-2 bg-surface-container-low p-8 rounded-lg overflow-hidden relative">
+            <Panel padding="spacious" className="lg:col-span-2 overflow-hidden relative">
               <div className="flex justify-between items-center mb-8 relative z-10">
-                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Season Trajectory</h3>
+                <h3 className="font-label text-on-surface uppercase text-sm tracking-widest">Season Trajectory</h3>
                 <div className="flex gap-4 items-center">
-                  <span className="font-stats text-xs text-primary">
+                  <span className="font-mono text-xs text-primary">
                     {player.rank ? player.rank.toUpperCase() : 'UNRANKED'}
                   </span>
                   <Icon className="text-primary text-xs">arrow_forward</Icon>
-                  <span className="font-stats text-xs text-primary">{'#' + seasonRank}</span>
+                  <span className="font-mono text-xs text-primary">{'#' + seasonRank}</span>
                 </div>
               </div>
               {/* SVG Sparkline */}
               <div className="relative h-48 w-full mt-4">
                 {renderSparklineSvg(player.clashHistory)}
                 <div className="absolute bottom-0 left-0 w-full flex justify-between px-2 pt-4 border-t border-outline-variant/10">
-                  <span className="font-technical text-[10px] text-on-surface/20">WEEK 1</span>
-                  <span className="font-technical text-[10px] text-on-surface/20">WEEK 4</span>
-                  <span className="font-technical text-[10px] text-on-surface/20">WEEK 8</span>
-                  <span className="font-technical text-[10px] text-primary">PRESENT</span>
+                  <span className="font-label text-[10px] text-on-surface/20">WEEK 1</span>
+                  <span className="font-label text-[10px] text-on-surface/20">WEEK 4</span>
+                  <span className="font-label text-[10px] text-on-surface/20">WEEK 8</span>
+                  <span className="font-label text-[10px] text-primary">PRESENT</span>
                 </div>
               </div>
-            </div>
+            </Panel>
           </div>
 
           {/* Career Stats + Rates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Career Stats */}
-            <div className="bg-surface-container-low p-8 rounded-lg">
-              <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Career Stats</h3>
+            <Panel padding="spacious">
+              <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-6">Career Stats</h3>
               <div className="rounded-lg p-4 mb-6 bg-primary/[0.05] border border-primary/15">
-                <div className="text-[10px] font-technical text-on-surface/40 uppercase tracking-widest mb-3">Average Placement</div>
+                <div className="text-[10px] font-label text-on-surface/40 uppercase tracking-widest mb-3">Average Placement</div>
                 <div className="flex gap-6 flex-wrap">
                   <div className="flex-1">
-                    <div className="text-xs font-technical text-on-surface/60 mb-1">Career AVP</div>
-                    <div className="font-stats text-2xl font-bold leading-tight" style={{ color: avgCol(s.avgPlacement) }}>{s.avgPlacement}</div>
+                    <div className="text-xs font-label text-on-surface/60 mb-1">Career AVP</div>
+                    <div className="font-mono text-2xl font-bold leading-tight" style={{ color: avgCol(s.avgPlacement) }}>{s.avgPlacement}</div>
                     <div className="text-[10px] text-on-surface/40 mt-1">all games - lower is better</div>
                   </div>
                   {s.perClashAvp && (
                     <div className="flex-1 pl-4 border-l border-on-surface/10">
-                      <div className="text-xs font-technical text-on-surface/60 mb-1">Per-Clash AVP</div>
-                      <div className="font-stats text-2xl font-bold leading-tight" style={{ color: avgCol(s.perClashAvp) }}>{s.perClashAvp}</div>
+                      <div className="text-xs font-label text-on-surface/60 mb-1">Per-Clash AVP</div>
+                      <div className="font-mono text-2xl font-bold leading-tight" style={{ color: avgCol(s.perClashAvp) }}>{s.perClashAvp}</div>
                       <div className="text-[10px] text-on-surface/40 mt-1">avg within each event</div>
                     </div>
                   )}
@@ -669,42 +659,42 @@ export default function PlayerProfileScreen() {
               ].map(function(row) {
                 return (
                   <div key={row[0]} className="flex justify-between items-center py-2 border-b border-on-surface/5">
-                    <span className="font-technical text-sm text-on-surface/60">{row[0]}</span>
-                    <span className="font-stats text-sm font-bold" style={{ color: row[2] }}>{row[1]}</span>
+                    <span className="font-label text-sm text-on-surface/60">{row[0]}</span>
+                    <span className="font-mono text-sm font-bold" style={{ color: row[2] }}>{row[1]}</span>
                   </div>
                 );
               })}
-            </div>
+            </Panel>
 
             {/* Rates + Season Standing */}
             <div className="space-y-6">
-              <div className="bg-surface-container-low p-8 rounded-lg">
-                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Performance Rates</h3>
+              <Panel padding="spacious">
+                <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-6">Performance Rates</h3>
                 <RateBar label="Top 1%" value={s.top1Rate + '%'} color="#E8A838" />
                 <RateBar label="Top 4%" value={s.top4Rate + '%'} color="#4ECDC4" />
                 <RateBar label="Bot 4%" value={s.bot4Rate + '%'} color="#F87171" />
                 <RateBar label="Comeback" value={s.comebackRate + '%'} color="#52C47C" />
                 <RateBar label="Clutch" value={s.clutchRate + '%'} color="#9B72CF" />
-              </div>
+              </Panel>
 
-              <div className="bg-surface-container-low p-8 rounded-lg">
-                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Season Standing</h3>
+              <Panel padding="spacious">
+                <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">Season Standing</h3>
                 <div className="flex items-center gap-6">
                   <div className="text-center">
-                    <div className="font-stats text-3xl font-bold text-primary">{'#' + seasonRank}</div>
-                    <div className="font-technical text-[10px] text-on-surface/40 uppercase tracking-widest mt-1">Season Rank</div>
+                    <div className="font-mono text-3xl font-bold text-primary">{'#' + seasonRank}</div>
+                    <div className="font-label text-[10px] text-on-surface/40 uppercase tracking-widest mt-1">Season Rank</div>
                   </div>
                   <div className="flex-1 text-right">
-                    <div className="text-xs font-technical text-on-surface/50">{'out of ' + players.length + ' players'}</div>
-                    {player.region && <div className="text-xs font-technical text-on-surface/40 mt-1">{player.region + ' Region'}</div>}
+                    <div className="text-xs font-label text-on-surface/50">{'out of ' + players.length + ' players'}</div>
+                    {player.region && <div className="text-xs font-label text-on-surface/40 mt-1">{player.region + ' Region'}</div>}
                   </div>
                 </div>
-              </div>
+              </Panel>
 
               {/* Socials */}
               {(pTwitch || pTwitter || pYoutube) && (
-                <div className="bg-surface-container-low p-8 rounded-lg">
-                  <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Links</h3>
+                <Panel padding="spacious">
+                  <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">Links</h3>
                   <div className="flex flex-col gap-2">
                     {pTwitch && (
                       <a href={'https://twitch.tv/' + pTwitch} target="_blank" rel="noopener noreferrer" className="text-xs text-primary no-underline flex items-center gap-2 hover:underline">
@@ -725,48 +715,49 @@ export default function PlayerProfileScreen() {
                       </a>
                     )}
                   </div>
-                </div>
+                </Panel>
               )}
             </div>
           </div>
 
           {/* Recent Battle Logs */}
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-editorial text-2xl text-on-surface italic">Recent Battle Logs</h3>
-              <button
-                className="font-technical text-xs text-primary tracking-widest uppercase hover:underline"
-                onClick={function() { setTab('history'); }}
-              >
-                View Full Match History
-              </button>
-            </div>
+            <SectionHeader
+              title="Recent Battle Logs"
+              className="mb-0"
+              action={
+                <Btn variant="link" onClick={function() { setTab('history'); }}>
+                  View Full Match History
+                </Btn>
+              }
+            />
             <div className="space-y-3">
               {(player.clashHistory || []).length === 0 && (
-                <div className="bg-surface-container-low p-8 rounded-lg text-center text-on-surface/40 font-technical text-sm">
+                <Panel padding="spacious" className="text-center text-on-surface/40 font-label text-sm">
                   No clash history yet
-                </div>
+                </Panel>
               )}
               {(player.clashHistory || []).slice(0, 5).map(function(g, i) {
                 var place = g.place || g.placement || '-';
                 var isWin = place === 1;
                 var isTop4 = place <= 4 && place !== '-';
                 return (
-                  <div
+                  <Panel
                     key={g.clashId || g.name || ("clash-" + i)}
-                    className="bg-surface-container-low p-4 rounded-lg flex items-center justify-between group hover:bg-surface-container-high transition-all"
+                    padding="tight"
+                    className="flex items-center justify-between group hover:bg-surface-container-high transition-all"
                   >
                     <div className="flex items-center gap-6">
                       <div
                         className={'w-12 h-12 flex flex-col items-center justify-center rounded border ' + (isWin ? 'bg-tertiary/10 border-tertiary/20' : 'bg-on-surface/5 border-outline-variant/10')}
                       >
                         <span className={'text-xl font-display ' + (isWin ? 'text-tertiary' : 'text-on-surface/40')}>{place}</span>
-                        <span className={'text-[8px] font-technical -mt-1 uppercase ' + (isWin ? 'text-tertiary/60' : 'text-on-surface/20')}>
+                        <span className={'text-[8px] font-label -mt-1 uppercase ' + (isWin ? 'text-tertiary/60' : 'text-on-surface/20')}>
                           {typeof place === 'number' ? ordinalSuffix(place) : ''}
                         </span>
                       </div>
                       <div>
-                        <h4 className="font-technical text-sm font-semibold tracking-wide">{(g.name || 'Clash').toUpperCase()}</h4>
+                        <h4 className="font-label text-sm font-semibold tracking-wide">{(g.name || 'Clash').toUpperCase()}</h4>
                         <p className="text-xs text-on-surface/40 font-body">
                           {g.date || ''}
                           {g.date ? ' - ' : ''}
@@ -777,26 +768,26 @@ export default function PlayerProfileScreen() {
                     <div className="hidden md:flex items-center gap-8">
                       <div className="flex gap-1 flex-wrap">
                         {g.claimedClutch && (
-                          <div className="bg-secondary-container/30 text-secondary px-2 py-0.5 rounded font-technical text-[10px] tracking-wider border border-secondary/20">
+                          <div className="bg-secondary-container/30 text-secondary px-2 py-0.5 rounded font-label text-[10px] tracking-wider border border-secondary/20">
                             CLUTCH
                           </div>
                         )}
                         {g.comebackTriggered && (
-                          <div className="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded font-technical text-[10px] tracking-wider border border-tertiary/20">
+                          <div className="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded font-label text-[10px] tracking-wider border border-tertiary/20">
                             COMEBACK
                           </div>
                         )}
                       </div>
                       <div className="text-right">
-                        <span className={'block font-stats text-sm ' + (isTop4 ? 'text-primary' : 'text-on-surface')}>
+                        <span className={'block font-mono text-sm ' + (isTop4 ? 'text-primary' : 'text-on-surface')}>
                           {'+' + (g.pts || 0) + ' LP'}
                         </span>
-                        <span className="block font-technical text-[10px] text-on-surface/40 uppercase">
+                        <span className="block font-label text-[10px] text-on-surface/40 uppercase">
                           {isWin ? 'Victory' : isTop4 ? 'Top 4' : 'Secure'}
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </Panel>
                 );
               })}
             </div>
@@ -806,95 +797,95 @@ export default function PlayerProfileScreen() {
 
       {/* Rounds Tab */}
       {tab === 'rounds' && (
-        <div className="bg-surface-container-low p-8 rounded-lg">
-          <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-6">Average Placement By Round</h3>
+        <Panel padding="spacious">
+          <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-6">Average Placement By Round</h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
             {[['R1', s.roundAvgs.r1, '#4ECDC4'], ['R2', s.roundAvgs.r2, '#9B72CF'], ['R3', s.roundAvgs.r3, '#EAB308'], ['Finals', s.roundAvgs.finals, '#E8A838']].map(function(row) {
               return (
                 <div key={row[0]} className="rounded-lg p-4 text-center bg-white/[0.03] border border-on-surface/[0.07]">
-                  <div className="font-technical text-[10px] text-on-surface/40 uppercase tracking-widest mb-2">{row[0]}</div>
+                  <div className="font-label text-[10px] text-on-surface/40 uppercase tracking-widest mb-2">{row[0]}</div>
                   {row[1]
                     ? (
                       <div>
-                        <div className="font-stats text-xl font-bold leading-tight" style={{ color: avgCol(row[1]) }}>{row[1]}</div>
-                        <div className="font-technical text-[10px] mt-1" style={{ color: avgCol(row[1]) }}>
+                        <div className="font-mono text-xl font-bold leading-tight" style={{ color: avgCol(row[1]) }}>{row[1]}</div>
+                        <div className="font-label text-[10px] mt-1" style={{ color: avgCol(row[1]) }}>
                           {parseFloat(row[1]) < 3 ? 'Great' : parseFloat(row[1]) < 5 ? 'OK' : 'Rough'}
                         </div>
                       </div>
                     )
-                    : <div className="font-stats text-lg text-on-surface/30">-</div>
+                    : <div className="font-mono text-lg text-on-surface/30">-</div>
                   }
                 </div>
               );
             })}
           </div>
 
-          <div className="font-technical text-xs text-on-surface/50 mb-4 uppercase tracking-widest">Per-clash round breakdown</div>
+          <div className="font-label text-xs text-on-surface/50 mb-4 uppercase tracking-widest">Per-clash round breakdown</div>
           {(player.clashHistory || []).length === 0 && (
-            <div className="text-center py-8 text-on-surface/40 font-technical text-sm">No data yet</div>
+            <div className="text-center py-8 text-on-surface/40 font-label text-sm">No data yet</div>
           )}
           {(player.clashHistory || []).slice(0, 6).map(function(g, i) {
             return (
               <div key={g.clashId || g.name || ("round-" + i)} className="grid items-center gap-2 py-3 border-b border-on-surface/5 [grid-template-columns:1fr_50px_50px_50px_50px_60px]">
                 <div>
-                  <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
-                  <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
+                  <div className="font-label font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
+                  <div className="font-label text-xs text-on-surface/40">{g.date || ''}</div>
                 </div>
                 {['r1', 'r2', 'r3', 'finals'].map(function(rk) {
                   var v = g.roundPlacements ? g.roundPlacements[rk] : null;
                   return (
                     <div key={rk} className="text-center">
                       {v
-                        ? <span className={'font-stats text-sm font-bold ' + (v === 1 ? 'text-primary' : v <= 4 ? 'text-tertiary' : 'text-error')}>{'#' + v}</span>
-                        : <span className="text-on-surface/30 font-stats">-</span>
+                        ? <span className={'font-mono text-sm font-bold ' + (v === 1 ? 'text-primary' : v <= 4 ? 'text-tertiary' : 'text-error')}>{'#' + v}</span>
+                        : <span className="text-on-surface/30 font-mono">-</span>
                       }
                     </div>
                   );
                 })}
-                <div className="font-stats text-sm font-bold text-primary text-center">{'+' + g.pts}</div>
+                <div className="font-mono text-sm font-bold text-primary text-center">{'+' + g.pts}</div>
               </div>
             );
           })}
-        </div>
+        </Panel>
       )}
 
       {/* History Tab */}
       {tab === 'history' && (
-        <div className="bg-surface-container-low rounded-lg overflow-hidden">
-          <div className="px-6 py-4 border-b border-on-surface/10 flex items-center justify-between flex-wrap gap-2 bg-[#0e0d15]/60">
-            <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Clash History</h3>
+        <Panel padding="none" className="overflow-hidden">
+          <div className="px-6 py-4 border-b border-on-surface/10 flex items-center justify-between flex-wrap gap-2 bg-surface-container-lowest/60">
+            <h3 className="font-label text-on-surface uppercase text-sm tracking-widest">Clash History</h3>
             {seasonConfig && seasonConfig.dropWeeks > 0 && (
-              <span className="font-technical text-xs text-primary">{'Drop Weeks: ' + seasonConfig.dropWeeks + ' worst excluded'}</span>
+              <span className="font-label text-xs text-primary">{'Drop Weeks: ' + seasonConfig.dropWeeks + ' worst excluded'}</span>
             )}
           </div>
           {(player.clashHistory || []).length === 0
             ? (
-              <div className="text-center py-12 text-on-surface/40 font-technical text-sm">No history yet</div>
+              <div className="text-center py-12 text-on-surface/40 font-label text-sm">No history yet</div>
             )
             : renderClashHistoryRows(player.clashHistory, seasonConfig)
           }
-        </div>
+        </Panel>
       )}
 
       {/* H2H Tab */}
       {tab === 'h2h' && (
         <div>
           <div className="mb-6">
-            <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-1">Rivals and Head-to-Head</h3>
+            <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-1">Rivals and Head-to-Head</h3>
             <p className="font-body text-xs text-on-surface/50">Track your record against every player you have shared a lobby with.</p>
           </div>
           {(player.clashHistory || []).length === 0
             ? (
-              <div className="text-center py-12 rounded-lg text-on-surface/40 bg-surface-container-low">
+              <Panel padding="spacious" className="text-center text-on-surface/40">
                 <Icon className="text-4xl mb-3 block">emoji_events</Icon>
-                <div className="font-technical text-sm font-bold text-on-surface/60 mb-1">No H2H data yet</div>
+                <div className="font-label text-sm font-bold text-on-surface/60 mb-1">No H2H data yet</div>
                 <div className="font-body text-xs">Compete in a clash to build your rivalry record.</div>
-              </div>
+              </Panel>
             )
             : (
-              <div className="bg-surface-container-low rounded-lg overflow-hidden">
+              <Panel padding="none" className="overflow-hidden">
                 <div className="px-6 py-3 border-b border-on-surface/10 flex justify-between items-center bg-surface-container-lowest/60">
-                  <span className="font-technical text-xs font-bold text-on-surface/40 uppercase tracking-widest">Shared lobbies</span>
+                  <span className="font-label text-xs font-bold text-on-surface/40 uppercase tracking-widest">Shared lobbies</span>
                 </div>
                 {players.filter(function(op) {
                   return op.id !== player.id && (op.clashHistory || []).some(function(h) {
@@ -919,18 +910,18 @@ export default function PlayerProfileScreen() {
                     >
                       <div className="flex items-center gap-4 mb-2">
                         <div className="flex-1">
-                          <div className="font-technical font-bold text-sm text-on-surface">{op.name}</div>
-                          <div className="font-technical text-xs text-on-surface/40">
+                          <div className="font-label font-bold text-sm text-on-surface">{op.name}</div>
+                          <div className="font-label text-xs text-on-surface/40">
                             {op.rank + ' - ' + op.region + ' - ' + sharedClashes.length + ' shared ' + (sharedClashes.length === 1 ? 'clash' : 'clashes')}
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="font-stats text-sm">
+                          <div className="font-mono text-sm">
                             <span className="font-bold text-emerald-400">{mW + 'W'}</span>
                             <span className="text-on-surface/40 mx-1">-</span>
                             <span className="font-bold text-rose-400">{tW + 'L'}</span>
                           </div>
-                          <div className={'font-technical text-[10px] font-bold mt-0.5 ' + (ahead ? 'text-success' : tied ? 'text-primary' : 'text-error')}>
+                          <div className={'font-label text-[10px] font-bold mt-0.5 ' + (ahead ? 'text-success' : tied ? 'text-primary' : 'text-error')}>
                             {ahead ? "You're ahead" : tied ? 'All tied' : "They're ahead"}
                           </div>
                         </div>
@@ -942,7 +933,7 @@ export default function PlayerProfileScreen() {
                     </div>
                   );
                 })}
-              </div>
+              </Panel>
             )
           }
         </div>
@@ -959,21 +950,21 @@ export default function PlayerProfileScreen() {
           {deepError && (
             <div className="py-12 text-center">
               <Icon className="text-3xl text-error/60 mb-2">error_outline</Icon>
-              <p className="text-on-surface/40 text-sm font-technical">{deepError}</p>
+              <p className="text-on-surface/40 text-sm font-label">{deepError}</p>
             </div>
           )}
           {!deepLoading && !deepError && !deepStats && (
             <div className="py-12 text-center">
               <Icon className="text-4xl text-on-surface/20 mb-3">sports_esports</Icon>
-              <p className="text-on-surface/40 text-sm font-technical uppercase tracking-widest">Need at least 3 games for stats</p>
+              <p className="text-on-surface/40 text-sm font-label uppercase tracking-widest">Need at least 3 games for stats</p>
             </div>
           )}
           {!deepLoading && !deepError && deepStats && (
             <div className="space-y-6">
 
               {/* Season Breakdown */}
-              <div className="bg-surface-container-low rounded-lg p-6">
-                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Season Breakdown</h3>
+              <Panel>
+                <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">Season Breakdown</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
                     { label: 'Games', value: deepStats.games_played },
@@ -986,35 +977,35 @@ export default function PlayerProfileScreen() {
                     { label: 'Worst Finish', value: '#' + deepStats.worst_finish },
                   ].map(function(stat) {
                     return (
-                      <div key={stat.label} className="bg-surface-container p-3 rounded-lg">
-                        <div className="font-technical text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{stat.label}</div>
+                      <Panel key={stat.label} elevation="elevated" padding="tight">
+                        <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mb-1">{stat.label}</div>
                         <div className={'font-display text-xl font-bold ' + (stat.green ? 'text-success' : stat.red ? 'text-error' : 'text-on-surface')}>
                           {stat.value}
                         </div>
-                      </div>
+                      </Panel>
                     );
                   })}
                 </div>
-              </div>
+              </Panel>
 
               {/* Performance Scores */}
-              <div className="bg-surface-container-low rounded-lg p-6">
-                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Performance Scores</h3>
+              <Panel>
+                <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">Performance Scores</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {renderDeepScoreCards(deepStats, deepGr)}
                 </div>
-              </div>
+              </Panel>
 
               {/* Placement Distribution (per-placement bars) */}
-              <div className="bg-surface-container-low rounded-lg p-6">
-                <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Placement Distribution</h3>
-              {renderDeepPlacementBars(deepGr)}
-              </div>
+              <Panel>
+                <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">Placement Distribution</h3>
+                {renderDeepPlacementBars(deepGr)}
+              </Panel>
 
               {/* H2H Record */}
               {deepH2h && deepH2h.length > 0 && (
-                <div className="bg-surface-container-low rounded-lg p-6">
-                  <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">Head-to-Head Record</h3>
+                <Panel>
+                  <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">Head-to-Head Record</h3>
                   <div className="space-y-0">
                     {deepH2h.slice().sort(function(a, b) { return b.meetings - a.meetings; }).map(function(r) {
                       var isA = r.player_a_id === player.id;
@@ -1027,21 +1018,21 @@ export default function PlayerProfileScreen() {
                         : 'text-on-surface/50 bg-white/5 border-white/10';
                       return (
                         <div key={opponent} className="flex items-center gap-3 py-2.5 border-b border-on-surface/5 last:border-0">
-                          <span className="font-technical font-semibold text-sm text-on-surface flex-1">{opponent}</span>
-                          <span className="font-stats text-xs text-on-surface/50">{r.meetings + ' games'}</span>
+                          <span className="font-label font-semibold text-sm text-on-surface flex-1">{opponent}</span>
+                          <span className="font-mono text-xs text-on-surface/50">{r.meetings + ' games'}</span>
                           <span className="font-mono text-xs text-on-surface/70">{myWins + 'W - ' + oppWins + 'L'}</span>
-                          <span className={'text-[11px] font-technical px-2 py-0.5 rounded border ' + resultColor}>{resultLabel}</span>
+                          <span className={'text-[11px] font-label px-2 py-0.5 rounded border ' + resultColor}>{resultLabel}</span>
                         </div>
                       );
                     })}
                   </div>
-                </div>
+                </Panel>
               )}
 
               {/* Game Timeline */}
               {deepGr && deepGr.length > 0 && (
-                <div className="bg-surface-container-low rounded-lg p-6">
-                  <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest mb-4">
+                <Panel>
+                  <h3 className="font-label text-on-surface uppercase text-sm tracking-widest mb-4">
                     {'Last ' + Math.min(deepGr.length, 50) + ' Games'}
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
@@ -1062,7 +1053,7 @@ export default function PlayerProfileScreen() {
                       );
                     })}
                   </div>
-                </div>
+                </Panel>
               )}
 
             </div>
@@ -1077,24 +1068,23 @@ export default function PlayerProfileScreen() {
             var unlocked = false;
             try { unlocked = a.check(player); } catch (e) {}
             return (
-              <div
+              <Panel
                 key={a.id}
-                className="bg-surface-container-low p-6 rounded-lg"
-                style={{ opacity: unlocked ? 1 : 0.4, border: '1px solid ' + (unlocked ? 'rgba(232,168,56,.3)' : 'rgba(242,237,228,.07)') }}
+                className={unlocked ? 'border-primary/30' : 'opacity-40'}
               >
                 <div className="text-2xl mb-2">
                   <Icon className={'text-3xl ' + (unlocked ? 'text-primary' : '')}>{a.icon || 'military_tech'}</Icon>
                 </div>
-                <div className={'font-technical font-bold text-sm mb-1 ' + (unlocked ? 'text-on-surface' : 'text-muted')}>{a.name}</div>
+                <div className={'font-label font-bold text-sm mb-1 ' + (unlocked ? 'text-on-surface' : 'text-muted')}>{a.name}</div>
                 <div className="font-body text-xs text-on-surface/50 leading-relaxed">{a.desc}</div>
                 {unlocked && (
                   <div className="mt-3">
-                    <span className="font-technical text-[10px] px-2 py-1 rounded bg-primary/15 text-primary border border-primary/30">
+                    <span className="font-label text-[10px] px-2 py-1 rounded bg-primary/15 text-primary border border-primary/30">
                       UNLOCKED
                     </span>
                   </div>
                 )}
-              </div>
+              </Panel>
             );
           })}
         </div>
