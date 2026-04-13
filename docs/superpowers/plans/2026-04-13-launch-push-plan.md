@@ -286,7 +286,7 @@ var paddings = {
 }
 
 var elevations = {
-  low: 'bg-surface-container-low',
+  low: 'bg-surface-container-lowest',
   default: 'bg-surface-container-low',
   elevated: 'bg-surface-container',
   highest: 'bg-surface-container-high',
