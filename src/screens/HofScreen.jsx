@@ -154,6 +154,7 @@ export default function HofScreen(props) {
               <div className="absolute -inset-1 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
               <Panel
                 padding="none"
+                radius="xl"
                 className="relative overflow-hidden h-full flex flex-col justify-end p-6 sm:p-8 border-l-4 border-l-primary min-h-[280px] sm:min-h-[400px] shadow-[0_0_40px_10px_rgba(253,186,73,0.15)]"
               >
                 {/* Trophy background icon */}
@@ -199,6 +200,7 @@ export default function HofScreen(props) {
             <div className="lg:col-span-7 relative">
               <Panel
                 padding="none"
+                radius="xl"
                 className="overflow-hidden h-full flex flex-col items-center justify-center p-8 border-l-4 border-l-primary/20 min-h-[400px]"
               >
                 <Icon name="emoji_events" size={64} className="text-primary/20 mb-4" />
@@ -308,6 +310,7 @@ export default function HofScreen(props) {
                     key={s.season}
                     elevation={isActive ? 'default' : 'elevated'}
                     padding="default"
+                    radius="xl"
                     onClick={function() { if (!isActive) openProfile(s.champion) }}
                     className={'relative overflow-hidden border-l-4 transition-all duration-200 ' + (isActive ? 'border-l-primary cursor-default' : 'border-l-primary/15 cursor-pointer')}
                     style={isActive ? { boxShadow: '0 0 24px rgba(255,198,107,0.1)' } : undefined}

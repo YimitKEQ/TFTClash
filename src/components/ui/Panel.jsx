@@ -12,7 +12,14 @@ var elevations = {
   highest: 'bg-surface-container-high',
 }
 
-export default function Panel({ children, className = '', padding = 'default', elevation = 'default', accent, glow, glass, ...props }) {
+var radii = {
+  sm: 'rounded',
+  default: 'rounded-lg',
+  xl: 'rounded-xl',
+  full: 'rounded-full',
+}
+
+export default function Panel({ children, className = '', padding = 'default', elevation = 'default', radius = 'default', accent, glow, glass, ...props }) {
   var base = glass
     ? 'glass-panel border border-outline-variant/10'
     : (elevations[elevation] || elevations.default) + ' border border-outline-variant/10'
@@ -22,9 +29,10 @@ export default function Panel({ children, className = '', padding = 'default', e
     : ''
   var glowClass = glow ? 'gold-glow' : ''
   var paddingClass = paddings[padding] || paddings.default
+  var radiusClass = radii[radius] || radii.default
 
   return (
-    <div className={base + ' ' + accentBorder + ' ' + glowClass + ' rounded-lg ' + paddingClass + ' ' + className} {...props}>
+    <div className={base + ' ' + accentBorder + ' ' + glowClass + ' ' + radiusClass + ' ' + paddingClass + ' ' + className} {...props}>
       {children}
     </div>
   )
