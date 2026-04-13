@@ -19,3 +19,10 @@ export function hasFeature(tier, feature) {
   if (!features) return false;
   return !!features[feature];
 }
+
+export function getMaxScrimPlayers(tier) {
+  var safeTier = tier && TIER_FEATURES[tier] ? tier : 'free';
+  var features = TIER_FEATURES[safeTier];
+  if (!features || typeof features.maxScrimPlayers !== 'number') return 0;
+  return features.maxScrimPlayers;
+}

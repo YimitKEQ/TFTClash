@@ -80,7 +80,8 @@ export var TIER_FEATURES = {
     createScrimRoom: false, multiLobbySeeding: false, scrimStats: false,
     scrimTournaments: false, scrimSeasons: false, roomCustomization: false,
     createTournaments: false, brandedPages: false, hostDashboard: false,
-    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false
+    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false,
+    maxScrimPlayers: 0
   },
   pro: {
     compete: true, basicStats: true, basicProfile: true, viewResults: true,
@@ -91,7 +92,8 @@ export var TIER_FEATURES = {
     createScrimRoom: false, multiLobbySeeding: false, scrimStats: false,
     scrimTournaments: false, scrimSeasons: false, roomCustomization: false,
     createTournaments: false, brandedPages: false, hostDashboard: false,
-    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false
+    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false,
+    maxScrimPlayers: 0
   },
   scrim: {
     compete: true, basicStats: true, basicProfile: true, viewResults: true,
@@ -102,7 +104,8 @@ export var TIER_FEATURES = {
     createScrimRoom: true, multiLobbySeeding: true, scrimStats: true,
     scrimTournaments: true, scrimSeasons: true, roomCustomization: true,
     createTournaments: false, brandedPages: false, hostDashboard: false,
-    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false
+    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false,
+    maxScrimPlayers: 8
   },
   bundle: {
     compete: true, basicStats: true, basicProfile: true, viewResults: true,
@@ -113,7 +116,8 @@ export var TIER_FEATURES = {
     createScrimRoom: true, multiLobbySeeding: true, scrimStats: true,
     scrimTournaments: true, scrimSeasons: true, roomCustomization: true,
     createTournaments: false, brandedPages: false, hostDashboard: false,
-    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false
+    customRules: false, apiAccess: false, entryFees: false, verifiedHost: false,
+    maxScrimPlayers: 16
   },
   host: {
     compete: true, basicStats: true, basicProfile: true, viewResults: true,
@@ -124,7 +128,8 @@ export var TIER_FEATURES = {
     createScrimRoom: true, multiLobbySeeding: true, scrimStats: true,
     scrimTournaments: true, scrimSeasons: true, roomCustomization: true,
     createTournaments: true, brandedPages: true, hostDashboard: true,
-    customRules: true, apiAccess: true, entryFees: true, verifiedHost: true
+    customRules: true, apiAccess: true, entryFees: true, verifiedHost: true,
+    maxScrimPlayers: 32
   }
 };
 
