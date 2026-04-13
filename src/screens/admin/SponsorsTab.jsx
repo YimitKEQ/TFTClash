@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
+import SponsorShowcase from '../../components/shared/SponsorShowcase'
 
 var SPONSOR_TIERS = [
   { id: 'associate', label: 'Associate', color: '#67e2d9' },
@@ -35,6 +36,7 @@ function SponsorCard(props) {
   var onEdit = props.onEdit
   var onToggle = props.onToggle
   var onDelete = props.onDelete
+  var onPreview = props.onPreview
 
   var tierInfo = SPONSOR_TIERS.find(function(t) { return t.id === sponsor.tier }) || SPONSOR_TIERS[0]
   var isActive = sponsor.status === 'active'
@@ -62,6 +64,15 @@ function SponsorCard(props) {
           )}
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
+          <Btn
+            variant="secondary"
+            size="sm"
+            icon="visibility"
+            iconPosition="left"
+            onClick={function() { if (onPreview) onPreview(sponsor) }}
+          >
+            Preview
+          </Btn>
           <button
             onClick={function() { onToggle(sponsor) }}
             className={'w-7 h-7 rounded flex items-center justify-center transition-colors border-0 cursor-pointer ' + (isActive ? 'bg-secondary/10 text-secondary' : 'bg-on-surface/5 text-on-surface/30')}
@@ -228,6 +239,10 @@ export default function SponsorsTab() {
   var form = _form[0]
   var setForm = _form[1]
 
+  var _previewSponsor = useState(null)
+  var previewSponsor = _previewSponsor[0]
+  var setPreviewSponsor = _previewSponsor[1]
+
   function addAudit(type, msg) {
     if (supabase.from && currentUser) {
       supabase.from('audit_log').insert({
@@ -358,7 +373,7 @@ export default function SponsorsTab() {
           </div>
           <div className="space-y-2">
             {active.map(function(s, i) {
-              return <SponsorCard key={s.id || s.name} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} />
+              return <SponsorCard key={s.id || s.name} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} onPreview={setPreviewSponsor} />
             })}
           </div>
         </div>
@@ -373,7 +388,7 @@ export default function SponsorsTab() {
           </div>
           <div className="space-y-2">
             {inactive.map(function(s, i) {
-              return <SponsorCard key={s.id || s.name} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} />
+              return <SponsorCard key={s.id || s.name} sponsor={s} onEdit={startEdit} onToggle={toggleStatus} onDelete={deleteSponsor} onPreview={setPreviewSponsor} />
             })}
           </div>
         </div>
@@ -453,6 +468,25 @@ export default function SponsorsTab() {
           </div>
         </Panel>
       )}
+
+      {previewSponsor ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={function() { setPreviewSponsor(null) }}>
+          <div className="bg-surface-container-highest rounded-xl p-8 max-w-2xl w-[90%] max-h-[80vh] overflow-auto" onClick={function(e) { e.stopPropagation() }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-headline text-xl font-bold">Sponsor Preview</h3>
+              <Btn variant="ghost" size="sm" icon="close" onClick={function() { setPreviewSponsor(null) }}>Close</Btn>
+            </div>
+            <div className="mb-6">
+              <p className="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2">Strip variant</p>
+              <SponsorShowcase placement={previewSponsor.placements && previewSponsor.placements[0] ? previewSponsor.placements[0] : 'homepage'} variant="strip" />
+            </div>
+            <div className="mb-2">
+              <p className="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-2">Featured variant</p>
+              <SponsorShowcase placement={previewSponsor.placements && previewSponsor.placements[0] ? previewSponsor.placements[0] : 'homepage'} variant="featured" />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }
