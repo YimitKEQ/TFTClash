@@ -4,7 +4,6 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon } from '../components/ui'
-import SectionHeader from '../components/shared/SectionHeader.jsx'
 
 // ── Registration progress bar ──────────────────────────────────────────────────
 
