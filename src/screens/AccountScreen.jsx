@@ -7,7 +7,6 @@ import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import { activateSubscription, TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
-import SectionHeader from '../components/shared/SectionHeader.jsx'
 import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 
