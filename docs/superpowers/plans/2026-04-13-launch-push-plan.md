@@ -201,7 +201,7 @@ Replace the entire contents of `src/components/ui/Btn.jsx` with:
 
 ```jsx
 const variants = {
-  primary: 'bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-lg shadow-primary/10 hover:scale-[1.02] active:scale-95',
+  primary: 'bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-lg shadow-primary/10 hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] hover:scale-[1.02] active:scale-95',
   secondary: 'bg-surface-container-high text-on-surface border border-outline-variant/15 hover:bg-surface-container-highest',
   ghost: 'text-on-surface/60 hover:text-on-surface hover:bg-white/5',
   destructive: 'bg-error-container/20 text-error border border-error/20 hover:bg-error-container/30',

@@ -126,12 +126,19 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
           var stats = getStats(player)
           var playerPath = '/player/' + player.name
 
+          function handleKey(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate(playerPath) }
+          }
+
           if (isFirst) {
             return (
               <div
                 key={player.id || player.name}
-                className="group relative overflow-hidden bg-surface-container-high p-4 rounded-lg flex items-center justify-between border-l-4 border-primary cursor-pointer hover:bg-surface-container-highest transition-colors"
+                role="button"
+                tabIndex={0}
+                className="group relative overflow-hidden bg-surface-container-high p-4 rounded-lg flex items-center justify-between border-l-4 border-primary cursor-pointer hover:bg-surface-container-highest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                 onClick={function() { onNavigate(playerPath) }}
+                onKeyDown={handleKey}
               >
                 <div className="flex items-center gap-3 sm:gap-6 min-w-0">
                   <span className="font-display text-2xl text-primary w-8 flex-shrink-0">{RANK_LABELS[i]}</span>
@@ -171,8 +178,11 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
           return (
             <div
               key={player.id || player.name}
-              className={'bg-surface-container-low p-4 rounded-lg flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer ' + opacity}
+              role="button"
+              tabIndex={0}
+              className={'bg-surface-container-low p-4 rounded-lg flex items-center justify-between hover:bg-surface-container transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ' + opacity}
               onClick={function() { onNavigate(playerPath) }}
+              onKeyDown={handleKey}
             >
               <div className="flex items-center gap-3 sm:gap-6 min-w-0">
                 <span className="font-display text-2xl text-on-surface-variant w-8 flex-shrink-0">{RANK_LABELS[i]}</span>
