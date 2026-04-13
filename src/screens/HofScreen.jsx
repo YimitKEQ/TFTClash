@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
-import { Icon } from '../components/ui'
+import { Icon, Panel } from '../components/ui'
 import PageLayout from '../components/layout/PageLayout'
 
 export default function HofScreen(props) {
@@ -116,7 +116,7 @@ export default function HofScreen(props) {
 
         {/* Hero Header */}
         <div className="mb-0 text-center md:text-left">
-          <span className="font-technical text-primary tracking-[0.4em] uppercase text-sm mb-4 block">
+          <span className="font-label text-primary tracking-[0.4em] uppercase text-sm mb-4 block">
             Seasonal Honors
           </span>
           <h1 className="font-display text-4xl sm:text-6xl md:text-8xl text-primary leading-none tracking-tight drop-shadow-2xl">
@@ -152,8 +152,9 @@ export default function HofScreen(props) {
           {king && kingStats ? (
             <div className="lg:col-span-7 relative group">
               <div className="absolute -inset-1 opacity-20 blur-2xl group-hover:opacity-40 transition-opacity bg-gradient-to-br from-primary to-primary-fixed-dim"></div>
-              <div
-                className="relative rounded-none overflow-hidden h-full flex flex-col justify-end p-6 sm:p-8 bg-surface-container-low border-l-4 border-primary min-h-[280px] sm:min-h-[400px] shadow-[0_0_40px_10px_rgba(253,186,73,0.15)]"
+              <Panel
+                padding="none"
+                className="relative overflow-hidden h-full flex flex-col justify-end p-6 sm:p-8 border-l-4 border-l-primary min-h-[280px] sm:min-h-[400px] shadow-[0_0_40px_10px_rgba(253,186,73,0.15)]"
               >
                 {/* Trophy background icon */}
                 <Icon
@@ -164,7 +165,7 @@ export default function HofScreen(props) {
                 />
 
                 <div className="relative z-10">
-                  <div className="inline-block px-4 py-1 font-technical font-bold text-xs tracking-widest mb-4 bg-primary text-on-primary">
+                  <div className="inline-block px-4 py-1 font-label font-bold text-xs tracking-widest mb-4 bg-primary text-on-primary">
                     {'SEASON ' + (seasonConfig && seasonConfig.seasonNumber || 1) + ' LEADER'}
                   </div>
                   <h2
@@ -177,48 +178,53 @@ export default function HofScreen(props) {
                     {kingStats && (
                       <>
                         <div className="text-center">
-                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Win Rate</p>
-                          <p className="font-stats text-primary text-2xl sm:text-3xl font-bold">{kingStats.top1Rate}%</p>
+                          <p className="font-label text-on-surface-variant text-[10px] tracking-widest uppercase">Win Rate</p>
+                          <p className="font-mono text-primary text-2xl sm:text-3xl font-bold">{kingStats.top1Rate}%</p>
                         </div>
                         <div className="text-center">
-                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Avg Place</p>
-                          <p className="font-stats text-primary text-2xl sm:text-3xl font-bold">{kingStats.avgPlacement}</p>
+                          <p className="font-label text-on-surface-variant text-[10px] tracking-widest uppercase">Avg Place</p>
+                          <p className="font-mono text-primary text-2xl sm:text-3xl font-bold">{kingStats.avgPlacement}</p>
                         </div>
                         <div className="text-center">
-                          <p className="font-technical text-on-surface-variant text-[10px] tracking-widest uppercase">Season Pts</p>
-                          <p className="font-stats text-primary text-2xl sm:text-3xl font-bold">{king.pts}</p>
+                          <p className="font-label text-on-surface-variant text-[10px] tracking-widest uppercase">Season Pts</p>
+                          <p className="font-mono text-primary text-2xl sm:text-3xl font-bold">{king.pts}</p>
                         </div>
                       </>
                     )}
                   </div>
                 </div>
-              </div>
+              </Panel>
             </div>
           ) : (
             <div className="lg:col-span-7 relative">
-              <div className="rounded-none overflow-hidden h-full flex flex-col items-center justify-center p-8 bg-surface-container-low border-l-4 border-primary/20 min-h-[400px]">
+              <Panel
+                padding="none"
+                className="overflow-hidden h-full flex flex-col items-center justify-center p-8 border-l-4 border-l-primary/20 min-h-[400px]"
+              >
                 <Icon name="emoji_events" size={64} className="text-primary/20 mb-4" />
-                <p className="font-technical text-on-surface-variant tracking-widest text-xs text-center">
+                <p className="font-label text-on-surface-variant tracking-widest text-xs text-center">
                   A champion yet to be crowned
                 </p>
-              </div>
+              </Panel>
             </div>
           )}
 
           {/* Challengers Column */}
           <div className="lg:col-span-5 flex flex-col space-y-4">
-            <h3 className="font-technical text-on-surface-variant tracking-[0.2em] text-xs mb-2">
+            <h3 className="font-label text-on-surface-variant tracking-[0.2em] text-xs mb-2">
               CONTENDERS CIRCLE
             </h3>
 
             {challengers.length === 0 && (
-              <div
-                className="flex-1 flex items-center justify-center p-6 bg-surface-container-high"
+              <Panel
+                elevation="highest"
+                padding="default"
+                className="flex-1 flex items-center justify-center"
               >
-                <p className="font-technical text-on-surface-variant/50 tracking-widest text-xs text-center">
+                <p className="font-label text-on-surface-variant/50 tracking-widest text-xs text-center">
                   Challengers will appear once more players have competed.
                 </p>
-              </div>
+              </Panel>
             )}
 
             {challengers.map(function(p, i) {
@@ -228,9 +234,11 @@ export default function HofScreen(props) {
               var diff = king ? (king.pts || 0) - (p.pts || 0) : 0
               var top4Rate = p.games > 0 ? Math.round(((p.top4 || 0) / p.games) * 100) : 0
               return (
-                <div
+                <Panel
                   key={p.id || p.name}
-                  className="p-6 flex items-center justify-between cursor-pointer transition-colors bg-surface-container-high hover:bg-surface-container-highest"
+                  elevation="highest"
+                  padding="default"
+                  className="flex items-center justify-between cursor-pointer transition-colors hover:bg-surface-container-highest"
                   onClick={function() { openProfile(p.name) }}
                 >
                   <div className="flex items-center space-x-6">
@@ -254,20 +262,20 @@ export default function HofScreen(props) {
                     </div>
                     <div>
                       <h4 className="font-editorial text-xl text-on-surface">{p.name}</h4>
-                      <p className="font-technical text-[10px] text-on-surface-variant tracking-widest uppercase">
+                      <p className="font-label text-[10px] text-on-surface-variant tracking-widest uppercase">
                         {p.rank ? p.rank + ' | ' : ''}{p.pts || 0} PTS
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-stats text-on-surface-variant text-sm">
+                    <p className="font-mono text-on-surface-variant text-sm">
                       TOP4: {top4Rate > 0 ? top4Rate + '%' : '-'}
                     </p>
                     {king && (
-                      <p className="font-stats text-xs text-error">-{diff} pts</p>
+                      <p className="font-mono text-xs text-error">-{diff} pts</p>
                     )}
                   </div>
-                </div>
+                </Panel>
               )
             })}
           </div>
@@ -276,30 +284,32 @@ export default function HofScreen(props) {
         {/* Season Champions Wall */}
         {SEASON_CHAMPS.length === 0 && (
           <div>
-            <h3 className="font-technical text-primary tracking-[0.4em] text-xs mb-8">
+            <h3 className="font-label text-primary tracking-[0.4em] text-xs mb-8">
               SEASON CHAMPIONS
             </h3>
-            <div className="p-12 text-center bg-surface-container border border-outline-variant/10">
+            <Panel elevation="elevated" padding="none" className="p-12 text-center">
               <Icon name="workspace_premium" size={48} className="mx-auto mb-4 text-on-surface/20" />
-              <p className="font-technical text-on-surface-variant/50 tracking-widest text-xs">
+              <p className="font-label text-on-surface-variant/50 tracking-widest text-xs">
                 No champions yet - be the first!
               </p>
-            </div>
+            </Panel>
           </div>
         )}
         {SEASON_CHAMPS.length > 0 && (
           <div>
-            <h3 className="font-technical text-primary tracking-[0.4em] text-xs mb-8">
+            <h3 className="font-label text-primary tracking-[0.4em] text-xs mb-8">
               SEASON CHAMPIONS
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {SEASON_CHAMPS.map(function(s) {
                 var isActive = s.status === 'active'
                 return (
-                  <div
+                  <Panel
                     key={s.season}
+                    elevation={isActive ? 'default' : 'elevated'}
+                    padding="default"
                     onClick={function() { if (!isActive) openProfile(s.champion) }}
-                    className={'relative overflow-hidden p-6 transition-all duration-200 border-l-4 ' + (isActive ? 'bg-surface-container-low border-l-primary cursor-default' : 'bg-surface-container border-l-primary/15 cursor-pointer')}
+                    className={'relative overflow-hidden border-l-4 transition-all duration-200 ' + (isActive ? 'border-l-primary cursor-default' : 'border-l-primary/15 cursor-pointer')}
                     style={isActive ? { boxShadow: '0 0 24px rgba(255,198,107,0.1)' } : undefined}
                   >
                     {isActive && (
@@ -307,13 +317,13 @@ export default function HofScreen(props) {
                     )}
                     <div className="flex items-center gap-2 mb-3">
                       <span
-                        className={'font-technical text-[10px] font-bold px-2 py-0.5 tracking-widest border ' + (isActive ? 'text-primary bg-primary/15 border-primary/35' : 'text-on-surface/60 bg-white/5 border-white/[0.08]')}
+                        className={'font-label text-[10px] font-bold px-2 py-0.5 tracking-widest border ' + (isActive ? 'text-primary bg-primary/15 border-primary/35' : 'text-on-surface/60 bg-white/5 border-white/[0.08]')}
                       >
                         {s.season}
                       </span>
                       {isActive && (
                         <span
-                          className="font-technical text-[9px] font-bold px-1.5 py-0.5 tracking-widest bg-tertiary/10 border border-tertiary/25 text-tertiary"
+                          className="font-label text-[9px] font-bold px-1.5 py-0.5 tracking-widest bg-tertiary/10 border border-tertiary/25 text-tertiary"
                         >
                           LIVE
                         </span>
@@ -328,14 +338,14 @@ export default function HofScreen(props) {
                     <div className={'font-editorial text-base font-bold leading-tight mb-1 ' + (isActive ? 'text-primary' : 'text-on-surface')}>
                       {s.champion}
                     </div>
-                    <div className={'font-stats text-lg font-bold ' + (isActive ? 'text-primary' : 'text-on-surface-variant')}>
+                    <div className={'font-mono text-lg font-bold ' + (isActive ? 'text-primary' : 'text-on-surface-variant')}>
                       {s.pts}
-                      <span className="font-technical text-[10px] text-on-surface/40 font-normal ml-1">pts</span>
+                      <span className="font-label text-[10px] text-on-surface/40 font-normal ml-1">pts</span>
                     </div>
-                    <div className="font-technical text-[11px] text-on-surface-variant/50 mt-0.5">
+                    <div className="font-label text-[11px] text-on-surface-variant/50 mt-0.5">
                       {s.wins} wins
                     </div>
-                  </div>
+                  </Panel>
                 )
               })}
             </div>
@@ -344,28 +354,28 @@ export default function HofScreen(props) {
 
         {/* Legacy Archives / Trophy Cabinet */}
         <div>
-          <h3 className="font-technical text-primary tracking-[0.4em] text-xs mb-8">
+          <h3 className="font-label text-primary tracking-[0.4em] text-xs mb-8">
             LEGACY ARCHIVES
           </h3>
 
           {hofRecs.length === 0 && (
-            <div
-              className="p-12 text-center bg-surface-container border border-outline-variant/10"
-            >
+            <Panel elevation="elevated" padding="none" className="p-12 text-center">
               <Icon name="workspace_premium" size={48} className="mx-auto mb-4 text-on-surface/20" />
-              <p className="font-technical text-on-surface-variant/50 tracking-widest text-xs">
+              <p className="font-label text-on-surface-variant/50 tracking-widest text-xs">
                 Season records will be enshrined here.
               </p>
-            </div>
+            </Panel>
           )}
 
           {hofRecs.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {hofRecs.map(function(r) {
                 return (
-                  <div
+                  <Panel
                     key={r.id}
-                    className="p-6 sm:p-8 group transition-all bg-surface-container border-t border-outline-variant/10 hover:border-t-primary/40 hover:bg-surface-container-high"
+                    elevation="elevated"
+                    padding="none"
+                    className="p-6 sm:p-8 group transition-all hover:border-t-primary/40 hover:bg-surface-container-high"
                   >
                     <div className="flex justify-between items-start mb-6">
                       <Icon
@@ -374,9 +384,9 @@ export default function HofScreen(props) {
                         size={36}
                         className="text-primary"
                       />
-                      <p className="font-stats text-primary font-bold text-lg">{r.value}</p>
+                      <p className="font-mono text-primary font-bold text-lg">{r.value}</p>
                     </div>
-                    <h5 className="font-technical text-on-surface-variant tracking-widest text-xs uppercase mb-1">
+                    <h5 className="font-label text-on-surface-variant tracking-widest text-xs uppercase mb-1">
                       {r.title}
                     </h5>
                     <p
@@ -396,7 +406,7 @@ export default function HofScreen(props) {
                             var labels = ['2nd', '3rd']
                             return (
                               <div key={ru} className="flex items-center gap-2 text-xs text-on-surface/50">
-                                <span className={'font-technical text-[10px] font-bold min-w-[24px] ' + runnerClasses[i]}>
+                                <span className={'font-label text-[10px] font-bold min-w-[24px] ' + runnerClasses[i]}>
                                   {labels[i]}
                                 </span>
                                 <span>{ru}</span>
@@ -406,7 +416,7 @@ export default function HofScreen(props) {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </Panel>
                 )
               })}
             </div>

@@ -85,7 +85,7 @@ export default function StandingsScreen() {
               key={t.id}
               onClick={function() { handleTabClick(t.id) }}
               className={
-                'flex-shrink-0 flex items-center gap-2 px-5 py-3 min-h-[44px] rounded border font-sans text-sm font-semibold uppercase tracking-widest transition-all duration-200 whitespace-nowrap ' +
+                'flex-shrink-0 flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-full border font-label text-sm font-bold uppercase tracking-widest transition-all duration-200 whitespace-nowrap ' +
                 (active
                   ? 'bg-primary/10 border-primary/30 text-primary shadow-sm shadow-primary/10'
                   : 'bg-surface-container-low/40 border-outline-variant/10 text-on-surface/60 hover:text-on-surface hover:bg-surface-container-low')
@@ -112,7 +112,7 @@ export default function StandingsScreen() {
       {tab === 'roster' && (
         <div className="space-y-4">
           {/* Search + Sort controls */}
-          <Panel className="p-4">
+          <Panel padding="tight">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface/40" />
@@ -125,7 +125,7 @@ export default function StandingsScreen() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-condensed text-xs uppercase tracking-widest text-on-surface/40 whitespace-nowrap">Sort by</span>
+                <span className="font-label text-xs uppercase tracking-widest text-on-surface/40 whitespace-nowrap">Sort by</span>
                 <select
                   value={rosterSort}
                   onChange={function(e) { setRosterSort(e.target.value) }}
@@ -137,36 +137,36 @@ export default function StandingsScreen() {
                 </select>
               </div>
             </div>
-            <div className="mt-2 font-condensed text-xs text-on-surface/40 uppercase tracking-widest">
+            <div className="mt-2 font-label text-xs text-on-surface/40 uppercase tracking-widest">
               {sortedPlayers.length} player{sortedPlayers.length !== 1 ? 's' : ''} found
             </div>
           </Panel>
 
           {/* Player table */}
-          <Panel className="overflow-hidden p-0">
+          <Panel padding="none" className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-outline-variant/10">
-                    <th className="text-left px-6 py-3 font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">#</th>
-                    <th className="text-left px-4 py-3 font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Player</th>
-                    <th className="text-left px-4 py-3 font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Rank</th>
-                    <th className="text-right px-4 py-3 font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Pts</th>
-                    <th className="text-right px-4 py-3 font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Wins</th>
-                    <th className="text-right px-6 py-3 font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Region</th>
+                    <th className="text-left px-6 py-3 font-label text-[10px] uppercase tracking-widest text-on-surface/40">#</th>
+                    <th className="text-left px-4 py-3 font-label text-[10px] uppercase tracking-widest text-on-surface/40">Player</th>
+                    <th className="text-left px-4 py-3 font-label text-[10px] uppercase tracking-widest text-on-surface/40">Rank</th>
+                    <th className="text-right px-4 py-3 font-label text-[10px] uppercase tracking-widest text-on-surface/40">Pts</th>
+                    <th className="text-right px-4 py-3 font-label text-[10px] uppercase tracking-widest text-on-surface/40">Wins</th>
+                    <th className="text-right px-6 py-3 font-label text-[10px] uppercase tracking-widest text-on-surface/40">Region</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedPlayers.length === 0 && isLoadingData && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-condensed uppercase tracking-widest">
+                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-label uppercase tracking-widest">
                         Loading players...
                       </td>
                     </tr>
                   )}
                   {sortedPlayers.length === 0 && !isLoadingData && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-condensed uppercase tracking-widest">
+                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-label uppercase tracking-widest">
                         No players found
                       </td>
                     </tr>
@@ -194,7 +194,7 @@ export default function StandingsScreen() {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className="font-condensed text-xs font-bold uppercase tracking-wide"
+                            className="font-label text-xs font-bold uppercase tracking-wide"
                             style={{ color: rankColor }}
                           >
                             {p.rank || 'Unranked'}
@@ -202,7 +202,7 @@ export default function StandingsScreen() {
                         </td>
                         <td className="px-4 py-3 text-right font-mono text-sm text-on-surface font-bold">{p.pts || 0}</td>
                         <td className="px-4 py-3 text-right font-mono text-sm text-on-surface/70">{p.wins || 0}</td>
-                        <td className="px-6 py-3 text-right font-condensed text-xs uppercase tracking-widest text-on-surface/50">{p.region || 'EUW'}</td>
+                        <td className="px-6 py-3 text-right font-label text-xs uppercase tracking-widest text-on-surface/50">{p.region || 'EUW'}</td>
                       </tr>
                     )
                   })}

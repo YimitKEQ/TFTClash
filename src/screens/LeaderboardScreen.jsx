@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import { REGIONS, MEDAL_COLORS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Btn, Icon, Panel } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 
 // MEDAL_COLORS imported from constants.js
@@ -338,27 +338,29 @@ export default function LeaderboardScreen(props) {
             </div>
 
             {currentUser && myIdx >= 0 && (
-              <button
+              <Btn
+                variant="primary"
+                size="sm"
+                icon="my_location"
                 onClick={handleMyPosition}
-                className="flex-shrink-0 flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed px-4 py-3 rounded-full font-label font-bold tracking-widest uppercase text-xs shadow-xl active:scale-95 transition-all whitespace-nowrap"
+                className="flex-shrink-0 whitespace-nowrap"
               >
-                <Icon name="my_location" size={14} />
                 {'#' + (myIdx + 1)}
-              </button>
+              </Btn>
             )}
           </div>
         </div>
 
         {/* Table Container */}
         {isLoadingData && players.length === 0 && (
-          <div className="bg-surface-container-low rounded border border-outline-variant/10 px-8 py-16 text-center">
+          <Panel padding="none" className="px-8 py-16 text-center">
             <Icon name="hourglass_empty" size={48} className="text-on-surface/20 block mb-4 animate-pulse mx-auto" />
             <div className="font-headline text-xl text-on-surface mb-2">Loading standings...</div>
             <div className="text-sm text-on-surface-variant">Fetching player data from the arena.</div>
-          </div>
+          </Panel>
         )}
         {!isLoadingData && sorted.length === 0 && (
-          <div className="bg-surface-container-low rounded border border-outline-variant/10 px-8 py-16 text-center">
+          <Panel padding="none" className="px-8 py-16 text-center">
             <Icon name="leaderboard" size={48} className="text-on-surface/20 block mb-4 mx-auto" />
             <div className="font-headline text-xl text-on-surface mb-2">No players found</div>
             <div className="text-sm text-on-surface-variant">
@@ -366,11 +368,11 @@ export default function LeaderboardScreen(props) {
                 ? 'Try adjusting your filters.'
                 : 'Standings appear once clashes have been played and results submitted.'}
             </div>
-          </div>
+          </Panel>
         )}
 
         {sorted.length > 0 && (
-          <div className="bg-surface-container-low rounded overflow-hidden border border-outline-variant/10">
+          <Panel padding="none" className="overflow-hidden">
 
             {/* Table header row */}
             <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
@@ -407,7 +409,7 @@ export default function LeaderboardScreen(props) {
                 {'Showing ' + sorted.length + ' of ' + players.length + ' Players'}
               </span>
             </div>
-          </div>
+          </Panel>
         )}
 
       </div>
