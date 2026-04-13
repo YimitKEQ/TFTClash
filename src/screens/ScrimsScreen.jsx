@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS } from '../lib/constants.js'
-import { hasFeature } from '../lib/tiers.js'
+import { hasFeature, getMaxScrimPlayers } from '../lib/tiers.js'
+import { TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 
@@ -181,34 +182,38 @@ function PlayerSearch(props) {
   var roster = props.roster;
   var onAdd = props.onAdd;
   var onAddGuest = props.onAddGuest;
+  var disabled = !!props.disabled;
+  var disabledPlaceholder = props.disabledPlaceholder || 'Roster at cap - upgrade to add more';
   var _q = useState(''); var q = _q[0]; var setQ = _q[1];
   var _open = useState(false); var open = _open[0]; var setOpen = _open[1];
   var inputRef = useRef(null);
   var qtrim = q.trim();
-  var filtered = qtrim ? allPlayers.filter(function(p) {
+  var filtered = qtrim && !disabled ? allPlayers.filter(function(p) {
     var alreadyIn = roster.find(function(r) { return String(r.id) === String(p.id); });
     return !alreadyIn && (p.name || '').toLowerCase().indexOf(qtrim.toLowerCase()) !== -1;
   }).slice(0, 8) : [];
   var exactMatch = allPlayers.find(function(p) { return (p.name || '').toLowerCase() === qtrim.toLowerCase(); });
-  var canAddGuest = qtrim.length > 0 && !exactMatch;
-  function pick(p) { onAdd(p); setQ(''); setOpen(false); if (inputRef.current) inputRef.current.focus(); }
-  function addGuest() { if (!qtrim) return; onAddGuest(qtrim); setQ(''); setOpen(false); }
+  var canAddGuest = !disabled && qtrim.length > 0 && !exactMatch;
+  function pick(p) { if (disabled) return; onAdd(p); setQ(''); setOpen(false); if (inputRef.current) inputRef.current.focus(); }
+  function addGuest() { if (disabled) return; if (!qtrim) return; onAddGuest(qtrim); setQ(''); setOpen(false); }
   return (
     <div className="relative">
       <input
         ref={inputRef}
-        type="text" value={q}
-        onChange={function(e) { setQ(e.target.value); setOpen(true); }}
-        onFocus={function() { if (q) setOpen(true); }}
+        type="text" value={disabled ? '' : q}
+        disabled={disabled}
+        onChange={function(e) { if (disabled) return; setQ(e.target.value); setOpen(true); }}
+        onFocus={function() { if (disabled) return; if (q) setOpen(true); }}
         onBlur={function() { setTimeout(function() { setOpen(false); }, 150); }}
         onKeyDown={function(e) {
+          if (disabled) return;
           if (e.key === 'Enter') { if (filtered.length > 0) pick(filtered[0]); else if (canAddGuest) addGuest(); e.preventDefault(); }
           if (e.key === 'Escape') { setOpen(false); setQ(''); }
         }}
-        placeholder="Search players..."
-        className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary"
+        placeholder={disabled ? disabledPlaceholder : 'Search players...'}
+        className={'w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary ' + (disabled ? 'opacity-50 cursor-not-allowed' : '')}
       />
-      {open && (filtered.length > 0 || canAddGuest) && (
+      {!disabled && open && (filtered.length > 0 || canAddGuest) && (
         <div className="absolute left-0 right-0 top-full z-20 bg-surface-container-high border border-outline-variant/20 shadow-xl max-h-52 overflow-y-auto">
           {filtered.map(function(p) {
             return (
@@ -735,6 +740,22 @@ export default function ScrimsScreen() {
   var hasTierAccess = hasFeature(userTier, 'createScrimRoom');
   var hasAccess = isAdmin || isScrimHost || isScrimmer || hasTierAccess;
   var canManage = isAdmin || isScrimHost || hasTierAccess;
+
+  // Tier-based roster cap (scrim=8, bundle=16, host=32, others=0)
+  // Admins and scrim-hosts bypass the cap (legacy access, not tier-based).
+  var tierMaxPlayers = getMaxScrimPlayers(userTier);
+  var bypassCap = isAdmin || isScrimHost;
+  var effectiveMaxPlayers = bypassCap ? 9999 : tierMaxPlayers;
+  var tierLabel = (TIER_LABELS && TIER_LABELS[userTier]) || 'current tier';
+  var upgradeHint = userTier === 'scrim'
+    ? ' Upgrade to Pro + Scrim for 16 (two lobbies) or Host for 32.'
+    : (userTier === 'bundle' ? ' Upgrade to Host for 32 players (four lobbies).' : '');
+  var createRosterSize = (scrimRoster || []).length;
+  var createOverCap = !bypassCap && createRosterSize > effectiveMaxPlayers;
+  var createAtCap = !bypassCap && createRosterSize >= effectiveMaxPlayers;
+  var recordRosterSize = (rosterForGame || []).length;
+  var recordOverCap = !bypassCap && recordRosterSize > effectiveMaxPlayers;
+  var recordAtCap = !bypassCap && recordRosterSize >= effectiveMaxPlayers;
   if (!hasAccess) {
     return (
       <PageLayout>
@@ -806,12 +827,20 @@ export default function ScrimsScreen() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1.5">Roster</label>
+                    <label className="block text-[10px] font-label text-on-surface-variant uppercase tracking-widest mb-1.5">
+                      Roster {!bypassCap && effectiveMaxPlayers > 0 && (
+                        <span className={'ml-1 normal-case tracking-normal ' + (createOverCap ? 'text-error' : 'text-on-surface-variant/70')}>
+                          ({createRosterSize}/{effectiveMaxPlayers})
+                        </span>
+                      )}
+                    </label>
                     <PlayerSearch
                       players={players}
                       roster={scrimRoster}
                       onAdd={function(p) { setScrimRoster(function(r) { return r.concat([p]); }); }}
                       onAddGuest={addGuestPlayer}
+                      disabled={createAtCap}
+                      disabledPlaceholder={'Roster at ' + effectiveMaxPlayers + ' player cap - upgrade to add more'}
                     />
                     {scrimRoster.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
@@ -826,8 +855,15 @@ export default function ScrimsScreen() {
                         })}
                       </div>
                     )}
+                    {(createOverCap || createAtCap) && !bypassCap && (
+                      <div className="mt-3 p-3 rounded-lg bg-error-container/20 border border-error/20 text-error font-mono text-xs leading-relaxed">
+                        Your {tierLabel} plan allows up to {effectiveMaxPlayers} players per scrim.{upgradeHint}{' '}
+                        {createOverCap ? 'Reduce roster or ' : 'At cap - '}
+                        <a href="/pricing" className="underline">upgrade</a>{createOverCap ? '.' : ' for more slots.'}
+                      </div>
+                    )}
                   </div>
-                  <Btn variant="primary" size="lg" icon="add" onClick={createSession} className="w-full">
+                  <Btn variant="primary" size="lg" icon="add" onClick={createSession} disabled={createOverCap} className="w-full">
                     Create Session
                   </Btn>
                 </div>
@@ -939,7 +975,10 @@ export default function ScrimsScreen() {
                   {/* Roster */}
                   <Panel padding="default">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block text-[10px] font-label text-on-surface-variant uppercase tracking-widest">Roster ({rosterForGame.length} players){isMultiLobby && <span className="text-tertiary ml-2">{Math.ceil(rosterForGame.length / 8)} lobbies</span>}</label>
+                      <label className="block text-[10px] font-label text-on-surface-variant uppercase tracking-widest">
+                        Roster ({rosterForGame.length}{!bypassCap && effectiveMaxPlayers > 0 ? '/' + effectiveMaxPlayers : ''} players)
+                        {isMultiLobby && <span className="text-tertiary ml-2">{Math.ceil(rosterForGame.length / 8)} lobbies</span>}
+                      </label>
                       {isMultiLobby && <span className="text-[9px] font-label bg-tertiary/15 text-tertiary px-2 py-0.5 uppercase tracking-widest">Multi-Lobby</span>}
                     </div>
                     <PlayerSearch
@@ -958,7 +997,16 @@ export default function ScrimsScreen() {
                         setLobbies(null); setRoundStandings(null);
                       }}
                       onAddGuest={addGuestPlayer}
+                      disabled={recordAtCap}
+                      disabledPlaceholder={'Roster at ' + effectiveMaxPlayers + ' player cap - upgrade to add more'}
                     />
+                    {(recordOverCap || recordAtCap) && !bypassCap && (
+                      <div className="mt-3 p-3 rounded-lg bg-error-container/20 border border-error/20 text-error font-mono text-xs leading-relaxed">
+                        Your {tierLabel} plan allows up to {effectiveMaxPlayers} players per scrim.{upgradeHint}{' '}
+                        {recordOverCap ? 'Remove players or ' : 'At cap - '}
+                        <a href="/pricing" className="underline">upgrade</a>{recordOverCap ? '.' : ' for more slots.'}
+                      </div>
+                    )}
                     {rosterForGame.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         {rosterForGame.map(function(p) {
