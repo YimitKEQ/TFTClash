@@ -200,6 +200,7 @@ function TFTClash(){
     if(mapped){
       if(mapped==="login"||mapped==="signup"){navSourceRef.current="router";setAuthScreen(mapped);return;}
       if(mapped!==screen){navSourceRef.current="router";setScreen(mapped);}
+      if(subRoute){navSourceRef.current="router";setSubRoute("");}
       return;
     }
     // Dynamic segments: /player/:name, /bracket/:id, /results/:id, /flash/:id, /tournament/:id
