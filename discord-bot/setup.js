@@ -87,8 +87,15 @@ const STRUCTURE = [
 // ─── Build permission overwrites ──────────────────────────────────────────────
 function buildOverwrites(gate, readOnly, roles) {
   const { everyone, player, host } = roles;
-  const SEND  = PermissionFlagsBits.SendMessages;
-  const VIEW  = PermissionFlagsBits.ViewChannel;
+  const SEND          = PermissionFlagsBits.SendMessages;
+  const VIEW          = PermissionFlagsBits.ViewChannel;
+  const ADD_REACTIONS = PermissionFlagsBits.AddReactions;
+  const ATTACH_FILES  = PermissionFlagsBits.AttachFiles;
+  const EMBED_LINKS   = PermissionFlagsBits.EmbedLinks;
+  const READ_HISTORY  = PermissionFlagsBits.ReadMessageHistory;
+
+  // Full chat permissions for community channels (general, lfg, clips, etc.)
+  const CHAT_ALLOW = [SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY];
 
   const ow = [];
 
@@ -96,26 +103,30 @@ function buildOverwrites(gate, readOnly, roles) {
     // Everyone can see; only hosts can send in readOnly channels
     if (readOnly) {
       ow.push({ id: everyone, deny: [SEND] });
-      ow.push({ id: host.id,  allow: [SEND, VIEW] });
+      ow.push({ id: host.id,  allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
     }
   } else if (gate === 'verified') {
     // Hide from unverified (@everyone); show to @Player+
-    ow.push({ id: everyone,   deny:  [VIEW] });
-    ow.push({ id: player.id,  allow: [VIEW] });
-    ow.push({ id: host.id,    allow: [VIEW, SEND] });
+    ow.push({ id: everyone,  deny:  [VIEW] });
     if (readOnly) {
-      ow.push({ id: player.id, deny: [SEND] });
-      ow.push({ id: host.id,   allow: [SEND] });
+      // Read-only channels: Player can view but not send. Host can send.
+      ow.push({ id: player.id, allow: [VIEW, ADD_REACTIONS, READ_HISTORY], deny: [SEND] });
+      ow.push({ id: host.id,   allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
+    } else {
+      // Community channels: full chat for Player and Host
+      ow.push({ id: player.id, allow: [VIEW].concat(CHAT_ALLOW) });
+      ow.push({ id: host.id,   allow: [VIEW].concat(CHAT_ALLOW) });
     }
   } else if (gate === 'host') {
-    // Only hosts
+    // Host-only admin channels: explicitly hide from @Player and @everyone
     ow.push({ id: everyone,  deny:  [VIEW] });
-    ow.push({ id: host.id,   allow: [VIEW, SEND] });
+    ow.push({ id: player.id, deny:  [VIEW] });
+    ow.push({ id: host.id,   allow: [VIEW, SEND, ADD_REACTIONS, ATTACH_FILES, EMBED_LINKS, READ_HISTORY] });
   }
 
-  // Always deny @Muted from sending
+  // Always deny @Muted from sending and adding reactions
   if (roles.muted) {
-    ow.push({ id: roles.muted.id, deny: [SEND] });
+    ow.push({ id: roles.muted.id, deny: [SEND, ADD_REACTIONS] });
   }
 
   return ow;
