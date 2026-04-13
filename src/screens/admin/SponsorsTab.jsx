@@ -53,7 +53,7 @@ function SponsorCard(props) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-on-surface truncate">{sponsor.name}</span>
-            <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm" style={{ background: tierInfo.color + '20', color: tierInfo.color }}>
+            <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded" style={{ background: tierInfo.color + '20', color: tierInfo.color }}>
               {tierInfo.label}
             </span>
           </div>
@@ -64,15 +64,15 @@ function SponsorCard(props) {
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button
             onClick={function() { onToggle(sponsor) }}
-            className={'w-7 h-7 rounded-sm flex items-center justify-center transition-colors border-0 cursor-pointer ' + (isActive ? 'bg-secondary/10 text-secondary' : 'bg-on-surface/5 text-on-surface/30')}
+            className={'w-7 h-7 rounded flex items-center justify-center transition-colors border-0 cursor-pointer ' + (isActive ? 'bg-secondary/10 text-secondary' : 'bg-on-surface/5 text-on-surface/30')}
             title={isActive ? 'Deactivate' : 'Activate'}
           >
             <Icon name={isActive ? 'visibility' : 'visibility_off'} size={14} />
           </button>
-          <button onClick={function() { onEdit(sponsor) }} className="w-7 h-7 rounded-sm flex items-center justify-center bg-primary/10 text-primary transition-colors border-0 cursor-pointer" title="Edit">
+          <button onClick={function() { onEdit(sponsor) }} className="w-7 h-7 rounded flex items-center justify-center bg-primary/10 text-primary transition-colors border-0 cursor-pointer" title="Edit">
             <Icon name="edit" size={14} />
           </button>
-          <button onClick={function() { onDelete(sponsor) }} className="w-7 h-7 rounded-sm flex items-center justify-center bg-error/10 text-error transition-colors border-0 cursor-pointer" title="Delete">
+          <button onClick={function() { onDelete(sponsor) }} className="w-7 h-7 rounded flex items-center justify-center bg-error/10 text-error transition-colors border-0 cursor-pointer" title="Delete">
             <Icon name="delete" size={14} />
           </button>
         </div>
@@ -177,7 +177,7 @@ function SponsorForm(props) {
               <button
                 key={pl.id}
                 onClick={function() { togglePlacement(pl.id) }}
-                className={'flex items-center gap-2 px-3 py-2.5 rounded-sm border text-left transition-all cursor-pointer ' + (isSelected ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-surface-container border-outline-variant/10 text-on-surface/60 hover:border-on-surface/20')}
+                className={'flex items-center gap-2 px-3 py-2.5 rounded border text-left transition-all cursor-pointer ' + (isSelected ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-surface-container border-outline-variant/10 text-on-surface/60 hover:border-on-surface/20')}
               >
                 <Icon name={pl.icon} size={14} />
                 <div className="min-w-0">
@@ -192,7 +192,7 @@ function SponsorForm(props) {
       </div>
 
       {form.logo_url && (
-        <div className="mb-4 p-3 bg-surface-container-high rounded-sm">
+        <div className="mb-4 p-3 bg-surface-container-high rounded">
           <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface/40 mb-2 block">Logo Preview</label>
           <div className="flex items-center gap-3">
             <img src={form.logo_url} alt="Preview" className="h-10 object-contain bg-white/5 rounded p-1" onError={function(e) { e.target.style.display = 'none' }} />
@@ -404,7 +404,7 @@ export default function SponsorsTab() {
             {PLACEMENT_OPTIONS.map(function(pl) {
               var sponsorsHere = active.filter(function(s) { return (s.placements || []).indexOf(pl.id) > -1 })
               return (
-                <div key={pl.id} className="flex items-center gap-3 px-3 py-2.5 bg-surface-container-high rounded-sm">
+                <div key={pl.id} className="flex items-center gap-3 px-3 py-2.5 bg-surface-container-high rounded">
                   <Icon name={pl.icon} size={14} className="text-on-surface/40 flex-shrink-0" />
                   <span className="text-xs font-semibold text-on-surface/70 w-32 flex-shrink-0">{pl.label}</span>
                   <div className="flex-1 flex flex-wrap gap-1">

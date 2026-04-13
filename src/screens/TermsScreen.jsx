@@ -112,7 +112,7 @@ export default function TermsScreen() {
               <span className="font-condensed text-sm font-bold uppercase tracking-wide">Terms of Service</span>
             </button>
 
-            <div className="mt-8 p-5 bg-surface-container-low rounded-sm border border-outline-variant/15">
+            <div className="mt-8 p-5 bg-surface-container-low rounded border border-outline-variant/15">
               <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">Last Updated</span>
               <p className="font-mono text-sm mt-1 text-on-surface">{lastUpdated}</p>
             </div>
@@ -124,7 +124,7 @@ export default function TermsScreen() {
                   <button
                     key={s.id}
                     onClick={function () { scrollTo(s.id) }}
-                    className={'text-left px-4 py-2 text-xs transition-all hover:bg-white/5 rounded-sm bg-transparent border-0 cursor-pointer ' + (isActive ? 'text-primary' : 'text-[#9d8e7c]')}
+                    className={'text-left px-4 py-2 text-xs transition-all hover:bg-white/5 rounded bg-transparent border-0 cursor-pointer ' + (isActive ? 'text-primary' : 'text-[#9d8e7c]')}
                   >
                     <span className={'font-mono mr-2 text-primary ' + (isActive ? 'opacity-100' : 'opacity-50')}>{s.num}</span>
                     {s.title}
@@ -151,7 +151,7 @@ export default function TermsScreen() {
                 return (
                   <div key={sec.id} id={'terms-' + sec.id} className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-primary/5 -skew-y-1 translate-y-2 pointer-events-none"></div>
-                    <div className="relative bg-surface-container-high p-8 rounded-sm border-l-4 border-primary">
+                    <div className="relative bg-surface-container-high p-8 rounded border-l-4 border-primary">
                       <div className="flex items-center gap-4 mb-5">
                         <span className="font-mono text-primary text-base">{sec.num}</span>
                         <h3 className="font-editorial text-2xl text-on-surface">{sec.title}</h3>
@@ -161,7 +161,7 @@ export default function TermsScreen() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {sec.cards.map(function (card) {
                             return (
-                              <div key={card.label} className="p-4 bg-surface-container-lowest rounded-sm border border-outline-variant/10">
+                              <div key={card.label} className="p-4 bg-surface-container-lowest rounded border border-outline-variant/10">
                                 <span className="font-condensed text-[10px] uppercase tracking-widest text-tertiary">{card.label}</span>
                                 <p className="text-sm mt-2 text-on-surface-variant">{card.text}</p>
                               </div>
@@ -180,7 +180,7 @@ export default function TermsScreen() {
                     <span className="font-mono text-primary text-base">{sec.num}</span>
                     <h3 className="font-editorial text-2xl text-on-surface group-hover:text-primary transition-colors">{sec.title}</h3>
                   </div>
-                  <div className="bg-surface-container-low p-7 rounded-sm space-y-5">
+                  <div className="bg-surface-container-low p-7 rounded space-y-5">
                     <p className="leading-relaxed text-on-surface">{sec.body}</p>
 
                     {sec.items && (

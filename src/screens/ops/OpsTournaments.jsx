@@ -295,7 +295,7 @@ export default function OpsTournaments(props) {
             <Icon name="calendar_month" size={16} className="text-primary" />
             <span className="font-bold text-sm text-on-surface">Weekly Clash Phase Control</span>
           </div>
-          <span className={'px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm ' + (PHASE_COLORS[currentPhase] || 'bg-on-surface/10 text-on-surface/40')}>
+          <span className={'px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded ' + (PHASE_COLORS[currentPhase] || 'bg-on-surface/10 text-on-surface/40')}>
             {PHASE_LABELS[currentPhase] || currentPhase || 'IDLE'}
           </span>
         </div>
@@ -358,7 +358,7 @@ export default function OpsTournaments(props) {
                     </div>
                   </div>
                   <div className="font-mono text-xs text-on-surface/50">{regCount}/{t.max_players || '?'}</div>
-                  <span className={'px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-sm ' + badge}>
+                  <span className={'px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ' + badge}>
                     {PHASE_LABELS[t.phase] || (t.phase || 'draft').toUpperCase()}
                   </span>
                   <div className="flex items-center gap-1">

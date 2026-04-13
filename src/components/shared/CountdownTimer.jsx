@@ -29,7 +29,7 @@ export default function CountdownTimer(props) {
   ]
 
   return (
-    <div className={'glass-panel p-6 rounded-sm flex items-center justify-center gap-6 ' + className}>
+    <div className={'glass-panel p-6 rounded flex items-center justify-center gap-6 ' + className}>
       {segments.map(function(seg) {
         return (
           <div key={seg.label} className="flex flex-col items-center">

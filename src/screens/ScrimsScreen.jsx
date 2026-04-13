@@ -780,7 +780,7 @@ export default function ScrimsScreen() {
             {/* Create form */}
             {canManage && (
             <div className="col-span-12 lg:col-span-4">
-              <div className="bg-surface-container-low rounded-sm overflow-hidden">
+              <div className="bg-surface-container-low rounded overflow-hidden">
                 <div className="px-5 py-4 bg-surface-container">
                   <h2 className="font-serif text-xl font-bold">New Session</h2>
                 </div>
@@ -839,9 +839,9 @@ export default function ScrimsScreen() {
             {/* Sessions list */}
             <div className={"col-span-12 " + (canManage ? "lg:col-span-8" : "") + " space-y-3"}>
               {dbLoading ? (
-                <div className="bg-surface-container-low p-12 rounded-sm text-center text-on-surface-variant/40 font-sans-condensed text-xs uppercase tracking-widest">Loading...</div>
+                <div className="bg-surface-container-low p-12 rounded text-center text-on-surface-variant/40 font-sans-condensed text-xs uppercase tracking-widest">Loading...</div>
               ) : safeSessions.length === 0 ? (
-                <div className="bg-surface-container-low p-16 rounded-sm flex flex-col items-center justify-center gap-3">
+                <div className="bg-surface-container-low p-16 rounded flex flex-col items-center justify-center gap-3">
                   <Icon name="sports_esports" size={40} className="text-on-surface-variant opacity-20"/>
                   <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No sessions yet - create one to get started</div>
                 </div>
@@ -854,7 +854,7 @@ export default function ScrimsScreen() {
                       {safeSessions.filter(function(s) { return s.active; }).map(function(s) {
                         var progress = Math.min(s.games.length / s.targetGames, 1);
                         return (
-                          <div key={s.id} className={'rounded-sm overflow-hidden mb-2 ' + (activeId === s.id ? 'ring-1 ring-primary/50' : '')}>
+                          <div key={s.id} className={'rounded overflow-hidden mb-2 ' + (activeId === s.id ? 'ring-1 ring-primary/50' : '')}>
                             <div className="bg-surface-container-low p-4 flex items-center gap-4">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
@@ -892,7 +892,7 @@ export default function ScrimsScreen() {
                       <div className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2 px-1">Completed</div>
                       {safeSessions.filter(function(s) { return !s.active; }).map(function(s) {
                         return (
-                          <div key={s.id} className="bg-surface-container-low rounded-sm p-4 flex items-center gap-4 mb-2 opacity-70 hover:opacity-100 transition-opacity">
+                          <div key={s.id} className="bg-surface-container-low rounded p-4 flex items-center gap-4 mb-2 opacity-70 hover:opacity-100 transition-opacity">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-0.5">
                                 <span className="font-mono text-sm font-bold text-on-surface uppercase">{s.name}</span>
@@ -924,7 +924,7 @@ export default function ScrimsScreen() {
           <div className="grid grid-cols-12 gap-5">
             <div className="col-span-12 xl:col-span-7 space-y-4">
               {/* Session selector */}
-              <div className="bg-surface-container-low rounded-sm p-5">
+              <div className="bg-surface-container-low rounded p-5">
                 <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-2">Session</label>
                 <select value={activeId || ''} onChange={function(e) { var v = e.target.value || null; setActiveId(v); setScrimResults({}); setGameComps({}); rosterDirtyRef.current = false; if (v) setScrimRoster([]); setLobbies(null); setLobbyResults({}); setLobbyComps({}); setRoundStandings(null); }}
                   className="w-full bg-surface-container-highest border-0 text-on-surface font-mono text-sm p-3 outline-none focus:ring-1 focus:ring-primary">
@@ -941,7 +941,7 @@ export default function ScrimsScreen() {
               {activeId && (
                 <>
                   {/* Roster */}
-                  <div className="bg-surface-container-low rounded-sm p-5">
+                  <div className="bg-surface-container-low rounded p-5">
                     <div className="flex items-center justify-between mb-3">
                       <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">Roster ({rosterForGame.length} players){isMultiLobby && <span className="text-tertiary ml-2">{Math.ceil(rosterForGame.length / 8)} lobbies</span>}</label>
                       {isMultiLobby && <span className="text-[9px] font-sans-condensed bg-tertiary/15 text-tertiary px-2 py-0.5 uppercase tracking-widest">Multi-Lobby</span>}
@@ -986,7 +986,7 @@ export default function ScrimsScreen() {
                   </div>
 
                   {/* Game controls */}
-                  <div className="bg-surface-container-low rounded-sm p-5 space-y-4">
+                  <div className="bg-surface-container-low rounded p-5 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="font-mono text-sm text-on-surface-variant">
                         {isMultiLobby ? 'Round ' + (sessionRoundCount + 1) : 'Game ' + (session ? session.games.length + 1 : 1)}{session ? ' / ' + session.targetGames : ''}
@@ -1018,7 +1018,7 @@ export default function ScrimsScreen() {
 
                   {/* ── Single lobby mode (8 or fewer) ── */}
                   {!isMultiLobby && rosterForGame.length >= 2 && (
-                    <div className="bg-surface-container-low rounded-sm p-5 space-y-5">
+                    <div className="bg-surface-container-low rounded p-5 space-y-5">
                       <div>
                         <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Placements - {placedCount}/{rosterForGame.length} set</label>
                         <PlacementBoard roster={rosterForGame} results={scrimResults}
@@ -1043,7 +1043,7 @@ export default function ScrimsScreen() {
                     <div className="space-y-4">
                       {/* Seeding controls */}
                       {!lobbies && !roundStandings && (
-                        <div className="bg-surface-container-low rounded-sm p-5 space-y-4">
+                        <div className="bg-surface-container-low rounded p-5 space-y-4">
                           <div>
                             <label className="block text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mb-3">Seeding Mode</label>
                             <div className="flex gap-2">
@@ -1056,7 +1056,7 @@ export default function ScrimsScreen() {
                                 var isDisabled = mode.id !== 'random' && sessionRoundCount === 0;
                                 return (
                                   <button key={mode.id} onClick={function() { if (!isDisabled) setSeedMode(mode.id); }}
-                                    className={'flex-1 p-3 rounded-sm border transition-all text-left ' + (isActive ? 'border-primary bg-primary/10' : isDisabled ? 'border-outline-variant/10 opacity-30 cursor-not-allowed' : 'border-outline-variant/10 hover:border-primary/30')}>
+                                    className={'flex-1 p-3 rounded border transition-all text-left ' + (isActive ? 'border-primary bg-primary/10' : isDisabled ? 'border-outline-variant/10 opacity-30 cursor-not-allowed' : 'border-outline-variant/10 hover:border-primary/30')}>
                                     <div className="flex items-center gap-2 mb-1">
                                       <Icon name={mode.icon} size={14} className={isActive ? 'text-primary' : 'text-on-surface-variant/40'}/>
                                       <span className={'font-sans-condensed text-xs uppercase tracking-widest font-bold ' + (isActive ? 'text-primary' : 'text-on-surface')}>{mode.label}</span>
@@ -1076,7 +1076,7 @@ export default function ScrimsScreen() {
 
                       {/* Round standings (after locking) */}
                       {roundStandings && (
-                        <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                        <div className="bg-surface-container-low rounded overflow-hidden">
                           <div className="px-5 py-4 bg-surface-container flex items-center justify-between">
                             <div>
                               <h3 className="font-serif text-xl font-bold">Round {currentRound} Complete</h3>
@@ -1138,7 +1138,7 @@ export default function ScrimsScreen() {
                               var lobbyLetter = String.fromCharCode(65 + li);
                               var lobbyColor = li === 0 ? '#E8A838' : li === 1 ? '#4ECDC4' : li === 2 ? '#C4B5FD' : '#f97316';
                               return (
-                                <div key={li} className="bg-surface-container-low rounded-sm overflow-hidden">
+                                <div key={li} className="bg-surface-container-low rounded overflow-hidden">
                                   <div className="px-4 py-3 bg-surface-container flex items-center justify-between" style={{borderTop: '2px solid ' + lobbyColor}}>
                                     <div className="flex items-center gap-2">
                                       <span className="font-mono text-sm font-black" style={{color: lobbyColor}}>Lobby {lobbyLetter}</span>
@@ -1199,7 +1199,7 @@ export default function ScrimsScreen() {
                 {session ? session.name + ' - Games' : 'Recent Games'}
               </div>
               {(session ? session.games.slice().reverse() : allGames.slice().reverse()).slice(0, 8).length === 0 ? (
-                <div className="bg-surface-container-low p-10 rounded-sm text-center">
+                <div className="bg-surface-container-low p-10 rounded text-center">
                   <Icon name="sports_esports" size={32} className="text-on-surface-variant opacity-20 mb-3"/>
                   <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No games yet</div>
                 </div>
@@ -1210,7 +1210,7 @@ export default function ScrimsScreen() {
                     var winner = sorted[0];
                     var winnerPlayer = winner ? players.find(function(pl) { return String(pl.id) === String(winner[0]); }) : null;
                     return (
-                      <div key={g.id} className="bg-surface-container-low rounded-sm overflow-hidden">
+                      <div key={g.id} className="bg-surface-container-low rounded overflow-hidden">
                         <div className="flex justify-between items-center px-4 py-2.5 bg-surface-container">
                           <div className="flex gap-2 items-center">
                             <span className="font-mono text-xs font-bold text-primary">{g.roundNumber ? 'R' + g.roundNumber : 'G' + (g.gameNumber || (gi + 1))}</span>
@@ -1240,7 +1240,7 @@ export default function ScrimsScreen() {
                             var pts = PTS[place] || 0;
                             return (
                               <div key={pid} className="flex items-center gap-2.5 py-1.5">
-                                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded-sm font-mono text-[10px] font-black" style={{background: c + '20', color: c}}>{place}</div>
+                                <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded font-mono text-[10px] font-black" style={{background: c + '20', color: c}}>{place}</div>
                                 <span className="text-xs truncate flex-1" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
                                 {g.comps && g.comps[pid] && <span className="text-[9px] font-sans-condensed text-on-surface-variant/30 truncate max-w-[80px]">{g.comps[pid]}</span>}
                                 <span className="font-mono text-[10px] font-bold flex-shrink-0" style={{color: c}}>{pts}pt</span>
@@ -1273,7 +1273,7 @@ export default function ScrimsScreen() {
             </div>
 
             {statsTab === 'players' && scrimStats.length === 0 && (
-              <div className="bg-surface-container-low p-16 rounded-sm text-center">
+              <div className="bg-surface-container-low p-16 rounded text-center">
                 <Icon name="analytics" size={40} className="text-on-surface-variant opacity-20 mb-4"/>
                 <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">Record games to unlock statistics</div>
               </div>
@@ -1316,7 +1316,7 @@ export default function ScrimsScreen() {
                 </div>
 
                 {/* Leaderboard */}
-                <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                <div className="bg-surface-container-low rounded overflow-hidden">
                   <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
                     <div>
                       <h2 className="font-serif text-2xl font-bold">Player Leaderboard</h2>
@@ -1386,7 +1386,7 @@ export default function ScrimsScreen() {
 
                 {/* Session breakdown */}
                 {safeSessions.length >= 2 && (
-                  <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                  <div className="bg-surface-container-low rounded overflow-hidden">
                     <div className="px-6 py-4 bg-surface-container">
                       <h2 className="font-serif text-2xl font-bold">Session Breakdown</h2>
                       <p className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest mt-0.5">Points and avg per session - track improvement over time</p>
@@ -1448,13 +1448,13 @@ export default function ScrimsScreen() {
             {statsTab === 'comps' && (
               <div className="space-y-4">
                 {compList.length === 0 ? (
-                  <div className="bg-surface-container-low p-16 rounded-sm text-center space-y-3">
+                  <div className="bg-surface-container-low p-16 rounded text-center space-y-3">
                     <Icon name="category" size={40} className="text-on-surface-variant opacity-20"/>
                     <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No comp data yet</div>
                     <div className="text-xs text-on-surface-variant/50 max-w-xs mx-auto">When recording games, fill in the comp field below each player's placements to track comp performance here.</div>
                   </div>
                 ) : (
-                  <div className="bg-surface-container-low rounded-sm overflow-hidden">
+                  <div className="bg-surface-container-low rounded overflow-hidden">
                     <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
                       <div>
                         <h2 className="font-serif text-2xl font-bold">Comp Performance</h2>
@@ -1530,7 +1530,7 @@ export default function ScrimsScreen() {
           <div className="space-y-4">
             {/* Export bar */}
             {allGames.length > 0 && (
-              <div className="flex items-center justify-between bg-surface-container-low rounded-sm px-5 py-3">
+              <div className="flex items-center justify-between bg-surface-container-low rounded px-5 py-3">
                 <span className="text-[10px] font-sans-condensed text-on-surface-variant uppercase tracking-widest">{allGames.length} games across {safeSessions.length} sessions</span>
                 <div className="flex gap-2">
                   <button onClick={copyText} className="flex items-center gap-1.5 px-3 py-2 bg-surface-container-high text-on-surface font-sans-condensed text-xs uppercase tracking-wide hover:text-primary transition-colors">
@@ -1544,7 +1544,7 @@ export default function ScrimsScreen() {
             )}
 
             {safeSessions.length === 0 ? (
-              <div className="bg-surface-container-low p-16 rounded-sm text-center">
+              <div className="bg-surface-container-low p-16 rounded text-center">
                 <Icon name="history" size={40} className="text-on-surface-variant opacity-20 mb-4"/>
                 <div className="text-xs font-sans-condensed text-on-surface-variant uppercase tracking-widest">No history yet</div>
               </div>
@@ -1566,7 +1566,7 @@ export default function ScrimsScreen() {
                 }).sort(function(a, b) { return b.pts - a.pts; });
 
                 return (
-                  <div key={sess.id} className="bg-surface-container-low rounded-sm overflow-hidden">
+                  <div key={sess.id} className="bg-surface-container-low rounded overflow-hidden">
                     {/* Session header */}
                     <button onClick={function() { setExpandedSession(isExpanded ? null : sess.id); }}
                       className="w-full px-5 py-4 flex items-center gap-4 hover:bg-surface-container transition-colors text-left">
@@ -1597,7 +1597,7 @@ export default function ScrimsScreen() {
                           {sessStats.slice(0, 3).map(function(s, si) {
                             var medal = si === 0 ? '#E8A838' : si === 1 ? '#C0C0C0' : '#CD7F32';
                             return (
-                              <div key={s.name} className="flex items-center gap-1.5 px-2 py-1 rounded-sm" style={{background: medal + '10', border: '1px solid ' + medal + '20'}}>
+                              <div key={s.name} className="flex items-center gap-1.5 px-2 py-1 rounded" style={{background: medal + '10', border: '1px solid ' + medal + '20'}}>
                                 <span className="font-mono text-[10px] font-black" style={{color: medal}}>{si + 1}</span>
                                 <span className="text-[10px] font-sans-condensed text-on-surface truncate max-w-[56px]">{s.name}</span>
                                 <span className="font-mono text-[10px] font-bold text-primary">{s.pts}</span>
@@ -1652,7 +1652,7 @@ export default function ScrimsScreen() {
                             var winnerEntry = sorted[0];
                             var winnerPlayer = winnerEntry ? players.find(function(pl) { return String(pl.id) === String(winnerEntry[0]); }) : null;
                             return (
-                              <div key={g.id} className="bg-surface-container-high rounded-sm overflow-hidden">
+                              <div key={g.id} className="bg-surface-container-high rounded overflow-hidden">
                                 <div className="flex items-center justify-between px-4 py-2.5 bg-surface-container-highest/50">
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="font-mono text-xs font-bold text-primary">{g.roundNumber ? 'R' + g.roundNumber : 'G' + g.gameNumber}</span>
@@ -1697,7 +1697,7 @@ export default function ScrimsScreen() {
                                     var pts = PTS[place] || 0;
                                     return (
                                       <div key={pid} className="flex items-center gap-2.5 py-1.5">
-                                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded-sm font-mono text-[10px] font-black" style={{background: c + '20', color: c}}>{place}</div>
+                                        <div className="w-6 h-6 flex items-center justify-center flex-shrink-0 rounded font-mono text-[10px] font-black" style={{background: c + '20', color: c}}>{place}</div>
                                         <span className="text-xs truncate flex-1" style={{color: place <= 4 ? '#D1C9BC' : 'rgba(255,255,255,0.3)', fontWeight: place <= 4 ? 600 : 400}}>{p.name}</span>
                                         {g.comps && g.comps[pid] && <span className="text-[9px] font-sans-condensed text-on-surface-variant/30 truncate max-w-[100px]">{g.comps[pid]}</span>}
                                         <span className="font-mono text-[10px] font-bold flex-shrink-0" style={{color: c}}>{pts}pt</span>
@@ -1721,7 +1721,7 @@ export default function ScrimsScreen() {
         {/* Confirm delete modal */}
         {confirmDelete && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-surface-container-low rounded-sm p-6 max-w-sm w-full">
+            <div className="bg-surface-container-low rounded p-6 max-w-sm w-full">
               <div className="font-serif text-lg font-bold text-on-surface mb-2">Delete {confirmDelete.type}?</div>
               <div className="text-sm text-on-surface-variant mb-5">This cannot be undone.</div>
               <div className="flex gap-3">

@@ -63,8 +63,8 @@ function FeaturedSpotlight(props) {
       </div>
       <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-end min-h-[380px]">
         <div className="flex gap-3 mb-5">
-          <span className="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold font-condensed uppercase rounded-sm">Featured</span>
-          <span className={'px-3 py-1 text-[10px] font-bold font-condensed uppercase rounded-sm ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
+          <span className="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold font-condensed uppercase rounded">Featured</span>
+          <span className={'px-3 py-1 text-[10px] font-bold font-condensed uppercase rounded ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
         </div>
         <h1 className="text-4xl lg:text-6xl font-black italic font-editorial text-on-background uppercase leading-tight mb-3">{t.name}</h1>
         {t.description && (
@@ -133,17 +133,17 @@ function TournamentCard(props) {
   return (
     <div
       onClick={onClick}
-      className="group bg-surface-container-low p-4 rounded-sm border border-outline-variant/5 hover:border-primary/30 transition-all duration-300 cursor-pointer flex flex-col"
+      className="group bg-surface-container-low p-4 rounded border border-outline-variant/5 hover:border-primary/30 transition-all duration-300 cursor-pointer flex flex-col"
     >
-      <div className="relative h-36 mb-4 overflow-hidden rounded-sm bg-surface-container-high flex items-center justify-center flex-shrink-0">
+      <div className="relative h-36 mb-4 overflow-hidden rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,198,107,0.3) 0px, rgba(255,198,107,0.3) 1px, transparent 1px, transparent 10px)'}} />
         <Icon name="account_tree" className="text-on-surface-variant/20" size={48} />
         <div className="absolute top-3 left-3">
-          <span className={'text-[9px] font-bold px-2 py-1 rounded-sm uppercase font-condensed ' + badgeClass}>{phaseLabel}</span>
+          <span className={'text-[9px] font-bold px-2 py-1 rounded uppercase font-condensed ' + badgeClass}>{phaseLabel}</span>
         </div>
         {countdown && (
           <div className="absolute top-3 right-3">
-            <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-1 rounded-sm uppercase font-condensed border border-primary/20">{countdown}</span>
+            <span className="bg-primary/10 text-primary text-[9px] font-bold px-2 py-1 rounded uppercase font-condensed border border-primary/20">{countdown}</span>
           </div>
         )}
       </div>
@@ -181,7 +181,7 @@ function TournamentCard(props) {
           </div>
         </div>
 
-        <button className="w-full py-2 bg-surface-container-high text-xs font-bold uppercase font-condensed rounded-sm group-hover:bg-primary group-hover:text-on-primary transition-all duration-200 mt-auto">
+        <button className="w-full py-2 bg-surface-container-high text-xs font-bold uppercase font-condensed rounded group-hover:bg-primary group-hover:text-on-primary transition-all duration-200 mt-auto">
           View Details
         </button>
       </div>
@@ -334,7 +334,7 @@ export default function TournamentsListScreen() {
               </div>
 
               {gridItems.length === 0 && !featured && (
-                <div className="flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant bg-surface-container-low rounded-sm border border-outline-variant/5">
+                <div className="flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant bg-surface-container-low rounded border border-outline-variant/5">
                   <Icon name="search_off" size={40} className="opacity-30" />
                   <p className="font-condensed uppercase tracking-wider text-sm">No tournaments found</p>
                   {activeFilter !== 'all' && (

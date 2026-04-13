@@ -60,7 +60,7 @@ function PodiumCard({ player, rank, onClick }) {
           <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center gold-glow-boss">
             <span className="font-headline text-5xl font-bold text-primary">{initial}</span>
           </div>
-          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-label font-bold px-6 py-2 rounded-sm text-sm shadow-xl uppercase tracking-widest whitespace-nowrap">
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-label font-bold px-6 py-2 rounded text-sm shadow-xl uppercase tracking-widest whitespace-nowrap">
             {player.name.toUpperCase()}
           </div>
         </div>
@@ -84,7 +84,7 @@ function PodiumCard({ player, rank, onClick }) {
         <div className={'w-24 h-24 rounded-full border-4 ' + borderClass + ' ' + glowClass + ' overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center'}>
           <span className={'font-headline text-3xl font-bold ' + imgFilter} style={{ color: medalColor }}>{initial}</span>
         </div>
-        <div className={'absolute -bottom-2 left-1/2 -translate-x-1/2 ' + labelBg + ' text-surface font-label font-bold px-3 py-1 rounded-sm text-xs uppercase tracking-widest'}>
+        <div className={'absolute -bottom-2 left-1/2 -translate-x-1/2 ' + labelBg + ' text-surface font-label font-bold px-3 py-1 rounded text-xs uppercase tracking-widest'}>
           {medalLabel}
         </div>
       </div>
@@ -351,14 +351,14 @@ export default function LeaderboardScreen(props) {
 
         {/* Table Container */}
         {isLoadingData && players.length === 0 && (
-          <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
+          <div className="bg-surface-container-low rounded border border-outline-variant/10 px-8 py-16 text-center">
             <Icon name="hourglass_empty" size={48} className="text-on-surface/20 block mb-4 animate-pulse mx-auto" />
             <div className="font-headline text-xl text-on-surface mb-2">Loading standings...</div>
             <div className="text-sm text-on-surface-variant">Fetching player data from the arena.</div>
           </div>
         )}
         {!isLoadingData && sorted.length === 0 && (
-          <div className="bg-surface-container-low rounded-sm border border-outline-variant/10 px-8 py-16 text-center">
+          <div className="bg-surface-container-low rounded border border-outline-variant/10 px-8 py-16 text-center">
             <Icon name="leaderboard" size={48} className="text-on-surface/20 block mb-4 mx-auto" />
             <div className="font-headline text-xl text-on-surface mb-2">No players found</div>
             <div className="text-sm text-on-surface-variant">
@@ -370,7 +370,7 @@ export default function LeaderboardScreen(props) {
         )}
 
         {sorted.length > 0 && (
-          <div className="bg-surface-container-low rounded-sm overflow-hidden border border-outline-variant/10">
+          <div className="bg-surface-container-low rounded overflow-hidden border border-outline-variant/10">
 
             {/* Table header row */}
             <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">

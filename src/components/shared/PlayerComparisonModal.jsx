@@ -32,7 +32,7 @@ function PlayerComparisonModal(props) {
       onClick={onClose}
     >
       <div
-        className="bg-surface-container border border-primary/30 rounded-2xl p-6 max-w-[480px] w-[90%] max-h-[80vh] overflow-y-auto"
+        className="bg-surface-container border border-primary/30 rounded-xl p-6 max-w-[480px] w-[90%] max-h-[80vh] overflow-y-auto"
         onClick={function(e) { e.stopPropagation(); }}
       >
         {h2h ? (

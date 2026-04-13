@@ -263,7 +263,7 @@ export default function SeasonRecapScreen() {
 
         {/* Hero header */}
         <header className="text-center mb-16 pt-10 relative">
-          <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-condensed uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded-sm">
+          <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-condensed uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded">
             Season Achievement Unlocked
           </div>
           <h1 className="text-6xl md:text-8xl font-editorial italic font-black tracking-tight leading-none mb-4">
@@ -282,7 +282,7 @@ export default function SeasonRecapScreen() {
 
           {/* Rank card */}
           <div
-            className="md:col-span-4 flex flex-col items-center justify-center p-8 rounded-sm relative overflow-hidden glass-panel"
+            className="md:col-span-4 flex flex-col items-center justify-center p-8 rounded relative overflow-hidden glass-panel"
             style={{ boxShadow: '0 0 40px rgba(253, 186, 73, 0.15)' }}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
@@ -302,7 +302,7 @@ export default function SeasonRecapScreen() {
           </div>
 
           {/* Narrative performance summary */}
-          <div className="md:col-span-8 p-10 bg-surface-container-low rounded-sm flex flex-col justify-center">
+          <div className="md:col-span-8 p-10 bg-surface-container-low rounded flex flex-col justify-center">
             <Icon name="format_quote" fill size={32} className="text-primary mb-4" />
             <p className="text-2xl font-serif text-on-surface leading-snug">
               {narrativeParts.map(function(part, idx) {
@@ -321,7 +321,7 @@ export default function SeasonRecapScreen() {
           </div>
 
           {/* Stats row - 4 x col-span-3 */}
-          <div className="md:col-span-3 p-6 bg-surface-container-high rounded-sm text-center border-b border-primary/20">
+          <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center border-b border-primary/20">
             <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Total Clash Points
             </h3>
@@ -332,7 +332,7 @@ export default function SeasonRecapScreen() {
             </div>
           </div>
 
-          <div className="md:col-span-3 p-6 bg-surface-container-high rounded-sm text-center">
+          <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center">
             <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Total Victories
             </h3>
@@ -342,7 +342,7 @@ export default function SeasonRecapScreen() {
             </div>
           </div>
 
-          <div className="md:col-span-3 p-6 bg-surface-container-high rounded-sm text-center">
+          <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center">
             <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Avg Placement
             </h3>
@@ -352,7 +352,7 @@ export default function SeasonRecapScreen() {
             </div>
           </div>
 
-          <div className="md:col-span-3 p-6 bg-surface-container-high rounded-sm text-center">
+          <div className="md:col-span-3 p-6 bg-surface-container-high rounded text-center">
             <h3 className="font-condensed text-on-surface-variant uppercase tracking-widest text-xs mb-4">
               Top 4 Rate
             </h3>
@@ -365,7 +365,7 @@ export default function SeasonRecapScreen() {
           </div>
 
           {/* Trophy visual */}
-          <div className="md:col-span-12 lg:col-span-5 relative group overflow-hidden rounded-sm h-[300px] bg-surface-container-low">
+          <div className="md:col-span-12 lg:col-span-5 relative group overflow-hidden rounded h-[300px] bg-surface-container-low">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.08] to-background" />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
             <div className="absolute inset-0 flex items-center justify-center">
@@ -383,7 +383,7 @@ export default function SeasonRecapScreen() {
           </div>
 
           {/* Season highlights list */}
-          <div className="md:col-span-12 lg:col-span-7 bg-surface-container-low rounded-sm p-8">
+          <div className="md:col-span-12 lg:col-span-7 bg-surface-container-low rounded p-8">
             <h3 className="font-condensed text-on-surface-variant uppercase tracking-[0.3em] text-xs mb-8">
               Season Highlights
             </h3>
@@ -423,7 +423,7 @@ export default function SeasonRecapScreen() {
                     return (
                       <span
                         key={a.id}
-                        className="text-[10px] font-bold uppercase px-3 py-1 rounded-sm"
+                        className="text-[10px] font-bold uppercase px-3 py-1 rounded"
                         style={{
                           background: (a.color || '#d9b9ff') + '1A',
                           border: '1px solid ' + (a.color || '#d9b9ff') + '40',

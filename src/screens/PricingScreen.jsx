@@ -136,7 +136,7 @@ function TierCard(props) {
 
   return (
     <div className={
-      'relative flex flex-col bg-surface-container-low p-6 rounded-[4px] transition-all hover:bg-surface-container' +
+      'relative flex flex-col bg-surface-container-low p-6 rounded transition-all hover:bg-surface-container' +
       (highlighted ? ' border-t-4 ' + accentBorder + ' ring-1 ring-primary/20 -mt-2 z-10' : ' border-t-2 border-outline-variant/20')
     }>
       {highlighted ? (
@@ -185,14 +185,14 @@ function TierCard(props) {
         ) : cta === 'signup' ? (
           <button
             onClick={function() { navigate(currentUser ? '/dashboard' : '/signup') }}
-            className="w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm bg-surface-variant/20 border border-outline-variant/15 hover:bg-surface-variant transition-all"
+            className="w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm bg-surface-variant/20 border border-outline-variant/15 hover:bg-surface-variant transition-all"
           >
             Get Started
           </button>
         ) : cta === 'apply' ? (
           <button
             onClick={function() { navigate('/host/apply') }}
-            className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border border-tertiary/30 text-tertiary hover:bg-tertiary/20 transition-all'}
+            className={'w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border border-tertiary/30 text-tertiary hover:bg-tertiary/20 transition-all'}
           >
             Apply Now
           </button>
@@ -200,19 +200,19 @@ function TierCard(props) {
           subscribeUrl ? (
             <a
               href={subscribeUrl}
-              className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm text-center block ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
+              className={'w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm text-center block ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
             >
               Subscribe
             </a>
           ) : (
-            <div className="w-full py-3 text-center rounded-[20px] bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
+            <div className="w-full py-3 text-center rounded-xl bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-semibold tracking-widest uppercase cursor-default select-none">
               Coming Soon
             </div>
           )
         ) : (
           <button
             onClick={function() { navigate('/signup') }}
-            className={'w-full py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
+            className={'w-full py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm ' + accentBg + ' border ' + accentBorder + '/30 ' + accentText + ' hover:opacity-80 transition-all'}
           >
             Sign Up to Subscribe
           </button>
@@ -325,7 +325,7 @@ export default function PricingScreen() {
         </div>
 
         {/* Free-to-compete banner */}
-        <section className="mt-20 relative overflow-hidden rounded-[4px] bg-surface-container-lowest p-10 border border-outline-variant/10 text-center">
+        <section className="mt-20 relative overflow-hidden rounded bg-surface-container-lowest p-10 border border-outline-variant/10 text-center">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
           <div className="relative z-10">
             <h2 className="font-display text-3xl mb-3 tracking-tighter">
@@ -355,7 +355,7 @@ export default function PricingScreen() {
         {/* Donation Section */}
         {getDonateUrl() ? (
           <section className="mt-16 text-center">
-            <div className="inline-flex flex-col items-center bg-surface-container-low border border-outline-variant/10 rounded-[4px] px-10 py-8 max-w-lg">
+            <div className="inline-flex flex-col items-center bg-surface-container-low border border-outline-variant/10 rounded px-10 py-8 max-w-lg">
               <Icon name="favorite" size={28} className="text-error mb-3" fill />
               <h3 className="font-serif text-2xl mb-2">Support TFT Clash</h3>
               <p className="text-sm text-on-surface-variant mb-6 max-w-sm">
@@ -365,7 +365,7 @@ export default function PricingScreen() {
                 href={getDonateUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-8 py-3 rounded-[20px] font-sans font-bold uppercase tracking-widest text-sm hover:bg-primary/20 transition-all"
+                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-8 py-3 rounded-xl font-sans font-bold uppercase tracking-widest text-sm hover:bg-primary/20 transition-all"
               >
                 <Icon name="volunteer_activism" size={18} />
                 Donate via PayPal
@@ -399,7 +399,7 @@ export default function PricingScreen() {
                   return (
                     <div
                       key={row.label}
-                      className={'grid grid-cols-6 gap-2 items-center py-2.5 px-3 rounded-[2px]' + (isAlt ? ' bg-surface-container-low' : '')}
+                      className={'grid grid-cols-6 gap-2 items-center py-2.5 px-3 rounded' + (isAlt ? ' bg-surface-container-low' : '')}
                     >
                       <div className="font-body text-sm">{row.label}</div>
                       {row.type === 'bool' ? (
@@ -440,13 +440,13 @@ export default function PricingScreen() {
             <div className="mt-8 flex gap-4 flex-wrap">
               <a
                 href="mailto:support@tftclash.com"
-                className="bg-surface-container-highest px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest border border-outline-variant/20 hover:bg-surface-variant transition-colors"
+                className="bg-surface-container-highest px-6 py-3 rounded-xl text-sm font-sans font-bold uppercase tracking-widest border border-outline-variant/20 hover:bg-surface-variant transition-colors"
               >
                 Email Support
               </a>
               <button
                 onClick={function() { navigate('/host/apply') }}
-                className="bg-tertiary/10 border border-tertiary/30 text-tertiary px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest hover:bg-tertiary/20 transition-colors"
+                className="bg-tertiary/10 border border-tertiary/30 text-tertiary px-6 py-3 rounded-xl text-sm font-sans font-bold uppercase tracking-widest hover:bg-tertiary/20 transition-colors"
               >
                 Host Application
               </button>
@@ -455,7 +455,7 @@ export default function PricingScreen() {
                   href={getDonateUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-error/10 border border-error/30 text-error px-6 py-3 rounded-[20px] text-sm font-sans font-bold uppercase tracking-widest hover:bg-error/20 transition-colors inline-flex items-center gap-2"
+                  className="bg-error/10 border border-error/30 text-error px-6 py-3 rounded-xl text-sm font-sans font-bold uppercase tracking-widest hover:bg-error/20 transition-colors inline-flex items-center gap-2"
                 >
                   <Icon name="favorite" size={16} fill />
                   Donate
@@ -467,7 +467,7 @@ export default function PricingScreen() {
           <div className="space-y-4">
             {FAQ_ITEMS.map(function(item) {
               return (
-                <div key={item.q} className="p-5 bg-surface-container-low rounded-[4px]">
+                <div key={item.q} className="p-5 bg-surface-container-low rounded">
                   <h5 className="font-bold mb-2 text-sm">{item.q}</h5>
                   <p className="text-sm text-on-surface-variant">{item.a}</p>
                 </div>

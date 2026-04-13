@@ -178,7 +178,7 @@ export default function ResultsTab() {
               <span className="text-xs text-on-surface/50">Lobby:</span>
               {Array.from({ length: numLobbies }, function(_, i) { return i + 1 }).map(function(n) {
                 return (
-                  <button key={n} onClick={function() { setLobby(n) }} className={'px-2.5 py-1 text-xs font-bold rounded-sm border ' + (lobby === n ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}>
+                  <button key={n} onClick={function() { setLobby(n) }} className={'px-2.5 py-1 text-xs font-bold rounded border ' + (lobby === n ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}>
                     {n}
                     {published.indexOf('lobby' + n) !== -1 && ' ✓'}
                   </button>
@@ -189,7 +189,7 @@ export default function ResultsTab() {
         </div>
 
         {isPublished && (
-          <div className="mb-4 px-3 py-2 bg-success/10 border border-success/30 rounded-sm text-xs text-success font-bold">
+          <div className="mb-4 px-3 py-2 bg-success/10 border border-success/30 rounded text-xs text-success font-bold">
             Published. Click Publish again to override.
           </div>
         )}
@@ -199,7 +199,7 @@ export default function ResultsTab() {
             var place = getPlace(p.id)
             var pts = place ? (PTS[parseInt(place)] || 0) : null
             return (
-              <div key={p.id} className="flex items-center gap-3 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded-sm">
+              <div key={p.id} className="flex items-center gap-3 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded">
                 <div className="flex-1 font-semibold text-on-surface text-sm">{p.name}</div>
                 <div className="text-xs text-on-surface/40">{p.rank}</div>
                 {pts !== null && <div className="text-sm font-bold text-primary min-w-[3.5rem] text-right">+{pts} pts</div>}

@@ -161,7 +161,7 @@ export default function OpsComms() {
               value={broadMsg}
               onChange={function(e) { setBroadMsg(e.target.value) }}
               rows={3}
-              className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm resize-y focus:outline-none focus:border-primary/40"
+              className="w-full bg-surface-container border border-outline-variant/10 rounded px-3 py-2.5 text-on-surface text-sm resize-y focus:outline-none focus:border-primary/40"
               placeholder="Type your announcement..."
             />
             <Btn v="primary" onClick={sendBroadcast}>
@@ -175,7 +175,7 @@ export default function OpsComms() {
                 {announcements.slice(0, 10).map(function(a, i) {
                   return (
                     <div key={i} className="text-xs text-on-surface/60 flex items-start gap-2">
-                      <span className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary font-bold rounded-sm uppercase shrink-0">{a.type}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary font-bold rounded uppercase shrink-0">{a.type}</span>
                       <span className="flex-1">{a.message}</span>
                       <span className="font-mono text-[10px] text-on-surface/25 shrink-0">{timeAgo(a.created_at)}</span>
                     </div>
@@ -200,7 +200,7 @@ export default function OpsComms() {
               value={notifMsg}
               onChange={function(e) { setNotifMsg(e.target.value) }}
               rows={3}
-              className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm resize-y focus:outline-none focus:border-primary/40"
+              className="w-full bg-surface-container border border-outline-variant/10 rounded px-3 py-2.5 text-on-surface text-sm resize-y focus:outline-none focus:border-primary/40"
               placeholder="Notification message..."
             />
             <Btn v="primary" onClick={sendNotification}>
@@ -224,7 +224,7 @@ export default function OpsComms() {
           <div className="space-y-1.5">
             {(tickerOverrides || []).map(function(msg, idx) {
               return (
-                <div key={idx} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded-sm">
+                <div key={idx} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded">
                   <Icon name="chevron_right" size={12} className="text-on-surface/30" />
                   <span className="flex-1 text-xs text-on-surface/70">{msg}</span>
                   <Btn v="ghost" s="sm" onClick={function() { removeTicker(idx) }}>

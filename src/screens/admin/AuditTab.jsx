@@ -66,7 +66,7 @@ export default function AuditTab() {
             <button
               key={f}
               onClick={function() { setFilter(f) }}
-              className={'px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm border transition-all ' + (filter === f ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}
+              className={'px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded border transition-all ' + (filter === f ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}
               style={filter === f && col ? { borderColor: col + '66', color: col, background: col + '18' } : {}}
             >
               {f}
@@ -89,7 +89,7 @@ export default function AuditTab() {
           var col = AUDIT_COLS[entry.action] || '#888'
           return (
             <div key={entry.id} className="flex items-start gap-3 py-2.5 border-b border-outline-variant/5 last:border-0">
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-sm mt-0.5 flex-shrink-0 whitespace-nowrap" style={{ color: col, background: col + '18', border: '1px solid ' + col + '33' }}>{entry.action}</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 whitespace-nowrap" style={{ color: col, background: col + '18', border: '1px solid ' + col + '33' }}>{entry.action}</span>
               <div className="flex-1 min-w-0">
                 <div className="text-sm text-on-surface">{entry.details && entry.details.message || entry.action}</div>
                 <div className="text-[11px] text-on-surface/40 mt-0.5">

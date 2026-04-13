@@ -304,7 +304,7 @@ export default function SponsorsScreen() {
       <CurrentPartners sponsors={activeSponsors} />
 
       {/* ── HERO ── */}
-      <div className="relative overflow-hidden rounded-2xl bg-surface-container border border-outline-variant mb-16">
+      <div className="relative overflow-hidden rounded-xl bg-surface-container border border-outline-variant mb-16">
         {/* Grid background */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
@@ -519,7 +519,7 @@ export default function SponsorsScreen() {
       </div>
 
       {/* ── FINAL CTA ── */}
-      <div className="rounded-2xl bg-primary-container/40 border border-primary/20 p-8 md:p-12 text-center mb-4">
+      <div className="rounded-xl bg-primary-container/40 border border-primary/20 p-8 md:p-12 text-center mb-4">
         <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-5">
           <Icon name="handshake" className="text-on-primary text-2xl" />
         </div>

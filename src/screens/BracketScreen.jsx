@@ -27,7 +27,7 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
   var lockedCount=tournamentState&&tournamentState.lockedLobbies?tournamentState.lockedLobbies.length:0;
 
   return(
-    <div className="mt-6 bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+    <div className="mt-6 bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
       <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
         <Icon name="bar_chart" size={18} className="text-primary" />
         <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
@@ -56,10 +56,10 @@ function LiveStandingsPanel({checkedIn,tournamentState,lobbies,round}){
                 {row.name}
               </span>
               {belowCut&&(
-                <span className="text-[9px] font-bold font-nav tracking-widest text-error bg-error/10 border border-error/25 px-1.5 py-0.5 rounded-sm">CUT</span>
+                <span className="text-[9px] font-bold font-nav tracking-widest text-error bg-error/10 border border-error/25 px-1.5 py-0.5 rounded">CUT</span>
               )}
               {nearCut&&(
-                <span className="text-[10px] font-bold font-nav tracking-wider text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-sm">BUBBLE</span>
+                <span className="text-[10px] font-bold font-nav tracking-wider text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded">BUBBLE</span>
               )}
               <span className={"font-mono text-xs font-bold " + (belowCut?"text-error":row.earned>0?"text-tertiary":"text-on-surface-variant/40")}>
                 {row.earned>0?"+"+row.earned+" pts":"- pts"}
@@ -621,7 +621,7 @@ function BracketScreen(){
               </span>
             </h1>
             <div className="flex items-center gap-4 flex-wrap">
-              <span className={"px-3 py-1 rounded-sm font-nav text-xs tracking-wider border " + (isLive?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
+              <span className={"px-3 py-1 rounded font-nav text-xs tracking-wider border " + (isLive?"bg-tertiary/10 text-tertiary border-tertiary/20":tournamentState.phase==="complete"?"bg-primary/10 text-primary border-primary/20":"bg-secondary/10 text-secondary border-secondary/20")}>
                 {isLive?"ACTIVE TOURNAMENT":tournamentState.phase==="complete"?"COMPLETE":tournamentState.phase==="checkin"?"CHECK-IN OPEN":"SETUP"}
               </span>
               <div className="flex items-center gap-2 text-on-surface-variant/60 font-mono text-sm">
@@ -697,7 +697,7 @@ function BracketScreen(){
 
         {/* All lobbies locked banner */}
         {allLocked&&checkedIn.length>0&&(
-          <div className="mb-6 bg-tertiary/8 border border-tertiary/25 rounded-[4px] px-5 py-3 flex items-center gap-3">
+          <div className="mb-6 bg-tertiary/8 border border-tertiary/25 rounded px-5 py-3 flex items-center gap-3">
             <Icon name="check_circle" size={18} fill className="text-tertiary" />
             <span className="text-tertiary font-nav font-bold text-sm tracking-wider flex-1">
               {"All " + lobbies.length + " lobbies locked - " + (round>=(totalGames)?"ready to finalize!":"ready for next game!")}
@@ -708,7 +708,7 @@ function BracketScreen(){
 
         {/* Cut line / eliminated players banner */}
         {tournamentState.eliminatedIds&&tournamentState.eliminatedIds.length>0&&isLive&&(
-          <div className="mb-6 bg-error/8 border border-error/25 rounded-[4px] px-5 py-4">
+          <div className="mb-6 bg-error/8 border border-error/25 rounded px-5 py-4">
             <div className="flex items-center gap-3 mb-2">
               <Icon name="content_cut" size={18} className="text-error" />
               <span className="text-error font-nav font-bold text-sm tracking-wider">
@@ -738,7 +738,7 @@ function BracketScreen(){
         )}
 
         {tournamentState&&tournamentState.phase==="complete"&&checkedIn.length>0&&(
-          <div className="mb-6 bg-primary/8 border border-primary/30 rounded-[4px] px-5 py-4 flex items-center gap-4">
+          <div className="mb-6 bg-primary/8 border border-primary/30 rounded px-5 py-4 flex items-center gap-4">
             <Icon name="emoji_events" size={24} fill className="text-primary" />
             <div className="flex-1">
               <div className="font-bold text-primary text-base mb-0.5">Clash Complete!</div>
@@ -788,7 +788,7 @@ function BracketScreen(){
             <div className="lg:col-span-4 space-y-5">
 
               {/* Live status card */}
-              <div className="bg-surface-container-low rounded-[4px] p-6 border-l-4 border-primary relative overflow-hidden">
+              <div className="bg-surface-container-low rounded p-6 border-l-4 border-primary relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <Icon name="sensors" size={56} />
                 </div>
@@ -833,7 +833,7 @@ function BracketScreen(){
               </div>
 
               {/* Find my lobby */}
-              <div className="bg-surface-container-low rounded-[4px] p-5 border border-outline-variant/15">
+              <div className="bg-surface-container-low rounded p-5 border border-outline-variant/15">
                 <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Find Your Lobby</h3>
                 <div className="flex gap-2">
                   <input
@@ -858,7 +858,7 @@ function BracketScreen(){
               </div>
 
               {/* Round progress */}
-              <div className="bg-surface-container-low rounded-[4px] p-5 border border-outline-variant/15">
+              <div className="bg-surface-container-low rounded p-5 border border-outline-variant/15">
                 <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface">Round Progress</h3>
                 <div className="space-y-2">
                   {Array.from({length:totalGames},function(_,idx){return idx+1;}).map(function(r){
@@ -867,8 +867,8 @@ function BracketScreen(){
                     return(
                       <div key={r}
                         onClick={isComplete?function(){setViewingRound(viewingRound===r?null:r);}:undefined}
-                        className={"flex items-center gap-3 px-3 py-2.5 rounded-sm border transition-colors " + (isComplete?"bg-tertiary/5 border-tertiary/20 cursor-pointer hover:bg-tertiary/10":isCurrent?"bg-primary/8 border-primary/30":"bg-surface-container-lowest/50 border-outline-variant/8")}>
-                        <div className={"w-6 h-6 rounded-sm flex items-center justify-center flex-shrink-0 " + (isComplete?"bg-tertiary/20":isCurrent?"bg-primary/20":"bg-surface-container-high")}>
+                        className={"flex items-center gap-3 px-3 py-2.5 rounded border transition-colors " + (isComplete?"bg-tertiary/5 border-tertiary/20 cursor-pointer hover:bg-tertiary/10":isCurrent?"bg-primary/8 border-primary/30":"bg-surface-container-lowest/50 border-outline-variant/8")}>
+                        <div className={"w-6 h-6 rounded flex items-center justify-center flex-shrink-0 " + (isComplete?"bg-tertiary/20":isCurrent?"bg-primary/20":"bg-surface-container-high")}>
                           {isComplete
                             ? <Icon name="check" size={14} className="text-tertiary" />
                             : isCurrent
@@ -932,7 +932,7 @@ function BracketScreen(){
 
                   if(lobbyGroups.length===0)return null;
                   return(
-                    <div className="mt-3 bg-surface-container-lowest rounded-sm border border-tertiary/15 overflow-hidden">
+                    <div className="mt-3 bg-surface-container-lowest rounded border border-tertiary/15 overflow-hidden">
                       <div className="px-4 py-2.5 border-b border-tertiary/10 flex items-center justify-between">
                         <span className="font-nav text-xs font-bold uppercase tracking-widest text-tertiary">{"Round " + viewingRound + " Results"}</span>
                         <button onClick={function(){setViewingRound(null);}} className="text-on-surface-variant/40 hover:text-on-surface bg-transparent border-0 cursor-pointer">
@@ -979,7 +979,7 @@ function BracketScreen(){
 
               {/* Admin quick actions */}
               {isAdmin&&(
-                <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 rounded-[4px]">
+                <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 rounded">
                   <h3 className="font-nav text-sm font-bold tracking-widest uppercase mb-4 text-on-surface-variant/60">Admin Quick Actions</h3>
                   <div className="space-y-2">
                     <button
@@ -987,14 +987,14 @@ function BracketScreen(){
                         setTournamentState(function(ts){return Object.assign({},ts,{savedLobbies:[]});});
                         toast("Lobbies re-rolled!","success");
                       }}
-                      className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded-sm">
+                      className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded">
                       <span className="text-sm font-medium text-on-surface">Re-roll Lobbies</span>
                       <Icon name="shuffle" size={18} className="text-on-surface-variant group-hover:text-primary transition-colors" />
                     </button>
                     {isLive&&round>=(tournamentState.totalGames||4)&&(
                       <button
                         onClick={function(){setShowFinalizeConfirm(true);}}
-                        className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded-sm">
+                        className="w-full text-left p-3 hover:bg-surface-container-low transition-colors flex items-center justify-between group rounded">
                         <span className="text-sm font-medium text-error">Finalize Tournament</span>
                         <Icon name="emoji_events" size={18} fill className="text-error opacity-60" />
                       </button>
@@ -1010,7 +1010,7 @@ function BracketScreen(){
 
               {/* Finals display */}
               {round>3&&checkedIn.length>0&&(
-                <div className="bg-surface-container-low rounded-[4px] p-6 text-center border border-primary/20">
+                <div className="bg-surface-container-low rounded p-6 text-center border border-primary/20">
                   <div className="flex justify-center mb-3">
                     <Icon name="emoji_events" size={40} fill className="text-primary" />
                   </div>
@@ -1030,7 +1030,7 @@ function BracketScreen(){
                   var hasPlacements=placementEntry[li]&&placementEntry[li].open;
 
                   return(
-                    <div key={li} className={"bg-surface-container-high rounded-[4px] overflow-hidden border-2 transition-all " + (isMyLobby?"border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]":locked?"border-tertiary/30":"border-outline-variant/15")}>
+                    <div key={li} className={"bg-surface-container-high rounded overflow-hidden border-2 transition-all " + (isMyLobby?"border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]":locked?"border-tertiary/30":"border-outline-variant/15")}>
 
                       {/* Lobby header */}
                       <div className={"px-4 py-3 flex justify-between items-center border-b " + (isMyLobby?"bg-secondary/10 border-secondary/20":locked?"bg-tertiary/5 border-tertiary/15":"bg-surface-container border-outline-variant/10")}>
@@ -1074,7 +1074,7 @@ function BracketScreen(){
                                 <span className={"font-mono text-xs " + (pi===0?"text-primary":pi===1?"text-on-surface-variant/60":pi===2?"text-on-surface-variant/50":"text-on-surface-variant/30")}>
                                   {String(pi+1).padStart(2,"0")}
                                 </span>
-                                <div className="w-8 h-8 rounded-sm bg-surface-container-low flex items-center justify-center flex-shrink-0">
+                                <div className="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center flex-shrink-0">
                                   <Icon name="person" size={16} className="text-on-surface-variant/40" />
                                 </div>
                                 <div>

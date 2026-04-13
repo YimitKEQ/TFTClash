@@ -85,7 +85,7 @@ export default function StandingsScreen() {
               key={t.id}
               onClick={function() { handleTabClick(t.id) }}
               className={
-                'flex-shrink-0 flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-sm border font-sans text-sm font-semibold uppercase tracking-widest transition-all duration-200 whitespace-nowrap ' +
+                'flex-shrink-0 flex items-center gap-2 px-5 py-3 min-h-[44px] rounded border font-sans text-sm font-semibold uppercase tracking-widest transition-all duration-200 whitespace-nowrap ' +
                 (active
                   ? 'bg-primary/10 border-primary/30 text-primary shadow-sm shadow-primary/10'
                   : 'bg-surface-container-low/40 border-outline-variant/10 text-on-surface/60 hover:text-on-surface hover:bg-surface-container-low')

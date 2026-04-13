@@ -84,22 +84,22 @@ export default function OpsRevenue() {
     <div className="space-y-5">
       {/* Revenue KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-surface-container-low border border-outline-variant/10 rounded-sm p-4">
+        <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
           <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">MRR</div>
           <div className="font-mono text-3xl font-black text-primary">${mrr.toFixed(0)}</div>
           <div className="font-nav text-[10px] text-on-surface/30 uppercase">Monthly recurring</div>
         </div>
-        <div className="bg-surface-container-low border border-outline-variant/10 rounded-sm p-4">
+        <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
           <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">ARR</div>
           <div className="font-mono text-3xl font-black text-on-surface">${arr.toFixed(0)}</div>
           <div className="font-nav text-[10px] text-on-surface/30 uppercase">Annual projected</div>
         </div>
-        <div className="bg-surface-container-low border border-outline-variant/10 rounded-sm p-4">
+        <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
           <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">Active Subs</div>
           <div className="font-mono text-3xl font-black text-tertiary">{totalSubs}</div>
           <div className="font-nav text-[10px] text-on-surface/30 uppercase">Paying users</div>
         </div>
-        <div className="bg-surface-container-low border border-outline-variant/10 rounded-sm p-4">
+        <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4">
           <div className="font-nav text-[10px] uppercase tracking-widest text-on-surface/40 font-bold mb-1">Newsletter</div>
           <div className="font-mono text-3xl font-black text-on-surface">{newsletter}</div>
           <div className="font-nav text-[10px] text-on-surface/30 uppercase">Subscribers</div>

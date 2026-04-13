@@ -94,7 +94,7 @@ function AchievementCard(props) {
         <div className={'w-12 h-12 ' + colors.bg + ' flex items-center justify-center ' + colors.text + ' mb-6'}>
           <Icon name={iconName} fill={unlocked} size={28} />
         </div>
-        <span className={'px-2 py-0.5 text-[10px] font-sans-condensed font-bold uppercase tracking-widest rounded-sm ' + statusBgClass + ' ' + statusTextClass}>
+        <span className={'px-2 py-0.5 text-[10px] font-sans-condensed font-bold uppercase tracking-widest rounded ' + statusBgClass + ' ' + statusTextClass}>
           {statusLabel}
         </span>
       </div>
@@ -134,7 +134,7 @@ function MilestoneRow(props) {
           <div className="flex items-center gap-3 mb-1 flex-wrap">
             <span className="font-serif text-lg text-on-surface">{m.name}</span>
             {myUnlocked && (
-              <span className="bg-tertiary/10 text-tertiary px-2 py-0.5 text-[10px] font-sans-condensed font-bold uppercase tracking-widest rounded-sm">Unlocked</span>
+              <span className="bg-tertiary/10 text-tertiary px-2 py-0.5 text-[10px] font-sans-condensed font-bold uppercase tracking-widest rounded">Unlocked</span>
             )}
           </div>
           {m.pts && (
@@ -149,7 +149,7 @@ function MilestoneRow(props) {
             </div>
           )}
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-3 py-1 rounded-sm">
+            <div className="inline-flex items-center gap-1.5 bg-primary/5 border border-primary/20 px-3 py-1 rounded">
               <Icon name="redeem" size={12} className="text-primary" />
               <span className="text-xs text-on-surface-variant">{m.reward}</span>
             </div>
@@ -181,10 +181,10 @@ function LeaderboardRow(props) {
         <div className="font-sans-condensed font-bold text-sm text-on-surface uppercase tracking-wide mb-1">{p.name}</div>
         <div className="flex gap-2">
           {legendary > 0 && (
-            <span className="text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded-sm">{legendary} Legendary</span>
+            <span className="text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-0.5 rounded">{legendary} Legendary</span>
           )}
           {gold > 0 && (
-            <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-sm">{gold} Gold</span>
+            <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded">{gold} Gold</span>
           )}
         </div>
       </div>
@@ -451,7 +451,7 @@ export default function MilestonesScreen() {
                 )}
 
                 <button
-                  className="w-full py-4 text-center font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/10 rounded-sm hover:bg-surface-container-high"
+                  className="w-full py-4 text-center font-sans-condensed uppercase tracking-widest text-xs text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/10 rounded hover:bg-surface-container-high"
                   onClick={function() { navigate('/leaderboard'); }}
                 >
                   View Leaderboard

@@ -108,10 +108,10 @@ function renderClashHistoryRows(clashHistory, seasonConfig) {
           <div className="font-technical font-bold text-sm text-on-surface">{g.name || 'Clash'}</div>
           <div className="font-technical text-xs text-on-surface/40">{g.date || ''}</div>
           <div className="flex gap-1 flex-wrap mt-1">
-            {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-secondary/15 text-secondary-container border border-secondary/30">Clutch</span>}
-            {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-on-surface/10 text-on-surface-variant border border-on-surface/20">Dropped</span>}
-            {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-tertiary/10 text-tertiary border border-tertiary/25">Comeback +2</span>}
-            {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded-sm bg-primary/10 text-primary border border-primary/25">{g.attendanceMilestone + '-Streak Bonus'}</span>}
+            {g.claimedClutch && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-secondary/15 text-secondary-container border border-secondary/30">Clutch</span>}
+            {isDropped && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-on-surface/10 text-on-surface-variant border border-on-surface/20">Dropped</span>}
+            {g.comebackTriggered && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-tertiary/10 text-tertiary border border-tertiary/25">Comeback +2</span>}
+            {g.attendanceMilestone && <span className="font-technical text-[10px] px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/25">{g.attendanceMilestone + '-Streak Bonus'}</span>}
           </div>
         </div>
         <div className="text-right flex-shrink-0">
@@ -413,12 +413,12 @@ export default function PlayerProfileScreen() {
             <div className="flex items-center gap-4 mb-1 flex-wrap">
               <h1 className="text-3xl sm:text-5xl font-editorial text-on-surface">{player.name}</h1>
               {player.rank && (
-                <div className="bg-tertiary/10 text-tertiary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-tertiary/20">
+                <div className="bg-tertiary/10 text-tertiary px-3 py-1 rounded font-technical text-xs tracking-widest border border-tertiary/20">
                   {player.rank.toUpperCase()}
                 </div>
               )}
               {isChampion && (
-                <div className="bg-primary/10 text-primary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-primary/20">
+                <div className="bg-primary/10 text-primary px-3 py-1 rounded font-technical text-xs tracking-widest border border-primary/20">
                   {champion.title.toUpperCase()}
                 </div>
               )}
@@ -426,7 +426,7 @@ export default function PlayerProfileScreen() {
                 var badgeLabels = { pro: 'PRO', scrim: 'SCRIM', bundle: 'PRO+SCRIM', host: 'HOST' };
                 var isHostTier = profileSubTier === 'host';
                 return (
-                  <div className={(isHostTier ? 'bg-tertiary/10 text-tertiary border-tertiary/20' : 'bg-primary/10 text-primary border-primary/20') + ' px-3 py-1 rounded-sm font-technical text-xs tracking-widest border flex items-center gap-1.5'}>
+                  <div className={(isHostTier ? 'bg-tertiary/10 text-tertiary border-tertiary/20' : 'bg-primary/10 text-primary border-primary/20') + ' px-3 py-1 rounded font-technical text-xs tracking-widest border flex items-center gap-1.5'}>
                     <Icon name={isHostTier ? 'shield_person' : 'verified'} size={14} fill />
                     {badgeLabels[profileSubTier] || profileSubTier.toUpperCase()}
                   </div>
@@ -578,7 +578,7 @@ export default function PlayerProfileScreen() {
                 <div className="font-bold text-sm text-primary">{champion.title}</div>
                 <div className="text-xs text-on-surface/60">{'Reigning champion since ' + champion.since}</div>
               </div>
-              <div className="bg-primary/10 text-primary px-3 py-1 rounded-sm font-technical text-xs tracking-widest border border-primary/20">
+              <div className="bg-primary/10 text-primary px-3 py-1 rounded font-technical text-xs tracking-widest border border-primary/20">
                 {'SEASON ' + champion.season}
               </div>
             </div>
@@ -777,12 +777,12 @@ export default function PlayerProfileScreen() {
                     <div className="hidden md:flex items-center gap-8">
                       <div className="flex gap-1 flex-wrap">
                         {g.claimedClutch && (
-                          <div className="bg-secondary-container/30 text-secondary px-2 py-0.5 rounded-sm font-technical text-[10px] tracking-wider border border-secondary/20">
+                          <div className="bg-secondary-container/30 text-secondary px-2 py-0.5 rounded font-technical text-[10px] tracking-wider border border-secondary/20">
                             CLUTCH
                           </div>
                         )}
                         {g.comebackTriggered && (
-                          <div className="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded-sm font-technical text-[10px] tracking-wider border border-tertiary/20">
+                          <div className="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded font-technical text-[10px] tracking-wider border border-tertiary/20">
                             COMEBACK
                           </div>
                         )}
@@ -1089,7 +1089,7 @@ export default function PlayerProfileScreen() {
                 <div className="font-body text-xs text-on-surface/50 leading-relaxed">{a.desc}</div>
                 {unlocked && (
                   <div className="mt-3">
-                    <span className="font-technical text-[10px] px-2 py-1 rounded-sm bg-primary/15 text-primary border border-primary/30">
+                    <span className="font-technical text-[10px] px-2 py-1 rounded bg-primary/15 text-primary border border-primary/30">
                       UNLOCKED
                     </span>
                   </div>

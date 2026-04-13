@@ -55,11 +55,11 @@ function SeasonHero(props) {
       {/* Status badge */}
       <div className="absolute top-6 left-6">
         {isLegacy ? (
-          <span className="bg-surface-variant px-4 py-1 text-on-surface-variant font-condensed font-bold uppercase tracking-tighter rounded-sm text-sm">
+          <span className="bg-surface-variant px-4 py-1 text-on-surface-variant font-condensed font-bold uppercase tracking-tighter rounded text-sm">
             LEGACY
           </span>
         ) : (
-          <span className="bg-primary px-4 py-1 text-on-primary font-condensed font-bold uppercase tracking-tighter rounded-sm text-sm">
+          <span className="bg-primary px-4 py-1 text-on-primary font-condensed font-bold uppercase tracking-tighter rounded text-sm">
             ACTIVE ERA
           </span>
         )}
@@ -111,19 +111,19 @@ function SeasonCard(props) {
 
           {/* Metrics grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            <div className={'rounded-sm p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
+            <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-on-surface')}>{season.participants}</p>
               <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>PARTICIPANTS</p>
             </div>
-            <div className={'rounded-sm p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
+            <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-on-surface')}>{season.clashes}</p>
               <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>CLASHES PLAYED</p>
             </div>
-            <div className={'rounded-sm p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
+            <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-tertiary')}>{season.topScore}</p>
               <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>TOP SCORE</p>
             </div>
-            <div className={'rounded-sm p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
+            <div className={'rounded p-4 text-center' + (isLegacy ? ' bg-surface-container/40' : ' bg-surface-container')}>
               <p className={'font-mono text-2xl' + (isLegacy ? ' text-slate-400' : ' text-secondary')}>{season.players}</p>
               <p className={'font-condensed text-xs uppercase' + (isLegacy ? ' text-slate-600' : ' text-slate-500')}>TOTAL PLAYERS</p>
             </div>
@@ -243,7 +243,7 @@ export default function ArchiveScreen() {
           })}
 
           {/* Minor Tournaments Table */}
-          <div className="mt-4 bg-surface-container-low rounded-sm p-1">
+          <div className="mt-4 bg-surface-container-low rounded p-1">
             <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-white/5">
               <h3 className="font-condensed text-xl uppercase tracking-widest text-primary flex items-center gap-3">
                 <Icon name="summarize" className="text-xl" />

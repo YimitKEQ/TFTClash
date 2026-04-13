@@ -92,7 +92,7 @@ export default function OpsFeed() {
                 <select
                   value={filter}
                   onChange={function(e) { setFilter(e.target.value) }}
-                  className="bg-surface-container border border-outline-variant/10 rounded-sm px-2 py-1 text-xs text-on-surface appearance-none cursor-pointer"
+                  className="bg-surface-container border border-outline-variant/10 rounded px-2 py-1 text-xs text-on-surface appearance-none cursor-pointer"
                 >
                   <option value="all">All</option>
                   <option value="registration">Registrations</option>
@@ -121,7 +121,7 @@ export default function OpsFeed() {
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-on-surface/70 truncate">{detail.text || a.type}</div>
                       </div>
-                      <span className={'text-[9px] px-1.5 py-0.5 font-bold rounded-sm uppercase shrink-0 ' + (a.type === 'admin' ? 'bg-on-surface/10 text-on-surface/40' : 'bg-primary/10 text-primary/60')}>
+                      <span className={'text-[9px] px-1.5 py-0.5 font-bold rounded uppercase shrink-0 ' + (a.type === 'admin' ? 'bg-on-surface/10 text-on-surface/40' : 'bg-primary/10 text-primary/60')}>
                         {a.type}
                       </span>
                       <div className="font-mono text-[10px] text-on-surface/25 flex-shrink-0">{timeAgo(a.created_at)}</div>
@@ -149,7 +149,7 @@ export default function OpsFeed() {
                   var isDanger = entry.action === 'DANGER' || entry.action === 'WARN'
                   return (
                     <div key={entry.id || i} className="flex items-center gap-3 px-4 py-2 border-b border-outline-variant/5 last:border-0">
-                      <span className={'text-[9px] px-1.5 py-0.5 font-bold rounded-sm uppercase shrink-0 ' + (isDanger ? 'bg-error/15 text-error' : 'bg-on-surface/10 text-on-surface/40')}>
+                      <span className={'text-[9px] px-1.5 py-0.5 font-bold rounded uppercase shrink-0 ' + (isDanger ? 'bg-error/15 text-error' : 'bg-on-surface/10 text-on-surface/40')}>
                         {entry.action}
                       </span>
                       <div className="flex-1 min-w-0">

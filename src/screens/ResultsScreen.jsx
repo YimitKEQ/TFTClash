@@ -208,7 +208,7 @@ export default function ResultsScreen() {
 
         {/* Hero Champion Banner */}
         <section
-          className="relative overflow-hidden rounded-[20px] bg-surface-container-low min-h-[280px] flex items-center justify-center border border-outline-variant/10 shadow-[0_0_60px_rgba(232,168,56,.12)]"
+          className="relative overflow-hidden rounded-xl bg-surface-container-low min-h-[280px] flex items-center justify-center border border-outline-variant/10 shadow-[0_0_60px_rgba(232,168,56,.12)]"
         >
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
@@ -270,7 +270,7 @@ export default function ResultsScreen() {
             {/* Podium Section */}
             {sorted.length >= 3 && (
               <div
-                className="relative overflow-hidden rounded-[20px] p-6 md:p-8 border border-outline-variant/10 bg-surface-container-low"
+                className="relative overflow-hidden rounded-xl p-6 md:p-8 border border-outline-variant/10 bg-surface-container-low"
               >
                 <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
@@ -368,7 +368,7 @@ export default function ResultsScreen() {
 
             {/* Full Standings */}
             {tab === 'results' && (
-              <div className="rounded-[20px] overflow-hidden border border-outline-variant/10 bg-surface-container-low">
+              <div className="rounded-xl overflow-hidden border border-outline-variant/10 bg-surface-container-low">
                 {/* Table header label row */}
                 <div className="px-6 py-4 flex justify-between items-center border-b border-outline-variant/10">
                   <h3 className="font-technical text-on-surface-variant tracking-[0.1em] uppercase text-sm">
@@ -502,7 +502,7 @@ export default function ResultsScreen() {
                 </div>
 
                 <div
-                  className="flex items-center gap-4 p-4 rounded-[20px] flex-wrap border border-outline-variant/10 bg-secondary/[0.06]"
+                  className="flex items-center gap-4 p-4 rounded-xl flex-wrap border border-outline-variant/10 bg-secondary/[0.06]"
                 >
                   <Icon name="redeem" size={24} className="text-secondary flex-shrink-0" />
                   <div className="flex-1">
@@ -550,7 +550,7 @@ export default function ResultsScreen() {
           <div className="lg:col-span-4 space-y-6">
 
             {/* Tournament Honors sidebar card */}
-            <div className="rounded-[20px] bg-surface-container-low border border-outline-variant/10 p-6">
+            <div className="rounded-xl bg-surface-container-low border border-outline-variant/10 p-6">
               <h3 className="font-technical text-on-surface-variant tracking-[0.1em] uppercase text-sm mb-5">
                 Tournament Honors
               </h3>
@@ -574,7 +574,7 @@ export default function ResultsScreen() {
             </div>
 
             {/* AI Narrative Recap */}
-            <div className="rounded-[20px] bg-surface-container-low border border-outline-variant/10 p-6 relative">
+            <div className="rounded-xl bg-surface-container-low border border-outline-variant/10 p-6 relative">
               <div className="flex items-center gap-3 mb-5">
                 <Icon name="psychology" fill size={20} className="text-tertiary" />
                 <h3 className="font-technical text-tertiary tracking-[0.1em] uppercase text-sm">

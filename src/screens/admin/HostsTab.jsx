@@ -87,7 +87,7 @@ export default function HostsTab() {
             <button
               key={t.id}
               onClick={function() { setView(t.id) }}
-              className={'px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-sm border transition-all ' + (view === t.id ? (t.urgent ? 'bg-error/10 border-error text-error' : 'bg-primary/10 border-primary text-primary') : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}
+              className={'px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded border transition-all ' + (view === t.id ? (t.urgent ? 'bg-error/10 border-error text-error' : 'bg-primary/10 border-primary text-primary') : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}
             >
               {t.label + ' (' + t.count + ')'}
             </button>
@@ -96,7 +96,7 @@ export default function HostsTab() {
       </div>
 
       {pending.length > 0 && view === 'pending' && (
-        <div className="px-3 py-2 bg-error/5 border border-error/20 rounded-sm text-xs text-error font-bold">
+        <div className="px-3 py-2 bg-error/5 border border-error/20 rounded text-xs text-error font-bold">
           {pending.length} application{pending.length > 1 ? 's' : ''} waiting for review
         </div>
       )}
@@ -116,7 +116,7 @@ export default function HostsTab() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center flex-wrap gap-2 mb-1.5">
                     <span className="font-bold text-on-surface">{name}</span>
-                    {app.org && <span className="text-xs text-on-surface/50 bg-surface-container px-1.5 py-0.5 rounded-sm">{app.org}</span>}
+                    {app.org && <span className="text-xs text-on-surface/50 bg-surface-container px-1.5 py-0.5 rounded">{app.org}</span>}
                   </div>
                   {app.email && <div className="text-xs text-on-surface/50 mb-1">{app.email}</div>}
                   {app.frequency && <div className="text-xs text-on-surface/50 mb-1">Frequency: {app.frequency}</div>}
@@ -137,10 +137,10 @@ export default function HostsTab() {
                   </div>
                 )}
                 {view === 'approved' && (
-                  <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-1 rounded-sm flex-shrink-0">APPROVED</span>
+                  <span className="text-[10px] font-bold text-success bg-success/10 px-2 py-1 rounded flex-shrink-0">APPROVED</span>
                 )}
                 {view === 'rejected' && (
-                  <span className="text-[10px] font-bold text-error bg-error/10 px-2 py-1 rounded-sm flex-shrink-0">REJECTED</span>
+                  <span className="text-[10px] font-bold text-error bg-error/10 px-2 py-1 rounded flex-shrink-0">REJECTED</span>
                 )}
               </div>
             </div>

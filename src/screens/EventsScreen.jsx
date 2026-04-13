@@ -38,20 +38,20 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   var badgeEl = null
   if (isLive) {
     badgeEl = (
-      <span className="flex items-center px-3 py-1 bg-error text-on-error font-label text-[10px] font-black uppercase tracking-widest rounded-sm">
+      <span className="flex items-center px-3 py-1 bg-error text-on-error font-label text-[10px] font-black uppercase tracking-widest rounded">
         <span className="w-2 h-2 bg-on-error rounded-full mr-2 animate-pulse"></span>
         LIVE
       </span>
     )
   } else if (isRegistering) {
     badgeEl = (
-      <span className="flex items-center px-3 py-1 bg-tertiary text-on-tertiary font-label text-[10px] font-black uppercase tracking-widest rounded-sm">
+      <span className="flex items-center px-3 py-1 bg-tertiary text-on-tertiary font-label text-[10px] font-black uppercase tracking-widest rounded">
         REGISTERING
       </span>
     )
   } else {
     badgeEl = (
-      <span className="flex items-center px-3 py-1 bg-surface-container-highest text-on-surface font-label text-[10px] font-black uppercase tracking-widest rounded-sm">
+      <span className="flex items-center px-3 py-1 bg-surface-container-highest text-on-surface font-label text-[10px] font-black uppercase tracking-widest rounded">
         UPCOMING
       </span>
     )
@@ -282,7 +282,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
           <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
           <div className="relative h-full flex flex-col justify-end p-8 lg:p-16 max-w-4xl">
             <div className="flex items-center space-x-3 mb-6">
-              <span className="px-3 py-1 bg-primary/20 text-primary border border-primary/30 font-label text-[10px] font-bold uppercase tracking-widest rounded-sm">
+              <span className="px-3 py-1 bg-primary/20 text-primary border border-primary/30 font-label text-[10px] font-bold uppercase tracking-widest rounded">
                 Featured Event
               </span>
               {hero.prizePool && (
@@ -645,14 +645,14 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
                   <span
-                    className="text-[11px] font-bold rounded-sm px-3 py-1 uppercase tracking-widest font-label"
+                    className="text-[11px] font-bold rounded px-3 py-1 uppercase tracking-widest font-label"
                     style={{ background: badgeBg, color: badgeColor }}
                   >
                     {phaseLabels[t.phase] || t.phase}
                   </span>
                   <div className="flex items-center gap-2">
                     {countdownStr && (
-                      <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-sm px-2 py-0.5 font-stats">
+                      <span className="text-[11px] font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 font-stats">
                         {countdownStr}
                       </span>
                     )}
@@ -668,7 +668,7 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
                       return (
                         <span
                           key={p.placement + '-' + p.prize}
-                          className="text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-sm px-2 py-0.5 font-label"
+                          className="text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 font-label"
                         >
                           {'#' + p.placement + ' ' + p.prize}
                         </span>

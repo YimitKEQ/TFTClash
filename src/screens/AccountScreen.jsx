@@ -868,9 +868,9 @@ export default function AccountScreen() {
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-sans-cond text-sm font-bold uppercase tracking-widest">Riot Accounts</h3>
                   {riotIdSet ? (
-                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider font-bold">Linked</span>
+                    <span className="bg-tertiary-container/10 text-tertiary px-2 py-1 rounded font-sans-cond text-[10px] uppercase tracking-wider font-bold">Linked</span>
                   ) : (
-                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded-sm font-sans-cond text-[10px] uppercase tracking-wider">Not Linked</span>
+                    <span className="bg-surface-container border border-outline-variant/20 text-on-surface/40 px-2 py-1 rounded font-sans-cond text-[10px] uppercase tracking-wider">Not Linked</span>
                   )}
                 </div>
                 <div className="flex items-center space-x-4 mb-4">

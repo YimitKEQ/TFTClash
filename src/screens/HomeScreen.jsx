@@ -148,10 +148,10 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                     <div className="min-w-0">
                       <h3 className="font-bold text-on-surface truncate">{player.name}</h3>
                       <div className="flex gap-2 flex-wrap">
-                        <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded-sm uppercase tracking-tighter">
+                        <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded uppercase tracking-tighter">
                           {player.rank || 'Challenger'}
                         </span>
-                        <span className="text-on-surface-variant text-[10px] font-label px-2 rounded-sm uppercase tracking-tighter">
+                        <span className="text-on-surface-variant text-[10px] font-label px-2 rounded uppercase tracking-tighter">
                           {player.region || 'EUW'}
                         </span>
                       </div>
@@ -189,10 +189,10 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                   <div className="min-w-0">
                     <h3 className="font-bold text-on-surface truncate">{player.name}</h3>
                     <div className="flex gap-2 flex-wrap">
-                      <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded-sm uppercase tracking-tighter">
+                      <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded uppercase tracking-tighter">
                         {player.rank || 'Master'}
                       </span>
-                      <span className="text-on-surface-variant text-[10px] font-label px-2 rounded-sm uppercase tracking-tighter">
+                      <span className="text-on-surface-variant text-[10px] font-label px-2 rounded uppercase tracking-tighter">
                         {player.region || 'EUW'}
                       </span>
                     </div>

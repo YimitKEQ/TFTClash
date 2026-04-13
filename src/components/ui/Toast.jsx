@@ -16,7 +16,7 @@ const toastIcons = {
 
 export default function Toast({ message, type = 'info', onDismiss }) {
   return (
-    <div className={`flex items-center gap-3 p-4 rounded-sm bg-surface-container-low border border-outline-variant/10 ${toastStyles[type] || toastStyles.info}`}>
+    <div className={`flex items-center gap-3 p-4 rounded bg-surface-container-low border border-outline-variant/10 ${toastStyles[type] || toastStyles.info}`}>
       <Icon name={toastIcons[type] || 'info'} size={20} className={type === 'success' ? 'text-success' : type === 'error' ? 'text-error' : type === 'warning' ? 'text-warning' : 'text-tertiary'} />
       <span className="flex-1 text-sm text-on-surface">{message}</span>
       {onDismiss && (

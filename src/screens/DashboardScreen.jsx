@@ -114,7 +114,7 @@ function AnnouncementStrip({ text, variant }) {
   var isHost = variant === 'host'
   return (
     <div
-      className={'flex items-center gap-2.5 rounded-sm px-4 py-2.5 mb-3 border ' + (isHost ? 'bg-secondary/5 border-secondary/20' : 'bg-primary/[0.06] border-primary/20')}
+      className={'flex items-center gap-2.5 rounded px-4 py-2.5 mb-3 border ' + (isHost ? 'bg-secondary/5 border-secondary/20' : 'bg-primary/[0.06] border-primary/20')}
     >
       <Icon name="campaign" size={16} className={isHost ? 'text-secondary flex-shrink-0' : 'text-primary flex-shrink-0'} />
       <span className={'font-semibold text-sm ' + (isHost ? 'text-secondary' : 'text-primary')}>{text}</span>
@@ -193,7 +193,7 @@ function PulseHeader({
           </div>
           {linkedPlayer && currentTierInfo && (
             <div
-              className="absolute -bottom-1 -right-1 px-2 py-0.5 text-[10px] font-bold rounded-sm uppercase tracking-tighter bg-secondary text-on-secondary-fixed"
+              className="absolute -bottom-1 -right-1 px-2 py-0.5 text-[10px] font-bold rounded uppercase tracking-tighter bg-secondary text-on-secondary-fixed"
             >
               {currentTierInfo.name.toUpperCase()}
             </div>
@@ -292,7 +292,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
             return (
               <div
                 key={h.clashId || ("recent-" + i)}
-                className={'flex items-center justify-between p-3 bg-surface-container rounded-sm border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
+                className={'flex items-center justify-between p-3 bg-surface-container rounded border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
               >
                 <div className="flex items-center gap-3">
                   <span className={'font-mono font-bold ' + (isTop4 ? 'text-tertiary' : 'text-on-surface/60')}>
@@ -1379,7 +1379,7 @@ export default function DashboardScreen() {
       {/* Ticker */}
       {tickerItems.length > 0 && (
         <div
-          className="overflow-hidden rounded-sm mt-6 bg-secondary/[0.03] border border-secondary/[0.08]"
+          className="overflow-hidden rounded mt-6 bg-secondary/[0.03] border border-secondary/[0.08]"
         >
           <div className="ticker-scroll">
             {[].concat(tickerItems, tickerItems).map(function (item, i) {

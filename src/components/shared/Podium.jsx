@@ -37,7 +37,7 @@ function PodiumSlot({ player, place, color, barHeight, avatarSize, imgClass, ord
           </div>
         )}
         <div
-          className={`absolute -bottom-2 left-1/2 -translate-x-1/2 font-display px-3 py-1 rounded-sm text-xs ${
+          className={`absolute -bottom-2 left-1/2 -translate-x-1/2 font-display px-3 py-1 rounded text-xs ${
             isFirst
               ? 'bg-gradient-to-r from-primary to-primary-container text-on-primary px-6 py-2 text-lg shadow-xl -bottom-4'
               : 'text-surface'

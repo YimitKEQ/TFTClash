@@ -266,7 +266,7 @@ export default function TournamentTab() {
           <div className="mt-4 space-y-1.5">
             {(scheduledEvents || []).map(function(ev) {
               return (
-                <div key={ev.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded-sm">
+                <div key={ev.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded">
                   <Icon name="event" size={14} className="text-on-surface/40 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-on-surface">{ev.name}</div>
@@ -342,7 +342,7 @@ export default function TournamentTab() {
             <div className="text-[11px] text-on-surface/40 font-bold uppercase tracking-wider mb-2">Existing ({flashTournaments.length})</div>
             {flashTournaments.map(function(t) {
               return (
-                <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded-sm">
+                <div key={t.id} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/10 rounded">
                   <Icon name="bolt" size={14} className="text-on-surface/40 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold text-on-surface">{t.name}</div>

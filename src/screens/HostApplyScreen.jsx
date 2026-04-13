@@ -112,7 +112,7 @@ export default function HostApplyScreen() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
         <div className="relative z-10 max-w-4xl">
           <div className="flex items-center gap-4 mb-4">
-            <span className="px-3 py-1 bg-tertiary-container/10 text-tertiary font-label text-xs tracking-widest border border-tertiary/20 rounded-sm uppercase">
+            <span className="px-3 py-1 bg-tertiary-container/10 text-tertiary font-label text-xs tracking-widest border border-tertiary/20 rounded uppercase">
               Organizer Portal
             </span>
             <div className="flex items-center gap-2 text-primary">

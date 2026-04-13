@@ -201,7 +201,7 @@ export default function SettingsTab() {
           <div className="space-y-1.5 mt-3">
             {announcements.map(function(a, i) {
               return (
-                <div key={a.type + '-' + a.message} className="flex items-center gap-2 px-3 py-2 bg-secondary/5 border border-secondary/20 rounded-sm">
+                <div key={a.type + '-' + a.message} className="flex items-center gap-2 px-3 py-2 bg-secondary/5 border border-secondary/20 rounded">
                   <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">{a.type}</span>
                   <span className="flex-1 text-sm text-on-surface">{a.message}</span>
                   <button onClick={function() { dismissAnnouncement(i) }} className="bg-transparent border-0 text-on-surface/40 cursor-pointer text-xs hover:text-error">x</button>
@@ -224,7 +224,7 @@ export default function SettingsTab() {
         {(tickerOverrides || []).length === 0 && <div className="text-center py-3 text-on-surface/40 text-sm">No custom ticker items.</div>}
         {(tickerOverrides || []).map(function(item, i) {
           return (
-            <div key={item} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded-sm mb-1.5">
+            <div key={item} className="flex items-center gap-2 px-3 py-2 bg-surface-container border border-outline-variant/5 rounded mb-1.5">
               <Icon name="chevron_right" size={14} className="text-tertiary flex-shrink-0" />
               <span className="flex-1 text-sm text-on-surface">{item}</span>
               <button onClick={function() { removeTicker(item) }} className="bg-transparent border-0 text-on-surface/40 cursor-pointer text-xs hover:text-error">x</button>
@@ -243,15 +243,15 @@ export default function SettingsTab() {
           <Btn variant="secondary" size="sm" onClick={saveSeasonName}>Save</Btn>
         </div>
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="bg-surface-container p-3 rounded-sm">
+          <div className="bg-surface-container p-3 rounded">
             <div className="font-stats text-2xl font-black text-primary">{(players || []).length}</div>
             <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Players</div>
           </div>
-          <div className="bg-surface-container p-3 rounded-sm">
+          <div className="bg-surface-container p-3 rounded">
             <div className="font-stats text-2xl font-black text-secondary">{totalPts}</div>
             <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Total Pts</div>
           </div>
-          <div className="bg-surface-container p-3 rounded-sm">
+          <div className="bg-surface-container p-3 rounded">
             <div className="font-stats text-2xl font-black text-tertiary">{totalGames}</div>
             <div className="text-[10px] text-on-surface/40 uppercase tracking-wider mt-0.5">Games</div>
           </div>
@@ -264,14 +264,14 @@ export default function SettingsTab() {
           <span className="font-bold text-sm text-error">Danger Zone</span>
         </div>
         <div className="space-y-2">
-          <div className="flex items-center justify-between px-3 py-2 border border-error/10 rounded-sm">
+          <div className="flex items-center justify-between px-3 py-2 border border-error/10 rounded">
             <div>
               <div className="text-sm font-semibold text-on-surface">Reset Season Stats</div>
               <div className="text-xs text-on-surface/50">Zero all player pts, wins, top4, games</div>
             </div>
             <Btn variant="ghost" size="sm" onClick={resetSeasonStats}><span className="text-error">Reset</span></Btn>
           </div>
-          <div className="flex items-center justify-between px-3 py-2 border border-error/10 rounded-sm">
+          <div className="flex items-center justify-between px-3 py-2 border border-error/10 rounded">
             <div>
               <div className="text-sm font-semibold text-on-surface">Clear All Players</div>
               <div className="text-xs text-on-surface/50">Delete entire roster from DB</div>

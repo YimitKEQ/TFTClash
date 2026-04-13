@@ -230,7 +230,7 @@ export default function OpsPlayers(props) {
             value={noteText}
             onChange={function(e) { setNoteText(e.target.value) }}
             rows={6}
-            className="w-full bg-surface-container border border-outline-variant/10 rounded-sm px-3 py-2.5 text-on-surface text-sm resize-y focus:outline-none focus:border-primary/40"
+            className="w-full bg-surface-container border border-outline-variant/10 rounded px-3 py-2.5 text-on-surface text-sm resize-y focus:outline-none focus:border-primary/40"
             placeholder="Admin notes about this player..."
           />
           <div className="flex gap-2">
@@ -338,9 +338,9 @@ export default function OpsPlayers(props) {
                     <span className="text-sm font-bold text-on-surface truncate cursor-pointer hover:text-primary" onClick={function() { navigate('/player/' + (p.name || p.username)) }}>
                       {p.name || p.username}
                     </span>
-                    {p.banned && <span className="text-[9px] px-1.5 py-0.5 bg-error/20 text-error font-bold rounded-sm uppercase">Banned</span>}
-                    {p.role === 'admin' && <span className="text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold rounded-sm uppercase">Admin</span>}
-                    {p.role === 'host' && <span className="text-[9px] px-1.5 py-0.5 bg-secondary/20 text-secondary font-bold rounded-sm uppercase">Host</span>}
+                    {p.banned && <span className="text-[9px] px-1.5 py-0.5 bg-error/20 text-error font-bold rounded uppercase">Banned</span>}
+                    {p.role === 'admin' && <span className="text-[9px] px-1.5 py-0.5 bg-primary/20 text-primary font-bold rounded uppercase">Admin</span>}
+                    {p.role === 'host' && <span className="text-[9px] px-1.5 py-0.5 bg-secondary/20 text-secondary font-bold rounded uppercase">Host</span>}
                   </div>
                   <div className="font-nav text-[10px] text-on-surface/25 uppercase">
                     {p.rank || 'Unranked'} / {p.region || '?'} / {p.games || 0} games

@@ -39,7 +39,7 @@ function ClashReminderBtn(props) {
         }
       }}
       className={
-        "flex items-center gap-2 px-4 py-2.5 rounded-[10px] cursor-pointer text-[13px] font-semibold font-body transition-all border " +
+        "flex items-center gap-2 px-4 py-2.5 rounded-lg cursor-pointer text-[13px] font-semibold font-body transition-all border " +
         (enabled
           ? "bg-tertiary/10 border-tertiary/40 text-tertiary"
           : "bg-primary/[.08] border-primary/20 text-primary-light")

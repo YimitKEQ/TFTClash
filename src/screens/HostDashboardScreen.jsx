@@ -501,7 +501,7 @@ export default function HostDashboardScreen() {
               <span className="text-xs text-on-surface-variant font-mono">{wizData.accentColor}</span>
             </div>
           </div>
-          <div className="bg-surface-container p-4 rounded-sm border-l-4" style={{ borderColor: wizData.accentColor }}>
+          <div className="bg-surface-container p-4 rounded border-l-4" style={{ borderColor: wizData.accentColor }}>
             <div className="text-xs text-on-surface-variant font-condensed uppercase tracking-widest mb-1">Preview</div>
             <div className="font-bold text-on-surface font-editorial">{wizData.name || "Tournament Name"}</div>
             <div className="text-xs font-mono mt-1" style={{ color: wizData.accentColor }}>{wizData.type === "swiss" ? "Swiss" : "Standard"} - {wizData.maxPlayers} players</div>
@@ -516,7 +516,7 @@ export default function HostDashboardScreen() {
     // Step 3: Review
     return (
       <div className="space-y-8">
-        <div className="bg-surface-container p-5 rounded-sm space-y-4">
+        <div className="bg-surface-container p-5 rounded space-y-4">
           <div className="font-bold text-lg text-on-surface font-editorial">{wizData.name}</div>
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -528,7 +528,7 @@ export default function HostDashboardScreen() {
               ["Invite Only", wizData.inviteOnly ? "Yes" : "No"]
             ].map(function(arr) {
               return (
-                <div key={arr[0]} className="bg-surface-container-high p-3 rounded-sm">
+                <div key={arr[0]} className="bg-surface-container-high p-3 rounded">
                   <div className="text-xs font-condensed uppercase tracking-widest text-on-surface-variant mb-1">{arr[0]}</div>
                   <div className="text-sm font-mono text-on-surface">{arr[1]}</div>
                 </div>
@@ -541,7 +541,7 @@ export default function HostDashboardScreen() {
           </div>
         </div>
         {wizData.entryFee && (
-          <div className="bg-primary/5 border border-primary/20 rounded-sm p-3 text-sm text-primary flex items-center gap-2">
+          <div className="bg-primary/5 border border-primary/20 rounded p-3 text-sm text-primary flex items-center gap-2">
             <Icon name="warning" size={16} />
             Entry fee tournaments require admin approval before going live.
           </div>
@@ -763,7 +763,7 @@ export default function HostDashboardScreen() {
         <div className="space-y-6">
           <div className="flex justify-between items-center border-b border-outline-variant/10 pb-4">
             <h2 className="font-editorial text-2xl">Hosted Events</h2>
-            <div className="flex bg-surface-container-lowest p-1 rounded-sm gap-1">
+            <div className="flex bg-surface-container-lowest p-1 rounded gap-1">
               {["all", "live", "draft", "completed"].map(function(f) {
                 return (
                   <button
@@ -808,7 +808,7 @@ export default function HostDashboardScreen() {
                       <h4 className={"font-editorial text-lg " + (isComplete ? "text-slate-400" : isDraft ? "text-slate-300" : "text-on-background")}>
                         {t.name}
                       </h4>
-                      {t.invite && <span className="px-2 py-0.5 bg-secondary/10 text-secondary font-condensed text-[10px] uppercase rounded-sm">Invite Only</span>}
+                      {t.invite && <span className="px-2 py-0.5 bg-secondary/10 text-secondary font-condensed text-[10px] uppercase rounded">Invite Only</span>}
                     </div>
                     <div className="flex gap-6 flex-wrap">
                       <span className={"text-xs font-mono flex items-center gap-1 " + (isComplete ? "text-slate-600" : "text-slate-500")}>
@@ -975,7 +975,7 @@ export default function HostDashboardScreen() {
                     return (
                       <div key={a.id} className="bg-surface-container-low p-3 rounded-lg space-y-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded-sm font-condensed uppercase">To: {a.to}</span>
+                          <span className="text-xs bg-secondary/10 text-secondary px-2 py-0.5 rounded font-condensed uppercase">To: {a.to}</span>
                           <span className="text-xs text-slate-500">{a.sentAt}</span>
                         </div>
                         <p className="text-sm text-slate-400">{a.msg}</p>
@@ -1129,8 +1129,8 @@ export default function HostDashboardScreen() {
                 <div key={t.id} className="bg-surface-container-low p-6 rounded-lg border border-tertiary/20">
                   <div className="flex items-center gap-3 mb-5">
                     <h3 className="font-editorial text-lg text-on-surface flex-1">{t.name}</h3>
-                    <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">Round {currentRound}/{roundCount}</span>
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">{regIds.length} players</span>
+                    <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded">Round {currentRound}/{roundCount}</span>
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary font-condensed text-[10px] uppercase tracking-tighter rounded">{regIds.length} players</span>
                   </div>
                   {regIds.length === 0 && (
                     <p className="text-slate-500 text-sm text-center py-6">No players registered yet.</p>
@@ -1141,7 +1141,7 @@ export default function HostDashboardScreen() {
                       <div className="space-y-2">
                         {regIds.map(function(username) {
                           return (
-                            <div key={username} className="flex items-center gap-3 p-3 bg-surface-container rounded-sm">
+                            <div key={username} className="flex items-center gap-3 p-3 bg-surface-container rounded">
                               <span className="text-sm font-mono text-on-surface flex-1">{username}</span>
                               <Sel value="" onChange={function(val) {
                                 if (!val) return;
@@ -1219,7 +1219,7 @@ export default function HostDashboardScreen() {
                 <div key={t.id} className="bg-surface-container-low p-5 rounded-lg">
                   <div className="flex items-center gap-3 mb-4">
                     <h3 className="font-editorial text-base text-on-surface flex-1">{t.name}</h3>
-                    <span className={"px-2 py-0.5 font-condensed text-[10px] uppercase tracking-tighter rounded-sm " + (t.status === "live" ? "bg-tertiary-container/10 text-tertiary" : "bg-primary/10 text-primary")}>
+                    <span className={"px-2 py-0.5 font-condensed text-[10px] uppercase tracking-tighter rounded " + (t.status === "live" ? "bg-tertiary-container/10 text-tertiary" : "bg-primary/10 text-primary")}>
                       {regIds.length + "/" + t.size}
                     </span>
                   </div>
@@ -1232,7 +1232,7 @@ export default function HostDashboardScreen() {
                         <div key={username} className="flex items-center gap-3 py-2.5 border-b border-outline-variant/5 last:border-0">
                           <span className="text-xs font-mono text-slate-500 w-5">{i + 1}</span>
                           <span className="flex-1 text-sm font-mono text-on-surface">{username}</span>
-                          <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded-sm">Registered</span>
+                          <span className="px-2 py-0.5 bg-tertiary-container/10 text-tertiary font-condensed text-[10px] uppercase tracking-tighter rounded">Registered</span>
                           <button
                             onClick={function() {
                               if (confirm("Remove " + username + "?")) {

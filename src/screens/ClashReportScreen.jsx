@@ -184,7 +184,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
               {sorted.length + ' Players'}
             </span>
           </div>
-          <div className="bg-surface-container-low overflow-hidden rounded-sm">
+          <div className="bg-surface-container-low overflow-hidden rounded">
             <table className="w-full text-left border-collapse min-w-[400px]">
               <thead>
                 <tr className="bg-surface-container-lowest border-b border-outline-variant/10">
@@ -295,7 +295,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
               Match Awards
             </h4>
             {mostImproved && (
-              <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded-sm">
+              <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded">
                 <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 bg-tertiary/10">
                   <Icon name="trending_up" size={22} className="text-tertiary" />
                 </div>
@@ -312,7 +312,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
               </div>
             )}
             {biggestUpset && (
-              <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded-sm">
+              <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded">
                 <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 bg-secondary/10">
                   <Icon name="bolt" size={22} className="text-secondary" />
                 </div>
@@ -329,7 +329,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
               </div>
             )}
             {!mostImproved && !biggestUpset && (
-              <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded-sm">
+              <div className="bg-surface-container-high p-4 flex items-center gap-3 rounded">
                 <div className="w-11 h-11 rounded flex items-center justify-center flex-shrink-0 bg-primary/10">
                   <Icon name="emoji_events" size={22} className="text-primary" />
                 </div>

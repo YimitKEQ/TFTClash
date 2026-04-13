@@ -2,7 +2,7 @@ export default function PageHeader({ title, subtitle, description, goldWord }) {
   return (
     <header className="text-center mb-16 relative">
       {subtitle && (
-        <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-sans uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded-sm">
+        <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-sans uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded">
           {subtitle}
         </div>
       )}

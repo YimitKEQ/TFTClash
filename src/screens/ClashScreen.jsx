@@ -134,7 +134,7 @@ function ClashRecap(props) {
   var recap = props.recap;
   if (!recap) return null;
   return (
-    <div className="relative overflow-hidden rounded-[14px] mx-4 mb-5 p-5 bg-[rgba(17,24,39,.8)] border border-[rgba(52,211,153,.15)]">
+    <div className="relative overflow-hidden rounded-xl mx-4 mb-5 p-5 bg-[rgba(17,24,39,.8)] border border-[rgba(52,211,153,.15)]">
       <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#34D399] to-transparent" />
       <div className="font-condensed text-[10px] uppercase tracking-[.12em] font-bold mb-[10px] text-[#34D399]">{recap.clashName + " Recap"}</div>
       <div className="text-[14px] text-on-surface leading-[1.8]">
@@ -207,7 +207,7 @@ function DisputeBanner(props) {
   var isAdmin = props.isAdmin;
   if (!disputes || disputes.length === 0) return null;
   return (
-    <div className="rounded-[10px] px-4 py-3.5 mb-3.5 animate-[disp-anim_2s_infinite] bg-[rgba(127,29,29,.95)] border border-[rgba(220,38,38,.6)]">
+    <div className="rounded-lg px-4 py-3.5 mb-3.5 animate-[disp-anim_2s_infinite] bg-[rgba(127,29,29,.95)] border border-[rgba(220,38,38,.6)]">
       <div className="flex items-center gap-2 mb-2.5">
         <span className="text-lg"><Icon name="error" className="text-error" /></span>
         <div className="cond text-sm font-extrabold text-[#FCA5A5] tracking-[.1em] uppercase">LOCKED - {disputes.length} Dispute{disputes.length > 1 ? "s" : ""}</div>
@@ -270,7 +270,7 @@ function PlacementBoard(props) {
           var isWin = got === 1;
           var isTop4 = got && got <= 4;
           return (
-            <div key={p.id} className="rounded-[10px] px-3 py-2.5 transition-all duration-150" style={{
+            <div key={p.id} className="rounded-lg px-3 py-2.5 transition-all duration-150" style={{
               background: got ? (isWin ? "rgba(232,168,56,.08)" : isTop4 ? "rgba(78,205,196,.05)" : "rgba(255,255,255,.02)") : "rgba(255,255,255,.02)",
               border: "1px solid " + (got ? (isWin ? "rgba(232,168,56,.35)" : isTop4 ? "rgba(78,205,196,.2)" : "rgba(242,237,228,.08)") : "rgba(242,237,228,.08)")
             }}>
@@ -312,7 +312,7 @@ function PlacementBoard(props) {
         {[1, 2, 3, 4, 5, 6, 7, 8].map(function(place) {
           var who = roster.find(function(p) { return results[p.id] === place; });
           return (
-            <div key={place} className="bg-surface-container-lowest rounded-[5px] px-[3px] py-1 text-center">
+            <div key={place} className="bg-surface-container-lowest rounded px-[3px] py-1 text-center">
               <div className="mono text-[9px] font-bold" style={{ color: place === 1 ? "#E8A838" : place <= 4 ? "#4ECDC4" : "#9AAABF" }}>{place}</div>
               <div className="text-[9px] overflow-hidden text-ellipsis whitespace-nowrap mt-px" style={{ color: who ? "#C8BFB0" : "#7A8BA0" }}>{who ? who.name.substring(0, 5) : "-"}</div>
             </div>
@@ -357,7 +357,7 @@ function ResultSubmitModal(props) {
       onClick={props.onClose}
     >
       <div
-        className="rounded-2xl p-6 overflow-y-auto bg-[#111827] border border-secondary/20 w-[90%] max-w-[420px] max-h-[80vh]"
+        className="rounded-xl p-6 overflow-y-auto bg-[#111827] border border-secondary/20 w-[90%] max-w-[420px] max-h-[80vh]"
         onClick={function(e) { e.stopPropagation(); }}
       >
         <h3 className="font-editorial mb-4 text-on-surface">Submit Results</h3>
@@ -403,7 +403,7 @@ function ConfirmResultsModal(props) {
       onClick={props.onClose}
     >
       <div
-        className="rounded-2xl p-6 bg-[#111827] border border-tertiary/20 w-[90%] max-w-[420px]"
+        className="rounded-xl p-6 bg-[#111827] border border-tertiary/20 w-[90%] max-w-[420px]"
         onClick={function(e) { e.stopPropagation(); }}
       >
         <h3 className="font-editorial mb-1 text-on-surface">Confirm Results?</h3>
@@ -783,8 +783,8 @@ function LiveStandingsPanel(props) {
             }}>
               <span className="mono text-xs font-bold min-w-[22px] text-center" style={{ color: belowCut ? "#F87171" : ri === 0 ? "#E8A838" : ri === 1 ? "#C0C0C0" : ri === 2 ? "#CD7F32" : "#9AAABF" }}>{ri + 1}</span>
               <span className="flex-1 text-[13px]" style={{ fontWeight: isLeader ? 700 : 500, color: belowCut ? "#F87171" : isLeader ? "#E8A838" : "#F2EDE4" }}>{row.name}</span>
-              {belowCut && <span className="text-[9px] font-bold text-error bg-error/[.12] border border-error/25 rounded-[3px] px-1.5 py-px uppercase">Cut</span>}
-              {nearCut && <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 rounded-[3px] px-1.5 py-px">Bubble</span>}
+              {belowCut && <span className="text-[9px] font-bold text-error bg-error/[.12] border border-error/25 rounded px-1.5 py-px uppercase">Cut</span>}
+              {nearCut && <span className="text-[10px] font-bold text-primary bg-primary/10 border border-primary/20 rounded px-1.5 py-px">Bubble</span>}
               <span className="mono text-[13px] font-bold" style={{ color: belowCut ? "#F87171" : row.earned > 0 ? "#6EE7B7" : "#9AAABF" }}>{row.earned > 0 ? "+" + row.earned : " - "} pts</span>
             </div>
           );
@@ -993,7 +993,7 @@ function ResultsScreen(props) {
       </div>
 
       {/* Champion banner */}
-      <div className="relative overflow-hidden rounded-[18px] px-8 py-7 mb-6 flex items-center gap-6 flex-wrap" style={{
+      <div className="relative overflow-hidden rounded-xl px-8 py-7 mb-6 flex items-center gap-6 flex-wrap" style={{
         background: "linear-gradient(135deg,rgba(232,168,56,.22),rgba(155,114,207,.08),rgba(8,8,15,1))",
         border: "1px solid rgba(232,168,56,.55)",
         boxShadow: "0 0 60px rgba(232,168,56,.18),inset 0 0 80px rgba(232,168,56,.04)"
@@ -1021,7 +1021,7 @@ function ResultsScreen(props) {
           {[["Season Pts", champ.pts, "#E8A838"], ["Wins", champ.wins, "#6EE7B7"], ["Avg", getStats(champ).avgPlacement, avgCol(getStats(champ).avgPlacement)], ["Top4%", getStats(champ).top4Rate + "%", "#C4B5FD"]].map(function(item) {
             var l = item[0]; var v = item[1]; var c = item[2];
             return (
-              <div key={l} className="text-center px-4 py-2.5 bg-black/30 rounded-[10px] min-w-[64px]">
+              <div key={l} className="text-center px-4 py-2.5 bg-black/30 rounded-lg min-w-[64px]">
                 <div className="mono text-xl font-bold leading-none" style={{ color: c }}>{v}</div>
                 <div className="text-[10px] text-muted font-semibold uppercase tracking-[.06em] mt-1">{l}</div>
               </div>
@@ -1039,7 +1039,7 @@ function ResultsScreen(props) {
             var isGold = actualRank === 0;
             return (
               <div key={p.id} onClick={function() { setProfilePlayer(p); setScreen("profile"); }}
-                className="rounded-[14px] px-3.5 text-center cursor-pointer" style={{
+                className="rounded-xl px-3.5 text-center cursor-pointer" style={{
                   background: isGold ? "rgba(232,168,56,.08)" : "rgba(255,255,255,.02)",
                   border: "1px solid " + (isGold ? "rgba(232,168,56,.3)" : "rgba(255,255,255,.07)"),
                   borderTop: "3px solid " + col, paddingTop: isGold ? 28 : 20, paddingBottom: 20
@@ -1846,7 +1846,7 @@ function BracketScreen(props) {
       </div>
 
       {allLocked && checkedIn.length > 0 && (
-        <div className="flex items-center gap-2.5 rounded-[10px] px-4 py-2.5 mb-4" style={{ background: "rgba(82,196,124,.08)", border: "1px solid rgba(82,196,124,.3)", animation: "pulse 2s infinite" }}>
+        <div className="flex items-center gap-2.5 rounded-lg px-4 py-2.5 mb-4" style={{ background: "rgba(82,196,124,.08)", border: "1px solid rgba(82,196,124,.3)", animation: "pulse 2s infinite" }}>
           <Icon name="check_circle" className="text-base text-[#52C47C]" />
           <span className="text-[13px] font-semibold text-[#6EE7B7] flex-1">All {lobbies.length} lobbies locked - {round >= (tournamentState.totalGames || 4) ? "ready to finalize!" : "ready for next game!"}{isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) ? " Auto-advancing in " + autoAdvanceCountdown + "s" : ""}</span>
           {isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) && (
@@ -1891,7 +1891,7 @@ function BracketScreen(props) {
 
           {/* Complete banner */}
           {tournamentState && tournamentState.phase === "complete" && (
-            <div className="flex items-center gap-3 rounded-[10px] px-[18px] py-3.5 mb-4" style={{ background: "rgba(232,168,56,.1)", border: "1px solid rgba(232,168,56,.4)" }}>
+            <div className="flex items-center gap-3 rounded-lg px-[18px] py-3.5 mb-4" style={{ background: "rgba(232,168,56,.1)", border: "1px solid rgba(232,168,56,.4)" }}>
               <Icon name="emoji_events" className="text-[22px]" />
               <div>
                 <div className="font-bold text-primary text-[15px]">Clash Complete!</div>
@@ -1922,7 +1922,7 @@ function BracketScreen(props) {
               var isMyLobby = effectiveHighlight === li;
               var lobbyLocked = lockedLobbies.includes(li);
               return (
-                <div key={li} className="rounded-[14px] overflow-hidden transition-shadow" style={{
+                <div key={li} className="rounded-xl overflow-hidden transition-shadow" style={{
                   background: isMyLobby ? "rgba(155,114,207,.06)" : "#111827",
                   border: "2px solid " + (isMyLobby ? "#9B72CF" : lobbyLocked ? "rgba(82,196,124,.35)" : "rgba(242,237,228,.1)"),
                   boxShadow: isMyLobby ? "0 0 24px rgba(155,114,207,.15)" : "none"
@@ -2205,7 +2205,7 @@ function ClashScreen(props) {
         <div className="flex gap-2 flex-wrap">
           {awardsList.map(function(a, i) {
             return (
-              <div key={a.label} className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] min-w-0" style={{
+              <div key={a.label} className="flex items-center gap-2 px-3.5 py-2 rounded-lg min-w-0" style={{
                 background: "rgba(17,24,39,.8)",
                 border: "1px solid rgba(" + hexToRgb(a.color) + ",.2)",
                 flex: "1 1 140px"
@@ -2229,7 +2229,7 @@ function ClashScreen(props) {
   return (
     <div className="fade-up">
       {/* Phase header bar */}
-      <div className="relative overflow-hidden px-5 py-4 mx-4 mb-5 rounded-[14px]" style={{
+      <div className="relative overflow-hidden px-5 py-4 mx-4 mb-5 rounded-xl" style={{
         background: "rgba(17,24,39,.8)",
         border: "1px solid rgba(" + hexToRgb(accentColor) + ",.2)"
       }}>
@@ -2262,7 +2262,7 @@ function ClashScreen(props) {
               var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || c.place || 4; });
               return (
                 <div key={p.id || p.username}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] cursor-pointer"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer"
                   style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)" }}
                   onClick={function() { if (props.setProfilePlayer && props.setScreen) { props.setProfilePlayer(p); props.setScreen("profile"); } }}>
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[11px] font-extrabold text-[#C4B5FD] shrink-0" style={{ background: "linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))" }}>

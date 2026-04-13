@@ -118,7 +118,7 @@ function OnboardingFlow(props) {
 
     return (
       <div className="fixed inset-0 bg-[#08080F] flex flex-col items-center justify-center z-[10000] p-8">
-        <div className="bg-surface-container border border-primary/30 rounded-2xl px-6 py-7 max-w-[340px] w-full text-center">
+        <div className="bg-surface-container border border-primary/30 rounded-xl px-6 py-7 max-w-[340px] w-full text-center">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/30 to-tertiary/15 flex items-center justify-center mx-auto mb-3 border-2 border-primary/40">
             <Icon name="person" className="text-[22px] text-primary-light" />
           </div>

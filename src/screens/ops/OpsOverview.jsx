@@ -8,7 +8,7 @@ function KpiCard(props) {
   var accent = props.accent || 'text-on-surface'
   var pulse = props.pulse
   return (
-    <div className="bg-surface-container-low border border-outline-variant/10 rounded-sm p-4 flex flex-col gap-1 relative overflow-hidden group hover:border-primary/20 transition-colors">
+    <div className="bg-surface-container-low border border-outline-variant/10 rounded p-4 flex flex-col gap-1 relative overflow-hidden group hover:border-primary/20 transition-colors">
       {pulse && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-error animate-pulse" />}
       <div className="flex items-center gap-2 text-on-surface/40">
         <Icon name={icon} size={16} />
@@ -28,7 +28,7 @@ function AlertBanner(props) {
   return (
     <div
       onClick={onClick}
-      className={'flex items-center gap-2 px-4 py-2.5 border rounded-sm transition-colors ' + (onClick ? 'cursor-pointer hover:opacity-80 ' : '') + color}
+      className={'flex items-center gap-2 px-4 py-2.5 border rounded transition-colors ' + (onClick ? 'cursor-pointer hover:opacity-80 ' : '') + color}
     >
       <Icon name={icon} size={16} />
       <span className="font-nav text-xs font-bold uppercase tracking-wider">{text}</span>
@@ -44,7 +44,7 @@ function QuickAction(props) {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 rounded-sm text-left transition-colors cursor-pointer"
+      className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/10 rounded text-left transition-colors cursor-pointer"
     >
       <Icon name={icon} size={16} className={color} />
       <span className="text-xs font-bold text-on-surface">{label}</span>

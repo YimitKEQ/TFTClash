@@ -63,7 +63,7 @@ export default function AdminScreen() {
               <button
                 key={t.id}
                 onClick={function() { setTab(t.id) }}
-                className={'flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider rounded-sm transition-all relative ' + (isActive ? 'bg-primary/10 text-primary' : 'text-on-surface/50 hover:bg-white/5 hover:text-on-surface/80')}
+                className={'flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider rounded transition-all relative ' + (isActive ? 'bg-primary/10 text-primary' : 'text-on-surface/50 hover:bg-white/5 hover:text-on-surface/80')}
               >
                 <Icon name={t.icon} size={14} />
                 {t.label}

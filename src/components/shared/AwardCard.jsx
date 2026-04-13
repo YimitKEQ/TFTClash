@@ -13,7 +13,7 @@ function AwardCard(props) {
       onClick={onClick}
       onMouseEnter={function() { if (onClick) setHovered(true); }}
       onMouseLeave={function() { setHovered(false); }}
-      className="flex items-start gap-4 p-4 rounded-[20px] cursor-pointer transition-all duration-200"
+      className="flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all duration-200"
       style={{
         background: hovered ? 'rgba(255,255,255,0.04)' : 'rgba(52,52,60,0.3)',
         border: '1px solid ' + (hovered ? award.color + '66' : 'rgba(80,67,53,0.3)'),

@@ -314,7 +314,7 @@ export default function PlayersTab() {
         </div>
 
         {showAdd && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 bg-primary/5 border border-primary/10 rounded-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 p-3 bg-primary/5 border border-primary/10 rounded">
             <div>
               <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Name</label>
               <Inp value={addForm.name} onChange={function(v) { setAddForm(Object.assign({}, addForm, { name: typeof v === 'string' ? v : v.target.value })) }} placeholder="Display name" />
@@ -369,10 +369,10 @@ export default function PlayersTab() {
                     <td className="px-2 py-2 text-on-surface/60 capitalize">{p.role || 'player'}</td>
                     <td className="px-2 py-2">
                       {p.banned
-                        ? <span className="text-[10px] font-bold text-error bg-error/10 px-1.5 py-0.5 rounded-sm">BANNED</span>
+                        ? <span className="text-[10px] font-bold text-error bg-error/10 px-1.5 py-0.5 rounded">BANNED</span>
                         : p.dnpCount > 0
-                          ? <span className="text-[10px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded-sm">{'DNP x' + p.dnpCount}</span>
-                          : <span className="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded-sm">OK</span>
+                          ? <span className="text-[10px] font-bold text-tertiary bg-tertiary/10 px-1.5 py-0.5 rounded">{'DNP x' + p.dnpCount}</span>
+                          : <span className="text-[10px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded">OK</span>
                       }
                     </td>
                     <td className="px-2 py-2">
@@ -410,7 +410,7 @@ export default function PlayersTab() {
           <div className="flex flex-col gap-1.5">
             {(scrimAccess || []).map(function(u) {
               return (
-                <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded-sm">
+                <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded">
                   <span className="text-sm font-semibold text-primary">{u}</span>
                   <button onClick={function() { removeScrimUser(u) }} className="bg-transparent border-0 text-error cursor-pointer text-base leading-none px-1">x</button>
                 </div>
@@ -436,7 +436,7 @@ export default function PlayersTab() {
           <div className="flex flex-col gap-1.5">
             {(scrimHostAccess || []).map(function(u) {
               return (
-                <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded-sm">
+                <div key={u} className="flex items-center justify-between px-3 py-2 bg-primary/5 border border-primary/20 rounded">
                   <span className="text-sm font-semibold text-primary">{u}</span>
                   <button onClick={function() { removeScrimHostUser(u) }} className="bg-transparent border-0 text-error cursor-pointer text-base leading-none px-1">x</button>
                 </div>
@@ -451,7 +451,7 @@ export default function PlayersTab() {
           <Icon name="gavel" size={16} className="text-error" />
           <span className="font-bold text-sm text-on-surface">
             Disputes
-            {pendingDisputes > 0 && <span className="ml-2 text-[10px] font-bold text-error bg-error/10 px-1.5 py-0.5 rounded-sm">{pendingDisputes} PENDING</span>}
+            {pendingDisputes > 0 && <span className="ml-2 text-[10px] font-bold text-error bg-error/10 px-1.5 py-0.5 rounded">{pendingDisputes} PENDING</span>}
           </span>
         </div>
         {disputesLoading && <div className="text-center py-6 text-on-surface/40 text-sm">Loading...</div>}
@@ -462,8 +462,8 @@ export default function PlayersTab() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-semibold text-on-surface">{d.player_username || d.player_id}</span>
-                  <span className="text-[10px] font-bold text-on-surface/50 bg-surface-container-high px-1.5 py-0.5 rounded-sm uppercase">{d.type || 'dispute'}</span>
-                  <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded-sm ' + (d.status === 'pending' ? 'text-tertiary bg-tertiary/10' : 'text-on-surface/40 bg-surface-container-high')}>{d.status || 'pending'}</span>
+                  <span className="text-[10px] font-bold text-on-surface/50 bg-surface-container-high px-1.5 py-0.5 rounded uppercase">{d.type || 'dispute'}</span>
+                  <span className={'text-[10px] font-bold px-1.5 py-0.5 rounded ' + (d.status === 'pending' ? 'text-tertiary bg-tertiary/10' : 'text-on-surface/40 bg-surface-container-high')}>{d.status || 'pending'}</span>
                 </div>
                 <div className="text-sm text-on-surface/70">{d.description}</div>
                 <div className="text-[11px] text-on-surface/40 mt-1">{d.created_at ? new Date(d.created_at).toLocaleDateString() : ''}</div>

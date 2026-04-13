@@ -179,7 +179,7 @@ export default function TournamentDetailScreen() {
               {event.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
-              <span className={"px-3 py-1 rounded-sm font-nav text-xs tracking-wider font-bold border " + (isCompleted ? "bg-primary/10 text-primary border-primary/20" : event.status === 'live' ? "bg-tertiary/10 text-tertiary border-tertiary/20" : "bg-secondary/10 text-secondary border-secondary/20")}>
+              <span className={"px-3 py-1 rounded font-nav text-xs tracking-wider font-bold border " + (isCompleted ? "bg-primary/10 text-primary border-primary/20" : event.status === 'live' ? "bg-tertiary/10 text-tertiary border-tertiary/20" : "bg-secondary/10 text-secondary border-secondary/20")}>
                 {isCompleted ? 'COMPLETED' : event.status === 'live' ? 'LIVE' : 'UPCOMING'}
               </span>
               {event.date && (
@@ -205,7 +205,7 @@ export default function TournamentDetailScreen() {
               <div className="flex gap-2 flex-wrap mt-3">
                 {(event.tags || []).map(function(t) {
                   return (
-                    <span key={t} className="bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-nav px-2 py-0.5 rounded-sm uppercase tracking-wider">
+                    <span key={t} className="bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-nav px-2 py-0.5 rounded uppercase tracking-wider">
                       {t}
                     </span>
                   )
@@ -217,7 +217,7 @@ export default function TournamentDetailScreen() {
 
         {/* Prize pool */}
         {prizes.length > 0 && (
-          <div className="bg-surface-container-low rounded-[4px] border border-primary/15 p-5 mb-6 overflow-hidden relative">
+          <div className="bg-surface-container-low rounded border border-primary/15 p-5 mb-6 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-3 opacity-5">
               <Icon name="emoji_events" size={64} />
             </div>
@@ -227,7 +227,7 @@ export default function TournamentDetailScreen() {
                 var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70']
                 var bgs = ['bg-primary/10 border-primary/25', 'bg-on-surface-variant/8 border-on-surface-variant/15', 'bg-on-surface-variant/5 border-on-surface-variant/10']
                 return (
-                  <div key={p.placement + '-' + p.prize} className={"rounded-[4px] px-5 py-3 min-w-[90px] text-center border " + (bgs[i] || 'bg-surface-container-high border-outline-variant/10')}>
+                  <div key={p.placement + '-' + p.prize} className={"rounded px-5 py-3 min-w-[90px] text-center border " + (bgs[i] || 'bg-surface-container-high border-outline-variant/10')}>
                     <div className={"text-lg font-display font-bold mb-0.5 " + (colors[i] || 'text-on-surface-variant/50')}>{"#" + p.placement}</div>
                     <div className="text-xs text-on-surface font-semibold">{p.prize}</div>
                   </div>
@@ -238,7 +238,7 @@ export default function TournamentDetailScreen() {
         )}
 
         {/* Registration bar */}
-        <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 p-5 mb-6">
+        <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="flex items-baseline gap-2">
@@ -285,7 +285,7 @@ export default function TournamentDetailScreen() {
 
         {/* Champion banner */}
         {isCompleted && event.champion && (
-          <div className="mb-6 bg-primary/8 border border-primary/30 rounded-[4px] px-5 py-4 flex items-center gap-4">
+          <div className="mb-6 bg-primary/8 border border-primary/30 rounded px-5 py-4 flex items-center gap-4">
             <Icon name="emoji_events" size={24} fill className="text-primary" />
             <div className="flex-1">
               <div className="font-bold text-primary text-base mb-0.5">{"Champion: " + event.champion}</div>
@@ -321,7 +321,7 @@ export default function TournamentDetailScreen() {
             <div className="lg:col-span-7 space-y-5">
 
               {/* Tournament details */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="tune" size={18} className="text-primary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Details</span>
@@ -345,7 +345,7 @@ export default function TournamentDetailScreen() {
 
               {/* Description */}
               {event.description && (
-                <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 p-5">
+                <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <Icon name="description" size={16} className="text-primary" />
                     <span className="text-xs font-nav font-bold text-primary tracking-widest uppercase">About</span>
@@ -355,7 +355,7 @@ export default function TournamentDetailScreen() {
               )}
 
               {/* Scoring */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="leaderboard" size={18} className="text-tertiary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Scoring</span>
@@ -380,7 +380,7 @@ export default function TournamentDetailScreen() {
             <div className="lg:col-span-5 space-y-5">
 
               {/* Registered players */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="group" size={18} className="text-primary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
@@ -398,7 +398,7 @@ export default function TournamentDetailScreen() {
                       var borderColor = i === 0 ? 'border-l-primary' : 'border-l-transparent'
                       return (
                         <div key={username} className={"flex items-center gap-3 px-5 py-2.5 border-l-2 " + borderColor}>
-                          <div className="w-7 h-7 rounded-sm bg-surface-container-high flex items-center justify-center flex-shrink-0">
+                          <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
                             <Icon name="person" size={14} className="text-on-surface-variant/40" />
                           </div>
                           <span className="font-mono text-sm font-bold text-on-surface flex-1">{username}</span>
@@ -418,7 +418,7 @@ export default function TournamentDetailScreen() {
               </div>
 
               {/* Host info */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 p-5 text-center">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5 text-center">
                 <div className="text-[10px] font-nav text-on-surface-variant/50 uppercase tracking-wider mb-2">Hosted By</div>
                 <div className="font-editorial italic text-xl text-primary">{event.host || 'TFT Clash'}</div>
                 {event.sponsor && (
@@ -433,7 +433,7 @@ export default function TournamentDetailScreen() {
               {currentUser && event.dbTournamentId && currentUser.auth_user_id === event.host_id && (
                 <button
                   onClick={function() { navigate('/host/dashboard'); }}
-                  className="w-full flex items-center justify-center gap-2 bg-secondary/10 border border-secondary/20 text-secondary font-nav font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-[4px] hover:bg-secondary/20 transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-secondary/10 border border-secondary/20 text-secondary font-nav font-bold text-xs uppercase tracking-widest px-5 py-3 rounded hover:bg-secondary/20 transition-colors"
                 >
                   <Icon name="manage_accounts" size={16} />
                   Manage Tournament
@@ -464,7 +464,7 @@ export default function TournamentDetailScreen() {
                 {bracketRoundKeys.map(function(rk) {
                   var roundResults = bracketRounds[rk].sort(function(a, b) { return a.placement - b.placement; })
                   return (
-                    <div key={rk} className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+                    <div key={rk} className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                       <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                         <Icon name="emoji_events" size={18} className="text-tertiary" />
                         <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">{rk}</span>
@@ -509,7 +509,7 @@ export default function TournamentDetailScreen() {
               </div>
             )}
             {standings.length > 0 && (
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="bar_chart" size={18} className="text-tertiary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">
@@ -548,7 +548,7 @@ export default function TournamentDetailScreen() {
             <div className="lg:col-span-7 space-y-5">
 
               {/* Points system */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="leaderboard" size={18} className="text-primary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Points System</span>
@@ -579,7 +579,7 @@ export default function TournamentDetailScreen() {
               </div>
 
               {/* Tiebreakers */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="gavel" size={18} className="text-secondary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tiebreaker Rules</span>
@@ -600,7 +600,7 @@ export default function TournamentDetailScreen() {
               </div>
 
               {/* Tournament rules text */}
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="description" size={18} className="text-tertiary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Tournament Rules</span>
@@ -613,7 +613,7 @@ export default function TournamentDetailScreen() {
 
             {/* Rules sidebar */}
             <div className="lg:col-span-5 space-y-5">
-              <div className="bg-surface-container-low rounded-[4px] border border-outline-variant/15 overflow-hidden">
+              <div className="bg-surface-container-low rounded border border-outline-variant/15 overflow-hidden">
                 <div className="px-5 py-4 border-b border-outline-variant/10 flex items-center gap-3">
                   <Icon name="info" size={18} className="text-primary" />
                   <span className="font-nav font-bold text-sm tracking-widest uppercase text-on-surface">Quick Reference</span>
