@@ -516,7 +516,7 @@ function GenerateTab(props) {
                   rows={16}/>
               ) : (
                 <div className="relative">
-                  <pre className="whitespace-pre-wrap rounded-lg p-5 text-sm text-on-surface font-sans leading-relaxed"
+                  <pre className="whitespace-pre-wrap rounded-lg p-5 text-sm text-on-surface font-body leading-relaxed"
                     style={{
                       background: 'rgba(11,18,32,0.7)',
                       border: '1px solid rgba(255,255,255,0.06)',
@@ -739,7 +739,7 @@ function CampaignTab(props) {
                       style={{background:p.color+'20', color:p.color, fontFamily:'Barlow Condensed'}}>{p.name.toUpperCase()}</span>
                     <span className="text-[10px] text-on-surface/50">{g.type}</span>
                   </div>
-                  <pre className="whitespace-pre-wrap text-xs text-on-surface/80 font-sans max-h-32 overflow-auto">{g.content}</pre>
+                  <pre className="whitespace-pre-wrap text-xs text-on-surface/80 font-body max-h-32 overflow-auto">{g.content}</pre>
                 </div>
               )
             })}
@@ -795,7 +795,7 @@ function IdeasTab(props) {
             }}>{loading ? 'Cooking' : '\u26a1 15 Ideas'}</button>
         </div>
         {ideas && (
-          <pre className="whitespace-pre-wrap mt-5 rounded-lg p-5 text-sm text-on-surface font-sans leading-relaxed"
+          <pre className="whitespace-pre-wrap mt-5 rounded-lg p-5 text-sm text-on-surface font-body leading-relaxed"
             style={{background:'rgba(11,18,32,0.7)', border:'1px solid rgba(255,255,255,0.06)', borderLeft:'3px solid #E8A838'}}>{ideas}</pre>
         )}
       </div>
@@ -884,7 +884,7 @@ function LibraryTab(props) {
                   {p.is_favorite ? '\u2605' : '\u2606'}
                 </button>
               </div>
-              <pre className="whitespace-pre-wrap text-xs text-on-surface/80 rounded p-3 max-h-40 overflow-auto font-sans flex-1"
+              <pre className="whitespace-pre-wrap text-xs text-on-surface/80 rounded p-3 max-h-40 overflow-auto font-body flex-1"
                 style={{background:'rgba(11,18,32,0.7)'}}>{content}</pre>
               <div className="flex gap-1.5 mt-3 flex-wrap">
                 <Btn onClick={function(){navigator.clipboard.writeText(content); toast('Copied','success')}}><Icon name="content_copy" size={12}/></Btn>
