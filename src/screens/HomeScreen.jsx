@@ -5,6 +5,7 @@ import { getStats } from '../lib/stats.js'
 import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon, Panel } from '../components/ui'
+import SectionHeader from '../components/shared/SectionHeader'
 import AdBanner from '../components/shared/AdBanner'
 import { getDonateUrl } from '../lib/paypal'
 
@@ -483,6 +484,35 @@ export default function HomeScreen() {
           </section>
         )}
 
+        {/* ── Support the platform ─────────────────────────────────────────── */}
+        <section className="mt-16 mb-4">
+          <Panel padding="spacious" elevation="elevated" className="text-center">
+            <SectionHeader
+              eyebrow="Community Supported"
+              title="Keep TFT Clash free forever"
+              description="Running weekly tournaments costs real money. If you get value from competing here, a tip keeps the lights on, the servers fast, and the entry fee at zero."
+              align="center"
+            />
+            <div className="mt-2 flex flex-col sm:flex-row justify-center items-center gap-3">
+              <Btn
+                href={getDonateUrl()}
+                variant="primary"
+                size="lg"
+                icon="favorite"
+                iconPosition="left"
+              >
+                Donate via PayPal
+              </Btn>
+              <Btn
+                variant="link"
+                onClick={function(){ navigate('/pricing') }}
+              >
+                Or go Pro
+              </Btn>
+            </div>
+          </Panel>
+        </section>
+
         {/* ── Final CTA ────────────────────────────────────────────────────── */}
         {!currentUser && (
           <section className="text-center space-y-4 pt-4">
@@ -504,17 +534,6 @@ export default function HomeScreen() {
             <Btn variant="secondary" size="md" onClick={handleViewFaq}>
               How to Play
             </Btn>
-            {getDonateUrl() ? (
-              <a
-                href={getDonateUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-error/10 px-6 py-3 min-h-[44px] rounded-xl font-label text-xs uppercase tracking-widest hover:bg-error/20 transition-colors border-0 cursor-pointer text-error inline-flex items-center gap-2 no-underline"
-              >
-                <Icon name="favorite" size={14} fill />
-                Support Us
-              </a>
-            ) : null}
           </div>
         </footer>
 

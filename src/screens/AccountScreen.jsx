@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats, ACHIEVEMENTS, MILESTONES, WEEKLY_CHALLENGES, DAILY_CHALLENGES, isHotStreak } from '../lib/stats.js'
 import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
-import { activateSubscription, TIER_LABELS } from '../lib/paypal.js'
+import { activateSubscription, TIER_LABELS, getDonateUrl } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
 import Sparkline from '../components/shared/Sparkline'
@@ -1278,6 +1278,28 @@ export default function AccountScreen() {
                 </Btn>
               </div>
             </Panel>
+
+            {/* Support the platform */}
+            <div className="md:col-span-12">
+              <Panel padding="default" elevation="elevated" className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-primary text-3xl">favorite</span>
+                  <div>
+                    <h3 className="font-headline text-lg font-bold text-on-surface">Support TFT Clash</h3>
+                    <p className="font-body text-xs text-on-surface-variant mt-1">Keep the platform free for everyone.</p>
+                  </div>
+                </div>
+                <Btn
+                  href={getDonateUrl()}
+                  variant="secondary"
+                  size="sm"
+                  icon="favorite"
+                  iconPosition="left"
+                >
+                  Donate
+                </Btn>
+              </Panel>
+            </div>
 
             {/* Danger Zone */}
             <div className="md:col-span-12">
