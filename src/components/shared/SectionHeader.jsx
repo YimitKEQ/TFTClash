@@ -1,10 +1,17 @@
 export default function SectionHeader({ eyebrow, title, description, action, align = 'left', className = '' }) {
   var alignClass = align === 'center' ? 'text-center items-center' : 'text-left items-start'
-  var layoutClass = action ? 'flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4' : ''
+  var outerLayout
+  if (action && align === 'center') {
+    outerLayout = 'flex flex-col items-center gap-4'
+  } else if (action) {
+    outerLayout = 'flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4'
+  } else {
+    outerLayout = 'flex flex-col ' + alignClass
+  }
   var actionAlign = align === 'center' ? 'justify-center' : ''
 
   return (
-    <div className={(layoutClass ? layoutClass : 'flex flex-col ' + alignClass) + ' mb-6 ' + className}>
+    <div className={outerLayout + ' mb-6 ' + className}>
       <div className={'flex flex-col ' + alignClass}>
         {eyebrow ? (
           <span className="font-label text-xs font-bold uppercase tracking-[0.2em] text-primary mb-2">
