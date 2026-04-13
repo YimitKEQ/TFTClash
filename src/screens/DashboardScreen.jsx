@@ -159,13 +159,13 @@ function PulseHeader({
       <div className="absolute top-0 right-0 p-4 text-right">
         <div className="flex items-center gap-2 justify-end">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <span className="font-condensed uppercase text-[10px] tracking-widest text-on-surface/40">
+          <span className="font-label uppercase text-[10px] tracking-widest text-on-surface/40">
             {phaseLabel}
           </span>
         </div>
         <div className="font-mono text-2xl text-primary mt-1">{countdownStr}</div>
         {diff > 0 && clashName && (
-          <div className="font-condensed text-[10px] text-on-surface/40 mt-0.5">
+          <div className="font-label text-[10px] text-on-surface/40 mt-0.5">
             {clashName}{clashDate ? ' - ' + clashDate : ''}
           </div>
         )}
@@ -203,7 +203,7 @@ function PulseHeader({
         {/* Name + season label */}
         <div>
           <h1 className="font-editorial text-2xl sm:text-4xl text-on-surface leading-none italic">{playerName}</h1>
-          <p className="font-condensed text-xs uppercase tracking-[0.2em] text-secondary mt-2">
+          <p className="font-label text-xs uppercase tracking-[0.2em] text-secondary mt-2">
             {linkedPlayer
               ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + (totalPlayers > 0 ? Math.max(1, Math.round((myRankIdx / totalPlayers) * 100)) : myRankIdx) + '%')
               : 'Link your Riot ID to get started'}
@@ -233,11 +233,11 @@ function SeasonTrajectoryCard({ linkedPlayer, s2, clashHistory, pointsTrend, las
     : 0
 
   return (
-    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
+    <Panel>
       {/* Header */}
       <div className="flex justify-between items-end mb-6">
         <div>
-          <span className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 block mb-1">Season Trajectory</span>
+          <span className="font-label uppercase text-xs tracking-widest text-on-surface/40 block mb-1">Season Trajectory</span>
           <div className="font-display text-2xl text-on-surface">{linkedPlayer.pts} LP</div>
         </div>
         <div className="text-right">
@@ -257,7 +257,7 @@ function SeasonTrajectoryCard({ linkedPlayer, s2, clashHistory, pointsTrend, las
           <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface/20">Play your first clash to see trajectory</span>
         </div>
       )}
-    </div>
+    </Panel>
   )
 }
 
@@ -269,9 +269,9 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
   var recent = (clashHistory || []).slice(-5)
 
   return (
-    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
+    <Panel>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40">
+        <h3 className="font-label uppercase text-xs tracking-widest text-on-surface/40">
           Recent Form (Last {recent.length})
         </h3>
         {recent.length > 0 && <FormCircles history={recent} />}
@@ -279,7 +279,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
 
       {recent.length === 0 ? (
         <div className="py-6 text-center">
-          <span className="text-on-surface/30 text-xs font-condensed uppercase tracking-widest">No recent games</span>
+          <span className="text-on-surface/30 text-xs font-label uppercase tracking-widest">No recent games</span>
           <p className="text-on-surface/20 text-[10px] font-mono mt-1">Play your first clash to see data here</p>
         </div>
       ) : (
@@ -298,7 +298,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
                   <span className={'font-mono font-bold ' + (isTop4 ? 'text-tertiary' : 'text-on-surface/60')}>
                     {'#' + p}
                   </span>
-                  <span className="font-condensed uppercase text-xs tracking-widest text-on-surface">{gameLabel}</span>
+                  <span className="font-label uppercase text-xs tracking-widest text-on-surface">{gameLabel}</span>
                 </div>
                 <span className="text-[10px] font-mono text-on-surface/40">{timeStr}</span>
               </div>
@@ -306,7 +306,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
           })}
         </div>
       )}
-    </div>
+    </Panel>
   )
 }
 
@@ -314,13 +314,13 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
 
 function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
   return (
-    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10">
-      <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">
+    <Panel>
+      <h3 className="font-label uppercase text-xs tracking-widest text-on-surface/40 mb-4">
         Clash Standings
       </h3>
       <div className="space-y-2">
         {top5.length === 0 && (
-          <div className="py-4 text-center text-on-surface/30 text-xs font-condensed uppercase tracking-widest">No standings data yet</div>
+          <div className="py-4 text-center text-on-surface/30 text-xs font-label uppercase tracking-widest">No standings data yet</div>
         )}
         {top5.slice(0, 4).map(function (p, i) {
           var isMe = linkedPlayer && p.id === linkedPlayer.id
@@ -351,13 +351,15 @@ function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
           )
         })}
       </div>
-      <button
+      <Btn
+        variant="secondary"
+        size="sm"
+        className="w-full mt-4"
         onClick={function () { onViewAll && onViewAll() }}
-        className="w-full mt-4 py-2 border border-outline-variant/30 text-[10px] font-condensed uppercase tracking-[0.2em] text-on-surface/60 hover:text-on-surface hover:border-outline-variant transition-colors"
       >
         View Full Standings
-      </button>
-    </div>
+      </Btn>
+    </Panel>
   )
 }
 
@@ -378,13 +380,13 @@ function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
   }) : []
 
   return (
-    <div className="bg-surface-container-low p-6 rounded-lg border border-outline-variant/10 overflow-hidden relative">
+    <Panel className="overflow-hidden relative">
       {/* Decorative blur */}
       <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-secondary/5 rounded-full blur-3xl" />
-      <h3 className="font-condensed uppercase text-xs tracking-widest text-on-surface/40 mb-4">Live Activity</h3>
+      <h3 className="font-label uppercase text-xs tracking-widest text-on-surface/40 mb-4">Live Activity</h3>
       {displayItems.length === 0 ? (
         <div className="py-4 text-center">
-          <span className="text-on-surface/30 text-xs font-condensed uppercase tracking-widest">No recent activity</span>
+          <span className="text-on-surface/30 text-xs font-label uppercase tracking-widest">No recent activity</span>
         </div>
       ) : (
         <div className="space-y-4">
@@ -404,15 +406,16 @@ function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
         </div>
       )}
       {hasMore && (
-        <button
+        <Btn
+          variant="link"
+          className="mt-4 w-full justify-center text-on-surface/40 hover:text-on-surface/70 hover:no-underline"
           onClick={onLoadMore}
           disabled={loading}
-          className="mt-4 w-full text-center font-condensed text-xs uppercase tracking-widest text-on-surface/40 hover:text-on-surface/70 transition-colors disabled:opacity-40 bg-transparent border-0 cursor-pointer py-2"
         >
           {loading ? 'Loading...' : 'Load more'}
-        </button>
+        </Btn>
       )}
-    </div>
+    </Panel>
   )
 }
 
@@ -427,7 +430,7 @@ function FlashTournamentBanner({ tournament, onView }) {
     >
       <Icon name="bolt" fill size={18} className="text-tertiary flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="font-condensed text-[10px] font-bold uppercase tracking-widest text-tertiary mb-0.5">Flash Tournament</div>
+        <div className="font-label text-[10px] font-bold uppercase tracking-widest text-tertiary mb-0.5">Flash Tournament</div>
         <div className="font-bold text-sm text-on-surface truncate">{tournament.name}</div>
       </div>
       <Btn variant="primary" size="sm">Register</Btn>
@@ -810,10 +813,11 @@ function ClashCard() {
                 >
                   {selectedPlace ? ('Confirm ' + ordinal(selectedPlace) + ' Place') : 'Select your placement'}
                 </Btn>
-                <button
+                <Btn
+                  variant="link"
+                  className="w-full justify-center text-on-surface-variant hover:no-underline"
                   onClick={function() { setShowPicker(false); setSelectedPlace(0) }}
-                  className="w-full text-center text-[11px] text-on-surface-variant py-1 cursor-pointer"
-                >Cancel</button>
+                >Cancel</Btn>
               </div>
             ) : (
               <div>
@@ -1236,44 +1240,44 @@ export default function DashboardScreen() {
       {/* Season Stats Row */}
       {linkedPlayer && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
+          <Panel padding="tight" className="flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="sports_esports" size={18} className="text-secondary" />
             </div>
             <div>
               <div className="font-mono text-xl text-on-surface font-bold">{totalGames}</div>
-              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Total Games</div>
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Total Games</div>
             </div>
-          </div>
-          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
+          </Panel>
+          <Panel padding="tight" className="flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-tertiary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="trending_up" size={18} className="text-tertiary" />
             </div>
             <div>
               <div className="font-mono text-xl text-on-surface font-bold">{winRate}%</div>
-              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Top-4 Rate</div>
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Top-4 Rate</div>
             </div>
-          </div>
-          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
+          </Panel>
+          <Panel padding="tight" className="flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="emoji_events" size={18} className="text-primary" />
             </div>
             <div>
               <div className="font-mono text-xl text-on-surface font-bold">{bestPlacement !== null ? '#' + bestPlacement : '-'}</div>
-              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">Best Place</div>
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">Best Place</div>
             </div>
-          </div>
-          <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 flex items-center gap-3 hover:bg-surface-container transition-colors">
+          </Panel>
+          <Panel padding="tight" className="flex items-center gap-3 hover:bg-surface-container transition-colors">
             <div className="w-9 h-9 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
               <Icon name="local_fire_department" size={18} className="text-secondary" />
             </div>
             <div>
               <div className="font-mono text-xl text-on-surface font-bold">{currentStreak > 0 ? currentStreak : wins}</div>
-              <div className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/40">
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface/40">
                 {currentStreak > 0 ? (streakType === 'win' ? 'Win Streak' : 'Top-4 Streak') : 'Total Wins'}
               </div>
             </div>
-          </div>
+          </Panel>
         </div>
       )}
 
@@ -1316,8 +1320,8 @@ export default function DashboardScreen() {
 
           {/* Upcoming Event */}
           {nextEvent && (
-            <div className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-5">
-              <div className="font-condensed uppercase text-[10px] tracking-widest text-on-surface/40 mb-3">Upcoming Event</div>
+            <Panel padding="none" className="p-5">
+              <div className="font-label uppercase text-[10px] tracking-widest text-on-surface/40 mb-3">Upcoming Event</div>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="font-display text-base text-on-surface font-semibold">{nextEvent.name || nextEvent.title}</div>
@@ -1327,7 +1331,7 @@ export default function DashboardScreen() {
                 </div>
                 <Btn variant="secondary" size="sm" onClick={function () { navigate('/events') }}>View Events</Btn>
               </div>
-            </div>
+            </Panel>
           )}
 
           {/* Quick Actions Row */}
@@ -1337,21 +1341,21 @@ export default function DashboardScreen() {
               className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 min-h-[72px] flex flex-col items-center justify-center gap-2 hover:border-secondary/30 hover:bg-secondary/5 transition-all group"
             >
               <Icon name="person" size={20} className="text-on-surface/40 group-hover:text-secondary transition-colors" />
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">My Profile</span>
+              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">My Profile</span>
             </button>
             <button
               onClick={function () { navigate('/events') }}
               className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 min-h-[72px] flex flex-col items-center justify-center gap-2 hover:border-primary/30 hover:bg-primary/5 transition-all group"
             >
               <Icon name="calendar_month" size={20} className="text-on-surface/40 group-hover:text-primary transition-colors" />
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">Events</span>
+              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">Events</span>
             </button>
             <button
               onClick={function () { navigate('/standings') }}
               className="bg-surface-container-low rounded-lg border border-outline-variant/10 p-4 min-h-[72px] flex flex-col items-center justify-center gap-2 hover:border-tertiary/30 hover:bg-tertiary/5 transition-all group"
             >
               <Icon name="leaderboard" size={20} className="text-on-surface/40 group-hover:text-tertiary transition-colors" />
-              <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">Standings</span>
+              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/60 group-hover:text-on-surface transition-colors text-center">Standings</span>
             </button>
           </div>
         </div>
@@ -1371,7 +1375,7 @@ export default function DashboardScreen() {
             className="rounded-lg border border-dashed border-outline-variant/20 p-6 flex flex-col items-center justify-center gap-2 min-h-[140px] bg-white/[0.01]"
           >
             <Icon name="ads_click" size={20} className="text-on-surface/20" />
-            <span className="font-condensed text-[10px] uppercase tracking-widest text-on-surface/20">Ad Space</span>
+            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/20">Ad Space</span>
           </div>
         </div>
       </div>
