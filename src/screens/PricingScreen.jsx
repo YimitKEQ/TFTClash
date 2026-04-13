@@ -201,12 +201,9 @@ function TierCard(props) {
           </Btn>
         ) : currentUser ? (
           subscribeUrl ? (
-            <a
-              href={subscribeUrl}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 py-5 text-sm min-h-[56px] bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-lg shadow-primary/10 hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] hover:scale-[1.02] active:scale-95"
-            >
+            <Btn variant="primary" size="xl" href={subscribeUrl}>
               Subscribe
-            </a>
+            </Btn>
           ) : (
             <div className="w-full py-3 text-center rounded-full bg-surface-container border border-outline-variant/20 text-on-surface/40 text-xs font-label font-semibold tracking-widest uppercase cursor-default select-none">
               Coming Soon

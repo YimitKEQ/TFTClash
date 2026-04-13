@@ -14,23 +14,37 @@ const sizes = {
   xl: 'py-5 w-full text-sm min-h-[56px]',
 }
 
-export default function Btn({ children, variant = 'primary', size = 'md', icon, iconPosition = 'left', loading = false, disabled = false, className = '', ...props }) {
+export default function Btn({ children, variant = 'primary', size = 'md', icon, iconPosition = 'left', loading = false, disabled = false, className = '', href, ...props }) {
   var base = 'inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
   if (variant === 'link') {
     base = 'inline-flex items-center gap-1 font-label font-bold uppercase tracking-widest text-xs transition-all duration-200 disabled:opacity-50'
   }
   var variantClass = variants[variant] || variants.primary
   var sizeClass = variant === 'link' ? '' : (sizes[size] || sizes.md)
-  return (
-    <button
-      className={base + ' ' + variantClass + ' ' + sizeClass + ' ' + className}
-      disabled={disabled || loading}
-      {...props}
-    >
+  var combined = base + ' ' + variantClass + ' ' + sizeClass + ' ' + className
+
+  var inner = (
+    <>
       {loading ? <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : null}
       {!loading && icon && iconPosition === 'left' ? <span className="material-symbols-outlined text-base">{icon}</span> : null}
       {children}
       {!loading && icon && iconPosition === 'right' ? <span className="material-symbols-outlined text-base">{icon}</span> : null}
+    </>
+  )
+
+  if (href) {
+    var isExternal = href.indexOf('http') === 0 || href.indexOf('mailto:') === 0
+    var anchorProps = isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {}
+    return (
+      <a href={href} className={combined + ' no-underline'} {...anchorProps} {...props}>
+        {inner}
+      </a>
+    )
+  }
+
+  return (
+    <button className={combined} disabled={disabled || loading} {...props}>
+      {inner}
     </button>
   )
 }
