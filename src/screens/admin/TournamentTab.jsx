@@ -24,9 +24,22 @@ export default function TournamentTab() {
   var currentUser = ctx.currentUser
   var toast = ctx.toast
 
-  var _clashForm = useState({ name: 'Weekly Clash', date: '', time: '', countdownIso: '', server: 'EU' })
+  // Convert an ISO timestamp to the value format datetime-local expects (YYYY-MM-DDTHH:mm in local time)
+  function isoToLocalInput(iso) {
+    if (!iso) return ''
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    var pad = function(n) { return n < 10 ? '0' + n : '' + n }
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes())
+  }
+
+  var initialClashLocal = isoToLocalInput((tournamentState && tournamentState.clashTimestamp) || '')
+  var _clashForm = useState({ name: (tournamentState && tournamentState.clashName) || 'Weekly Clash', clashLocal: initialClashLocal, server: (tournamentState && tournamentState.server) || 'EU' })
   var clashForm = _clashForm[0]
   var setClashForm = _clashForm[1]
+  var _clashSaving = useState(false)
+  var clashSaving = _clashSaving[0]
+  var setClashSaving = _clashSaving[1]
 
   var _clashNumberInput = useState('')
   var clashNumberInput = _clashNumberInput[0]
@@ -44,7 +57,7 @@ export default function TournamentTab() {
   var seedAlgo = _seedAlgo[0]
   var setSeedAlgo = _seedAlgo[1]
 
-  var _newEvent = useState({ name: '', type: 'SCHEDULED', date: '', time: '', cap: '8', format: 'Swiss' })
+  var _newEvent = useState({ name: '', type: 'SCHEDULED', whenLocal: '', cap: '8', format: 'Swiss' })
   var newEvent = _newEvent[0]
   var setNewEvent = _newEvent[1]
 
@@ -61,6 +74,40 @@ export default function TournamentTab() {
       if (res.data) setFlashTournaments(res.data)
     }).catch(function() {})
   }, [])
+
+  function saveClashSchedule() {
+    if (clashSaving) return
+    if (!clashForm.clashLocal) { toast('Pick a date and time first', 'error'); return }
+    var d = new Date(clashForm.clashLocal)
+    if (isNaN(d.getTime())) { toast('Invalid date/time', 'error'); return }
+    setClashSaving(true)
+    var iso = d.toISOString()
+    setTournamentState(function(s) {
+      return Object.assign({}, s, {
+        clashTimestamp: iso,
+        clashName: clashForm.name || 'Weekly Clash',
+        server: clashForm.server || 'EU'
+      })
+    })
+    var tId = (tournamentState && (tournamentState.activeTournamentId || tournamentState.dbTournamentId)) || null
+    if (tId) {
+      supabase.from('tournaments').update({ date: iso.split('T')[0] }).eq('id', tId).then(function(r) {
+        if (r.error) toast('DB date update failed: ' + r.error.message, 'error')
+      }).catch(function() {})
+    }
+    addAudit('ACTION', 'Clash schedule set: ' + d.toLocaleString())
+    toast('Clash schedule saved', 'success')
+    setClashSaving(false)
+  }
+
+  function clashPreview() {
+    if (!clashForm.clashLocal) return ''
+    var d = new Date(clashForm.clashLocal)
+    if (isNaN(d.getTime())) return ''
+    var dateStr = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+    var timeStr = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    return dateStr + ' at ' + timeStr
+  }
 
   function addAudit(type, msg) {
     var entry = { ts: Date.now(), type: type, msg: msg }
@@ -179,16 +226,24 @@ export default function TournamentTab() {
   }
 
   function addScheduledEvent() {
-    if (!newEvent.name.trim() || !newEvent.date.trim()) { toast('Name and date required', 'error'); return }
+    if (!newEvent.name.trim()) { toast('Event name required', 'error'); return }
+    if (!newEvent.whenLocal) { toast('Pick a date and time', 'error'); return }
+    var d = new Date(newEvent.whenLocal)
+    if (isNaN(d.getTime())) { toast('Invalid date/time', 'error'); return }
     var ev = {
       id: Date.now(),
-      name: newEvent.name.trim(), type: newEvent.type, date: newEvent.date,
-      time: newEvent.time, cap: parseInt(newEvent.cap) || 8, format: newEvent.format || 'Swiss'
+      name: newEvent.name.trim(),
+      type: newEvent.type,
+      iso: d.toISOString(),
+      date: d.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }),
+      time: d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }),
+      cap: parseInt(newEvent.cap) || 8,
+      format: newEvent.format || 'Swiss'
     }
     setScheduledEvents(function(evs) { return (evs || []).concat([ev]) })
     addAudit('ACTION', 'Scheduled event added: ' + ev.name)
     toast('Event scheduled!', 'success')
-    setNewEvent({ name: '', type: 'SCHEDULED', date: '', time: '', cap: '8', format: 'Swiss' })
+    setNewEvent({ name: '', type: 'SCHEDULED', whenLocal: '', cap: '8', format: 'Swiss' })
   }
 
   function cancelScheduledEvent(id) {
@@ -224,22 +279,14 @@ export default function TournamentTab() {
           <Icon name="calendar_month" size={16} className="text-primary" />
           <span className="font-bold text-sm text-on-surface">Weekly Clash</span>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Name</label>
             <Inp value={clashForm.name} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { name: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Date (display)</label>
-            <Inp value={clashForm.date} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { date: typeof v === 'string' ? v : v.target.value })) }} placeholder="Saturday, March 29" />
-          </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Time (display)</label>
-            <Inp value={clashForm.time} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { time: typeof v === 'string' ? v : v.target.value })) }} placeholder="8:00 PM CET" />
-          </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Countdown ISO</label>
-            <Inp type="datetime-local" value={clashForm.countdownIso} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { countdownIso: typeof v === 'string' ? v : v.target.value })) }} />
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Clash Date & Time</label>
+            <Inp type="datetime-local" value={clashForm.clashLocal} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { clashLocal: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Server</label>
@@ -248,7 +295,18 @@ export default function TournamentTab() {
               <option value="NA">NA</option>
             </Sel>
           </div>
+          <div className="flex items-end">
+            <Btn variant="primary" size="sm" onClick={saveClashSchedule} disabled={clashSaving || !clashForm.clashLocal}>
+              {clashSaving ? 'Saving...' : 'Save Schedule'}
+            </Btn>
+          </div>
         </div>
+        {clashPreview() && (
+          <div className="mb-4 px-3 py-2 rounded-lg bg-primary/[0.08] border border-primary/20 text-[11px] font-bold text-primary">
+            <Icon name="schedule" size={12} className="inline-block mr-1 -mt-0.5" />
+            Next clash: {clashPreview()}
+          </div>
+        )}
 
         <div className="mb-4">
           <div className="flex items-center gap-0">
@@ -346,13 +404,9 @@ export default function TournamentTab() {
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Name</label>
             <Inp value={newEvent.name} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { name: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Date</label>
-            <Inp value={newEvent.date} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { date: typeof v === 'string' ? v : v.target.value })) }} placeholder="March 29" />
-          </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Time</label>
-            <Inp value={newEvent.time} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { time: typeof v === 'string' ? v : v.target.value })) }} placeholder="8:00 PM" />
+          <div className="md:col-span-2">
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Date & Time</label>
+            <Inp type="datetime-local" value={newEvent.whenLocal} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { whenLocal: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cap</label>

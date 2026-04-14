@@ -74,6 +74,20 @@ function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig })
   var clashCount = pastClashes && pastClashes.length > 0 ? String(pastClashes.length) : '\u2014'
   var seasonName = (seasonConfig && seasonConfig.seasonName) || 'Season 1'
 
+  var weekLabel = null
+  if (seasonConfig && seasonConfig.seasonStartIso && seasonConfig.totalWeeks) {
+    var start = new Date(seasonConfig.seasonStartIso)
+    var weeks = parseInt(seasonConfig.totalWeeks, 10) || 0
+    if (!isNaN(start.getTime()) && weeks > 0) {
+      var now = Date.now()
+      if (now >= start.getTime()) {
+        var weeksElapsed = Math.floor((now - start.getTime()) / (7 * 86400000)) + 1
+        var currentWeek = Math.max(1, Math.min(weeks, weeksElapsed))
+        weekLabel = 'Week ' + currentWeek + ' / ' + weeks
+      }
+    }
+  }
+
   return (
     <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
       <Panel padding="none" className="p-4 sm:p-6 hover:bg-surface-container transition-colors">
@@ -98,7 +112,12 @@ function SeasonStatsBar({ players, pastClashes, tournamentState, seasonConfig })
             </span>
           )
           : (
-            <span className="font-mono text-lg sm:text-xl text-on-surface font-bold">{seasonName}</span>
+            <div>
+              <span className="font-mono text-lg sm:text-xl text-on-surface font-bold block">{seasonName}</span>
+              {weekLabel && (
+                <span className="font-label text-[10px] text-tertiary uppercase tracking-widest font-bold">{weekLabel}</span>
+              )}
+            </div>
           )
         }
       </Panel>

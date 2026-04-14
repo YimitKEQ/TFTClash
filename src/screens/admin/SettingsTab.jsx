@@ -53,6 +53,22 @@ export default function SettingsTab() {
   var seasonName = _seasonName[0]
   var setSeasonName = _seasonName[1]
 
+  function isoToLocalInput(iso) {
+    if (!iso) return ''
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    var pad = function(n) { return n < 10 ? '0' + n : '' + n }
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes())
+  }
+
+  var _seasonStartLocal = useState(isoToLocalInput((seasonConfig && seasonConfig.seasonStartIso) || ''))
+  var seasonStartLocal = _seasonStartLocal[0]
+  var setSeasonStartLocal = _seasonStartLocal[1]
+
+  var _totalWeeks = useState(String((seasonConfig && seasonConfig.totalWeeks) || ''))
+  var totalWeeks = _totalWeeks[0]
+  var setTotalWeeks = _totalWeeks[1]
+
   var _regOpen = useState(!!(seasonConfig && seasonConfig.registrationOpen))
   var regOpen = _regOpen[0]
   var setRegOpen = _regOpen[1]
@@ -123,6 +139,41 @@ export default function SettingsTab() {
       addAudit('ACTION', 'Season name set: ' + seasonName)
       toast('Season name saved', 'success')
     }).catch(function() { toast('Save failed', 'error') })
+  }
+
+  function saveSeasonSchedule() {
+    var weeks = parseInt(totalWeeks, 10)
+    if (!Number.isFinite(weeks) || weeks <= 0 || weeks > 52) { toast('Total weeks must be 1-52', 'error'); return }
+    var iso = ''
+    if (seasonStartLocal) {
+      var d = new Date(seasonStartLocal)
+      if (isNaN(d.getTime())) { toast('Invalid start date', 'error'); return }
+      iso = d.toISOString()
+    }
+    var updated = Object.assign({}, seasonConfig, { seasonStartIso: iso, totalWeeks: weeks })
+    setSeasonConfig(updated)
+    upsertSetting('season_config', JSON.stringify(updated)).then(function(r) {
+      if (r.error) { toast('Save failed: ' + r.error.message, 'error'); return }
+      addAudit('ACTION', 'Season schedule saved: ' + weeks + ' weeks, start ' + (iso || 'not set'))
+      toast('Season schedule saved', 'success')
+    }).catch(function() { toast('Save failed', 'error') })
+  }
+
+  function seasonProgressPreview() {
+    if (!seasonConfig || !seasonConfig.seasonStartIso || !seasonConfig.totalWeeks) return null
+    var start = new Date(seasonConfig.seasonStartIso)
+    if (isNaN(start.getTime())) return null
+    var weeks = parseInt(seasonConfig.totalWeeks, 10) || 0
+    if (weeks <= 0) return null
+    var end = new Date(start.getTime() + weeks * 7 * 86400000)
+    var now = Date.now()
+    var weeksElapsed = Math.floor((now - start.getTime()) / (7 * 86400000)) + 1
+    var currentWeek = Math.max(1, Math.min(weeks, weeksElapsed))
+    var status
+    if (now < start.getTime()) status = 'Starts ' + start.toLocaleDateString()
+    else if (now > end.getTime()) status = 'Season ended ' + end.toLocaleDateString()
+    else status = 'Week ' + currentWeek + ' of ' + weeks + ' - ends ' + end.toLocaleDateString()
+    return status
   }
 
   function toggleReg(val) {
@@ -242,6 +293,25 @@ export default function SettingsTab() {
           <Inp value={seasonName} onChange={function(e) { setSeasonName(typeof e === 'string' ? e : e.target.value) }} placeholder="Season name" />
           <Btn variant="secondary" size="sm" onClick={saveSeasonName}>Save</Btn>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Season Start</label>
+            <Inp type="datetime-local" value={seasonStartLocal} onChange={function(e) { setSeasonStartLocal(typeof e === 'string' ? e : e.target.value) }} />
+          </div>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Total Weeks</label>
+            <Inp type="number" value={totalWeeks} onChange={function(e) { setTotalWeeks(typeof e === 'string' ? e : e.target.value) }} placeholder="10" />
+          </div>
+          <div className="flex items-end">
+            <Btn variant="secondary" size="sm" onClick={saveSeasonSchedule}>Save Schedule</Btn>
+          </div>
+        </div>
+        {seasonProgressPreview() && (
+          <div className="mb-4 px-3 py-2 rounded-lg bg-tertiary/[0.08] border border-tertiary/20 text-[11px] font-bold text-tertiary">
+            <Icon name="event_repeat" size={12} className="inline-block mr-1 -mt-0.5" />
+            {seasonProgressPreview()}
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-surface-container p-3 rounded">
             <div className="font-mono text-2xl font-black text-primary">{(players || []).length}</div>
