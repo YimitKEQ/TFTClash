@@ -739,6 +739,101 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
   )
 }
 
+// ── Season tab (public calendar from seasonConfig) ────────────────────────────
+
+function SeasonTab({ seasonConfig, tournamentState, navigate }) {
+  var startIso = seasonConfig && seasonConfig.seasonStartIso
+  var totalWeeks = parseInt(seasonConfig && seasonConfig.totalWeeks, 10) || 0
+  var dayOfWeek = (seasonConfig && seasonConfig.dayOfWeek) || 'Sunday'
+  var startTime = (seasonConfig && seasonConfig.startTime) || '20:00'
+
+  if (!startIso || totalWeeks <= 0) {
+    return (
+      <Panel padding="none" className="p-16 text-center">
+        <Icon name="calendar_month" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
+        <div className="font-headline text-2xl font-bold text-on-surface mb-2">Season Calendar Coming Soon</div>
+        <div className="text-sm text-on-surface-variant max-w-md mx-auto">
+          Once the admin sets the season start date and number of weeks, the full calendar will appear here.
+        </div>
+      </Panel>
+    )
+  }
+
+  var startDate = new Date(startIso)
+  if (isNaN(startDate.getTime())) {
+    return (
+      <Panel padding="none" className="p-16 text-center">
+        <div className="text-sm text-on-surface-variant">Season start date is invalid.</div>
+      </Panel>
+    )
+  }
+
+  var now = Date.now()
+  var weeks = []
+  var i
+  for (i = 0; i < totalWeeks; i++) {
+    var weekStart = new Date(startDate.getTime() + i * 7 * 86400000)
+    var weekEnd = new Date(weekStart.getTime() + 7 * 86400000)
+    var status = 'upcoming'
+    if (now >= weekEnd.getTime()) status = 'complete'
+    else if (now >= weekStart.getTime()) status = 'current'
+    weeks.push({
+      number: i + 1,
+      date: weekStart,
+      status: status,
+    })
+  }
+
+  var statusBadge = {
+    complete: { label: 'Complete', cls: 'bg-tertiary/15 text-tertiary border-tertiary/20' },
+    current: { label: 'This Week', cls: 'bg-primary/15 text-primary border-primary/30' },
+    upcoming: { label: 'Upcoming', cls: 'bg-surface-container-high text-on-surface-variant border-outline-variant/20' },
+  }
+
+  return (
+    <div>
+      <div className="mb-10">
+        <h2 className="font-headline text-3xl font-bold text-on-surface mb-2">Season Calendar</h2>
+        <p className="text-on-surface-variant text-sm font-body">
+          {totalWeeks + ' weeks of competition. Every ' + dayOfWeek + ' at ' + startTime + '. Free to enter.'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {weeks.map(function(w) {
+          var badge = statusBadge[w.status]
+          var dateStr = w.date.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+          var timeStr = startTime
+          var isCurrent = w.status === 'current'
+          var isComplete = w.status === 'complete'
+          return (
+            <Panel
+              key={w.number}
+              padding="none"
+              className={'px-5 py-4 transition-colors ' + (isCurrent ? 'border-primary/40' : '') + (isComplete ? ' opacity-60' : '')}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-headline font-bold text-base text-on-surface">{'Week ' + w.number}</div>
+                <span className={'text-[10px] font-bold rounded px-2 py-0.5 uppercase tracking-widest font-label border ' + badge.cls}>
+                  {badge.label}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-on-surface-variant text-xs mb-1">
+                <Icon name="event" size={14} />
+                <span className="font-label uppercase tracking-wider">{dateStr}</span>
+              </div>
+              <div className="flex items-center gap-2 text-on-surface-variant text-xs">
+                <Icon name="schedule" size={14} />
+                <span className="font-label uppercase tracking-wider">{timeStr + ' EU'}</span>
+              </div>
+            </Panel>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── Archive tab (past clashes) ─────────────────────────────────────────────────
 
 function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
@@ -797,12 +892,13 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
 
 export default function EventsScreen() {
   var navigate = useNavigate()
-  var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer, toast, subRoute } = useApp()
+  var { featuredEvents, setFeaturedEvents, players, currentUser, pastClashes, setProfilePlayer, toast, subRoute, seasonConfig, tournamentState } = useApp()
 
   var activeTab = subRoute || 'featured'
 
   var tabs = [
     { id: 'featured', label: 'Featured Events', icon: 'star' },
+    { id: 'season', label: 'Season Calendar', icon: 'calendar_month' },
     { id: 'tournaments', label: 'Tournaments', icon: 'bolt' },
     { id: 'archive', label: 'Archive', icon: 'archive' },
   ]
@@ -846,6 +942,9 @@ export default function EventsScreen() {
             navigate={navigate}
             toast={toast}
           />
+        )}
+        {activeTab === 'season' && (
+          <SeasonTab seasonConfig={seasonConfig} tournamentState={tournamentState} navigate={navigate} />
         )}
         {activeTab === 'tournaments' && (
           <TournamentsTab navigate={navigate} currentUser={currentUser} onAuthClick={handleAuthClick} toast={toast} />

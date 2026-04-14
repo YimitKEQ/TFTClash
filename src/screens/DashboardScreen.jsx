@@ -1066,6 +1066,8 @@ export default function DashboardScreen() {
     if (!linkedPlayer) { toast('Account not linked to a player profile', 'error'); return }
     if (!profileComplete) { toast('Set your Riot ID on the Account page first', 'error'); navigate('/account'); return }
     if (!tournamentState.dbTournamentId) { toast('Registration is not open yet. Wait for a host to open the next clash.', 'error'); return }
+    if (linkedPlayer.banned) { toast('Your account is banned from registration. Contact an admin.', 'error'); return }
+    if ((linkedPlayer.dnpCount || 0) >= 3) { toast('You have 3 no-shows. Ask an admin to clear your strikes before re-registering.', 'error'); return }
     var sid = String(linkedPlayer.id)
     var isReg = (tournamentState.registeredIds || []).includes(sid)
     if (isReg) { toast("You're already registered!", 'error'); return }

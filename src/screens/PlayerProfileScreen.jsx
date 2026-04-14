@@ -318,6 +318,29 @@ export default function PlayerProfileScreen() {
   var seasonRank = allSorted.findIndex(function(p) { return p.id === player.id; }) + 1 || '-';
   var ppg = s.games > 0 ? (player.pts / s.games).toFixed(1) : '0';
 
+  // Season attendance: X / Y weeks
+  var attendance = null;
+  if (seasonConfig && seasonConfig.seasonStartIso && seasonConfig.totalWeeks) {
+    var seasonStart = new Date(seasonConfig.seasonStartIso);
+    var totalWeeks = parseInt(seasonConfig.totalWeeks, 10) || 0;
+    if (!isNaN(seasonStart.getTime()) && totalWeeks > 0) {
+      var nowMs = Date.now();
+      var currentWeek = 0;
+      if (nowMs >= seasonStart.getTime()) {
+        var weeksElapsed = Math.floor((nowMs - seasonStart.getTime()) / (7 * 86400000)) + 1;
+        currentWeek = Math.max(0, Math.min(totalWeeks, weeksElapsed));
+      }
+      var hist = (player.clashHistory || []);
+      var uniqueClashes = {};
+      hist.forEach(function(g) {
+        var cid = g.clashId || g.tournamentId || g.id || g.name || '';
+        if (cid) uniqueClashes[cid] = true;
+      });
+      var attended = Math.min(Object.keys(uniqueClashes).length, totalWeeks);
+      attendance = { attended: attended, total: totalWeeks, currentWeek: currentWeek };
+    }
+  }
+
   var champion = getSeasonChampion();
   var isChampion = champion && player.name === champion.name;
 
@@ -433,6 +456,12 @@ export default function PlayerProfileScreen() {
                   </div>
                 );
               })()}
+              {attendance && (
+                <div className="bg-secondary/10 text-secondary px-3 py-1 rounded font-label text-xs tracking-widest border border-secondary/20 flex items-center gap-1.5">
+                  <Icon name="calendar_month" size={14} />
+                  {'ATT ' + attendance.attended + ' / ' + attendance.total}
+                </div>
+              )}
             </div>
             {(player.riot_id_eu || player.riot_id) && (
               <div className="flex items-center gap-2 text-on-surface-variant text-sm mt-1">

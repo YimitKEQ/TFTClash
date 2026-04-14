@@ -461,6 +461,24 @@ export function AppProvider(props) {
     });
   },[currentUser?currentUser.id:null]);
 
+  // ── useEffect: sync Discord identity → players.discord_user_id ──
+  // Backfills the discord_user_id column when a user has linked Discord via
+  // Supabase OAuth but the players row hasn't been updated yet. Required for
+  // the Discord bot to look up the player by Discord ID.
+  useEffect(function(){
+    if(!currentUser||!currentUser.id)return;
+    supabase.auth.getUser().then(function(res){
+      if(!res||!res.data||!res.data.user)return;
+      var ident=(res.data.user.identities||[]).find(function(i){return i.provider==='discord';});
+      var discordSub=ident&&ident.identity_data&&ident.identity_data.sub;
+      if(!discordSub)return;
+      if(currentUser.discord_user_id===discordSub)return;
+      supabase.from('players').update({discord_user_id:discordSub}).eq('auth_user_id',currentUser.id).then(function(upd){
+        if(upd&&!upd.error)setCurrentUser(function(u){return u?Object.assign({},u,{discord_user_id:discordSub}):u;});
+      }).catch(function(){});
+    }).catch(function(){});
+  },[currentUser?currentUser.id:null]);
+
   // ── useEffect: monitor realtime connection status for offline banner ──
   useEffect(function(){
     var channel=supabase.channel("app-status");
@@ -732,6 +750,93 @@ export function AppProvider(props) {
     if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
       .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tournamentState]);
+
+  // ── Auto-advance phase based on clashTimestamp (admin only, runs every 30s) ──
+  useEffect(function(){
+    if(!isAdmin)return;
+    if(isSimulation())return;
+    function tick(){
+      var ts=tournamentState;
+      if(!ts||!ts.clashTimestamp)return;
+      var target=new Date(ts.clashTimestamp).getTime();
+      if(isNaN(target))return;
+      var now=Date.now();
+      var checkinWindow=parseInt(ts.checkinWindowMins||30,10)*60000;
+      // Registration → Check-in: starts checkinWindow before clash time
+      if(ts.phase==='registration'&&now>=target-checkinWindow&&now<target){
+        setTournamentState(function(s){return Object.assign({},s,{phase:'checkin'});});
+        var tId=ts.activeTournamentId||ts.dbTournamentId;
+        if(tId)supabase.from('tournaments').update({phase:'check_in'}).eq('id',tId).then(function(){}).catch(function(){});
+        toast('Auto: Check-in opened','info');
+      }
+      // Check-in → In progress: at clash time
+      else if(ts.phase==='checkin'&&now>=target){
+        setTournamentState(function(s){return Object.assign({},s,{phase:'inprogress'});});
+        var tId2=ts.activeTournamentId||ts.dbTournamentId;
+        if(tId2)supabase.from('tournaments').update({phase:'in_progress'}).eq('id',tId2).then(function(){}).catch(function(){});
+        toast('Auto: Tournament started','info');
+      }
+    }
+    tick();
+    var iv=setInterval(tick,30000);
+    return function(){clearInterval(iv);};
+  },[tournamentState&&tournamentState.clashTimestamp,tournamentState&&tournamentState.phase,isAdmin]);
+
+  // ── Auto-mark no-shows when clash flips to complete ──
+  // For each player who was checked_in but never appeared in game_results,
+  // bump their dnp_count. Only runs once per phase transition (admin only).
+  var lastNoShowTidRef=useRef(null);
+  useEffect(function(){
+    if(!isAdmin)return;
+    if(isSimulation())return;
+    var ts=tournamentState;
+    if(!ts||ts.phase!=='complete')return;
+    var tId=ts.activeTournamentId||ts.dbTournamentId;
+    if(!tId)return;
+    if(lastNoShowTidRef.current===tId)return;
+    lastNoShowTidRef.current=tId;
+    supabase.from('registrations').select('player_id,status').eq('tournament_id',tId).then(function(regRes){
+      if(!regRes||regRes.error||!regRes.data)return;
+      var checkedIn=regRes.data.filter(function(r){return r.status==='checked_in';}).map(function(r){return r.player_id;});
+      if(checkedIn.length===0)return;
+      supabase.from('game_results').select('player_id').eq('tournament_id',tId).then(function(grRes){
+        if(!grRes||grRes.error||!grRes.data)return;
+        var played=new Set(grRes.data.map(function(r){return r.player_id;}));
+        var noShows=checkedIn.filter(function(pid){return !played.has(pid);});
+        if(noShows.length===0)return;
+        supabase.rpc('increment_dnp_for_players',{player_ids:noShows}).then(function(r){
+          if(r&&r.error){
+            // Fallback if RPC doesn't exist: do per-row update
+            noShows.forEach(function(pid){
+              supabase.from('players').select('dnp_count').eq('id',pid).single().then(function(pr){
+                if(pr&&pr.data)supabase.from('players').update({dnp_count:(pr.data.dnp_count||0)+1}).eq('id',pid).then(function(){});
+              });
+            });
+          }
+          toast('Marked '+noShows.length+' no-show'+(noShows.length===1?'':'s'),'info');
+        }).catch(function(){});
+      });
+    });
+  },[tournamentState&&tournamentState.phase,tournamentState&&(tournamentState.activeTournamentId||tournamentState.dbTournamentId)]);
+
+  // ── Discord webhook on phase change ──
+  var lastPhaseRef=useRef(null);
+  useEffect(function(){
+    if(!isAdmin)return;
+    if(isSimulation())return;
+    var phase=tournamentState&&tournamentState.phase;
+    if(!phase)return;
+    if(lastPhaseRef.current===null){lastPhaseRef.current=phase;return;}
+    if(lastPhaseRef.current===phase)return;
+    lastPhaseRef.current=phase;
+    var webhook=seasonConfig&&seasonConfig.discordWebhookUrl;
+    if(!webhook)return;
+    var clashName=(tournamentState.clashName)||'TFT Clash';
+    var clashTime=tournamentState.clashTimestamp?new Date(tournamentState.clashTimestamp).toLocaleString():'TBD';
+    var phaseLabels={registration:'**Registration is OPEN**',checkin:'**Check-in is now LIVE**',inprogress:'**Tournament has STARTED**',complete:'**Tournament COMPLETE**'};
+    var content=(phaseLabels[phase]||('Phase: '+phase))+' for '+clashName+'\nClash time: '+clashTime;
+    fetch(webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:content})}).catch(function(){});
+  },[tournamentState&&tournamentState.phase]);
 
   useEffect(function(){
     if(rtRef.current.quick_clashes){rtRef.current.quick_clashes=false;return;}

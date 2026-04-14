@@ -90,6 +90,13 @@ export default function PlayersTab() {
     toast(name + ' unbanned', 'success')
   }
 
+  function clearStrikes(id, name) {
+    setPlayers(function(ps) { return ps.map(function(p) { return p.id === id ? Object.assign({}, p, { dnpCount: 0 }) : p }) })
+    if (supabase.from && id) { supabase.from('players').update({ dnp_count: 0 }).eq('id', id).then(function(r) { if (r.error) toast('Clear strikes DB sync failed', 'error') }).catch(function() { toast('Clear strikes DB sync failed', 'error') }) }
+    addAudit('ACTION', 'Cleared no-show strikes: ' + name)
+    toast(name + ' strikes cleared', 'success')
+  }
+
   function remove(id, name) {
     if (!window.confirm('Delete ' + name + '? This cannot be undone.')) return
     setPlayers(function(ps) { return ps.filter(function(p) { return p.id !== id }) })
@@ -383,6 +390,9 @@ export default function PlayersTab() {
                           ? <Btn variant="ghost" size="sm" onClick={function() { unban(p.id, p.name) }}>Unban</Btn>
                           : <Btn variant="ghost" size="sm" onClick={function() { ban(p.id, p.name) }}>Ban</Btn>
                         }
+                        {!p.banned && (p.dnpCount || 0) > 0 && (
+                          <Btn variant="ghost" size="sm" onClick={function() { clearStrikes(p.id, p.name) }}>Clear Strikes</Btn>
+                        )}
                         <Btn variant="ghost" size="sm" onClick={function() { remove(p.id, p.name) }}>Del</Btn>
                       </div>
                     </td>

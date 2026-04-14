@@ -447,6 +447,11 @@ function TFTClash(){
       toast("Registration is not open yet. Wait for a host to open the next clash.","error");
       return;
     }
+    if(!isRegistered){
+      var p=(players||[]).find(function(pp){return String(pp.id)===sid;});
+      if(p&&p.banned){toast("This account is banned from registration.","error");return;}
+      if(p&&(p.dnpCount||0)>=3){toast("3 no-shows recorded. Strikes must be cleared by an admin.","error");return;}
+    }
     setTournamentState(function(ts){
       var ids=ts.registeredIds||[];
       return {...ts,registeredIds:isRegistered?ids.filter(function(id){return id!==sid;}):[...ids,sid]};

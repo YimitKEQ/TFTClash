@@ -69,6 +69,10 @@ export default function SettingsTab() {
   var totalWeeks = _totalWeeks[0]
   var setTotalWeeks = _totalWeeks[1]
 
+  var _discordWebhook = useState((seasonConfig && seasonConfig.discordWebhookUrl) || '')
+  var discordWebhook = _discordWebhook[0]
+  var setDiscordWebhook = _discordWebhook[1]
+
   var _regOpen = useState(!!(seasonConfig && seasonConfig.registrationOpen))
   var regOpen = _regOpen[0]
   var setRegOpen = _regOpen[1]
@@ -138,6 +142,20 @@ export default function SettingsTab() {
       if (r.error) { toast('Save failed', 'error'); return }
       addAudit('ACTION', 'Season name set: ' + seasonName)
       toast('Season name saved', 'success')
+    }).catch(function() { toast('Save failed', 'error') })
+  }
+
+  function saveDiscordWebhook() {
+    var url = (discordWebhook || '').trim()
+    if (url && !/^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//.test(url)) {
+      toast('Must be a valid Discord webhook URL', 'error'); return
+    }
+    var updated = Object.assign({}, seasonConfig, { discordWebhookUrl: url })
+    setSeasonConfig(updated)
+    upsertSetting('season_config', JSON.stringify(updated)).then(function(r) {
+      if (r.error) { toast('Save failed: ' + r.error.message, 'error'); return }
+      addAudit('ACTION', url ? 'Discord webhook configured' : 'Discord webhook cleared')
+      toast(url ? 'Discord webhook saved' : 'Discord webhook cleared', 'success')
     }).catch(function() { toast('Save failed', 'error') })
   }
 
@@ -312,6 +330,14 @@ export default function SettingsTab() {
             {seasonProgressPreview()}
           </div>
         )}
+        <div className="mb-2">
+          <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Discord Webhook (phase change announcements)</label>
+          <div className="flex gap-2">
+            <Inp value={discordWebhook} onChange={function(e) { setDiscordWebhook(typeof e === 'string' ? e : e.target.value) }} placeholder="https://discord.com/api/webhooks/..." />
+            <Btn variant="secondary" size="sm" onClick={saveDiscordWebhook}>Save</Btn>
+          </div>
+          <div className="text-[10px] text-on-surface/40 mt-1">Posts to Discord when phase changes (registration / check-in / start / complete).</div>
+        </div>
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-surface-container p-3 rounded">
             <div className="font-mono text-2xl font-black text-primary">{(players || []).length}</div>
