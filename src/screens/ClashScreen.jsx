@@ -2226,6 +2226,23 @@ function ClashScreen(props) {
   // Registered players for scouting cards
   var registeredPlayers = phase === "registration" ? (props.players || []).filter(function(p) { return p.registered || p.checkedIn; }) : [];
 
+  // Phase styling
+  var phaseLabels = {
+    registration: "Registration",
+    checkin: "Check-in",
+    live: "Live",
+    inprogress: "Live",
+    complete: "Complete",
+  };
+  var phaseAccents = {
+    registration: "#C4B5FD",
+    checkin: "#3FB6F2",
+    live: "#E8A838",
+    inprogress: "#E8A838",
+    complete: "#4ECDC4",
+  };
+  var accentColor = phaseAccents[phase] || "#9B72CF";
+
   return (
     <div className="fade-up">
       {/* Phase header bar */}

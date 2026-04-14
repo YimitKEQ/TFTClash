@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Icon } from '../ui';
+import { DISCORD_URL } from '../../lib/constants';
 
 var SCREEN_TO_ROUTE = {
   home: '/', clash: '/clash', standings: '/standings', leaderboard: '/leaderboard',
@@ -110,13 +111,22 @@ export default function Sidebar() {
       </nav>
 
       {/* CTA */}
-      <div className="px-5 py-5 border-t border-white/[0.05] shrink-0">
+      <div className="px-5 py-5 border-t border-white/[0.05] shrink-0 space-y-2">
         <button
           onClick={function() { navTo(currentUser ? 'clash' : 'signup'); }}
           className="w-full py-3 rounded-full bg-gradient-to-br from-primary to-[#CC8A28] text-[#07070E] font-sans font-bold uppercase tracking-widest text-sm cursor-pointer border-none active:scale-95 transition-transform shadow-[0_4px_20px_rgba(232,168,56,0.3)]"
         >
           {currentUser ? 'Join Clash' : 'Sign Up Free'}
         </button>
+        <a
+          href={DISCORD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full py-2.5 rounded-full bg-[#5865F2]/15 hover:bg-[#5865F2]/25 text-[#A8B0F8] font-sans font-bold uppercase tracking-widest text-xs border border-[#5865F2]/30 flex items-center justify-center gap-2 transition-colors"
+        >
+          <Icon name="forum" size={16} />
+          Join Discord
+        </a>
       </div>
     </aside>
   );

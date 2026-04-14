@@ -817,7 +817,7 @@ git commit -m "refactor(pricing): sweep to design system"
 
 ---
 
-### Task 11: Sweep StandingsScreen + LeaderboardScreen + HofScreen
+### Task 11: Sweep StandingsScreen + LeaderboardScreen + HofScreen ✅ DONE (210ed58 + fd12268)
 
 **Files:**
 - Modify: `src/screens/StandingsScreen.jsx`
@@ -846,7 +846,7 @@ git commit -m "refactor(standings): sweep all three tabs to design system"
 
 ---
 
-### Task 12: Sweep ScrimsScreen
+### Task 12: Sweep ScrimsScreen ✅ DONE (bc5a9da)
 
 **Files:**
 - Modify: `src/screens/ScrimsScreen.jsx`
@@ -892,7 +892,7 @@ git commit -m "refactor(scrims): sweep to design system (biggest cleanup)"
 
 ---
 
-### Task 13: Sweep EventsScreen + TournamentsListScreen
+### Task 13: Sweep EventsScreen + TournamentsListScreen ✅ DONE (5ed332e + 1502160)
 
 **Files:**
 - Modify: `src/screens/EventsScreen.jsx`
@@ -915,7 +915,7 @@ git commit -m "refactor(events,tournaments): sweep to design system"
 
 ---
 
-### Task 14: Sweep PlayerProfileScreen
+### Task 14: Sweep PlayerProfileScreen ✅ DONE (1a1e3fc)
 
 **Files:**
 - Modify: `src/screens/PlayerProfileScreen.jsx`
@@ -939,7 +939,7 @@ git commit -m "refactor(profile): sweep to design system"
 
 ---
 
-### Task 15: Sweep AccountScreen
+### Task 15: Sweep AccountScreen ✅ DONE (bc1da56 + 0b7368c)
 
 **Files:**
 - Modify: `src/screens/AccountScreen.jsx`
@@ -961,7 +961,7 @@ git commit -m "refactor(account): sweep to design system"
 
 ---
 
-### Task 16: Sweep SponsorsScreen
+### Task 16: Sweep SponsorsScreen ✅ DONE (0649071 + aa03c92)
 
 **Files:**
 - Modify: `src/screens/SponsorsScreen.jsx`
@@ -985,7 +985,7 @@ git commit -m "refactor(sponsors): sweep to design system"
 
 ---
 
-### Task 17: Sweep RulesScreen + FAQScreen
+### Task 17: Sweep RulesScreen + FAQScreen ✅ DONE (72aec67 + 4054707)
 
 **Files:**
 - Modify: `src/screens/RulesScreen.jsx`

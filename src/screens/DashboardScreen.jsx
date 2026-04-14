@@ -9,6 +9,7 @@ import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
+import { DISCORD_URL } from '../lib/constants'
 
 // --- TIER CONFIG ---
 
@@ -542,7 +543,7 @@ function ClashCard() {
     : null
 
   var seasonName = seasonConfig.seasonName || 'Season 1'
-  var clashName = tournamentState.clashName || 'Clash'
+  var clashName = tournamentState.clashName || (tournamentState.clashNumber ? 'Clash Week ' + tournamentState.clashNumber : 'Clash')
   var registeredCount = (tournamentState.registeredIds || []).length
   var maxPlayers = tournamentState.maxPlayers || 24
   var tRound = tournamentState.round || 1
@@ -629,8 +630,7 @@ function ClashCard() {
   }
   var phaseTag = phaseTagMap[phase] || phaseTagMap.idle
 
-  var rawWeek = Math.ceil((new Date() - new Date(seasonConfig.startDate || '2026-01-03')) / (7 * 24 * 60 * 60 * 1000))
-  var weekNum = Number.isFinite(rawWeek) ? Math.max(1, rawWeek) : 1
+  var weekNum = (tournamentState && tournamentState.clashNumber) || 1
   var weekLabel = seasonName + ' \u00b7 Week ' + weekNum
 
   return (
@@ -966,7 +966,16 @@ export default function DashboardScreen() {
     }) || null
   }, [players, currentUser])
 
-  var profileComplete = linkedPlayer && (linkedPlayer.riot_id || linkedPlayer.riotId || (linkedPlayer.riot_id_eu && linkedPlayer.riot_id_eu.trim().length > 0))
+  function hasRiotId(p) {
+    if (!p) return false
+    var fields = [p.riot_id, p.riotId, p.riot_id_eu, p.riot_id_na]
+    for (var i = 0; i < fields.length; i++) {
+      var v = fields[i]
+      if (typeof v === 'string' && v.trim().length > 0 && v.indexOf('#') > 0) return true
+    }
+    return false
+  }
+  var profileComplete = hasRiotId(linkedPlayer)
 
   var s2 = linkedPlayer ? getStats(linkedPlayer) : null
 
@@ -1053,8 +1062,10 @@ export default function DashboardScreen() {
   }
 
   function registerFromAccount() {
-    if (!currentUser || !profileComplete) return
+    if (!currentUser) return
     if (!linkedPlayer) { toast('Account not linked to a player profile', 'error'); return }
+    if (!profileComplete) { toast('Set your Riot ID on the Account page first', 'error'); navigate('/account'); return }
+    if (!tournamentState.dbTournamentId) { toast('Registration is not open yet. Wait for a host to open the next clash.', 'error'); return }
     var sid = String(linkedPlayer.id)
     var isReg = (tournamentState.registeredIds || []).includes(sid)
     if (isReg) { toast("You're already registered!", 'error'); return }
@@ -1076,32 +1087,23 @@ export default function DashboardScreen() {
       return ids.includes(sid) ? ts : Object.assign({}, ts, { registeredIds: ids.concat([sid]) })
     })
     if (supabase.from) {
-      var doInsert = function (tid) {
-        supabase.from('registrations').upsert({
-          tournament_id: tid,
-          player_id: linkedPlayer.id,
-          status: 'registered'
-        }, { onConflict: 'tournament_id,player_id' }).then(function (r) {
-          if (r.error) toast('Registration may not have saved', 'error');
-        }).catch(function () { toast('Registration may not have saved', 'error'); })
-      }
-      if (tournamentState.dbTournamentId) {
-        doInsert(tournamentState.dbTournamentId)
-      } else {
-        supabase.from('tournaments').insert({
-          name: clashName || 'Next Clash',
-          date: new Date().toISOString().split('T')[0],
-          phase: 'registration',
-          max_players: parseInt(tournamentState.maxPlayers) || 24
-        }).select().single().then(function (res) {
-          if (!res.error && res.data) {
-            var newId = res.data.id
-            setTournamentState(function (ts) { return Object.assign({}, ts, { dbTournamentId: newId }) })
-            doInsert(newId)
-          } else if (res.error) {
-          }
-        }).catch(function () {})
-      }
+      supabase.from('registrations').upsert({
+        tournament_id: tournamentState.dbTournamentId,
+        player_id: linkedPlayer.id,
+        status: 'registered'
+      }, { onConflict: 'tournament_id,player_id' }).then(function (r) {
+        if (r.error) {
+          toast('Registration failed: ' + (r.error.message || 'unknown'), 'error');
+          setTournamentState(function (ts) {
+            return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function (id) { return id !== sid }) })
+          })
+        }
+      }).catch(function () {
+        toast('Registration failed - check your connection', 'error');
+        setTournamentState(function (ts) {
+          return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function (id) { return id !== sid }) })
+        })
+      })
     }
     toast(currentUser.username + ' registered for ' + clashName + '!', 'success')
     if (linkedPlayer) writeActivityEvent('registration', linkedPlayer.id, currentUser.username + ' registered for ' + clashName)
@@ -1203,6 +1205,32 @@ export default function DashboardScreen() {
       </div>
 
       <ClashCard />
+
+      {/* Profile completion banner */}
+      {linkedPlayer && !profileComplete && (
+        <div className="mb-4 rounded-lg border border-error/30 bg-error/10 p-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Icon name="error" size={22} className="text-error flex-shrink-0" />
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-on-surface">Set your Riot ID to register for clashes</div>
+              <div className="text-[11px] text-on-surface/60 mt-0.5">Hosts need it to invite you to lobbies. You cannot sign up without one.</div>
+            </div>
+          </div>
+          <Btn variant="primary" size="sm" onClick={function () { navigate('/account') }}>Add Riot ID</Btn>
+        </div>
+      )}
+
+      {/* Discord CTA */}
+      <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="mb-4 rounded-lg border border-secondary/30 bg-secondary/10 p-4 flex items-center justify-between gap-4 flex-wrap hover:bg-secondary/20 transition-colors">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <Icon name="forum" size={22} className="text-secondary flex-shrink-0" />
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-on-surface">Join the TFT Clash Discord</div>
+            <div className="text-[11px] text-on-surface/60 mt-0.5">Lobby invites, scrim partners, results & community chat.</div>
+          </div>
+        </div>
+        <span className="px-3 py-1.5 rounded bg-secondary text-on-secondary-fixed text-xs font-bold uppercase tracking-wider">Open Discord</span>
+      </a>
 
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}

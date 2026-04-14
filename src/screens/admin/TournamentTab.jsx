@@ -20,6 +20,14 @@ export default function TournamentTab() {
   var clashForm = _clashForm[0]
   var setClashForm = _clashForm[1]
 
+  var _clashNumberInput = useState('')
+  var clashNumberInput = _clashNumberInput[0]
+  var setClashNumberInput = _clashNumberInput[1]
+
+  var _opening = useState(false)
+  var opening = _opening[0]
+  var setOpening = _opening[1]
+
   var _roundConfig = useState({ maxPlayers: '24', roundCount: '3', checkinWindowMins: '30', cutLine: '0', cutAfterGame: '0' })
   var roundConfig = _roundConfig[0]
   var setRoundConfig = _roundConfig[1]
@@ -86,9 +94,77 @@ export default function TournamentTab() {
     setPhase('inprogress')
   }
 
+  function openRegistration() {
+    if (opening) return
+    setOpening(true)
+    supabase.from('tournaments').select('id', { count: 'exact', head: true }).eq('type', 'weekly_clash').then(function(countRes) {
+      var existing = (countRes && countRes.count) || 0
+      var override = parseInt(clashNumberInput, 10)
+      var nextNum = (Number.isFinite(override) && override > 0) ? override : (existing + 1)
+      var name = 'Clash Week ' + nextNum
+      if (!window.confirm('Open registration for ' + name + '? This will create a new clash and clear any existing registrations.')) {
+        setOpening(false); return
+      }
+      var maxP = parseInt(roundConfig.maxPlayers) || ts.maxPlayers || 24
+      var rounds = parseInt(roundConfig.roundCount) || ts.roundCount || 3
+      supabase.from('tournaments').insert({
+        name: name,
+        date: new Date().toISOString().split('T')[0],
+        phase: 'registration',
+        type: 'weekly_clash',
+        max_players: maxP,
+        round_count: rounds,
+        seeding_method: seedAlgo || 'rank-based',
+        registration_open: true,
+        registration_open_at: new Date().toISOString()
+      }).select().single().then(function(res) {
+        if (res.error || !res.data) {
+          toast('Failed to open: ' + (res.error && res.error.message ? res.error.message : 'unknown error'), 'error')
+          setOpening(false); return
+        }
+        var newId = res.data.id
+        setTournamentState(function(s) {
+          return Object.assign({}, s, {
+            phase: 'registration',
+            dbTournamentId: newId,
+            activeTournamentId: newId,
+            clashNumber: nextNum,
+            clashName: name,
+            registeredIds: [],
+            checkedInIds: [],
+            waitlistIds: [],
+            lobbies: [],
+            lockedLobbies: [],
+            round: 1,
+            maxPlayers: maxP,
+            roundCount: rounds,
+            seedingMethod: seedAlgo || 'rank-based'
+          })
+        })
+        supabase.from('players').update({ checked_in: false }).then(function() {}).catch(function() {})
+        addAudit('ACTION', 'Opened registration for ' + name)
+        toast('Registration open: ' + name, 'success')
+        setClashNumberInput('')
+        setOpening(false)
+      }).catch(function(e) {
+        toast('Failed to open registration', 'error')
+        setOpening(false)
+      })
+    }).catch(function() {
+      toast('Failed to count past clashes', 'error')
+      setOpening(false)
+    })
+  }
+
   function resetToRegistration() {
-    if (!window.confirm('Reset tournament to Registration? This will clear check-ins.')) return
+    if (!window.confirm('Reset tournament back to Registration phase? This keeps the same clash row but clears check-ins.')) return
     setTournamentState(function(s) { return Object.assign({}, s, { phase: 'registration', checkedInIds: [], round: 1 }) })
+    var tId = ts.activeTournamentId || ts.dbTournamentId
+    if (tId) {
+      supabase.from('tournaments').update({ phase: 'registration' }).eq('id', tId).then(function(r) {
+        if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
+      }).catch(function() {})
+    }
     supabase.from('players').update({ checked_in: false }).then(function(r) { }).catch(function() {})
     addAudit('WARN', 'Tournament reset to Registration')
     toast('Reset to Registration', 'success')
@@ -183,11 +259,29 @@ export default function TournamentTab() {
           </div>
         </div>
 
+        <div className="mb-3 px-3 py-3 rounded-lg bg-surface-container border border-outline-variant/10">
+          <div className="text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-2">New Clash</div>
+          <div className="flex items-end gap-2 flex-wrap">
+            <div className="flex-1 min-w-[140px]">
+              <label className="block text-[10px] text-on-surface/50 font-bold uppercase tracking-wider mb-1">Clash Number (optional)</label>
+              <Inp type="number" value={clashNumberInput} onChange={function(v) { setClashNumberInput(typeof v === 'string' ? v : v.target.value) }} placeholder="auto" />
+            </div>
+            <Btn variant="primary" size="sm" onClick={openRegistration} disabled={opening}>{opening ? 'Opening...' : 'Open Registration'}</Btn>
+          </div>
+          <div className="text-[10px] text-on-surface/40 mt-2">Creates a fresh clash row in the database. Leave blank to auto-number.</div>
+          {ts.dbTournamentId && (
+            <div className="text-[10px] text-success mt-2 font-bold">Active: {ts.clashName || 'Clash'} ({ts.clashNumber ? '#' + ts.clashNumber : 'no number'})</div>
+          )}
+          {!ts.dbTournamentId && (
+            <div className="text-[10px] text-error mt-2 font-bold">No active clash. Click Open Registration to create one.</div>
+          )}
+        </div>
+
         <div className="flex flex-wrap gap-2">
           <Btn variant="primary" size="sm" onClick={openCheckin} disabled={currentPhase !== 'registration'}>Open Check-in</Btn>
           <Btn variant="primary" size="sm" onClick={startTournament} disabled={currentPhase !== 'checkin'}>Start Tournament</Btn>
           <Btn variant="ghost" size="sm" onClick={function() { setPhase('complete') }} disabled={currentPhase !== 'inprogress'}>Mark Complete</Btn>
-          <Btn variant="secondary" size="sm" onClick={resetToRegistration}>Reset to Registration</Btn>
+          <Btn variant="secondary" size="sm" onClick={resetToRegistration}>Reset Phase</Btn>
         </div>
       </Panel>
 
