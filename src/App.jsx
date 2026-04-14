@@ -443,36 +443,26 @@ function TFTClash(){
   function handleRegister(playerId){
     var sid=String(playerId);
     var isRegistered=(tournamentState.registeredIds||[]).includes(sid);
+    if(!isRegistered&&!tournamentState.dbTournamentId){
+      toast("Registration is not open yet. Wait for a host to open the next clash.","error");
+      return;
+    }
     setTournamentState(function(ts){
       var ids=ts.registeredIds||[];
       return {...ts,registeredIds:isRegistered?ids.filter(function(id){return id!==sid;}):[...ids,sid]};
     });
-    // Sync to DB registrations table  -  auto-create tournament if needed
-    if(supabase.from){
-      if(isRegistered&&tournamentState.dbTournamentId){
+    if(supabase.from&&tournamentState.dbTournamentId){
+      if(isRegistered){
         supabase.from('registrations').delete()
           .eq('tournament_id',tournamentState.dbTournamentId)
           .eq('player_id',playerId)
           .then(function(r){});
-      }else if(!isRegistered){
-        var doInsert=function(tid){
-          supabase.from('registrations').upsert({
-            tournament_id:tid,
-            player_id:playerId,
-            status:'registered'
-          },{onConflict:'tournament_id,player_id'}).then(function(r){});
-        };
-        if(tournamentState.dbTournamentId){
-          doInsert(tournamentState.dbTournamentId);
-        }else{
-          supabase.from('tournaments').insert({name:tournamentState.clashName||'Next Clash',date:new Date().toISOString().split('T')[0],phase:'registration',max_players:parseInt(tournamentState.maxPlayers)||24}).select().single().then(function(res){
-            if(!res.error&&res.data){
-              var newId=res.data.id;
-              setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:newId});});
-              doInsert(newId);
-            }
-          });
-        }
+      }else{
+        supabase.from('registrations').upsert({
+          tournament_id:tournamentState.dbTournamentId,
+          player_id:playerId,
+          status:'registered'
+        },{onConflict:'tournament_id,player_id'}).then(function(r){});
       }
     }
     if(!isRegistered&&currentUser){

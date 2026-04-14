@@ -5,6 +5,14 @@ import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
 
 var PHASE_STEPS = ['registration', 'checkin', 'inprogress', 'complete']
 var PHASE_LABELS = { registration: 'Registration', checkin: 'Check-in', inprogress: 'Live', complete: 'Complete' }
+var WEEKLY_CLASH_TYPE = 'season_clash'
+
+// Map app phase names → DB tournaments.phase enum values.
+function toDbPhase(phase) {
+  if (phase === 'checkin') return 'check_in'
+  if (phase === 'inprogress') return 'in_progress'
+  return phase
+}
 
 export default function TournamentTab() {
   var ctx = useApp()
@@ -74,7 +82,7 @@ export default function TournamentTab() {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: phase }) })
     var tId = ts.activeTournamentId || ts.dbTournamentId
     if (tId) {
-      supabase.from('tournaments').update({ phase: phase }).eq('id', tId).then(function(r) {
+      supabase.from('tournaments').update({ phase: toDbPhase(phase) }).eq('id', tId).then(function(r) {
         if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
       }).catch(function() { toast('DB phase update failed', 'error') })
     }
@@ -97,7 +105,7 @@ export default function TournamentTab() {
   function openRegistration() {
     if (opening) return
     setOpening(true)
-    supabase.from('tournaments').select('id', { count: 'exact', head: true }).eq('type', 'weekly_clash').then(function(countRes) {
+    supabase.from('tournaments').select('id', { count: 'exact', head: true }).eq('type', WEEKLY_CLASH_TYPE).then(function(countRes) {
       var existing = (countRes && countRes.count) || 0
       var override = parseInt(clashNumberInput, 10)
       var nextNum = (Number.isFinite(override) && override > 0) ? override : (existing + 1)
@@ -111,7 +119,7 @@ export default function TournamentTab() {
         name: name,
         date: new Date().toISOString().split('T')[0],
         phase: 'registration',
-        type: 'weekly_clash',
+        type: WEEKLY_CLASH_TYPE,
         max_players: maxP,
         round_count: rounds,
         seeding_method: seedAlgo || 'rank-based',
@@ -161,7 +169,7 @@ export default function TournamentTab() {
     setTournamentState(function(s) { return Object.assign({}, s, { phase: 'registration', checkedInIds: [], round: 1 }) })
     var tId = ts.activeTournamentId || ts.dbTournamentId
     if (tId) {
-      supabase.from('tournaments').update({ phase: 'registration' }).eq('id', tId).then(function(r) {
+      supabase.from('tournaments').update({ phase: toDbPhase('registration') }).eq('id', tId).then(function(r) {
         if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
       }).catch(function() {})
     }

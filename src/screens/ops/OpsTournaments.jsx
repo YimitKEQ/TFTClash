@@ -8,6 +8,20 @@ var PHASE_STEPS = ['draft', 'registration', 'checkin', 'inprogress', 'complete']
 var PHASE_LABELS = { draft: 'Draft', registration: 'Registration', checkin: 'Check-in', inprogress: 'Live', complete: 'Complete' }
 var PHASE_COLORS = { draft: 'bg-on-surface/10 text-on-surface/40', registration: 'bg-tertiary/20 text-tertiary', checkin: 'bg-secondary/20 text-secondary', inprogress: 'bg-error/20 text-error', complete: 'bg-success/20 text-success' }
 
+// Map app phase names → DB tournaments.phase enum values.
+function toDbPhase(phase) {
+  if (phase === 'checkin') return 'check_in'
+  if (phase === 'inprogress') return 'in_progress'
+  return phase
+}
+
+// Map DB phase names → app phase names (for reading rows back from DB).
+function fromDbPhase(phase) {
+  if (phase === 'check_in') return 'checkin'
+  if (phase === 'in_progress') return 'inprogress'
+  return phase
+}
+
 export default function OpsTournaments(props) {
   var tournaments = props.tournaments || []
   var regCounts = props.regCounts || {}
@@ -28,7 +42,7 @@ export default function OpsTournaments(props) {
   var editTournament = _editTournament[0]
   var setEditTournament = _editTournament[1]
 
-  var _createForm = useState({ name: '', date: '', maxPlayers: '24', roundCount: '3', type: 'weekly', seedingMethod: 'rank-based' })
+  var _createForm = useState({ name: '', date: '', maxPlayers: '24', roundCount: '3', type: 'season_clash', seedingMethod: 'rank-based' })
   var createForm = _createForm[0]
   var setCreateForm = _createForm[1]
 
@@ -69,17 +83,18 @@ export default function OpsTournaments(props) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       addAudit('ACTION', 'Tournament created: ' + createForm.name.trim())
       toast('Tournament created!', 'success')
-      setCreateForm({ name: '', date: '', maxPlayers: '24', roundCount: '3', type: 'weekly', seedingMethod: 'rank-based' })
+      setCreateForm({ name: '', date: '', maxPlayers: '24', roundCount: '3', type: 'season_clash', seedingMethod: 'rank-based' })
       setView('list')
       if (onRefresh) onRefresh()
     }).catch(function() { toast('Failed to create', 'error') })
   }
 
   function advancePhase(tId, currentP) {
-    var idx = PHASE_STEPS.indexOf(currentP)
+    var appPhase = fromDbPhase(currentP)
+    var idx = PHASE_STEPS.indexOf(appPhase)
     if (idx < 0 || idx >= PHASE_STEPS.length - 1) return
     var nextPhase = PHASE_STEPS[idx + 1]
-    supabase.from('tournaments').update({ phase: nextPhase }).eq('id', tId).then(function(res) {
+    supabase.from('tournaments').update({ phase: toDbPhase(nextPhase) }).eq('id', tId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return }
       addAudit('ACTION', 'Tournament phase advanced to: ' + nextPhase)
       toast('Phase: ' + (PHASE_LABELS[nextPhase] || nextPhase), 'success')
@@ -262,9 +277,8 @@ export default function OpsTournaments(props) {
             <div>
               <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Type</label>
               <Sel value={createForm.type} onChange={function(v) { setCreateForm(Object.assign({}, createForm, { type: v })) }}>
-                <option value="weekly">Weekly Clash</option>
+                <option value="season_clash">Season Clash</option>
                 <option value="flash_tournament">Flash Tournament</option>
-                <option value="special">Special Event</option>
               </Sel>
             </div>
             <div>
@@ -347,22 +361,23 @@ export default function OpsTournaments(props) {
         ) : (
           <div className="max-h-[500px] overflow-y-auto">
             {tournaments.map(function(t) {
-              var badge = PHASE_COLORS[t.phase] || 'bg-on-surface/10 text-on-surface/40'
+              var appPhase = fromDbPhase(t.phase)
+              var badge = PHASE_COLORS[appPhase] || 'bg-on-surface/10 text-on-surface/40'
               var regCount = regCounts[t.id] || 0
               return (
                 <div key={t.id} className="flex items-center gap-3 py-3 px-5 border-b border-outline-variant/5 last:border-0 hover:bg-white/[0.02] transition-colors">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-bold text-on-surface truncate">{t.name || 'Unnamed'}</div>
                     <div className="font-label text-[10px] text-on-surface/30 uppercase tracking-wider mt-0.5">
-                      {t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} {t.region ? '/ ' + t.region : ''} / {t.type || 'weekly'}
+                      {t.date ? new Date(t.date).toLocaleDateString() : 'TBD'} {t.region ? '/ ' + t.region : ''} / {t.type || 'season_clash'}
                     </div>
                   </div>
                   <div className="font-mono text-xs text-on-surface/50">{regCount}/{t.max_players || '?'}</div>
                   <span className={'px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded ' + badge}>
-                    {PHASE_LABELS[t.phase] || (t.phase || 'draft').toUpperCase()}
+                    {PHASE_LABELS[appPhase] || (appPhase || 'draft').toUpperCase()}
                   </span>
                   <div className="flex items-center gap-1">
-                    {t.phase && t.phase !== 'complete' && (
+                    {appPhase && appPhase !== 'complete' && (
                       <Btn v="ghost" s="sm" onClick={function() { advancePhase(t.id, t.phase) }} title="Advance phase">
                         <Icon name="skip_next" size={14} className="text-tertiary" />
                       </Btn>
