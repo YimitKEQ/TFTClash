@@ -319,7 +319,7 @@ export default function HomeScreen() {
             ? (
               <HeroCountdown
                 tournamentState={tournamentState}
-                onRegister={currentUser ? function() { navigate('/'); } : handleSignUp}
+                onRegister={currentUser ? function() { navigate('/clash'); } : handleSignUp}
                 onViewStandings={handleViewStandings}
                 isLoggedIn={!!currentUser}
               />

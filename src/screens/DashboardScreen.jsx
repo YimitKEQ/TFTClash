@@ -513,7 +513,9 @@ function ClashCard() {
   var ctx = useApp()
   var currentUser = ctx.currentUser
   var players = ctx.players || []
+  var setPlayers = ctx.setPlayers
   var tournamentState = ctx.tournamentState || {}
+  var setTournamentState = ctx.setTournamentState
   var seasonConfig = ctx.seasonConfig || {}
   var pendingResults = ctx.pendingResults
   var toast = ctx.toast
@@ -549,8 +551,9 @@ function ClashCard() {
   var tRound = tournamentState.round || 1
   var totalGames = tournamentState.totalGames || 3
 
-  var isRegistered = currentUser && (tournamentState.registeredIds || []).indexOf(String(currentUser.id)) > -1
-  var isCheckedIn  = currentUser && (tournamentState.checkedInIds  || []).indexOf(String(currentUser.id)) > -1
+  var linkedPlayerId = linkedPlayer ? String(linkedPlayer.id) : null
+  var isRegistered = linkedPlayerId && (tournamentState.registeredIds || []).indexOf(linkedPlayerId) > -1
+  var isCheckedIn  = linkedPlayerId && (tournamentState.checkedInIds  || []).indexOf(linkedPlayerId) > -1
 
   var server = tournamentState.server || 'EU'
   var riotField = server === 'NA' ? 'riot_id_na' : 'riot_id_eu'
@@ -618,6 +621,107 @@ function ClashCard() {
       setSelectedPlace(0)
       toast('Placement submitted!', 'success')
     }).catch(function() { setSubmitting(false); toast('Failed to submit placement', 'error'); })
+  }
+
+  function registerFromAccount() {
+    if (!currentUser) return
+    if (!linkedPlayer) { toast('Account not linked to a player profile', 'error'); return }
+    if (!linkedRiotId) { toast('Set your Riot ID on the Account page first', 'error'); navigate('/account'); return }
+    if (!tournamentState.dbTournamentId) { toast('Registration is not open yet. Wait for a host to open the next clash.', 'error'); return }
+    if (linkedPlayer.banned) { toast('Your account is banned from registration. Contact an admin.', 'error'); return }
+    if ((linkedPlayer.dnpCount || 0) >= 3) { toast('You have 3 no-shows. Ask an admin to clear your strikes before re-registering.', 'error'); return }
+    var sid = String(linkedPlayer.id)
+    if ((tournamentState.registeredIds || []).indexOf(sid) > -1) { toast("You're already registered!", 'error'); return }
+    if ((tournamentState.waitlistIds || []).indexOf(sid) > -1) { toast("You're already on the waitlist!", 'error'); return }
+    var maxCap = parseInt(tournamentState.maxPlayers || 24, 10)
+    var regCount = (tournamentState.registeredIds || []).length
+    if (regCount >= maxCap) {
+      if (setTournamentState) {
+        setTournamentState(function(ts) {
+          var wl = ts.waitlistIds || []
+          if (wl.indexOf(sid) > -1) return ts
+          return Object.assign({}, ts, { waitlistIds: wl.concat([sid]) })
+        })
+      }
+      toast(currentUser.username + ' added to waitlist', 'info')
+      return
+    }
+    if (setTournamentState) {
+      setTournamentState(function(ts) {
+        var ids = ts.registeredIds || []
+        return ids.indexOf(sid) > -1 ? ts : Object.assign({}, ts, { registeredIds: ids.concat([sid]) })
+      })
+    }
+    if (supabase.from) {
+      supabase.from('registrations').upsert({
+        tournament_id: tournamentState.dbTournamentId,
+        player_id: linkedPlayer.id,
+        status: 'registered'
+      }, { onConflict: 'tournament_id,player_id' }).then(function(r) {
+        if (r.error) {
+          toast('Registration failed: ' + (r.error.message || 'unknown'), 'error')
+          if (setTournamentState) {
+            setTournamentState(function(ts) {
+              return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== sid }) })
+            })
+          }
+        }
+      }).catch(function() {
+        toast('Registration failed - check your connection', 'error')
+        if (setTournamentState) {
+          setTournamentState(function(ts) {
+            return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== sid }) })
+          })
+        }
+      })
+    }
+    toast(currentUser.username + ' registered for ' + clashName + '!', 'success')
+    writeActivityEvent('registration', linkedPlayer.id, currentUser.username + ' registered for ' + clashName)
+  }
+
+  function unregisterFromClash() {
+    if (!linkedPlayer) return
+    var sid = String(linkedPlayer.id)
+    if (setTournamentState) {
+      setTournamentState(function(ts) {
+        var ids = ts.registeredIds || []
+        return Object.assign({}, ts, { registeredIds: ids.filter(function(id) { return id !== sid }) })
+      })
+    }
+    if (supabase.from && tournamentState.dbTournamentId) {
+      supabase.from('registrations').delete()
+        .eq('tournament_id', tournamentState.dbTournamentId)
+        .eq('player_id', linkedPlayer.id)
+        .then(function(r) { if (r.error) toast('Unregister may not have saved', 'error') })
+        .catch(function() { toast('Unregister may not have saved', 'error') })
+    }
+    toast('Unregistered from ' + clashName, 'info')
+  }
+
+  function handleCheckIn() {
+    if (!linkedPlayer) return
+    var sid = String(linkedPlayer.id)
+    if (setPlayers) {
+      setPlayers(function(ps) {
+        return ps.map(function(p) {
+          return p.id === linkedPlayer.id ? Object.assign({}, p, { checkedIn: true }) : p
+        })
+      })
+    }
+    if (setTournamentState) {
+      setTournamentState(function(ts) {
+        var ids = ts.checkedInIds || []
+        return ids.indexOf(sid) > -1 ? ts : Object.assign({}, ts, { checkedInIds: ids.concat([sid]) })
+      })
+    }
+    if (supabase.from && tournamentState.dbTournamentId) {
+      supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+        .eq('tournament_id', tournamentState.dbTournamentId)
+        .eq('player_id', linkedPlayer.id)
+        .then(function(r) { if (r.error) toast('Check-in may not have saved', 'error') })
+        .catch(function() { toast('Check-in may not have saved', 'error') })
+    }
+    toast("You're checked in! Good luck, " + linkedPlayer.name, 'success')
   }
 
   var phaseTagMap = {
@@ -736,13 +840,13 @@ function ClashCard() {
                 size="sm"
                 className="flex-[2]"
                 disabled={!canRegister}
-                onClick={function() { navigate('/bracket') }}
+                onClick={function() { if (isRegistered) { unregisterFromClash() } else { registerFromAccount() } }}
               >
-                {isRegistered ? 'Already Registered' : 'Register Now'}
+                {isRegistered ? 'Registered (tap to unregister)' : 'Register Now'}
               </Btn>
               {(!linkedRiotId && !isRegistered)
                 ? <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/account') }}>Go to Account</Btn>
-                : <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/bracket') }}>{"Who's In"}</Btn>
+                : <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { navigate('/clash') }}>{"Who's In"}</Btn>
               }
             </div>
           </div>
@@ -762,7 +866,8 @@ function ClashCard() {
               variant={isCheckedIn ? 'ghost' : 'primary'}
               size="sm"
               className="w-full"
-              onClick={function() { navigate('/bracket') }}
+              disabled={isCheckedIn || !linkedPlayer}
+              onClick={function() { if (!isCheckedIn) { handleCheckIn() } }}
             >
               {isCheckedIn ? 'Checked In' : 'Check In Now'}
             </Btn>

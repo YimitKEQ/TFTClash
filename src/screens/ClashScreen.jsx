@@ -2169,12 +2169,6 @@ function ClashScreen(props) {
     return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} pastClashes={props.pastClashes} />
   }
 
-  // For live/registration phases, redirect to the polished Bracket page
-  if (phase === 'live' || phase === 'inprogress' || phase === 'registration') {
-    navigate('/bracket', { replace: true })
-    return null
-  }
-
   var recapData = phase === "complete" ? generateRecap(props.tournamentState) : null;
   var recapEl = recapData ? <ClashRecap recap={recapData} toast={props.toast} /> : null;
 
@@ -2301,7 +2295,7 @@ function ClashScreen(props) {
       )}
 
       {/* Bracket / lobby view for registration and live phases */}
-      {(phase === "registration" || phase === "live") && (
+      {(phase === "registration" || phase === "checkin" || phase === "live" || phase === "inprogress") && (
         <MemoBracketScreen
           players={props.players} setPlayers={props.setPlayers} toast={props.toast}
           isAdmin={props.isAdmin} currentUser={props.currentUser} setProfilePlayer={props.setProfilePlayer}
@@ -2312,7 +2306,7 @@ function ClashScreen(props) {
       )}
 
       {/* Game progress dots for live phase */}
-      {phase === "live" && (
+      {(phase === "live" || phase === "inprogress") && (
         <div className="flex gap-1 mb-4 justify-center px-4">
           {Array.from({ length: props.tournamentState.totalGames || 4 }, function(_, i) {
             var isComplete = i + 1 < (props.tournamentState.round || 1);
@@ -2329,7 +2323,7 @@ function ClashScreen(props) {
       )}
 
       {/* Swiss reseed banner */}
-      {phase === "live" && props.tournamentState.seedAlgo === "swiss" && props.tournamentState.round > 1 && props.tournamentState.round % 2 === 0 && (
+      {(phase === "live" || phase === "inprogress") && props.tournamentState.seedAlgo === "swiss" && props.tournamentState.round > 1 && props.tournamentState.round % 2 === 0 && (
         <div className="flex items-center justify-center gap-2 px-4 py-2 mx-4 mb-3 rounded-lg font-label text-[11px] tracking-[.04em]" style={{
           background: "rgba(232,168,56,.04)", border: "1px solid rgba(232,168,56,.12)",
           maxHeight: 48, color: "#E8A838"
@@ -2340,7 +2334,7 @@ function ClashScreen(props) {
       )}
 
       {/* Live standings table */}
-      {phase === "live" && props.tournamentState.liveStandings && (
+      {(phase === "live" || phase === "inprogress") && props.tournamentState.liveStandings && (
         <LiveStandingsTable standings={props.tournamentState.liveStandings} />
       )}
 
