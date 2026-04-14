@@ -12,6 +12,7 @@ var SPONSOR_TIERS = [
 
 var PLACEMENT_OPTIONS = [
   { id: 'homepage', label: 'Homepage Banner', icon: 'home', desc: 'Logo displayed on the main landing page' },
+  { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', desc: 'Featured logo above the clash card for logged-in players' },
   { id: 'bracket', label: 'Bracket Screen', icon: 'account_tree', desc: 'Visible during live tournament brackets' },
   { id: 'footer', label: 'Site Footer', icon: 'dock_to_bottom', desc: 'Logo strip in the global footer' },
   { id: 'hall_of_fame', label: 'Hall of Fame', icon: 'workspace_premium', desc: 'Named award category in HoF' },
