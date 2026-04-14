@@ -40,7 +40,12 @@ export default function Sidebar() {
 
   var phase = (tournamentState && tournamentState.phase) || '';
 
-  var linkedPlayer = currentUser && players.find(function(p) { return p.name === (currentUser.username || currentUser.name); });
+  var linkedPlayer = currentUser && players.find(function(p) {
+    if (currentUser.id && (p.authUserId === currentUser.id || p.auth_user_id === currentUser.id)) return true;
+    var un = (currentUser.username || currentUser.name || '').toLowerCase();
+    if (!un) return false;
+    return (p.name || '').toLowerCase() === un || (p.username || '').toLowerCase() === un;
+  });
   var sid = linkedPlayer ? String(linkedPlayer.id) : null;
   var isRegistered = sid && (tournamentState && (tournamentState.registeredIds || []).indexOf(sid) > -1);
   var isCheckedIn = sid && (tournamentState && (tournamentState.checkedInIds || []).indexOf(sid) > -1);
