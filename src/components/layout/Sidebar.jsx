@@ -41,7 +41,14 @@ export default function Sidebar() {
   var phase = (tournamentState && tournamentState.phase) || '';
 
   var linkedPlayer = currentUser && players.find(function(p) {
-    if (currentUser.id && (p.authUserId === currentUser.id || p.auth_user_id === currentUser.id)) return true;
+    // currentUser.id may be the player id (from get_my_player) OR the auth uuid
+    // (from mapUser fallback). Try both mappings.
+    if (currentUser.id) {
+      if (String(p.id) === String(currentUser.id)) return true;
+      if (p.auth_user_id === currentUser.id || p.authUserId === currentUser.id) return true;
+    }
+    var cuAuth = currentUser.auth_user_id || currentUser.authUserId;
+    if (cuAuth && (p.authUserId === cuAuth || p.auth_user_id === cuAuth)) return true;
     var un = (currentUser.username || currentUser.name || '').toLowerCase();
     if (!un) return false;
     return (p.name || '').toLowerCase() === un || (p.username || '').toLowerCase() === un;
