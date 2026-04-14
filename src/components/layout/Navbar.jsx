@@ -160,6 +160,21 @@ export default function Navbar() {
   var dispCount = (disputes || []).length;
   var canScrims = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
 
+  var linkedPlayer = currentUser && players && players.find(function(p) {
+    if (currentUser.id) {
+      if (String(p.id) === String(currentUser.id)) return true;
+      if (p.auth_user_id === currentUser.id || p.authUserId === currentUser.id) return true;
+    }
+    var cuAuth = currentUser.auth_user_id || currentUser.authUserId;
+    if (cuAuth && (p.authUserId === cuAuth || p.auth_user_id === cuAuth)) return true;
+    var un = (currentUser.username || currentUser.name || '').toLowerCase();
+    if (!un) return false;
+    return (p.name || '').toLowerCase() === un || (p.username || '').toLowerCase() === un;
+  });
+  var sid = linkedPlayer ? String(linkedPlayer.id) : null;
+  var isRegistered = !!(sid && tournamentState && (tournamentState.registeredIds || []).indexOf(sid) > -1);
+  var isCheckedIn = !!(sid && tournamentState && (tournamentState.checkedInIds || []).indexOf(sid) > -1);
+
   // Drawer sections
   var mainItems = [
     { id: 'home',       icon: 'home',              label: 'Home' },
@@ -190,10 +205,7 @@ export default function Navbar() {
     { id: 'host-dashboard', icon: 'workspace_premium', label: 'Host Dashboard' },
   ] : [];
 
-  var navPlayer = currentUser && players && players.find(function(p) {
-    return p.auth_user_id === currentUser.id || p.name === currentUser.username;
-  });
-  var rawPic = (navPlayer && navPlayer.profile_pic_url) || '';
+  var rawPic = (linkedPlayer && linkedPlayer.profile_pic_url) || '';
   var navPic = rawPic && rawPic.indexOf('https://') === 0 ? rawPic : '';
 
   function DrawerSection(props) {
@@ -288,11 +300,15 @@ export default function Navbar() {
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
             {DESKTOP_LINKS.map(function(l) {
-              var isLive = l.id === 'clash' && phase === 'inprogress';
+              var isLive = l.id === 'clash' && (phase === 'inprogress' || phase === 'live');
               var isActive = screen === l.id;
-              var label = isLive ? '\u25cf LIVE CLASH' : l.label;
-              if (l.id === 'clash' && phase === 'registration') label = 'Clash - Register';
-              if (l.id === 'clash' && phase === 'complete') label = 'Clash - Results';
+              var label = l.label;
+              if (l.id === 'clash') {
+                if (isLive) label = '\u25cf LIVE CLASH';
+                else if (phase === 'registration') label = isRegistered ? 'Clash - Joined' : 'Clash - Register';
+                else if (phase === 'checkin') label = isCheckedIn ? 'Clash - Checked In' : 'Clash - Check-In';
+                else if (phase === 'complete') label = 'Clash - Results';
+              }
               return (
                 <button
                   key={l.id}
