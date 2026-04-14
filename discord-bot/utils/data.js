@@ -117,11 +117,29 @@ export async function getTournamentIdByClashNumber(clashNumber) {
   return data ? data.id : null;
 }
 
+/** Resolve the id of the current active tournament, regardless of what site_settings stored. */
+export async function getActiveTournamentId() {
+  const ts = await getTournamentState();
+  if (ts && (ts.activeTournamentId || ts.dbTournamentId)) {
+    return ts.activeTournamentId || ts.dbTournamentId;
+  }
+  // Fallback: newest tournament that is not complete
+  const { data } = await supabase
+    .from('tournaments')
+    .select('id,status,created_at')
+    .neq('status', 'complete')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (data && data.id) return data.id;
+  // Final fallback: parse by clash number
+  if (ts && ts.clashNumber) return await getTournamentIdByClashNumber(ts.clashNumber);
+  return null;
+}
+
 /** Get registrations for the current clash. */
 export async function getRegistrations() {
-  const ts = await getTournamentState();
-  if (!ts) return [];
-  const tournamentId = ts.dbTournamentId || (await getTournamentIdByClashNumber(ts.clashNumber));
+  const tournamentId = await getActiveTournamentId();
   if (!tournamentId) return [];
   const { data, error } = await supabase
     .from('registrations')

@@ -108,11 +108,16 @@ export function startListeners(client) {
         // Avoids the broken getRegistrations() lookup chain that returned 0.
         let regCount = 0;
         if (row.tournament_id) {
-          const { count } = await supabase
+          const countRes = await supabase
             .from('registrations')
             .select('*', { count: 'exact', head: true })
             .eq('tournament_id', row.tournament_id);
-          regCount = count || 0;
+          if (countRes.error) {
+            console.error('[listener] count query failed:', countRes.error.message);
+          }
+          regCount = countRes.count || 0;
+        } else {
+          console.warn('[listener] registration row has no tournament_id, using fallback');
         }
         if (!regCount) {
           // Fallback to the legacy helper if the direct count failed
@@ -207,5 +212,5 @@ export function startListeners(client) {
     })
     .subscribe();
 
-  console.log('[listeners] Realtime subscriptions active');
+  console.log('[listeners] Realtime subscriptions active (build: reg-count-fix v2)');
 }

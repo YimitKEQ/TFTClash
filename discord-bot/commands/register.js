@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { registrationConfirmEmbed } from '../utils/embeds.js';
-import { getTournamentState, getPlayerByDiscordId, getRegistrations } from '../utils/data.js';
+import { getTournamentState, getPlayerByDiscordId } from '../utils/data.js';
 import { getLink } from '../utils/db.js';
 import { supabase } from '../utils/supabase.js';
 
@@ -67,7 +67,12 @@ export async function execute(interaction) {
     return interaction.editReply('Failed to register. Please try again or register at tft-clash.vercel.app.');
   }
 
-  const regs = await getRegistrations();
-  const embed = registrationConfirmEmbed(player.name, ts.clashNumber || '?', regs.length);
+  // Count directly off this tournament_id — avoids the stale state lookup
+  const { count } = await supabase
+    .from('registrations')
+    .select('*', { count: 'exact', head: true })
+    .eq('tournament_id', tournamentId);
+  const total = count || 1;
+  const embed = registrationConfirmEmbed(player.name, ts.clashNumber || '?', total);
   await interaction.editReply({ embeds: [embed] });
 }
