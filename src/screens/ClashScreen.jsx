@@ -2157,6 +2157,363 @@ function ClashIdleView(props) {
   )
 }
 
+// ---- ClashLobbyView (registration & check-in) ----
+
+function ClashLobbyView(props) {
+  var phase = props.phase
+  var tournamentState = props.tournamentState || {}
+  var players = props.players || []
+  var currentUser = props.currentUser
+  var linkedPlayer = props.linkedPlayer
+  var setPlayers = props.setPlayers
+  var setTournamentState = props.setTournamentState
+  var toast = props.toast || function() {}
+  var setProfilePlayer = props.setProfilePlayer
+  var setScreen = props.setScreen
+  var navigate = props.navigate
+
+  var registeredIds = tournamentState.registeredIds || []
+  var checkedInIds = tournamentState.checkedInIds || []
+  var waitlistIds = tournamentState.waitlistIds || []
+
+  var sid = linkedPlayer ? String(linkedPlayer.id) : null
+  var isRegistered = sid && registeredIds.indexOf(sid) > -1
+  var isCheckedIn = sid && checkedInIds.indexOf(sid) > -1
+  var isWaitlisted = sid && waitlistIds.indexOf(sid) > -1
+  var waitlistPos = isWaitlisted ? (waitlistIds.indexOf(sid) + 1) : 0
+
+  var server = tournamentState.server || 'EU'
+  var riotField = server === 'NA' ? 'riot_id_na' : 'riot_id_eu'
+  var linkedRiotId = currentUser ? (currentUser[riotField] || '') : ''
+
+  var clashName = tournamentState.clashName || (tournamentState.clashNumber ? ('Clash Week ' + tournamentState.clashNumber) : 'Clash')
+  var maxPlayers = parseInt(tournamentState.maxPlayers || 24, 10)
+  var registeredCount = registeredIds.length
+  var checkedInCount = checkedInIds.length
+  var capacityPct = Math.min(100, Math.round((registeredCount / maxPlayers) * 100))
+
+  var clashTimestamp = tournamentState.clashTimestamp
+  var hasCountdown = clashTimestamp && new Date(clashTimestamp) > new Date()
+
+  var registeredRoster = registeredIds.map(function(id) {
+    return players.find(function(p) { return String(p.id) === String(id) })
+  }).filter(Boolean)
+
+  function handleRegister() {
+    if (!currentUser) { navigate('/login'); return }
+    if (!linkedPlayer) { toast('Account not linked to a player profile', 'error'); return }
+    if (!linkedRiotId) { toast('Set your Riot ID on the Account page first', 'error'); navigate('/account'); return }
+    if (!tournamentState.dbTournamentId) { toast('Registration is not open yet', 'error'); return }
+    if (linkedPlayer.banned) { toast('Your account is banned from registration', 'error'); return }
+    if ((linkedPlayer.dnpCount || 0) >= 3) { toast('You have 3 no-shows. Ask an admin to clear your strikes', 'error'); return }
+    if (isRegistered) { toast("You're already registered", 'info'); return }
+    if (isWaitlisted) { toast("You're already on the waitlist", 'info'); return }
+
+    var psid = String(linkedPlayer.id)
+    if (registeredCount >= maxPlayers) {
+      if (setTournamentState) {
+        setTournamentState(function(ts) {
+          var wl = ts.waitlistIds || []
+          if (wl.indexOf(psid) > -1) return ts
+          return Object.assign({}, ts, { waitlistIds: wl.concat([psid]) })
+        })
+      }
+      toast(currentUser.username + ' added to waitlist', 'info')
+      return
+    }
+
+    if (setTournamentState) {
+      setTournamentState(function(ts) {
+        var ids = ts.registeredIds || []
+        return ids.indexOf(psid) > -1 ? ts : Object.assign({}, ts, { registeredIds: ids.concat([psid]) })
+      })
+    }
+    if (supabase.from) {
+      supabase.from('registrations').upsert({
+        tournament_id: tournamentState.dbTournamentId,
+        player_id: linkedPlayer.id,
+        status: 'registered'
+      }, { onConflict: 'tournament_id,player_id' }).then(function(r) {
+        if (r.error) {
+          toast('Registration failed: ' + (r.error.message || 'unknown'), 'error')
+          if (setTournamentState) {
+            setTournamentState(function(ts) {
+              return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== psid }) })
+            })
+          }
+        }
+      }).catch(function() {
+        toast('Registration failed - check your connection', 'error')
+      })
+    }
+    toast(currentUser.username + ' registered for ' + clashName + '!', 'success')
+    writeActivityEvent('registration', linkedPlayer.id, currentUser.username + ' registered for ' + clashName)
+  }
+
+  function handleUnregister() {
+    if (!linkedPlayer) return
+    var psid = String(linkedPlayer.id)
+    if (setTournamentState) {
+      setTournamentState(function(ts) {
+        return Object.assign({}, ts, { registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== psid }) })
+      })
+    }
+    if (supabase.from && tournamentState.dbTournamentId) {
+      supabase.from('registrations').delete()
+        .eq('tournament_id', tournamentState.dbTournamentId)
+        .eq('player_id', linkedPlayer.id)
+        .then(function(r) { if (r.error) toast('Unregister may not have saved', 'error') })
+        .catch(function() { toast('Unregister may not have saved', 'error') })
+    }
+    toast('Unregistered from ' + clashName, 'info')
+  }
+
+  function handleCheckIn() {
+    if (!linkedPlayer) return
+    var psid = String(linkedPlayer.id)
+    if (setPlayers) {
+      setPlayers(function(ps) {
+        return ps.map(function(p) {
+          return p.id === linkedPlayer.id ? Object.assign({}, p, { checkedIn: true }) : p
+        })
+      })
+    }
+    if (setTournamentState) {
+      setTournamentState(function(ts) {
+        var ids = ts.checkedInIds || []
+        return ids.indexOf(psid) > -1 ? ts : Object.assign({}, ts, { checkedInIds: ids.concat([psid]) })
+      })
+    }
+    if (supabase.from && tournamentState.dbTournamentId) {
+      supabase.from('registrations').update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+        .eq('tournament_id', tournamentState.dbTournamentId)
+        .eq('player_id', linkedPlayer.id)
+        .then(function(r) { if (r.error) toast('Check-in may not have saved', 'error') })
+        .catch(function() { toast('Check-in may not have saved', 'error') })
+    }
+    toast("You're checked in! Good luck", 'success')
+  }
+
+  var phaseLabel = phase === 'registration' ? 'Registration Open' : 'Check-In Open'
+  var phaseAccent = phase === 'registration' ? 'text-secondary' : 'text-tertiary'
+  var phaseDot = phase === 'registration' ? 'bg-secondary' : 'bg-tertiary'
+
+  var statusCard = null
+  if (!currentUser) {
+    statusCard = (
+      <div className="bg-primary/[0.06] border border-primary/20 rounded-lg p-4 flex items-center gap-4">
+        <Icon name="login" size={28} className="text-primary" />
+        <div className="flex-1">
+          <div className="font-display text-base font-bold text-on-surface">Sign in to compete</div>
+          <div className="text-xs text-on-surface-variant mt-1">Free to play, ranked weekly</div>
+        </div>
+        <Btn variant="primary" size="sm" onClick={function() { navigate('/login') }}>Log In</Btn>
+      </div>
+    )
+  } else if (!linkedPlayer) {
+    statusCard = (
+      <div className="bg-error/[0.08] border border-error/25 rounded-lg p-4 flex items-center gap-4">
+        <Icon name="error" size={28} className="text-error" />
+        <div className="flex-1">
+          <div className="font-display text-base font-bold text-on-surface">Account not linked</div>
+          <div className="text-xs text-on-surface-variant mt-1">Visit Account to link your player profile</div>
+        </div>
+        <Btn variant="secondary" size="sm" onClick={function() { navigate('/account') }}>Go to Account</Btn>
+      </div>
+    )
+  } else if (!linkedRiotId) {
+    statusCard = (
+      <div className="bg-primary/[0.06] border border-primary/20 rounded-lg p-4 flex items-center gap-4">
+        <Icon name="warning" size={28} className="text-primary" />
+        <div className="flex-1">
+          <div className="font-display text-base font-bold text-on-surface">Add your {server} Riot ID</div>
+          <div className="text-xs text-on-surface-variant mt-1">Required before you can register</div>
+        </div>
+        <Btn variant="primary" size="sm" onClick={function() { navigate('/account') }}>Open Account</Btn>
+      </div>
+    )
+  } else if (phase === 'registration') {
+    if (isRegistered) {
+      statusCard = (
+        <div className="bg-tertiary/[0.08] border border-tertiary/30 rounded-lg p-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-tertiary/15 border border-tertiary/30 flex items-center justify-center flex-shrink-0">
+              <Icon name="check_circle" size={28} className="text-tertiary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-display text-lg font-bold text-tertiary leading-tight">You're registered</div>
+              <div className="text-sm text-on-surface-variant mt-1">{linkedRiotId} &middot; {server}</div>
+              <div className="text-xs text-on-surface-variant/70 mt-2">Check-in opens 30 minutes before clash time. We'll send you a reminder.</div>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <Btn variant="ghost" size="sm" className="flex-1" onClick={function() { if (window.confirm('Unregister from this clash?')) handleUnregister() }}>Unregister</Btn>
+            <Btn variant="primary" size="sm" className="flex-1" onClick={function() { navigate('/standings') }}>View Standings</Btn>
+          </div>
+        </div>
+      )
+    } else if (isWaitlisted) {
+      statusCard = (
+        <div className="bg-secondary/[0.08] border border-secondary/30 rounded-lg p-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-secondary/15 border border-secondary/30 flex items-center justify-center flex-shrink-0">
+              <Icon name="hourglass_top" size={28} className="text-secondary" />
+            </div>
+            <div className="flex-1">
+              <div className="font-display text-lg font-bold text-secondary leading-tight">Waitlisted - position {waitlistPos}</div>
+              <div className="text-xs text-on-surface-variant/70 mt-2">You'll be auto-promoted if a registered player drops.</div>
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      statusCard = (
+        <div className="bg-primary/[0.06] border border-primary/30 rounded-lg p-5">
+          <div className="flex items-center gap-4 mb-4">
+            <Icon name="how_to_reg" size={32} className="text-primary" />
+            <div className="flex-1">
+              <div className="font-display text-lg font-bold text-on-surface leading-tight">Ready when you are</div>
+              <div className="text-xs text-on-surface-variant mt-1">{linkedRiotId} &middot; {server}</div>
+            </div>
+          </div>
+          <Btn variant="primary" size="lg" className="w-full" onClick={handleRegister}>Register for {clashName}</Btn>
+        </div>
+      )
+    }
+  } else if (phase === 'checkin') {
+    if (!isRegistered) {
+      statusCard = (
+        <div className="bg-on-surface/[0.04] border border-outline-variant/15 rounded-lg p-5 text-center">
+          <Icon name="block" size={32} className="text-on-surface-variant mb-2" />
+          <div className="font-display text-base font-bold text-on-surface">Not registered for this clash</div>
+          <div className="text-xs text-on-surface-variant mt-1">Registration closed. Catch the next one.</div>
+        </div>
+      )
+    } else if (isCheckedIn) {
+      statusCard = (
+        <div className="bg-tertiary/[0.08] border border-tertiary/30 rounded-lg p-5 flex items-center gap-4">
+          <Icon name="task_alt" size={32} className="text-tertiary" />
+          <div className="flex-1">
+            <div className="font-display text-lg font-bold text-tertiary leading-tight">You're checked in</div>
+            <div className="text-xs text-on-surface-variant mt-1">Lobbies will be assigned shortly. Stay close.</div>
+          </div>
+        </div>
+      )
+    } else {
+      statusCard = (
+        <div className="bg-tertiary/[0.06] border border-tertiary/30 rounded-lg p-5">
+          <div className="flex items-center gap-4 mb-4">
+            <Icon name="fact_check" size={32} className="text-tertiary" />
+            <div className="flex-1">
+              <div className="font-display text-lg font-bold text-on-surface leading-tight">Check in to lock your seat</div>
+              <div className="text-xs text-on-surface-variant mt-1">Anyone not checked in by start time forfeits their slot</div>
+            </div>
+          </div>
+          <Btn variant="primary" size="lg" className="w-full" onClick={handleCheckIn}>Check In Now</Btn>
+        </div>
+      )
+    }
+  }
+
+  function openProfile(player) {
+    if (setProfilePlayer && setScreen) {
+      setProfilePlayer(player)
+      setScreen('profile')
+    } else if (player && (player.username || player.name)) {
+      navigate('/player/' + (player.username || player.name))
+    }
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto py-8 px-4 flex flex-col gap-6">
+
+      {/* Hero panel: clash title + countdown */}
+      <Panel padding="spacious">
+        <div className="flex items-center gap-2 mb-3">
+          <span className={'w-2 h-2 rounded-full ' + phaseDot} />
+          <span className={'font-label text-[10px] uppercase tracking-[0.18em] font-bold ' + phaseAccent}>{phaseLabel}</span>
+        </div>
+        <div className="font-display text-3xl sm:text-4xl tracking-tight text-on-surface mb-1">{clashName}</div>
+        <div className="text-sm text-on-surface-variant mb-5">{server} server &middot; {tournamentState.totalGames || 4} games &middot; {maxPlayers} player cap</div>
+        {hasCountdown && (
+          <div className="bg-on-surface/[0.04] border border-outline-variant/10 rounded-lg p-4 mb-1">
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">{phase === 'registration' ? 'Registration closes in' : 'Clash starts in'}</div>
+            <CountdownTimer targetDate={clashTimestamp} />
+          </div>
+        )}
+      </Panel>
+
+      {/* Status card - user-specific */}
+      {statusCard}
+
+      {/* Capacity panel */}
+      <Panel>
+        <div className="flex items-baseline justify-between mb-3">
+          <div className="font-display text-base font-bold text-on-surface">Registered field</div>
+          <div className="font-mono text-sm text-on-surface-variant">{registeredCount} / {maxPlayers}</div>
+        </div>
+        <div className="w-full bg-on-surface/[0.06] rounded-full h-2 overflow-hidden mb-1">
+          <div
+            className="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500"
+            style={{ width: capacityPct + '%' }}
+          />
+        </div>
+        <div className="text-[10px] text-on-surface-variant uppercase font-label tracking-widest">
+          {capacityPct >= 100 ? 'Full - waitlist active' : capacityPct >= 75 ? 'Filling fast' : 'Plenty of seats left'}
+          {phase === 'checkin' && ' \u00b7 ' + checkedInCount + ' checked in'}
+        </div>
+      </Panel>
+
+      {/* Roster panel */}
+      <Panel>
+        <div className="flex items-baseline justify-between mb-4">
+          <div className="font-display text-base font-bold text-on-surface">Who's in</div>
+          {waitlistIds.length > 0 && (
+            <div className="text-[10px] uppercase tracking-widest font-label text-on-surface-variant">{waitlistIds.length} on waitlist</div>
+          )}
+        </div>
+        {registeredRoster.length === 0 ? (
+          <div className="text-center py-6">
+            <Icon name="group_off" size={32} className="text-on-surface-variant/40 mb-2" />
+            <div className="text-sm text-on-surface-variant">Be the first to register</div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {registeredRoster.map(function(p, idx) {
+              var isMe = linkedPlayer && p.id === linkedPlayer.id
+              var rosterCheckedIn = checkedInIds.indexOf(String(p.id)) > -1
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={function() { openProfile(p) }}
+                  className={'flex items-center gap-3 px-3 py-2.5 rounded-lg text-left border transition-colors cursor-pointer ' + (isMe ? 'bg-primary/[0.08] border-primary/30' : 'bg-on-surface/[0.03] border-outline-variant/10 hover:bg-on-surface/[0.06]')}
+                >
+                  <div className={'w-7 h-7 rounded-md flex items-center justify-center font-mono text-[11px] font-bold flex-shrink-0 ' + (isMe ? 'bg-primary/20 text-primary' : 'bg-on-surface/[0.06] text-on-surface-variant')}>
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={'text-sm font-bold truncate ' + (isMe ? 'text-primary' : 'text-on-surface')}>
+                      {p.name || p.username}{isMe ? ' (you)' : ''}
+                    </div>
+                    <div className="text-[10px] text-on-surface-variant truncate">
+                      {(p.rank || 'Unranked')} &middot; {(p.pts || 0)} pts &middot; {(p.wins || 0)} wins
+                    </div>
+                  </div>
+                  {rosterCheckedIn && (
+                    <Icon name="check_circle" size={16} className="text-tertiary flex-shrink-0" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </Panel>
+
+    </div>
+  )
+}
+
 // ---- ClashScreen (main, phase-adaptive) ----
 
 function ClashScreen(props) {
@@ -2164,9 +2521,27 @@ function ClashScreen(props) {
   var linkedPlayer = (props.players || []).find(function(p) {
     return props.currentUser && p.name === (props.currentUser.username || props.currentUser.name)
   }) || null
-  var phase = props.tournamentState && props.tournamentState.phase;
+  var tournamentState = props.tournamentState || {}
+  var phase = tournamentState.phase;
   if (!phase || phase === 'idle') {
     return <ClashIdleView players={props.players} currentUser={props.currentUser} linkedPlayer={linkedPlayer} navigate={navigate} pastClashes={props.pastClashes} />
+  }
+
+  // Registration / check-in get a clean modern view; fall through to live/complete legacy below
+  if (phase === 'registration' || phase === 'checkin') {
+    return <ClashLobbyView
+      phase={phase}
+      tournamentState={tournamentState}
+      players={props.players || []}
+      currentUser={props.currentUser}
+      linkedPlayer={linkedPlayer}
+      setPlayers={props.setPlayers}
+      setTournamentState={props.setTournamentState}
+      toast={props.toast}
+      setProfilePlayer={props.setProfilePlayer}
+      setScreen={props.setScreen}
+      navigate={navigate}
+    />
   }
 
   var recapData = phase === "complete" ? generateRecap(props.tournamentState) : null;
@@ -2217,85 +2592,11 @@ function ClashScreen(props) {
     );
   }
 
-  // Registered players for scouting cards
-  var registeredPlayers = phase === "registration" ? (props.players || []).filter(function(p) { return p.registered || p.checkedIn; }) : [];
-
-  // Phase styling
-  var phaseLabels = {
-    registration: "Registration",
-    checkin: "Check-in",
-    live: "Live",
-    inprogress: "Live",
-    complete: "Complete",
-  };
-  var phaseAccents = {
-    registration: "#C4B5FD",
-    checkin: "#3FB6F2",
-    live: "#E8A838",
-    inprogress: "#E8A838",
-    complete: "#4ECDC4",
-  };
-  var accentColor = phaseAccents[phase] || "#9B72CF";
-
   return (
-    <div className="fade-up">
-      {/* Phase header bar */}
-      <div className="relative overflow-hidden px-5 py-4 mx-4 mb-5 rounded-xl" style={{
-        background: "rgba(17,24,39,.8)",
-        border: "1px solid rgba(" + hexToRgb(accentColor) + ",.2)"
-      }}>
-        <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,transparent," + accentColor + ",transparent)" }} />
-        {phase === "live" && (
-          <div className="absolute pointer-events-none" style={{ top: "-50%", left: "30%", width: "40%", height: "200%", background: "radial-gradient(ellipse,rgba(232,168,56,.06) 0%,transparent 70%)" }} />
-        )}
-        <div className="flex items-center gap-2.5">
-          <div className="w-2 h-2 rounded-full shrink-0" style={{
-            background: accentColor,
-            boxShadow: phase === "live" ? "0 0 12px " + accentColor + ", 0 0 24px " + accentColor : "none",
-            animation: phase === "live" ? "live-dot 1.5s ease infinite" : "none"
-          }} />
-          <span className="font-label text-[11px] uppercase tracking-[.1em] font-bold" style={{ color: accentColor }}>{phaseLabels[phase] || "Clash"}</span>
-          {phase === "live" && (
-            <span className="font-label text-[10px] tracking-[.06em] ml-auto text-primary/70">LIVE</span>
-          )}
-        </div>
-      </div>
+    <div className="fade-up max-w-5xl mx-auto py-6 px-4">
 
-      {/* Registration - scouting list */}
-      {phase === "registration" && registeredPlayers.length > 0 && (
-        <div className="mx-4 mb-5">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="font-label text-[10px] uppercase tracking-[.12em] text-[#9AAABF] font-bold">{"Registered - " + registeredPlayers.length + " players"}</div>
-            <div className="font-label text-[10px] text-[#9AAABF]">Scout the field</div>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            {registeredPlayers.map(function(p, idx) {
-              var sparkData = (p.clashHistory || []).slice(-5).map(function(c) { return c.placement || c.place || 4; });
-              return (
-                <div key={p.id || p.username}
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg cursor-pointer"
-                  style={{ background: "rgba(255,255,255,.03)", border: "1px solid rgba(255,255,255,.06)" }}
-                  onClick={function() { if (props.setProfilePlayer && props.setScreen) { props.setProfilePlayer(p); props.setScreen("profile"); } }}>
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[11px] font-extrabold text-[#C4B5FD] shrink-0" style={{ background: "linear-gradient(135deg,rgba(155,114,207,.2),rgba(155,114,207,.08))" }}>
-                    {"#" + (idx + 1)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-bold text-on-surface overflow-hidden text-ellipsis whitespace-nowrap">{p.username || p.name || "Player"}</div>
-                    <div className="text-[10px] text-[#9AAABF]">{(p.wins || 0) + " wins, " + (p.games || 0) + " games"}</div>
-                  </div>
-                  {sparkData.length >= 2
-                    ? <Sparkline data={sparkData} w={40} h={14} color="#9B72CF" />
-                    : <div className="flex items-center text-[10px] text-[#9AAABF] opacity-20" style={{ width: 40, height: 14 }}>{"--"}</div>
-                  }
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Bracket / lobby view for registration and live phases */}
-      {(phase === "registration" || phase === "checkin" || phase === "live" || phase === "inprogress") && (
+      {/* Bracket / lobby view for live phases */}
+      {(phase === "live" || phase === "inprogress") && (
         <MemoBracketScreen
           players={props.players} setPlayers={props.setPlayers} toast={props.toast}
           isAdmin={props.isAdmin} currentUser={props.currentUser} setProfilePlayer={props.setProfilePlayer}

@@ -87,19 +87,51 @@ export function startListeners(client) {
 
         const playerName = (player && player.username) || 'Unknown';
 
-        // Get current registration count
-        const ts = await getTournamentState();
-        const clashNum = (ts && ts.clashNumber) || '?';
-        const regs = await getRegistrations();
-        const regCount = regs.length;
-
-        const embed = newRegistrationEmbed(playerName, regCount, clashNum);
-        const schedCh = ch('clash-schedule');
-        if (schedCh) {
-          await schedCh.send({ embeds: [embed] });
+        // Resolve clash number from the tournament that owns this registration
+        let clashNum = '?';
+        if (row.tournament_id) {
+          const { data: tour } = await supabase
+            .from('tournaments')
+            .select('clash_number,name')
+            .eq('id', row.tournament_id)
+            .single();
+          if (tour) {
+            clashNum = tour.clash_number || (tour.name ? tour.name.replace(/\D+/g, '') : '?') || '?';
+          }
+        }
+        if (clashNum === '?') {
+          const ts = await getTournamentState();
+          if (ts && ts.clashNumber) clashNum = ts.clashNumber;
         }
 
-        console.log('[listener] New registration: ' + playerName + ' (#' + regCount + ')');
+        // Count registrations directly off the tournament_id from the inserted row.
+        // Avoids the broken getRegistrations() lookup chain that returned 0.
+        let regCount = 0;
+        if (row.tournament_id) {
+          const { count } = await supabase
+            .from('registrations')
+            .select('*', { count: 'exact', head: true })
+            .eq('tournament_id', row.tournament_id);
+          regCount = count || 0;
+        }
+        if (!regCount) {
+          // Fallback to the legacy helper if the direct count failed
+          try {
+            const regs = await getRegistrations();
+            regCount = regs.length || 1;
+          } catch (e) {
+            regCount = 1;
+          }
+        }
+
+        const embed = newRegistrationEmbed(playerName, regCount, clashNum);
+        // Prefer a dedicated registrations channel, fall back to clash-schedule
+        const targetCh = ch('clash-registrations') || ch('registrations') || ch('clash-schedule');
+        if (targetCh) {
+          await targetCh.send({ embeds: [embed] });
+        }
+
+        console.log('[listener] New registration: ' + playerName + ' (' + regCount + ' total)');
       } catch (err) {
         console.error('[listener] registration error:', err);
       }

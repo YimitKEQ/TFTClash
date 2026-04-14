@@ -24,6 +24,7 @@ export default function Sidebar() {
   var scrimHostAccess = ctx.scrimHostAccess;
   var setAuthScreen = ctx.setAuthScreen;
   var tournamentState = ctx.tournamentState;
+  var players = ctx.players || [];
 
   var canScrims = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
 
@@ -38,6 +39,11 @@ export default function Sidebar() {
   }, [isAdmin, currentUser, scrimAccess, scrimHostAccess, toast, navigate, setScreen, setAuthScreen]);
 
   var phase = (tournamentState && tournamentState.phase) || '';
+
+  var linkedPlayer = currentUser && players.find(function(p) { return p.name === (currentUser.username || currentUser.name); });
+  var sid = linkedPlayer ? String(linkedPlayer.id) : null;
+  var isRegistered = sid && (tournamentState && (tournamentState.registeredIds || []).indexOf(sid) > -1);
+  var isCheckedIn = sid && (tournamentState && (tournamentState.checkedInIds || []).indexOf(sid) > -1);
 
   function NavItem(props) {
     var id = props.id;
@@ -56,7 +62,7 @@ export default function Sidebar() {
         <Icon name={icon} size={20} className={isActive ? 'opacity-100' : 'opacity-60'} />
         <span className="flex-1">{label}</span>
         {badge && (
-          <span className={"text-[9px] font-bold px-1.5 py-0.5 rounded " + (badge === 'Live' ? "bg-success/20 text-success animate-pulse" : badge === 'Register' ? "bg-secondary/20 text-secondary" : "bg-tertiary/20 text-tertiary")}>{badge}</span>
+          <span className={"text-[9px] font-bold px-1.5 py-0.5 rounded " + (badge === 'Live' ? "bg-success/20 text-success animate-pulse" : badge === 'Register' ? "bg-secondary/20 text-secondary" : badge === 'Joined' || badge === 'Checked In' ? "bg-tertiary/20 text-tertiary" : "bg-tertiary/20 text-tertiary")}>{badge}</span>
         )}
       </button>
     );
@@ -66,7 +72,11 @@ export default function Sidebar() {
     return <div className="h-px bg-white/[0.05] mx-6 my-1.5" />;
   }
 
-  var clashBadge = phase === 'registration' ? 'Register' : phase === 'checkin' ? 'Check-In' : phase === 'inprogress' ? 'Live' : phase === 'complete' ? 'Done' : null;
+  var clashBadge = null;
+  if (phase === 'registration') clashBadge = isRegistered ? 'Joined' : 'Register';
+  else if (phase === 'checkin') clashBadge = isCheckedIn ? 'Checked In' : 'Check-In';
+  else if (phase === 'live' || phase === 'inprogress') clashBadge = 'Live';
+  else if (phase === 'complete') clashBadge = 'Done';
 
   return (
     <aside className="hidden xl:flex fixed left-0 top-0 h-screen w-64 bg-[#13131A] border-r border-white/[0.05] flex-col z-40 pt-20">

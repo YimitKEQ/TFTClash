@@ -53,10 +53,11 @@ var CHANNEL_RULES = [
   { match: 'verify',         gate: 'public',   readOnly: true  },
 
   // CLASH HQ (verified, read-only -- only host posts)
-  { match: 'clash-schedule', gate: 'verified', readOnly: true  },
-  { match: 'results',        gate: 'verified', readOnly: true  },
-  { match: 'standings',      gate: 'verified', readOnly: true  },
-  { match: 'bracket',        gate: 'verified', readOnly: true  },
+  { match: 'clash-schedule',      gate: 'verified', readOnly: true  },
+  { match: 'clash-registrations', gate: 'verified', readOnly: true  },
+  { match: 'results',             gate: 'verified', readOnly: true  },
+  { match: 'standings',           gate: 'verified', readOnly: true  },
+  { match: 'bracket',             gate: 'verified', readOnly: true  },
 
   // COMMUNITY (verified, can chat)
   { match: 'general',        gate: 'verified', readOnly: false },
@@ -79,6 +80,13 @@ var CHANNEL_RULES = [
 
 // Channels we want to create if they do not exist
 var TO_CREATE = [
+  {
+    category: '── CLASH HQ ──',
+    children: [
+      { name: '🎟️・clash-registrations', kind: 'text', gate: 'verified', readOnly: true, topic: 'Live feed of new clash registrations. Posted by the bot only.' },
+    ],
+    soft: true, // only create if category exists, do not create the category
+  },
   {
     category: '── HELP & FEEDBACK ──',
     children: [
@@ -397,12 +405,20 @@ client.once('ready', async function() {
   console.log('  Fixed ' + fixed + ' channels, skipped ' + skipped + '.\n');
 
   // 2. Create missing categories and channels
-  console.log('[2/3] Ensuring HELP & FEEDBACK category exists...');
+  console.log('[2/3] Ensuring required categories and channels exist...');
   for (var group of TO_CREATE) {
+    // Match category by substring so cosmetic differences (── vs --) do not block detection
+    var groupKey = group.category.replace(/[─\-\s]/g, '').toLowerCase();
     var category = guild.channels.cache.find(function(c) {
-      return c.type === ChannelType.GuildCategory && c.name === group.category;
+      if (c.type !== ChannelType.GuildCategory) return false;
+      var key = c.name.replace(/[─\-\s]/g, '').toLowerCase();
+      return key === groupKey;
     });
     if (!category) {
+      if (group.soft) {
+        console.log('  · category ' + group.category + ' missing, skipping (soft)');
+        continue;
+      }
       // Hide category from everyone by default; channels override per-rule
       var catOw = buildOverwrites('verified', false, false, roles);
       category = await guild.channels.create({
@@ -412,7 +428,7 @@ client.once('ready', async function() {
       });
       console.log('  + created category ' + group.category);
     } else {
-      console.log('  · category exists: ' + group.category);
+      console.log('  · category exists: ' + category.name);
     }
 
     for (var def of group.children) {
