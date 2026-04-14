@@ -1761,7 +1761,7 @@ function BracketScreen(props) {
     if (existingId) {
       doSave(existingId);
     } else {
-      supabase.from('tournaments').insert({ name: clashName, date: new Date().toISOString().split('T')[0], phase: 'complete' }).select('id').single().then(function(res) {
+      supabase.from('tournaments').insert({ name: clashName, date: new Date().toISOString().split('T')[0], phase: 'complete', type: 'season_clash' }).select('id').single().then(function(res) {
         if (res.error) { toast("Failed to save results to database", "error"); return; }
         if (res.data) doSave(res.data.id);
       }).catch(function() { toast("Failed to save results to database", "error"); });

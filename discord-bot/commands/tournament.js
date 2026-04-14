@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
-import { getTournamentState, getStandings } from '../utils/data.js';
+import { getTournamentState, getStandings, getTournamentIdByClashNumber } from '../utils/data.js';
 import { supabase } from '../utils/supabase.js';
 
 var GOLD = 0xFFCE78;
@@ -26,13 +26,19 @@ export async function execute(interaction) {
     return interaction.editReply('No tournament data available.');
   }
 
-  // Pull registration counts for the requested clash.
-  var regRes = await supabase
-    .from('registrations')
-    .select('status')
-    .eq('clash_number', clashNumber);
+  // Resolve tournament_id: use ts.dbTournamentId for the current clash, look up by name otherwise.
+  var tournamentId = (!requested && ts && ts.dbTournamentId)
+    ? ts.dbTournamentId
+    : await getTournamentIdByClashNumber(clashNumber);
 
-  var regs = regRes.data || [];
+  var regs = [];
+  if (tournamentId) {
+    var regRes = await supabase
+      .from('registrations')
+      .select('status')
+      .eq('tournament_id', tournamentId);
+    regs = regRes.data || [];
+  }
   var total = regs.length;
   var checkedIn = regs.filter(function(r) { return r.status === 'checked_in'; }).length;
 

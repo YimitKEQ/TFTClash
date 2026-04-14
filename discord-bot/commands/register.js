@@ -16,6 +16,11 @@ export async function execute(interaction) {
     return interaction.editReply('Registration is not currently open. Use `/clash` to see the current status.');
   }
 
+  const tournamentId = ts.dbTournamentId || null;
+  if (!tournamentId) {
+    return interaction.editReply('Registration is not fully set up yet. Try registering on the website or wait for a host to open the next clash.');
+  }
+
   // Find the player linked to this Discord user
   let player = await getPlayerByDiscordId(interaction.user.id);
   if (!player) {
@@ -45,17 +50,17 @@ export async function execute(interaction) {
     .from('registrations')
     .select('id')
     .eq('player_id', player.id)
-    .eq('clash_number', ts.clashNumber)
-    .single();
+    .eq('tournament_id', tournamentId)
+    .maybeSingle();
 
   if (existing) {
-    return interaction.editReply('You are already registered for Clash #' + ts.clashNumber + '! Use `/clash` to see the event info.');
+    return interaction.editReply('You are already registered for Clash #' + (ts.clashNumber || '?') + '! Use `/clash` to see the event info.');
   }
 
   // Register
   const { error } = await supabase
     .from('registrations')
-    .insert({ player_id: player.id, clash_number: ts.clashNumber, status: 'registered' });
+    .upsert({ player_id: player.id, tournament_id: tournamentId, status: 'registered' }, { onConflict: 'tournament_id,player_id' });
 
   if (error) {
     console.error('[register] DB error:', error);
@@ -63,6 +68,6 @@ export async function execute(interaction) {
   }
 
   const regs = await getRegistrations();
-  const embed = registrationConfirmEmbed(player.name, ts.clashNumber, regs.length);
+  const embed = registrationConfirmEmbed(player.name, ts.clashNumber || '?', regs.length);
   await interaction.editReply({ embeds: [embed] });
 }

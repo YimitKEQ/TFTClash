@@ -103,14 +103,30 @@ export async function getPlayerByDiscordId(discordUserId) {
   };
 }
 
+/** Resolve the tournament_id (uuid) for a given clash number by looking it up in the tournaments table. */
+export async function getTournamentIdByClashNumber(clashNumber) {
+  if (!clashNumber) return null;
+  const { data } = await supabase
+    .from('tournaments')
+    .select('id')
+    .eq('type', 'season_clash')
+    .ilike('name', 'Clash Week ' + clashNumber)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data ? data.id : null;
+}
+
 /** Get registrations for the current clash. */
 export async function getRegistrations() {
   const ts = await getTournamentState();
-  if (!ts || !ts.clashNumber) return [];
+  if (!ts) return [];
+  const tournamentId = ts.dbTournamentId || (await getTournamentIdByClashNumber(ts.clashNumber));
+  if (!tournamentId) return [];
   const { data, error } = await supabase
     .from('registrations')
     .select('player_id,status,players(username,rank,riot_id_eu,riot_id)')
-    .eq('clash_number', ts.clashNumber);
+    .eq('tournament_id', tournamentId);
   if (error || !data) return [];
   return data.map(r => ({
     playerId: r.player_id,
@@ -123,10 +139,12 @@ export async function getRegistrations() {
 
 /** Get latest game_results for a given clash number. */
 export async function getClashResults(clashNumber) {
+  const tournamentId = await getTournamentIdByClashNumber(clashNumber);
+  if (!tournamentId) return [];
   const { data, error } = await supabase
     .from('game_results')
     .select('player_id,placement,game_number,players(username)')
-    .eq('clash_number', clashNumber)
+    .eq('tournament_id', tournamentId)
     .order('placement', { ascending: true });
   if (error || !data) return [];
   return data.map(r => ({

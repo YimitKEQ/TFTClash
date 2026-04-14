@@ -22,6 +22,11 @@ export async function execute(interaction) {
     return interaction.editReply('Check-in is not currently open. Use `/clash` to see the current status.');
   }
 
+  const tournamentId = ts.dbTournamentId || null;
+  if (!tournamentId) {
+    return interaction.editReply('Check-in is not fully set up yet. Try checking in on the website.');
+  }
+
   // Find the player linked to this Discord user
   let player = await getPlayerByDiscordId(interaction.user.id);
   if (!player) {
@@ -45,21 +50,21 @@ export async function execute(interaction) {
     .from('registrations')
     .select('id,status')
     .eq('player_id', player.id)
-    .eq('clash_number', ts.clashNumber)
-    .single();
+    .eq('tournament_id', tournamentId)
+    .maybeSingle();
 
   if (!reg) {
-    return interaction.editReply('You are not registered for Clash #' + ts.clashNumber + '. Use `/register` first.');
+    return interaction.editReply('You are not registered for Clash #' + (ts.clashNumber || '?') + '. Use `/register` first.');
   }
 
   if (reg.status === 'checked_in') {
-    return interaction.editReply('You are already checked in for Clash #' + ts.clashNumber + '. See you in the lobby!');
+    return interaction.editReply('You are already checked in for Clash #' + (ts.clashNumber || '?') + '. See you in the lobby!');
   }
 
   // Update status to checked_in
   const { error } = await supabase
     .from('registrations')
-    .update({ status: 'checked_in' })
+    .update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
     .eq('id', reg.id);
 
   if (error) {
@@ -67,5 +72,5 @@ export async function execute(interaction) {
     return interaction.editReply('Failed to check in. Please try again or check in at tft-clash.vercel.app.');
   }
 
-  await interaction.editReply('✅ **Checked in!** You are confirmed for Clash #' + ts.clashNumber + '. Good luck, ' + player.name + '!');
+  await interaction.editReply('✅ **Checked in!** You are confirmed for Clash #' + (ts.clashNumber || '?') + '. Good luck, ' + player.name + '!');
 }
