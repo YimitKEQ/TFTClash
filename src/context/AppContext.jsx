@@ -751,6 +751,17 @@ export function AppProvider(props) {
       .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tournamentState]);
 
+  // ── Debug: expose state to window for diagnostics (inspect via window.__tft) ──
+  useEffect(function(){
+    if(typeof window==='undefined')return;
+    window.__tft={
+      currentUser:currentUser,
+      players:players,
+      tournamentState:tournamentState,
+      isAdmin:isAdmin
+    };
+  },[currentUser,players,tournamentState,isAdmin]);
+
   // ── Auto-advance phase based on clashTimestamp (admin only, runs every 30s) ──
   useEffect(function(){
     if(!isAdmin)return;
