@@ -8,7 +8,7 @@ export default function Inp({ label, icon, className = '', ...props }) {
       )}
       <div className="relative">
         <input
-          className={`w-full bg-surface-container-lowest border-0 border-b border-outline-variant/30 py-4 px-4 rounded-none text-on-surface placeholder:text-on-surface/20 focus:ring-1 focus:ring-primary focus:border-primary transition-colors ${className}`}
+          className={`w-full bg-surface-container-lowest border-0 border-b border-outline-variant/60 py-4 px-4 rounded-none text-on-surface placeholder:text-on-surface/40 focus:ring-1 focus:ring-primary focus:border-primary focus-visible:outline-none transition-colors ${className}`}
           {...props}
         />
         {icon && (

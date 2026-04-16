@@ -68,8 +68,8 @@ App.jsx still contains ~6,900 lines of legacy code not yet extracted:
 - **Tiers:** Player (free) / Pro ($4.99/mo) / Host ($19.99/mo)
 - **Free to compete always** -- no paywall on entry
 - **Theme:** Dark -- MD3 tokens via Tailwind (surface, primary, secondary, tertiary, error, success)
-- **Fonts:** Playfair Display (headings), Barlow Condensed (labels), system mono
-- **Icons:** Google Material Symbols Outlined (new screens) + Tabler Icons (legacy in App.jsx)
+- **Fonts:** Russo One (display), Space Grotesk (headline), Playfair Display (editorial/serif), Inter (body), Barlow Condensed (label/sans), JetBrains Mono (mono)
+- **Icons:** Google Material Symbols Outlined via `<Icon>` component (Tabler migration complete)
 
 ---
 

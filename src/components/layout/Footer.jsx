@@ -40,7 +40,7 @@ function Footer() {
 
         {sponsorEntries.length > 0 && (
           <div className="flex items-center gap-3 flex-wrap mb-6">
-            <span className="text-[10px] font-bold text-on-surface/40 tracking-widest uppercase font-condensed">Partners</span>
+            <span className="text-[10px] font-bold text-on-surface/40 tracking-widest uppercase font-label">Partners</span>
             {sponsorEntries.map(function(s, i) {
               return (
                 <div key={s.name} className="flex items-center gap-1.5 px-3 py-1 rounded-md border"
@@ -61,7 +61,7 @@ function Footer() {
 
         <div className="grid gap-8 mb-8" style={{gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))"}}>
           <div>
-            <div className="text-[11px] font-bold text-primary uppercase tracking-widest font-condensed mb-3">Platform</div>
+            <div className="text-[11px] font-bold text-primary uppercase tracking-widest font-label mb-3">Platform</div>
             {platformLinks.map(function(arr) {
               return (
                 <button key={arr[0]} onClick={handleNav(arr[0])}
@@ -72,7 +72,7 @@ function Footer() {
             })}
           </div>
           <div>
-            <div className="text-[11px] font-bold text-primary uppercase tracking-widest font-condensed mb-3">Community</div>
+            <div className="text-[11px] font-bold text-primary uppercase tracking-widest font-label mb-3">Community</div>
             {communityLinks.map(function(arr) {
               return (
                 <button key={arr[0]} onClick={handleNav(arr[0])}
@@ -87,7 +87,7 @@ function Footer() {
             </button>
           </div>
           <div>
-            <div className="text-[11px] font-bold text-primary uppercase tracking-widest font-condensed mb-3">Hosting</div>
+            <div className="text-[11px] font-bold text-primary uppercase tracking-widest font-label mb-3">Hosting</div>
             {hostingLinks.map(function(arr) {
               return (
                 <button key={arr[0]} onClick={handleNav(arr[0])}

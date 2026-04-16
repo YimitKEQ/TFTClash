@@ -30,7 +30,7 @@ function AwardCard(props) {
       </div>
       <div className="flex-1 min-w-0">
         <div
-          className="font-technical text-xs uppercase tracking-wider mb-0.5"
+          className="font-label text-xs uppercase tracking-wider mb-0.5"
           style={{ color: award.color }}
         >
           {award.title}

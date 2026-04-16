@@ -30,7 +30,7 @@ function PlacementDistribution(props) {
   return (
     <div>
       <div className="flex justify-between items-center mb-8">
-        <h3 className="font-technical text-on-surface uppercase text-sm tracking-widest">Placement Distribution</h3>
+        <h3 className="font-label text-on-surface uppercase text-sm tracking-widest">Placement Distribution</h3>
         <Icon className="text-on-surface/40">info</Icon>
       </div>
       <div className="flex items-end justify-between h-48 gap-2">
@@ -39,9 +39,9 @@ function PlacementDistribution(props) {
           var heightPct = Math.round((count / maxCount) * 100);
           return (
             <div key={"place-" + (i + 1)} className="flex flex-col items-center flex-1 group">
-              <span className="text-xs font-stats text-on-surface/40 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">{pct + '%'}</span>
+              <span className="text-xs font-mono text-on-surface/40 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">{pct + '%'}</span>
               <div className={'w-full rounded-t-sm ' + bgClasses[i]} style={{ height: heightPct + '%', minHeight: count > 0 ? '4px' : '0' }}></div>
-              <span className={'font-technical text-[10px] mt-4 ' + labelColors[i]}>{labels[i]}</span>
+              <span className={'font-label text-[10px] mt-4 ' + labelColors[i]}>{labels[i]}</span>
             </div>
           );
         })}
