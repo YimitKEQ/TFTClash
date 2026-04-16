@@ -1,9 +1,12 @@
-export default function PageHeader({ title, subtitle, description, goldWord }) {
+export default function PageHeader({ title, subtitle, description, goldWord, grid }) {
   return (
-    <header className="text-center mb-16 relative">
+    <header className="relative text-center mb-16">
+      {grid && (
+        <div aria-hidden="true" className="tactical-grid absolute inset-0 -z-10 pointer-events-none"></div>
+      )}
       {subtitle && (
-        <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-sans uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded">
-          {subtitle}
+        <div className="flex justify-center mb-4">
+          <span className="brand-eyebrow">{subtitle}</span>
         </div>
       )}
       <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight leading-none mb-4">

@@ -14,7 +14,7 @@ export default function SectionHeader({ eyebrow, title, description, action, ali
     <div className={outerLayout + ' mb-6 ' + className}>
       <div className={'flex flex-col ' + alignClass}>
         {eyebrow ? (
-          <span className="font-label text-xs font-bold uppercase tracking-[0.2em] text-primary mb-2">
+          <span className="brand-eyebrow mb-2">
             {eyebrow}
           </span>
         ) : null}

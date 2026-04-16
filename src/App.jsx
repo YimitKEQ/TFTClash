@@ -36,6 +36,7 @@ var AdminScreenNew = React.lazy(function(){ return import('./screens/AdminScreen
 var HofScreenNew = React.lazy(function(){ return import('./screens/HofScreen'); });
 var GearScreenNew = React.lazy(function(){ return import('./screens/GearScreen'); });
 import PageLayout from './components/layout/PageLayout';
+import ScreenSkeleton from './components/layout/ScreenSkeleton';
 var ClashScreenNew = React.lazy(function(){ return import('./screens/ClashScreen'); });
 var NotFoundScreen = React.lazy(function(){ return import('./screens/NotFoundScreen'); });
 var StatsHubScreenNew = React.lazy(function(){ return import('./screens/StatsHubScreen'); });
@@ -486,7 +487,7 @@ function TFTClash(){
 
     <>
 
-      <React.Suspense fallback={null}><LoginScreenNew/></React.Suspense>
+      <React.Suspense fallback={<ScreenSkeleton/>}><LoginScreenNew/></React.Suspense>
 
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -502,7 +503,7 @@ function TFTClash(){
 
     <>
 
-      <React.Suspense fallback={null}><SignUpScreenNew/></React.Suspense>
+      <React.Suspense fallback={<ScreenSkeleton/>}><SignUpScreenNew/></React.Suspense>
 
       <div style={{position:"fixed",bottom:72,right:16,display:"flex",flexDirection:"column",gap:8,zIndex:9998,pointerEvents:"none",maxWidth:360}}>
 
@@ -570,7 +571,7 @@ function TFTClash(){
 
       <div style={{position:"relative",zIndex:1,minHeight:"100vh"}}>
 
-        <React.Suspense fallback={null}>
+        <React.Suspense fallback={<ScreenSkeleton/>}>
         <ScreenBoundary key={screen} name={screen} onHome={function(){navTo("home");}}>
 
         {screen==="home"&&!currentUser&&<GuestHomeScreen/>}

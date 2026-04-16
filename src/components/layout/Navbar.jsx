@@ -51,7 +51,10 @@ function NotificationBell(props) {
     <div className="relative">
       <button
         onClick={function() { setOpen(function(o) { return !o; }); }}
-        className="relative p-2 text-on-surface/50 hover:text-on-surface transition-colors duration-200 rounded-lg hover:bg-white/5"
+        aria-label={unread > 0 ? (unread + ' unread notifications') : 'Notifications'}
+        aria-haspopup="true"
+        aria-expanded={open}
+        className="relative p-2 text-on-surface/50 hover:text-on-surface transition-colors duration-200 rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         <Icon name="notifications" size={22} />
         {unread > 0 && (
@@ -277,7 +280,7 @@ export default function Navbar() {
               {!isAdmin ? (
                 <Btn variant="ghost" className="w-full" onClick={function() { setDrawer(false); setPwModal(true); }}>Admin Login</Btn>
               ) : (
-                <Btn variant="destructive" className="w-full" onClick={function() { setAdminOverride(false); setDrawer(false); toast('Admin off', 'success'); }}>Admin On</Btn>
+                <Btn variant="destructive" className="w-full" onClick={function() { setAdminOverride(false); setDrawer(false); toast('Admin off', 'success'); }}>Exit Admin</Btn>
               )}
             </div>
           </div>
@@ -289,13 +292,15 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-full px-6 xl:px-8 max-w-[1920px] mx-auto">
 
           {/* Logo */}
-          <div
+          <button
+            type="button"
             onClick={function() { navTo('home'); }}
-            className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity shrink-0"
+            aria-label="TFT Clash home"
+            className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity shrink-0 bg-transparent border-none p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
-            <img src="/icon-border.png" alt="TFT Clash" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(232,168,56,0.4)]" />
+            <img src="/icon-border.png" alt="" aria-hidden="true" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(232,168,56,0.4)]" />
             <span className="font-display font-black italic text-xl text-primary uppercase tracking-tighter leading-none">TFT CLASH</span>
-          </div>
+          </button>
 
           {/* Desktop nav links */}
           <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
@@ -363,7 +368,10 @@ export default function Navbar() {
             {/* Menu button - all screen sizes */}
             <button
               onClick={function() { setDrawer(true); }}
-              className="p-2 text-on-surface/50 hover:text-on-surface transition-colors rounded-lg hover:bg-white/5 bg-transparent border-none cursor-pointer"
+              aria-label="Open menu"
+              aria-haspopup="true"
+              aria-expanded={drawer}
+              className="p-2 text-on-surface/50 hover:text-on-surface transition-colors rounded-lg hover:bg-white/5 bg-transparent border-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Icon name="menu" size={22} />
             </button>
