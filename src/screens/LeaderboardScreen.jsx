@@ -72,8 +72,8 @@ function PodiumCard({ player, rank, onClick }) {
     )
   }
 
-  var borderClass = rank === 2 ? 'border-[#C0C0C0]/30' : 'border-[#CD7F32]/30'
-  var labelBg = rank === 2 ? 'bg-[#C0C0C0]' : 'bg-[#CD7F32]'
+  var borderClass = rank === 2 ? 'border-medal-silver/30' : 'border-medal-bronze/30'
+  var labelBg = rank === 2 ? 'bg-medal-silver' : 'bg-medal-bronze'
   var imgFilter = rank === 2 ? 'grayscale opacity-80' : 'sepia-[.3]'
   var glowClass = rank === 2 ? 'silver-glow-boss' : 'bronze-glow-boss'
   var heightClass = rank === 2 ? 'h-24' : 'h-20'
@@ -253,11 +253,14 @@ export default function LeaderboardScreen(props) {
     <div className="pb-20">
 
         {/* Header */}
-        <header className="mb-16 text-center">
-          <span className="font-label uppercase tracking-[0.2em] text-primary text-sm mb-2 block">Global Competition</span>
+        <header className="mb-16 text-center relative">
+          <div aria-hidden="true" className="tactical-grid absolute inset-0 -z-10 pointer-events-none"></div>
+          <div className="flex justify-center mb-4">
+            <span className="brand-eyebrow">Global Competition</span>
+          </div>
           <h1 className="font-editorial italic text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
-          <p className="text-on-surface-variant max-w-2xl mx-auto font-body opacity-80">
-            Behold the elite tacticians of the convergence. Only those with iron resolve and unmatched strategy ascend the Obsidian Arena.
+          <p className="text-on-surface-variant max-w-2xl mx-auto font-body opacity-80 leading-relaxed">
+            Every placement earns points. Every week is a chance to climb. One season, one ladder, every region.
           </p>
         </header>
 

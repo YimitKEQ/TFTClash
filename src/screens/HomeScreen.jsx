@@ -132,10 +132,13 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
 
   return (
     <section className="space-y-6">
-      <div className="flex justify-between items-end">
-        <h2 className="font-headline text-3xl italic">
-          Elite <span className="text-primary">Leaderboard</span>
-        </h2>
+      <div className="flex justify-between items-end gap-4">
+        <div className="flex flex-col gap-2">
+          <span className="brand-eyebrow">Top 5 · Live</span>
+          <h2 className="font-headline text-3xl italic">
+            Elite <span className="text-primary">Leaderboard</span>
+          </h2>
+        </div>
         <Btn variant="link" onClick={onViewAll}>
           View All Standings
         </Btn>
@@ -287,21 +290,20 @@ export default function HomeScreen() {
 
   return (
     <PageLayout showSidebar={false} maxWidth="max-w-[880px]">
-      <style>{`
-        .glass-panel {
-          background: rgba(52, 52, 60, 0.6);
-          backdrop-filter: blur(24px);
-        }
-      `}</style>
 
       <div className="space-y-8 sm:space-y-12">
 
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
-        <section className="relative text-center space-y-6 sm:space-y-8">
+        <section className="relative text-center space-y-6 sm:space-y-8 py-8 sm:py-12">
+          {/* Tactical grid backdrop (decorative) */}
+          <div aria-hidden="true" className="tactical-grid absolute inset-0 -z-10 pointer-events-none"></div>
 
-          {/* Season pill */}
-          <div className="inline-block px-4 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary font-label text-xs tracking-[0.2em] uppercase">
-            {seasonLabel}
+          {/* Season pill — brand eyebrow */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            <span className="font-label text-[11px] tracking-[0.3em] uppercase text-primary font-bold">
+              {seasonLabel}
+            </span>
           </div>
 
           {/* Main title */}
@@ -310,7 +312,7 @@ export default function HomeScreen() {
           </h1>
 
           {/* Tagline */}
-          <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-60">
+          <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-70">
             Free weekly tournaments. Real competition. One leaderboard to rule them all.
           </p>
 
@@ -371,9 +373,12 @@ export default function HomeScreen() {
         {/* ── How It Works ──────────────────────────────────────────────────── */}
         {!currentUser && (
           <section className="space-y-6">
-            <h2 className="text-center font-headline text-2xl sm:text-3xl italic text-on-surface">
-              How It <span className="text-primary">Works</span>
-            </h2>
+            <div className="flex flex-col items-center gap-2">
+              <span className="brand-eyebrow">Get Started</span>
+              <h2 className="font-headline text-2xl sm:text-3xl italic text-on-surface text-center">
+                How It <span className="text-primary">Works</span>
+              </h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Panel padding="default" className="text-center space-y-3">
                 <div className="w-12 h-12 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
@@ -460,9 +465,12 @@ export default function HomeScreen() {
         {/* ── Common Questions ─────────────────────────────────────────────── */}
         {!currentUser && (
           <section className="space-y-6">
-            <h2 className="text-center font-headline text-2xl sm:text-3xl italic text-on-surface">
-              Common <span className="text-primary">Questions</span>
-            </h2>
+            <div className="flex flex-col items-center gap-2">
+              <span className="brand-eyebrow">The Basics</span>
+              <h2 className="font-headline text-2xl sm:text-3xl italic text-on-surface text-center">
+                Common <span className="text-primary">Questions</span>
+              </h2>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Panel padding="none" className="p-5 space-y-2">
                 <h3 className="font-label text-xs font-bold uppercase tracking-wider text-primary">Is it really free?</h3>
@@ -541,7 +549,8 @@ export default function HomeScreen() {
 
       {/* ── FAB ───────────────────────────────────────────────────────────────── */}
       <button
-        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim shadow-[0_10px_30px_rgba(232,168,56,0.4)]"
+        aria-label={currentUser ? 'Go to dashboard' : 'Sign up'}
+        className="fixed bottom-8 right-8 z-50 w-16 h-16 rounded-xl flex items-center justify-center active:scale-95 transition-all motion-reduce:transition-none motion-reduce:active:scale-100 group overflow-hidden border-0 cursor-pointer bg-gradient-to-br from-primary to-primary-fixed-dim cta-glow-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         onClick={function() {
           if (currentUser) {
             navigate('/');
@@ -550,7 +559,7 @@ export default function HomeScreen() {
           }
         }}
       >
-        <Icon name={currentUser ? 'dashboard' : 'add_circle'} size={30} className="text-on-primary-fixed group-hover:scale-110 transition-transform" />
+        <Icon name={currentUser ? 'dashboard' : 'add_circle'} size={30} className="text-on-primary-fixed group-hover:scale-110 transition-transform motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
       </button>
     </PageLayout>
   )

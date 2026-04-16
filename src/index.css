@@ -41,6 +41,97 @@
   .gold-glow {
     box-shadow: 0 0 30px rgba(253, 186, 73, 0.15);
   }
+
+  /* ── Brand v2 motifs ─────────────────────────────────────────── */
+
+  /* Tactical grid: faint dot/line pattern for hero backdrops */
+  .tactical-grid {
+    background-image:
+      linear-gradient(rgba(255, 198, 107, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 198, 107, 0.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+    background-position: center center;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+  }
+
+  /* Signature chevron rule: horizontal line with a rising accent mark at start */
+  .chevron-rule {
+    position: relative;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 198, 107, 0.35) 12%, rgba(255, 198, 107, 0.15) 60%, transparent 100%);
+  }
+  .chevron-rule::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 2px solid theme('colors.primary.DEFAULT', #ffc66b);
+    border-right: 2px solid theme('colors.primary.DEFAULT', #ffc66b);
+    border-top-right-radius: 2px;
+  }
+
+  /* CTA glow primary: the big call-to-action */
+  .cta-glow-primary {
+    box-shadow:
+      0 0 0 1px rgba(255, 198, 107, 0.35),
+      0 10px 40px rgba(232, 168, 56, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+  .cta-glow-primary:hover {
+    box-shadow:
+      0 0 0 1px rgba(255, 198, 107, 0.55),
+      0 14px 60px rgba(232, 168, 56, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  /* Angled corner clip — cuts top-right corner off a panel for a tactical silhouette */
+  .clip-angle-tr {
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  }
+  .clip-angle-bl {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+
+  /* Section eyebrow with leading chevron */
+  .brand-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: theme('colors.primary.DEFAULT', #ffc66b);
+  }
+  .brand-eyebrow::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    transform: rotate(45deg) translateY(-1px);
+  }
+
+  /* Scanline accent for data-heavy panels (very subtle) */
+  .scanline-bg {
+    background-image: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.015) 3px,
+      rgba(255, 255, 255, 0.015) 4px
+    );
+  }
+
+  /* Medal halos — reusable, token-driven */
+  .halo-gold   { box-shadow: 0 0 40px rgba(232, 168, 56, 0.3); }
+  .halo-silver { box-shadow: 0 0 32px rgba(192, 192, 192, 0.22); }
+  .halo-bronze { box-shadow: 0 0 32px rgba(205, 127, 50, 0.22); }
 }
 
 @layer utilities {

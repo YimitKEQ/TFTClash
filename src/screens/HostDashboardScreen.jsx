@@ -569,7 +569,7 @@ export default function HostDashboardScreen() {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <h1 className="text-5xl font-editorial font-bold text-on-background mb-2">Host Central</h1>
-            <p className="text-slate-400 font-body max-w-xl">Manage your prestigious arenas, analyze player engagement, and brand your tournament experience with surgical precision.</p>
+            <p className="text-on-surface-variant font-body max-w-xl">Run your tournaments, track engagement, and brand every detail. One dashboard, total control.</p>
           </div>
           <div className="flex gap-4">
             <button

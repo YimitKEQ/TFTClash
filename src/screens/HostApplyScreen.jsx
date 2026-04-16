@@ -255,8 +255,8 @@ export default function HostApplyScreen() {
           <div className="bg-surface-container-lowest p-8 rounded-xl border border-primary/10">
             <Icon name="verified_user" fill={true} size={28} className="text-primary mb-4" />
             <h4 className="font-headline text-xl font-bold text-on-surface mb-2">Prestige Access</h4>
-            <p className="text-sm text-slate-500 leading-relaxed mb-6">
-              Approved hosts receive exclusive arena skins, custom lobby commands, and direct support from the TFT Clash dev team.
+            <p className="text-sm text-on-surface-variant leading-relaxed mb-6">
+              Approved hosts get a branded tournament page, custom lobby commands, and direct support from the TFT Clash team.
             </p>
             <button
               type="button"

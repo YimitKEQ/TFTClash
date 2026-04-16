@@ -354,7 +354,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
       <section className="mt-6 border-t border-outline-variant/10 pt-8 flex flex-col items-center">
         <h5 className="font-editorial text-lg italic mb-6 text-on-surface-variant"
           >
-          Immortalize your legacy
+          Share this clash
         </h5>
         <div className="flex flex-wrap justify-center gap-3">
           <button

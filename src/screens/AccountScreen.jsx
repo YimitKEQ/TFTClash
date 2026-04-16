@@ -405,7 +405,7 @@ export default function AccountScreen() {
             <div>
               <h1 className="font-editorial italic text-5xl md:text-6xl text-on-surface mb-2">Account Settings</h1>
               <p className="text-on-surface/60 font-body max-w-2xl">
-                Manage your competitive identity, link external accounts, and customize your presence in the Obsidian Arena.
+                Manage your competitive identity, link external accounts, and customize how you show up on TFT Clash.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -1461,7 +1461,7 @@ export default function AccountScreen() {
             {linkedPlayer ? (
               <div>
                 <div className="mb-6">
-                  <p className="text-on-surface/50 text-sm font-body">Complete challenges to earn rewards and recognition in the arena.</p>
+                  <p className="text-on-surface/50 text-sm font-body">Complete challenges to earn XP, cosmetics, and bragging rights.</p>
                 </div>
 
                 {/* Daily Challenges */}

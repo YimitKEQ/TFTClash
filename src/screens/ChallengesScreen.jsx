@@ -342,7 +342,7 @@ export default function ChallengesScreen() {
                 </div>
                 <div className="mt-8 pt-6 border-t border-outline-variant/10">
                   <p className="font-serif italic text-on-surface/80 text-center text-sm leading-relaxed">
-                    "The master of the arena is not born, but forged in the heat of daily discipline."
+                    "Show up. Stack wins. Repeat."
                   </p>
                 </div>
               </div>

@@ -333,8 +333,7 @@ export default function PricingScreen() {
               FREE TO COMPETE, ALWAYS.
             </h2>
             <p className="text-on-surface-variant max-w-2xl mx-auto mb-6 text-sm">
-              Our core competitive ecosystem remains accessible to every tactician.
-              We believe in meritocracy. The arena is open.
+              Every weekly clash is free to enter. Paid tiers add tools, not access. Climb on merit, no paywall.
             </p>
             <div className="inline-flex items-center gap-6 font-mono text-xs opacity-50 uppercase flex-wrap justify-center">
               <div className="flex items-center gap-2">

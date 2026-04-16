@@ -223,11 +223,10 @@ export default function ArchiveScreen() {
         {/* Page header */}
         <header className="mb-12">
           <h1 className="font-editorial italic text-5xl md:text-7xl text-on-surface mb-4">
-            The Hall of Victory
+            Season Archive
           </h1>
-          <p className="text-slate-400 max-w-2xl text-lg">
-            A chronological record of past seasons, eternalizing the champions who rose through
-            the Obsidian Arena and the statistics that defined their legacy.
+          <p className="text-on-surface-variant max-w-2xl text-lg leading-relaxed">
+            Every past season, every champion, every stat line. A permanent record of who ran it and when.
           </p>
         </header>
 

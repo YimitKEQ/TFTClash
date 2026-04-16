@@ -254,7 +254,7 @@ export default function MilestonesScreen() {
         <header className="mb-10">
           <h1 className="font-editorial italic text-5xl md:text-7xl font-black text-on-surface mb-4 tracking-tight">Milestones</h1>
           <p className="text-on-surface-variant max-w-2xl text-lg leading-relaxed">
-            Forge your legacy in the Obsidian Arena. Every match brings you closer to legendary status and exclusive season rewards.
+            Track your achievements across the season. Every match moves you closer to milestone unlocks and season rewards.
           </p>
         </header>
 
@@ -542,7 +542,7 @@ export default function MilestonesScreen() {
             </span>
             <h3 className="font-serif text-4xl lg:text-5xl text-on-surface mb-4">Season Champion Rewards</h3>
             <p className="text-on-surface-variant text-lg mb-8 max-w-xl">
-              Command the arena with the season's ultimate prestige cosmetics. Only available to those who reach Challenger status before the season finale.
+              The season's top-tier cosmetics. Only unlocked by players who hit Challenger before the finale.
             </p>
             <div className="flex flex-wrap gap-4 justify-center md:justify-start">
               <div className="px-6 py-3 bg-surface-container-high border border-outline-variant/20">

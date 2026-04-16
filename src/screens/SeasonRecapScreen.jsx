@@ -273,7 +273,7 @@ export default function SeasonRecapScreen() {
             </span>
           </h1>
           <p className="max-w-2xl mx-auto text-on-surface-variant text-lg leading-relaxed italic">
-            A definitive record of your dominance across the Obsidian Arena.
+            Your season, by the numbers. Every clash, every placement, every point.
           </p>
         </header>
 
