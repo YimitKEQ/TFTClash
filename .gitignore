@@ -20,3 +20,14 @@ supabase/.temp/
 .claude-backup/
 .superpowers/
 .mcp.json
+
+# Obsidian / local notes (auto-generated or personal)
+.obsidian/
+.planning/
+Codebase/
+"TFT Clash/"
+"$HOME/"
+
+# Test output
+playwright-report/
+test-results/

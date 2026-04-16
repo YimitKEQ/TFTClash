@@ -2,9 +2,16 @@
 .planning/
 docs/
 CLAUDE.md
-HANDOFF-NEXT-CHAT.md
 README.md
 START.bat
+install.bat
+scripts/archive/
+scraper/
+ads/
+stitch/
+stitch.zip
+stitch_raw.txt
+Autofull/
 *.py
 *.xlsx
 *.txt.txt
