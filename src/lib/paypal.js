@@ -45,7 +45,8 @@ export function getDonateUrl() {
 export function getSubscribeUrl(tier, authUserId) {
   var planId = PAYPAL_PLANS[tier];
   if (!planId) return null;
-  var returnUrl = window.location.origin + '/account?checkout=success&tier=' + tier;
+  // SECURITY: never include tier in the return URL — PayPal webhook derives tier from plan_id server-side.
+  var returnUrl = window.location.origin + '/account?checkout=success';
   var cancelUrl = window.location.origin + '/pricing';
   return 'https://www.paypal.com/webapps/billing/plans/subscribe'
     + '?plan_id=' + encodeURIComponent(planId)
@@ -58,27 +59,45 @@ export function getSubscribeUrl(tier, authUserId) {
 // After PayPal redirects back, record the subscription in the DB.
 // The webhook will also fire and update the record, but this gives instant feedback.
 
-// Client-side: writes as 'pending'. Only the webhook (service role) sets 'active'.
-// This gives instant UI feedback while preventing users from self-activating.
-export function activateSubscription(supabase, userId, tier, subscriptionId) {
-  return supabase
-    .from('user_subscriptions')
-    .upsert({
-      user_id: userId,
-      tier: tier,
-      provider: 'paypal',
-      provider_subscription_id: subscriptionId || '',
-      status: 'pending',
-      current_period_start: new Date().toISOString(),
-      current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-      cancel_at_period_end: false,
-    }, { onConflict: 'user_id' })
-    .select()
-    .single()
-    .then(function(resp) {
-      if (resp.error) throw resp.error;
-      return resp.data;
-    });
+// SECURITY: tier and activation status are ONLY set by the PayPal webhook (service role).
+// The client polls for the webhook-created record — it never writes subscription data itself.
+// This prevents any path where a client can forge their subscription tier.
+export function pollForSubscription(supabase, userId, opts) {
+  opts = opts || {};
+  var attempts = opts.attempts || 10;
+  var intervalMs = opts.intervalMs || 1500;
+  return new Promise(function(resolve) {
+    var tries = 0;
+    function attempt() {
+      tries++;
+      supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .then(function(resp) {
+          var row = resp && resp.data && resp.data[0];
+          if (row && (row.status === 'active' || row.status === 'pending')) {
+            resolve(row);
+            return;
+          }
+          if (tries >= attempts) {
+            resolve(null);
+            return;
+          }
+          setTimeout(attempt, intervalMs);
+        })
+        .catch(function() {
+          if (tries >= attempts) {
+            resolve(null);
+            return;
+          }
+          setTimeout(attempt, intervalMs);
+        });
+    }
+    attempt();
+  });
 }
 
 // ─── Cancel Subscription ──────────────────────────────────────────────────────

@@ -2,6 +2,23 @@ import { useState, useEffect } from 'react'
 import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
+import { TOURNAMENT_FORMATS } from '../../lib/tournament.js'
+
+// Rough duration: ~18 min per TFT game + 5 min lobby/room setup between games.
+function estimateDurationMinutes(games) {
+  var g = parseInt(games, 10) || 0
+  if (g <= 0) return 0
+  return g * 18 + Math.max(0, g - 1) * 5
+}
+
+function formatDuration(mins) {
+  if (!mins) return ''
+  var h = Math.floor(mins / 60)
+  var m = mins % 60
+  if (h <= 0) return m + ' min'
+  if (m === 0) return h + 'h'
+  return h + 'h ' + m + 'm'
+}
 
 var PHASE_STEPS = ['registration', 'checkin', 'inprogress', 'complete']
 var PHASE_LABELS = { registration: 'Registration', checkin: 'Check-in', inprogress: 'Live', complete: 'Complete' }
@@ -53,9 +70,29 @@ export default function TournamentTab() {
   var roundConfig = _roundConfig[0]
   var setRoundConfig = _roundConfig[1]
 
+  var _formatPreset = useState('weekly')
+  var formatPreset = _formatPreset[0]
+  var setFormatPreset = _formatPreset[1]
+
   var _seedAlgo = useState('rank-based')
   var seedAlgo = _seedAlgo[0]
   var setSeedAlgo = _seedAlgo[1]
+
+  function applyFormatPreset(key) {
+    setFormatPreset(key)
+    if (key === 'custom') return
+    var f = TOURNAMENT_FORMATS[key]
+    if (!f) return
+    setRoundConfig(function(c) {
+      return Object.assign({}, c, {
+        maxPlayers: String(f.maxPlayers),
+        roundCount: String(f.games),
+        cutLine: String(f.cutLine || 0),
+        cutAfterGame: String(f.cutAfterGame || 0)
+      })
+    })
+    if (f.seeding) setSeedAlgo(f.seeding)
+  }
 
   var _newEvent = useState({ name: '', type: 'SCHEDULED', whenLocal: '', cap: '8', format: 'Swiss' })
   var newEvent = _newEvent[0]
@@ -162,6 +199,9 @@ export default function TournamentTab() {
       }
       var maxP = parseInt(roundConfig.maxPlayers) || ts.maxPlayers || 24
       var rounds = parseInt(roundConfig.roundCount) || ts.roundCount || 3
+      var cutLine = parseInt(roundConfig.cutLine) || 0
+      var cutAfterGame = parseInt(roundConfig.cutAfterGame) || 0
+      var checkinMins = parseInt(roundConfig.checkinWindowMins) || 30
       supabase.from('tournaments').insert({
         name: name,
         date: new Date().toISOString().split('T')[0],
@@ -193,6 +233,11 @@ export default function TournamentTab() {
             round: 1,
             maxPlayers: maxP,
             roundCount: rounds,
+            totalGames: rounds,
+            cutLine: cutLine,
+            cutAfterGame: cutAfterGame,
+            checkinWindowMins: checkinMins,
+            formatPreset: formatPreset,
             seedingMethod: seedAlgo || 'rank-based'
           })
         })
@@ -356,14 +401,32 @@ export default function TournamentTab() {
           <Icon name="tune" size={16} className="text-secondary" />
           <span className="font-bold text-sm text-on-surface">Round Config</span>
         </div>
+
+        <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+          <label className="block text-[11px] text-primary font-bold uppercase tracking-wider mb-2">Clash Format</label>
+          <Sel value={formatPreset} onChange={applyFormatPreset}>
+            {Object.keys(TOURNAMENT_FORMATS).map(function(k) {
+              var f = TOURNAMENT_FORMATS[k]
+              return <option key={k} value={k}>{f.name + ' — ' + f.games + ' games, ' + f.maxPlayers + 'p'}</option>
+            })}
+            <option value="custom">Custom</option>
+          </Sel>
+          {formatPreset !== 'custom' && TOURNAMENT_FORMATS[formatPreset] && (
+            <div className="text-[10px] text-on-surface/60 mt-2">{TOURNAMENT_FORMATS[formatPreset].description}</div>
+          )}
+          <div className="text-[10px] text-tertiary font-bold mt-2">
+            {'Estimated duration: ~' + formatDuration(estimateDurationMinutes(roundConfig.roundCount)) + ' for ' + (parseInt(roundConfig.roundCount) || 0) + ' games'}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Max Players</label>
-            <Inp type="number" value={roundConfig.maxPlayers} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { maxPlayers: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" value={roundConfig.maxPlayers} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { maxPlayers: typeof v === 'string' ? v : v.target.value })); setFormatPreset('custom') }} />
           </div>
           <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Round Count</label>
-            <Inp type="number" value={roundConfig.roundCount} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { roundCount: typeof v === 'string' ? v : v.target.value })) }} />
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Games per Clash</label>
+            <Inp type="number" value={roundConfig.roundCount} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { roundCount: typeof v === 'string' ? v : v.target.value })); setFormatPreset('custom') }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Check-in Window (min)</label>

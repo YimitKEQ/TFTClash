@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats, ACHIEVEMENTS, MILESTONES, WEEKLY_CHALLENGES, DAILY_CHALLENGES, isHotStreak } from '../lib/stats.js'
 import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
-import { activateSubscription, TIER_LABELS, getDonateUrl } from '../lib/paypal.js'
+import { pollForSubscription, TIER_LABELS, getDonateUrl } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
 import Sparkline from '../components/shared/Sparkline'
@@ -149,32 +149,33 @@ export default function AccountScreen() {
       .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); }).catch(function() {});
   }, [user && user.id]);
 
-  // Handle PayPal checkout return: /account?checkout=success&tier=pro
-  // Writes as 'pending' - webhook will set 'active' once PayPal confirms payment.
+  // Handle PayPal checkout return: /account?checkout=success
+  // SECURITY: client does NOT write subscription data. PayPal webhook creates the row
+  // and derives tier from plan_id server-side. We just poll for the webhook's record.
   useEffect(function() {
     var params = new URLSearchParams(location.search);
     var checkout = params.get('checkout');
-    var tier = params.get('tier');
-    var validTiers = ['pro', 'scrim', 'bundle', 'host'];
-    if (checkout !== 'success' || !tier || validTiers.indexOf(tier) === -1 || !user || !user.id) return;
+    if (checkout !== 'success' || !user || !user.id) return;
     var authId = user.auth_user_id || user.id;
-    activateSubscription(supabase, authId, tier)
-      .then(function(sub) {
-        setSubscription(sub);
-        if (setSubscriptions && user.id) {
-          setSubscriptions(function(prev) {
-            var merged = Object.assign({}, prev || {});
-            merged[user.id] = sub;
-            return merged;
-          });
-        }
-        toast('Payment received - your ' + (TIER_LABELS[tier] || tier) + ' subscription is being activated.', 'success');
-        navigate('/account', { replace: true });
-      })
-      .catch(function() {
-        toast('Payment received - it may take a moment to activate.', 'info');
-        navigate('/account', { replace: true });
-      });
+    toast('Payment received - activating your subscription...', 'info');
+    navigate('/account', { replace: true });
+    pollForSubscription(supabase, authId).then(function(sub) {
+      if (!sub) {
+        toast('Payment received - it may take a moment to show up here. Refresh if needed.', 'info');
+        return;
+      }
+      setSubscription(sub);
+      if (setSubscriptions && user.id) {
+        setSubscriptions(function(prev) {
+          var merged = Object.assign({}, prev || {});
+          merged[user.id] = sub;
+          return merged;
+        });
+      }
+      var label = TIER_LABELS[sub.tier] || sub.tier;
+      if (sub.status === 'active') toast('Your ' + label + ' subscription is active.', 'success');
+      else toast('Your ' + label + ' subscription is pending confirmation from PayPal.', 'info');
+    });
   }, [location.search]);
 
   async function handleLogout() {

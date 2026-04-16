@@ -393,7 +393,7 @@ export function AppProvider(props) {
         fetchAndSetCurrentUser(session.user, function(){setIsAuthLoading(false);});
       } else {
         // Dev-mode auto-login: on localhost with no session, load Levitate from DB
-        var isLocal=import.meta.env.DEV&&typeof window!=='undefined'&&(window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1');
+        var isLocal=import.meta.env.DEV&&typeof window!=='undefined'&&window.location.hostname==='localhost';
         if(isLocal&&supabase.from){
           supabase.from('players').select('*').eq('username','Levitate').single().then(function(pRes){
             if(pRes.data){
@@ -751,9 +751,10 @@ export function AppProvider(props) {
       .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
   },[tournamentState]);
 
-  // ── Debug: expose state to window for diagnostics (inspect via window.__tft) ──
+  // ── Debug: expose state to window for diagnostics (DEV ONLY — never in production) ──
   useEffect(function(){
     if(typeof window==='undefined')return;
+    if(!import.meta.env.DEV)return;
     window.__tft={
       currentUser:currentUser,
       players:players,

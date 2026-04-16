@@ -302,6 +302,16 @@ function BracketScreen(){
     });
     setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:false})});});
 
+    function rollbackLock(){
+      setTournamentState(function(ts){
+        return Object.assign({},ts,{
+          lockedLobbies:(ts.lockedLobbies||[]).filter(function(x){return x!==li;}),
+          lockedPlacements:Object.keys(ts.lockedPlacements||{}).reduce(function(acc,k){if(String(k)!==String(li))acc[k]=ts.lockedPlacements[k];return acc;},{})
+        });
+      });
+      setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:true})});});
+    }
+
     if(supabase.from&&tournamentState.dbTournamentId){
       supabase.from('lobbies').update({status:'locked'})
         .eq('tournament_id',tournamentState.dbTournamentId)
@@ -319,9 +329,8 @@ function BracketScreen(){
       });
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
-          if(res.error){toast("Failed to save game results","error");}
-          else{
-            lobby.forEach(function(lp){
+          if(res.error){toast("Failed to save game results - please retry","error");rollbackLock();return;}
+          lobby.forEach(function(lp){
               var place=parseInt(placementEntry[li].placements[lp.id]||"0");
               if(place<=0)return;
               var updatedP=playersRef.current.find(function(pp){return pp.id===lp.id;});
@@ -338,8 +347,7 @@ function BracketScreen(){
                 if(pr.error)console.warn('Player stat update failed:',pr.error.message);
               }).catch(function(e){console.warn('Player stat update error:',e);});
             });
-          }
-        }).catch(function(){ toast('Failed to save game results','error'); });
+        }).catch(function(){ toast('Failed to save game results','error'); rollbackLock(); });
       }
     }
 

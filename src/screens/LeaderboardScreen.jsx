@@ -102,47 +102,37 @@ function TableRow({ player, rank, isMe, onClick }) {
   var trendColor = getTrendColor(stats.avgPlacement)
   var rankLabel = '#' + (rank < 10 ? '0' + rank : rank)
 
-  if (isMe) {
-    return (
-      <tr
-        id="lb-me-row"
-        className="relative group cursor-pointer bg-secondary/5 shadow-[inset_0_0_15px_rgba(217,185,255,0.15)]"
-        onClick={onClick}
-      >
-        <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-secondary font-bold text-sm">{rankLabel}</td>
-        <td className="px-4 sm:px-8 py-4 sm:py-5">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="w-8 h-8 bg-secondary-container rounded-full border border-secondary/50 flex items-center justify-center flex-shrink-0">
-              <span className="font-bold text-secondary text-sm">{(player.name || '?').charAt(0).toUpperCase()}</span>
-            </div>
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="font-bold text-secondary truncate">{player.name}</span>
-              <span className="bg-secondary/20 text-secondary text-[10px] px-2 py-0.5 font-label tracking-tighter rounded-full uppercase flex-shrink-0">You</span>
-            </div>
-          </div>
-        </td>
-        <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-secondary text-sm font-bold">{(player.pts || 0) + ' pts'}</td>
-        <td className="hidden sm:table-cell px-8 py-5 font-mono text-secondary text-sm">{stats.avgPlacement}</td>
-        <td className="px-4 sm:px-8 py-4 sm:py-5 text-right">
-          <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
-        </td>
-      </tr>
-    )
-  }
+  var rowClass = isMe
+    ? 'relative group cursor-pointer bg-secondary/5 shadow-[inset_0_0_15px_rgba(217,185,255,0.15)]'
+    : 'hover:bg-white/5 transition-colors group cursor-pointer'
+  var rowId = isMe ? 'lb-me-row' : undefined
+  var rankColor = isMe ? 'text-secondary font-bold' : 'text-on-surface'
+  var nameColor = isMe ? 'text-secondary' : 'text-on-surface'
+  var ptsColor = isMe ? 'text-secondary font-bold' : 'text-tertiary font-bold'
+  var avgColor = isMe ? 'text-secondary' : 'text-on-surface-variant'
+  var initialClass = isMe
+    ? 'w-8 h-8 bg-secondary-container rounded-full border border-secondary/50 flex items-center justify-center flex-shrink-0'
+    : 'w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center flex-shrink-0'
+  var initialTextClass = isMe ? 'font-bold text-secondary text-sm' : 'font-bold text-on-surface/60 text-sm'
 
   return (
-    <tr className="hover:bg-white/5 transition-colors group cursor-pointer" onClick={onClick}>
-      <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-on-surface text-sm">{rankLabel}</td>
+    <tr id={rowId} className={rowClass} onClick={onClick}>
+      <td className={'px-4 sm:px-8 py-4 sm:py-5 font-mono text-sm ' + rankColor}>{rankLabel}</td>
       <td className="px-4 sm:px-8 py-4 sm:py-5">
-        <div className="flex items-center gap-3 sm:gap-4">
-          <div className="w-8 h-8 bg-surface-container-high rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="font-bold text-on-surface/60 text-sm">{(player.name || '?').charAt(0).toUpperCase()}</span>
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <div className={initialClass}>
+            <span className={initialTextClass}>{(player.name || '?').charAt(0).toUpperCase()}</span>
           </div>
-          <span className="font-bold text-on-surface truncate">{player.name}</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={'font-bold truncate ' + nameColor}>{player.name}</span>
+            {isMe && (
+              <span className="bg-secondary/20 text-secondary text-[10px] px-2 py-0.5 font-label tracking-tighter rounded-full uppercase flex-shrink-0">You</span>
+            )}
+          </div>
         </div>
       </td>
-      <td className="px-4 sm:px-8 py-4 sm:py-5 font-mono text-tertiary text-sm font-bold">{(player.pts || 0) + ' pts'}</td>
-      <td className="hidden sm:table-cell px-8 py-5 font-mono text-on-surface-variant text-sm">{stats.avgPlacement}</td>
+      <td className={'px-4 sm:px-8 py-4 sm:py-5 font-mono text-sm whitespace-nowrap ' + ptsColor}>{(player.pts || 0) + ' pts'}</td>
+      <td className={'hidden sm:table-cell px-8 py-5 font-mono text-sm ' + avgColor}>{stats.avgPlacement}</td>
       <td className="px-4 sm:px-8 py-4 sm:py-5 text-right">
         <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
       </td>
@@ -150,37 +140,16 @@ function TableRow({ player, rank, isMe, onClick }) {
   )
 }
 
-function TierSection({ tierKey, players, ranksMap, currentUser, onPlayerClick }) {
-  var divider = TIER_DIVIDERS.find(function(d) { return d.key === tierKey }) || TIER_DIVIDERS[TIER_DIVIDERS.length - 1]
-
-  if (players.length === 0) return null
-
+function TierDividerRow({ divider }) {
   return (
-    <div>
-      <div className={divider.bg + ' ' + divider.border + ' px-4 sm:px-8 py-3 flex items-center justify-between'}>
-        <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
-        <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
-      </div>
-      <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
-        <table className="w-full text-left border-collapse">
-          <tbody className="divide-y divide-outline-variant/5">
-            {players.map(function(player) {
-              var rank = ranksMap[player.name]
-              var isMe = currentUser && player.name === currentUser.username
-              return (
-                <TableRow
-                  key={player.id || player.name}
-                  player={player}
-                  rank={rank}
-                  isMe={isMe}
-                  onClick={function() { onPlayerClick(player) }}
-                />
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <tr className={divider.bg + ' ' + divider.border}>
+      <td colSpan={5} className="px-4 sm:px-8 py-3">
+        <div className="flex items-center justify-between">
+          <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
+          <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
+        </div>
+      </td>
+    </tr>
   )
 }
 
@@ -359,10 +328,15 @@ export default function LeaderboardScreen(props) {
 
         {sorted.length > 0 && (
           <Panel padding="none" className="overflow-hidden">
-
-            {/* Table header row */}
             <div className="overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none]">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse table-fixed">
+                <colgroup>
+                  <col className="w-20 sm:w-28" />
+                  <col />
+                  <col className="w-28 sm:w-40" />
+                  <col className="hidden sm:table-column w-32" />
+                  <col className="w-16 sm:w-24" />
+                </colgroup>
                 <thead className="bg-surface-container-lowest/50">
                   <tr>
                     <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Rank</th>
@@ -372,24 +346,31 @@ export default function LeaderboardScreen(props) {
                     <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
                   </tr>
                 </thead>
+                {TIER_DIVIDERS.map(function(divider) {
+                  var tierPlayers = tierGroups[divider.key] || []
+                  if (tierPlayers.length === 0) return null
+                  return (
+                    <tbody key={divider.key} className="divide-y divide-outline-variant/5">
+                      <TierDividerRow divider={divider} />
+                      {tierPlayers.map(function(player) {
+                        var rank = ranksMap[player.name]
+                        var isMe = currentUser && player.name === currentUser.username
+                        return (
+                          <TableRow
+                            key={player.id || player.name}
+                            player={player}
+                            rank={rank}
+                            isMe={isMe}
+                            onClick={function() { openPlayer(player) }}
+                          />
+                        )
+                      })}
+                    </tbody>
+                  )
+                })}
               </table>
             </div>
 
-            {/* Tier sections */}
-            {TIER_DIVIDERS.map(function(divider) {
-              return (
-                <TierSection
-                  key={divider.key}
-                  tierKey={divider.key}
-                  players={tierGroups[divider.key] || []}
-                  ranksMap={ranksMap}
-                  currentUser={currentUser}
-                  onPlayerClick={openPlayer}
-                />
-              )
-            })}
-
-            {/* Footer */}
             <div className="bg-surface-container-lowest py-6 px-8 border-t border-outline-variant/10">
               <span className="text-xs font-label text-outline tracking-widest uppercase">
                 {'Showing ' + sorted.length + ' of ' + players.length + ' Players'}
