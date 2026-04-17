@@ -12,6 +12,18 @@ import PlacementDistribution from '../components/shared/PlacementDistribution'
 
 // ─── Shared components ──────────────────────────────────���─────────────────────
 
+// ─── Image upload validation ──────────────────────────────────────────────────
+var ALLOWED_IMAGE_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif' };
+
+function validateImageFile(file, maxMb) {
+  if (!file) return { ok: false, reason: 'No file selected' };
+  var ext = ALLOWED_IMAGE_TYPES[file.type];
+  if (!ext) return { ok: false, reason: 'Only JPEG, PNG, WebP or GIF images are allowed' };
+  var maxBytes = (maxMb || 2) * 1024 * 1024;
+  if (file.size > maxBytes) return { ok: false, reason: 'Max ' + (maxMb || 2) + 'MB per image' };
+  return { ok: true, ext: ext };
+}
+
 // ─── Riot ID validation ───────────────────────────────────────────────────────
 function validateRiotId(val) {
   if (!val || !val.trim()) return '';
@@ -241,33 +253,32 @@ export default function AccountScreen() {
     }
     var authUid = user.auth_user_id || user.id;
     supabase.from('players').update(playerUpdate).eq('auth_user_id', authUid).then(function(pRes) {
-      if (pRes.error) {
+      if (pRes && pRes.error) {
+        setProfileSaving(false);
         toast('Profile saved but some data may not have synced', 'error');
-      } else {
-        var newUsername = playerUpdate.username || user.username;
-        setUsernameEdit(newUsername);
-        setPlayers(function(ps) {
-          return ps.map(function(p) {
-            if ((p.auth_user_id && user.auth_user_id && p.auth_user_id === user.auth_user_id) || (p.authUserId && p.authUserId === user.id)) {
-              return Object.assign({}, p, {
-                bio: playerUpdate.bio,
-                region: playerUpdate.region,
-                twitch: socialLinks.twitch,
-                twitter: socialLinks.twitter,
-                youtube: socialLinks.youtube,
-                riot_id_eu: playerUpdate.riot_id_eu,
-                riot_id_na: playerUpdate.riot_id_na,
-                riotId: playerUpdate.riot_id || p.riotId,
-                username: newUsername,
-                name: newUsername,
-              });
-            }
-            return p;
-          });
-        });
+        return;
       }
-    }).then(function(pRes) {
-      if (!pRes || pRes.error) return;
+      var newUsername = playerUpdate.username || user.username;
+      setUsernameEdit(newUsername);
+      setPlayers(function(ps) {
+        return ps.map(function(p) {
+          if ((p.auth_user_id && user.auth_user_id && p.auth_user_id === user.auth_user_id) || (p.authUserId && p.authUserId === user.id)) {
+            return Object.assign({}, p, {
+              bio: playerUpdate.bio,
+              region: playerUpdate.region,
+              twitch: socialLinks.twitch,
+              twitter: socialLinks.twitter,
+              youtube: socialLinks.youtube,
+              riot_id_eu: playerUpdate.riot_id_eu,
+              riot_id_na: playerUpdate.riot_id_na,
+              riotId: playerUpdate.riot_id || p.riotId,
+              username: newUsername,
+              name: newUsername,
+            });
+          }
+          return p;
+        });
+      });
       var updated = Object.assign({}, user, meta, {
         username: meta.username || user.username,
         user_metadata: meta,
@@ -283,7 +294,11 @@ export default function AccountScreen() {
       setProfileSaving(false);
       setEdit(false);
       toast('Profile updated', 'success');
-    }).catch(function() { setProfileSaving(false); toast('Profile save failed', 'error'); });
+    }).catch(function(err) {
+      console.error('Profile save failed:', err);
+      setProfileSaving(false);
+      toast('Profile save failed', 'error');
+    });
   }
 
   async function requestChange(field) {
@@ -307,6 +322,7 @@ export default function AccountScreen() {
     toast('Password updated! Please sign in again.', 'success');
     await supabase.auth.signOut();
     setCurrentUser(null);
+    setScreen('login');
     navigate('/login');
   }
 
@@ -540,15 +556,19 @@ export default function AccountScreen() {
                         className="hidden"
                         onChange={function(e) {
                           var file = e.target.files[0];
+                          var input = e.target;
                           if (!file) return;
-                          if (file.size > 2 * 1024 * 1024) { toast('Max 2MB', 'error'); return; }
+                          var v = validateImageFile(file, 2);
+                          if (!v.ok) { toast(v.reason, 'error'); input.value = ''; return; }
                           var authId = user.auth_user_id || user.authUserId || user.id;
-                          supabase.storage.from('avatars').upload(authId + '/avatar.png', file, { upsert: true })
+                          var path = authId + '/avatar.' + v.ext;
+                          supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type })
                             .then(function(res) {
-                              if (res.error) { toast('Upload failed', 'error'); return; }
-                              var url = supabase.storage.from('avatars').getPublicUrl(authId + '/avatar.png').data.publicUrl;
+                              if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
+                              var url = supabase.storage.from('avatars').getPublicUrl(path).data.publicUrl;
                               setProfilePic(url);
-                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', authId).then(function() {
+                              supabase.from('players').update({ profile_pic_url: url }).eq('auth_user_id', authId).then(function(r) {
+                                if (r && r.error) { console.error('Avatar URL save failed:', r.error); return; }
                                 setPlayers(function(ps) {
                                   return ps.map(function(p) {
                                     if ((p.authUserId && p.authUserId === authId) || (p.auth_user_id && p.auth_user_id === authId)) {
@@ -557,9 +577,10 @@ export default function AccountScreen() {
                                     return p;
                                   });
                                 });
-                              }).catch(function() {});
+                              }).catch(function(err) { console.error('Avatar URL save failed:', err); });
                               toast('Avatar updated!', 'success');
-                            }).catch(function() { toast('Upload failed', 'error'); });
+                            }).catch(function(err) { console.error('Avatar upload failed:', err); toast('Upload failed', 'error'); })
+                            .then(function() { try { input.value = ''; } catch (e2) {} });
                         }}
                       />
                     </label>
@@ -665,16 +686,18 @@ export default function AccountScreen() {
                                       className="hidden"
                                       onChange={function(e) {
                                         var file = e.target.files[0];
+                                        var input = e.target;
                                         if (!file) return;
-                                        if (file.size > 2 * 1024 * 1024) { toast('Max 2MB per file', 'error'); return; }
-                                        var ext = file.name.split('.').pop();
+                                        var v = validateImageFile(file, 2);
+                                        if (!v.ok) { toast(v.reason, 'error'); input.value = ''; return; }
                                         var authId2 = user.auth_user_id || user.authUserId || user.id;
-                                        var path = authId2 + '/avatar.' + ext;
-                                        supabase.storage.from('avatars').upload(path, file, { upsert: true }).then(function(res) {
+                                        var path = authId2 + '/avatar.' + v.ext;
+                                        supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type }).then(function(res) {
                                           if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
                                           var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
                                           setProfilePic(urlResult.data.publicUrl);
-                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', authId2).then(function() {
+                                          supabase.from('players').update({ profile_pic_url: urlResult.data.publicUrl }).eq('auth_user_id', authId2).then(function(r) {
+                                            if (r && r.error) { console.error('Profile pic save failed:', r.error); return; }
                                             setPlayers(function(ps) {
                                               return ps.map(function(p) {
                                                 if ((p.authUserId && p.authUserId === authId2) || (p.auth_user_id && p.auth_user_id === authId2)) {
@@ -683,9 +706,10 @@ export default function AccountScreen() {
                                                 return p;
                                               });
                                             });
-                                          }).catch(function() {});
+                                          }).catch(function(err) { console.error('Profile pic save failed:', err); });
                                           toast('Photo uploaded!', 'success');
-                                        }).catch(function() { toast('Upload failed', 'error'); });
+                                        }).catch(function(err) { console.error('Photo upload failed:', err); toast('Upload failed', 'error'); })
+                                        .then(function() { try { input.value = ''; } catch (e2) {} });
                                       }}
                                     />
                                   </label>
@@ -714,17 +738,19 @@ export default function AccountScreen() {
                                   className="hidden"
                                   onChange={function(e) {
                                     var file = e.target.files[0];
+                                    var input = e.target;
                                     if (!file) return;
-                                    if (file.size > 5 * 1024 * 1024) { toast('Max 5MB per banner', 'error'); return; }
-                                    var ext = file.name.split('.').pop();
+                                    var v = validateImageFile(file, 5);
+                                    if (!v.ok) { toast(v.reason, 'error'); input.value = ''; return; }
                                     var authId3 = user.auth_user_id || user.authUserId || user.id;
-                                    var path = authId3 + '/banner.' + ext;
-                                    supabase.storage.from('avatars').upload(path, file, { upsert: true }).then(function(res) {
+                                    var path = authId3 + '/banner.' + v.ext;
+                                    supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type }).then(function(res) {
                                       if (res.error) { toast('Upload failed: ' + res.error.message, 'error'); return; }
                                       var urlResult = supabase.storage.from('avatars').getPublicUrl(path);
                                       setBannerUrl(urlResult.data.publicUrl);
                                       toast('Banner uploaded!', 'success');
-                                    }).catch(function() { toast('Upload failed', 'error'); });
+                                    }).catch(function(err) { console.error('Banner upload failed:', err); toast('Upload failed', 'error'); })
+                                    .then(function() { try { input.value = ''; } catch (e2) {} });
                                   }}
                                 />
                               </label>
