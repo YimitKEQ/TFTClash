@@ -201,7 +201,7 @@ function BracketScreen(){
           });
         });
         if(Object.keys(restored).length>0)setPlayerSubmissions(restored);
-      }).catch(function(){});
+      }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
   },[tournamentState.dbTournamentId,round,lobbies.length]);
 
   // Auto-persist lobby assignments
@@ -220,7 +220,7 @@ function BracketScreen(){
           player_ids:playerIds,
           status:'pending'
         },{onConflict:'tournament_id,lobby_number,round_number'})
-        .then(function(res){}).catch(function(){});
+        .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       });
     }
   },[lobbies]);
@@ -380,7 +380,7 @@ function BracketScreen(){
         reported_placement:p,
         reported_at:new Date().toISOString()
       },{onConflict:'tournament_id,game_number,player_id'}).then(function(r){
-      }).catch(function(){});
+      }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
     }
     toast("Placement submitted - waiting for admin confirmation","success");
   }
@@ -418,13 +418,13 @@ function BracketScreen(){
           .eq('tournament_id',tournamentState.dbTournamentId)
           .eq('round_number',round)
           .in('player_id',lobbyPlayerIds)
-          .then(function(res){}).catch(function(){});
+          .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       }
       supabase.from('lobbies').update({status:'active'})
         .eq('tournament_id',tournamentState.dbTournamentId)
         .eq('lobby_number',li+1)
         .eq('round_number',round)
-        .then(function(res){}).catch(function(){});
+        .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       if(savedPlacements){
         lobbyPlayerIds.forEach(function(pid){
           var place=savedPlacements[pid];
@@ -441,7 +441,7 @@ function BracketScreen(){
             season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
             avg_placement:parseFloat(newAvg.toFixed(2))
           }).eq('id',pid).then(function(pr){
-          }).catch(function(){});
+          }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
         });
       }
     }
@@ -497,7 +497,7 @@ function BracketScreen(){
     var clashName=(tournamentState&&tournamentState.clashName)?tournamentState.clashName:("Clash "+new Date().toLocaleDateString());
     var doSave=function(tId){
       supabase.from('tournaments').update({phase:'complete',completed_at:new Date().toISOString()}).eq('id',tId)
-        .then(function(r){}).catch(function(){});
+        .then(function(r){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       var playerTotals={};
       allPlayers.forEach(function(p){
         var entries=(p.clashHistory||[]).filter(function(h){return h.clashId===clashId;});
@@ -543,7 +543,7 @@ function BracketScreen(){
                 avg_placement:parseFloat(parseFloat(p.avg||0).toFixed(2)),
                 last_clash_rank:sortedByPts.findIndex(function(q){return q.id===p.id;})+1
               }).eq('id',p.id).then(function(pr){
-              }).catch(function(){});
+              }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
             }
           });
         }).catch(function(){ toast('Failed to save player results','error'); });

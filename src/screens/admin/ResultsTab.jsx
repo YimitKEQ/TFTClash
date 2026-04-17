@@ -37,7 +37,7 @@ export default function ResultsTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { }).catch(function() {})
+      }).then(function(r) { }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e); })
     }
   }
 
@@ -112,7 +112,7 @@ export default function ResultsTab() {
                 })
               })
             }
-          }).catch(function() {})
+          }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e); })
         } else {
           // Fresh publish: update local state immediately for UI, DB trigger handles authoritative stats
           setPlayers(function(ps) {
@@ -139,7 +139,7 @@ export default function ResultsTab() {
                   })
                 })
               }
-            }).catch(function() {})
+            }).catch(function(e) { console.error('[ResultsTab] DB op failed:', e); })
           }, 1500)
         }
         setPublished(function(pub) { return pub.concat([lobbyKey]) })

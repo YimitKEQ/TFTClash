@@ -72,7 +72,7 @@ export default function PlayersTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { }).catch(function() {})
+      }).then(function(r) { }).catch(function(e) { console.error('[PlayersTab] DB op failed:', e); })
     }
   }
 

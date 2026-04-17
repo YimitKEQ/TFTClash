@@ -119,7 +119,7 @@ export default function TournamentTab() {
   useEffect(function() {
     supabase.from('tournaments').select('id, name, date, phase, type').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(20).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
-    }).catch(function() {})
+    }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
   }, [])
 
   function buildPrizePool(rows) {
@@ -215,7 +215,7 @@ export default function TournamentTab() {
         region: clashForm.server === 'NA' ? 'NA' : 'EUW'
       }).eq('id', tId).then(function(r) {
         if (r.error) toast('DB update failed: ' + r.error.message, 'error')
-      }).catch(function() {})
+      }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     }
     addAudit('ACTION', 'Clash schedule set: ' + d.toLocaleString() + (prizePool.length ? ' (prize pool: ' + prizePool.length + ' tiers)' : '') + (clashForm.isFinale ? ' [FINALE]' : ''))
     toast('Clash schedule saved', 'success')
@@ -239,7 +239,7 @@ export default function TournamentTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { }).catch(function() {})
+      }).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     }
   }
 
@@ -334,7 +334,7 @@ export default function TournamentTab() {
             rulesOverride: rulesText
           })
         })
-        supabase.from('players').update({ checked_in: false }).then(function() {}).catch(function() {})
+        supabase.from('players').update({ checked_in: false }).then(function() {}).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
         addAudit('ACTION', 'Opened registration for ' + name)
         toast('Registration open: ' + name, 'success')
         setClashNumberInput('')
@@ -356,9 +356,9 @@ export default function TournamentTab() {
     if (tId) {
       supabase.from('tournaments').update({ phase: toDbPhase('registration') }).eq('id', tId).then(function(r) {
         if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
-      }).catch(function() {})
+      }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     }
-    supabase.from('players').update({ checked_in: false }).then(function(r) { }).catch(function() {})
+    supabase.from('players').update({ checked_in: false }).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     addAudit('WARN', 'Tournament reset to Registration')
     toast('Reset to Registration', 'success')
   }
@@ -608,23 +608,23 @@ export default function TournamentTab() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Max Players</label>
-            <Inp type="number" value={roundConfig.maxPlayers} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { maxPlayers: typeof v === 'string' ? v : v.target.value })); setFormatPreset('custom') }} />
+            <Inp type="number" min="1" step="1" value={roundConfig.maxPlayers} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { maxPlayers: typeof v === 'string' ? v : v.target.value })); setFormatPreset('custom') }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Games per Clash</label>
-            <Inp type="number" value={roundConfig.roundCount} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { roundCount: typeof v === 'string' ? v : v.target.value })); setFormatPreset('custom') }} />
+            <Inp type="number" min="1" step="1" value={roundConfig.roundCount} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { roundCount: typeof v === 'string' ? v : v.target.value })); setFormatPreset('custom') }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Check-in Window (min)</label>
-            <Inp type="number" value={roundConfig.checkinWindowMins} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { checkinWindowMins: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" min="1" step="1" value={roundConfig.checkinWindowMins} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { checkinWindowMins: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut Line</label>
-            <Inp type="number" value={roundConfig.cutLine} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutLine: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" min="0" step="1" value={roundConfig.cutLine} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutLine: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cut After Game</label>
-            <Inp type="number" value={roundConfig.cutAfterGame} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutAfterGame: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" min="0" step="1" value={roundConfig.cutAfterGame} onChange={function(v) { setRoundConfig(Object.assign({}, roundConfig, { cutAfterGame: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Seeding</label>
@@ -659,7 +659,7 @@ export default function TournamentTab() {
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Cap</label>
-            <Inp type="number" value={newEvent.cap} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { cap: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" min="1" step="1" value={newEvent.cap} onChange={function(v) { setNewEvent(Object.assign({}, newEvent, { cap: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Format</label>
@@ -701,11 +701,11 @@ export default function TournamentTab() {
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Max Players</label>
-            <Inp type="number" value={flashForm.maxPlayers} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { maxPlayers: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" min="2" step="1" value={flashForm.maxPlayers} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { maxPlayers: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Game Count</label>
-            <Inp type="number" value={flashForm.gameCount} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { gameCount: typeof v === 'string' ? v : v.target.value })) }} />
+            <Inp type="number" min="1" step="1" value={flashForm.gameCount} onChange={function(v) { setFlashForm(Object.assign({}, flashForm, { gameCount: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Format</label>

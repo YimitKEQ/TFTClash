@@ -23,7 +23,7 @@ export default function HostsTab() {
         action: type, actor_id: currentUser.id || null,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
-      }).then(function(r) { }).catch(function() {})
+      }).then(function(r) { }).catch(function(e) { console.error('[HostsTab] DB op failed:', e); })
     }
   }
 
@@ -37,7 +37,7 @@ export default function HostsTab() {
           { user_id: applicantId, role: 'host', granted_by: currentUser && currentUser.auth_user_id },
           { onConflict: 'user_id,role' }
         ).then(function(r2) {
-        }).catch(function() {})
+        }).catch(function(e) { console.error('[HostsTab] DB op failed:', e); })
         // Create host_profiles entry so they can manage branding
         var slug = (app.org || app.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'host-' + Date.now()
         supabase.from('host_profiles').upsert({
@@ -48,7 +48,7 @@ export default function HostsTab() {
           status: 'approved',
           approved_at: new Date().toISOString()
         }, { onConflict: 'user_id' }).then(function(r3) {
-        }).catch(function() {})
+        }).catch(function(e) { console.error('[HostsTab] DB op failed:', e); })
       }
       setHostApps(function(apps) { return apps.map(function(a) { return a.id === app.id ? Object.assign({}, a, { status: 'approved' }) : a }) })
       addAudit('ACTION', 'Host application approved: ' + (app.name || app.email))

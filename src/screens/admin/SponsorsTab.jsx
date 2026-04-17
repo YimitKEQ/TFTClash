@@ -252,7 +252,7 @@ export default function SponsorsTab() {
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'sponsor',
         details: { message: msg, timestamp: Date.now() }
-      }).then(function(r) { }).catch(function() {})
+      }).then(function(r) { }).catch(function(e) { console.error('[SponsorsTab] DB op failed:', e); })
     }
   }
 
