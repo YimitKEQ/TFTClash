@@ -52,8 +52,8 @@ export default function TournamentTab() {
 
   var initialClashLocal = isoToLocalInput((tournamentState && tournamentState.clashTimestamp) || '')
   var initialPrizePool = (tournamentState && Array.isArray(tournamentState.prizePool) && tournamentState.prizePool.length > 0)
-    ? tournamentState.prizePool.map(function(r) { return { placement: String(r.placement || ''), prize: String(r.prize || '') } })
-    : [{ placement: '1', prize: '' }, { placement: '2', prize: '' }, { placement: '3', prize: '' }]
+    ? tournamentState.prizePool.map(function(r) { return { placement: String(r.placement || ''), prize: String(r.prize || ''), image: String(r.image || '') } })
+    : [{ placement: '1', prize: '', image: '' }, { placement: '2', prize: '', image: '' }, { placement: '3', prize: '', image: '' }]
   var _clashForm = useState({
     name: (tournamentState && tournamentState.clashName) || 'Weekly Clash',
     clashLocal: initialClashLocal,
@@ -125,12 +125,64 @@ export default function TournamentTab() {
   function buildPrizePool(rows) {
     if (!rows || !rows.length) return []
     return rows
-      .filter(function(r) { return r && r.prize && r.prize.trim() })
+      .filter(function(r) { return r && ((r.prize && r.prize.trim()) || (r.image && r.image.trim())) })
       .map(function(r) {
         var place = parseInt(r.placement, 10)
-        return { placement: Number.isFinite(place) && place > 0 ? place : 1, prize: r.prize.trim() }
+        var entry = { placement: Number.isFinite(place) && place > 0 ? place : 1, prize: (r.prize || '').trim() }
+        if (r.image && r.image.trim()) entry.image = r.image.trim()
+        return entry
       })
       .sort(function(a, b) { return a.placement - b.placement })
+  }
+
+  var _prizeSaving = useState(false)
+  var prizeSaving = _prizeSaving[0]
+  var setPrizeSaving = _prizeSaving[1]
+  var _uploadingIdx = useState(-1)
+  var uploadingIdx = _uploadingIdx[0]
+  var setUploadingIdx = _uploadingIdx[1]
+
+  function uploadPrizeImage(file, idx) {
+    if (!file || !supabase.storage) { toast('Image upload unavailable', 'error'); return }
+    if (!file.type || file.type.indexOf('image/') !== 0) { toast('File must be an image', 'error'); return }
+    if (file.size > 5 * 1024 * 1024) { toast('Image must be under 5MB', 'error'); return }
+    setUploadingIdx(idx)
+    var ext = (file.name.split('.').pop() || 'png').toLowerCase()
+    var tId = (tournamentState && (tournamentState.activeTournamentId || tournamentState.dbTournamentId)) || 'draft'
+    var place = (clashForm.prizeRows[idx] && clashForm.prizeRows[idx].placement) || (idx + 1)
+    var path = 'prizes/' + tId + '/' + place + '-' + Date.now() + '.' + ext
+    supabase.storage.from('host-assets').upload(path, file, { cacheControl: '3600', upsert: true }).then(function(res) {
+      if (res.error) { setUploadingIdx(-1); toast('Upload failed: ' + res.error.message, 'error'); return }
+      var url = supabase.storage.from('host-assets').getPublicUrl(path).data.publicUrl
+      setClashForm(function(f) {
+        var updated = f.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { image: url }) : r })
+        return Object.assign({}, f, { prizeRows: updated })
+      })
+      setUploadingIdx(-1)
+      toast('Image uploaded - remember to Save Prizes', 'success')
+    }).catch(function() { setUploadingIdx(-1); toast('Upload failed', 'error') })
+  }
+
+  function savePrizesOnly() {
+    if (prizeSaving) return
+    setPrizeSaving(true)
+    var prizePool = buildPrizePool(clashForm.prizeRows)
+    setTournamentState(function(s) { return Object.assign({}, s, { prizePool: prizePool }) })
+    var tId = (tournamentState && (tournamentState.activeTournamentId || tournamentState.dbTournamentId)) || null
+    if (tId && supabase.from) {
+      supabase.from('tournaments').update({
+        prize_pool_json: prizePool.length > 0 ? prizePool : null
+      }).eq('id', tId).then(function(r) {
+        setPrizeSaving(false)
+        if (r.error) { toast('DB update failed: ' + r.error.message, 'error'); return }
+        addAudit('ACTION', 'Prize pool saved (' + prizePool.length + ' tier' + (prizePool.length === 1 ? '' : 's') + ')')
+        toast('Prizes saved', 'success')
+      }).catch(function() { setPrizeSaving(false); toast('DB update failed', 'error') })
+    } else {
+      setPrizeSaving(false)
+      addAudit('ACTION', 'Prize pool saved to state (no active clash)')
+      toast(tId ? 'Prizes saved' : 'Prizes saved to draft (open a clash to persist)', 'success')
+    }
   }
 
   function saveClashSchedule() {
@@ -400,32 +452,68 @@ export default function TournamentTab() {
               <Icon name="redeem" size={12} className="inline-block" />
               Prize Pool (optional)
             </label>
-            <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([{ placement: String((clashForm.prizeRows || []).length + 1), prize: '' }]) })) }}>+ Add</Btn>
+            <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([{ placement: String((clashForm.prizeRows || []).length + 1), prize: '', image: '' }]) })) }}>+ Add</Btn>
           </div>
           {(clashForm.prizeRows || []).map(function(row, idx) {
+            var uploading = uploadingIdx === idx
             return (
-              <div key={idx} className="flex gap-2 mb-1.5 items-center">
-                <div className="text-xs text-secondary font-bold w-10 text-center">#{row.placement || (idx + 1)}</div>
-                <div className="flex-1">
-                  <Inp
-                    value={row.prize}
-                    onChange={function(v) {
-                      var val = typeof v === 'string' ? v : v.target.value
-                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { prize: val }) : r })
-                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
-                    }}
-                    placeholder="e.g. €50, RP code, Pro tier"
-                  />
+              <div key={idx} className="mb-2 p-2 rounded bg-surface-container/60 border border-outline-variant/10">
+                <div className="flex gap-2 items-center">
+                  <div className="text-xs text-secondary font-bold w-10 text-center">#{row.placement || (idx + 1)}</div>
+                  <div className="flex-1">
+                    <Inp
+                      value={row.prize}
+                      onChange={function(v) {
+                        var val = typeof v === 'string' ? v : v.target.value
+                        var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { prize: val }) : r })
+                        setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                      }}
+                      placeholder="e.g. €50, RP code, Pro tier"
+                    />
+                  </div>
+                  {clashForm.prizeRows.length > 1 && (
+                    <Btn variant="ghost" size="sm" onClick={function() {
+                      setClashForm(Object.assign({}, clashForm, { prizeRows: clashForm.prizeRows.filter(function(_, i) { return i !== idx }) }))
+                    }}>X</Btn>
+                  )}
                 </div>
-                {clashForm.prizeRows.length > 1 && (
-                  <Btn variant="ghost" size="sm" onClick={function() {
-                    setClashForm(Object.assign({}, clashForm, { prizeRows: clashForm.prizeRows.filter(function(_, i) { return i !== idx }) }))
-                  }}>X</Btn>
-                )}
+                <div className="flex items-center gap-2 mt-2 pl-12">
+                  {row.image ? (
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <img src={row.image} alt="" className="w-10 h-10 rounded object-cover border border-outline-variant/20 flex-shrink-0" />
+                      <div className="text-[10px] text-on-surface/50 truncate flex-1">{row.image.split('/').pop()}</div>
+                      <Btn variant="ghost" size="sm" onClick={function() {
+                        var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { image: '' }) : r })
+                        setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                      }}>Remove</Btn>
+                    </div>
+                  ) : (
+                    <label className={'inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded border cursor-pointer transition-colors ' + (uploading ? 'border-on-surface/10 text-on-surface/40' : 'border-secondary/30 text-secondary hover:bg-secondary/10')}>
+                      <Icon name="add_photo_alternate" size={12} />
+                      {uploading ? 'Uploading...' : 'Add image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploading}
+                        onChange={function(e) {
+                          var f = e.target.files && e.target.files[0]
+                          if (f) uploadPrizeImage(f, idx)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             )
           })}
-          <div className="text-[10px] text-on-surface/40 mt-1">Shown on Home, Clash page and tournament detail. Leave all blank for pride-only clashes.</div>
+          <div className="flex items-center justify-between mt-3 gap-3 flex-wrap">
+            <div className="text-[10px] text-on-surface/40 flex-1 min-w-[180px]">Shown on Home, Clash and tournament detail pages. Leave blank for pride-only clashes.</div>
+            <Btn variant="primary" size="sm" onClick={savePrizesOnly} disabled={prizeSaving}>
+              {prizeSaving ? 'Saving...' : 'Save Prizes'}
+            </Btn>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
