@@ -6,44 +6,93 @@ import { DATA_VERSION, dbg } from './lib/constants.js';
 import { createNotification } from './lib/notifications.js';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppProvider, useApp } from './context/AppContext.jsx';
-var LoginScreenNew = React.lazy(function(){ return import('./screens/LoginScreen'); });
-var SignUpScreenNew = React.lazy(function(){ return import('./screens/SignUpScreen'); });
-var GuestHomeScreen = React.lazy(function(){ return import('./screens/HomeScreen'); });
-var DashboardScreen = React.lazy(function(){ return import('./screens/DashboardScreen'); });
-var LeaderboardScreenNew = React.lazy(function(){ return import('./screens/LeaderboardScreen'); });
-var PlayerProfileScreenNew = React.lazy(function(){ return import('./screens/PlayerProfileScreen'); });
-var StandingsScreenNew = React.lazy(function(){ return import('./screens/StandingsScreen'); });
-var BracketScreenNew = React.lazy(function(){ return import('./screens/BracketScreen'); });
-var PricingScreenNew = React.lazy(function(){ return import('./screens/PricingScreen'); });
-var EventsScreenNew = React.lazy(function(){ return import('./screens/EventsScreen'); });
-var ResultsScreenNew = React.lazy(function(){ return import('./screens/ResultsScreen'); });
-var SeasonRecapScreenNew = React.lazy(function(){ return import('./screens/SeasonRecapScreen'); });
-var ArchiveScreenNew = React.lazy(function(){ return import('./screens/ArchiveScreen'); });
-var MilestonesScreenNew = React.lazy(function(){ return import('./screens/MilestonesScreen'); });
-var ChallengesScreenNew = React.lazy(function(){ return import('./screens/ChallengesScreen'); });
-var RulesScreenNew = React.lazy(function(){ return import('./screens/RulesScreen'); });
-var FAQScreenNew = React.lazy(function(){ return import('./screens/FAQScreen'); });
-var AccountScreenNew = React.lazy(function(){ return import('./screens/AccountScreen'); });
-var PrivacyScreenNew = React.lazy(function(){ return import('./screens/PrivacyScreen'); });
-var TermsScreenNew = React.lazy(function(){ return import('./screens/TermsScreen'); });
-var ScrimsScreenNew = React.lazy(function(){ return import('./screens/ScrimsScreen'); });
-var HostApplyScreenNew = React.lazy(function(){ return import('./screens/HostApplyScreen'); });
-var HostDashboardScreenNew = React.lazy(function(){ return import('./screens/HostDashboardScreen'); });
-var FlashTournamentScreenNew = React.lazy(function(){ return import('./screens/FlashTournamentScreen'); });
-var TournamentDetailScreenNew = React.lazy(function(){ return import('./screens/TournamentDetailScreen'); });
-var TournamentsListScreenNew = React.lazy(function(){ return import('./screens/TournamentsListScreen'); });
-var AdminScreenNew = React.lazy(function(){ return import('./screens/AdminScreen'); });
-var HofScreenNew = React.lazy(function(){ return import('./screens/HofScreen'); });
-var GearScreenNew = React.lazy(function(){ return import('./screens/GearScreen'); });
+
+// ─── LAZY WITH RETRY ──────────────────────────────────────────────────────────
+// Recovers from "Failed to fetch dynamically imported module" errors that
+// happen when a user has a stale index.html referencing old chunk hashes
+// after a deploy. On first chunk-load failure in a session, force one
+// full reload to pick up the new index.html; if it still fails, surface
+// the error instead of looping.
+function lazyWithRetry(factory) {
+  return React.lazy(function () {
+    return factory()
+      .then(function (mod) {
+        try { sessionStorage.removeItem('tft-chunk-reload'); } catch (e) {}
+        return mod;
+      })
+      .catch(function (err) {
+        var msg = (err && err.message) || '';
+        var isChunkError =
+          msg.indexOf('Failed to fetch dynamically imported') !== -1 ||
+          msg.indexOf('Importing a module script failed') !== -1 ||
+          msg.indexOf('error loading dynamically imported module') !== -1 ||
+          msg.indexOf('Unable to preload CSS') !== -1;
+        if (isChunkError) {
+          var key = 'tft-chunk-reload';
+          var reloaded = null;
+          try { reloaded = sessionStorage.getItem(key); } catch (e) {}
+          if (!reloaded) {
+            try { sessionStorage.setItem(key, '1'); } catch (e) {}
+            try { window.location.reload(); } catch (e) {}
+            return new Promise(function () {});
+          }
+        }
+        throw err;
+      });
+  });
+}
+
+// Also catch Vite's preloadError event as a belt-and-braces fallback.
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', function () {
+    try {
+      var key = 'tft-chunk-reload';
+      if (!sessionStorage.getItem(key)) {
+        sessionStorage.setItem(key, '1');
+        window.location.reload();
+      }
+    } catch (e) {}
+  });
+}
+
+var LoginScreenNew = lazyWithRetry(function(){ return import('./screens/LoginScreen'); });
+var SignUpScreenNew = lazyWithRetry(function(){ return import('./screens/SignUpScreen'); });
+var GuestHomeScreen = lazyWithRetry(function(){ return import('./screens/HomeScreen'); });
+var DashboardScreen = lazyWithRetry(function(){ return import('./screens/DashboardScreen'); });
+var LeaderboardScreenNew = lazyWithRetry(function(){ return import('./screens/LeaderboardScreen'); });
+var PlayerProfileScreenNew = lazyWithRetry(function(){ return import('./screens/PlayerProfileScreen'); });
+var StandingsScreenNew = lazyWithRetry(function(){ return import('./screens/StandingsScreen'); });
+var BracketScreenNew = lazyWithRetry(function(){ return import('./screens/BracketScreen'); });
+var PricingScreenNew = lazyWithRetry(function(){ return import('./screens/PricingScreen'); });
+var EventsScreenNew = lazyWithRetry(function(){ return import('./screens/EventsScreen'); });
+var ResultsScreenNew = lazyWithRetry(function(){ return import('./screens/ResultsScreen'); });
+var SeasonRecapScreenNew = lazyWithRetry(function(){ return import('./screens/SeasonRecapScreen'); });
+var ArchiveScreenNew = lazyWithRetry(function(){ return import('./screens/ArchiveScreen'); });
+var MilestonesScreenNew = lazyWithRetry(function(){ return import('./screens/MilestonesScreen'); });
+var ChallengesScreenNew = lazyWithRetry(function(){ return import('./screens/ChallengesScreen'); });
+var RulesScreenNew = lazyWithRetry(function(){ return import('./screens/RulesScreen'); });
+var FAQScreenNew = lazyWithRetry(function(){ return import('./screens/FAQScreen'); });
+var AccountScreenNew = lazyWithRetry(function(){ return import('./screens/AccountScreen'); });
+var PrivacyScreenNew = lazyWithRetry(function(){ return import('./screens/PrivacyScreen'); });
+var TermsScreenNew = lazyWithRetry(function(){ return import('./screens/TermsScreen'); });
+var ScrimsScreenNew = lazyWithRetry(function(){ return import('./screens/ScrimsScreen'); });
+var HostApplyScreenNew = lazyWithRetry(function(){ return import('./screens/HostApplyScreen'); });
+var HostDashboardScreenNew = lazyWithRetry(function(){ return import('./screens/HostDashboardScreen'); });
+var FlashTournamentScreenNew = lazyWithRetry(function(){ return import('./screens/FlashTournamentScreen'); });
+var TournamentDetailScreenNew = lazyWithRetry(function(){ return import('./screens/TournamentDetailScreen'); });
+var TournamentsListScreenNew = lazyWithRetry(function(){ return import('./screens/TournamentsListScreen'); });
+var AdminScreenNew = lazyWithRetry(function(){ return import('./screens/AdminScreen'); });
+var HofScreenNew = lazyWithRetry(function(){ return import('./screens/HofScreen'); });
+var GearScreenNew = lazyWithRetry(function(){ return import('./screens/GearScreen'); });
 import PageLayout from './components/layout/PageLayout';
 import ScreenSkeleton from './components/layout/ScreenSkeleton';
-var ClashScreenNew = React.lazy(function(){ return import('./screens/ClashScreen'); });
-var NotFoundScreen = React.lazy(function(){ return import('./screens/NotFoundScreen'); });
-var StatsHubScreenNew = React.lazy(function(){ return import('./screens/StatsHubScreen'); });
+var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScreen'); });
+var NotFoundScreen = lazyWithRetry(function(){ return import('./screens/NotFoundScreen'); });
+var StatsHubScreenNew = lazyWithRetry(function(){ return import('./screens/StatsHubScreen'); });
 
-var SponsorsScreenNew = React.lazy(function(){ return import('./screens/SponsorsScreen'); });
-var CommandCenterScreen = React.lazy(function(){ return import('./screens/CommandCenterScreen'); });
-var ContentEngineScreen = React.lazy(function(){ return import('./screens/ContentEngineScreen'); });
+var SponsorsScreenNew = lazyWithRetry(function(){ return import('./screens/SponsorsScreen'); });
+var CommandCenterScreen = lazyWithRetry(function(){ return import('./screens/CommandCenterScreen'); });
+var ContentEngineScreen = lazyWithRetry(function(){ return import('./screens/ContentEngineScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
