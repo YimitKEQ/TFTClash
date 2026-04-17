@@ -10,32 +10,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import { DISCORD_URL } from '../lib/constants'
-
-// --- TIER CONFIG ---
-
-var TIER_THRESHOLDS = [
-  { name: 'Champion', minRank: 1, maxRank: 1, color: '#E8A838', icon: 'crown' },
-  { name: 'Challenger', minRank: 2, maxRank: 3, color: '#9B72CF', icon: 'diamond' },
-  { name: 'Contender', minRank: 4, maxRank: 8, color: '#4ECDC4', icon: 'shield' }
-]
-
-function getPlayerTierInfo(rank, totalPlayers) {
-  for (var i = 0; i < TIER_THRESHOLDS.length; i++) {
-    if (rank >= TIER_THRESHOLDS[i].minRank && rank <= TIER_THRESHOLDS[i].maxRank) {
-      return TIER_THRESHOLDS[i]
-    }
-  }
-  return { name: 'Competitor', minRank: 9, maxRank: totalPlayers, color: '#9AAABF', icon: 'person' }
-}
-
-function getNextTierInfo(rank) {
-  for (var i = TIER_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (rank > TIER_THRESHOLDS[i].maxRank) {
-      return TIER_THRESHOLDS[i]
-    }
-  }
-  return null
-}
+import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
 
 function generateSeasonNarrative(players, sortedPts) {
   if (!sortedPts || sortedPts.length < 2) return null

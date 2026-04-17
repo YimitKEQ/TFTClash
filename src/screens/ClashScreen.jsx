@@ -9,6 +9,7 @@ import { TOURNAMENT_FORMATS, buildLobbies, computeTournamentStandings, applyCutL
 import { ordinal, rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js';
 import { writeActivityEvent, createNotification } from '../lib/notifications.js';
 import { useApp } from '../context/AppContext';
+import { LEADERBOARD_TIERS as TIER_THRESHOLDS } from '../lib/tiers.js';
 import { Panel, Btn, Icon, Tag, Inp, Divider, Skeleton, Sel } from '../components/ui';
 import RankBadge from '../components/shared/RankBadge';
 import Sparkline from '../components/shared/Sparkline';
@@ -17,14 +18,6 @@ import PlacementDistribution from '../components/shared/PlacementDistribution';
 
 // ---- CANVAS COLORS (for downloadCard ctx operations) ----
 var CANVAS_COLORS = { text: '#e4e1ec', muted: '#d5c4af', accent: '#e8a838' };
-
-// ---- TIER THRESHOLDS (local, used by StandingsTable) ----
-
-var TIER_THRESHOLDS = [
-  { name: 'Champion', minRank: 1, maxRank: 1, color: '#E8A838', icon: 'crown' },
-  { name: 'Challenger', minRank: 2, maxRank: 3, color: '#9B72CF', icon: 'diamond' },
-  { name: 'Contender', minRank: 4, maxRank: 8, color: '#4ECDC4', icon: 'shield' }
-];
 
 // ---- hexToRgb helper ----
 
