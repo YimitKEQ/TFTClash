@@ -507,17 +507,11 @@ input:focus,select:focus,textarea:focus{background:#192237!important;}
 
 .card-deep{background:linear-gradient(160deg,#0A1020,#060D18)!important;border-color:rgba(155,114,207,.18)!important;}
 
-/* ── standings row hover ───────────────────────────────────────────── */
-
-.standings-row{transition:background .15s;}
-
-.standings-row:hover{background:rgba(242,237,228,.05)!important;}
-
-.standings-row-1:hover{background:rgba(232,168,56,.13)!important;}
-
 /* ── me row highlight ─────────────────────────────────────────────── */
 
 .standings-row-me{background:rgba(155,114,207,.1)!important;border-left:2px solid #9B72CF!important;}
+
+.standings-row-1:hover{background:rgba(232,168,56,.13)!important;}
 
 
 

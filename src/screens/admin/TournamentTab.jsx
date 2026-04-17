@@ -51,7 +51,17 @@ export default function TournamentTab() {
   }
 
   var initialClashLocal = isoToLocalInput((tournamentState && tournamentState.clashTimestamp) || '')
-  var _clashForm = useState({ name: (tournamentState && tournamentState.clashName) || 'Weekly Clash', clashLocal: initialClashLocal, server: (tournamentState && tournamentState.server) || 'EU' })
+  var initialPrizePool = (tournamentState && Array.isArray(tournamentState.prizePool) && tournamentState.prizePool.length > 0)
+    ? tournamentState.prizePool.map(function(r) { return { placement: String(r.placement || ''), prize: String(r.prize || '') } })
+    : [{ placement: '1', prize: '' }, { placement: '2', prize: '' }, { placement: '3', prize: '' }]
+  var _clashForm = useState({
+    name: (tournamentState && tournamentState.clashName) || 'Weekly Clash',
+    clashLocal: initialClashLocal,
+    server: (tournamentState && tournamentState.server) || 'EU',
+    isFinale: !!(tournamentState && tournamentState.isFinale),
+    rulesOverride: (tournamentState && tournamentState.rulesOverride) || '',
+    prizeRows: initialPrizePool
+  })
   var clashForm = _clashForm[0]
   var setClashForm = _clashForm[1]
   var _clashSaving = useState(false)
@@ -112,6 +122,17 @@ export default function TournamentTab() {
     }).catch(function() {})
   }, [])
 
+  function buildPrizePool(rows) {
+    if (!rows || !rows.length) return []
+    return rows
+      .filter(function(r) { return r && r.prize && r.prize.trim() })
+      .map(function(r) {
+        var place = parseInt(r.placement, 10)
+        return { placement: Number.isFinite(place) && place > 0 ? place : 1, prize: r.prize.trim() }
+      })
+      .sort(function(a, b) { return a.placement - b.placement })
+  }
+
   function saveClashSchedule() {
     if (clashSaving) return
     if (!clashForm.clashLocal) { toast('Pick a date and time first', 'error'); return }
@@ -119,20 +140,32 @@ export default function TournamentTab() {
     if (isNaN(d.getTime())) { toast('Invalid date/time', 'error'); return }
     setClashSaving(true)
     var iso = d.toISOString()
+    var prizePool = buildPrizePool(clashForm.prizeRows)
+    var rulesText = (clashForm.rulesOverride || '').trim()
     setTournamentState(function(s) {
       return Object.assign({}, s, {
         clashTimestamp: iso,
         clashName: clashForm.name || 'Weekly Clash',
-        server: clashForm.server || 'EU'
+        server: clashForm.server || 'EU',
+        isFinale: !!clashForm.isFinale,
+        rulesOverride: rulesText,
+        prizePool: prizePool
       })
     })
     var tId = (tournamentState && (tournamentState.activeTournamentId || tournamentState.dbTournamentId)) || null
     if (tId) {
-      supabase.from('tournaments').update({ date: iso.split('T')[0] }).eq('id', tId).then(function(r) {
-        if (r.error) toast('DB date update failed: ' + r.error.message, 'error')
+      supabase.from('tournaments').update({
+        date: iso.split('T')[0],
+        name: clashForm.name || 'Weekly Clash',
+        prize_pool_json: prizePool.length > 0 ? prizePool : null,
+        rules_text: rulesText || null,
+        is_finale: !!clashForm.isFinale,
+        region: clashForm.server === 'NA' ? 'NA' : 'EUW'
+      }).eq('id', tId).then(function(r) {
+        if (r.error) toast('DB update failed: ' + r.error.message, 'error')
       }).catch(function() {})
     }
-    addAudit('ACTION', 'Clash schedule set: ' + d.toLocaleString())
+    addAudit('ACTION', 'Clash schedule set: ' + d.toLocaleString() + (prizePool.length ? ' (prize pool: ' + prizePool.length + ' tiers)' : '') + (clashForm.isFinale ? ' [FINALE]' : ''))
     toast('Clash schedule saved', 'success')
     setClashSaving(false)
   }
@@ -202,6 +235,8 @@ export default function TournamentTab() {
       var cutLine = parseInt(roundConfig.cutLine) || 0
       var cutAfterGame = parseInt(roundConfig.cutAfterGame) || 0
       var checkinMins = parseInt(roundConfig.checkinWindowMins) || 30
+      var prizePool = buildPrizePool(clashForm.prizeRows)
+      var rulesText = (clashForm.rulesOverride || '').trim()
       supabase.from('tournaments').insert({
         name: name,
         date: new Date().toISOString().split('T')[0],
@@ -211,7 +246,10 @@ export default function TournamentTab() {
         round_count: rounds,
         seeding_method: seedAlgo || 'rank-based',
         registration_open: true,
-        registration_open_at: new Date().toISOString()
+        registration_open_at: new Date().toISOString(),
+        prize_pool_json: prizePool.length > 0 ? prizePool : null,
+        rules_text: rulesText || null,
+        is_finale: !!clashForm.isFinale
       }).select().single().then(function(res) {
         if (res.error || !res.data) {
           toast('Failed to open: ' + (res.error && res.error.message ? res.error.message : 'unknown error'), 'error')
@@ -238,7 +276,10 @@ export default function TournamentTab() {
             cutAfterGame: cutAfterGame,
             checkinWindowMins: checkinMins,
             formatPreset: formatPreset,
-            seedingMethod: seedAlgo || 'rank-based'
+            seedingMethod: seedAlgo || 'rank-based',
+            prizePool: prizePool,
+            isFinale: !!clashForm.isFinale,
+            rulesOverride: rulesText
           })
         })
         supabase.from('players').update({ checked_in: false }).then(function() {}).catch(function() {})
@@ -352,6 +393,63 @@ export default function TournamentTab() {
             Next clash: {clashPreview()}
           </div>
         )}
+
+        <div className="mb-4 p-3 rounded-lg bg-secondary/[0.05] border border-secondary/20">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[11px] text-secondary font-bold uppercase tracking-wider flex items-center gap-1">
+              <Icon name="redeem" size={12} className="inline-block" />
+              Prize Pool (optional)
+            </label>
+            <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([{ placement: String((clashForm.prizeRows || []).length + 1), prize: '' }]) })) }}>+ Add</Btn>
+          </div>
+          {(clashForm.prizeRows || []).map(function(row, idx) {
+            return (
+              <div key={idx} className="flex gap-2 mb-1.5 items-center">
+                <div className="text-xs text-secondary font-bold w-10 text-center">#{row.placement || (idx + 1)}</div>
+                <div className="flex-1">
+                  <Inp
+                    value={row.prize}
+                    onChange={function(v) {
+                      var val = typeof v === 'string' ? v : v.target.value
+                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { prize: val }) : r })
+                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                    }}
+                    placeholder="e.g. €50, RP code, Pro tier"
+                  />
+                </div>
+                {clashForm.prizeRows.length > 1 && (
+                  <Btn variant="ghost" size="sm" onClick={function() {
+                    setClashForm(Object.assign({}, clashForm, { prizeRows: clashForm.prizeRows.filter(function(_, i) { return i !== idx }) }))
+                  }}>X</Btn>
+                )}
+              </div>
+            )
+          })}
+          <div className="text-[10px] text-on-surface/40 mt-1">Shown on Home, Clash page and tournament detail. Leave all blank for pride-only clashes.</div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/[0.04] border border-primary/20 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!clashForm.isFinale}
+              onChange={function(e) { setClashForm(Object.assign({}, clashForm, { isFinale: e.target.checked })) }}
+              className="accent-primary"
+            />
+            <div>
+              <div className="text-[11px] font-bold text-on-surface uppercase tracking-wider">Season Finale</div>
+              <div className="text-[10px] text-on-surface/50">Marks this clash as the end-of-season championship</div>
+            </div>
+          </label>
+          <div>
+            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Rules Override (optional)</label>
+            <Inp
+              value={clashForm.rulesOverride}
+              onChange={function(v) { setClashForm(Object.assign({}, clashForm, { rulesOverride: typeof v === 'string' ? v : v.target.value })) }}
+              placeholder="e.g. Set 14 only, top 8 advance"
+            />
+          </div>
+        </div>
 
         <div className="mb-4">
           <div className="flex items-center gap-0">

@@ -612,6 +612,22 @@ export function AppProvider(props) {
                 return Object.assign({},ts2,{registeredIds:regIds,checkedInIds:checkIds.length>0?checkIds:ts2.checkedInIds||[]});
               });
             });
+          // Reconcile prize pool / finale flag / rules from tournaments table — source of truth.
+          supabase.from('tournaments').select('prize_pool_json,rules_text,is_finale,name,date,max_players,round_count')
+            .eq('id',ts.dbTournamentId).single()
+            .then(function(tRes){
+              if(tRes.error||!tRes.data)return;
+              var pool=tRes.data.prize_pool_json;
+              if(typeof pool==='string'){try{pool=JSON.parse(pool);}catch(e){pool=null;}}
+              setTournamentState(function(ts2){
+                rtRef.current.tournament_state=true;
+                var next=Object.assign({},ts2);
+                if(Array.isArray(pool))next.prizePool=pool;
+                if(typeof tRes.data.rules_text==='string')next.rulesOverride=tRes.data.rules_text||'';
+                if(typeof tRes.data.is_finale==='boolean')next.isFinale=!!tRes.data.is_finale;
+                return next;
+              });
+            }).catch(function(){});
           return ts;
         });
 

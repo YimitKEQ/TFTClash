@@ -171,6 +171,17 @@ function PulseHeader({
             {clashName}{clashDate ? ' - ' + clashDate : ''}
           </div>
         )}
+        {Array.isArray(tournamentState.prizePool) && tournamentState.prizePool[0] && (
+          <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-medal-gold">
+            <Icon name="redeem" size={10} />
+            <span className="truncate max-w-[220px]">{tournamentState.prizePool[0].prize}</span>
+          </div>
+        )}
+        {tournamentState.isFinale && (
+          <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-medal-gold">
+            <Icon name="emoji_events" size={10} /> Season Finale
+          </div>
+        )}
       </div>
 
       {/* Player identity row */}

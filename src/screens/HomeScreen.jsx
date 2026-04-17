@@ -19,6 +19,9 @@ function HeroCountdown(props) {
   var isLoggedIn = props.isLoggedIn
 
   var countdown = useCountdown(tournamentState)
+  var prizePool = Array.isArray(tournamentState && tournamentState.prizePool) ? tournamentState.prizePool : []
+  var topPrize = prizePool.length > 0 ? prizePool[0] : null
+  var isFinale = !!(tournamentState && tournamentState.isFinale)
 
   function pad2(n) { return String(n).padStart(2, '0') }
 
@@ -26,6 +29,13 @@ function HeroCountdown(props) {
     <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
       <div className="relative z-10 space-y-4">
+        {isFinale && (
+          <div className="flex justify-center">
+            <span className="font-label text-[10px] uppercase tracking-[0.22em] font-bold text-medal-gold bg-medal-gold/[0.08] border border-medal-gold/30 rounded-full px-3 py-1 inline-flex items-center gap-1.5">
+              <Icon name="emoji_events" size={10} /> Season Finale
+            </span>
+          </div>
+        )}
         <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
           Next Tournament Begins In
         </span>
@@ -50,6 +60,18 @@ function HeroCountdown(props) {
             <span className="font-label text-[10px] uppercase opacity-40">Secs</span>
           </div>
         </div>
+        {topPrize && (
+          <div className="rounded-lg border border-medal-gold/30 bg-medal-gold/[0.06] px-4 py-3 flex items-center gap-3">
+            <Icon name="redeem" size={18} className="text-medal-gold flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="font-label text-[10px] uppercase tracking-widest font-bold text-medal-gold/80">Winner Takes</div>
+              <div className="font-display text-sm text-on-surface truncate">{topPrize.prize}</div>
+            </div>
+            {prizePool.length > 1 && (
+              <div className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest whitespace-nowrap">+{prizePool.length - 1} more</div>
+            )}
+          </div>
+        )}
         <Btn variant="primary" size="xl" onClick={onRegister}>
           {isLoggedIn ? 'Go to Dashboard' : 'Join This Tournament'}
         </Btn>

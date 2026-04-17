@@ -2429,9 +2429,14 @@ function ClashLobbyView(props) {
 
       {/* Hero panel: clash title + countdown */}
       <Panel padding="spacious">
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className={'w-2 h-2 rounded-full ' + phaseDot} />
           <span className={'font-label text-[10px] uppercase tracking-[0.18em] font-bold ' + phaseAccent}>{phaseLabel}</span>
+          {tournamentState.isFinale && (
+            <span className="font-label text-[10px] uppercase tracking-[0.18em] font-bold text-medal-gold bg-medal-gold/[0.1] border border-medal-gold/30 rounded px-2 py-0.5 inline-flex items-center gap-1">
+              <Icon name="emoji_events" size={10} /> Season Finale
+            </span>
+          )}
         </div>
         <div className="font-display text-3xl sm:text-4xl tracking-tight text-on-surface mb-1">{clashName}</div>
         <div className="text-sm text-on-surface-variant mb-5">{server} server &middot; {tournamentState.totalGames || 4} games &middot; {maxPlayers} player cap</div>
@@ -2439,6 +2444,35 @@ function ClashLobbyView(props) {
           <div className="bg-on-surface/[0.04] border border-outline-variant/10 rounded-lg p-4 mb-1">
             <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-2">{phase === 'registration' ? 'Registration closes in' : 'Clash starts in'}</div>
             <CountdownTimer targetDate={clashTimestamp} />
+          </div>
+        )}
+        {Array.isArray(tournamentState.prizePool) && tournamentState.prizePool.length > 0 && (
+          <div className="mt-4 bg-gradient-to-r from-secondary/[0.06] to-primary/[0.06] border border-secondary/25 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Icon name="redeem" size={14} className="text-secondary" />
+              <span className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Prize Pool</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {tournamentState.prizePool.slice(0, 3).map(function(p) {
+                var colors = { 1: 'text-medal-gold border-medal-gold/30 bg-medal-gold/[0.06]', 2: 'text-on-surface border-outline-variant/30 bg-on-surface/[0.04]', 3: 'text-secondary border-secondary/30 bg-secondary/[0.06]' }
+                var tone = colors[p.placement] || 'text-on-surface border-outline-variant/15 bg-on-surface/[0.03]'
+                return (
+                  <div key={p.placement} className={'rounded-lg px-3 py-2.5 border ' + tone}>
+                    <div className="font-label text-[10px] uppercase tracking-widest font-bold opacity-80">#{p.placement}</div>
+                    <div className="font-display text-sm truncate">{p.prize}</div>
+                  </div>
+                )
+              })}
+            </div>
+            {tournamentState.prizePool.length > 3 && (
+              <div className="text-[10px] text-on-surface-variant mt-2">+ {tournamentState.prizePool.length - 3} more tier{tournamentState.prizePool.length - 3 === 1 ? '' : 's'}</div>
+            )}
+          </div>
+        )}
+        {tournamentState.rulesOverride && (
+          <div className="mt-3 px-3 py-2 rounded-lg bg-tertiary/[0.06] border border-tertiary/25 text-xs text-on-surface">
+            <span className="font-label text-[10px] uppercase tracking-widest font-bold text-tertiary mr-2">Note</span>
+            {tournamentState.rulesOverride}
           </div>
         )}
       </Panel>
