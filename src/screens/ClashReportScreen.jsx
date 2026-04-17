@@ -185,7 +185,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
               {sorted.length + ' Players'}
             </span>
           </div>
-          <div className="bg-surface-container-low overflow-hidden rounded">
+          <div className="bg-surface-container-low overflow-x-auto rounded">
             <table className="w-full text-left border-collapse min-w-[400px]">
               <thead>
                 <tr className="bg-surface-container-lowest border-b border-outline-variant/10">
