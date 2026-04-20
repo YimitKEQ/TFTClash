@@ -9,6 +9,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp } from '../components/ui'
 import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
+import { medalForPlacement, currencySymbol } from '../lib/prizes.js'
 
 // ─── Shared components ──────────────────────────────────���─────────────────────
 
@@ -100,6 +101,13 @@ export default function AccountScreen() {
   });
   var notifPrefs = _notifPrefs[0]; var setNotifPrefsRaw = _notifPrefs[1];
 
+  var _prizeClaims = useState({ loading: false, loaded: false, rows: [], tournaments: {} });
+  var prizeClaims = _prizeClaims[0]; var setPrizeClaims = _prizeClaims[1];
+  var _claimFormOpen = useState(null);
+  var claimFormOpen = _claimFormOpen[0]; var setClaimFormOpen = _claimFormOpen[1];
+  var _claimFormData = useState({ email: '', address: '', saving: false });
+  var claimFormData = _claimFormData[0]; var setClaimFormData = _claimFormData[1];
+
   function setNotifPref(key, val) {
     setNotifPrefsRaw(function(prev) {
       var next = Object.assign({}, prev);
@@ -160,6 +168,68 @@ export default function AccountScreen() {
     supabase.from('user_subscriptions').select('*').eq('user_id', user.auth_user_id || user.id).single()
       .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); }).catch(function() {});
   }, [user && user.id]);
+
+  function loadPrizeClaims() {
+    if (!linkedPlayer || !linkedPlayer.id || typeof linkedPlayer.id !== 'string' || linkedPlayer.id.length < 20) {
+      setPrizeClaims({ loading: false, loaded: true, rows: [], tournaments: {} });
+      return;
+    }
+    setPrizeClaims(function(prev) { return Object.assign({}, prev, { loading: true }); });
+    supabase.from('prize_claims').select('*').eq('player_id', linkedPlayer.id).order('created_at', { ascending: false })
+      .then(function(res) {
+        if (res.error) { setPrizeClaims({ loading: false, loaded: true, rows: [], tournaments: {} }); return; }
+        var rows = res.data || [];
+        var tIds = rows.map(function(r) { return r.tournament_id; }).filter(function(v, i, arr) { return v && arr.indexOf(v) === i; });
+        if (tIds.length === 0) { setPrizeClaims({ loading: false, loaded: true, rows: rows, tournaments: {} }); return; }
+        supabase.from('tournaments').select('id, name, date').in('id', tIds).then(function(tRes) {
+          var map = {};
+          (tRes.data || []).forEach(function(t) { map[t.id] = t; });
+          setPrizeClaims({ loading: false, loaded: true, rows: rows, tournaments: map });
+        }).catch(function() { setPrizeClaims({ loading: false, loaded: true, rows: rows, tournaments: {} }); });
+      }).catch(function() { setPrizeClaims({ loading: false, loaded: true, rows: [], tournaments: {} }); });
+  }
+
+  useEffect(function() {
+    if (tab === 'prizes' && !prizeClaims.loaded && !prizeClaims.loading) loadPrizeClaims();
+  }, [tab, linkedPlayer && linkedPlayer.id]);
+
+  function openClaimForm(row) {
+    setClaimFormOpen(row.id);
+    setClaimFormData({ email: row.claim_email || user.email || '', address: row.claim_address ? JSON.stringify(row.claim_address) : '', saving: false });
+  }
+
+  function closeClaimForm() { setClaimFormOpen(null); }
+
+  function submitClaim(row) {
+    var email = (claimFormData.email || '').trim();
+    if (!email || email.indexOf('@') === -1) { toast('Valid email required', 'error'); return; }
+    if (email.length > 120) { toast('Email too long', 'error'); return; }
+    var addr = null;
+    var addrText = (claimFormData.address || '').trim();
+    if (addrText) {
+      if (addrText.length > 500) { toast('Address too long (max 500 chars)', 'error'); return; }
+      addr = { text: addrText };
+    }
+    setClaimFormData(function(p) { return Object.assign({}, p, { saving: true }); });
+    supabase.from('prize_claims').update({
+      claim_status: 'claimed',
+      claim_email: email,
+      claim_address: addr,
+      claimed_at: new Date().toISOString()
+    }).eq('id', row.id).select().single().then(function(res) {
+      if (res.error) { toast('Claim failed: ' + res.error.message, 'error'); setClaimFormData(function(p) { return Object.assign({}, p, { saving: false }); }); return; }
+      toast('Prize claimed! We will be in touch.', 'success');
+      setPrizeClaims(function(prev) {
+        var updated = prev.rows.map(function(r) { return r.id === row.id ? res.data : r; });
+        return Object.assign({}, prev, { rows: updated });
+      });
+      setClaimFormOpen(null);
+      setClaimFormData({ email: '', address: '', saving: false });
+    }).catch(function() {
+      toast('Claim failed', 'error');
+      setClaimFormData(function(p) { return Object.assign({}, p, { saving: false }); });
+    });
+  }
 
   // Handle PayPal checkout return: /account?checkout=success
   // SECURITY: client does NOT write subscription data. PayPal webhook creates the row
@@ -452,7 +522,7 @@ export default function AccountScreen() {
 
         {/* Navigation Tabs */}
         <div className="flex space-x-12 mb-10 border-b border-outline-variant/10">
-          {[['account', 'Account'], ['milestones', 'Milestones'], ['challenges', 'Challenges']].map(function(item) {
+          {[['account', 'Account'], ['prizes', 'Prizes'], ['milestones', 'Milestones'], ['challenges', 'Challenges']].map(function(item) {
             var v = item[0];
             var l = item[1];
             return (
@@ -1387,6 +1457,105 @@ export default function AccountScreen() {
             </div>
 
           </div>
+          </div>
+        )}
+
+        {/* ── PRIZES TAB ───────────────────────────────────────────────────────── */}
+        {tab === 'prizes' && (
+          <div>
+            {!linkedPlayer ? (
+              <div className="text-center py-16 text-on-surface/40">
+                <Icon name="redeem" size={40} className="block mb-3" />
+                <p className="font-label uppercase tracking-widest text-xs">No linked player yet.</p>
+                <p className="text-on-surface/30 text-xs mt-2">Your account must be linked to a player to track prize wins.</p>
+              </div>
+            ) : prizeClaims.loading ? (
+              <div className="text-center py-16 text-on-surface/40">
+                <Icon name="progress_activity" size={24} className="inline-block animate-spin" />
+                <p className="font-label uppercase tracking-widest text-xs mt-3">Loading your prizes...</p>
+              </div>
+            ) : prizeClaims.rows.length === 0 ? (
+              <div className="text-center py-16 text-on-surface/40">
+                <Icon name="military_tech" size={40} className="block mb-3" />
+                <p className="font-label uppercase tracking-widest text-xs">No prizes yet.</p>
+                <p className="text-on-surface/30 text-xs mt-2">Win a tournament and your prizes will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-on-surface/50 text-sm font-body mb-4">Tournament prizes you've won. Claim unclaimed prizes to get them delivered.</div>
+                {prizeClaims.rows.map(function(row) {
+                  var medal = medalForPlacement(row.placement);
+                  var t = prizeClaims.tournaments[row.tournament_id] || {};
+                  var amtLabel = (row.prize_amount && row.prize_currency) ? (currencySymbol(row.prize_currency) + Number(row.prize_amount).toLocaleString()) : null;
+                  var statusTone = {
+                    unclaimed: 'bg-tertiary/[0.08] border-tertiary/35 text-tertiary',
+                    claimed: 'bg-primary/[0.08] border-primary/35 text-primary',
+                    shipped: 'bg-primary/[0.08] border-primary/35 text-primary',
+                    delivered: 'bg-success/[0.08] border-success/35 text-success',
+                    disputed: 'bg-error/[0.08] border-error/35 text-error',
+                    refunded: 'bg-on-surface/[0.05] border-outline-variant/20 text-on-surface-variant',
+                    forfeited: 'bg-on-surface/[0.05] border-outline-variant/20 text-on-surface-variant'
+                  }[row.claim_status] || 'bg-on-surface/[0.05] border-outline-variant/20 text-on-surface-variant';
+                  var isOpen = claimFormOpen === row.id;
+                  return (
+                    <Panel key={row.id} padding="default">
+                      <div className="flex items-start gap-4">
+                        <span className={'inline-flex items-center justify-center w-12 h-12 rounded-lg border flex-shrink-0 ' + medal.tone}>
+                          <Icon name={medal.icon} size={22} />
+                        </span>
+                        {row.prize_image_url ? (
+                          <img src={row.prize_image_url} alt={row.prize_label} loading="lazy" className="w-12 h-12 rounded object-cover border border-outline-variant/20 flex-shrink-0" />
+                        ) : null}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="font-label text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">{medal.label}</span>
+                            <span className={'text-[10px] font-label uppercase tracking-wider px-1.5 py-px rounded border ' + statusTone}>{row.claim_status}</span>
+                          </div>
+                          <div className="font-display text-lg text-on-surface truncate">{row.prize_label}{amtLabel ? ' - ' + amtLabel : ''}</div>
+                          <div className="text-xs text-on-surface-variant mt-1">
+                            {t.name || 'Tournament'}
+                            {t.date ? ' - ' + new Date(t.date).toLocaleDateString() : ''}
+                          </div>
+                          {row.claim_status === 'unclaimed' && !isOpen && (
+                            <Btn variant="primary" size="sm" className="mt-3" onClick={function() { openClaimForm(row); }}>Claim prize</Btn>
+                          )}
+                          {row.claim_status !== 'unclaimed' && row.claim_email && (
+                            <div className="text-[11px] text-on-surface-variant mt-1.5">Sent to: <span className="font-mono text-on-surface/70">{row.claim_email}</span></div>
+                          )}
+                          {isOpen && (
+                            <div className="mt-4 p-3 rounded-lg bg-surface-container-low border border-outline-variant/15 space-y-3">
+                              <div>
+                                <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Contact email</label>
+                                <Inp type="email" value={claimFormData.email} onChange={function(v) {
+                                  var val = typeof v === 'string' ? v : v.target.value;
+                                  setClaimFormData(function(p) { return Object.assign({}, p, { email: val }); });
+                                }} placeholder="you@example.com" />
+                              </div>
+                              {row.prize_type === 'physical' && (
+                                <div>
+                                  <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Shipping address</label>
+                                  <textarea value={claimFormData.address} onChange={function(e) {
+                                    var val = e.target.value;
+                                    setClaimFormData(function(p) { return Object.assign({}, p, { address: val }); });
+                                  }} rows={3} maxLength={500} placeholder="Street, city, postal code, country" className="w-full px-3 py-2 text-sm rounded-lg bg-on-surface/[0.05] border border-outline-variant/20 focus:outline-none focus:border-primary/50 text-on-surface" />
+                                </div>
+                              )}
+                              <div className="flex gap-2">
+                                <Btn variant="primary" size="sm" onClick={function() { submitClaim(row); }} disabled={claimFormData.saving}>
+                                  {claimFormData.saving ? 'Submitting...' : 'Submit claim'}
+                                </Btn>
+                                <Btn variant="ghost" size="sm" onClick={closeClaimForm} disabled={claimFormData.saving}>Cancel</Btn>
+                              </div>
+                              <div className="text-[10px] text-on-surface-variant/70">Hosts use this info to deliver your prize. It's private and only visible to admins.</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Panel>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

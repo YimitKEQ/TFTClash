@@ -415,6 +415,64 @@ export default function TournamentTab() {
     toast('Event cancelled', 'success')
   }
 
+  function finalizePrizeClaims(t) {
+    if (!t || !t.id) return
+    if (!window.confirm('Generate prize claims from current standings for ' + t.name + '?\n\nThis creates claim rows winners can redeem. Safe to re-run (upserts by placement).')) return
+    Promise.all([
+      supabase.from('tournaments').select('prize_pool, name').eq('id', t.id).single(),
+      supabase.from('game_results').select('player_id, placement, points').eq('tournament_id', t.id)
+    ]).then(function(results) {
+      var tRes = results[0]; var grRes = results[1]
+      if (tRes.error) { toast('Tournament fetch failed: ' + tRes.error.message, 'error'); return }
+      if (grRes.error) { toast('Results fetch failed: ' + grRes.error.message, 'error'); return }
+      var prizePool = Array.isArray(tRes.data && tRes.data.prize_pool) ? tRes.data.prize_pool : []
+      if (prizePool.length === 0) { toast('No prizes configured for this tournament', 'error'); return }
+      var gr = grRes.data || []
+      if (gr.length === 0) { toast('No game results recorded yet', 'error'); return }
+      var agg = {}
+      gr.forEach(function(g) {
+        var pid = g.player_id; if (!pid) return
+        if (!agg[pid]) agg[pid] = { player_id: pid, points: 0, wins: 0, top4: 0 }
+        agg[pid].points += (g.points || 0)
+        if (g.placement === 1) agg[pid].wins += 1
+        if (g.placement >= 1 && g.placement <= 4) agg[pid].top4 += 1
+      })
+      var ranked = Object.keys(agg).map(function(k) { return agg[k] }).sort(function(a, b) {
+        if (b.points !== a.points) return b.points - a.points
+        var aS = a.wins * 2 + a.top4; var bS = b.wins * 2 + b.top4
+        return bS - aS
+      })
+      var claims = []
+      prizePool.forEach(function(p) {
+        var placement = parseInt(p.placement, 10)
+        if (!placement || placement < 1 || placement > 8) return
+        var winner = ranked[placement - 1]
+        if (!winner) return
+        var amtRaw = p.amount
+        var amt = (amtRaw !== null && amtRaw !== undefined && String(amtRaw).trim() !== '') ? parseFloat(amtRaw) : null
+        var safeType = (p.type && ['cash','rp','code','physical','other'].indexOf(p.type) > -1) ? p.type : 'other'
+        claims.push({
+          tournament_id: t.id,
+          player_id: winner.player_id,
+          placement: placement,
+          prize_label: (p.prize && String(p.prize).trim()) || ('Prize #' + placement),
+          prize_type: safeType,
+          prize_amount: (Number.isFinite(amt) && amt > 0) ? amt : null,
+          prize_currency: p.currency || null,
+          prize_image_url: p.image || null,
+          sponsor_id: p.sponsor_id || null,
+          claim_status: 'unclaimed'
+        })
+      })
+      if (claims.length === 0) { toast('Not enough players in results to fill prize pool', 'error'); return }
+      supabase.from('prize_claims').upsert(claims, { onConflict: 'tournament_id,player_id,placement', ignoreDuplicates: false }).then(function(res) {
+        if (res.error) { toast('Save failed: ' + res.error.message, 'error'); return }
+        addAudit('ACTION', 'Prize claims generated: ' + t.name + ' (' + claims.length + ' rows)')
+        toast(claims.length + ' prize claim(s) generated', 'success')
+      }).catch(function() { toast('Save failed', 'error') })
+    }).catch(function() { toast('Fetch failed', 'error') })
+  }
+
   function createFlashTournament() {
     var trimmedName = flashForm.name.trim()
     if (!trimmedName) { toast('Tournament name required', 'error'); return }
@@ -857,6 +915,9 @@ export default function TournamentTab() {
                         toast('Registration opened!', 'success')
                       }).catch(function() { toast('Failed to open registration', 'error') })
                     }}>Open Reg</Btn>
+                  )}
+                  {(t.phase === 'complete' || t.phase === 'in_progress') && (
+                    <Btn variant="ghost" size="sm" onClick={function() { finalizePrizeClaims(t) }}>Claims</Btn>
                   )}
                   <Btn variant="ghost" size="sm" onClick={function() {
                     if (!window.confirm('Delete ' + t.name + '?')) return
