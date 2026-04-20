@@ -4,6 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon } from '../components/ui'
+import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 
 // ── Registration progress bar ──────────────────────────────────────────────────
 
@@ -826,6 +827,25 @@ function SeasonTab({ seasonConfig, tournamentState, navigate }) {
                 <Icon name="schedule" size={14} />
                 <span className="font-label uppercase tracking-wider">{timeStr + ' EU'}</span>
               </div>
+              {!isComplete && (
+                <div className="mt-3">
+                  <AddToCalendarBtn
+                    start={(function(){
+                      var parts = timeStr.split(':')
+                      var d = new Date(w.date.getTime())
+                      d.setHours(parseInt(parts[0], 10) || 20, parseInt(parts[1], 10) || 0, 0, 0)
+                      return d
+                    })()}
+                    durationMinutes={180}
+                    title={'TFT Clash - Week ' + w.number}
+                    description={'Free weekly TFT tournament. Register at https://tftclash.com/events'}
+                    url={'https://tftclash.com/events'}
+                    uid={'tftclash-week-' + w.number + '-' + w.date.getTime()}
+                    filename={'tftclash-week-' + w.number + '.ics'}
+                    variant="ghost"
+                  />
+                </div>
+              )}
             </Panel>
           )
         })}

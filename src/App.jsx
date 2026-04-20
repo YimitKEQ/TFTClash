@@ -100,6 +100,7 @@ import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
 import PlayerComparisonModal from './components/shared/PlayerComparisonModal';
 import OnboardingFlow from './components/shared/OnboardingFlow';
 import BroadcastOverlay from './components/shared/BroadcastOverlay';
+import CommandPalette from './components/shared/CommandPalette';
 import { Btn } from './components/ui';
 
 // ─── DATA VERSION  -  bump to bust stale localStorage ─────────────────────────
@@ -314,6 +315,22 @@ function TFTClash(){
   var markAllRead=ctx.markAllRead;
   var loadPlayersFromTable=ctx.loadPlayersFromTable;
   var userTier=ctx.userTier;
+
+  // ── Command palette (Cmd/Ctrl + K) ──
+  var _cmdOpen=useState(false);
+  var cmdOpen=_cmdOpen[0];
+  var setCmdOpen=_cmdOpen[1];
+  useEffect(function(){
+    function onKey(e){
+      var isK=(e.key==="k"||e.key==="K");
+      if(isK&&(e.metaKey||e.ctrlKey)){
+        e.preventDefault();
+        setCmdOpen(function(v){return !v;});
+      }
+    }
+    window.addEventListener("keydown",onKey);
+    return function(){window.removeEventListener("keydown",onKey);};
+  },[]);
 
   // ── Redirect legacy screens ──
   useEffect(function(){
@@ -720,6 +737,8 @@ function TFTClash(){
         pastClashes: pastClashes,
         onClose: function(){setComparePlayer(null);}
       })}
+
+      <CommandPalette open={cmdOpen} onClose={function(){setCmdOpen(false);}}/>
 
     </>
 

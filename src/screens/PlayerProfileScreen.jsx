@@ -5,7 +5,7 @@ import { getStats, getAchievements, checkAchievements, syncAchievements, ACHIEVE
 import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon, Badge, Tag, StatCard } from '../components/ui'
+import { Panel, Btn, Icon, Badge, Tag, StatCard, CopyBtn } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader.jsx'
 import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
@@ -469,6 +469,7 @@ export default function PlayerProfileScreen() {
               <div className="flex items-center gap-2 text-on-surface-variant text-sm mt-1">
                 <Icon name="sports_esports" size={16} />
                 <span className="font-label">{player.riot_id_eu || player.riot_id}</span>
+                <CopyBtn value={player.riot_id_eu || player.riot_id} title="Copy Riot ID" size={14} />
               </div>
             )}
             {pBio && (

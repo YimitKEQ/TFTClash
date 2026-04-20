@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import PageHeader from '../components/shared/PageHeader'
-import { Panel, Icon } from '../components/ui'
+import { Panel, Icon, Skeleton } from '../components/ui'
 import LeaderboardScreen from './LeaderboardScreen'
 import HofScreen from './HofScreen'
 import { rc } from '../lib/utils.js'
@@ -158,11 +158,18 @@ export default function StandingsScreen() {
                 </thead>
                 <tbody>
                   {sortedPlayers.length === 0 && isLoadingData && (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-label uppercase tracking-widest">
-                        Loading players...
-                      </td>
-                    </tr>
+                    [1,2,3,4,5,6,7,8].map(function(k) {
+                      return (
+                        <tr key={'skel-' + k} className="border-b border-outline-variant/5">
+                          <td className="px-6 py-3"><Skeleton className="h-4 w-8" /></td>
+                          <td className="px-4 py-3"><Skeleton className="h-4 w-32" /></td>
+                          <td className="px-4 py-3"><Skeleton className="h-4 w-10 ml-auto" /></td>
+                          <td className="px-4 py-3"><Skeleton className="h-4 w-8 ml-auto" /></td>
+                          <td className="px-4 py-3"><Skeleton className="h-4 w-6 ml-auto" /></td>
+                          <td className="px-6 py-3"><Skeleton className="h-4 w-12 ml-auto" /></td>
+                        </tr>
+                      )
+                    })
                   )}
                   {sortedPlayers.length === 0 && !isLoadingData && (
                     <tr>

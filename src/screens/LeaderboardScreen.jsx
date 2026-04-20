@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import { REGIONS, MEDAL_COLORS } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Btn, Icon, Panel } from '../components/ui'
+import { Btn, Icon, Panel, Skeleton } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 
@@ -308,10 +308,20 @@ export default function LeaderboardScreen(props) {
 
         {/* Table Container */}
         {isLoadingData && players.length === 0 && (
-          <Panel padding="none" className="px-8 py-16 text-center">
-            <Icon name="hourglass_empty" size={48} className="text-on-surface/20 block mb-4 animate-pulse mx-auto" />
-            <div className="font-headline text-xl text-on-surface mb-2">Loading standings...</div>
-            <div className="text-sm text-on-surface-variant">Fetching player data from the arena.</div>
+          <Panel padding="none" className="overflow-hidden">
+            <div className="divide-y divide-outline-variant/10">
+              {[1,2,3,4,5,6,7,8,9,10].map(function(k) {
+                return (
+                  <div key={k} className="flex items-center gap-4 px-5 py-3.5">
+                    <Skeleton className="w-8 h-5" />
+                    <Skeleton className="w-9 h-9 rounded-full" />
+                    <Skeleton className="h-4 flex-1 max-w-[180px]" />
+                    <Skeleton className="h-4 w-16 hidden sm:block" />
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                )
+              })}
+            </div>
           </Panel>
         )}
         {!isLoadingData && sorted.length === 0 && (
