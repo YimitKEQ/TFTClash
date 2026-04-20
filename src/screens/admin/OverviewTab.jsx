@@ -67,7 +67,7 @@ export default function OverviewTab({ setTab }) {
   function clearCheckIn() {
     if (!window.confirm('Clear all check-ins?')) return
     setTournamentState(function(s) { return Object.assign({}, s, { checkedInIds: [] }) })
-    supabase.from('players').update({ checked_in: false }).then(function(r) {
+    supabase.from('players').update({ checked_in: false }).eq('checked_in', true).then(function(r) {
       if (r.error) { toast('DB sync failed: ' + r.error.message, 'error'); return }
       addAudit('ACTION', 'Check-in cleared')
       toast('Check-in cleared', 'success')

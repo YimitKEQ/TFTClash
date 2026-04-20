@@ -359,7 +359,7 @@ export default function TournamentTab() {
             rulesOverride: rulesText
           })
         })
-        supabase.from('players').update({ checked_in: false }).then(function() {}).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
+        supabase.from('players').update({ checked_in: false }).eq('checked_in', true).then(function() {}).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
         addAudit('ACTION', 'Opened registration for ' + name)
         toast('Registration open: ' + name, 'success')
         setClashNumberInput('')
@@ -383,7 +383,7 @@ export default function TournamentTab() {
         if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
       }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     }
-    supabase.from('players').update({ checked_in: false }).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
+    supabase.from('players').update({ checked_in: false }).eq('checked_in', true).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
     addAudit('WARN', 'Tournament reset to Registration')
     toast('Reset to Registration', 'success')
   }
