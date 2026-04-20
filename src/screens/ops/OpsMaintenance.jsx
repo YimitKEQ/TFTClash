@@ -290,6 +290,74 @@ export default function OpsMaintenance(props) {
     }).catch(function() { toast('Refund flag failed', 'error'); setBusy('') })
   }
 
+  function exportUserData() {
+    var idInput = window.prompt('Enter the player auth_user_id (UUID) to export:\n\nThis exports all rows tied to this user across players, registrations, game_results, notifications, subscriptions, roles, host data, prize claims, and audit log actions. Use for GDPR Article 15 requests.')
+    if (!idInput || !idInput.trim()) return
+    var authUserId = idInput.trim()
+    if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(authUserId)) {
+      toast('That does not look like a UUID', 'error')
+      return
+    }
+
+    setBusy('gdpr_export')
+
+    Promise.all([
+      supabase.from('players').select('*').eq('auth_user_id', authUserId).maybeSingle(),
+      supabase.from('registrations').select('*, players!inner(auth_user_id)').eq('players.auth_user_id', authUserId),
+      supabase.from('game_results').select('*, players!inner(auth_user_id)').eq('players.auth_user_id', authUserId),
+      supabase.from('notifications').select('*').eq('user_id', authUserId),
+      supabase.from('user_subscriptions').select('*').eq('user_id', authUserId),
+      supabase.from('user_roles').select('*').eq('user_id', authUserId),
+      supabase.from('host_applications').select('*').eq('user_id', authUserId),
+      supabase.from('host_profiles').select('*').eq('user_id', authUserId),
+      supabase.from('prize_claims').select('*, players!inner(auth_user_id)').eq('players.auth_user_id', authUserId),
+      supabase.from('audit_log').select('*').eq('actor_id', authUserId).limit(500),
+    ]).then(function(results) {
+      var bundle = {
+        generated_at: new Date().toISOString(),
+        auth_user_id: authUserId,
+        player: results[0].data || null,
+        registrations: results[1].data || [],
+        game_results: results[2].data || [],
+        notifications: results[3].data || [],
+        user_subscriptions: results[4].data || [],
+        user_roles: results[5].data || [],
+        host_applications: results[6].data || [],
+        host_profiles: results[7].data || [],
+        prize_claims: results[8].data || [],
+        audit_log_actions: results[9].data || [],
+      }
+      var json = JSON.stringify(bundle, null, 2)
+      var blob = new Blob([json], { type: 'application/json' })
+      var url = URL.createObjectURL(blob)
+      var a = document.createElement('a')
+      a.href = url
+      a.download = 'tftclash-export-' + authUserId + '.json'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      writeAuditLog('ops.gdpr_export', actorContext(), { type: 'user', id: authUserId }, {
+        row_counts: {
+          registrations: bundle.registrations.length,
+          game_results: bundle.game_results.length,
+          notifications: bundle.notifications.length,
+          prize_claims: bundle.prize_claims.length,
+          subscriptions: bundle.user_subscriptions.length,
+        },
+        exported_at: new Date().toISOString(),
+      }).then(function() {})
+
+      toast('Export downloaded', 'success')
+      setBusy('')
+    }).catch(function(err) {
+      console.error('[gdpr-export] failed:', err)
+      toast('Export failed: ' + (err && err.message ? err.message : 'unknown'), 'error')
+      setBusy('')
+    })
+  }
+
   if (!isAdmin) {
     return (
       <div className="max-w-2xl">
@@ -490,6 +558,20 @@ export default function OpsMaintenance(props) {
             </div>
           )}
         </div>
+      </Panel>
+
+      {/* GDPR Data Export */}
+      <Panel className="!p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Icon name="folder_zip" size={16} className="text-primary" />
+          <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/50">GDPR Data Export</span>
+        </div>
+        <div className="text-xs text-on-surface/50 leading-relaxed mb-3">
+          Export all rows associated with a user's auth_user_id as a JSON file. Use to fulfill GDPR Article 15 (right of access) requests. Action is recorded in the audit log.
+        </div>
+        <Btn variant="primary" size="sm" onClick={exportUserData} disabled={busy === 'gdpr_export'}>
+          {busy === 'gdpr_export' ? 'Exporting...' : 'Export by auth_user_id'}
+        </Btn>
       </Panel>
 
       {/* Role Viewer */}

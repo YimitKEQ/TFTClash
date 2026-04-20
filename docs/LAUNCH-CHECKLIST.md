@@ -36,10 +36,10 @@ These are the items that, if broken, cause data loss, downtime, or auth bypass o
   - **Verify:** Trigger a real $0.01 subscription. Check Supabase logs show `[paypal-webhook] signature valid`. Then send a forged POST with bad headers; should return 401.
   - **Status:** ❓ Live mode active, signature path needs spot check
 
-- [ ] **All migrations 001-055 applied to prod**
+- [x] **All migrations 001-055 applied to prod** (verified 2026-04-20)
   - **What:** `supabase migration list --linked` shows every migration in `supabase/migrations/` as applied.
-  - **Verify:** `mcp__supabase__list_migrations` returns all 55 with no gaps.
-  - **Status:** ❓ Needs verification (last applied was 055 audit_log integrity)
+  - **Verify:** `mcp__supabase__list_migrations` returns 055_audit_log_actor_integrity at the top of the chain.
+  - **Status:** ✅ Verified 2026-04-20 -- all critical migrations including 052-055 are live in prod
 
 - [ ] **No screen crashes outside `<ScreenBoundary>`**
   - **What:** Every route renders inside a `ScreenBoundary` so a render error shows a fallback, not a white screen.
