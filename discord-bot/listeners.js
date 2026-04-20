@@ -4,11 +4,41 @@
  */
 
 import { supabase } from './utils/supabase.js';
-import { getTournamentState, getRegistrations } from './utils/data.js';
-import { phaseChangeEmbed, newRegistrationEmbed } from './utils/embeds.js';
+import { getTournamentState, getRegistrations, getClashResults } from './utils/data.js';
+import { phaseChangeEmbed, newRegistrationEmbed, resultsEmbed } from './utils/embeds.js';
 import { syncPlayerRoles } from './utils/roles.js';
 import { createLobbyChannels, destroyLobbyChannels } from './utils/lobbies.js';
 import { resolveChannel } from './utils/channels.js';
+
+var PTS = { 1: 8, 2: 7, 3: 6, 4: 5, 5: 4, 6: 3, 7: 2, 8: 1 };
+
+/** Aggregate raw game_results rows into final placements (sum of points across games). */
+function aggregatePlacements(rows) {
+  var totals = {};
+  rows.forEach(function(r) {
+    if (!totals[r.name]) totals[r.name] = { name: r.name, total: 0 };
+    totals[r.name].total += (PTS[r.place] || 0);
+  });
+  return Object.values(totals)
+    .sort(function(a, b) { return b.total - a.total; })
+    .map(function(p, i) { return { name: p.name, place: i + 1 }; });
+}
+
+async function autoPostResults(guild, clashNumber) {
+  if (!guild || !clashNumber) return;
+  var rows = await getClashResults(clashNumber);
+  if (!rows || rows.length === 0) return;
+  var placements = aggregatePlacements(rows);
+  if (placements.length === 0) return;
+  var channel = resolveChannel(guild, 'results') || resolveChannel(guild, 'announcements');
+  if (!channel) return;
+  try {
+    await channel.send({ embeds: [resultsEmbed(clashNumber, placements)] });
+    console.log('[listener] Auto-posted results for Clash #' + clashNumber);
+  } catch (err) {
+    console.error('[listener] auto-results error:', err && err.message);
+  }
+}
 
 let lastPhase = null;
 
@@ -54,6 +84,15 @@ export function startListeners(client) {
           });
         }
         if (g && val.phase === 'complete') {
+          // Auto-post results once results are ready (give admin a minute to publish)
+          var clashNum = val.clashNumber || null;
+          if (clashNum) {
+            setTimeout(function() {
+              autoPostResults(g, clashNum).catch(function(e) {
+                console.error('[listener] auto-results failed:', e && e.message);
+              });
+            }, 60 * 1000);
+          }
           // Delay cleanup by 30 min so players can chat after the clash
           setTimeout(function() {
             destroyLobbyChannels(g).catch(function(e) {

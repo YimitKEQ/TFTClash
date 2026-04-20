@@ -52,6 +52,10 @@ export default function CommandCenterScreen() {
   var subs = _subs[0]
   var setSubs = _subs[1]
 
+  var _launch = useState(null)
+  var launch = _launch[0]
+  var setLaunch = _launch[1]
+
   var _lastRefresh = useState(null)
   var lastRefresh = _lastRefresh[0]
   var setLastRefresh = _lastRefresh[1]
@@ -113,6 +117,23 @@ export default function CommandCenterScreen() {
     promises.push(
       supabase.from('user_subscriptions').select('tier,status').eq('status', 'active')
         .then(function(res) { setSubs(res.data || []) })
+    )
+
+    // Launch analytics views (KPIs + 14d signup trend + 4w revenue trend)
+    promises.push(
+      Promise.all([
+        supabase.from('v_launch_kpis').select('*').limit(1).maybeSingle(),
+        supabase.from('v_daily_signups').select('*').limit(14),
+        supabase.from('v_weekly_revenue').select('*').limit(20),
+        supabase.from('v_daily_active_players').select('*').limit(7),
+      ]).then(function(r) {
+        setLaunch({
+          kpis: (r[0] && r[0].data) || null,
+          signups: (r[1] && r[1].data) || [],
+          revenue: (r[2] && r[2].data) || [],
+          active: (r[3] && r[3].data) || [],
+        })
+      }).catch(function() { /* views optional — ignore if missing */ })
     )
 
     Promise.all(promises).then(function() {
@@ -229,6 +250,7 @@ export default function CommandCenterScreen() {
               mrr={mrr}
               activeTournaments={activeTournaments}
               lastRefresh={lastRefresh}
+              launch={launch}
               goTab={setTab}
               navigate={navigate}
             />

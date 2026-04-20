@@ -52,6 +52,27 @@ function QuickAction(props) {
   )
 }
 
+function Sparkline(props) {
+  var values = props.values || []
+  var color = props.color || '#9B72CF'
+  if (values.length === 0) {
+    return <div className="h-[36px] flex items-center justify-center text-[10px] text-on-surface/30 font-label uppercase tracking-wider">No data</div>
+  }
+  var max = Math.max.apply(null, values)
+  var min = Math.min.apply(null, values)
+  var range = max - min || 1
+  var step = values.length > 1 ? 100 / (values.length - 1) : 0
+  var pts = values.map(function(v, i) {
+    var y = 32 - ((v - min) / range) * 28
+    return (i * step) + ',' + y
+  }).join(' ')
+  return (
+    <svg viewBox="0 0 100 36" preserveAspectRatio="none" className="w-full h-[36px]">
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
+  )
+}
+
 export default function OpsOverview(props) {
   var stats = props.stats
   var mrr = props.mrr
@@ -59,8 +80,28 @@ export default function OpsOverview(props) {
   var lastRefresh = props.lastRefresh
   var goTab = props.goTab
   var navigate = props.navigate
+  var launch = props.launch
 
   if (!stats) return null
+
+  // Prep trend data. Views are ordered DESC, so reverse to plot oldest -> newest.
+  var signupVals = []
+  if (launch && launch.signups && launch.signups.length) {
+    signupVals = launch.signups.slice().reverse().map(function(r) { return Number(r.signups) || 0 })
+  }
+  var dapVals = []
+  if (launch && launch.active && launch.active.length) {
+    dapVals = launch.active.slice().reverse().map(function(r) { return Number(r.active_players) || 0 })
+  }
+  var weeklyRevVals = []
+  if (launch && launch.revenue && launch.revenue.length) {
+    var byWeek = {}
+    launch.revenue.forEach(function(r) {
+      var wk = r.week_start
+      byWeek[wk] = (byWeek[wk] || 0) + (Number(r.gross_usd) || 0)
+    })
+    weeklyRevVals = Object.keys(byWeek).sort().map(function(k) { return byWeek[k] })
+  }
 
   return (
     <div className="space-y-5">
@@ -170,6 +211,57 @@ export default function OpsOverview(props) {
             <Icon name="analytics" size={16} className="text-primary" />
             <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface/50">At a Glance</span>
           </div>
+          {launch && launch.kpis && (
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="rounded border border-outline-variant/10 p-2">
+                <div className="font-label text-[9px] uppercase tracking-wider text-on-surface/40">New / 7d</div>
+                <div className="font-mono text-sm font-bold text-on-surface">{launch.kpis.players_7d || 0}</div>
+              </div>
+              <div className="rounded border border-outline-variant/10 p-2">
+                <div className="font-label text-[9px] uppercase tracking-wider text-on-surface/40">Subs / 7d</div>
+                <div className="font-mono text-sm font-bold text-primary">{launch.kpis.new_subs_7d || 0}</div>
+              </div>
+              <div className="rounded border border-outline-variant/10 p-2">
+                <div className="font-label text-[9px] uppercase tracking-wider text-on-surface/40">Tourneys / 7d</div>
+                <div className="font-mono text-sm font-bold text-on-surface">{launch.kpis.tournaments_7d || 0}</div>
+              </div>
+              <div className="rounded border border-outline-variant/10 p-2">
+                <div className="font-label text-[9px] uppercase tracking-wider text-on-surface/40">Games / 7d</div>
+                <div className="font-mono text-sm font-bold text-on-surface">{launch.kpis.games_7d || 0}</div>
+              </div>
+            </div>
+          )}
+          {(signupVals.length > 0 || dapVals.length > 0 || weeklyRevVals.length > 0) && (
+            <div className="space-y-2 mb-3 pb-3 border-b border-outline-variant/5">
+              {signupVals.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-label uppercase tracking-wider text-on-surface/40">Signups 14d</span>
+                    <span className="text-[10px] font-mono text-on-surface/50">sum {signupVals.reduce(function(a, b) { return a + b }, 0)}</span>
+                  </div>
+                  <Sparkline values={signupVals} color="#9B72CF" />
+                </div>
+              )}
+              {dapVals.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-label uppercase tracking-wider text-on-surface/40">DAP 7d</span>
+                    <span className="text-[10px] font-mono text-on-surface/50">last {dapVals[dapVals.length - 1]}</span>
+                  </div>
+                  <Sparkline values={dapVals} color="#6DD3A8" />
+                </div>
+              )}
+              {weeklyRevVals.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] font-label uppercase tracking-wider text-on-surface/40">Weekly Revenue</span>
+                    <span className="text-[10px] font-mono text-on-surface/50">${weeklyRevVals[weeklyRevVals.length - 1].toFixed(0)}</span>
+                  </div>
+                  <Sparkline values={weeklyRevVals} color="#E8B84E" />
+                </div>
+              )}
+            </div>
+          )}
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2 border-b border-outline-variant/5">
               <span className="text-xs text-on-surface/60">Total Players</span>
