@@ -15,6 +15,7 @@ import RankBadge from '../components/shared/RankBadge';
 import Sparkline from '../components/shared/Sparkline';
 import AwardCard from '../components/shared/AwardCard';
 import PlacementDistribution from '../components/shared/PlacementDistribution';
+import PrizePoolCard from '../components/shared/PrizePoolCard';
 
 // ---- CANVAS COLORS (for downloadCard ctx operations) ----
 var CANVAS_COLORS = { text: '#e4e1ec', muted: '#d5c4af', accent: '#e8a838' };
@@ -2153,6 +2154,7 @@ function ClashIdleView(props) {
 // ---- ClashLobbyView (registration & check-in) ----
 
 function ClashLobbyView(props) {
+  var ctx = useApp() || {}
   var phase = props.phase
   var tournamentState = props.tournamentState || {}
   var players = props.players || []
@@ -2440,35 +2442,8 @@ function ClashLobbyView(props) {
           </div>
         )}
         {Array.isArray(tournamentState.prizePool) && tournamentState.prizePool.length > 0 && (
-          <div className="mt-4 bg-gradient-to-r from-secondary/[0.06] to-primary/[0.06] border border-secondary/25 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Icon name="redeem" size={14} className="text-secondary" />
-              <span className="font-label text-[10px] uppercase tracking-widest font-bold text-secondary">Prize Pool</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {tournamentState.prizePool.slice(0, 3).map(function(p) {
-                var colors = { 1: 'text-medal-gold border-medal-gold/30 bg-medal-gold/[0.06]', 2: 'text-on-surface border-outline-variant/30 bg-on-surface/[0.04]', 3: 'text-secondary border-secondary/30 bg-secondary/[0.06]' }
-                var tone = colors[p.placement] || 'text-on-surface border-outline-variant/15 bg-on-surface/[0.03]'
-                return (
-                  <div key={p.placement} className={'rounded-lg px-3 py-2.5 border flex items-center gap-3 ' + tone}>
-                    {p.image ? (
-                      <img src={p.image} alt={'Prize ' + p.placement} className="w-10 h-10 rounded object-cover flex-shrink-0 border border-outline-variant/20" loading="lazy" />
-                    ) : (
-                      <div className="w-10 h-10 rounded bg-on-surface/[0.05] border border-outline-variant/15 flex items-center justify-center flex-shrink-0">
-                        <span className="font-display text-sm font-bold opacity-60">#{p.placement}</span>
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-label text-[10px] uppercase tracking-widest font-bold opacity-80">#{p.placement}</div>
-                      <div className="font-display text-sm truncate">{p.prize}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-            {tournamentState.prizePool.length > 3 && (
-              <div className="text-[10px] text-on-surface-variant mt-2">+ {tournamentState.prizePool.length - 3} more tier{tournamentState.prizePool.length - 3 === 1 ? '' : 's'}</div>
-            )}
+          <div className="mt-4">
+            <PrizePoolCard prizes={tournamentState.prizePool} sponsors={ctx.orgSponsors} />
           </div>
         )}
         {tournamentState.rulesOverride && (
