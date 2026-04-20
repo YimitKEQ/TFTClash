@@ -6,13 +6,7 @@
     {
       "source": "/:path(.*)",
       "has": [{ "type": "host", "value": "tft-clash.vercel.app" }],
-      "destination": "https://tftclash.com/:path",
-      "permanent": true
-    },
-    {
-      "source": "/:path(.*)",
-      "has": [{ "type": "host", "value": "www.tftclash.com" }],
-      "destination": "https://tftclash.com/:path",
+      "destination": "https://www.tftclash.com/:path",
       "permanent": true
     }
   ],
