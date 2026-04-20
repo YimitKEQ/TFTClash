@@ -1700,19 +1700,31 @@ function BracketScreen(props) {
     var doSave = function(tId) {
       supabase.from('tournaments').update({ phase: 'complete', completed_at: new Date().toISOString() }).eq('id', tId)
         .then(function(r) { }).catch(function() {});
-      var playerTotals = {};
+      var playerAgg = [];
       allPlayers.forEach(function(p) {
         var entries = (p.clashHistory || []).filter(function(h) { return h.clashId === clashId; });
         if (entries.length === 0) return;
         var totalPts = entries.reduce(function(s, h) { return s + ((h.pts || 0) + (h.bonusPts || 0)); }, 0);
-        var wins = entries.filter(function(h) { return (h.place || h.placement) === 1; }).length;
-        var top4 = entries.filter(function(h) { return (h.place || h.placement) <= 4; }).length;
-        var bestPlace = Math.min.apply(null, entries.map(function(h) { return h.place || h.placement; }));
-        playerTotals[p.id] = { tournament_id: tId, player_id: p.id, final_placement: bestPlace, total_points: totalPts, wins: wins, top4_count: top4 };
+        var wins = entries.filter(function(h) { var pl = h.place || h.placement; return pl === 1; }).length;
+        var top4 = entries.filter(function(h) { var pl = h.place || h.placement; return pl >= 1 && pl <= 4; }).length;
+        var placeSum = entries.reduce(function(s, h) { return s + ((h.place || h.placement) || 0); }, 0);
+        playerAgg.push({ pid: p.id, pts: totalPts, wins: wins, top4: top4, placeSum: placeSum });
       });
-      var rows = Object.values(playerTotals);
+      var ranked = playerAgg.slice().sort(function(a, b) {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        var aTie = a.wins * 2 + a.top4;
+        var bTie = b.wins * 2 + b.top4;
+        if (bTie !== aTie) return bTie - aTie;
+        return a.placeSum - b.placeSum;
+      });
+      var playerTotals = {};
+      var rows = ranked.map(function(r, idx) {
+        var row = { tournament_id: tId, player_id: r.pid, final_placement: idx + 1, total_points: r.pts, wins: r.wins, top4_count: r.top4 };
+        playerTotals[r.pid] = row;
+        return row;
+      });
       if (rows.length > 0) {
-        supabase.from('tournament_results').insert(rows).then(function(r) {
+        supabase.from('tournament_results').upsert(rows, { onConflict: 'tournament_id,player_id' }).then(function(r) {
           if (r.error) { toast("Failed to save player results", "error"); return; }
           allPlayers.forEach(function(p) {
             if (p.authUserId) { createNotification(p.authUserId, "Results Finalized", clashName + " results are in! Check the Results screen to see your placement and points.", "trophy"); }

@@ -585,16 +585,25 @@ export default function FlashTournamentScreen(props) {
               var a = playerAgg[g.player_id];
               a.pts += (g.points || 0);
               a.wins += (g.placement === 1 ? 1 : 0);
-              a.top4 += (g.placement <= 4 ? 1 : 0);
+              a.top4 += (g.placement >= 1 && g.placement <= 4 ? 1 : 0);
               a.games += 1;
-              a.placeSum += g.placement;
+              a.placeSum += (g.placement || 0);
             });
-            var tRows = Object.keys(playerAgg).map(function(pid) {
+            var ranked = Object.keys(playerAgg).map(function(pid) {
               var a = playerAgg[pid];
-              return {tournament_id: tournamentId, player_id: pid, total_points: a.pts, wins: a.wins, top4_count: a.top4, final_placement: Math.round(a.placeSum / a.games)};
+              return { pid: pid, pts: a.pts, wins: a.wins, top4: a.top4, games: a.games, placeSum: a.placeSum };
+            }).sort(function(a, b) {
+              if (b.pts !== a.pts) return b.pts - a.pts;
+              var aTie = a.wins * 2 + a.top4;
+              var bTie = b.wins * 2 + b.top4;
+              if (bTie !== aTie) return bTie - aTie;
+              return a.placeSum - b.placeSum;
+            });
+            var tRows = ranked.map(function(r, idx) {
+              return { tournament_id: tournamentId, player_id: r.pid, total_points: r.pts, wins: r.wins, top4_count: r.top4, final_placement: idx + 1 };
             });
             if (tRows.length > 0) {
-              supabase.from('tournament_results').insert(tRows).then(function() {}).catch(function() {});
+              supabase.from('tournament_results').upsert(tRows, { onConflict: 'tournament_id,player_id' }).then(function() {}).catch(function() {});
             }
             Object.keys(playerAgg).forEach(function(pid) {
               var a = playerAgg[pid];
