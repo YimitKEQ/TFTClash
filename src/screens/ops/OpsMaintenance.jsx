@@ -237,7 +237,7 @@ export default function OpsMaintenance(props) {
     setDqPicks({})
     if (!tid) { setDqRegs([]); return }
     supabase.from('registrations').select('id, player_id, status, disqualified, players!inner(id, username, auth_user_id)')
-      .eq('tournament_id', tid).order('registered_at').then(function(r) {
+      .eq('tournament_id', tid).order('created_at').then(function(r) {
         if (r.error) { toast('Load regs failed: ' + r.error.message, 'error'); return }
         setDqRegs(r.data || [])
       })

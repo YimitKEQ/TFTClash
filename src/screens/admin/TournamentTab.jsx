@@ -420,13 +420,13 @@ export default function TournamentTab() {
     if (!t || !t.id) return
     if (!window.confirm('Generate prize claims from current standings for ' + t.name + '?\n\nThis creates claim rows winners can redeem. Safe to re-run (upserts by placement).')) return
     Promise.all([
-      supabase.from('tournaments').select('prize_pool, name').eq('id', t.id).single(),
+      supabase.from('tournaments').select('prize_pool_json, name').eq('id', t.id).single(),
       supabase.from('game_results').select('player_id, placement, points').eq('tournament_id', t.id)
     ]).then(function(results) {
       var tRes = results[0]; var grRes = results[1]
       if (tRes.error) { toast('Tournament fetch failed: ' + tRes.error.message, 'error'); return }
       if (grRes.error) { toast('Results fetch failed: ' + grRes.error.message, 'error'); return }
-      var prizePool = Array.isArray(tRes.data && tRes.data.prize_pool) ? tRes.data.prize_pool : []
+      var prizePool = Array.isArray(tRes.data && tRes.data.prize_pool_json) ? tRes.data.prize_pool_json : []
       if (prizePool.length === 0) { toast('No prizes configured for this tournament', 'error'); return }
       var gr = grRes.data || []
       if (gr.length === 0) { toast('No game results recorded yet', 'error'); return }

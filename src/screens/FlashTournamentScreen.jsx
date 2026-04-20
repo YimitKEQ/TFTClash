@@ -788,6 +788,51 @@ export default function FlashTournamentScreen(props) {
           </div>
         )}
 
+        {/* ── Admin quick actions (top of page, only when advancing) ── */}
+        {isAdmin && phase !== 'complete' && (
+          <div className="mb-6 bg-error/5 border border-error/25 rounded px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <Icon name="admin_panel_settings" size={16} className="text-error" />
+              <span className="font-label font-bold text-xs tracking-widest uppercase text-error">Admin</span>
+              <span className="text-[10px] font-mono text-on-surface-variant/50">
+                {"Phase: " + (phaseLabels[phase] || phase)}
+              </span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {phase === 'draft' && (
+                <button onClick={adminOpenRegistration} className="px-3 py-1.5 bg-secondary text-on-secondary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  Open Registration
+                </button>
+              )}
+              {phase === 'registration' && (
+                <button onClick={adminOpenCheckIn} className="px-3 py-1.5 bg-primary text-on-primary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  Open Check-In
+                </button>
+              )}
+              {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
+                <button onClick={generateLobbies} disabled={actionLoading} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-label font-bold text-[10px] tracking-widest uppercase rounded disabled:opacity-40 hover:brightness-110 transition-all">
+                  {actionLoading ? 'Generating...' : 'Generate Lobbies'}
+                </button>
+              )}
+              {(phase === 'check_in' || phase === 'registration') && (
+                <button onClick={adminStartTournament} className="px-3 py-1.5 bg-surface-container-high text-on-surface font-label font-bold text-[10px] tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                  Start Tournament
+                </button>
+              )}
+              {isLive && allLobbiesLocked && !isLastGame && (
+                <button onClick={startNextGame} className="px-3 py-1.5 bg-primary text-on-primary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  {"Start Game " + (currentGameNumber + 1)}
+                </button>
+              )}
+              {isLive && allLobbiesLocked && isLastGame && (
+                <button onClick={finalizeTournament} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  Finalize Tournament
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ── Registration bar ── */}
         <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -1177,7 +1222,11 @@ export default function FlashTournamentScreen(props) {
               <div className="bg-surface-container-low rounded border border-outline-variant/15 text-center py-16">
                 <Icon name="groups" size={40} className="text-on-surface-variant/20 mx-auto mb-3" />
                 <div className="font-bold text-base text-on-surface mb-1">Lobbies</div>
-                <div className="text-sm text-on-surface-variant">Lobbies will appear once the admin generates them.</div>
+                <div className="text-sm text-on-surface-variant">
+                  {isAdmin
+                    ? 'Use the Admin bar above to open check-in and generate lobbies once players have checked in.'
+                    : 'Lobbies will appear once the admin generates them.'}
+                </div>
               </div>
             ) : (
               <div>

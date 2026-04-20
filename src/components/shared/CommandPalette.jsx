@@ -68,8 +68,8 @@ export default function CommandPalette(props) {
   useEffect(function() {
     if (!open || loaded) return
     Promise.all([
-      supabase.from('players').select('id,username,rank').order('season_points', { ascending: false }).limit(200),
-      supabase.from('tournaments').select('id,name,clash_number,phase').order('created_at', { ascending: false }).limit(50)
+      supabase.from('players').select('id,username,rank').order('season_pts', { ascending: false }).limit(200),
+      supabase.from('tournaments').select('id,name,phase').order('created_at', { ascending: false }).limit(50)
     ]).then(function(r) {
       setPlayers((r[0] && r[0].data) || [])
       setTournaments((r[1] && r[1].data) || [])
@@ -122,7 +122,7 @@ export default function CommandPalette(props) {
       })
     })
     tournaments.forEach(function(t) {
-      var nm = t.name || ('Clash #' + (t.clash_number || t.id))
+      var nm = t.name || ('Tournament ' + t.id)
       list.push({
         type: 'tournament',
         label: nm,

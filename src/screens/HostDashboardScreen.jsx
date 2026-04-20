@@ -298,12 +298,14 @@ export default function HostDashboardScreen() {
         name: savedWizData.name,
         date: savedWizData.date,
         type: "flash_tournament",
-        format_type: savedWizData.type,
-        total_games: savedWizData.totalGames,
+        format: savedWizData.type,
+        round_count: savedWizData.totalGames,
         max_players: savedWizData.maxPlayers,
-        status: "upcoming",
-        created_by: currentUser ? currentUser.auth_user_id : null,
+        phase: "draft",
         host_id: currentUser ? currentUser.auth_user_id : null,
+        invite_only: !!savedWizData.inviteOnly,
+        entry_fee: savedWizData.entryFee || null,
+        rules_text: savedWizData.rules || null,
         branding_json: { accent_color: savedWizData.accentColor }
       }).select().single().then(function(res) {
         setWizCreating(false);
