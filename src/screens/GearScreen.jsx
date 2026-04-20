@@ -63,6 +63,8 @@ export default function GearScreen() {
                             <img
                               src={item.image_url}
                               alt={item.name}
+                              loading="lazy"
+                              decoding="async"
                               className="w-full object-cover h-[140px]"
                             />
                           )

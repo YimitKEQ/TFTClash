@@ -88,6 +88,7 @@ import PageLayout from './components/layout/PageLayout';
 import ScreenSkeleton from './components/layout/ScreenSkeleton';
 var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScreen'); });
 var NotFoundScreen = lazyWithRetry(function(){ return import('./screens/NotFoundScreen'); });
+var StatusScreenNew = lazyWithRetry(function(){ return import('./screens/StatusScreen'); });
 var StatsHubScreenNew = lazyWithRetry(function(){ return import('./screens/StatsHubScreen'); });
 
 var SponsorsScreenNew = lazyWithRetry(function(){ return import('./screens/SponsorsScreen'); });
@@ -241,7 +242,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -415,7 +416,7 @@ function TFTClash(){
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
     if(h){
-      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login"];
+      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login","status","sponsors","ops","content-engine","stats"];
       var hParts=h.split("/");var hBase=hParts[0];var hSub=hParts[1]||"";
       var isSafe=safeScreens.includes(hBase)||hBase.indexOf("tournament-")===0;
       if(isSafe){
@@ -682,6 +683,8 @@ function TFTClash(){
         {screen==="content-engine"&&<ContentEngineScreen/>}
 
         {screen==="not-found"&&<NotFoundScreen/>}
+
+        {screen==="status"&&<StatusScreenNew/>}
 
         {screen==="sponsors"&&<SponsorsScreenNew/>}
 

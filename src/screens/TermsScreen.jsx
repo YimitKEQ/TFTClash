@@ -45,7 +45,7 @@ var TERMS_SECTIONS = [
     num: '05.',
     title: 'Subscriptions and Payments',
     highlight: true,
-    body: 'Paid tiers are billed monthly in EUR. See the pricing page for current rates. You may cancel at any time. Refunds are handled case-by-case. Features are subject to change with reasonable notice.',
+    body: 'Paid tiers are billed monthly in USD via PayPal. See the pricing page for current rates. You may cancel at any time from your PayPal account or via Account Settings; access continues until the end of the current paid period. Pro-rated refunds are reviewed within 7 days for billing errors and undelivered features. Cosmetic preference, change of mind, or partial-month usage are not eligible for refund.',
     cards: [
       { label: 'Pro Tier', text: 'Monthly subscription. Cancel anytime. No lock-in contracts.' },
       { label: 'Host Tier', text: 'Monthly subscription. Full tournament hosting suite included. See pricing page for current rates.' }
@@ -54,8 +54,8 @@ var TERMS_SECTIONS = [
   {
     id: 'termination',
     num: '06.',
-    title: 'Termination',
-    body: 'We may suspend or terminate accounts that violate these terms. You may delete your account at any time via Account Settings. Terminations for rule violations may be permanent.',
+    title: 'Termination and Bans',
+    body: 'We may suspend or terminate accounts that violate these terms. You may delete your account at any time via Account Settings. Bans for cheating, result manipulation, or harassment are permanent and forfeit any unused subscription time without refund. First-offense rule infractions may receive a temporary suspension and a written warning; repeat offenses escalate to permanent removal.',
     items: null
   },
   {
@@ -77,7 +77,7 @@ var TERMS_SECTIONS = [
 export default function TermsScreen() {
   var [activeSection, setActiveSection] = useState(null)
   var navigate = useNavigate()
-  var lastUpdated = new Date('2026-03-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
+  var lastUpdated = new Date('2026-04-20').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
 
   function scrollTo(id) {
     var el = document.getElementById('terms-' + id)

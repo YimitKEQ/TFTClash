@@ -135,7 +135,7 @@ export default function HofScreen(props) {
               return (
                 <div key={sp.name} className="flex items-center gap-2 opacity-50 hover:opacity-90 transition-opacity">
                   {sp.logo_url ? (
-                    <img src={sp.logo_url} alt={sp.name} className="h-5 object-contain" />
+                    <img src={sp.logo_url} alt={sp.name + ' logo'} loading="lazy" decoding="async" className="h-5 object-contain" />
                   ) : (
                     <span className="text-sm font-bold" style={{ color: sp.color || '#ffc66b' }}>{sp.name}</span>
                   )}

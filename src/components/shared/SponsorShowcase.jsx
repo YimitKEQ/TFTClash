@@ -18,7 +18,9 @@ function SponsorLogo(props) {
       {sponsor.logo_url ? (
         <img
           src={sponsor.logo_url}
-          alt={sponsor.name}
+          alt={sponsor.name + ' logo'}
+          loading="lazy"
+          decoding="async"
           className={heightClass + ' object-contain transition-transform duration-200 group-hover:scale-105'}
         />
       ) : (

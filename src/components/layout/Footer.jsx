@@ -46,7 +46,7 @@ function Footer() {
                 <div key={s.name} className="flex items-center gap-1.5 px-3 py-1 rounded-md border"
                   style={{background: s.color + "12", borderColor: s.color + "25"}}>
                   {s.logo_url ? (
-                    <img src={s.logo_url} alt={s.name} className="h-4 object-contain" />
+                    <img src={s.logo_url} alt={s.name + ' logo'} loading="lazy" decoding="async" className="h-4 object-contain" />
                   ) : (
                     <span className="text-xs font-extrabold" style={{color: s.color}}>
                       {(s.name || '').slice(0, 2).toUpperCase()}

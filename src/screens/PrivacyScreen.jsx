@@ -51,20 +51,34 @@ var PRIVACY_SECTIONS = [
     quote: 'TFT Clash is an independent organization and is not directly affiliated with Riot Games. We use the Riot Games API to read public match data and verify player identities, but do not write data back to Riot services.'
   },
   {
-    id: 'retention',
+    id: 'processors',
     num: '04.',
+    title: 'Data Processors',
+    body: 'We rely on the following sub-processors to operate the platform. Each handles a defined slice of your data under their own contractual safeguards. We do not transfer data outside this list without notice.',
+    cards: [
+      { label: 'Supabase', text: 'Postgres database, authentication, file storage, and row-level security. Hosts account data, tournament results, and uploaded assets.' },
+      { label: 'Vercel', text: 'Web hosting and serverless API runtime. Processes HTTP requests, IP addresses, and request logs needed to serve the site.' },
+      { label: 'PayPal', text: 'Subscription billing and webhook delivery. Receives email and billing details only when you subscribe to a paid tier.' },
+      { label: 'Sentry', text: 'Error and performance monitoring. Captures stack traces, release SHA, and a redacted user id when the app crashes.' },
+      { label: 'Discord', text: 'OAuth identity provider. Used only when you choose Discord sign-in; we receive your Discord id, username, avatar, and email scope you approve.' },
+      { label: 'Riot Games API', text: 'Read-only access to public match history and summoner metadata for the Riot ID you link. No data is written back to Riot.' }
+    ]
+  },
+  {
+    id: 'retention',
+    num: '05.',
     title: 'Data Retention',
     body: 'Account data is stored for the duration of your active membership. Tournament records and historic standings are archived indefinitely as part of the public competitive record, unless a Right to be Forgotten request is formally filed.'
   },
   {
     id: 'rights',
-    num: '05.',
+    num: '06.',
     title: 'Your Rights',
-    body: 'You can update or delete your account at any time via Account Settings. Upon deletion, your personal data is removed. Anonymized competitive records may be retained for historical standings integrity.'
+    body: 'You can update or delete your account at any time via Account Settings. Upon deletion, your personal data is removed. Anonymized competitive records may be retained for historical standings integrity. EU residents may also request a machine-readable export of their data; admins can fulfil this from the Ops Maintenance panel.'
   },
   {
     id: 'security',
-    num: '06.',
+    num: '07.',
     title: 'Data Security',
     body: 'We use Supabase with row-level security policies. All data is encrypted in transit and at rest. Authentication is handled through industry-standard protocols.'
   }
@@ -78,7 +92,7 @@ var SIDEBAR_LINKS = [
 export default function PrivacyScreen() {
   var [activeSection, setActiveSection] = useState(null)
   var navigate = useNavigate()
-  var lastUpdated = new Date('2026-03-01').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
+  var lastUpdated = new Date('2026-04-20').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
 
   function scrollTo(id) {
     var el = document.getElementById('privacy-' + id)

@@ -47,7 +47,7 @@ function SponsorCard(props) {
     <div className={'rounded-xl border overflow-hidden transition-all ' + (isActive ? 'border-outline-variant/20 bg-surface-container' : 'border-outline-variant/10 bg-surface-container/50 opacity-60')}>
       <div className="flex items-center gap-3 px-4 py-3 border-b border-outline-variant/10">
         {sponsor.logo_url ? (
-          <img src={sponsor.logo_url} alt={sponsor.name} className="w-8 h-8 rounded object-contain bg-white/5 p-0.5" />
+          <img src={sponsor.logo_url} alt={sponsor.name + ' logo'} loading="lazy" decoding="async" className="w-8 h-8 rounded object-contain bg-white/5 p-0.5" />
         ) : (
           <div className="w-8 h-8 rounded flex items-center justify-center text-xs font-bold" style={{ background: sponsor.color || tierInfo.color, color: '#1a1a2e' }}>
             {(sponsor.name || '?').charAt(0).toUpperCase()}
@@ -455,7 +455,7 @@ export default function SponsorsTab() {
                 return (
                   <div key={s.name} className="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
                     {s.logo_url ? (
-                      <img src={s.logo_url} alt={s.name} className="h-6 object-contain grayscale hover:grayscale-0 transition-all" />
+                      <img src={s.logo_url} alt={s.name + ' logo'} loading="lazy" decoding="async" className="h-6 object-contain grayscale hover:grayscale-0 transition-all" />
                     ) : (
                       <span className="text-xs font-bold text-on-surface/40" style={{ color: s.color }}>{s.name}</span>
                     )}

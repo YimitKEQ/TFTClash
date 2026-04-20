@@ -634,7 +634,7 @@ export default function TournamentTab() {
                 <div className="flex items-center gap-2 mt-2 pl-12">
                   {row.image ? (
                     <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <img src={row.image} alt="" className="w-10 h-10 rounded object-cover border border-outline-variant/20 flex-shrink-0" />
+                      <img src={row.image} alt="Prize image preview" loading="lazy" decoding="async" className="w-10 h-10 rounded object-cover border border-outline-variant/20 flex-shrink-0" />
                       <div className="text-[10px] text-on-surface/50 truncate flex-1">{row.image.split('/').pop()}</div>
                       <Btn variant="ghost" size="sm" onClick={function() {
                         var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { image: '' }) : r })

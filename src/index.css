@@ -223,7 +223,24 @@ h1,h2,h3,h4{font-weight:700;letter-spacing:.01em;}
 
 @keyframes tft-skel-scan{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
 .tft-skel-scan{animation:tft-skel-scan 1.2s ease-in-out infinite}
-@media (prefers-reduced-motion:reduce){.tft-skel-scan{animation:none}}
+
+/* Global a11y: respect user motion preferences. Animations are flair, not function. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .tft-skel-scan,
+  .gold-glow-boss,
+  .silver-glow-boss,
+  .bronze-glow-boss,
+  .retro-scan-line,
+  .scanlines {
+    animation: none !important;
+  }
+}
 
 @keyframes boss-gold-glow{0%,100%{box-shadow:0 0 25px 2px rgba(253,186,73,.25)}50%{box-shadow:0 0 45px 8px rgba(253,186,73,.45)}}
 @keyframes boss-silver-glow{0%,100%{box-shadow:0 0 15px 2px rgba(192,192,192,.15)}50%{box-shadow:0 0 28px 5px rgba(192,192,192,.3)}}

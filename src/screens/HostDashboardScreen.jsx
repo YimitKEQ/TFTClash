@@ -662,7 +662,7 @@ export default function HostDashboardScreen() {
                   onClick={function() { setTab("branding"); }}
                 >
                   {brandLogoUrl
-                    ? <img src={brandLogoUrl} alt="Logo" className="w-3/4 h-3/4 object-contain rounded" />
+                    ? <img src={brandLogoUrl} alt="Brand logo" loading="lazy" decoding="async" className="w-3/4 h-3/4 object-contain rounded" />
                     : (
                       <>
                         <Icon name="cloud_upload" size={28} className="text-slate-500 mb-2" />
@@ -1043,7 +1043,7 @@ export default function HostDashboardScreen() {
                       <input type="file" accept="image/*" className="hidden" onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "logo"); }} />
                     </label>
                   </div>
-                  {brandLogoUrl && <img src={brandLogoUrl} alt="Logo preview" className="w-12 h-12 rounded object-cover border border-outline-variant/20 mt-1" />}
+                  {brandLogoUrl && <img src={brandLogoUrl} alt="Brand logo preview" loading="lazy" decoding="async" className="w-12 h-12 rounded object-cover border border-outline-variant/20 mt-1" />}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Banner Image</label>
@@ -1059,7 +1059,7 @@ export default function HostDashboardScreen() {
                       <input type="file" accept="image/*" className="hidden" onChange={function(e) { if (e.target.files[0]) uploadImage(e.target.files[0], "banner"); }} />
                     </label>
                   </div>
-                  {brandBannerUrl && <img src={brandBannerUrl} alt="Banner preview" className="w-full max-h-28 rounded object-cover border border-outline-variant/20 mt-1" />}
+                  {brandBannerUrl && <img src={brandBannerUrl} alt="Brand banner preview" loading="lazy" decoding="async" className="w-full max-h-28 rounded object-cover border border-outline-variant/20 mt-1" />}
                 </div>
                 <Btn variant="primary" size="lg" onClick={saveBranding}>
                   {brandSaved ? "Saved!" : "Save Branding"}
@@ -1073,7 +1073,7 @@ export default function HostDashboardScreen() {
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-10 h-10 rounded flex items-center justify-center" style={{ background: brandColor + "22", border: "1px solid " + brandColor + "44" }}>
                       {brandLogoUrl
-                        ? <img src={brandLogoUrl} alt="Logo" className="w-8 h-8 object-contain rounded" />
+                        ? <img src={brandLogoUrl} alt="Brand logo" loading="lazy" decoding="async" className="w-8 h-8 object-contain rounded" />
                         : <Icon name="military_tech" size={20} style={{ color: brandColor }} />
                       }
                     </div>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Server Error - TFT Clash</title>
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #08080F; color: #F2EDE4;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    .wrap { min-height: 100%; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 18px; padding: 32px; text-align: center; }
+    .code { font-family: 'Playfair Display', Georgia, serif; font-size: 96px; line-height: 1;
+      color: #9B72CF; margin: 0; letter-spacing: -2px; opacity: .65; }
+    .title { font-family: 'Playfair Display', Georgia, serif; font-size: 26px; margin: 0;
+      color: #F2EDE4; }
+    .copy { font-size: 14px; color: #9AAABF; max-width: 460px; line-height: 1.65; margin: 0; }
+    .row { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; justify-content: center; }
+    a.btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px;
+      border-radius: 8px; font-size: 14px; font-weight: 700; text-decoration: none;
+      transition: opacity .15s ease; }
+    a.btn:hover { opacity: .85; }
+    a.primary { background: #9B72CF; color: #fff; }
+    a.ghost { background: transparent; color: #C4B5FD; border: 1px solid rgba(155, 114, 207, .4); }
+    .meta { font-size: 11px; color: #6b7a8e; margin-top: 24px; font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="code">500</p>
+    <h1 class="title">Something on our side broke</h1>
+    <p class="copy">
+      The server hit an unexpected error. Our team has been notified. Try refreshing in a minute,
+      or check live status. Your account and competitive data are safe.
+    </p>
+    <div class="row">
+      <a class="btn primary" href="/">Back to Home</a>
+      <a class="btn ghost" href="/status">Check status</a>
+      <a class="btn ghost" href="https://discord.gg/tftclash" target="_blank" rel="noopener">Report in Discord</a>
+    </div>
+    <p class="meta">If the problem persists, please send the time of this error to a moderator.</p>
+  </main>
+</body>
+</html>

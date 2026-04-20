@@ -402,7 +402,9 @@ export default function PlayerProfileScreen() {
         {pBanner && (
           <img
             src={pBanner}
-            alt="Profile Banner"
+            alt="Player profile banner"
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover mix-blend-overlay opacity-30"
           />
         )}

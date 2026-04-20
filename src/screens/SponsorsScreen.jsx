@@ -252,7 +252,7 @@ function CurrentPartners(props) {
           return (
             <Panel key={sp.name} elevation="elevated" radius="xl" padding="default" className="group hover:border-primary/30 transition-colors text-center">
               {sp.logo_url ? (
-                <img src={sp.logo_url} alt={sp.name} className="h-12 mx-auto mb-4 object-contain group-hover:scale-105 transition-transform" />
+                <img src={sp.logo_url} alt={sp.name + ' logo'} loading="lazy" decoding="async" className="h-12 mx-auto mb-4 object-contain group-hover:scale-105 transition-transform" />
               ) : (
                 <div className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center text-2xl font-bold" style={{ background: (sp.color || tierColor) + '20', color: sp.color || tierColor }}>
                   {(sp.name || '?').charAt(0).toUpperCase()}
