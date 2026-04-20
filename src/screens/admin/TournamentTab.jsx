@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext'
 import { supabase } from '../../lib/supabase.js'
 import { Panel, Btn, Inp, Icon, Sel } from '../../components/ui'
 import { TOURNAMENT_FORMATS } from '../../lib/tournament.js'
+import { PRIZE_TYPES, PRIZE_CURRENCIES, normalizePrizeRow, computeCashPool, currencySymbol } from '../../lib/prizes.js'
 
 // Rough duration: ~18 min per TFT game + 5 min lobby/room setup between games.
 function estimateDurationMinutes(games) {
@@ -40,6 +41,7 @@ export default function TournamentTab() {
   var setAuditLog = ctx.setAuditLog
   var currentUser = ctx.currentUser
   var toast = ctx.toast
+  var orgSponsors = ctx.orgSponsors || []
 
   // Convert an ISO timestamp to the value format datetime-local expects (YYYY-MM-DDTHH:mm in local time)
   function isoToLocalInput(iso) {
@@ -51,9 +53,21 @@ export default function TournamentTab() {
   }
 
   var initialClashLocal = isoToLocalInput((tournamentState && tournamentState.clashTimestamp) || '')
+  function emptyPrizeRow(place) {
+    return { placement: String(place), prize: '', image: '', type: 'other', amount: '', currency: 'EUR', sponsor_id: '', eligibility: '' }
+  }
   var initialPrizePool = (tournamentState && Array.isArray(tournamentState.prizePool) && tournamentState.prizePool.length > 0)
-    ? tournamentState.prizePool.map(function(r) { return { placement: String(r.placement || ''), prize: String(r.prize || ''), image: String(r.image || '') } })
-    : [{ placement: '1', prize: '', image: '' }, { placement: '2', prize: '', image: '' }, { placement: '3', prize: '', image: '' }]
+    ? tournamentState.prizePool.map(function(r) { return {
+        placement: String(r.placement || ''),
+        prize: String(r.prize || ''),
+        image: String(r.image || ''),
+        type: String(r.type || 'other'),
+        amount: r.amount != null ? String(r.amount) : '',
+        currency: String(r.currency || 'EUR'),
+        sponsor_id: String(r.sponsor_id || ''),
+        eligibility: String(r.eligibility || '')
+      } })
+    : [emptyPrizeRow(1), emptyPrizeRow(2), emptyPrizeRow(3)]
   var _clashForm = useState({
     name: (tournamentState && tournamentState.clashName) || 'Weekly Clash',
     clashLocal: initialClashLocal,
@@ -125,13 +139,14 @@ export default function TournamentTab() {
   function buildPrizePool(rows) {
     if (!rows || !rows.length) return []
     return rows
-      .filter(function(r) { return r && ((r.prize && r.prize.trim()) || (r.image && r.image.trim())) })
-      .map(function(r) {
-        var place = parseInt(r.placement, 10)
-        var entry = { placement: Number.isFinite(place) && place > 0 ? place : 1, prize: (r.prize || '').trim() }
-        if (r.image && r.image.trim()) entry.image = r.image.trim()
-        return entry
+      .filter(function(r) {
+        if (!r) return false
+        var hasText = r.prize && r.prize.trim()
+        var hasImage = r.image && r.image.trim()
+        var hasAmount = r.amount && String(r.amount).trim() && parseFloat(r.amount) > 0
+        return hasText || hasImage || hasAmount
       })
+      .map(normalizePrizeRow)
       .sort(function(a, b) { return a.placement - b.placement })
   }
 
@@ -465,12 +480,21 @@ export default function TournamentTab() {
         )}
 
         <div className="mb-4 p-3 rounded-lg bg-secondary/[0.05] border border-secondary/20">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
             <label className="text-[11px] text-secondary font-bold uppercase tracking-wider flex items-center gap-1">
               <Icon name="redeem" size={12} className="inline-block" />
               Prize Pool (optional)
             </label>
-            <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([{ placement: String((clashForm.prizeRows || []).length + 1), prize: '', image: '' }]) })) }}>+ Add</Btn>
+            {(function() {
+              var pool = computeCashPool(buildPrizePool(clashForm.prizeRows))
+              if (!pool) return null
+              return (
+                <span className="text-[10px] font-mono font-bold text-tertiary bg-tertiary/10 px-2 py-1 rounded">
+                  Total: {currencySymbol(pool.currency)}{pool.total.toLocaleString()}
+                </span>
+              )
+            })()}
+            <Btn variant="secondary" size="sm" onClick={function() { setClashForm(Object.assign({}, clashForm, { prizeRows: (clashForm.prizeRows || []).concat([emptyPrizeRow((clashForm.prizeRows || []).length + 1)]) })) }}>+ Add</Btn>
           </div>
           {(clashForm.prizeRows || []).map(function(row, idx) {
             var uploading = uploadingIdx === idx
@@ -494,6 +518,59 @@ export default function TournamentTab() {
                       setClashForm(Object.assign({}, clashForm, { prizeRows: clashForm.prizeRows.filter(function(_, i) { return i !== idx }) }))
                     }}>X</Btn>
                   )}
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mt-2 pl-12">
+                  <div>
+                    <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Type</label>
+                    <Sel value={row.type || 'other'} onChange={function(v) {
+                      var val = typeof v === 'string' ? v : v.target.value
+                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { type: val }) : r })
+                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                    }}>
+                      {PRIZE_TYPES.map(function(t) { return <option key={t.key} value={t.key}>{t.label}</option> })}
+                    </Sel>
+                  </div>
+                  {row.type === 'cash' && (
+                    <>
+                      <div>
+                        <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Amount</label>
+                        <Inp type="number" min="0" step="0.01" value={row.amount || ''} onChange={function(v) {
+                          var val = typeof v === 'string' ? v : v.target.value
+                          var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { amount: val }) : r })
+                          setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                        }} placeholder="50" />
+                      </div>
+                      <div>
+                        <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Currency</label>
+                        <Sel value={row.currency || 'EUR'} onChange={function(v) {
+                          var val = typeof v === 'string' ? v : v.target.value
+                          var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { currency: val }) : r })
+                          setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                        }}>
+                          {PRIZE_CURRENCIES.map(function(c) { return <option key={c} value={c}>{c}</option> })}
+                        </Sel>
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Sponsor</label>
+                    <Sel value={row.sponsor_id || ''} onChange={function(v) {
+                      var val = typeof v === 'string' ? v : v.target.value
+                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { sponsor_id: val }) : r })
+                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                    }}>
+                      <option value="">- none -</option>
+                      {(orgSponsors || []).map(function(s) { return <option key={s.id} value={s.id}>{s.name}</option> })}
+                    </Sel>
+                  </div>
+                  <div>
+                    <label className="block text-[9px] text-on-surface/50 uppercase tracking-wider mb-0.5">Eligibility</label>
+                    <Inp value={row.eligibility || ''} onChange={function(v) {
+                      var val = typeof v === 'string' ? v : v.target.value
+                      var updated = clashForm.prizeRows.map(function(r, i) { return i === idx ? Object.assign({}, r, { eligibility: val }) : r })
+                      setClashForm(Object.assign({}, clashForm, { prizeRows: updated }))
+                    }} placeholder="e.g. top 4, EU" />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 mt-2 pl-12">
                   {row.image ? (

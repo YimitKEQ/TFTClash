@@ -9,6 +9,7 @@ import { createNotification } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel } from '../components/ui'
+import PrizePoolCard from '../components/shared/PrizePoolCard'
 
 export default function FlashTournamentScreen(props) {
   var tournamentId = props.tournamentId;
@@ -755,25 +756,9 @@ export default function FlashTournamentScreen(props) {
           </div>
         </div>
 
-        {/* ── Prize pool ── */}
         {prizes.length > 0 && (
-          <div className="bg-surface-container-low rounded border border-primary/15 p-5 mb-6 overflow-hidden relative">
-            <div className="absolute top-0 right-0 p-3 opacity-5">
-              <Icon name="emoji_events" size={64} />
-            </div>
-            <div className="font-label font-bold text-xs tracking-widest uppercase text-primary mb-4">Prize Pool</div>
-            <div className="flex gap-3 flex-wrap">
-              {prizes.map(function(p, i) {
-                var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70'];
-                var bgs = ['bg-primary/10 border-primary/25', 'bg-on-surface-variant/8 border-on-surface-variant/15', 'bg-on-surface-variant/5 border-on-surface-variant/10'];
-                return (
-                  <div key={p.placement + '-' + p.prize} className={"rounded px-5 py-3 min-w-[90px] text-center border " + (bgs[i] || 'bg-surface-container-high border-outline-variant/10')}>
-                    <div className={"text-lg font-display font-bold mb-0.5 " + (colors[i] || 'text-on-surface-variant/50')}>{"#" + p.placement}</div>
-                    <div className="text-xs text-on-surface font-semibold">{p.prize}</div>
-                  </div>
-                );
-              })}
-            </div>
+          <div className="mb-6">
+            <PrizePoolCard prizes={prizes} sponsors={ctx.orgSponsors} />
           </div>
         )}
 
