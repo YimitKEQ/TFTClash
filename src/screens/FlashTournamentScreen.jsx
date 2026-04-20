@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase.js'
 import { PTS, RANKS } from '../lib/constants.js'
 import { shareToTwitter, buildShareText, ordinal } from '../lib/utils.js'
 import { buildFlashLobbies } from '../lib/tournament.js'
-import { createNotification } from '../lib/notifications.js'
+import { createNotification, writeAuditLog } from '../lib/notifications.js'
 import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel } from '../components/ui'
@@ -396,6 +396,13 @@ export default function FlashTournamentScreen(props) {
     }).catch(function() { toast('Dispute submission failed', 'error'); });
   }
 
+  function actorContext() {
+    return {
+      id: currentUser ? currentUser.auth_user_id : null,
+      name: currentUser ? (currentUser.username || currentUser.email || '') : ''
+    };
+  }
+
   function lockLobby(lobbyId) {
     var lobbyReports = reports.filter(function(r) { return r.lobby_id === lobbyId; });
     var gameRows = lobbyReports.map(function(r) {
@@ -413,6 +420,7 @@ export default function FlashTournamentScreen(props) {
       if (res.error) { toast('Failed to lock: ' + res.error.message, 'error'); return; }
       supabase.from('lobbies').update({status: 'locked', reports_complete: true}).eq('id', lobbyId).then(function(luRes) {
         if (luRes.error) { toast('Error: ' + luRes.error.message, 'error'); return; }
+        writeAuditLog('tournament.lock_lobby', actorContext(), { type: 'lobby', id: lobbyId }, { tournament_id: tournamentId, game_number: currentGameNumber, placements: gameRows.length });
         toast('Lobby locked!', 'success');
         broadcastUpdate('lobby_locked');
         loadLobbies();
@@ -433,9 +441,31 @@ export default function FlashTournamentScreen(props) {
     }, {onConflict: 'lobby_id,game_number,player_id'})
       .then(function(res) {
         if (res.error) { toast('Override failed: ' + res.error.message, 'error'); return; }
+        writeAuditLog('tournament.override_placement', actorContext(), { type: 'player_report', id: playerId }, { tournament_id: tournamentId, lobby_id: lobbyId, game_number: currentGameNumber, placement: placement });
         toast('Placement overridden', 'success');
         loadReports();
       }).catch(function() { toast('Override failed', 'error'); });
+  }
+
+  function hostBatchSubmit(lobbyId, placementsByPlayer) {
+    var rows = Object.keys(placementsByPlayer).map(function(pid) {
+      return {
+        tournament_id: tournamentId,
+        lobby_id: lobbyId,
+        game_number: currentGameNumber,
+        player_id: pid,
+        reported_placement: placementsByPlayer[pid],
+        reported_at: new Date().toISOString()
+      };
+    });
+    if (rows.length === 0) { toast('Enter at least one placement', 'error'); return Promise.resolve(); }
+    return supabase.from('player_reports').upsert(rows, {onConflict: 'lobby_id,game_number,player_id'})
+      .then(function(res) {
+        if (res.error) { toast('Submit failed: ' + res.error.message, 'error'); return; }
+        writeAuditLog('tournament.host_batch_submit', actorContext(), { type: 'lobby', id: lobbyId }, { tournament_id: tournamentId, game_number: currentGameNumber, count: rows.length });
+        toast('Placements submitted (' + rows.length + ')', 'success');
+        loadReports();
+      }).catch(function() { toast('Submit failed', 'error'); });
   }
 
   function isSafeUrl(url) { return url && (url.indexOf('https://') === 0 || url.indexOf('http://') === 0); }
@@ -443,10 +473,14 @@ export default function FlashTournamentScreen(props) {
   function resolveDispute(disputeId, accept) {
     var d = disputes.find(function(x) { return x.id === disputeId; });
     if (!d) return;
+    var note = window.prompt((accept ? 'Accepting' : 'Rejecting') + ' dispute - add a resolution note (shown to the player):', '');
+    if (note === null) return;
+    note = String(note).slice(0, 500).trim();
     var updates = {
       status: accept ? 'resolved_accepted' : 'resolved_rejected',
       resolved_by: currentUser ? currentUser.auth_user_id : null,
-      resolved_at: new Date().toISOString()
+      resolved_at: new Date().toISOString(),
+      resolution_note: note || null
     };
     supabase.from('disputes').update(updates).eq('id', disputeId).then(function(res) {
       if (res.error) { toast('Failed: ' + res.error.message, 'error'); return; }
@@ -462,11 +496,16 @@ export default function FlashTournamentScreen(props) {
           loadReports();
         }).catch(function() {});
       }
+      writeAuditLog('dispute.resolve', actorContext(), { type: 'dispute', id: disputeId }, { tournament_id: tournamentId, player_id: d.player_id, lobby_id: d.lobby_id, accepted: !!accept, note: note || null, claimed: d.claimed_placement, reported: d.reported_placement });
       toast('Dispute ' + (accept ? 'accepted' : 'rejected'), 'success');
       loadDisputes();
       var disputingPlayer = (players || []).find(function(p) { return p.id === d.player_id; });
       if (disputingPlayer && disputingPlayer.authUserId) {
-        createNotification(disputingPlayer.authUserId, 'Dispute ' + (accept ? 'Accepted' : 'Rejected'), 'Your placement dispute has been ' + (accept ? 'accepted. Your placement has been updated.' : 'rejected. The original result stands.'), 'bell');
+        var body = accept
+          ? 'Your placement dispute has been accepted. Your placement has been updated.'
+          : 'Your placement dispute has been rejected. The original result stands.';
+        if (note) body = body + '\n\nNote: ' + note;
+        createNotification(disputingPlayer.authUserId, 'Dispute ' + (accept ? 'Accepted' : 'Rejected'), body, 'bell');
       }
     }).catch(function() { toast('Failed to resolve dispute', 'error'); });
   }
@@ -1279,8 +1318,8 @@ export default function FlashTournamentScreen(props) {
                                 <span className="text-[10px] text-on-surface-variant/30 font-label">Pending</span>
                               ) : null}
 
-                              {/* Admin override */}
-                              {isAdmin && isLive && !isLocked && (
+                              {/* Admin / host override */}
+                              {(isAdmin || iAmHost) && isLive && !isLocked && (
                                 <Sel value="" onChange={function(v) { if (parseInt(v) > 0) adminOverridePlacement(lobby.id, p.id, parseInt(v)); }} className="ml-1">
                                   <option value="">{"--"}</option>
                                   {(lobby.player_ids || []).map(function(_, i) { return (<option key={"ov-" + (i + 1)} value={i + 1}>{i + 1}</option>); })}
@@ -1305,8 +1344,8 @@ export default function FlashTournamentScreen(props) {
                         </div>
                       )}
 
-                      {/* Admin lock button */}
-                      {isAdmin && isLive && !isLocked && (
+                      {/* Admin / host lock button */}
+                      {(isAdmin || iAmHost) && isLive && !isLocked && (
                         <div className="border-t border-outline-variant/10 p-4 bg-surface-container-low flex items-center gap-3 flex-wrap">
                           {hasDuplicate && (
                             <span className="text-[10px] font-label font-bold text-error tracking-wider">Duplicate placements - resolve first</span>
