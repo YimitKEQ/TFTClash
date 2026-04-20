@@ -407,7 +407,10 @@ function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
 
 // --- FLASH TOURNAMENT BANNER ---
 
-function FlashTournamentBanner({ tournament, onView }) {
+function FlashTournamentBanner(props) {
+  var tournament = props.tournament
+  var onView = props.onView
+  var isRegistered = props.isRegistered
   if (!tournament) return null
   return (
     <div
@@ -419,7 +422,13 @@ function FlashTournamentBanner({ tournament, onView }) {
         <div className="font-label text-[10px] font-bold uppercase tracking-widest text-tertiary mb-0.5">Flash Tournament</div>
         <div className="font-bold text-sm text-on-surface truncate">{tournament.name}</div>
       </div>
-      <Btn variant="primary" size="sm">Register</Btn>
+      {isRegistered ? (
+        <span className="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-success/15 border border-success/30 text-success font-label text-[10px] font-bold uppercase tracking-widest">
+          <Icon name="check_circle" size={12} /> Registered
+        </span>
+      ) : (
+        <Btn variant="primary" size="sm">Register</Btn>
+      )}
     </div>
   )
 }
@@ -984,6 +993,10 @@ export default function DashboardScreen() {
   var upcomingTournament = _upcomingTournament[0]
   var setUpcomingTournament = _upcomingTournament[1]
 
+  var _upcomingRegistered = useState(false)
+  var upcomingRegistered = _upcomingRegistered[0]
+  var setUpcomingRegistered = _upcomingRegistered[1]
+
   useEffect(function () {
     supabase.from('tournaments').select('*')
       .eq('type', 'flash_tournament')
@@ -1054,6 +1067,22 @@ export default function DashboardScreen() {
       return false
     }) || null
   }, [players, currentUser])
+
+  var linkedPlayerIdForReg = linkedPlayer ? linkedPlayer.id : null
+  var upcomingTournamentId = upcomingTournament ? upcomingTournament.id : null
+  useEffect(function () {
+    if (!upcomingTournamentId || !linkedPlayerIdForReg) { setUpcomingRegistered(false); return }
+    supabase.from('registrations').select('id, status, disqualified')
+      .eq('tournament_id', upcomingTournamentId)
+      .eq('player_id', linkedPlayerIdForReg)
+      .limit(1)
+      .then(function (res) {
+        var rows = res && res.data ? res.data : []
+        var row = rows[0]
+        var active = !!row && !row.disqualified && row.status !== 'dropped' && row.status !== 'cancelled'
+        setUpcomingRegistered(active)
+      }).catch(function () { setUpcomingRegistered(false) })
+  }, [upcomingTournamentId, linkedPlayerIdForReg])
 
   function hasRiotId(p) {
     if (!p) return false
@@ -1408,6 +1437,7 @@ export default function DashboardScreen() {
       {/* Flash tournament banner */}
       <FlashTournamentBanner
         tournament={upcomingTournament}
+        isRegistered={upcomingRegistered}
         onView={function () { navigate('/flash/' + upcomingTournament.id) }}
       />
 
