@@ -132,6 +132,9 @@ export default function FlashTournamentScreen(props) {
       if (type === 'next_game') { loadTournament(); loadLobbies(); loadReports(); }
       if (type === 'finalized') { loadTournament(); loadResults(); }
     });
+    channel.on('postgres_changes', {event: '*', schema: 'public', table: 'registrations', filter: 'tournament_id=eq.' + tournamentId}, function() {
+      loadRegistrations();
+    });
     channel.subscribe();
     return function() { supabase.removeChannel(channel); channelRef.current = null; };
   }, [tournamentId]);

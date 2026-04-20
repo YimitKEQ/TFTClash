@@ -273,6 +273,14 @@ export default function TournamentTab() {
 
   function openRegistration() {
     if (opening) return
+    var maxPCheck = parseInt(roundConfig.maxPlayers) || ts.maxPlayers || 24
+    var roundsCheck = parseInt(roundConfig.roundCount) || ts.roundCount || 3
+    var cutLineCheck = parseInt(roundConfig.cutLine) || 0
+    var cutAfterGameCheck = parseInt(roundConfig.cutAfterGame) || 0
+    if (maxPCheck < 1 || maxPCheck > 1024) { toast('Max players must be between 1 and 1024', 'error'); return }
+    if (roundsCheck < 1 || roundsCheck > 20) { toast('Games per clash must be between 1 and 20', 'error'); return }
+    if (cutLineCheck > 0 && cutAfterGameCheck < 1) { toast('Cut line requires a cut-after game', 'error'); return }
+    if (cutAfterGameCheck > 0 && cutAfterGameCheck >= roundsCheck) { toast('Cut must happen before the final game', 'error'); return }
     setOpening(true)
     supabase.from('tournaments').select('id', { count: 'exact', head: true }).eq('type', WEEKLY_CLASH_TYPE).then(function(countRes) {
       var existing = (countRes && countRes.count) || 0
@@ -282,11 +290,12 @@ export default function TournamentTab() {
       if (!window.confirm('Open registration for ' + name + '? This will create a new clash and clear any existing registrations.')) {
         setOpening(false); return
       }
-      var maxP = parseInt(roundConfig.maxPlayers) || ts.maxPlayers || 24
-      var rounds = parseInt(roundConfig.roundCount) || ts.roundCount || 3
-      var cutLine = parseInt(roundConfig.cutLine) || 0
-      var cutAfterGame = parseInt(roundConfig.cutAfterGame) || 0
+      var maxP = maxPCheck
+      var rounds = roundsCheck
+      var cutLine = cutLineCheck
+      var cutAfterGame = cutAfterGameCheck
       var checkinMins = parseInt(roundConfig.checkinWindowMins) || 30
+      if (checkinMins < 1 || checkinMins > 1440) { toast('Check-in window must be 1-1440 minutes', 'error'); setOpening(false); return }
       var prizePool = buildPrizePool(clashForm.prizeRows)
       var rulesText = (clashForm.rulesOverride || '').trim()
       supabase.from('tournaments').insert({
@@ -392,12 +401,21 @@ export default function TournamentTab() {
   }
 
   function createFlashTournament() {
-    if (!flashForm.name.trim()) { toast('Tournament name required', 'error'); return }
+    var trimmedName = flashForm.name.trim()
+    if (!trimmedName) { toast('Tournament name required', 'error'); return }
+    if (trimmedName.length > 80) { toast('Tournament name too long (max 80)', 'error'); return }
     if (!flashForm.date) { toast('Date/time required', 'error'); return }
+    var parsedDate = new Date(flashForm.date)
+    if (isNaN(parsedDate.getTime())) { toast('Invalid date/time', 'error'); return }
+    if (parsedDate.getTime() < Date.now() - 60 * 1000) { toast('Date/time must be in the future', 'error'); return }
+    var flashMaxP = parseInt(flashForm.maxPlayers) || 128
+    var flashGames = parseInt(flashForm.gameCount) || 3
+    if (flashMaxP < 1 || flashMaxP > 1024) { toast('Max players must be 1-1024', 'error'); return }
+    if (flashGames < 1 || flashGames > 20) { toast('Game count must be 1-20', 'error'); return }
     var prizePool = flashForm.prizeRows.filter(function(r) { return r.prize.trim() }).map(function(r) { return { placement: parseInt(r.placement), prize: r.prize.trim() } })
     supabase.from('tournaments').insert({
-      name: flashForm.name.trim(), date: flashForm.date, phase: 'draft', type: 'flash_tournament',
-      max_players: parseInt(flashForm.maxPlayers) || 128, round_count: parseInt(flashForm.gameCount) || 3,
+      name: trimmedName, date: flashForm.date, phase: 'draft', type: 'flash_tournament',
+      max_players: flashMaxP, round_count: flashGames,
       seeding_method: flashForm.seedingMethod || 'snake', prize_pool_json: prizePool.length > 0 ? prizePool : null,
       lobby_host_method: 'random'
     }).select().single().then(function(res) {

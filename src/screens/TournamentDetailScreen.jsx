@@ -55,6 +55,9 @@ export default function TournamentDetailScreen() {
   var _loadingResults = useState(false)
   var loadingResults = _loadingResults[0]
   var setLoadingResults = _loadingResults[1]
+  var _liveReg = useState({loaded:false, isRegistered:false, count:0, busy:false})
+  var liveReg = _liveReg[0]
+  var setLiveReg = _liveReg[1]
 
   useEffect(function() {
     if (!contextEvent && eventId && supabase.from) {
@@ -66,17 +69,42 @@ export default function TournamentDetailScreen() {
   }, [contextEvent, eventId])
 
   var event = contextEvent || fallbackEvent
+  var dbTournamentId = event && (event.dbTournamentId || (typeof event.id === 'string' && event.id.length > 20 ? event.id : null))
 
   useEffect(function() {
-    if (!event || !event.dbTournamentId || !supabase.from) return
+    if (!dbTournamentId || !supabase.from) return
     setLoadingResults(true)
-    supabase.from('game_results').select('*').eq('tournament_id', event.dbTournamentId).order('round_number', { ascending: true }).order('placement', { ascending: true })
+    supabase.from('game_results').select('*').eq('tournament_id', dbTournamentId).order('round_number', { ascending: true }).order('placement', { ascending: true })
       .then(function(res) {
         setLoadingResults(false)
         if (res.error) { toast('Failed to load results', 'error'); return; }
         if (res.data) setTournamentResults(res.data)
       }).catch(function() { setLoadingResults(false); toast('Failed to load results', 'error'); })
-  }, [event ? event.dbTournamentId : null])
+  }, [dbTournamentId])
+
+  function refreshLiveReg() {
+    if (!dbTournamentId || !supabase.from) return
+    supabase.from('registrations').select('player_id,status', { count: 'exact' })
+      .eq('tournament_id', dbTournamentId)
+      .in('status', ['registered','checked_in'])
+      .then(function(res) {
+        if (res.error) return
+        var isReg = !!(currentUser && (res.data || []).some(function(r) { return r.player_id === currentUser.id }))
+        setLiveReg({loaded:true, isRegistered:isReg, count:(res.data || []).length, busy:false})
+      }).catch(function() {})
+  }
+
+  useEffect(refreshLiveReg, [dbTournamentId, currentUser ? currentUser.id : null])
+
+  useEffect(function() {
+    if (!dbTournamentId || !supabase.channel) return
+    var ch = supabase.channel('tournament_detail_regs_' + dbTournamentId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations', filter: 'tournament_id=eq.' + dbTournamentId }, function() {
+        refreshLiveReg()
+      })
+      .subscribe()
+    return function() { supabase.removeChannel(ch) }
+  }, [dbTournamentId])
 
   if (!event) {
     return (
@@ -93,37 +121,86 @@ export default function TournamentDetailScreen() {
     )
   }
 
-  var isRegistered = currentUser && event.registeredIds && event.registeredIds.indexOf(currentUser.username) !== -1
-  var isFull = event.registered >= event.size
-  var isCompleted = event.status === 'complete'
+  var blobIsRegistered = currentUser && event.registeredIds && event.registeredIds.indexOf(currentUser.username) !== -1
+  var isRegistered = liveReg.loaded ? liveReg.isRegistered : blobIsRegistered
+  var liveCount = liveReg.loaded ? liveReg.count : (event.registered || 0)
+  var size = event.size || event.max_players || 0
+  var isFull = size > 0 && liveCount >= size
+  var isCompleted = event.status === 'complete' || event.phase === 'complete' || event.phase === 'completed'
   var canRegister = !isCompleted && !isFull && !isRegistered
-  var regPercent = event.size > 0 ? Math.round((event.registered / event.size) * 100) : 0
+  var regPercent = size > 0 ? Math.round((liveCount / size) * 100) : 0
 
   function handleRegister() {
     if (!currentUser) { setAuthScreen('login'); return; }
+    if (!currentUser.auth_user_id) { toast('Sign in required to register', 'error'); return; }
+    if (!dbTournamentId) { toast('Tournament unavailable', 'error'); return; }
+    if (liveReg.busy) return
+    setLiveReg(function(s) { return Object.assign({}, s, {busy:true}) })
+
     if (isRegistered) {
-      setFeaturedEvents(function(evts) { return evts.map(function(ev) {
-        if (ev.id !== event.id) return ev
-        var newIds = (ev.registeredIds || []).filter(function(u) { return u !== currentUser.username; })
-        return Object.assign({}, ev, { registeredIds: newIds, registered: Math.max(0, (ev.registered || 0) - 1) })
-      }); })
-      if (supabase.from && currentUser && currentUser.auth_user_id && event.dbTournamentId) {
-        supabase.from('registrations').delete().eq('tournament_id', event.dbTournamentId).eq('player_id', currentUser.id).then(function(r) { if (r.error) { toast('Unregister failed', 'error'); } }).catch(function() { toast('Unregister failed', 'error'); })
-      }
-      toast('Unregistered from ' + event.name, 'info')
-    } else {
-      if (isFull) { toast('Tournament is full', 'error'); return; }
-      setFeaturedEvents(function(evts) { return evts.map(function(ev) {
+      var prevFeatured = null
+      setFeaturedEvents(function(evts) {
+        prevFeatured = evts
+        return evts.map(function(ev) {
+          if (ev.id !== event.id) return ev
+          var newIds = (ev.registeredIds || []).filter(function(u) { return u !== currentUser.username; })
+          return Object.assign({}, ev, { registeredIds: newIds, registered: Math.max(0, (ev.registered || 0) - 1) })
+        })
+      })
+      supabase.from('registrations').delete()
+        .eq('tournament_id', dbTournamentId)
+        .eq('player_id', currentUser.id)
+        .then(function(r) {
+          if (r.error) {
+            if (prevFeatured) setFeaturedEvents(prevFeatured)
+            setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+            toast('Unregister failed: ' + r.error.message, 'error')
+            return
+          }
+          toast('Unregistered from ' + event.name, 'info')
+          refreshLiveReg()
+        })
+        .catch(function() {
+          if (prevFeatured) setFeaturedEvents(prevFeatured)
+          setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+          toast('Unregister failed', 'error')
+        })
+      return
+    }
+
+    if (isFull) {
+      setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+      toast('Tournament is full', 'error'); return
+    }
+
+    var prevFeatured2 = null
+    setFeaturedEvents(function(evts) {
+      prevFeatured2 = evts
+      return evts.map(function(ev) {
         if (ev.id !== event.id) return ev
         var newIds = (ev.registeredIds || []).concat([currentUser.username])
         return Object.assign({}, ev, { registeredIds: newIds, registered: (ev.registered || 0) + 1 })
-      }); })
-      if (supabase.from && currentUser && currentUser.auth_user_id && event.dbTournamentId) {
-        supabase.from('registrations').upsert({ tournament_id: event.dbTournamentId, player_id: currentUser.id, status: 'registered' }, { onConflict: 'tournament_id,player_id' })
-          .then(function(r) { if (r && r.error) toast('Registration sync failed', 'error'); }).catch(function() { toast('Registration sync failed', 'error'); })
-      }
-      toast('Registered for ' + event.name + '!', 'success')
-    }
+      })
+    })
+    supabase.from('registrations').upsert(
+      { tournament_id: dbTournamentId, player_id: currentUser.id, status: 'registered' },
+      { onConflict: 'tournament_id,player_id' }
+    )
+      .then(function(r) {
+        if (r && r.error) {
+          if (prevFeatured2) setFeaturedEvents(prevFeatured2)
+          setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+          toast('Registration failed: ' + r.error.message, 'error')
+          return
+        }
+        toast('Registered for ' + event.name + '!', 'success')
+        refreshLiveReg()
+      })
+      .catch(function() {
+        if (prevFeatured2) setFeaturedEvents(prevFeatured2)
+        setLiveReg(function(s) { return Object.assign({}, s, {busy:false}) })
+        toast('Registration failed', 'error')
+      })
   }
 
   var playerNameMap = {}
@@ -225,9 +302,14 @@ export default function TournamentDetailScreen() {
                 var colors = ['text-primary', 'text-on-surface-variant', 'text-on-surface-variant/70']
                 var bgs = ['bg-primary/10 border-primary/25', 'bg-on-surface-variant/8 border-on-surface-variant/15', 'bg-on-surface-variant/5 border-on-surface-variant/10']
                 return (
-                  <div key={p.placement + '-' + p.prize} className={"rounded px-5 py-3 min-w-[90px] text-center border " + (bgs[i] || 'bg-surface-container-high border-outline-variant/10')}>
+                  <div key={p.placement + '-' + p.prize} className={"rounded px-5 py-3 min-w-[110px] max-w-[200px] text-center border " + (bgs[i] || 'bg-surface-container-high border-outline-variant/10')}>
+                    {p.image && (
+                      <div className="w-16 h-16 mx-auto mb-2 rounded overflow-hidden bg-surface-container-high border border-outline-variant/20">
+                        <img src={p.image} alt={"Prize " + p.placement} className="w-full h-full object-cover" loading="lazy" />
+                      </div>
+                    )}
                     <div className={"text-lg font-display font-bold mb-0.5 " + (colors[i] || 'text-on-surface-variant/50')}>{"#" + p.placement}</div>
-                    <div className="text-xs text-on-surface font-semibold">{p.prize}</div>
+                    <div className="text-xs text-on-surface font-semibold break-words">{p.prize}</div>
                   </div>
                 )
               })}
@@ -240,8 +322,8 @@ export default function TournamentDetailScreen() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="font-mono text-2xl font-bold text-on-surface">{event.registered || 0}</span>
-                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + (event.size || 0)}</span>
+                <span className="font-mono text-2xl font-bold text-on-surface">{liveCount}</span>
+                <span className="text-on-surface-variant/50 font-mono text-sm">{"/ " + size}</span>
               </div>
               <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mt-0.5">
                 {"players registered (" + regPercent + "%)"}
@@ -251,13 +333,14 @@ export default function TournamentDetailScreen() {
               {!isCompleted && currentUser && isRegistered && (
                 <button
                   onClick={handleRegister}
-                  className="px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded transition-all border border-success/30 text-success bg-success/10 hover:bg-success/20">
-                  Registered - Withdraw
+                  disabled={liveReg.busy}
+                  className={"px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded transition-all border border-success/30 text-success bg-success/10 hover:bg-success/20 " + (liveReg.busy ? "opacity-50 cursor-not-allowed" : "")}>
+                  {liveReg.busy ? 'Updating...' : 'Registered - Withdraw'}
                 </button>
               )}
               {!isCompleted && currentUser && canRegister && (
-                <Btn variant="primary" size="sm" onClick={handleRegister}>
-                  Register Now
+                <Btn variant="primary" size="sm" onClick={handleRegister} disabled={liveReg.busy}>
+                  {liveReg.busy ? 'Registering...' : 'Register Now'}
                 </Btn>
               )}
               {!isCompleted && currentUser && isFull && !isRegistered && (
@@ -323,7 +406,7 @@ export default function TournamentDetailScreen() {
                 <div className="grid grid-cols-2 gap-px bg-outline-variant/5">
                   {[
                     {label: 'Format', value: event.format || 'Standard', icon: 'shuffle'},
-                    {label: 'Players', value: (event.registered || 0) + ' / ' + (event.size || 0), icon: 'group'},
+                    {label: 'Players', value: liveCount + ' / ' + size, icon: 'group'},
                     {label: 'Date', value: event.date || 'TBD', icon: 'calendar_today'},
                     {label: 'Region', value: event.region || 'All', icon: 'public'}
                   ].map(function(item) {

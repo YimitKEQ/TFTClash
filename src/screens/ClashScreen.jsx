@@ -2450,9 +2450,18 @@ function ClashLobbyView(props) {
                 var colors = { 1: 'text-medal-gold border-medal-gold/30 bg-medal-gold/[0.06]', 2: 'text-on-surface border-outline-variant/30 bg-on-surface/[0.04]', 3: 'text-secondary border-secondary/30 bg-secondary/[0.06]' }
                 var tone = colors[p.placement] || 'text-on-surface border-outline-variant/15 bg-on-surface/[0.03]'
                 return (
-                  <div key={p.placement} className={'rounded-lg px-3 py-2.5 border ' + tone}>
-                    <div className="font-label text-[10px] uppercase tracking-widest font-bold opacity-80">#{p.placement}</div>
-                    <div className="font-display text-sm truncate">{p.prize}</div>
+                  <div key={p.placement} className={'rounded-lg px-3 py-2.5 border flex items-center gap-3 ' + tone}>
+                    {p.image ? (
+                      <img src={p.image} alt={'Prize ' + p.placement} className="w-10 h-10 rounded object-cover flex-shrink-0 border border-outline-variant/20" loading="lazy" />
+                    ) : (
+                      <div className="w-10 h-10 rounded bg-on-surface/[0.05] border border-outline-variant/15 flex items-center justify-center flex-shrink-0">
+                        <span className="font-display text-sm font-bold opacity-60">#{p.placement}</span>
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-label text-[10px] uppercase tracking-widest font-bold opacity-80">#{p.placement}</div>
+                      <div className="font-display text-sm truncate">{p.prize}</div>
+                    </div>
                   </div>
                 )
               })}

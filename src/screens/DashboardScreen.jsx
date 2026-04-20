@@ -147,8 +147,12 @@ function PulseHeader({
           </div>
         )}
         {Array.isArray(tournamentState.prizePool) && tournamentState.prizePool[0] && (
-          <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-medal-gold">
-            <Icon name="redeem" size={10} />
+          <div className="mt-1 inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-medal-gold">
+            {tournamentState.prizePool[0].image ? (
+              <img src={tournamentState.prizePool[0].image} alt="1st prize" className="w-5 h-5 rounded object-cover border border-medal-gold/40" loading="lazy" />
+            ) : (
+              <Icon name="redeem" size={10} />
+            )}
             <span className="truncate max-w-[220px]">{tournamentState.prizePool[0].prize}</span>
           </div>
         )}
