@@ -275,7 +275,7 @@ function PlacementBoard(props) {
                   <div className="flex gap-[5px] mt-0.5"></div>
                 </div>
                 {got && !locked && (
-                  <button onClick={function() { setDisputeTarget(p); }} className="bg-[rgba(220,38,38,.12)] border border-[rgba(220,38,38,.35)] rounded-md px-2.5 py-[5px] text-xs text-error cursor-pointer font-bold shrink-0 min-h-[34px]">FLAG</button>
+                  <button onClick={function() { setDisputeTarget(p); }} className="bg-error/[0.12] border border-error/35 rounded-lg px-2.5 py-[5px] text-xs text-error cursor-pointer font-bold shrink-0 min-h-[34px]">FLAG</button>
                 )}
               </div>
               {!locked && (
@@ -363,7 +363,7 @@ function ResultSubmitModal(props) {
               <select
                 value={r.position}
                 onChange={function(e) { handlePositionChange(i, e.target.value); }}
-                className={"px-2.5 py-1.5 rounded-md bg-surface-container-lowest border text-[13px] " + (isDup ? "border-error text-error" : "border-on-surface/10 text-on-surface")}
+                className={"px-2.5 py-1.5 rounded-lg bg-surface-container-lowest border text-[13px] " + (isDup ? "border-error text-error" : "border-on-surface/10 text-on-surface")}
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8].map(function(pos) {
                   return <option key={pos} value={pos}>{ordinal(pos)}</option>;
@@ -1842,9 +1842,9 @@ function BracketScreen(props) {
       {allLocked && checkedIn.length > 0 && (
         <div className="flex items-center gap-2.5 rounded-lg px-4 py-2.5 mb-4" style={{ background: "rgba(82,196,124,.08)", border: "1px solid rgba(82,196,124,.3)", animation: "pulse 2s infinite" }}>
           <Icon name="check_circle" className="text-base text-[#52C47C]" />
-          <span className="text-[13px] font-semibold text-[#6EE7B7] flex-1">All {lobbies.length} lobbies locked - {round >= (tournamentState.totalGames || 4) ? "ready to finalize!" : "ready for next game!"}{isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) ? " Auto-advancing in " + autoAdvanceCountdown + "s" : ""}</span>
+          <span className="text-[13px] font-semibold text-success flex-1">All {lobbies.length} lobbies locked - {round >= (tournamentState.totalGames || 4) ? "ready to finalize!" : "ready for next game!"}{isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) ? " Auto-advancing in " + autoAdvanceCountdown + "s" : ""}</span>
           {isAdmin && autoAdvanceCountdown !== null && autoAdvanceCountdown > 0 && round < (tournamentState.totalGames || 4) && (
-            <button onClick={cancelAutoAdvance} className="text-[11px] font-bold cursor-pointer rounded-md px-3 py-1 whitespace-nowrap" style={{ color: "#F87171", background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.3)", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={cancelAutoAdvance} className="text-[11px] font-bold cursor-pointer rounded-lg px-3 py-1 whitespace-nowrap text-error bg-error/[0.08] border border-error/30">Cancel</button>
           )}
         </div>
       )}
@@ -1939,9 +1939,9 @@ function BracketScreen(props) {
                         <div className="text-[11px] text-[#BECBD9]">{lobby.length} players{isMyLobby ? " - Your Lobby" : ""}</div>
                       </div>
                     </div>
-                    {isMyLobby && <div className="text-xs font-bold rounded-md px-2.5 py-0.5" style={{ color: "#9B72CF", background: "rgba(155,114,207,.12)", border: "1px solid rgba(155,114,207,.3)" }}>YOU</div>}
-                    {lobbyLocked && !isMyLobby && <div className="text-[11px] text-[#6EE7B7] font-bold">Locked</div>}
-                    {lobbyLocked && isAdmin && <button onClick={function(e) { e.stopPropagation(); unlockLobby(li); }} className="text-[11px] font-bold cursor-pointer rounded-md px-2.5 py-0.5 ml-1.5" style={{ color: "#F87171", background: "rgba(248,113,113,.08)", border: "1px solid rgba(248,113,113,.3)", fontFamily: "inherit" }}>Unlock</button>}
+                    {isMyLobby && <div className="text-xs font-bold rounded-lg px-2.5 py-0.5 text-primary bg-primary/[0.12] border border-primary/30">YOU</div>}
+                    {lobbyLocked && !isMyLobby && <div className="text-[11px] text-success font-bold">Locked</div>}
+                    {lobbyLocked && isAdmin && <button onClick={function(e) { e.stopPropagation(); unlockLobby(li); }} className="text-[11px] font-bold cursor-pointer rounded-lg px-2.5 py-0.5 ml-1.5 text-error bg-error/[0.08] border border-error/30">Unlock</button>}
                   </div>
 
                   {/* Player list */}
@@ -1951,13 +1951,7 @@ function BracketScreen(props) {
                       var homie = HOMIES_IDS.includes(p.id);
                       return (
                         <div key={p.id} onClick={function() { setProfilePlayer(p); setScreen("profile"); }}
-                          className="flex items-center gap-2.5 px-1.5 py-2 rounded-md cursor-pointer transition-colors"
-                          style={{
-                            borderBottom: pi < lobby.length - 1 ? "1px solid rgba(242,237,228,.05)" : "none",
-                            background: isMe ? "rgba(155,114,207,.08)" : "transparent"
-                          }}
-                          onMouseEnter={function(e) { e.currentTarget.style.background = isMe ? "rgba(155,114,207,.12)" : "rgba(242,237,228,.03)"; }}
-                          onMouseLeave={function(e) { e.currentTarget.style.background = isMe ? "rgba(155,114,207,.08)" : "transparent"; }}>
+                          className={"flex items-center gap-2.5 px-1.5 py-2 rounded-lg cursor-pointer transition-colors " + (pi < lobby.length - 1 ? "border-b border-outline-variant/10" : "") + " " + (isMe ? "bg-primary/[0.08] hover:bg-primary/[0.12]" : "hover:bg-on-surface/[0.03]")}>
                           <div className="mono text-xs font-extrabold min-w-[18px] text-center" style={{ color: pi === 0 ? "#E8A838" : pi === 1 ? "#C0C0C0" : pi === 2 ? "#CD7F32" : "#9AAABF" }}>{pi + 1}</div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
@@ -2500,7 +2494,7 @@ function ClashLobbyView(props) {
                   onClick={function() { openProfile(p) }}
                   className={'flex items-center gap-3 px-3 py-2.5 rounded-lg text-left border transition-colors cursor-pointer ' + (isMe ? 'bg-primary/[0.08] border-primary/30' : 'bg-on-surface/[0.03] border-outline-variant/10 hover:bg-on-surface/[0.06]')}
                 >
-                  <div className={'w-7 h-7 rounded-md flex items-center justify-center font-mono text-[11px] font-bold flex-shrink-0 ' + (isMe ? 'bg-primary/20 text-primary' : 'bg-on-surface/[0.06] text-on-surface-variant')}>
+                  <div className={'w-7 h-7 rounded-lg flex items-center justify-center font-mono text-[11px] font-bold flex-shrink-0 ' + (isMe ? 'bg-primary/20 text-primary' : 'bg-on-surface/[0.06] text-on-surface-variant')}>
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">

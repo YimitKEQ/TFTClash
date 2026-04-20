@@ -108,12 +108,6 @@ function PulseHeader({
   isMyRegistered, isMyWaitlisted, myWaitlistPos, myCheckedIn, profileComplete,
   phaseActionBtn, pointsTrend
 }) {
-  var pColor = tPhase === 'registration' ? '#9B72CF'
-    : tPhase === 'checkin' ? '#E8A838'
-    : tPhase === 'inprogress' ? '#52C47C'
-    : tPhase === 'complete' ? '#4ECDC4'
-    : '#9B72CF'
-
   var phaseLabel = tPhase === 'registration' ? 'Registration Open'
     : tPhase === 'checkin' ? 'Check-in Open'
     : tPhase === 'inprogress' ? 'LIVE - Game ' + tRound + '/' + (tournamentState.totalGames || 4)
@@ -480,7 +474,7 @@ function CompleteTopThree(props) {
           <div key={pName + '-' + (i + 1)} className={'flex items-center gap-2 py-1.5 ' + (i < 2 ? 'border-b border-white/[0.04]' : '')}>
             <div className={
               'w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold font-mono flex-shrink-0 ' +
-              (i === 0 ? 'bg-primary text-[#13131A]' : 'bg-white/[0.08] text-on-surface-variant')
+              (i === 0 ? 'bg-primary text-on-primary' : 'bg-white/[0.08] text-on-surface-variant')
             }>
               {i + 1}
             </div>
