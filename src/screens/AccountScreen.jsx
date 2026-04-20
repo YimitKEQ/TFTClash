@@ -189,9 +189,10 @@ export default function AccountScreen() {
       }).catch(function() { setPrizeClaims({ loading: false, loaded: true, rows: [], tournaments: {} }); });
   }
 
+  var linkedPlayerId = linkedPlayer ? linkedPlayer.id : null;
   useEffect(function() {
     if (tab === 'prizes' && !prizeClaims.loaded && !prizeClaims.loading) loadPrizeClaims();
-  }, [tab, linkedPlayer && linkedPlayer.id]);
+  }, [tab, linkedPlayerId]);
 
   function openClaimForm(row) {
     setClaimFormOpen(row.id);
@@ -201,6 +202,9 @@ export default function AccountScreen() {
   function closeClaimForm() { setClaimFormOpen(null); }
 
   function submitClaim(row) {
+    if (!linkedPlayer || !linkedPlayer.id) { toast('Link your player first', 'error'); return; }
+    if (row.player_id !== linkedPlayer.id) { toast('This prize is not yours to claim', 'error'); return; }
+    if (row.claim_status && row.claim_status !== 'unclaimed') { toast('Already claimed', 'error'); return; }
     var email = (claimFormData.email || '').trim();
     if (!email || email.indexOf('@') === -1) { toast('Valid email required', 'error'); return; }
     if (email.length > 120) { toast('Email too long', 'error'); return; }
@@ -216,7 +220,7 @@ export default function AccountScreen() {
       claim_email: email,
       claim_address: addr,
       claimed_at: new Date().toISOString()
-    }).eq('id', row.id).select().single().then(function(res) {
+    }).eq('id', row.id).eq('player_id', linkedPlayer.id).select().single().then(function(res) {
       if (res.error) { toast('Claim failed: ' + res.error.message, 'error'); setClaimFormData(function(p) { return Object.assign({}, p, { saving: false }); }); return; }
       toast('Prize claimed! We will be in touch.', 'success');
       setPrizeClaims(function(prev) {

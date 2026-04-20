@@ -250,8 +250,9 @@ export default function TournamentTab() {
     var entry = { ts: Date.now(), type: type, msg: msg }
     setAuditLog(function(l) { return [entry].concat(l.slice(0, 199)) })
     if (supabase.from && currentUser) {
+      var actorId = currentUser.auth_user_id || null
       supabase.from('audit_log').insert({
-        action: type, actor_id: currentUser.id || null,
+        action: type, actor_id: actorId,
         actor_name: currentUser.username || currentUser.email || 'Admin',
         target_type: 'admin_action', details: { message: msg, timestamp: entry.ts }
       }).then(function(r) { }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })

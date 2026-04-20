@@ -7,7 +7,10 @@ import { medalForPlacement, computeCashPool, formatPrizeLabel, currencySymbol } 
 //   prizes: Array of prize objects (see lib/prizes.js for shape)
 //   sponsors: Array of sponsor objects from context (optional)
 //   compact: boolean - when true, renders a denser layout for sidebars
-export default function PrizePoolCard({ prizes, sponsors, compact }) {
+export default function PrizePoolCard(props) {
+  var prizes = props.prizes
+  var sponsors = props.sponsors
+  var compact = props.compact
   if (!Array.isArray(prizes) || prizes.length === 0) return null
   var cash = computeCashPool(prizes)
   var sorted = [].concat(prizes).sort(function(a, b) { return (a.placement || 9) - (b.placement || 9) })

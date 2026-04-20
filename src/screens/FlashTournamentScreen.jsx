@@ -447,35 +447,22 @@ export default function FlashTournamentScreen(props) {
       }).catch(function() { toast('Override failed', 'error'); });
   }
 
-  function hostBatchSubmit(lobbyId, placementsByPlayer) {
-    var rows = Object.keys(placementsByPlayer).map(function(pid) {
-      return {
-        tournament_id: tournamentId,
-        lobby_id: lobbyId,
-        game_number: currentGameNumber,
-        player_id: pid,
-        reported_placement: placementsByPlayer[pid],
-        reported_at: new Date().toISOString()
-      };
-    });
-    if (rows.length === 0) { toast('Enter at least one placement', 'error'); return Promise.resolve(); }
-    return supabase.from('player_reports').upsert(rows, {onConflict: 'lobby_id,game_number,player_id'})
-      .then(function(res) {
-        if (res.error) { toast('Submit failed: ' + res.error.message, 'error'); return; }
-        writeAuditLog('tournament.host_batch_submit', actorContext(), { type: 'lobby', id: lobbyId }, { tournament_id: tournamentId, game_number: currentGameNumber, count: rows.length });
-        toast('Placements submitted (' + rows.length + ')', 'success');
-        loadReports();
-      }).catch(function() { toast('Submit failed', 'error'); });
+  function isSafeUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    if (url.indexOf('https://') !== 0) return false;
+    var allowed = ['imgur.com', 'i.imgur.com', 'gyazo.com', 'i.gyazo.com', 'prnt.sc', 'lightshot.com', 'supabase.co', 'supabase.in', 'cdn.discordapp.com', 'media.discordapp.net'];
+    try {
+      var u = new URL(url);
+      return allowed.some(function(d) { return u.hostname === d || u.hostname.endsWith('.' + d); });
+    } catch (e) { return false; }
   }
-
-  function isSafeUrl(url) { return url && (url.indexOf('https://') === 0 || url.indexOf('http://') === 0); }
 
   function resolveDispute(disputeId, accept) {
     var d = disputes.find(function(x) { return x.id === disputeId; });
     if (!d) return;
     var note = window.prompt((accept ? 'Accepting' : 'Rejecting') + ' dispute - add a resolution note (shown to the player):', '');
     if (note === null) return;
-    note = String(note).slice(0, 500).trim();
+    note = String(note).replace(/[<>]/g, '').slice(0, 500).trim();
     var updates = {
       status: accept ? 'resolved_accepted' : 'resolved_rejected',
       resolved_by: currentUser ? currentUser.auth_user_id : null,
@@ -1568,7 +1555,7 @@ export default function FlashTournamentScreen(props) {
                           {"Claimed: #" + (d.claimed_placement || '?') + " - Reported: #" + (d.reported_placement || '?')}
                         </div>
                         {d.reason && <div className="text-xs text-on-surface-variant/40 italic">{d.reason}</div>}
-                        {isSafeUrl(d.screenshot_url) && <a href={d.screenshot_url} target="_blank" rel="noreferrer" className="text-[10px] text-secondary hover:underline">View screenshot</a>}
+                        {isSafeUrl(d.screenshot_url) && <a href={d.screenshot_url} target="_blank" rel="noopener noreferrer nofollow" className="text-[10px] text-secondary hover:underline">View screenshot</a>}
                       </div>
                       {isOpen && (
                         <div className="flex gap-2 shrink-0">

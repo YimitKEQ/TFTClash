@@ -96,9 +96,9 @@ export default function OpsMaintenance(props) {
       .then(function(r) {
         if (!r.error && r.data) setRoles(r.data)
       })
-    supabase.from('tournaments').select('id, name, phase, start_at')
+    supabase.from('tournaments').select('id, name, phase, date')
       .in('phase', ['in_progress', 'complete'])
-      .order('start_at', { ascending: false }).limit(20).then(function(r) {
+      .order('date', { ascending: false }).limit(20).then(function(r) {
         if (!r.error && r.data) setTournaments(r.data)
       })
     supabase.from('subscriptions').select('user_id, plan, status, updated_at')
@@ -114,12 +114,34 @@ export default function OpsMaintenance(props) {
     }
   }
 
+  function runUpdatesInChunks(ids, agg, chunkSize) {
+    var idx = 0
+    var failures = 0
+    function next() {
+      if (idx >= ids.length) return Promise.resolve(failures)
+      var slice = ids.slice(idx, idx + chunkSize)
+      idx += chunkSize
+      var batch = slice.map(function(pid) {
+        var a = agg[pid]
+        var avg = a.games > 0 ? Math.round((a.totalPlace / a.games) * 10) / 10 : 0
+        return supabase.from('players').update({
+          season_pts: a.pts, wins: a.wins, top4: a.top4, games: a.games, avg_placement: avg
+        }).eq('id', pid)
+      })
+      return Promise.all(batch).then(function(results) {
+        failures += results.filter(function(r) { return r && r.error }).length
+        return next()
+      })
+    }
+    return next()
+  }
+
   function recomputeStandings() {
     var active = seasons.filter(function(s) { return s.status === 'active' })[0]
     if (!active) { toast('No active season found', 'error'); return }
     if (!window.confirm('Recompute standings for season ' + active.number + ' (' + active.name + ')?\n\nThis recalculates season_pts, wins, top4, games, avg_placement for every player from the game_results table.')) return
     setBusy('recompute')
-    supabase.from('tournaments').select('id').gte('start_at', active.start_date).then(function(tr) {
+    supabase.from('tournaments').select('id').eq('season_id', active.id).then(function(tr) {
       if (tr.error) { toast('Load tournaments failed: ' + tr.error.message, 'error'); setBusy(''); return }
       var tids = (tr.data || []).map(function(x) { return x.id })
       if (tids.length === 0) { toast('No tournaments in active season', 'info'); setBusy(''); return }
@@ -140,24 +162,16 @@ export default function OpsMaintenance(props) {
         })
         var ids = Object.keys(agg)
         if (ids.length === 0) { toast('No game results to compute', 'info'); setBusy(''); return }
-        var updates = ids.map(function(pid) {
-          var a = agg[pid]
-          var avg = a.games > 0 ? Math.round((a.totalPlace / a.games) * 10) / 10 : 0
-          return supabase.from('players').update({
-            season_pts: a.pts, wins: a.wins, top4: a.top4, games: a.games, avg_placement: avg
-          }).eq('id', pid)
-        })
-        Promise.all(updates).then(function(results) {
-          var failures = results.filter(function(r) { return r && r.error }).length
+        runUpdatesInChunks(ids, agg, 25).then(function(failures) {
           writeAuditLog('ops.recompute_standings', actorContext(), { type: 'season', id: String(active.id) }, {
             season_number: active.number, players_updated: ids.length - failures, games_counted: rows.length
           })
           if (failures > 0) toast('Recompute finished with ' + failures + ' failures', 'warn')
           else toast('Standings recomputed for ' + ids.length + ' players', 'success')
           setBusy('')
-        })
-      })
-    })
+        }).catch(function() { toast('Recompute failed', 'error'); setBusy('') })
+      }).catch(function() { toast('Load game_results failed', 'error'); setBusy('') })
+    }).catch(function() { toast('Load tournaments failed', 'error'); setBusy('') })
   }
 
   function snapshotSeason() {
@@ -214,15 +228,15 @@ export default function OpsMaintenance(props) {
             if (!r.error && r.data) setSeasons(r.data)
           })
         setBusy('')
-      })
-    })
+      }).catch(function() { toast('New season create failed', 'error'); setBusy('') })
+    }).catch(function() { toast('Close season failed', 'error'); setBusy('') })
   }
 
   function loadDqRegs(tid) {
     setSelectedDqT(tid)
     setDqPicks({})
     if (!tid) { setDqRegs([]); return }
-    supabase.from('registrations').select('id, player_id, status, disqualified, players!inner(id, username)')
+    supabase.from('registrations').select('id, player_id, status, disqualified, players!inner(id, username, auth_user_id)')
       .eq('tournament_id', tid).order('registered_at').then(function(r) {
         if (r.error) { toast('Load regs failed: ' + r.error.message, 'error'); return }
         setDqRegs(r.data || [])
@@ -233,21 +247,24 @@ export default function OpsMaintenance(props) {
     var ids = Object.keys(dqPicks).filter(function(k) { return dqPicks[k] })
     if (ids.length === 0) { toast('No players selected', 'warn'); return }
     if (!dqReason.trim()) { toast('Reason required', 'warn'); return }
+    if (!selectedDqT) { toast('No tournament selected', 'error'); return }
     if (!window.confirm('Disqualify ' + ids.length + ' player' + (ids.length > 1 ? 's' : '') + ' from this tournament?\n\nReason: ' + dqReason)) return
     setBusy('disqualify')
     var numIds = ids.map(function(x) { return parseInt(x, 10) }).filter(function(x) { return !isNaN(x) })
+    var safeReason = dqReason.replace(/[<>]/g, '').slice(0, 500)
     supabase.from('registrations').update({
-      disqualified: true, disqualified_at: new Date().toISOString(), disqualified_reason: dqReason.slice(0, 500), status: 'disqualified'
-    }).in('id', numIds).then(function(up) {
+      disqualified: true, disqualified_at: new Date().toISOString(), disqualified_reason: safeReason, status: 'disqualified'
+    }).eq('tournament_id', selectedDqT).in('id', numIds).then(function(up) {
       if (up.error) { toast('Disqualify failed: ' + up.error.message, 'error'); setBusy(''); return }
       var affected = dqRegs.filter(function(r) { return dqPicks[r.id] })
       affected.forEach(function(r) {
-        if (r.players && r.players.username) {
-          createNotification(null, 'Tournament Disqualification', 'You were disqualified. Reason: ' + dqReason.slice(0, 200), 'gavel')
+        var uid = r.players && r.players.auth_user_id ? r.players.auth_user_id : null
+        if (uid) {
+          createNotification(uid, 'Tournament Disqualification', 'You were disqualified. Reason: ' + safeReason.slice(0, 200), 'gavel')
         }
       })
       writeAuditLog('ops.bulk_disqualify', actorContext(), { type: 'tournament', id: selectedDqT }, {
-        count: numIds.length, reason: dqReason.slice(0, 500),
+        count: numIds.length, reason: safeReason,
         player_ids: affected.map(function(r) { return r.player_id })
       })
       toast('Disqualified ' + numIds.length + ' player' + (numIds.length > 1 ? 's' : ''), 'success')
@@ -255,21 +272,22 @@ export default function OpsMaintenance(props) {
       setDqReason('')
       loadDqRegs(selectedDqT)
       setBusy('')
-    })
+    }).catch(function() { toast('Disqualify failed', 'error'); setBusy('') })
   }
 
   function flagRefund(sub) {
     if (!window.confirm('Flag refund for ' + sub.plan + ' subscription (user ' + sub.user_id.slice(0, 8) + '...)?\n\nThis does NOT process the PayPal refund. It writes an audit log + notifies the user. Process the actual refund via the PayPal dashboard or the refund MCP tool, then update subscription status manually.')) return
     if (!refundReason.trim()) { toast('Reason required above', 'warn'); return }
     setBusy('refund_' + sub.user_id)
+    var safeReason = refundReason.replace(/[<>]/g, '').slice(0, 500)
     writeAuditLog('ops.refund_flagged', actorContext(), { type: 'subscription', id: sub.user_id }, {
-      plan: sub.plan, reason: refundReason.slice(0, 500), flagged_at: new Date().toISOString()
+      plan: sub.plan, reason: safeReason, flagged_at: new Date().toISOString()
     }).then(function() {
       return createNotification(sub.user_id, 'Refund In Progress', 'Your ' + sub.plan + ' subscription refund has been initiated. Expect it within 5-7 business days.', 'payments')
     }).then(function() {
       toast('Refund flagged. Process in PayPal next.', 'success')
       setBusy('')
-    })
+    }).catch(function() { toast('Refund flag failed', 'error'); setBusy('') })
   }
 
   if (!isAdmin) {
