@@ -164,30 +164,6 @@ export var SEED = [
   {id:24,name:"GhostRider",rank:"Bronze",      region:"EUW",pts:10,  wins:0, top4:0, games:2},
 ];
 
-export var PAST_CLASHES = [
-  {id:"c7",name:"Clash #7",date:"2026-03-22",season:"S1",players:24,lobbies:3,champion:"Levitate",
-    top3:["Levitate","Zounderkite","Uri"],
-    top8:[{name:"Levitate",pts:8},{name:"Zounderkite",pts:7},{name:"Uri",pts:6},{name:"BingBing",pts:5},{name:"Wiwi",pts:4},{name:"Ole",pts:3},{name:"Sybor",pts:2},{name:"Ivdim",pts:1}]},
-  {id:"c6",name:"Clash #6",date:"2026-03-15",season:"S1",players:24,lobbies:3,champion:"BingBing",
-    top3:["BingBing","Levitate","Wiwi"],
-    top8:[{name:"BingBing",pts:8},{name:"Levitate",pts:7},{name:"Wiwi",pts:6},{name:"Uri",pts:5},{name:"Zounderkite",pts:4},{name:"Ole",pts:3},{name:"Vlad",pts:2},{name:"Sybor",pts:1}]},
-  {id:"c5",name:"Clash #5",date:"2026-03-08",season:"S1",players:24,lobbies:3,champion:"Zounderkite",
-    top3:["Zounderkite","Ole","Levitate"],
-    top8:[{name:"Zounderkite",pts:8},{name:"Ole",pts:7},{name:"Levitate",pts:6},{name:"BingBing",pts:5},{name:"Ivdim",pts:4},{name:"Wiwi",pts:3},{name:"Uri",pts:2},{name:"Vlad",pts:1}]},
-  {id:"c4",name:"Clash #4",date:"2026-03-01",season:"S1",players:24,lobbies:3,champion:"Levitate",
-    top3:["Levitate","Sybor","Uri"],
-    top8:[{name:"Levitate",pts:8},{name:"Sybor",pts:7},{name:"Uri",pts:6},{name:"Zounderkite",pts:5},{name:"Wiwi",pts:4},{name:"BingBing",pts:3},{name:"Ole",pts:2},{name:"Ivdim",pts:1}]},
-  {id:"c3",name:"Clash #3",date:"2026-02-22",season:"S1",players:24,lobbies:3,champion:"Uri",
-    top3:["Uri","Levitate","BingBing"],
-    top8:[{name:"Uri",pts:8},{name:"Levitate",pts:7},{name:"BingBing",pts:6},{name:"Wiwi",pts:5},{name:"Zounderkite",pts:4},{name:"Sybor",pts:3},{name:"Ole",pts:2},{name:"Vlad",pts:1}]},
-  {id:"c2",name:"Clash #2",date:"2026-02-15",season:"S1",players:24,lobbies:3,champion:"Wiwi",
-    top3:["Wiwi","Zounderkite","Ivdim"],
-    top8:[{name:"Wiwi",pts:8},{name:"Zounderkite",pts:7},{name:"Ivdim",pts:6},{name:"Levitate",pts:5},{name:"Uri",pts:4},{name:"BingBing",pts:3},{name:"Ole",pts:2},{name:"Sybor",pts:1}]},
-  {id:"c1",name:"Clash #1",date:"2026-02-08",season:"S1",players:24,lobbies:3,champion:"Levitate",
-    top3:["Levitate","Ole","Vlad"],
-    top8:[{name:"Levitate",pts:8},{name:"Ole",pts:7},{name:"Vlad",pts:6},{name:"Uri",pts:5},{name:"Zounderkite",pts:4},{name:"BingBing",pts:3},{name:"Wiwi",pts:2},{name:"Ivdim",pts:1}]},
-];
-
 // ─── CHAMPION SYSTEM ─────────────────────────────────────────────────────────
 
 // Mutable season champion - use getter/setter since ES module bindings are read-only from importers

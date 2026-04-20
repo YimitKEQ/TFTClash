@@ -101,7 +101,7 @@ export default function OpsMaintenance(props) {
       .order('date', { ascending: false }).limit(20).then(function(r) {
         if (!r.error && r.data) setTournaments(r.data)
       })
-    supabase.from('subscriptions').select('user_id, plan, status, updated_at')
+    supabase.from('user_subscriptions').select('user_id, tier, status, updated_at')
       .eq('status', 'active').limit(100).then(function(r) {
         if (!r.error && r.data) setSubs(r.data)
       })
@@ -276,14 +276,14 @@ export default function OpsMaintenance(props) {
   }
 
   function flagRefund(sub) {
-    if (!window.confirm('Flag refund for ' + sub.plan + ' subscription (user ' + sub.user_id.slice(0, 8) + '...)?\n\nThis does NOT process the PayPal refund. It writes an audit log + notifies the user. Process the actual refund via the PayPal dashboard or the refund MCP tool, then update subscription status manually.')) return
+    if (!window.confirm('Flag refund for ' + sub.tier + ' subscription (user ' + sub.user_id.slice(0, 8) + '...)?\n\nThis does NOT process the PayPal refund. It writes an audit log + notifies the user. Process the actual refund via the PayPal dashboard or the refund MCP tool, then update subscription status manually.')) return
     if (!refundReason.trim()) { toast('Reason required above', 'warn'); return }
     setBusy('refund_' + sub.user_id)
     var safeReason = refundReason.replace(/[<>]/g, '').slice(0, 500)
     writeAuditLog('ops.refund_flagged', actorContext(), { type: 'subscription', id: sub.user_id }, {
-      plan: sub.plan, reason: safeReason, flagged_at: new Date().toISOString()
+      tier: sub.tier, reason: safeReason, flagged_at: new Date().toISOString()
     }).then(function() {
-      return createNotification(sub.user_id, 'Refund In Progress', 'Your ' + sub.plan + ' subscription refund has been initiated. Expect it within 5-7 business days.', 'payments')
+      return createNotification(sub.user_id, 'Refund In Progress', 'Your ' + sub.tier + ' subscription refund has been initiated. Expect it within 5-7 business days.', 'payments')
     }).then(function() {
       toast('Refund flagged. Process in PayPal next.', 'success')
       setBusy('')
@@ -542,7 +542,7 @@ export default function OpsMaintenance(props) {
                   <div key={s.user_id} className="flex items-center justify-between px-3 py-2 border-b border-outline-variant/5">
                     <div className="flex-1 min-w-0">
                       <div className="text-xs text-on-surface font-mono truncate">{s.user_id}</div>
-                      <div className="font-label text-[10px] uppercase tracking-wider text-on-surface/40">{s.plan} - {s.status}</div>
+                      <div className="font-label text-[10px] uppercase tracking-wider text-on-surface/40">{s.tier} - {s.status}</div>
                     </div>
                     <Btn
                       variant="ghost"

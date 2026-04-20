@@ -57,12 +57,12 @@ async function notifyCohort(client, opts) {
 
   var userIds = players.map(function(p) { return p.auth_user_id; });
 
-  // Skip users already notified for this variant (idempotency).
+  // Skip users already notified for this variant (idempotency on variant column).
   var existing = await client
     .from('notifications')
     .select('user_id')
     .in('user_id', userIds)
-    .ilike('title', opts.title);
+    .eq('variant', opts.variant);
   var alreadyNotified = {};
   (existing.data || []).forEach(function(row) { alreadyNotified[row.user_id] = true; });
 
@@ -75,13 +75,17 @@ async function notifyCohort(client, opts) {
       title: opts.title,
       message: opts.message,
       action_url: opts.action_url,
+      variant: opts.variant,
       read: false
     });
   });
 
   if (rows.length === 0) return { variant: opts.variant, skipped: players.length, written: 0 };
 
-  var ins = await client.from('notifications').insert(rows);
+  // Unique (user_id, variant) partial index handles concurrent cron races.
+  var ins = await client
+    .from('notifications')
+    .insert(rows, { onConflict: 'user_id,variant', ignoreDuplicates: true });
   if (ins.error) return { variant: opts.variant, error: ins.error.message };
   return { variant: opts.variant, skipped: players.length - rows.length, written: rows.length };
 }

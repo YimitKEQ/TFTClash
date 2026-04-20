@@ -14,7 +14,7 @@ src/
   context/
     AppContext.jsx      -- Global state provider (useApp hook)
   lib/
-    constants.js        -- RANKS, REGIONS, PTS, PAST_CLASHES, etc.
+    constants.js        -- RANKS, REGIONS, PTS, etc.
     utils.js            -- sanitize, rc, tier, avgCol, ordinal, etc.
     stats.js            -- computeStats, tiebreaker, achievements, etc.
     tournament.js       -- TOURNAMENT_FORMATS, buildLobbies, phases, etc.
