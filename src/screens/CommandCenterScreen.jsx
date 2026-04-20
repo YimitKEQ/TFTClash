@@ -11,6 +11,7 @@ import OpsPlayers from './ops/OpsPlayers'
 import OpsComms from './ops/OpsComms'
 import OpsRevenue from './ops/OpsRevenue'
 import OpsFeed from './ops/OpsFeed'
+import OpsMaintenance from './ops/OpsMaintenance'
 
 var REFRESH_MS = 30000
 
@@ -21,6 +22,7 @@ var TABS = [
   { id: 'comms',       label: 'Comms',        icon: 'campaign' },
   { id: 'revenue',     label: 'Revenue',      icon: 'payments' },
   { id: 'feed',        label: 'Live Feed',    icon: 'dynamic_feed' },
+  { id: 'maintenance', label: 'Maintenance',  icon: 'build' },
 ]
 
 export default function CommandCenterScreen() {
@@ -250,6 +252,9 @@ export default function CommandCenterScreen() {
           )}
           {tab === 'feed' && (
             <OpsFeed />
+          )}
+          {tab === 'maintenance' && (
+            <OpsMaintenance />
           )}
         </div>
       </div>
