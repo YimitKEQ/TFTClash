@@ -41,6 +41,7 @@ export default function CompLines(props) {
   var comps = props.data.comps
   var champions = props.data.champions
   var traits = props.data.traits
+  var items = props.data.items
 
   var _sel = useState(null)
   var selectedId = _sel[0]
@@ -105,6 +106,7 @@ export default function CompLines(props) {
         comp={selectedComp}
         champions={champions}
         traits={traits}
+        items={items}
         allComps={comps}
         onBack={function () { setSelectedId(null) }}
         onOpenComp={function(id){ setSelectedId(id) }}

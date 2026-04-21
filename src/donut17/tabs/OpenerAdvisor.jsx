@@ -38,6 +38,7 @@ export default function OpenerAdvisor(props) {
   var champions = props.data.champions
   var comps = props.data.comps
   var traits = props.data.traits
+  var items = props.data.items
 
   var _p = useState([])
   var picked = _p[0]
@@ -105,6 +106,7 @@ export default function OpenerAdvisor(props) {
         comp={expandedComp}
         champions={champions}
         traits={traits}
+        items={items}
         allComps={comps}
         onBack={function(){ setExpandedId(null) }}
         onOpenComp={function(id){ setExpandedId(id) }}

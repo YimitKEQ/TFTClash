@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import HexBoard from '../lib/HexBoard'
 import ChampImg from '../lib/ChampImg'
+import ItemIcon from '../lib/ItemIcon'
 import { costColor } from '../lib/imgFallback'
 import { computeActiveTraits, tierColor } from '../lib/traitComputer'
 import { BOARD_ROWS, BOARD_COLS } from '../lib/positioning'
+import { recommendItems, buildItemMap, lookupItems } from '../lib/itemRecommender'
 
 // Team Planner: an interactive 4x7 hex board for sketching out a comp.
 //
@@ -22,6 +24,7 @@ function emptyBoard() {
 export default function TeamPlanner(props) {
   var champions = props.data.champions
   var traits = props.data.traits
+  var items = props.data.items || []
 
   var _b = useState(emptyBoard())
   var board = _b[0]
@@ -48,6 +51,39 @@ export default function TeamPlanner(props) {
     champions.forEach(function (c) { m[c.key] = c })
     return m
   }, [champions])
+
+  var itemMap = useMemo(function () { return buildItemMap(items) }, [items])
+
+  // For each carry on the board, surface recommended items as a strip below the hex.
+  var itemsByKey = useMemo(function () {
+    var map = {}
+    board.forEach(function (b) {
+      if (!b.isCarry) return
+      var ch = champByKey[b.key]
+      if (!ch) return
+      var rec = recommendItems(ch)
+      if (!rec) return
+      map[b.key] = lookupItems(itemMap, rec.primary)
+    })
+    return map
+  }, [board, champByKey, itemMap])
+
+  // Item recommendations panel for the currently armed champion.
+  var armedRec = useMemo(function () {
+    if (!armed) return null
+    var ch = champByKey[armed]
+    if (!ch) return null
+    var rec = recommendItems(ch)
+    if (!rec) return null
+    return {
+      champion: ch,
+      reason: rec.reason,
+      archetype: rec.archetype,
+      curated: rec.curated,
+      items: lookupItems(itemMap, rec.primary),
+      altItems: lookupItems(itemMap, rec.alts),
+    }
+  }, [armed, champByKey, itemMap])
 
   var rosterFiltered = useMemo(function () {
     return champions.filter(function (c) {
@@ -175,7 +211,8 @@ export default function TeamPlanner(props) {
           <HexBoard
             placed={board}
             champByKey={champByKey}
-            size={64}
+            itemsByKey={itemsByKey}
+            size={68}
             showLabels={true}
             onHexClick={handleHex}
           />
@@ -238,6 +275,48 @@ export default function TeamPlanner(props) {
 
         {/* Trait sidebar */}
         <aside className="col-span-12 xl:col-span-4 space-y-4">
+          {armedRec && (
+            <div className="d17-panel p-4 relative overflow-hidden">
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+                  background: costColor(armedRec.champion.cost),
+                }}
+              />
+              <div className="pl-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-label uppercase tracking-widest text-xs" style={{ color: '#FFC66B' }}>Armed: BIS Items</p>
+                  <span
+                    className="font-mono text-[9px] uppercase tracking-widest px-1.5 py-0.5"
+                    style={{
+                      background: armedRec.curated ? 'rgba(255,198,107,0.15)' : 'rgba(157,142,124,0.10)',
+                      color: armedRec.curated ? '#FFC66B' : '#9d8e7c',
+                      border: '1px solid ' + (armedRec.curated ? 'rgba(255,198,107,0.4)' : 'rgba(157,142,124,0.2)'),
+                    }}
+                  >{armedRec.curated ? 'Curated' : 'Archetype'}</span>
+                </div>
+                <p className="font-editorial italic text-lg mt-1.5" style={{ color: '#e4e1ec' }}>{armedRec.champion.name}</p>
+                <p className="text-[10px] font-body mt-1 leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>{armedRec.reason}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {armedRec.items.map(function (it) {
+                    return <ItemIcon key={it.apiName} item={it} size={36}/>
+                  })}
+                </div>
+                {armedRec.altItems && armedRec.altItems.length > 0 && (
+                  <div className="mt-3">
+                    <p className="font-mono text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#9d8e7c' }}>Alternates</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {armedRec.altItems.slice(0, 4).map(function (it) {
+                        return <ItemIcon key={it.apiName} item={it} size={26}/>
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="d17-panel p-4">
             <p className="font-label uppercase tracking-widest text-xs mb-3" style={{ color: '#FFC66B' }}>Active Synergies</p>
             {activeTraits.length === 0 ? (

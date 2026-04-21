@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
-import { computeFlowchart, splitAugments } from '../lib/flowchart'
+import { computeFlowchart, splitAugments, carryItemPlan } from '../lib/flowchart'
 import { tierColor as traitTierColor } from '../lib/traitComputer'
 import { buildCompSummary } from '../lib/compSummary'
 import { findPivots } from '../lib/pivots'
-import { makeImgFallback } from '../lib/imgFallback'
+import { makeImgFallback, costColor } from '../lib/imgFallback'
 import HexBoard from '../lib/HexBoard'
 import ChampImg from '../lib/ChampImg'
+import ItemIcon from '../lib/ItemIcon'
 
 var TIER_COLOR = {
   'OP': '#ff6b9d',
@@ -34,6 +35,7 @@ export default function CompFlowchart(props) {
   var comp = props.comp
   var champions = props.champions
   var traits = props.traits
+  var items = props.items || []
   var allComps = props.allComps || []
   var onBack = props.onBack
   var onOpenComp = props.onOpenComp
@@ -45,8 +47,12 @@ export default function CompFlowchart(props) {
   }, [champions])
 
   var flow = useMemo(function () {
-    return computeFlowchart(comp, champions, traits)
-  }, [comp, champions, traits])
+    return computeFlowchart(comp, champions, traits, items)
+  }, [comp, champions, traits, items])
+
+  var carryPlans = useMemo(function () {
+    return carryItemPlan(comp, champions, items)
+  }, [comp, champions, items])
 
   var summary = useMemo(function () {
     return buildCompSummary(comp, champions)
@@ -76,6 +82,20 @@ export default function CompFlowchart(props) {
       </button>
 
       <Hero comp={comp} accent={accent} tierList={tierList} carryKeys={carryKeys} champByKey={champByKey} summary={summary}/>
+
+      {carryPlans.length > 0 && (
+        <div className="mt-8">
+          <SectionHead label="Carry Items" accent={accent}/>
+          <p className="text-xs font-body mb-6" style={{ color: 'rgba(228,225,236,0.55)' }}>
+            BIS items per carry. Curated recommendations for headline meta carries; archetype defaults for the rest.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {carryPlans.map(function (plan) {
+              return <CarryItemCard key={plan.champion.key} plan={plan} accent={accent}/>
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Stage rail */}
       <div className="mt-8 mb-10">
@@ -335,9 +355,83 @@ function StageCard(props) {
           <HexBoard
             placed={stage.placed}
             champByKey={champByKey}
-            size={stage.isFinal ? 60 : 52}
+            itemsByKey={stage.isFinal ? stage.itemsByKey : null}
+            size={stage.isFinal ? 64 : 52}
             showLabels={true}
           />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CarryItemCard(props) {
+  var plan = props.plan
+  var accent = props.accent
+  var ch = plan.champion
+  var ringColor = costColor(ch.cost)
+
+  return (
+    <div className="d17-panel p-4 relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
+          background: ringColor,
+        }}
+      />
+      <div className="pl-3 flex items-start gap-4">
+        <div className="shrink-0 relative">
+          <ChampImg
+            champion={ch}
+            size={64}
+            style={{
+              width: 64, height: 64,
+              border: '2px solid ' + ringColor,
+              boxShadow: '0 0 12px ' + ringColor + '88'
+            }}
+          />
+          <span
+            className="absolute font-mono text-[8px] font-bold leading-none"
+            style={{
+              top: 4, left: 4, padding: '2px 4px',
+              background: 'rgba(0,0,0,0.85)', color: ringColor,
+            }}
+          >{ch.cost}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-editorial italic text-xl leading-tight" style={{ color: '#e4e1ec' }}>{ch.name}</h3>
+            <span
+              className="font-mono text-[9px] uppercase tracking-widest px-2 py-0.5"
+              style={{
+                background: plan.curated ? accent + '20' : 'rgba(157,142,124,0.10)',
+                color: plan.curated ? accent : '#9d8e7c',
+                border: '1px solid ' + (plan.curated ? accent + '55' : 'rgba(157,142,124,0.2)'),
+              }}
+            >{plan.curated ? 'Curated' : 'Archetype'}</span>
+          </div>
+          <p className="text-[11px] font-body mt-1.5 leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
+            {plan.reason}
+          </p>
+          <div className="mt-3">
+            <p className="font-mono text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#FFC66B' }}>BIS</p>
+            <div className="flex flex-wrap gap-2">
+              {plan.items.map(function (it) {
+                return <ItemIcon key={it.apiName} item={it} size={36}/>
+              })}
+            </div>
+          </div>
+          {plan.altItems && plan.altItems.length > 0 && (
+            <div className="mt-3">
+              <p className="font-mono text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#9d8e7c' }}>Alternates</p>
+              <div className="flex flex-wrap gap-1.5">
+                {plan.altItems.slice(0, 4).map(function (it) {
+                  return <ItemIcon key={it.apiName} item={it} size={26}/>
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

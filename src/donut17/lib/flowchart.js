@@ -1,15 +1,15 @@
 // Derive a staged flowchart progression from a comp's final board.
 //
-// tftflow and similar sites author hand-crafted stage-by-stage transitions;
-// we don't have that data (their variation boards are JS-hydrated, not
-// server-rendered). Instead we synthesize a cost-curve progression: the
-// common TFT arc where your opener leans on low-cost units, you push levels
-// and roll for 3+ cost carries, then cap with 4/5 costs. This is inferred
-// from the final board -- no copied prose.
+// Final board uses canonical positions (hand-authored for top S-tier comps)
+// or trait-aware heuristic. Items are recommended per carry from the item
+// recommender. Earlier stages (opener / stabilize / spike) synthesize a
+// cost-curve progression: opener leans on low-cost units, you push levels
+// and roll for 3+ cost carries, cap with 4/5 costs.
 
 import { computeActiveTraits } from './traitComputer'
 import { positionBoard } from './positioning'
 import { stageBeats } from './pivots'
+import { recommendItems, buildItemMap, lookupItems } from './itemRecommender'
 
 var STAGE_DEFS = [
   { key: 'opener',  label: 'Opener',     maxCost: 2, size: 4 },
@@ -24,12 +24,6 @@ function champByKey(champions) {
   return m
 }
 
-// Pick up to `size` units from board biased toward lower-cost where appropriate.
-// We always include carries if their cost fits; fill remaining slots with lowest
-// cost units from the remainder (reflects opener/stabilize reality). When the
-// final board is all high-cost (Fast 9 comps), early stages would otherwise be
-// empty -- in that case we fall back to the lowest-cost units on the board so
-// the user sees a believable opener rather than a blank panel.
 function pickStageUnits(board, champByKeyMap, carrySet, opts) {
   var maxCost = opts.maxCost
   var size = opts.size
@@ -46,7 +40,6 @@ function pickStageUnits(board, champByKeyMap, carrySet, opts) {
   })
 
   var eligible = indexed.filter(function (e) { return e.eligible })
-  // Fall back to whole board when nothing fits the cost cap.
   var pool = eligible.length > 0 ? eligible : indexed.slice()
 
   pool.sort(function (a, b) {
@@ -58,8 +51,25 @@ function pickStageUnits(board, champByKeyMap, carrySet, opts) {
   return pool.slice(0, size).map(function (e) { return e.key })
 }
 
-export function computeFlowchart(comp, champions, traits) {
+// Build a { championKey: [item, item, item] } map for the hex board to render.
+// Carries get their primary 3 items. Non-carries get nothing (board would
+// be too cluttered with 27 item icons).
+function buildItemsByKey(units, carrySet, champByKeyMap, itemMap) {
+  var map = {}
+  units.forEach(function (k) {
+    if (!carrySet.has(k)) return
+    var ch = champByKeyMap[k]
+    if (!ch) return
+    var rec = recommendItems(ch)
+    if (!rec) return
+    map[k] = lookupItems(itemMap, rec.primary)
+  })
+  return map
+}
+
+export function computeFlowchart(comp, champions, traits, items) {
   var byKey = champByKey(champions)
+  var itemMap = buildItemMap(items || [])
   var carrySet = new Set(comp.carries || (comp.carry ? [comp.carry] : []))
   var board = comp.board || []
   var beats = stageBeats(comp.econ)
@@ -70,7 +80,8 @@ export function computeFlowchart(comp, champions, traits) {
       ? board.slice()
       : pickStageUnits(board, byKey, carrySet, { maxCost: def.maxCost, size: def.size })
     var activeTraits = computeActiveTraits(units, champions, traits)
-    var placed = positionBoard(units, byKey, carrySet)
+    var placed = positionBoard(units, byKey, carrySet, isFinal ? comp.id : null)
+    var itemsByKey = buildItemsByKey(units, carrySet, byKey, itemMap)
     var beat = beats[i] || beats[beats.length - 1]
     return {
       key: def.key,
@@ -80,6 +91,7 @@ export function computeFlowchart(comp, champions, traits) {
       target: beat.target,
       units: units,
       placed: placed,
+      itemsByKey: itemsByKey,
       traits: activeTraits,
       carrySet: carrySet,
       isFinal: isFinal,
@@ -89,12 +101,31 @@ export function computeFlowchart(comp, champions, traits) {
 
 export function splitAugments(augs) {
   var list = Array.isArray(augs) ? augs : []
-  // tftflow lists augments ranked; we bucket into silver/gold/prismatic tiers
-  // only by list position since tftflow doesn't tag tier here. Callers should
-  // treat these as "priority order" not absolute tier.
   return {
     top: list.slice(0, 3),
     mid: list.slice(3, 7),
     rest: list.slice(7),
   }
+}
+
+// Compute carry item recommendations for the comp hero/sidebar UI.
+// Returns [{ champion, items: [item], altItems: [item], reason, archetype, curated }]
+export function carryItemPlan(comp, champions, items) {
+  var byKey = champByKey(champions)
+  var itemMap = buildItemMap(items || [])
+  var carries = comp.carries || (comp.carry ? [comp.carry] : [])
+  return carries.map(function (k) {
+    var ch = byKey[k]
+    if (!ch) return null
+    var rec = recommendItems(ch)
+    if (!rec) return null
+    return {
+      champion: ch,
+      items: lookupItems(itemMap, rec.primary),
+      altItems: lookupItems(itemMap, rec.alts),
+      reason: rec.reason,
+      archetype: rec.archetype,
+      curated: rec.curated,
+    }
+  }).filter(Boolean)
 }
