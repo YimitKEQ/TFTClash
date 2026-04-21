@@ -80,8 +80,14 @@ export default function Sidebar() {
     );
   }
 
-  function Divider() {
-    return <div className="h-px bg-white/[0.05] mx-6 my-1.5" />;
+  function SectionHeading(props) {
+    return (
+      <div className="px-6 pt-4 pb-1.5">
+        <span className="font-label text-[10px] uppercase tracking-[0.22em] font-bold text-on-surface/30">
+          {props.label}
+        </span>
+      </div>
+    );
   }
 
   var clashBadge = null;
@@ -99,32 +105,36 @@ export default function Sidebar() {
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-3 overflow-y-auto">
-        <NavItem id="home"        icon="home"              label="Dashboard" />
-        <NavItem id="clash"       icon="swords"            label="Clash"      badge={clashBadge} />
-        <NavItem id="standings"   icon="bar_chart"         label="Standings" />
-        <NavItem id="leaderboard" icon="leaderboard"       label="Leaderboard" />
-        <NavItem id="events"      icon="calendar_month"    label="Events" />
-        <NavItem id="hof"         icon="workspace_premium" label="Hall of Fame" />
+      <nav className="flex-1 py-2 overflow-y-auto">
+        <SectionHeading label="Play" />
+        <NavItem id="home"   icon="home"           label="Dashboard" />
+        <NavItem id="clash"  icon="swords"         label="Clash" badge={clashBadge} />
+        <NavItem id="events" icon="calendar_month" label="Events" />
 
-        <Divider />
+        <SectionHeading label="Stats" />
+        <NavItem id="standings"   icon="bar_chart"             label="Standings" />
+        <NavItem id="leaderboard" icon="leaderboard"           label="Leaderboard" />
+        <NavItem id="hof"         icon="workspace_premium"     label="Hall of Fame" />
+        <NavItem id="results"     icon="assignment_turned_in"  label="Results" />
+        <NavItem id="archive"     icon="inventory_2"           label="Archive" />
 
-        <NavItem id="archive"    icon="inventory_2"           label="Archive" />
-        <NavItem id="results"    icon="assignment_turned_in"  label="Results" />
-        <NavItem id="milestones" icon="redeem"                label="Milestones" />
-        <NavItem id="challenges" icon="star"                  label="Challenges" />
+        <SectionHeading label="Community" />
+        <NavItem id="milestones" icon="redeem"    label="Milestones" />
+        <NavItem id="challenges" icon="star"      label="Challenges" />
+        <NavItem id="sponsors"   icon="handshake" label="Sponsors" />
         {canScrims && <NavItem id="scrims" icon="sports_esports" label="Scrims" />}
 
-        <Divider />
+        <SectionHeading label="Account" />
+        <NavItem id="account" icon="person" label={currentUser ? 'My Account' : 'Sign In'} />
+        <NavItem id="pricing" icon="sell"   label="Upgrade" />
 
-        <NavItem id="pricing" icon="sell"      label="Pricing" />
-        <NavItem id="sponsors" icon="handshake" label="Sponsors" />
-        <NavItem id="rules"   icon="menu_book" label="Rules" />
-        <NavItem id="faq"     icon="help"      label="FAQ" />
+        <SectionHeading label="Help" />
+        <NavItem id="rules" icon="menu_book" label="Rules" />
+        <NavItem id="faq"   icon="help"      label="FAQ" />
 
         {isAdmin && (
           <>
-            <Divider />
+            <SectionHeading label="Admin" />
             <NavItem id="ops"            icon="radar"             label="Command Center" />
             <NavItem id="admin"          icon="shield"            label="Admin Panel" />
             <NavItem id="host-dashboard" icon="workspace_premium" label="Host Dashboard" />

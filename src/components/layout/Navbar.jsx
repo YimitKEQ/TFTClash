@@ -178,29 +178,33 @@ export default function Navbar() {
   var isRegistered = !!(sid && tournamentState && (tournamentState.registeredIds || []).indexOf(sid) > -1);
   var isCheckedIn = !!(sid && tournamentState && (tournamentState.checkedInIds || []).indexOf(sid) > -1);
 
-  // Drawer sections
-  var mainItems = [
-    { id: 'home',       icon: 'home',              label: 'Home' },
-    { id: 'clash',      icon: 'swords',            label: 'Clash' },
-    { id: 'standings',  icon: 'bar_chart',         label: 'Standings' },
-    { id: 'leaderboard',icon: 'emoji_events',      label: 'Leaderboard' },
-    { id: 'events',     icon: 'calendar_month',    label: 'Events' },
-    { id: 'stats',      icon: 'bar_chart',         label: 'Stats' },
-    { id: 'hof',        icon: 'workspace_premium', label: 'Hall of Fame' },
+  // Drawer sections — 5 buckets: Play, Stats, Community, Account, Help
+  var playItems = [
+    { id: 'home',   icon: 'home',           label: 'Dashboard' },
+    { id: 'clash',  icon: 'swords',         label: 'Clash' },
+    { id: 'events', icon: 'calendar_month', label: 'Events' },
+  ];
+  var statsItems = [
+    { id: 'standings',   icon: 'bar_chart',            label: 'Standings' },
+    { id: 'leaderboard', icon: 'leaderboard',          label: 'Leaderboard' },
+    { id: 'hof',         icon: 'workspace_premium',    label: 'Hall of Fame' },
+    { id: 'results',     icon: 'assignment_turned_in', label: 'Results' },
+    { id: 'archive',     icon: 'inventory_2',          label: 'Archive' },
   ];
   var communityItems = [
-    { id: 'archive',    icon: 'inventory_2',       label: 'Archive' },
-    { id: 'results',    icon: 'assignment_turned_in', label: 'Results' },
-    { id: 'milestones', icon: 'redeem',            label: 'Milestones' },
-    { id: 'challenges', icon: 'star',              label: 'Challenges' },
+    { id: 'milestones', icon: 'redeem',    label: 'Milestones' },
+    { id: 'challenges', icon: 'star',      label: 'Challenges' },
+    { id: 'sponsors',   icon: 'handshake', label: 'Sponsors' },
   ];
   if (canScrims) communityItems.push({ id: 'scrims', icon: 'sports_esports', label: 'Scrims' });
 
   var accountItems = [
-    { id: 'account',    icon: 'person',            label: currentUser ? currentUser.username : 'Sign In' },
-    { id: 'pricing',    icon: 'sell',              label: 'Pricing' },
-    { id: 'rules',      icon: 'menu_book',         label: 'Rules' },
-    { id: 'faq',        icon: 'help',              label: 'FAQ' },
+    { id: 'account', icon: 'person', label: currentUser ? (currentUser.username || 'My Account') : 'Sign In' },
+    { id: 'pricing', icon: 'sell',   label: 'Upgrade' },
+  ];
+  var helpItems = [
+    { id: 'rules', icon: 'menu_book', label: 'Rules' },
+    { id: 'faq',   icon: 'help',      label: 'FAQ' },
   ];
   var adminItems = isAdmin ? [
     { id: 'ops',            icon: 'radar',             label: 'Command Center' },
@@ -213,24 +217,34 @@ export default function Navbar() {
 
   function DrawerSection(props) {
     var items = props.items;
-    return items.map(function(item) {
-      var isActive = screen === item.id;
-      return (
-        <button
-          key={item.id}
-          onClick={function() {
-            if (item.id === 'account' && !currentUser) { setAuthScreen('login'); setDrawer(false); return; }
-            navTo(item.id);
-            setDrawer(false);
-          }}
-          className={'flex items-center gap-3.5 py-3 px-6 w-full text-left border-none cursor-pointer transition-all duration-150 text-[13px] font-sans uppercase tracking-widest font-semibold ' +
-            (isActive ? 'bg-primary/10 text-primary' : 'bg-transparent text-on-surface/50 hover:text-on-surface hover:bg-white/[0.04]')}
-        >
-          <Icon name={item.icon} size={18} className={isActive ? 'opacity-100' : 'opacity-60'} />
-          {item.label}
-        </button>
-      );
-    });
+    var label = props.label;
+    return (
+      <div className="py-1">
+        {label && (
+          <div className="px-6 pt-2 pb-1">
+            <span className="font-label text-[10px] uppercase tracking-[0.22em] font-bold text-on-surface/30">{label}</span>
+          </div>
+        )}
+        {items.map(function(item) {
+          var isActive = screen === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={function() {
+                if (item.id === 'account' && !currentUser) { setAuthScreen('login'); setDrawer(false); return; }
+                navTo(item.id);
+                setDrawer(false);
+              }}
+              className={'flex items-center gap-3.5 py-2.5 px-6 w-full text-left border-none cursor-pointer transition-all duration-150 text-[13px] font-sans uppercase tracking-widest font-semibold ' +
+                (isActive ? 'bg-primary/10 text-primary' : 'bg-transparent text-on-surface/50 hover:text-on-surface hover:bg-white/[0.04]')}
+            >
+              <Icon name={item.icon} size={18} className={isActive ? 'opacity-100' : 'opacity-60'} />
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+    );
   }
 
   return (
@@ -264,16 +278,13 @@ export default function Navbar() {
               </button>
             </div>
             <div className="flex-1 py-2">
-              <DrawerSection items={mainItems} />
-              <div className="h-px bg-white/[0.06] mx-6 my-2" />
-              <DrawerSection items={communityItems} />
-              <div className="h-px bg-white/[0.06] mx-6 my-2" />
-              <DrawerSection items={accountItems} />
+              <DrawerSection label="Play" items={playItems} />
+              <DrawerSection label="Stats" items={statsItems} />
+              <DrawerSection label="Community" items={communityItems} />
+              <DrawerSection label="Account" items={accountItems} />
+              <DrawerSection label="Help" items={helpItems} />
               {adminItems.length > 0 && (
-                <>
-                  <div className="h-px bg-white/[0.06] mx-6 my-2" />
-                  <DrawerSection items={adminItems} />
-                </>
+                <DrawerSection label="Admin" items={adminItems} />
               )}
             </div>
             <div className="p-5 border-t border-white/[0.06] shrink-0">

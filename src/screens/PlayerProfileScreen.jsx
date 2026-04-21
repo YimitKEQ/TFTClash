@@ -854,7 +854,10 @@ export default function PlayerProfileScreen() {
 
           <div className="font-label text-xs text-on-surface/50 mb-4 uppercase tracking-widest">Per-clash round breakdown</div>
           {(player.clashHistory || []).length === 0 && (
-            <div className="text-center py-8 text-on-surface/40 font-label text-sm">No data yet</div>
+            <div className="text-center py-10">
+              <div className="text-on-surface/60 text-sm font-semibold mb-1">No clash history yet</div>
+              <div className="text-on-surface/40 text-xs">Round-by-round breakdowns show up after the first clash.</div>
+            </div>
           )}
           {(player.clashHistory || []).slice(0, 6).map(function(g, i) {
             return (

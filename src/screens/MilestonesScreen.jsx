@@ -517,8 +517,9 @@ export default function MilestonesScreen() {
               })}
               {sorted.length === 0 && (
                 <div className="text-center py-16 text-on-surface-variant">
-                  <Icon name="group" size={40} className="mx-auto block mb-4" />
-                  <div className="font-label uppercase tracking-widest text-sm">No players yet</div>
+                  <Icon name="group" size={40} className="mx-auto block mb-4 opacity-40" />
+                  <div className="font-label uppercase tracking-widest text-sm text-on-surface/70 mb-1">No achievements earned yet</div>
+                  <div className="text-xs text-on-surface/50">Play a clash to get on this board.</div>
                 </div>
               )}
             </div>

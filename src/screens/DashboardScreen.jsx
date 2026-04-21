@@ -268,8 +268,8 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
 
       {recent.length === 0 ? (
         <div className="py-6 text-center">
-          <span className="text-on-surface/30 text-xs font-label uppercase tracking-widest">No recent games</span>
-          <p className="text-on-surface/20 text-[10px] font-mono mt-1">Play your first clash to see data here</p>
+          <span className="text-on-surface/40 text-xs font-label uppercase tracking-widest">No clashes yet</span>
+          <p className="text-on-surface/30 text-[10px] font-mono mt-1">Register for the next one to start your form streak.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -309,7 +309,10 @@ function StandingsMini({ top5, linkedPlayer, onViewPlayer, onViewAll }) {
       </h3>
       <div className="space-y-2">
         {top5.length === 0 && (
-          <div className="py-4 text-center text-on-surface/30 text-xs font-label uppercase tracking-widest">No standings data yet</div>
+          <div className="py-6 text-center">
+            <div className="text-on-surface/40 text-xs font-label uppercase tracking-widest mb-1">Waiting for first clash</div>
+            <div className="text-on-surface/30 text-[10px] font-mono">Standings unlock when results are in.</div>
+          </div>
         )}
         {top5.slice(0, 4).map(function (p, i) {
           var isMe = linkedPlayer && p.id === linkedPlayer.id
@@ -374,8 +377,9 @@ function ActivityFeed({ items, hasMore, onLoadMore, loading }) {
       <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-secondary/5 rounded-full blur-3xl" />
       <h3 className="font-label uppercase text-xs tracking-widest text-on-surface/40 mb-4">Live Activity</h3>
       {displayItems.length === 0 ? (
-        <div className="py-4 text-center">
-          <span className="text-on-surface/30 text-xs font-label uppercase tracking-widest">No recent activity</span>
+        <div className="py-6 text-center">
+          <div className="text-on-surface/40 text-xs font-label uppercase tracking-widest mb-1">Activity feed is quiet</div>
+          <div className="text-on-surface/30 text-[10px] font-mono">Check-ins, wins, and milestones land here live.</div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -958,6 +962,59 @@ function ClashCard() {
   )
 }
 
+// --- ONBOARDING CHECKLIST ---
+
+function OnboardingChecklist(props) {
+  var steps = props.steps || []
+  if (steps.length === 0) return null
+  var done = 0
+  for (var i = 0; i < steps.length; i++) { if (steps[i].done) done++ }
+  if (done === steps.length) return null
+  var pct = Math.round((done / steps.length) * 100)
+
+  return (
+    <div className="mb-4 rounded-lg border border-primary/30 bg-gradient-to-br from-primary/10 to-secondary/5 p-5">
+      <div className="flex items-start justify-between mb-3 gap-3 flex-wrap">
+        <div className="min-w-0">
+          <div className="font-display text-sm uppercase tracking-wider text-primary font-bold">Get ready to clash</div>
+          <div className="text-[11px] text-on-surface/60 mt-0.5">{done} of {steps.length} complete. Finish these to compete.</div>
+        </div>
+        <div className="flex-1 max-w-[200px] min-w-[120px] mt-1">
+          <div className="h-1.5 bg-outline-variant/20 rounded overflow-hidden">
+            <div className="h-full bg-primary transition-all" style={{ width: pct + '%' }} />
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {steps.map(function (s) {
+          return (
+            <button
+              key={s.key}
+              type="button"
+              onClick={s.done ? undefined : s.onClick}
+              disabled={s.done}
+              className={'flex items-center gap-3 p-3 rounded border text-left transition-colors ' +
+                (s.done
+                  ? 'border-success/30 bg-success/10 cursor-default'
+                  : 'border-outline-variant/30 bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/40 cursor-pointer')}
+            >
+              <div className={'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ' +
+                (s.done ? 'bg-success/30 text-success' : 'bg-primary/20 text-primary')}>
+                <Icon name={s.done ? 'check' : s.icon} size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className={'text-xs font-bold ' + (s.done ? 'text-on-surface/60 line-through' : 'text-on-surface')}>{s.label}</div>
+                <div className="text-[10px] text-on-surface/50 truncate">{s.hint}</div>
+              </div>
+              {!s.done && <Icon name="arrow_forward" size={14} className="text-on-surface/40 flex-shrink-0" />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // --- MAIN DASHBOARD ---
 
 export default function DashboardScreen() {
@@ -1327,39 +1384,56 @@ export default function DashboardScreen() {
   // Next upcoming event
   var nextEvent = featuredEvents && featuredEvents.length > 0 ? featuredEvents[0] : null
 
+  // --- Onboarding checklist steps ---
+  var onboardingSteps = []
+  if (linkedPlayer) {
+    onboardingSteps.push({
+      key: 'riot',
+      done: hasRiotId(linkedPlayer),
+      icon: 'badge',
+      label: 'Set your Riot ID',
+      hint: 'Required for lobby invites',
+      onClick: function () { navigate('/account') }
+    })
+    onboardingSteps.push({
+      key: 'region',
+      done: !!linkedPlayer.region,
+      icon: 'public',
+      label: 'Choose your region',
+      hint: 'EU or NA, locks your eligibility',
+      onClick: function () { navigate('/account') }
+    })
+    onboardingSteps.push({
+      key: 'discord',
+      done: !!linkedPlayer.discord_user_id,
+      icon: 'forum',
+      label: 'Link Discord',
+      hint: 'Lobby invites & community chat',
+      onClick: function () { window.open(DISCORD_URL, '_blank', 'noopener,noreferrer') }
+    })
+    if (tPhase === 'registration' || tPhase === 'checkin') {
+      onboardingSteps.push({
+        key: 'register',
+        done: !!(tPhase === 'checkin' ? myCheckedIn : isMyRegistered),
+        icon: tPhase === 'checkin' ? 'how_to_reg' : 'event_available',
+        label: tPhase === 'checkin' ? 'Check in for the clash' : 'Register for the clash',
+        hint: tPhase === 'checkin' ? 'Doors closing soon' : 'Claim your seat before it fills',
+        onClick: function () {
+          if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      })
+    }
+  }
+
   return (
     <PageLayout maxWidth="max-w-[1200px]">
       <div className="mb-8">
         <SponsorShowcase placement="dashboard" variant="featured" />
       </div>
 
+      <OnboardingChecklist steps={onboardingSteps} />
+
       <ClashCard />
-
-      {/* Profile completion banner */}
-      {linkedPlayer && !profileComplete && (
-        <div className="mb-4 rounded-lg border border-error/30 bg-error/10 p-4 flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Icon name="error" size={22} className="text-error flex-shrink-0" />
-            <div className="min-w-0">
-              <div className="text-sm font-bold text-on-surface">Set your Riot ID to register for clashes</div>
-              <div className="text-[11px] text-on-surface/60 mt-0.5">Hosts need it to invite you to lobbies. You cannot sign up without one.</div>
-            </div>
-          </div>
-          <Btn variant="primary" size="sm" onClick={function () { navigate('/account') }}>Add Riot ID</Btn>
-        </div>
-      )}
-
-      {/* Discord CTA */}
-      <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer" className="mb-4 rounded-lg border border-secondary/30 bg-secondary/10 p-4 flex items-center justify-between gap-4 flex-wrap hover:bg-secondary/20 transition-colors">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <Icon name="forum" size={22} className="text-secondary flex-shrink-0" />
-          <div className="min-w-0">
-            <div className="text-sm font-bold text-on-surface">Join the TFT Clash Discord</div>
-            <div className="text-[11px] text-on-surface/60 mt-0.5">Lobby invites, scrim partners, results & community chat.</div>
-          </div>
-        </div>
-        <span className="px-3 py-1.5 rounded bg-secondary text-on-secondary-fixed text-xs font-bold uppercase tracking-wider">Open Discord</span>
-      </a>
 
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}

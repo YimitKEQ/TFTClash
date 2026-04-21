@@ -8,80 +8,172 @@ import { Btn, Icon, Panel } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader'
 import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
+import RegionBadge from '../components/shared/RegionBadge'
+import { REGION_META, normalizeRegion, canRegisterInRegion } from '../lib/regions'
+import { supabase } from '../lib/supabase'
 import { getDonateUrl } from '../lib/paypal'
 
-// ── HeroCountdown ─────────────────────────────────────────────────────────────
+// ── Region helpers ────────────────────────────────────────────────────────────
 
-function HeroCountdown(props) {
+function tournamentTimestamp(tournament, tournamentState) {
+  if (!tournament) return null
+  // Prefer the authoritative timestamp from site_settings if it points to this tournament
+  if (tournamentState && tournamentState.dbTournamentId && String(tournamentState.dbTournamentId) === String(tournament.id) && tournamentState.clashTimestamp) {
+    return tournamentState.clashTimestamp
+  }
+  if (tournament.started_at) return tournament.started_at
+  if (tournament.registration_close_at) return tournament.registration_close_at
+  if (tournament.date) {
+    // Fall back to 20:00 Europe/Amsterdam on the stored date
+    return new Date(tournament.date + 'T19:00:00.000Z').toISOString()
+  }
+  return null
+}
+
+function phaseMeta(phase) {
+  if (phase === 'in_progress' || phase === 'live' || phase === 'inprogress') {
+    return { label: 'Live Now', tone: 'text-tertiary', dot: 'bg-tertiary animate-pulse' }
+  }
+  if (phase === 'check_in' || phase === 'checkin') {
+    return { label: 'Check-In Open', tone: 'text-primary', dot: 'bg-primary animate-pulse' }
+  }
+  if (phase === 'registration') {
+    return { label: 'Registration Open', tone: 'text-primary', dot: 'bg-primary' }
+  }
+  if (phase === 'complete') {
+    return { label: 'Completed', tone: 'text-on-surface-variant', dot: 'bg-on-surface-variant' }
+  }
+  return { label: 'Scheduled', tone: 'text-on-surface-variant', dot: 'bg-on-surface-variant' }
+}
+
+// ── RegionCommandCard ─────────────────────────────────────────────────────────
+
+function RegionCommandCard(props) {
+  var region = props.region
+  var tournament = props.tournament
   var tournamentState = props.tournamentState
-  var onRegister = props.onRegister
-  var onViewStandings = props.onViewStandings
-  var isLoggedIn = props.isLoggedIn
+  var currentUser = props.currentUser
+  var userRegion = props.userRegion
+  var onSignUp = props.onSignUp
+  var onNavigateDashboard = props.onNavigateDashboard
+  var onViewDetail = props.onViewDetail
 
-  var countdown = useCountdown(tournamentState)
-  var prizePool = Array.isArray(tournamentState && tournamentState.prizePool) ? tournamentState.prizePool : []
-  var topPrize = prizePool.length > 0 ? prizePool[0] : null
-  var isFinale = !!(tournamentState && tournamentState.isFinale)
+  var meta = REGION_META[region] || { label: region, full: region, flag: '', color: '#9AAABF' }
+  var ts = tournamentTimestamp(tournament, tournamentState)
+  var countdownState = { clashTimestamp: ts, clashName: tournament ? tournament.name : meta.full + ' Clash' }
+  var countdown = useCountdown(countdownState)
+  var phase = (tournament && tournament.phase) || 'idle'
+  var pMeta = phaseMeta(phase)
 
   function pad2(n) { return String(n).padStart(2, '0') }
 
+  var hasTournament = !!tournament
+  var regionAllowed = userRegion ? canRegisterInRegion(userRegion, region) : true
+
+  var ctaLabel = 'Sign Up to Play'
+  var ctaHandler = onSignUp
+  var ctaDisabled = false
+
+  if (hasTournament && currentUser) {
+    if (!regionAllowed) {
+      ctaLabel = 'Account Locked to ' + normalizeRegion(userRegion)
+      ctaHandler = function() { onViewDetail && onViewDetail(tournament) }
+      ctaDisabled = true
+    } else if (phase === 'in_progress' || phase === 'live' || phase === 'inprogress') {
+      ctaLabel = 'Open Dashboard'
+      ctaHandler = onNavigateDashboard
+    } else if (phase === 'check_in') {
+      ctaLabel = 'Check In Now'
+      ctaHandler = onNavigateDashboard
+    } else if (phase === 'registration') {
+      ctaLabel = 'Register'
+      ctaHandler = onNavigateDashboard
+    } else {
+      ctaLabel = 'View Details'
+      ctaHandler = function() { onViewDetail && onViewDetail(tournament) }
+    }
+  } else if (hasTournament && !currentUser) {
+    ctaLabel = 'Sign Up to Join'
+    ctaHandler = onSignUp
+  }
+
   return (
-    <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
+    <div
+      className="glass-panel rounded-xl border border-outline-variant/15 shadow-xl relative overflow-hidden px-5 py-6 sm:px-6 sm:py-7"
+      style={{ borderColor: meta.color + '33' }}
+    >
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{ background: 'linear-gradient(135deg, ' + meta.color + '26 0%, transparent 55%)' }}
+      />
       <div className="relative z-10 space-y-4">
-        {isFinale && (
-          <div className="flex justify-center">
-            <span className="font-label text-[10px] uppercase tracking-[0.22em] font-bold text-medal-gold bg-medal-gold/[0.08] border border-medal-gold/30 rounded-full px-3 py-1 inline-flex items-center gap-1.5">
-              <Icon name="emoji_events" size={10} /> Season Finale
-            </span>
-          </div>
-        )}
-        <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
-          Next Tournament Begins In
-        </span>
-        <div className="flex justify-center gap-3 sm:gap-6">
-          <div className="flex flex-col items-center">
-            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.days)}</span>
-            <span className="font-label text-[10px] uppercase opacity-40">Days</span>
-          </div>
-          <span className="font-mono text-4xl sm:text-5xl text-primary/20">:</span>
-          <div className="flex flex-col items-center">
-            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.hours)}</span>
-            <span className="font-label text-[10px] uppercase opacity-40">Hours</span>
-          </div>
-          <span className="font-mono text-4xl sm:text-5xl text-primary/20">:</span>
-          <div className="flex flex-col items-center">
-            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.minutes)}</span>
-            <span className="font-label text-[10px] uppercase opacity-40">Mins</span>
-          </div>
-          <span className="font-mono text-4xl sm:text-5xl text-primary/20">:</span>
-          <div className="flex flex-col items-center">
-            <span className="font-mono text-4xl sm:text-5xl text-primary leading-none">{pad2(countdown.seconds)}</span>
-            <span className="font-label text-[10px] uppercase opacity-40">Secs</span>
-          </div>
+        <div className="flex items-center justify-between gap-3">
+          <RegionBadge region={region} size="md" />
+          <span className={'inline-flex items-center gap-1.5 text-[10px] font-label uppercase tracking-widest ' + pMeta.tone}>
+            <span className={'w-1.5 h-1.5 rounded-full ' + pMeta.dot}></span>
+            {pMeta.label}
+          </span>
         </div>
-        {topPrize && (
-          <div className="rounded-lg border border-medal-gold/30 bg-medal-gold/[0.06] px-4 py-3 flex items-center gap-3">
-            <Icon name="redeem" size={18} className="text-medal-gold flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="font-label text-[10px] uppercase tracking-widest font-bold text-medal-gold/80">Winner Takes</div>
-              <div className="font-display text-sm text-on-surface truncate">{topPrize.prize}</div>
+
+        <div className="min-h-[2.5rem]">
+          <div className="font-display text-lg sm:text-xl text-on-surface leading-tight truncate">
+            {hasTournament ? tournament.name : 'No clash scheduled'}
+          </div>
+          {hasTournament && tournament.date && (
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">
+              {new Date(tournament.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
             </div>
-            {prizePool.length > 1 && (
-              <div className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest whitespace-nowrap">+{prizePool.length - 1} more</div>
-            )}
+          )}
+        </div>
+
+        {hasTournament && countdown.hasCountdown ? (
+          <div className="flex justify-center gap-2 sm:gap-3">
+            <div className="flex flex-col items-center">
+              <span className="font-mono text-2xl sm:text-3xl leading-none" style={{ color: meta.color }}>{pad2(countdown.days)}</span>
+              <span className="font-label text-[9px] uppercase opacity-40">Days</span>
+            </div>
+            <span className="font-mono text-2xl sm:text-3xl opacity-20" style={{ color: meta.color }}>:</span>
+            <div className="flex flex-col items-center">
+              <span className="font-mono text-2xl sm:text-3xl leading-none" style={{ color: meta.color }}>{pad2(countdown.hours)}</span>
+              <span className="font-label text-[9px] uppercase opacity-40">Hrs</span>
+            </div>
+            <span className="font-mono text-2xl sm:text-3xl opacity-20" style={{ color: meta.color }}>:</span>
+            <div className="flex flex-col items-center">
+              <span className="font-mono text-2xl sm:text-3xl leading-none" style={{ color: meta.color }}>{pad2(countdown.minutes)}</span>
+              <span className="font-label text-[9px] uppercase opacity-40">Min</span>
+            </div>
+            <span className="font-mono text-2xl sm:text-3xl opacity-20" style={{ color: meta.color }}>:</span>
+            <div className="flex flex-col items-center">
+              <span className="font-mono text-2xl sm:text-3xl leading-none" style={{ color: meta.color }}>{pad2(countdown.seconds)}</span>
+              <span className="font-label text-[9px] uppercase opacity-40">Sec</span>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-2 text-on-surface-variant text-xs font-label uppercase tracking-widest">
+            {hasTournament ? 'Starting soon' : 'Watch this space'}
           </div>
         )}
-        <Btn variant="primary" size="xl" onClick={onRegister}>
-          {isLoggedIn ? 'Go to Dashboard' : 'Join This Tournament'}
-        </Btn>
-        <a
-          href="/standings"
-          className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
-          onClick={function(e) { e.preventDefault(); onViewStandings && onViewStandings(); }}
+
+        <Btn
+          variant={ctaDisabled ? 'secondary' : 'primary'}
+          size="lg"
+          onClick={ctaHandler}
+          disabled={ctaDisabled}
+          className="w-full"
         >
-          View Standings
-        </a>
+          {ctaLabel}
+        </Btn>
+
+        {hasTournament && !ctaDisabled && (
+          <button
+            type="button"
+            onClick={function() { onViewDetail && onViewDetail(tournament) }}
+            className="block w-full text-center text-xs text-on-surface-variant underline-offset-2 hover:underline cursor-pointer bg-transparent border-0 font-label uppercase tracking-widest"
+          >
+            Event Details
+          </button>
+        )}
       </div>
     </div>
   )
@@ -198,9 +290,9 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                         <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded uppercase tracking-tighter">
                           {player.rank || 'Challenger'}
                         </span>
-                        <span className="text-on-surface-variant text-[10px] font-label px-2 rounded uppercase tracking-tighter">
-                          {player.region || 'EUW'}
-                        </span>
+                        {player.region && (
+                          <RegionBadge region={player.region} size="sm" />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -242,9 +334,9 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                       <span className="bg-tertiary/10 text-tertiary text-[10px] font-label px-2 rounded uppercase tracking-tighter">
                         {player.rank || 'Master'}
                       </span>
-                      <span className="text-on-surface-variant text-[10px] font-label px-2 rounded uppercase tracking-tighter">
-                        {player.region || 'EUW'}
-                      </span>
+                      {player.region && (
+                        <RegionBadge region={player.region} size="sm" />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -282,10 +374,65 @@ export default function HomeScreen() {
   var sorted = players.slice().sort(function(a, b) { return (b.pts || 0) - (a.pts || 0) })
   var top5 = sorted.slice(0, 5)
   var sharedCountdown = useCountdown(tournamentState)
-  var hasCountdown = sharedCountdown.hasCountdown
+
+  // Derive current user's linked player region, if any (for region-aware CTAs)
+  var linkedUserRegion = null
+  if (currentUser) {
+    var lp = players.find(function(p) { return p.authUserId && currentUser.id && String(p.authUserId) === String(currentUser.id) })
+    if (!lp && currentUser.username) {
+      lp = players.find(function(p) { return p.name && p.name.toLowerCase() === String(currentUser.username).toLowerCase() })
+    }
+    if (lp) linkedUserRegion = lp.region || null
+  }
+
+  // Fetch active EU and NA clashes (one of each) for the dual-region command deck
+  var _euT = useState(null)
+  var euTournament = _euT[0]
+  var setEuTournament = _euT[1]
+  var _naT = useState(null)
+  var naTournament = _naT[0]
+  var setNaTournament = _naT[1]
+
+  useEffect(function() {
+    if (!supabase || !supabase.from) return
+    var cancelled = false
+    supabase.from('tournaments').select('id,name,date,region,phase,type,is_finale,started_at,registration_close_at,checkin_open_at,host_profile_id')
+      .in('phase', ['registration', 'check_in', 'in_progress', 'draft'])
+      .order('date', { ascending: true })
+      .limit(40)
+      .then(function(res) {
+        if (cancelled || res.error || !res.data) return
+        var eu = null
+        var na = null
+        var priority = { in_progress: 0, check_in: 1, registration: 2, draft: 3 }
+        res.data.forEach(function(t) {
+          var r = normalizeRegion(t.region)
+          if (!r) return
+          if (r === 'EU') {
+            if (!eu || (priority[t.phase] || 9) < (priority[eu.phase] || 9)) eu = t
+          } else if (r === 'NA') {
+            if (!na || (priority[t.phase] || 9) < (priority[na.phase] || 9)) na = t
+          }
+        })
+        setEuTournament(eu)
+        setNaTournament(na)
+      }).catch(function() {})
+    return function() { cancelled = true }
+  }, [tournamentState && tournamentState.dbTournamentId, tournamentState && tournamentState.phase])
 
   function handleSignUp() {
     setAuthScreen && setAuthScreen('signup')
+  }
+
+  function handleNavigateDashboard() {
+    navigate('/')
+  }
+
+  function handleViewTournament(t) {
+    if (!t) return
+    if (t.type === 'flash_tournament') navigate('/flash/' + t.id)
+    else if (t.type === 'custom' || t.host_profile_id) navigate('/tournament/' + t.id)
+    else navigate('/events')
   }
 
   function handleViewStandings() {
@@ -338,58 +485,70 @@ export default function HomeScreen() {
             Free weekly tournaments. Real competition. One leaderboard to rule them all.
           </p>
 
-          {/* Countdown or CTA */}
-          {hasCountdown
-            ? (
-              <HeroCountdown
+          {/* Dual-region command deck */}
+          <div className="max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              <RegionCommandCard
+                region="EU"
+                tournament={euTournament}
                 tournamentState={tournamentState}
-                onRegister={currentUser ? function() { navigate('/clash'); } : handleSignUp}
-                onViewStandings={handleViewStandings}
-                isLoggedIn={!!currentUser}
+                currentUser={currentUser}
+                userRegion={linkedUserRegion}
+                onSignUp={handleSignUp}
+                onNavigateDashboard={handleNavigateDashboard}
+                onViewDetail={handleViewTournament}
               />
-            )
-            : currentUser
-            ? (
-              <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
-                <div className="relative z-10 space-y-4">
-                  <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
-                    {'Welcome back, ' + (currentUser.username || 'Challenger')}
+              <RegionCommandCard
+                region="NA"
+                tournament={naTournament}
+                tournamentState={tournamentState}
+                currentUser={currentUser}
+                userRegion={linkedUserRegion}
+                onSignUp={handleSignUp}
+                onNavigateDashboard={handleNavigateDashboard}
+                onViewDetail={handleViewTournament}
+              />
+            </div>
+
+            <div className="flex flex-wrap justify-center items-center gap-4 mt-5 text-xs text-on-surface-variant">
+              <button
+                type="button"
+                onClick={handleViewStandings}
+                className="font-label uppercase tracking-widest hover:text-on-surface underline-offset-2 hover:underline cursor-pointer bg-transparent border-0"
+              >
+                View Standings
+              </button>
+              <span className="opacity-20">|</span>
+              <button
+                type="button"
+                onClick={function() { navigate('/events') }}
+                className="font-label uppercase tracking-widest hover:text-on-surface underline-offset-2 hover:underline cursor-pointer bg-transparent border-0"
+              >
+                All Events
+              </button>
+              {linkedUserRegion && (
+                <>
+                  <span className="opacity-20">|</span>
+                  <span className="font-label uppercase tracking-widest inline-flex items-center gap-1.5">
+                    Your Region
+                    <RegionBadge region={linkedUserRegion} size="sm" />
                   </span>
-                  <Btn variant="primary" size="xl" onClick={function() { navigate('/'); }}>
-                    Go to Dashboard
-                  </Btn>
-                  <a
-                    href="/standings"
-                    className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
-                    onClick={function(e) { e.preventDefault(); handleViewStandings(); }}
+                </>
+              )}
+              {currentUser && !linkedUserRegion && (
+                <>
+                  <span className="opacity-20">|</span>
+                  <button
+                    type="button"
+                    onClick={function() { navigate('/account') }}
+                    className="font-label uppercase tracking-widest text-primary hover:underline cursor-pointer bg-transparent border-0"
                   >
-                    View Current Standings
-                  </a>
-                </div>
-              </div>
-            )
-            : (
-              <div className="glass-panel px-6 py-8 sm:p-8 rounded-xl border border-outline-variant/15 max-w-lg mx-auto shadow-2xl relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none"></div>
-                <div className="relative z-10 space-y-4">
-                  <span className="block text-center font-label text-xs tracking-widest uppercase text-on-surface-variant">
-                    Takes 10 seconds with Discord
-                  </span>
-                  <Btn variant="primary" size="xl" onClick={handleSignUp}>
-                    Join This Week's Tournament
-                  </Btn>
-                  <a
-                    href="/standings"
-                    className="block text-center text-sm text-on-surface-variant underline-offset-2 hover:underline mt-1 cursor-pointer no-underline"
-                    onClick={function(e) { e.preventDefault(); handleViewStandings(); }}
-                  >
-                    View Current Standings
-                  </a>
-                </div>
-              </div>
-            )
-          }
+                    Set Your Region
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </section>
 
         {/* ── How It Works ──────────────────────────────────────────────────── */}
@@ -429,7 +588,7 @@ export default function HomeScreen() {
 
         {/* ── Value Props ───────────────────────────────────────────────────── */}
         <div className="flex flex-wrap justify-center gap-3">
-          {['Free to compete, always', 'EUW \u00b7 EUNE \u00b7 NA', 'Results every week', 'Full stats + career history'].map(function(chip) {
+          {['Free to compete, always', 'EU \u00b7 NA servers', 'Results every week', 'Full stats + career history'].map(function(chip) {
             return (
               <span key={chip} className="px-4 py-1.5 rounded-full text-xs font-label tracking-widest uppercase border border-outline-variant/20 text-on-surface-variant bg-surface-container-low">
                 {chip}

@@ -451,7 +451,8 @@ export default function TournamentDetailScreen() {
                 {registeredIds.length === 0 ? (
                   <div className="text-center py-12 px-5">
                     <Icon name="person_add" size={32} className="text-on-surface-variant/20 mx-auto mb-3" />
-                    <div className="text-on-surface-variant text-sm">No players registered yet.</div>
+                    <div className="text-on-surface text-sm font-semibold mb-1">Be the first to register</div>
+                    <div className="text-on-surface-variant text-xs">Seats fill fast once the first name drops.</div>
                   </div>
                 ) : (
                   <div className="divide-y divide-outline-variant/5">

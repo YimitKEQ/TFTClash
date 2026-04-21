@@ -342,14 +342,22 @@ export default function TournamentsListScreen() {
               {gridItems.length === 0 && !featured && (
                 <Panel padding="none" radius="sm" className="flex flex-col items-center justify-center py-16 gap-3 text-on-surface-variant">
                   <Icon name="search_off" size={40} className="opacity-30" />
-                  <p className="font-label uppercase tracking-wider text-sm">No tournaments found</p>
-                  {activeFilter !== 'all' && (
-                    <Btn
-                      variant="link"
-                      onClick={function() { setActiveFilter('all'); setSearch(''); }}
-                    >
-                      Clear filters
-                    </Btn>
+                  {activeFilter !== 'all' || search ? (
+                    <>
+                      <p className="font-label uppercase tracking-wider text-sm text-on-surface/70">Nothing matches those filters</p>
+                      <p className="text-xs text-on-surface/50 -mt-1">Try a broader region or clear the search.</p>
+                      <Btn
+                        variant="link"
+                        onClick={function() { setActiveFilter('all'); setSearch(''); }}
+                      >
+                        Clear filters
+                      </Btn>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-label uppercase tracking-wider text-sm text-on-surface/70">No tournaments scheduled right now</p>
+                      <p className="text-xs text-on-surface/50 -mt-1">Flash tournaments and weekly clashes drop here first.</p>
+                    </>
                   )}
                 </Panel>
               )}

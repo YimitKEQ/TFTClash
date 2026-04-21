@@ -173,8 +173,10 @@ export default function StandingsScreen() {
                   )}
                   {sortedPlayers.length === 0 && !isLoadingData && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12 text-on-surface/30 text-sm font-label uppercase tracking-widest">
-                        No players found
+                      <td colSpan={6} className="text-center py-14">
+                        <Icon name="leaderboard" size={36} className="text-on-surface/20 mx-auto mb-3 block" />
+                        <div className="text-sm text-on-surface/60 mb-1">No standings in this region yet</div>
+                        <div className="text-[11px] text-on-surface/40">Once the first clash wraps, points land here.</div>
                       </td>
                     </tr>
                   )}
