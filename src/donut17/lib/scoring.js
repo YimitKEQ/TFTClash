@@ -1,9 +1,13 @@
-// Opener Advisor scoring: rank comp_lines by unit + trait overlap with picked
-// openers, then break ties by meta tier (S > A > B > C > X).
+// Opener Advisor scoring: rank tftflow comp_lines by unit + trait overlap with
+// the player's picked shop units, then break ties by meta tier bonus.
 //
-// Points:
-//   core unit match = 3, flex unit match = 2, shared trait = 1 per (trait, champ)
-//   tier bonus: S=+0.4, A=+0.2, B=+0.1, C=+0.05, X=0, unknown=+0.15
+// Points per picked unit:
+//   carry match = 5   (unit appears in comp.carries[])
+//   board match = 3   (unit appears in comp.board but is not a carry)
+//   trait match = 0.5 per (comp-unit, shared-trait) pair
+//
+// Tier bonus (added when overlap > 0):
+//   S=+0.4, A=+0.2, B=+0.1, C=+0.05, X=0, unknown=+0.15
 
 var TIER_BONUS = { S: 0.4, A: 0.2, B: 0.1, C: 0.05, X: 0 }
 
@@ -25,42 +29,32 @@ export function scoreComps(pickedKeys, champions, comps) {
   })
 
   var results = comps.map(function (comp) {
-    // Points: carry match = 5, board match = 3, early match = 2.5, flex match = 2.
+    var carries = new Set(comp.carries || (comp.carry ? [comp.carry] : []))
     var boardSet = new Set(comp.board || [])
-    var earlySet = new Set(comp.early || [])
-    var flexSet = new Set(comp.flex || [])
-    var carryKey = comp.carry
     var directHits = 0
     var traitHits = 0
     var hitUnits = []
-    var i
     var keys = Array.from(picked)
-    for (i = 0; i < keys.length; i++) {
+    for (var i = 0; i < keys.length; i++) {
       var k = keys[i]
-      if (k === carryKey) {
+      if (carries.has(k)) {
         directHits += 5
         hitUnits.push({ key: k, type: 'carry' })
-      } else if (earlySet.has(k)) {
-        directHits += 2.5
-        hitUnits.push({ key: k, type: 'early' })
       } else if (boardSet.has(k)) {
         directHits += 3
         hitUnits.push({ key: k, type: 'board' })
-      } else if (flexSet.has(k)) {
-        directHits += 2
-        hitUnits.push({ key: k, type: 'flex' })
       }
     }
-    var compChamps = (comp.board || []).concat(comp.early || []).concat(comp.flex || [])
     var seen = {}
-    for (i = 0; i < compChamps.length; i++) {
-      if (seen[compChamps[i]]) continue
-      seen[compChamps[i]] = 1
-      var cc = champByKey[compChamps[i]]
+    var compChamps = comp.board || []
+    for (var j = 0; j < compChamps.length; j++) {
+      var ck = compChamps[j]
+      if (seen[ck]) continue
+      seen[ck] = 1
+      var cc = champByKey[ck]
       if (!cc || !cc.traits) continue
-      var j
-      for (j = 0; j < cc.traits.length; j++) {
-        if (pickedTraits.has(cc.traits[j])) traitHits += 0.5
+      for (var t = 0; t < cc.traits.length; t++) {
+        if (pickedTraits.has(cc.traits[t])) traitHits += 0.5
       }
     }
     var overlap = directHits + traitHits

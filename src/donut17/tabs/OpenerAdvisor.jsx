@@ -4,11 +4,37 @@ import { costColor } from '../lib/imgFallback'
 import { computeActiveTraits, tierColor } from '../lib/traitComputer'
 import ChampImg from '../lib/ChampImg'
 
+// Comp data sourced verbatim from tftflow.com — tier placements, boards, carries,
+// augments, and patch notes are mirrored without curation. Each ranked card links
+// back to the tftflow comp page for the full flowchart.
+
+var ECON_LABEL = {
+  fast8: 'Fast 8',
+  fast9: 'Fast 9',
+  reroll1: '1-Cost Reroll',
+  reroll2: '2-Cost Reroll',
+  reroll3: '3-Cost Reroll',
+}
+
+var TIER_COLOR = {
+  'OP': '#ff6b9d',
+  'S+': '#ff9d6b',
+  'S': '#FFC66B',
+  'A': '#67e2d9',
+  'B': '#9d8eff',
+  'C': '#9d8e7c',
+  'D': '#554a42',
+}
+
+function econLabel(econ) {
+  if (!econ) return ''
+  return ECON_LABEL[econ] || econ
+}
+
 export default function OpenerAdvisor(props) {
   var champions = props.data.champions
   var comps = props.data.comps
   var traits = props.data.traits
-  var meta = props.data.meta || {}
 
   var _p = useState([])
   var picked = _p[0]
@@ -23,7 +49,6 @@ export default function OpenerAdvisor(props) {
   var setSearch = _s[1]
 
   var championsFiltered = useMemo(function () {
-    // Only playable units -- strip PVE, dummy, armory, summon, fakeunit, etc.
     var base = champions.filter(function (c) {
       var k = c.key
       if (!k) return false
@@ -60,15 +85,18 @@ export default function OpenerAdvisor(props) {
   }
 
   var top = scored.slice(0, 3)
+  var sourcePatch = comps && comps[0] && comps[0].patch ? comps[0].patch : ''
 
   return (
     <div>
-      {/* Hero */}
       <header className="mb-10">
         <div className="flex justify-between items-end mb-3 flex-wrap gap-3">
           <div>
             <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>Divine Counsel</span>
             <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Opener Advisor</h1>
+            <p className="font-mono text-[10px] uppercase tracking-widest mt-2" style={{ color: 'rgba(228,225,236,0.45)' }}>
+              Data sourced from tftflow.com{sourcePatch ? ' · ' + sourcePatch : ''} · {comps.length} comps
+            </p>
           </div>
           <div className="text-right">
             <span className="font-mono text-tertiary text-sm">{picked.length}/6 UNITS PICKED</span>
@@ -82,12 +110,11 @@ export default function OpenerAdvisor(props) {
         </div>
         <div className="flex justify-between mt-2 font-mono text-[10px] uppercase tracking-widest gap-4 flex-wrap" style={{ color: 'rgba(228,225,236,0.4)' }}>
           <span>PICK 2-6 UNITS YOU HAVE AFTER STAGE 2 CAROUSEL</span>
-          <span>TOP 3 COMPS WITH FULL GAMEPLAN APPEAR BELOW</span>
+          <span>TOP 3 TFTFLOW COMPS APPEAR BELOW</span>
         </div>
       </header>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* Unit pool */}
         <section className="col-span-12 xl:col-span-5">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Roster</h2>
@@ -143,7 +170,6 @@ export default function OpenerAdvisor(props) {
           </div>
         </section>
 
-        {/* Rankings */}
         <section className="col-span-12 xl:col-span-7">
           <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
             <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Divined Comps</h2>
@@ -164,7 +190,7 @@ export default function OpenerAdvisor(props) {
                 Pick units to begin
               </p>
               <p className="font-body text-xs mt-2" style={{ color: 'rgba(228,225,236,0.55)' }}>
-                Carry match = 5 pts, board = 3, early opener = 2.5, flex = 2, shared trait = 0.5. Tier tiebreaker (S > A > B > X).
+                Carry match = 5 pts, board = 3, shared trait = 0.5. Ties broken by tftflow tier (OP {'>'} S+ {'>'} S {'>'} A {'>'} B {'>'} C).
               </p>
             </div>
           )}
@@ -179,7 +205,6 @@ export default function OpenerAdvisor(props) {
                   result={r}
                   champions={champions}
                   traits={traits}
-                  meta={meta}
                   pickedKeys={picked}
                 />
               )
@@ -187,7 +212,7 @@ export default function OpenerAdvisor(props) {
             {picked.length > 0 && top.every(function(r){ return r.score === 0 }) && (
               <div className="d17-panel p-6 text-center">
                 <p className="font-body text-sm" style={{ color: 'rgba(228,225,236,0.7)' }}>
-                  No matching meta comp for this opener. Try different units or keep the most flexible one.
+                  No matching tftflow meta comp for this opener. Try different units or keep the most flexible one.
                 </p>
               </div>
             )}
@@ -205,19 +230,17 @@ function RankedComp(props) {
   var pickedKeys = props.pickedKeys || []
   var champByKey = {}
   champions.forEach(function(x){ champByKey[x.key] = x })
-  var metaStats = (props.meta.comps && props.meta.comps[c.id]) || null
-  var tier = c.tier || (metaStats && metaStats.tier) || null
 
-  var _exp = useState(props.rank === 1)
-  var expanded = _exp[0]
-  var setExpanded = _exp[1]
+  var bestTier = c.tftflowBestTier || c.tier || ''
+  var accent = TIER_COLOR[bestTier] || '#FFC66B'
 
   var activeTraits = useMemo(function () {
     return computeActiveTraits(c.board, champions, traits)
   }, [c, champions, traits])
 
   var pickedSet = new Set(pickedKeys)
-  var carryChamp = champByKey[c.carry]
+  var carrySet = new Set(c.carries || (c.carry ? [c.carry] : []))
+  var tiers = c.tftflowTiers || (bestTier ? [bestTier] : [])
 
   return (
     <div className="d17-panel p-5 relative overflow-hidden">
@@ -225,51 +248,65 @@ function RankedComp(props) {
         aria-hidden="true"
         style={{
           position: 'absolute', inset: 0,
-          background: 'linear-gradient(135deg, ' + c.color + '22 0%, transparent 70%)',
+          background: 'linear-gradient(135deg, ' + accent + '22 0%, transparent 70%)',
           pointerEvents: 'none'
         }}
       />
       <div className="relative">
-        {/* Header: rank, name, tier, score */}
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-xs" style={{ color: c.color }}>#{props.rank}</span>
+              <span className="font-mono text-xs" style={{ color: accent }}>#{props.rank}</span>
               <h3 className="font-editorial italic text-xl" style={{ color: '#e4e1ec' }}>{c.name}</h3>
-              {tier && (
-                <span className="px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest font-bold" style={{ background: c.color + '22', color: c.color, border: '1px solid ' + c.color + '55' }}>
-                  {tier}
-                </span>
-              )}
-              {c.strategy && (
-                <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>
-                  {c.strategy}
-                </span>
-              )}
-              {c.difficulty && (
-                <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.45)' }}>
-                  | {c.difficulty}
+              {c.econ && (
+                <span className="font-mono text-[10px] uppercase tracking-widest px-2 py-0.5" style={{ background: 'rgba(14,13,21,0.8)', color: '#9d8e7c', border: '1px solid rgba(157,142,124,0.3)' }}>
+                  {econLabel(c.econ)}
                 </span>
               )}
             </div>
-            <p className="text-xs mt-1 font-body" style={{ color: 'rgba(228,225,236,0.65)' }}>{c.desc}</p>
+            {c.desc && (
+              <p className="text-xs mt-1 font-body" style={{ color: 'rgba(228,225,236,0.7)' }}>{c.desc}</p>
+            )}
           </div>
           <div className="text-right shrink-0">
-            <p className="font-mono text-xl" style={{ color: c.color }}>{props.result.score}</p>
+            <p className="font-mono text-xl" style={{ color: accent }}>{props.result.score}</p>
             <p className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>match</p>
           </div>
         </div>
 
-        {/* Full board -- the capped 8-9 unit board */}
+        {/* Tier placements from tftflow — conditional, so we show the range */}
+        {tiers.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>
+              tftflow tier{tiers.length > 1 ? 's' : ''}:
+            </span>
+            {tiers.map(function (t) {
+              var col = TIER_COLOR[t] || '#9d8e7c'
+              return (
+                <span
+                  key={t}
+                  className="px-2 py-0.5 font-mono text-[10px] font-bold"
+                  style={{ background: col + '22', color: col, border: '1px solid ' + col + '55' }}
+                >{t}</span>
+              )
+            })}
+            {tiers.length > 1 && (
+              <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.45)' }}>
+                conditional on augments + emblems
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="mt-4">
           <p className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>
-            Final Board ({(c.board || []).length} units)
+            Final Board ({(c.board || []).length} units) · {carrySet.size} carr{carrySet.size === 1 ? 'y' : 'ies'}
           </p>
           <div className="flex flex-wrap gap-1.5">
             {(c.board || []).map(function (k) {
               var ch = champByKey[k]
               if (!ch) return null
-              var isCarry = k === c.carry
+              var isCarry = carrySet.has(k)
               var isPicked = pickedSet.has(k)
               return (
                 <div key={k} className="relative">
@@ -291,7 +328,6 @@ function RankedComp(props) {
           </div>
         </div>
 
-        {/* Active traits at capped board */}
         {activeTraits.length > 0 && (
           <div className="mt-4">
             <p className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>
@@ -320,182 +356,44 @@ function RankedComp(props) {
           </div>
         )}
 
-        {/* Meta avg placement if available */}
-        <div className="mt-3 grid grid-cols-2 gap-3 text-[10px] font-mono uppercase tracking-wider">
-          <div>
-            <span style={{ color: '#9d8e7c' }}>GOD: </span>
-            <span style={{ color: '#FFC66B' }}>{c.god}</span>
-          </div>
-          <div className="text-right">
-            {metaStats && metaStats.avg_placement ? (
-              <span>
-                <span style={{ color: '#9d8e7c' }}>AVG: </span>
-                <span style={{ color: '#67e2d9' }}>{Number(metaStats.avg_placement).toFixed(2)}</span>
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={function(){ setExpanded(function(v){ return !v }) }}
-                className="font-mono text-[10px] uppercase tracking-widest cursor-pointer"
-                style={{ color: c.color }}
-              >
-                {expanded ? 'Hide plan' : 'Show full plan'}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Expanded: opener, items, carousel, stage plan, augments */}
-        {expanded && (
-          <div className="mt-4 pt-4 space-y-4" style={{ borderTop: '1px solid rgba(255,198,107,0.15)' }}>
-            {/* Early board */}
-            {c.early && c.early.length > 0 && (
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
-                  Stage 2 Opener
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {c.early.map(function (k) {
-                    var ch = champByKey[k]
-                    if (!ch) return null
-                    return <ChampImg key={k} champion={ch} size={32} carry={k === c.carry}/>
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Carry items */}
-            {c.carryItems && c.carryItems.length > 0 && (
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
-                  Carry Items ({carryChamp ? carryChamp.name : c.carry})
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {c.carryItems.map(function (it, idx) {
-                    return (
-                      <span
-                        key={idx}
-                        className="font-mono text-[10px] px-2 py-0.5"
-                        style={{ background: '#0e0d15', color: '#FFC66B', border: '1px solid rgba(255,198,107,0.3)' }}
-                      >{it}</span>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Support items */}
-            {c.items && (
-              <SupportItems items={c.items} carryName={carryChamp ? carryChamp.name : null} color={c.color}/>
-            )}
-
-            {/* Carousel priority */}
-            {c.carousel && c.carousel.length > 0 && (
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
-                  Carousel Priority
-                </p>
-                <p className="font-body text-xs" style={{ color: 'rgba(228,225,236,0.8)' }}>
-                  {c.carousel.join(' > ')}
-                </p>
-              </div>
-            )}
-
-            {/* Augments */}
-            {c.augments && c.augments.length > 0 && (
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
-                  Augment Picks
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {c.augments.map(function (a, idx) {
-                    return (
-                      <span
-                        key={idx}
-                        className="font-mono text-[10px] px-2 py-0.5"
-                        style={{ background: c.color + '18', color: c.color, border: '1px solid ' + c.color + '44' }}
-                      >{a}</span>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Stage-by-stage gameplan */}
-            {c.stages && (
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>
-                  Gameplan
-                </p>
-                <div className="space-y-1.5">
-                  <StageRow label="STAGE 2" text={c.stages.stage_2} color={c.color}/>
-                  <StageRow label="STAGE 3" text={c.stages.stage_3} color={c.color}/>
-                  <StageRow label="STAGE 4" text={c.stages.stage_4} color={c.color}/>
-                  <StageRow label="STAGE 5+" text={c.stages.stage_5} color={c.color}/>
-                </div>
-              </div>
-            )}
-
-            {/* God reasoning */}
-            {c.godWhy && (
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
-                  Why {c.god}?
-                </p>
-                <p className="font-body text-xs italic" style={{ color: 'rgba(228,225,236,0.7)' }}>
-                  {c.godWhy}
-                </p>
-              </div>
-            )}
-
-            {props.rank !== 1 && (
-              <button
-                type="button"
-                onClick={function(){ setExpanded(false) }}
-                className="font-mono text-[9px] uppercase tracking-widest cursor-pointer"
-                style={{ color: '#9d8e7c' }}
-              >Collapse</button>
-            )}
+        {c.augments && c.augments.length > 0 && (
+          <div className="mt-4">
+            <p className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>
+              Augments ({c.augments.length})
+            </p>
+            <div className="flex flex-wrap gap-1">
+              {c.augments.slice(0, 18).map(function (a, idx) {
+                return (
+                  <span
+                    key={idx}
+                    className="font-mono text-[10px] px-2 py-0.5"
+                    style={{ background: accent + '18', color: accent, border: '1px solid ' + accent + '44' }}
+                  >{a}</span>
+                )
+              })}
+              {c.augments.length > 18 && (
+                <span className="font-mono text-[10px] px-2 py-0.5" style={{ color: '#9d8e7c' }}>
+                  +{c.augments.length - 18} more
+                </span>
+              )}
+            </div>
           </div>
         )}
-      </div>
-    </div>
-  )
-}
 
-function StageRow(props) {
-  if (!props.text) return null
-  return (
-    <div className="flex gap-3 items-start">
-      <span className="font-mono text-[9px] uppercase tracking-widest pt-0.5 shrink-0" style={{ color: props.color, minWidth: 56 }}>
-        {props.label}
-      </span>
-      <span className="font-body text-xs leading-relaxed" style={{ color: 'rgba(228,225,236,0.82)' }}>
-        {props.text}
-      </span>
-    </div>
-  )
-}
-
-function SupportItems(props) {
-  var items = props.items || {}
-  var carryName = props.carryName
-  var entries = Object.keys(items).filter(function (u) { return u !== carryName && u !== 'carry' && Array.isArray(items[u]) && items[u].length > 0 })
-  if (entries.length === 0) return null
-  return (
-    <div>
-      <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
-        Support Items
-      </p>
-      <div className="space-y-1">
-        {entries.map(function (unit) {
-          return (
-            <div key={unit} className="text-[10px] font-mono">
-              <span style={{ color: props.color }}>{unit}:</span>{' '}
-              <span style={{ color: 'rgba(228,225,236,0.75)' }}>{items[unit].join(', ')}</span>
-            </div>
-          )
-        })}
+        {c.url && (
+          <div className="mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,198,107,0.15)' }}>
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-mono text-[10px] uppercase tracking-widest inline-flex items-center gap-1"
+              style={{ color: accent }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
+              Full flowchart on tftflow.com
+            </a>
+          </div>
+        )}
       </div>
     </div>
   )

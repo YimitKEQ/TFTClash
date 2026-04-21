@@ -1,0 +1,2645 @@
+[
+  {
+    "slug": "stargazer-xayah",
+    "name": "Stargazer Xayah",
+    "url": "https://tftflow.com/composition/set17/stargazer-xayah",
+    "econ": "fast8",
+    "tiers": [
+      "OP",
+      "A",
+      "B"
+    ],
+    "title": "Stargazer Xayah",
+    "og_desc": "Stargazers change constellations each game, having different effects for the trait. Some are better than others; here’s how to best play Xayah in Set 17.",
+    "board": [
+      {
+        "apiName": "TFT17_Nunu",
+        "name": "Nunu &…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jax",
+        "name": "Jax",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Xayah",
+        "name": "Xayah",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jhin",
+        "name": "Jhin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Gnar",
+        "name": "Gnar",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Bard",
+        "name": "Bard",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Nunu"
+    ],
+    "augments": [
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "graves-fast-9",
+    "name": "Graves Fast 9",
+    "url": "https://tftflow.com/composition/set17/graves-fast-9",
+    "econ": "fast9",
+    "tiers": [
+      "OP",
+      "S",
+      "A"
+    ],
+    "title": "Graves Fast 9",
+    "og_desc": "Graves is a unique champion with several frames that changes how he plays and many upgrades. Here’s the best board to play him in if you find him early.",
+    "board": [
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm K…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Fiora",
+        "name": "Fiora",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Morgana",
+        "name": "Morgana",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Vex",
+        "name": "Vex",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Graves",
+        "name": "Graves",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_TahmKench",
+      "TFT17_Graves"
+    ],
+    "augments": [
+      "Money Monsoon",
+      "Upward Mobility",
+      "Late Game Specialist",
+      "Hedge Fund",
+      "Aura Farming",
+      "Late Game Scaling",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "invader-zed",
+    "name": "Invader Zed",
+    "url": "https://tftflow.com/composition/set17/invader-zed",
+    "econ": "fast9",
+    "tiers": [
+      "OP",
+      "S+",
+      "A",
+      "B"
+    ],
+    "title": "Invader Zed",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm K…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Zed",
+        "name": "Zed",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Fiora",
+        "name": "Fiora",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Vex",
+        "name": "Vex",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Morgana",
+        "name": "Morgana",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_TahmKench"
+    ],
+    "augments": [
+      "Required Condition",
+      "Money Monsoon",
+      "Upward Mobility",
+      "Hedge Fund",
+      "Just Hit",
+      "Max Build",
+      "Late Game Scaling",
+      "Late Game Specialist",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "samira-reroll",
+    "name": "Samira Reroll",
+    "url": "https://tftflow.com/composition/set17/samira-reroll",
+    "econ": "reroll3",
+    "tiers": [
+      "OP",
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Samira Reroll",
+    "og_desc": "Samira Reroll takes advantage of Samira’s passive that deals damage on knockup with various knockup champions, keeping her in the Groove longer.",
+    "board": [
+      {
+        "apiName": "TFT17_Nasus",
+        "name": "Nasus",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jax",
+        "name": "Jax",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nunu",
+        "name": "Nunu &…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Ornn",
+        "name": "Ornn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jhin",
+        "name": "Jhin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Xayah",
+        "name": "Xayah",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Samira",
+        "name": "Samira",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Nunu",
+      "TFT17_Samira"
+    ],
+    "augments": [
+      "Two Tanky",
+      "Patience is a Virtue",
+      "Prismatic Ticket",
+      "Deadlier Blades",
+      "Calculated Loss",
+      "Rolling For Days I",
+      "Sword Overflow",
+      "Heroic Grab Bag+",
+      "Heroic Grab Bag++",
+      "Heroic Grab Bag"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "mecha",
+    "name": "Mecha",
+    "url": "https://tftflow.com/composition/set17/mecha",
+    "econ": "fast8",
+    "tiers": [
+      "OP",
+      "S+",
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Mecha",
+    "og_desc": "The ultimate one unit comp. Do you enjoy an immortal tank? That’s the only goal of this line: Make the Mighty Mech (Galio) completely unkillable. Here’s how.",
+    "board": [
+      {
+        "apiName": "TFT17_Galio",
+        "name": "The Mi…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Urgot",
+        "name": "Urgot",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_AurelionSol",
+        "name": "Aureli…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jhin",
+        "name": "Jhin",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Galio",
+      "TFT17_AurelionSol"
+    ],
+    "augments": [
+      "Expedition",
+      "Find Your Center",
+      "The Golden Dragon",
+      "Second Wind",
+      "Ascension",
+      "Kayle's Boon",
+      "Solo Plate",
+      "Healing Orbs I",
+      "Healing Orbs II",
+      "Ekko's Boon",
+      "Pandora's Items",
+      "Pandora's Items II",
+      "Pandora's Items III",
+      "Partial Ascension",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Arcane Viktor-y",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "viktor-illaoi-reroll",
+    "name": "Viktor Bronze for Life",
+    "url": "https://tftflow.com/composition/set17/viktor-illaoi-reroll",
+    "econ": "reroll3",
+    "tiers": [
+      "OP",
+      "S+",
+      "S",
+      "A"
+    ],
+    "title": "Viktor Bronze for Life",
+    "og_desc": "This Viktor comp takes advantage of the fact that you can get many traits by pairing Illaoi and Mordekaiser together, making it strong with Bronze for Life.",
+    "board": [
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Pyke",
+        "name": "Pyke",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Viktor",
+        "name": "Viktor",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Nami",
+        "name": "Nami",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissandra",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Rhaast",
+      "TFT17_Illaoi",
+      "TFT17_Viktor"
+    ],
+    "augments": [
+      "Bronze For Life II",
+      "Bronze For Life I",
+      "Patience is a Virtue",
+      "Prismatic Ticket",
+      "Hold the Line",
+      "Calculated Loss",
+      "Heroic Grab Bag",
+      "Boxing Lessons",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Seraphim's Staff",
+      "Stand United",
+      "Money Hungry",
+      "Rolling For Days I",
+      "Heroic Grab Bag+",
+      "Heroic Grab Bag++"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "dark-star",
+    "name": "Dark Star",
+    "url": "https://tftflow.com/composition/set17/dark-star",
+    "econ": "fast8",
+    "tiers": [
+      "S+",
+      "S",
+      "A"
+    ],
+    "title": "Dark Star",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Riven",
+        "name": "Riven",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nunu",
+        "name": "Nunu &…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm Kench",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_DarkStar_FakeUnit",
+        "name": "Mini Black …",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Chogath",
+        "name": "Cho'Gath",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Morgana",
+        "name": "Morgana",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jhin",
+        "name": "Jhin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Kaisa",
+        "name": "Kai'Sa",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Nunu",
+      "TFT17_Kaisa"
+    ],
+    "augments": [
+      "The Trait Tree+",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Spreading Roots",
+      "Spreading Roots+",
+      "The Trait Tree",
+      "Branching Out+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "meeple-veigar",
+    "name": "Meeple Veigar",
+    "url": "https://tftflow.com/composition/set17/meeple-veigar",
+    "econ": "fast8",
+    "tiers": [
+      "S+",
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Meeple Veigar",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Veigar",
+        "name": "Veigar",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Corki",
+        "name": "Corki",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Bard",
+        "name": "Bard",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissandra",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Rammus",
+      "TFT17_Veigar"
+    ],
+    "augments": [
+      "Climb The Ladder II",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Charge Transfer I",
+      "Charge Transfer II",
+      "Climb The Ladder I"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "space-groove-nami",
+    "name": "Space Groove Nami",
+    "url": "https://tftflow.com/composition/set17/space-groove-nami",
+    "econ": "fast8",
+    "tiers": [
+      "S+",
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Space Groove Nami",
+    "og_desc": "Space Groove brings back the Disco music! The trait is quite powerful and often works well with emblems since it plays many 2-breakpoint traits.",
+    "board": [
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm K…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Pantheon",
+        "name": "Pantheon",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Blitzcrank",
+        "name": "Blitzc…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Nasus",
+        "name": "Nasus",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Riven",
+        "name": "Riven",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Ornn",
+        "name": "Ornn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nami",
+        "name": "Nami",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Gwen",
+        "name": "Gwen",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_TahmKench",
+      "TFT17_Blitzcrank"
+    ],
+    "augments": [
+      "Spreading Roots+",
+      "The Trait Tree+",
+      "Cosmic Restart",
+      "Cybernetic Uplink",
+      "Cry Me A River",
+      "Spreading Roots",
+      "The Trait Tree",
+      "Branching Out",
+      "Branching Out+",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Frontline Foundation",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "anima-viktor-reroll",
+    "name": "Anima Viktor Reroll",
+    "url": "https://tftflow.com/composition/set17/anima-viktor-reroll",
+    "econ": "reroll3",
+    "tiers": [
+      "S+",
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Anima Viktor Reroll",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Pyke",
+        "name": "Pyke",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Jinx",
+        "name": "Jinx",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Viktor",
+        "name": "Viktor",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Aurora",
+        "name": "Aurora",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Illaoi",
+      "TFT17_Viktor",
+      "TFT17_Aurora"
+    ],
+    "augments": [
+      "Tiniest Titan",
+      "Patience is a Virtue",
+      "Prismatic Ticket",
+      "Tiny Titans",
+      "Anima Commander",
+      "Heroic Grab Bag+",
+      "Heroic Grab Bag++",
+      "Heroic Grab Bag",
+      "Calculated Loss",
+      "Rolling For Days I"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "teemo-reroll",
+    "name": "Teemo Reroll",
+    "url": "https://tftflow.com/composition/set17/teemo-reroll",
+    "econ": "reroll1",
+    "tiers": [
+      "S+",
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Teemo Reroll",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Leona",
+        "name": "Leona",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nasus",
+        "name": "Nasus",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Teemo",
+        "name": "Teemo",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissan…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leblanc",
+        "name": "LeBlanc",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Lissandra"
+    ],
+    "augments": [
+      "Early Learnings",
+      "NO SCOUT NO PIVOT",
+      "Prismatic Ticket",
+      "Missed Connections",
+      "Pandora's Bench"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "meeple-corki",
+    "name": "Meeple Corki",
+    "url": "https://tftflow.com/composition/set17/meeple-corki",
+    "econ": "fast8",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Meeple Corki",
+    "og_desc": "Meeples are unique in that they have the ability to print units at 7 Meeple, which you can use temporarily before dropping down to 5 or even 3 Meeple late game.",
+    "board": [
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Galio",
+        "name": "The Mighty …",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Fizz",
+        "name": "Fizz",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Riven",
+        "name": "Riven",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Corki",
+        "name": "Corki",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Bard",
+        "name": "Bard",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Milio",
+        "name": "Milio",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Rammus"
+    ],
+    "augments": [
+      "Sword Overflow",
+      "Deadlier Blades",
+      "The Trait Tree+",
+      "Spreading Roots+",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "The Trait Tree",
+      "Spreading Roots",
+      "Branching Out+",
+      "Branching Out",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "n-o-v-a",
+    "name": "N.O.V.A",
+    "url": "https://tftflow.com/composition/set17/n-o-v-a",
+    "econ": "fast8",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "N.O.V.A",
+    "og_desc": "N.O.V.A. is one of the strongest utility traits ever made for TFT. Teamwide shred, sunder, crit, attack speed, etc. Here’s how to best play the units together.",
+    "board": [
+      {
+        "apiName": "TFT17_MasterYi",
+        "name": "Master…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm K…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Fiora",
+        "name": "Fiora",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Kindred",
+        "name": "Kindred",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Belveth",
+        "name": "Bel'Veth",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_MasterYi",
+      "TFT17_TahmKench",
+      "TFT17_Kindred"
+    ],
+    "augments": [
+      "Group Hug II",
+      "Group Hug I",
+      "Size Matters",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Money Hungry",
+      "Speedy Double Kill",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "riven-yi",
+    "name": "Riven Yi",
+    "url": "https://tftflow.com/composition/set17/riven-yi",
+    "econ": "fast8",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Riven Yi",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Gragas",
+        "name": "Gragas",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Riven",
+        "name": "Riven",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm K…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Gwen",
+        "name": "Gwen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_MasterYi",
+        "name": "Master…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_TahmKench",
+      "TFT17_MasterYi"
+    ],
+    "augments": [
+      "Little Buddies",
+      "Bronze For Life II",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Money Hungry",
+      "Bronze For Life I"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "kaisa-rogues",
+    "name": "Kai’Sa Rogues",
+    "url": "https://tftflow.com/composition/set17/kaisa-rogues",
+    "econ": "reroll3",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Kai’Sa Rogues",
+    "og_desc": "Kai’Sa and Fizz have strong crossover and are able to activate many traits with Rhaast. This comp will get updated if any other variations pop up as well.",
+    "board": [
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Ornn",
+        "name": "Ornn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Fizz",
+        "name": "Fizz",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Kaisa",
+        "name": "Kai'Sa",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Kaisa"
+    ],
+    "augments": [
+      "Patience is a Virtue",
+      "Prismatic Ticket",
+      "Calculated Loss",
+      "Rolling For Days I",
+      "Heroic Grab Bag+",
+      "Heroic Grab Bag++",
+      "Heroic Grab Bag",
+      "Kayle's Boon",
+      "Legion of Threes"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "pyke-gwen-reroll",
+    "name": "Pyke Gwen Reroll",
+    "url": "https://tftflow.com/composition/set17/pyke-gwen-reroll",
+    "econ": "reroll2",
+    "tiers": [
+      "S",
+      "C",
+      "D"
+    ],
+    "title": "Pyke Gwen Reroll",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Pyke",
+        "name": "Pyke",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Pantheon",
+        "name": "Panthe…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Gragas",
+        "name": "Gragas",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Riven",
+        "name": "Riven",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Gwen",
+        "name": "Gwen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Corki",
+        "name": "Corki",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Milio",
+        "name": "Milio",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Pantheon"
+    ],
+    "augments": [
+      "Two Much Value"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "primordian-reroll",
+    "name": "Primordian Reroll",
+    "url": "https://tftflow.com/composition/set17/primordian-reroll",
+    "econ": "reroll12",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Primordian Reroll",
+    "og_desc": "Primordian is one of the main reroll traits for Set 17. It helps you hit your 3-stars by providing you units each round. Here’s how to play the reroll line.",
+    "board": [
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Briar",
+        "name": "Briar",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_RekSai",
+        "name": "Rek'Sai",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Belveth",
+        "name": "Bel'Ve…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Caitlyn",
+        "name": "Caitlyn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Kindred",
+        "name": "Kindred",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_RekSai",
+      "TFT17_Belveth",
+      "TFT17_Kindred"
+    ],
+    "augments": [
+      "NO SCOUT NO PIVOT",
+      "Missed Connections",
+      "On a Roll"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "bonk-nasus",
+    "name": "Bonk! Nasus",
+    "url": "https://tftflow.com/composition/set17/bonk-nasus",
+    "econ": "reroll1",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Bonk! Nasus",
+    "og_desc": "Bonk! It’s a simple hero augment: Nasus now bonks. And he bonks hard. Here’s what units to play and how to itemize to ensure he keeps bonking.",
+    "board": [
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nunu",
+        "name": "Nunu & Will…",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Blitzcrank",
+        "name": "Blitzcrank",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leona",
+        "name": "Leona",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nasus",
+        "name": "Nasus",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leblanc",
+        "name": "LeBlanc",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Teemo",
+        "name": "Teemo",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Leblanc"
+    ],
+    "augments": [
+      "Required Condition",
+      "Missed Connections",
+      "Bonk!"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "karma-nami",
+    "name": "Karma Nami Flex",
+    "url": "https://tftflow.com/composition/set17/karma-nami",
+    "econ": "fast8",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Karma Nami Flex",
+    "og_desc": "",
+    "board": [
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nunu",
+        "name": "Nunu & Will…",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Galio",
+        "name": "The Mighty …",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Morgana",
+        "name": "Morgana",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nami",
+        "name": "Nami",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissandra",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [],
+    "augments": [
+      "Bronze For Life II",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Bronze For Life I",
+      "Buried Treasures",
+      "Staffsmith"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "shepherd-leblanc",
+    "name": "Shepherd LeBlanc",
+    "url": "https://tftflow.com/composition/set17/shepherd-leblanc",
+    "econ": "fast8",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Shepherd LeBlanc",
+    "og_desc": "Shepherd LeBlanc summons “The Bond of the Stars” and with a Shepherd Emblem + Sona, can summon the strongest form of Bia & Bayin. Here’s how to play the line.",
+    "board": [
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leona",
+        "name": "Leona",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Galio",
+        "name": "The Mighty …",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Morgana",
+        "name": "Morgana",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leblanc",
+        "name": "LeBlanc",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissandra",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Sona",
+        "name": "Sona",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Illaoi",
+      "TFT17_Leblanc"
+    ],
+    "augments": [
+      "Aura Farming",
+      "Speedy Double Kill",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "vanguard-leblanc",
+    "name": "Vanguard LeBlanc",
+    "url": "https://tftflow.com/composition/set17/vanguard-leblanc",
+    "econ": "fast8",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Vanguard LeBlanc",
+    "og_desc": "This comp’s strength will often vary depending on your Arbiter. The balance will change throughout the set, but this page will always be updated.",
+    "board": [
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Nunu",
+        "name": "Nunu &…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Leona",
+        "name": "Leona",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Morgana",
+        "name": "Morgana",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leblanc",
+        "name": "LeBlanc",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Zoe",
+        "name": "Zoe",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Nunu",
+      "TFT17_Leblanc"
+    ],
+    "augments": [
+      "Hold the Line",
+      "Frontline Foundation",
+      "Kayle's Boon",
+      "Epic Rolldown",
+      "Feeling Lucky",
+      "Money Hungry",
+      "Savings Account",
+      "Slice of Life",
+      "Good For Something I",
+      "AFK",
+      "Risky Moves",
+      "Speedy Double Kill",
+      "Continuous Conjuration",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "vex-ap-fast-9",
+    "name": "Vex AP Fast 9",
+    "url": "https://tftflow.com/composition/set17/vex-ap-fast-9",
+    "econ": "fast9",
+    "tiers": [
+      "S",
+      "A"
+    ],
+    "title": "Vex AP Fast 9",
+    "og_desc": "Vex is an auto attack hypercarry that is often the pinnacle of AP comps. This is a board you should aim to transition into from a fast 9 spot.",
+    "board": [
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Mordekaiser",
+        "name": "Mordekaiser",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Blitzcrank",
+        "name": "Blitzcrank",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Vex",
+        "name": "Vex",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Bard",
+        "name": "Bard",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Rammus"
+    ],
+    "augments": [
+      "Money Monsoon",
+      "Upward Mobility",
+      "Late Game Specialist",
+      "Hedge Fund",
+      "Late Game Scaling",
+      "Slammin'",
+      "Slammin'+"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "anima-diana-reroll",
+    "name": "Anima Diana Reroll",
+    "url": "https://tftflow.com/composition/set17/anima-diana-reroll",
+    "econ": "reroll3",
+    "tiers": [
+      "S",
+      "A",
+      "B",
+      "C"
+    ],
+    "title": "Anima Diana Reroll",
+    "og_desc": "Anima is the loss streak trait for Set 17. Aim for big cashouts, itemize your Anima units with items from your cashout, and winout. Or go 8th trying.",
+    "board": [
+      {
+        "apiName": "TFT17_Leona",
+        "name": "Leona",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Illaoi",
+        "name": "Illaoi",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Diana",
+        "name": "Diana",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Leblanc",
+        "name": "LeBlanc",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jinx",
+        "name": "Jinx",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aurora",
+        "name": "Aurora",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Illaoi",
+      "TFT17_Aurora"
+    ],
+    "augments": [
+      "Tiniest Titan",
+      "Patience is a Virtue",
+      "Prismatic Ticket",
+      "Tiny Titans",
+      "Anima Commander",
+      "Calculated Loss",
+      "Rolling For Days I",
+      "Heroic Grab Bag+",
+      "Heroic Grab Bag++",
+      "Heroic Grab Bag"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "the-big-bang-meepsie",
+    "name": "The Big Bang Meepsie",
+    "url": "https://tftflow.com/composition/set17/the-big-bang-meepsie",
+    "econ": "reroll2",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "The Big Bang Meepsie",
+    "og_desc": "The Big Bang is Meepsie’s hero augment that causes him to slam into the board. Itemize him as an AP melee carry and watch him clear the board each fight.",
+    "board": [
+      {
+        "apiName": "TFT17_Poppy",
+        "name": "Poppy",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Pyke",
+        "name": "Pyke",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Summon",
+        "name": "Bia & Bayin",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aurora",
+        "name": "Aurora",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Sona",
+        "name": "Sona",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissandra",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_IvernMinion",
+      "TFT17_Rammus"
+    ],
+    "augments": [
+      "Required Condition"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "twisted-fate-reroll-2",
+    "name": "Twisted Fate Reroll",
+    "url": "https://tftflow.com/composition/set17/twisted-fate-reroll-2",
+    "econ": "reroll1",
+    "tiers": [
+      "S",
+      "A",
+      "B"
+    ],
+    "title": "Twisted Fate Reroll",
+    "og_desc": "Twisted Fate Reroll goes for many different 1-costs, often with The Medallion constellation and 1-cost combat augments. Here’s how to play the line.",
+    "board": [
+      {
+        "apiName": "TFT17_Jax",
+        "name": "Jax",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Riven",
+        "name": "Riven",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Corki",
+        "name": "Corki",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Milio",
+        "name": "Milio",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Talon",
+        "name": "Talon",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Caitlyn",
+        "name": "Caitlyn",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_TwistedFate",
+        "name": "Twiste…",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Caitlyn",
+      "TFT17_TwistedFate"
+    ],
+    "augments": [
+      "Early Learnings",
+      "Prismatic Ticket",
+      "Wand Overflow",
+      "Charge Transfer II",
+      "NO SCOUT NO PIVOT",
+      "Missed Connections",
+      "Pandora's Bench",
+      "Deadlier Caps",
+      "Golden Gamble",
+      "Golden Gamble+",
+      "Golden Gamble++",
+      "Buried Treasures",
+      "Baron's Lair",
+      "Continuous Conjuration"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "termeepnal-velocity-poppy",
+    "name": "Termeepnal Velocity Poppy",
+    "url": "https://tftflow.com/composition/set17/termeepnal-velocity-poppy",
+    "econ": "fast8",
+    "tiers": [
+      "A",
+      "B",
+      "C"
+    ],
+    "title": "Termeepnal Velocity Poppy",
+    "og_desc": "Termeepnal Velocity is Poppy’s hero augment that changes her into a ranged carry. 7 Meeple can be used to print her at 3 star, allowing you to skip rerolling.",
+    "board": [
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Fizz",
+        "name": "Fizz",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Poppy",
+        "name": "Poppy",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Corki",
+        "name": "Corki",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Caitlyn",
+        "name": "Caitlyn",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Rammus"
+    ],
+    "augments": [
+      "Required Condition"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "cho-ez-reroll",
+    "name": "Cho’Gath Reroll",
+    "url": "https://tftflow.com/composition/set17/cho-ez-reroll",
+    "econ": "reroll1",
+    "tiers": [
+      "A",
+      "B",
+      "C"
+    ],
+    "title": "Cho’Gath Reroll",
+    "og_desc": "Cho’Gath is back and bigger than ever. The optimal way to play Cho’Gath will likely evolve over the course of the set, so check here to see the latest tech.",
+    "board": [
+      {
+        "apiName": "TFT17_Chogath",
+        "name": "Cho'Ga…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_TahmKench",
+        "name": "Tahm Kench",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Pantheon",
+        "name": "Pantheon",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Ezreal",
+        "name": "Ezreal",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Xayah",
+        "name": "Xayah",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Lissandra",
+        "name": "Lissan…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Milio",
+        "name": "Milio",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Chogath",
+      "TFT17_Ezreal",
+      "TFT17_Lissandra"
+    ],
+    "augments": [
+      "NO SCOUT NO PIVOT",
+      "Solo Plate",
+      "The Golden Dragon",
+      "Find Your Center"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "stellar-combo-aatrox",
+    "name": "Stellar Combo Aatrox",
+    "url": "https://tftflow.com/composition/set17/stellar-combo-aatrox",
+    "econ": "reroll1",
+    "tiers": [
+      "A",
+      "B",
+      "C"
+    ],
+    "title": "Stellar Combo Aatrox",
+    "og_desc": "Stellar Combo is Aatrox’s hero augment that turns his ability into his League chain slam ability. There are many variations that are viable. Here’s all of them.",
+    "board": [
+      {
+        "apiName": "TFT17_Ornn",
+        "name": "Ornn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rammus",
+        "name": "Rammus",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Shen",
+        "name": "Shen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_CustomShenRelic",
+        "name": "Shen Relic",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Akali",
+        "name": "Akali",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Kindred",
+        "name": "Kindred",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Caitlyn",
+        "name": "Caitlyn",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Rammus",
+      "TFT17_Aatrox",
+      "TFT17_Kindred"
+    ],
+    "augments": [
+      "Required Condition",
+      "Missed Connections"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "conduit-miss-fortune",
+    "name": "Conduit MF Viktor",
+    "url": "https://tftflow.com/composition/set17/conduit-miss-fortune",
+    "econ": "reroll3",
+    "tiers": [
+      "A",
+      "B",
+      "C"
+    ],
+    "title": "Conduit MF Viktor",
+    "og_desc": "Miss Fortune can turn into a Conduit and pair with Viktor for a strong reroll line. Its viability depends on Psionic item balance, so check here for latest.",
+    "board": [
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Gragas",
+        "name": "Gragas",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Ornn",
+        "name": "Ornn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Maokai",
+        "name": "Maokai",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Bard",
+        "name": "Bard",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Viktor",
+        "name": "Viktor",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_MissFortune",
+        "name": "Miss F…",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_Maokai",
+      "TFT17_Viktor",
+      "TFT17_MissFortune"
+    ],
+    "augments": [
+      "Patience is a Virtue",
+      "Prismatic Ticket",
+      "Calculated Loss",
+      "Rolling For Days I",
+      "Bronze For Life I",
+      "Bronze For Life II",
+      "Heroic Grab Bag+",
+      "Heroic Grab Bag++",
+      "Heroic Grab Bag"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "contract-killer-pyke",
+    "name": "Contract Killer Pyke",
+    "url": "https://tftflow.com/composition/set17/contract-killer-pyke",
+    "econ": "reroll2",
+    "tiers": [
+      "B",
+      "C"
+    ],
+    "title": "Contract Killer Pyke",
+    "og_desc": "Contract Killer is the hero augment for Pyke that turns his ability into his League ultimate, resetting on kills and farming gold. Here’s how to play it.",
+    "board": [
+      {
+        "apiName": "TFT17_Pyke",
+        "name": "Pyke",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Gragas",
+        "name": "Gragas",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_MasterYi",
+        "name": "Master…",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Galio",
+        "name": "The Mighty …",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_IvernMinion",
+        "name": "Meepsie",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Viktor",
+        "name": "Viktor",
+        "cost": null,
+        "carry": true
+      },
+      {
+        "apiName": "TFT17_Karma",
+        "name": "Karma",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aurora",
+        "name": "Aurora",
+        "cost": null,
+        "carry": false
+      }
+    ],
+    "carries": [
+      "TFT17_Gragas",
+      "TFT17_MasterYi",
+      "TFT17_Viktor"
+    ],
+    "augments": [
+      "Required Condition",
+      "Rolling For Days I"
+    ],
+    "patch": "Patch 17.1"
+  },
+  {
+    "slug": "reach-for-the-stars-jax",
+    "name": "Reach for the Stars Jax",
+    "url": "https://tftflow.com/composition/set17/reach-for-the-stars-jax",
+    "econ": "reroll2",
+    "tiers": [
+      "C",
+      "D"
+    ],
+    "title": "Reach for the Stars Jax",
+    "og_desc": "Reach for the Stars is Jax’s hero augment. The best constellations will change with balance, but this guide will stay updated with them throughout the set.",
+    "board": [
+      {
+        "apiName": "TFT17_Rhaast",
+        "name": "Rhaast",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Talon",
+        "name": "Talon",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Aatrox",
+        "name": "Aatrox",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Jax",
+        "name": "Jax",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Gwen",
+        "name": "Gwen",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_Caitlyn",
+        "name": "Caitlyn",
+        "cost": null,
+        "carry": false
+      },
+      {
+        "apiName": "TFT17_TwistedFate",
+        "name": "Twiste…",
+        "cost": null,
+        "carry": true
+      }
+    ],
+    "carries": [
+      "TFT17_TwistedFate"
+    ],
+    "augments": [
+      "Required Condition",
+      "Reach for the Stars"
+    ],
+    "patch": "Patch 17.1"
+  }
+]
