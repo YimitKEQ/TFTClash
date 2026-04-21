@@ -29,11 +29,14 @@ export default function TournamentStatusStrip() {
   var countdown = useCountdown(tournamentState)
 
   var pathname = location && location.pathname ? location.pathname : '/'
-  // Hide on auth routes or deep clash/bracket pages (they render their own status UI)
+  // Hide on auth routes or pages that render their own tournament status UI.
   if (HIDDEN_ROUTES.indexOf(pathname) !== -1) return null
   if (pathname === '/clash' || pathname === '/bracket') return null
   if (pathname.indexOf('/admin') === 0) return null
   if (pathname.indexOf('/ops') === 0) return null
+  if (pathname.indexOf('/flash/') === 0) return null
+  if (pathname.indexOf('/tournament/') === 0) return null
+  if (pathname.indexOf('/host/') === 0) return null
 
   var phaseKey = resolvePhase(tournamentState.phase)
   // Don't render a strip when there's nothing meaningful to show
@@ -80,7 +83,7 @@ export default function TournamentStatusStrip() {
     tone = 'text-primary'
     dot = 'bg-primary animate-pulse'
     if (!currentUser) { ctaLabel = 'Sign In'; ctaHandler = function() { setAuthScreen && setAuthScreen('login') } }
-    else if (regionMismatch) { ctaLabel = 'Locked to ' + userRegion; ctaHandler = function() { navigate('/account') } }
+    else if (regionMismatch) { ctaLabel = 'Locked to ' + normalizeRegion(userRegion); ctaHandler = function() { navigate('/account') } }
     else if (isCheckedIn) { ctaLabel = "You're In"; ctaHandler = function() { navigate('/') } }
     else if (isRegistered) { ctaLabel = 'Check In'; ctaHandler = function() { navigate('/') } }
     else { ctaLabel = 'Register'; ctaHandler = function() { navigate('/') } }
@@ -89,7 +92,7 @@ export default function TournamentStatusStrip() {
     tone = 'text-primary'
     dot = 'bg-primary'
     if (!currentUser) { ctaLabel = 'Sign Up'; ctaHandler = function() { setAuthScreen && setAuthScreen('signup') } }
-    else if (regionMismatch) { ctaLabel = 'Locked to ' + userRegion; ctaHandler = function() { navigate('/account') } }
+    else if (regionMismatch) { ctaLabel = 'Locked to ' + normalizeRegion(userRegion); ctaHandler = function() { navigate('/account') } }
     else if (isRegistered) { ctaLabel = "You're In"; ctaHandler = function() { navigate('/') } }
     else { ctaLabel = 'Register'; ctaHandler = function() { navigate('/') } }
   }

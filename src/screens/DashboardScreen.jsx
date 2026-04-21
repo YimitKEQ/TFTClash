@@ -1438,7 +1438,9 @@ export default function DashboardScreen() {
         label: tPhase === 'checkin' ? 'Check in for the clash' : 'Register for the clash',
         hint: tPhase === 'checkin' ? 'Doors closing soon' : 'Claim your seat before it fills',
         onClick: function () {
-          if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo({ top: 0, behavior: 'smooth' })
+          var el = typeof document !== 'undefined' ? document.getElementById('dashboard-clash-card') : null
+          if (el && el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          else if (typeof window !== 'undefined' && window.scrollTo) window.scrollTo({ top: 0, behavior: 'smooth' })
         }
       })
     }
@@ -1452,7 +1454,9 @@ export default function DashboardScreen() {
 
       <OnboardingChecklist steps={onboardingSteps} />
 
-      <ClashCard />
+      <div id="dashboard-clash-card">
+        <ClashCard />
+      </div>
 
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}

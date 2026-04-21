@@ -15,9 +15,27 @@ import { getDonateUrl } from '../lib/paypal'
 
 // ── Region helpers ────────────────────────────────────────────────────────────
 
+// Europe/Amsterdam DST check. DST runs from last Sunday of March 01:00 UTC
+// through last Sunday of October 01:00 UTC. Returns true if the given YYYY-MM-DD
+// falls in that window.
+function isAmsterdamDST(dateStr) {
+  var d = new Date(dateStr + 'T12:00:00Z')
+  var y = d.getUTCFullYear()
+  var m = d.getUTCMonth()
+  if (m < 2 || m > 9) return false
+  if (m > 2 && m < 9) return true
+  function lastSundayUTC(year, month) {
+    var lastDay = new Date(Date.UTC(year, month + 1, 0))
+    return lastDay.getUTCDate() - lastDay.getUTCDay()
+  }
+  var switchDay = lastSundayUTC(y, m)
+  var day = d.getUTCDate()
+  if (m === 2) return day >= switchDay
+  return day < switchDay
+}
+
 function tournamentTimestamp(tournament, tournamentState) {
   if (!tournament) return null
-  // Prefer the authoritative timestamp from site_settings if it points to this tournament
   if (tournamentState && tournamentState.dbTournamentId && String(tournamentState.dbTournamentId) === String(tournament.id) && tournamentState.clashTimestamp) {
     return tournamentState.clashTimestamp
   }
@@ -25,24 +43,27 @@ function tournamentTimestamp(tournament, tournamentState) {
   if (tournament.registration_close_at) return tournament.registration_close_at
   if (tournament.date) {
     // Fall back to 20:00 Europe/Amsterdam on the stored date
-    return new Date(tournament.date + 'T19:00:00.000Z').toISOString()
+    // CEST (summer) = UTC+2 so 20:00 = 18:00Z. CET (winter) = UTC+1 so 20:00 = 19:00Z.
+    var utcHour = isAmsterdamDST(tournament.date) ? 18 : 19
+    var hourStr = utcHour < 10 ? '0' + utcHour : String(utcHour)
+    return new Date(tournament.date + 'T' + hourStr + ':00:00.000Z').toISOString()
   }
   return null
 }
 
+function normalizePhase(phase) {
+  if (!phase) return 'idle'
+  if (phase === 'in_progress' || phase === 'inprogress' || phase === 'live') return 'live'
+  if (phase === 'check_in' || phase === 'checkin') return 'checkin'
+  return phase
+}
+
 function phaseMeta(phase) {
-  if (phase === 'in_progress' || phase === 'live' || phase === 'inprogress') {
-    return { label: 'Live Now', tone: 'text-tertiary', dot: 'bg-tertiary animate-pulse' }
-  }
-  if (phase === 'check_in' || phase === 'checkin') {
-    return { label: 'Check-In Open', tone: 'text-primary', dot: 'bg-primary animate-pulse' }
-  }
-  if (phase === 'registration') {
-    return { label: 'Registration Open', tone: 'text-primary', dot: 'bg-primary' }
-  }
-  if (phase === 'complete') {
-    return { label: 'Completed', tone: 'text-on-surface-variant', dot: 'bg-on-surface-variant' }
-  }
+  var p = normalizePhase(phase)
+  if (p === 'live') return { label: 'Live Now', tone: 'text-tertiary', dot: 'bg-tertiary animate-pulse' }
+  if (p === 'checkin') return { label: 'Check-In Open', tone: 'text-primary', dot: 'bg-primary animate-pulse' }
+  if (p === 'registration') return { label: 'Registration Open', tone: 'text-primary', dot: 'bg-primary' }
+  if (p === 'complete') return { label: 'Completed', tone: 'text-on-surface-variant', dot: 'bg-on-surface-variant' }
   return { label: 'Scheduled', tone: 'text-on-surface-variant', dot: 'bg-on-surface-variant' }
 }
 
@@ -62,7 +83,8 @@ function RegionCommandCard(props) {
   var ts = tournamentTimestamp(tournament, tournamentState)
   var countdownState = { clashTimestamp: ts, clashName: tournament ? tournament.name : meta.full + ' Clash' }
   var countdown = useCountdown(countdownState)
-  var phase = (tournament && tournament.phase) || 'idle'
+  var rawPhase = (tournament && tournament.phase) || 'idle'
+  var phase = normalizePhase(rawPhase)
   var pMeta = phaseMeta(phase)
 
   function pad2(n) { return String(n).padStart(2, '0') }
@@ -79,10 +101,10 @@ function RegionCommandCard(props) {
       ctaLabel = 'Account Locked to ' + normalizeRegion(userRegion)
       ctaHandler = function() { onViewDetail && onViewDetail(tournament) }
       ctaDisabled = true
-    } else if (phase === 'in_progress' || phase === 'live' || phase === 'inprogress') {
+    } else if (phase === 'live') {
       ctaLabel = 'Open Dashboard'
       ctaHandler = onNavigateDashboard
-    } else if (phase === 'check_in') {
+    } else if (phase === 'checkin') {
       ctaLabel = 'Check In Now'
       ctaHandler = onNavigateDashboard
     } else if (phase === 'registration') {
@@ -393,6 +415,8 @@ export default function HomeScreen() {
   var naTournament = _naT[0]
   var setNaTournament = _naT[1]
 
+  var stateClashId = tournamentState ? tournamentState.dbTournamentId : null
+  var statePhase = tournamentState ? tournamentState.phase : null
   useEffect(function() {
     if (!supabase || !supabase.from) return
     var cancelled = false
@@ -416,9 +440,13 @@ export default function HomeScreen() {
         })
         setEuTournament(eu)
         setNaTournament(na)
-      }).catch(function() {})
+      }).catch(function(err) {
+        if (!cancelled && typeof console !== 'undefined' && console.warn) {
+          console.warn('HomeScreen: failed to fetch region tournaments', err)
+        }
+      })
     return function() { cancelled = true }
-  }, [tournamentState && tournamentState.dbTournamentId, tournamentState && tournamentState.phase])
+  }, [stateClashId, statePhase])
 
   function handleSignUp() {
     setAuthScreen && setAuthScreen('signup')

@@ -12,6 +12,16 @@ var SCREEN_TO_ROUTE = {
   'host-dashboard': '/host/dashboard', ops: '/ops', rules: '/rules', faq: '/faq',
 };
 
+function SectionHeading(props) {
+  return (
+    <div className="px-6 pt-4 pb-1.5">
+      <span className="font-label text-[10px] uppercase tracking-[0.22em] font-bold text-on-surface/30">
+        {props.label}
+      </span>
+    </div>
+  );
+}
+
 export default function Sidebar() {
   var ctx = useApp();
   var navigate = useNavigate();
@@ -77,16 +87,6 @@ export default function Sidebar() {
           <span className={"text-[9px] font-bold px-1.5 py-0.5 rounded " + (badge === 'Live' ? "bg-success/20 text-success animate-pulse" : badge === 'Register' ? "bg-secondary/20 text-secondary" : badge === 'Joined' || badge === 'Checked In' ? "bg-tertiary/20 text-tertiary" : "bg-tertiary/20 text-tertiary")}>{badge}</span>
         )}
       </button>
-    );
-  }
-
-  function SectionHeading(props) {
-    return (
-      <div className="px-6 pt-4 pb-1.5">
-        <span className="font-label text-[10px] uppercase tracking-[0.22em] font-bold text-on-surface/30">
-          {props.label}
-        </span>
-      </div>
     );
   }
 
