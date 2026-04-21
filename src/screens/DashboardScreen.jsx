@@ -987,17 +987,12 @@ function OnboardingChecklist(props) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {steps.map(function (s) {
-          return (
-            <button
-              key={s.key}
-              type="button"
-              onClick={s.done ? undefined : s.onClick}
-              disabled={s.done}
-              className={'flex items-center gap-3 p-3 rounded border text-left transition-colors ' +
-                (s.done
-                  ? 'border-success/30 bg-success/10 cursor-default'
-                  : 'border-outline-variant/30 bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/40 cursor-pointer')}
-            >
+          var baseCls = 'flex items-center gap-3 p-3 rounded border text-left transition-colors no-underline ' +
+            (s.done
+              ? 'border-success/30 bg-success/10 cursor-default'
+              : 'border-outline-variant/30 bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/40 cursor-pointer')
+          var inner = (
+            <>
               <div className={'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ' +
                 (s.done ? 'bg-success/30 text-success' : 'bg-primary/20 text-primary')}>
                 <Icon name={s.done ? 'check' : s.icon} size={16} />
@@ -1007,6 +1002,30 @@ function OnboardingChecklist(props) {
                 <div className="text-[10px] text-on-surface/50 truncate">{s.hint}</div>
               </div>
               {!s.done && <Icon name="arrow_forward" size={14} className="text-on-surface/40 flex-shrink-0" />}
+            </>
+          )
+          if (s.href && !s.done) {
+            return (
+              <a
+                key={s.key}
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={baseCls}
+              >
+                {inner}
+              </a>
+            )
+          }
+          return (
+            <button
+              key={s.key}
+              type="button"
+              onClick={s.done ? undefined : s.onClick}
+              disabled={s.done}
+              className={baseCls}
+            >
+              {inner}
             </button>
           )
         })}
@@ -1407,9 +1426,9 @@ export default function DashboardScreen() {
       key: 'discord',
       done: !!linkedPlayer.discord_user_id,
       icon: 'forum',
-      label: 'Link Discord',
+      label: 'Join our Discord',
       hint: 'Lobby invites & community chat',
-      onClick: function () { window.open(DISCORD_URL, '_blank', 'noopener,noreferrer') }
+      href: DISCORD_URL
     })
     if (tPhase === 'registration' || tPhase === 'checkin') {
       onboardingSteps.push({
