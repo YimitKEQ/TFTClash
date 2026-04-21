@@ -5,11 +5,15 @@ import { Icon } from '../ui';
 import { DISCORD_URL } from '../../lib/constants';
 
 var SCREEN_TO_ROUTE = {
-  home: '/', clash: '/clash', standings: '/standings', leaderboard: '/leaderboard',
+  home: '/', login: '/login', signup: '/signup',
+  clash: '/clash', standings: '/standings', leaderboard: '/leaderboard',
   events: '/events', hof: '/hall-of-fame', archive: '/archive', results: '/results',
   milestones: '/milestones', challenges: '/challenges', scrims: '/scrims',
   pricing: '/pricing', sponsors: '/sponsors', account: '/account', admin: '/admin',
-  'host-dashboard': '/host/dashboard', ops: '/ops', rules: '/rules', faq: '/faq',
+  'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
+  ops: '/ops', rules: '/rules', faq: '/faq', stats: '/stats',
+  bracket: '/bracket', profile: '/player', recap: '/season-recap',
+  privacy: '/privacy', terms: '/terms', gear: '/gear', tournaments: '/tournaments'
 };
 
 function SectionHeading(props) {

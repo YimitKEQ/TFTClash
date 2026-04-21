@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon } from '../components/ui'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
+import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
+import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
 // ── Registration progress bar ──────────────────────────────────────────────────
 
@@ -509,11 +511,14 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
 
 // ── Tournaments tab (flash tournaments from DB) ────────────────────────────────
 
-function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
+function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) {
   var [tournaments, setTournaments] = useState([])
   var [loading, setLoading] = useState(true)
   var [regCounts, setRegCounts] = useState({})
   var [myRegIds, setMyRegIds] = useState([])
+
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players)
+  var linkedPlayerId = linkedPlayer ? linkedPlayer.id : null
 
   useEffect(function() {
     supabase
@@ -542,26 +547,33 @@ function TournamentsTab({ navigate, currentUser, onAuthClick, toast }) {
         })
         setRegCounts(counts)
       }).catch(function() {})
-    if (!currentUser) return
+    if (!linkedPlayerId) return
     supabase
       .from('registrations')
       .select('tournament_id')
-      .eq('player_id', currentUser.id)
+      .eq('player_id', linkedPlayerId)
       .in('tournament_id', ids)
       .then(function(res) {
         if (res.data) setMyRegIds(res.data.map(function(r) { return r.tournament_id }))
       }).catch(function() {})
-  }, [tournaments])
+  }, [tournaments, linkedPlayerId])
 
   function handleRegister(t) {
     if (!currentUser) { if (onAuthClick) onAuthClick('login'); return }
+    if (!linkedPlayer) { if (toast) toast('Link your player profile before registering', 'error'); navigate('/account'); return }
+    if (t.region && !canRegisterInRegion(linkedPlayer.region, t.region)) {
+      var msg = regionMismatchMessage(linkedPlayer.region, t.region)
+      if (toast) toast(msg || 'Region mismatch. Check your account region.', 'error')
+      if (!linkedPlayer.region) navigate('/account')
+      return
+    }
     var maxP = t.max_players || 128
     var regCount = regCounts[t.id] || 0
     if (regCount >= maxP) { if (toast) toast('Tournament is full', 'error'); return }
     if (myRegIds.indexOf(t.id) !== -1) { if (toast) toast('Already registered', 'info'); return }
     supabase.from('registrations').upsert({
       tournament_id: t.id,
-      player_id: currentUser.id,
+      player_id: linkedPlayer.id,
       status: 'registered'
     }, { onConflict: 'tournament_id,player_id' }).then(function(res) {
       if (res.error) { if (toast) toast('Registration failed: ' + res.error.message, 'error'); return }
@@ -967,7 +979,7 @@ export default function EventsScreen() {
           <SeasonTab seasonConfig={seasonConfig} tournamentState={tournamentState} navigate={navigate} />
         )}
         {activeTab === 'tournaments' && (
-          <TournamentsTab navigate={navigate} currentUser={currentUser} onAuthClick={handleAuthClick} toast={toast} />
+          <TournamentsTab navigate={navigate} currentUser={currentUser} players={players} onAuthClick={handleAuthClick} toast={toast} />
         )}
         {activeTab === 'archive' && (
           <ArchiveTab

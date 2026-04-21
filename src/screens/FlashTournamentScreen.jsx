@@ -679,6 +679,7 @@ export default function FlashTournamentScreen(props) {
   if (!myReg && regionBlocked && (phase === 'registration' || phase === 'check_in')) {
     regBtnLabel = (tournament.region || 'Region') + ' Only - Switch Region';
     regBtnClass = 'bg-error/15 text-error border border-error/30';
+    regBtnAction = function() { navigate('/account'); };
   }
   if (myReg && myReg.status === 'registered' && phase === 'check_in') {
     regBtnLabel = 'Check In'; regBtnClass = 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/20 hover:brightness-110'; regBtnAction = handleCheckIn;

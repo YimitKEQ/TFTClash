@@ -7,6 +7,7 @@ import PageLayout from '../components/layout/PageLayout'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
 import RegionBadge from '../components/shared/RegionBadge'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
+import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
 var PLACE_POINTS = [
   { place: '1st', pts: '8 PTS', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
@@ -85,6 +86,9 @@ export default function TournamentDetailScreen() {
       }).catch(function() { setLoadingResults(false); toast('Failed to load results', 'error'); })
   }, [dbTournamentId])
 
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players)
+  var linkedPlayerId = linkedPlayer ? linkedPlayer.id : null
+
   function refreshLiveReg() {
     if (!dbTournamentId || !supabase.from) return
     supabase.from('registrations').select('player_id,status', { count: 'exact' })
@@ -92,12 +96,12 @@ export default function TournamentDetailScreen() {
       .in('status', ['registered','checked_in'])
       .then(function(res) {
         if (res.error) return
-        var isReg = !!(currentUser && (res.data || []).some(function(r) { return r.player_id === currentUser.id }))
+        var isReg = !!(linkedPlayerId && (res.data || []).some(function(r) { return String(r.player_id) === String(linkedPlayerId) }))
         setLiveReg({loaded:true, isRegistered:isReg, count:(res.data || []).length, busy:false})
       }).catch(function() {})
   }
 
-  useEffect(refreshLiveReg, [dbTournamentId, currentUser ? currentUser.id : null])
+  useEffect(refreshLiveReg, [dbTournamentId, linkedPlayerId])
 
   useEffect(function() {
     if (!dbTournamentId || !supabase.channel) return
@@ -138,11 +142,11 @@ export default function TournamentDetailScreen() {
     if (!currentUser.auth_user_id) { toast('Sign in required to register', 'error'); return; }
     if (!dbTournamentId) { toast('Tournament unavailable', 'error'); return; }
     if (liveReg.busy) return
-    var myPlayer = (players || []).find(function(p) { return p.id === currentUser.id; })
-    if (!isRegistered && event.region && !canRegisterInRegion(myPlayer && myPlayer.region, event.region)) {
-      var regMsg = regionMismatchMessage(myPlayer && myPlayer.region, event.region)
+    if (!linkedPlayer) { toast('Link your player profile before registering', 'error'); navigate('/account'); return; }
+    if (!isRegistered && event.region && !canRegisterInRegion(linkedPlayer.region, event.region)) {
+      var regMsg = regionMismatchMessage(linkedPlayer.region, event.region)
       toast(regMsg || 'Region mismatch. Check your account region.', 'error')
-      if (!myPlayer || !myPlayer.region) navigate('/account')
+      if (!linkedPlayer.region) navigate('/account')
       return
     }
     setLiveReg(function(s) { return Object.assign({}, s, {busy:true}) })
@@ -159,7 +163,7 @@ export default function TournamentDetailScreen() {
       })
       supabase.from('registrations').delete()
         .eq('tournament_id', dbTournamentId)
-        .eq('player_id', currentUser.id)
+        .eq('player_id', linkedPlayer.id)
         .then(function(r) {
           if (r.error) {
             if (prevFeatured) setFeaturedEvents(prevFeatured)
@@ -193,7 +197,7 @@ export default function TournamentDetailScreen() {
       })
     })
     supabase.from('registrations').upsert(
-      { tournament_id: dbTournamentId, player_id: currentUser.id, status: 'registered' },
+      { tournament_id: dbTournamentId, player_id: linkedPlayer.id, status: 'registered' },
       { onConflict: 'tournament_id,player_id' }
     )
       .then(function(r) {

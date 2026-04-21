@@ -6,6 +6,8 @@ import SectionHeader from '../components/shared/SectionHeader.jsx'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import RegionBadge from '../components/shared/RegionBadge'
+import { canRegisterInRegion, normalizeRegion } from '../lib/regions.js'
+import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
 var phaseLabels = {
   draft: 'Draft',
@@ -120,6 +122,7 @@ function TournamentCard(props) {
   var t = props.tournament;
   var regCount = props.regCount || 0;
   var onClick = props.onClick;
+  var regionMismatch = props.regionMismatch;
 
   var prizes = Array.isArray(t.prize_pool_json) ? t.prize_pool_json : [];
   var topPrize = getTopPrize(prizes);
@@ -144,6 +147,9 @@ function TournamentCard(props) {
         <div className="absolute top-3 left-3 flex gap-1.5">
           <span className={'text-[9px] font-bold px-2 py-1 rounded uppercase font-label ' + badgeClass}>{phaseLabel}</span>
           {t.region && <RegionBadge region={t.region} size="sm" />}
+          {regionMismatch && (
+            <span className="text-[9px] font-bold px-2 py-1 rounded uppercase font-label bg-error/15 text-error border border-error/30">Other Region</span>
+          )}
         </div>
         {countdown && (
           <div className="absolute top-3 right-3">
@@ -204,11 +210,17 @@ export default function TournamentsListScreen() {
   var ctx = useApp();
   var navigate = useNavigate();
   var isAdmin = ctx.isAdmin;
+  var currentUser = ctx.currentUser;
+  var players = ctx.players || [];
+
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players);
+  var userRegion = linkedPlayer ? normalizeRegion(linkedPlayer.region) : null;
 
   var [tournaments, setTournaments] = useState([]);
   var [loading, setLoading] = useState(true);
   var [regCounts, setRegCounts] = useState({});
   var [activeFilter, setActiveFilter] = useState('all');
+  var [regionFilter, setRegionFilter] = useState(userRegion ? 'mine' : 'all');
   var [search, setSearch] = useState('');
 
   useEffect(function() {
@@ -252,6 +264,9 @@ export default function TournamentsListScreen() {
 
   var filtered = visible.filter(function(t) {
     if (activeFilter !== 'all' && t.phase !== activeFilter) return false;
+    if (regionFilter === 'mine' && userRegion && !canRegisterInRegion(userRegion, t.region)) return false;
+    if (regionFilter === 'EU' && normalizeRegion(t.region) !== 'EU') return false;
+    if (regionFilter === 'NA' && normalizeRegion(t.region) !== 'NA') return false;
     if (search.trim()) {
       var q = search.trim().toLowerCase();
       if (!t.name || t.name.toLowerCase().indexOf(q) === -1) return false;
@@ -298,19 +313,40 @@ export default function TournamentsListScreen() {
 
             <section className="space-y-6">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant/10 self-start">
-                  {FILTER_TABS.map(function(tab) {
-                    var isActive = activeFilter === tab.key;
-                    return (
-                      <button
-                        key={tab.key}
-                        onClick={function() { setActiveFilter(tab.key); }}
-                        className={'px-5 py-1.5 rounded-full text-[11px] font-label font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
-                      >
-                        {tab.label}
-                      </button>
-                    );
-                  })}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant/10 self-start">
+                    {FILTER_TABS.map(function(tab) {
+                      var isActive = activeFilter === tab.key;
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={function() { setActiveFilter(tab.key); }}
+                          className={'px-5 py-1.5 rounded-full text-[11px] font-label font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant/10 self-start">
+                    {[
+                      {key: 'all', label: 'All Regions'},
+                      userRegion ? {key: 'mine', label: 'My ' + userRegion} : null,
+                      {key: 'EU', label: 'EU'},
+                      {key: 'NA', label: 'NA'}
+                    ].filter(Boolean).map(function(tab) {
+                      var isActive = regionFilter === tab.key;
+                      return (
+                        <button
+                          key={tab.key}
+                          onClick={function() { setRegionFilter(tab.key); }}
+                          className={'px-4 py-1.5 rounded-full text-[11px] font-label font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
+                        >
+                          {tab.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
@@ -365,11 +401,13 @@ export default function TournamentsListScreen() {
               {gridItems.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
                   {gridItems.map(function(t) {
+                    var mismatch = !!(userRegion && t.region && !canRegisterInRegion(userRegion, t.region));
                     return (
                       <TournamentCard
                         key={t.id}
                         tournament={t}
                         regCount={regCounts[t.id] || 0}
+                        regionMismatch={mismatch}
                         onClick={function() { navigate('/flash/' + t.id); }}
                       />
                     );

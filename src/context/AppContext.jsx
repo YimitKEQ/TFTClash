@@ -364,7 +364,13 @@ export function AppProvider(props) {
       if(!discordName)discordName=u.user_metadata&&u.user_metadata.full_name;
       var username=(u.user_metadata&&u.user_metadata.username)||discordName||(u.email&&u.email.split('@')[0])||"Player";
       var riotId=(u.user_metadata&&u.user_metadata.riotId)||(u.user_metadata&&u.user_metadata.riot_id)||"";
-      var region=(u.user_metadata&&u.user_metadata.riotRegion)||(u.user_metadata&&u.user_metadata.riot_region)||(u.user_metadata&&u.user_metadata.region)||"EUW";
+      var rawRegion=(u.user_metadata&&u.user_metadata.riotRegion)||(u.user_metadata&&u.user_metadata.riot_region)||(u.user_metadata&&u.user_metadata.region)||null;
+      var region=null;
+      if(rawRegion){
+        var rUp=String(rawRegion).toUpperCase();
+        if(rUp==='EUW'||rUp==='EUNE'||rUp==='TR'||rUp==='EU')region='EU';
+        else if(rUp==='NA'||rUp==='LATAM'||rUp==='BR')region='NA';
+      }
       return Object.assign({},u,{username:username,riotId:riotId,region:region});
     }
 

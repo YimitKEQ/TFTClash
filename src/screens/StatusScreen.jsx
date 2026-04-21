@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon, Panel } from '../components/ui'
 import { supabase } from '../lib/supabase'
+import { DISCORD_URL } from '../lib/constants'
 
 var COMPONENTS = [
   { id: 'web',  label: 'Web App',         desc: 'tftclash.com SPA' },
@@ -111,7 +112,7 @@ export default function StatusScreen() {
               {loading ? 'Checking...' : 'Re-check'}
             </Btn>
             <a
-              href="https://discord.gg/tftclash"
+              href={DISCORD_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-primary hover:underline inline-flex items-center gap-1"
