@@ -87,7 +87,7 @@ export default function OpsComms() {
       supabase.from('players').select('id').then(function(res) {
         var playerIds = (res.data || []).map(function(p) { return p.id })
         var rows = playerIds.map(function(pid) {
-          return { user_id: pid, type: 'admin', title: 'Admin Notification', message: sanitize(notifMsg.trim()), read: false }
+          return { user_id: pid, type: 'system', title: 'Admin Notification', message: sanitize(notifMsg.trim()), read: false }
         })
         if (rows.length === 0) { toast('No players to notify', 'error'); return }
         supabase.from('notifications').insert(rows).then(function(r) {
