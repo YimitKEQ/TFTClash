@@ -227,7 +227,7 @@ export default function TournamentTab() {
         prize_pool_json: prizePool.length > 0 ? prizePool : null,
         rules_text: rulesText || null,
         is_finale: !!clashForm.isFinale,
-        region: clashForm.server === 'NA' ? 'NA' : 'EUW'
+        region: clashForm.server === 'NA' ? 'NA' : 'EU'
       }).eq('id', tId).then(function(r) {
         if (r.error) toast('DB update failed: ' + r.error.message, 'error')
       }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
@@ -326,7 +326,8 @@ export default function TournamentTab() {
         registration_open_at: new Date().toISOString(),
         prize_pool_json: prizePool.length > 0 ? prizePool : null,
         rules_text: rulesText || null,
-        is_finale: !!clashForm.isFinale
+        is_finale: !!clashForm.isFinale,
+        region: clashForm.server === 'NA' ? 'NA' : 'EU'
       }).select().single().then(function(res) {
         if (res.error || !res.data) {
           toast('Failed to open: ' + (res.error && res.error.message ? res.error.message : 'unknown error'), 'error')
@@ -360,8 +361,9 @@ export default function TournamentTab() {
           })
         })
         supabase.from('players').update({ checked_in: false }).eq('checked_in', true).then(function() {}).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
-        addAudit('ACTION', 'Opened registration for ' + name)
-        toast('Registration open: ' + name, 'success')
+        var regLabel = clashForm.server === 'NA' ? 'NA' : 'EU'
+        addAudit('ACTION', 'Opened registration for ' + name + ' [' + regLabel + ']')
+        toast('Registration open: ' + name + ' (' + regLabel + ')', 'success')
         setClashNumberInput('')
         setOpening(false)
       }).catch(function(e) {

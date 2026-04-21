@@ -320,7 +320,7 @@ export default function AccountScreen() {
     }
 
     var socialLinks = { twitch: meta.twitch || '', twitter: meta.twitter || '', youtube: meta.youtube || '' };
-    var derivedRegion = riotIdEu.trim() ? 'EUW' : riotIdNa.trim() ? 'NA' : (user.region || 'EUW');
+    var derivedRegion = riotIdEu.trim() ? 'EU' : riotIdNa.trim() ? 'NA' : (user.region === 'NA' ? 'NA' : user.region === 'EU' ? 'EU' : null);
     var playerUpdate = { bio: meta.bio || '', region: derivedRegion, social_links: socialLinks, riot_id_eu: riotIdEu.trim() || null, riot_id_na: riotIdNa.trim() || null, riot_id: riotIdEu.trim() || riotIdNa.trim() || null };
     if (!usernameChanged && meta.username) {
       playerUpdate.username = meta.username;
@@ -432,7 +432,7 @@ export default function AccountScreen() {
 
   var avatarInitial = (user.username || 'U').charAt(0).toUpperCase();
   var riotIdDisplay = riotIdEu || riotIdNa || '';
-  var riotRegionDisplay = riotIdEu ? 'EUW' : riotIdNa ? 'NA' : (user.region || 'EUW');
+  var riotRegionDisplay = riotIdEu ? 'EU' : riotIdNa ? 'NA' : (user.region === 'NA' ? 'NA' : user.region === 'EU' ? 'EU' : 'Unset');
 
   if (passwordRecovery) {
     return (

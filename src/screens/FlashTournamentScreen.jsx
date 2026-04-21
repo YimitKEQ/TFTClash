@@ -10,6 +10,8 @@ import PageLayout from '../components/layout/PageLayout'
 import Icon from '../components/ui/Icon.jsx'
 import { Btn, Sel } from '../components/ui'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
+import RegionBadge from '../components/shared/RegionBadge'
+import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 
 export default function FlashTournamentScreen(props) {
   var tournamentId = props.tournamentId;
@@ -222,6 +224,12 @@ export default function FlashTournamentScreen(props) {
     if (!currentUser) { setAuthScreen('login'); return; }
     if (!myPlayer || (!myPlayer.riotId && !myPlayer.riot_id_eu)) {
       toast('Set your Riot ID in your profile before registering', 'error');
+      return;
+    }
+    if (tournament && !canRegisterInRegion(myPlayer.region, tournament.region)) {
+      var regMsg = regionMismatchMessage(myPlayer.region, tournament.region);
+      toast(regMsg || 'Region mismatch. Check your account region.', 'error');
+      if (!myPlayer.region) navigate('/account');
       return;
     }
     setActionLoading(true);
@@ -667,6 +675,11 @@ export default function FlashTournamentScreen(props) {
   var regBtnAction = handleRegister;
   var regBtnDisabled = false;
   var regBtnClass = 'bg-primary text-on-primary shadow-lg shadow-primary/20 hover:brightness-110';
+  var regionBlocked = myPlayer && tournament && !canRegisterInRegion(myPlayer.region, tournament.region);
+  if (!myReg && regionBlocked && (phase === 'registration' || phase === 'check_in')) {
+    regBtnLabel = (tournament.region || 'Region') + ' Only - Switch Region';
+    regBtnClass = 'bg-error/15 text-error border border-error/30';
+  }
   if (myReg && myReg.status === 'registered' && phase === 'check_in') {
     regBtnLabel = 'Check In'; regBtnClass = 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/20 hover:brightness-110'; regBtnAction = handleCheckIn;
   } else if (myReg && myReg.status === 'checked_in') {
@@ -778,6 +791,7 @@ export default function FlashTournamentScreen(props) {
                 <Icon name="sports_esports" size={13} />
                 {totalGames + " games - " + (tournament.seeding_method || 'snake') + " seeding"}
               </div>
+              {tournament.region && <RegionBadge region={tournament.region} size="md" />}
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">

@@ -11,6 +11,8 @@ import { Btn, Panel, Icon } from '../components/ui'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import { DISCORD_URL } from '../lib/constants'
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
+import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
+import { RegionBadge } from '../components/shared'
 
 function generateSeasonNarrative(players, sortedPts) {
   if (!sortedPts || sortedPts.length < 2) return null
@@ -136,8 +138,9 @@ function PulseHeader({
         </div>
         <div className="font-mono text-2xl text-primary mt-1">{countdownStr}</div>
         {diff > 0 && clashName && (
-          <div className="font-label text-[10px] text-on-surface/40 mt-0.5">
-            {clashName}{clashDate ? ' - ' + clashDate : ''}
+          <div className="font-label text-[10px] text-on-surface/40 mt-0.5 flex items-center gap-2 flex-wrap">
+            <span>{clashName}{clashDate ? ' - ' + clashDate : ''}</span>
+            {tournamentState.region && <RegionBadge region={tournamentState.region} size="sm" />}
           </div>
         )}
         {Array.isArray(tournamentState.prizePool) && tournamentState.prizePool[0] && (
@@ -623,6 +626,12 @@ function ClashCard() {
     if (!tournamentState.dbTournamentId) { toast('Registration is not open yet. Wait for a host to open the next clash.', 'error'); return }
     if (linkedPlayer.banned) { toast('Your account is banned from registration. Contact an admin.', 'error'); return }
     if ((linkedPlayer.dnpCount || 0) >= 3) { toast('You have 3 no-shows. Ask an admin to clear your strikes before re-registering.', 'error'); return }
+    if (!canRegisterInRegion(linkedPlayer.region, tournamentState.region)) {
+      var regMsg = regionMismatchMessage(linkedPlayer.region, tournamentState.region)
+      toast(regMsg || 'Region mismatch. Check your account region.', 'error')
+      if (!linkedPlayer.region) navigate('/account')
+      return
+    }
     var sid = String(linkedPlayer.id)
     if ((tournamentState.registeredIds || []).indexOf(sid) > -1) { toast("You're already registered!", 'error'); return }
     if ((tournamentState.waitlistIds || []).indexOf(sid) > -1) { toast("You're already on the waitlist!", 'error'); return }

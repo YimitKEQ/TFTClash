@@ -5,6 +5,7 @@ import { Btn, Panel, Icon } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader.jsx'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
+import RegionBadge from '../components/shared/RegionBadge'
 
 var phaseLabels = {
   draft: 'Draft',
@@ -63,9 +64,10 @@ function FeaturedSpotlight(props) {
         <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,198,107,0.08) 39px, rgba(255,198,107,0.08) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,198,107,0.08) 39px, rgba(255,198,107,0.08) 40px)'}} />
       </div>
       <div className="relative z-10 p-8 lg:p-12 flex flex-col justify-end min-h-[380px]">
-        <div className="flex gap-3 mb-5">
+        <div className="flex gap-3 mb-5 items-center">
           <span className="bg-primary-container text-on-primary-container px-3 py-1 text-[10px] font-bold font-label uppercase rounded">Featured</span>
           <span className={'px-3 py-1 text-[10px] font-bold font-label uppercase rounded ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
+          {t.region && <RegionBadge region={t.region} size="md" />}
         </div>
         <h1 className="text-4xl lg:text-6xl font-black italic font-editorial text-on-background uppercase leading-tight mb-3">{t.name}</h1>
         {t.description && (
@@ -139,8 +141,9 @@ function TournamentCard(props) {
       <div className="relative h-36 mb-4 overflow-hidden rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,198,107,0.3) 0px, rgba(255,198,107,0.3) 1px, transparent 1px, transparent 10px)'}} />
         <Icon name="account_tree" className="text-on-surface-variant/20" size={48} />
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex gap-1.5">
           <span className={'text-[9px] font-bold px-2 py-1 rounded uppercase font-label ' + badgeClass}>{phaseLabel}</span>
+          {t.region && <RegionBadge region={t.region} size="sm" />}
         </div>
         {countdown && (
           <div className="absolute top-3 right-3">

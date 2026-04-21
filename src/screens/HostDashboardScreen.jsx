@@ -31,7 +31,7 @@ export default function HostDashboardScreen() {
 
   // Tournament wizard state
   var [wizStep, setWizStep] = useState(0);
-  var [wizData, setWizData] = useState({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
+  var [wizData, setWizData] = useState({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU" });
   var [wizCreating, setWizCreating] = useState(false);
 
   // Branding state
@@ -283,7 +283,7 @@ export default function HostDashboardScreen() {
           registered: 0,
           registeredIds: [],
           prizePool: null,
-          region: "",
+          region: wizData.region || "EU",
           description: wizData.rules || "Tournament hosted by " + brandName,
           tags: wizData.inviteOnly ? ["Invite Only"] : ["Open"],
           logo: brandLogo,
@@ -306,6 +306,7 @@ export default function HostDashboardScreen() {
         invite_only: !!savedWizData.inviteOnly,
         entry_fee: savedWizData.entryFee || null,
         rules_text: savedWizData.rules || null,
+        region: savedWizData.region === 'NA' ? 'NA' : 'EU',
         branding_json: { accent_color: savedWizData.accentColor }
       }).select().single().then(function(res) {
         setWizCreating(false);
@@ -322,7 +323,7 @@ export default function HostDashboardScreen() {
         }
         setShowCreate(false);
         setWizStep(0);
-        setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "" });
+        setWizData({ name: "", date: "", type: "swiss", totalGames: 4, maxPlayers: 32, accentColor: "#ffc66b", entryFee: "", inviteOnly: false, rules: "", region: "EU" });
         toast(savedWizData.entryFee ? "Tournament created - pending admin approval" : "Tournament created!", "success");
       }).catch(function() { setWizCreating(false); toast("Failed to create tournament", "error"); });
     } else {
@@ -428,7 +429,14 @@ export default function HostDashboardScreen() {
     if (wizStep === 1) {
       return (
         <div className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Server Region</label>
+              <Sel value={wizData.region} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { region: v === 'NA' ? 'NA' : 'EU' }); }); }}>
+                <option value="EU">EU</option>
+                <option value="NA">NA</option>
+              </Sel>
+            </div>
             <div className="space-y-2">
               <label className="text-[10px] font-label uppercase tracking-widest text-slate-500">Format</label>
               <Sel value={wizData.type} onChange={function(v) { setWizData(function(d) { return Object.assign({}, d, { type: v }); }); }}>
@@ -523,6 +531,7 @@ export default function HostDashboardScreen() {
           <div className="grid grid-cols-2 gap-3">
             {[
               ["Date", wizData.date],
+              ["Region", wizData.region === 'NA' ? 'NA' : 'EU'],
               ["Format", wizData.type === "swiss" ? "Swiss" : "Standard"],
               ["Games", wizData.totalGames + " per player"],
               ["Max Players", String(wizData.maxPlayers)],

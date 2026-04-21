@@ -1,5 +1,6 @@
 export { default as PageHeader } from './PageHeader'
 export { default as RankBadge } from './RankBadge'
+export { default as RegionBadge } from './RegionBadge'
 export { default as CountdownTimer } from './CountdownTimer'
 export { default as PlayerCard } from './PlayerCard'
 export { default as Podium } from './Podium'

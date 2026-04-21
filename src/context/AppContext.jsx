@@ -229,7 +229,7 @@ export function AppProvider(props) {
   function mapPlayerRow(r){
     return{
       id:r.id,name:r.username,username:r.username,
-      riotId:r.riot_id||r.riot_id_eu||'',rank:r.rank||'Iron',region:r.region||'EUW',
+      riotId:r.riot_id||r.riot_id_eu||'',rank:r.rank||'Iron',region:r.region||null,
       riot_id_eu:r.riot_id_eu||null,riot_id_na:r.riot_id_na||null,
       bio:r.bio||'',discord_user_id:r.discord_user_id||null,
       authUserId:r.auth_user_id||null,auth_user_id:r.auth_user_id||null,
@@ -613,7 +613,7 @@ export function AppProvider(props) {
               });
             });
           // Reconcile prize pool / finale flag / rules from tournaments table — source of truth.
-          supabase.from('tournaments').select('prize_pool_json,rules_text,is_finale,name,date,max_players,round_count')
+          supabase.from('tournaments').select('prize_pool_json,rules_text,is_finale,name,date,max_players,round_count,region')
             .eq('id',ts.dbTournamentId).single()
             .then(function(tRes){
               if(tRes.error||!tRes.data)return;
@@ -625,6 +625,7 @@ export function AppProvider(props) {
                 if(Array.isArray(pool))next.prizePool=pool;
                 if(typeof tRes.data.rules_text==='string')next.rulesOverride=tRes.data.rules_text||'';
                 if(typeof tRes.data.is_finale==='boolean')next.isFinale=!!tRes.data.is_finale;
+                if(typeof tRes.data.region==='string')next.region=tRes.data.region;
                 return next;
               });
             }).catch(function(){});

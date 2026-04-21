@@ -5,6 +5,8 @@ import { Btn, Icon } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
+import RegionBadge from '../components/shared/RegionBadge'
+import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 
 var PLACE_POINTS = [
   { place: '1st', pts: '8 PTS', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
@@ -136,6 +138,13 @@ export default function TournamentDetailScreen() {
     if (!currentUser.auth_user_id) { toast('Sign in required to register', 'error'); return; }
     if (!dbTournamentId) { toast('Tournament unavailable', 'error'); return; }
     if (liveReg.busy) return
+    var myPlayer = (players || []).find(function(p) { return p.id === currentUser.id; })
+    if (!isRegistered && event.region && !canRegisterInRegion(myPlayer && myPlayer.region, event.region)) {
+      var regMsg = regionMismatchMessage(myPlayer && myPlayer.region, event.region)
+      toast(regMsg || 'Region mismatch. Check your account region.', 'error')
+      if (!myPlayer || !myPlayer.region) navigate('/account')
+      return
+    }
     setLiveReg(function(s) { return Object.assign({}, s, {busy:true}) })
 
     if (isRegistered) {
@@ -270,12 +279,7 @@ export default function TournamentDetailScreen() {
                   {event.format}
                 </div>
               )}
-              {event.region && (
-                <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
-                  <Icon name="public" size={13} />
-                  {event.region}
-                </div>
-              )}
+              {event.region && <RegionBadge region={event.region} size="md" />}
             </div>
             {(event.tags || []).length > 0 && (
               <div className="flex gap-2 flex-wrap mt-3">
