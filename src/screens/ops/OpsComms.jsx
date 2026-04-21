@@ -84,12 +84,14 @@ export default function OpsComms() {
     if (notifMsg.trim().length > 500) { toast('Message too long (500 char max)', 'error'); return }
     if (!window.confirm('Send notification to all players?')) return
     if (notifTarget === 'all') {
-      supabase.from('players').select('id').then(function(res) {
-        var playerIds = (res.data || []).map(function(p) { return p.id })
-        var rows = playerIds.map(function(pid) {
-          return { user_id: pid, type: 'system', title: 'Admin Notification', message: sanitize(notifMsg.trim()), read: false }
+      // notifications.user_id FKs to auth.users(id). Seed/unlinked players have
+      // no auth row, so filter them out before building the insert batch.
+      supabase.from('players').select('auth_user_id').not('auth_user_id', 'is', null).then(function(res) {
+        var authIds = (res.data || []).map(function(p) { return p.auth_user_id }).filter(Boolean)
+        var rows = authIds.map(function(uid) {
+          return { user_id: uid, type: 'system', title: 'Admin Notification', message: sanitize(notifMsg.trim()), read: false }
         })
-        if (rows.length === 0) { toast('No players to notify', 'error'); return }
+        if (rows.length === 0) { toast('No signed-in players to notify', 'error'); return }
         supabase.from('notifications').insert(rows).then(function(r) {
           if (r.error) { toast('Failed: ' + r.error.message, 'error'); return }
           addAudit('ACTION', 'Mass notification sent to ' + rows.length + ' players')
