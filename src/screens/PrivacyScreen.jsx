@@ -10,15 +10,23 @@ var PRIVACY_SECTIONS = [
     id: 'collect',
     num: '01.',
     title: 'Information We Collect',
-    body: 'To facilitate a high-stakes competitive environment, we require certain data points from our athletes. This ensures match fairness and prevents multi-accounting.',
+    body: 'To run a fair competitive platform we collect a narrow set of account and match data. We do not collect tracking data for advertising.',
     cards: [
       {
         label: 'Identity Data',
-        text: 'Riot ID, Summoner Name, Region, and Rank Tier metadata.'
+        text: 'Discord id, username, and avatar from your OAuth sign-in. Optional: Riot ID / Summoner Name and region you enter on your profile.'
+      },
+      {
+        label: 'Competitive Data',
+        text: 'Tournament registrations, match placements, points, and any reports or disputes you file.'
+      },
+      {
+        label: 'Billing Data',
+        text: 'If you subscribe, PayPal handles payment. We receive a subscription id and status, never your card details.'
       },
       {
         label: 'Technical Data',
-        text: 'IP address and browser type for session management.'
+        text: 'IP address, browser type, and error traces for session management and crash reporting.'
       }
     ]
   },
@@ -30,15 +38,19 @@ var PRIVACY_SECTIONS = [
     items: [
       {
         strong: 'Tournament Matching:',
-        text: ' Using rank data to ensure fair brackets and competitive seeding.'
+        text: ' Using your region and opt-in rank data to build fair brackets and seeding.'
       },
       {
         strong: 'Integrity Checks:',
-        text: ' Analyzing match history to identify potential scripting or boosting behavior.'
+        text: ' Reviewing results, reports, and dispute evidence to enforce fair play.'
       },
       {
         strong: 'Broadcast Graphics:',
-        text: ' Displaying your Summoner Name and stats on official tournament streams.'
+        text: ' Displaying your username, region, and placements on public leaderboards and official streams.'
+      },
+      {
+        strong: 'Service Operation:',
+        text: ' Authentication, notifications, and keeping the platform running reliably.'
       }
     ]
   },
@@ -47,8 +59,8 @@ var PRIVACY_SECTIONS = [
     num: '03.',
     title: 'Third-Party Disclosures',
     highlight: true,
-    body: 'We may share specific data with Riot Games, Inc. as part of our developer agreement to ensure compliance with the League of Legends / Teamfight Tactics Terms of Service.',
-    quote: 'TFT Clash is an independent organization and is not directly affiliated with Riot Games. We use the Riot Games API to read public match data and verify player identities, but do not write data back to Riot services.'
+    body: 'TFT Clash is an independent community platform. We are not affiliated with, endorsed by, or sponsored by Riot Games. We do not share your personal data with Riot or any other game publisher.',
+    quote: 'Teamfight Tactics and Riot Games are trademarks of Riot Games, Inc. TFT Clash is a community-run tournament platform and operates independently of Riot Games.'
   },
   {
     id: 'processors',
@@ -60,8 +72,7 @@ var PRIVACY_SECTIONS = [
       { label: 'Vercel', text: 'Web hosting and serverless API runtime. Processes HTTP requests, IP addresses, and request logs needed to serve the site.' },
       { label: 'PayPal', text: 'Subscription billing and webhook delivery. Receives email and billing details only when you subscribe to a paid tier.' },
       { label: 'Sentry', text: 'Error and performance monitoring. Captures stack traces, release SHA, and a redacted user id when the app crashes.' },
-      { label: 'Discord', text: 'OAuth identity provider. Used only when you choose Discord sign-in; we receive your Discord id, username, avatar, and email scope you approve.' },
-      { label: 'Riot Games API', text: 'Read-only access to public match history and summoner metadata for the Riot ID you link. No data is written back to Riot.' }
+      { label: 'Discord', text: 'OAuth identity provider. Used only when you sign in; we receive your Discord id, username, avatar, and email scope you approve.' }
     ]
   },
   {
@@ -74,13 +85,25 @@ var PRIVACY_SECTIONS = [
     id: 'rights',
     num: '06.',
     title: 'Your Rights',
-    body: 'You can update or delete your account at any time via Account Settings. Upon deletion, your personal data is removed. Anonymized competitive records may be retained for historical standings integrity. EU residents may also request a machine-readable export of their data; admins can fulfil this from the Ops Maintenance panel.'
+    body: 'You can update or delete your account at any time via Account Settings. Upon deletion, your personal data is removed. Anonymized competitive records may be retained for historical standings integrity. EU residents may also request a machine-readable export of their data; email contact@tftclash.com and we will respond within 30 days.'
+  },
+  {
+    id: 'billing',
+    num: '07.',
+    title: 'Subscriptions, Billing and Refunds',
+    body: 'Paid tiers (Pro and Host) are billed monthly through PayPal. You can cancel at any time from your PayPal account or Account Settings; your access continues until the end of the billing period. EU consumers have a 14-day right of withdrawal from the first subscription date; after that, we only issue refunds for genuine billing errors or undelivered features. Change-of-mind or unused time is not eligible. To request a refund, email contact@tftclash.com with your PayPal subscription id.'
   },
   {
     id: 'security',
-    num: '07.',
+    num: '08.',
     title: 'Data Security',
-    body: 'We use Supabase with row-level security policies. All data is encrypted in transit and at rest. Authentication is handled through industry-standard protocols.'
+    body: 'We use Supabase with row-level security policies. All data is encrypted in transit and at rest. Authentication is handled through industry-standard OAuth protocols.'
+  },
+  {
+    id: 'contact',
+    num: '09.',
+    title: 'Contact',
+    body: 'For privacy questions, data access requests, or to report a concern, email contact@tftclash.com. For faster community support, you can also reach us in Discord.'
   }
 ]
 
@@ -92,7 +115,7 @@ var SIDEBAR_LINKS = [
 export default function PrivacyScreen() {
   var [activeSection, setActiveSection] = useState(null)
   var navigate = useNavigate()
-  var lastUpdated = new Date('2026-04-20').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
+  var lastUpdated = new Date('2026-04-21').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
 
   function scrollTo(id) {
     var el = document.getElementById('privacy-' + id)
@@ -232,11 +255,18 @@ export default function PrivacyScreen() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                   <h4 className="font-editorial text-xl text-on-surface">Have questions about your data?</h4>
-                  <p className="text-on-surface-variant text-sm mt-1">Our compliance team is available for inquiries regarding GDPR and CCPA.</p>
+                  <p className="text-on-surface-variant text-sm mt-1">
+                    Email <a className="text-primary hover:underline" href="mailto:contact@tftclash.com">contact@tftclash.com</a> for GDPR, CCPA, and data access requests. For general community support, reach us in Discord.
+                  </p>
                 </div>
-                <Btn variant="primary" size="md" href={DISCORD_URL}>
-                  Contact via Discord
-                </Btn>
+                <div className="flex gap-3">
+                  <Btn variant="primary" size="md" href="mailto:contact@tftclash.com">
+                    Email Us
+                  </Btn>
+                  <Btn variant="secondary" size="md" href={DISCORD_URL}>
+                    Discord
+                  </Btn>
+                </div>
               </div>
             </div>
           </div>

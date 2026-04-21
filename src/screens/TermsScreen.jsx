@@ -45,7 +45,7 @@ var TERMS_SECTIONS = [
     num: '05.',
     title: 'Subscriptions and Payments',
     highlight: true,
-    body: 'Paid tiers are billed monthly in USD via PayPal. See the pricing page for current rates. You may cancel at any time from your PayPal account or via Account Settings; access continues until the end of the current paid period. Pro-rated refunds are reviewed within 7 days for billing errors and undelivered features. Cosmetic preference, change of mind, or partial-month usage are not eligible for refund.',
+    body: 'Paid tiers are billed monthly via PayPal. See the pricing page for current rates. You may cancel at any time from your PayPal account or via Account Settings; access continues until the end of the current paid period. EU consumers have a 14-day right of withdrawal from the first subscription date. After that, refunds are only issued for genuine billing errors or undelivered features. Change of mind, cosmetic preference, or unused time is not eligible for refund. To request a refund, email contact@tftclash.com with your PayPal subscription id.',
     cards: [
       { label: 'Pro Tier', text: 'Monthly subscription. Cancel anytime. No lock-in contracts.' },
       { label: 'Host Tier', text: 'Monthly subscription. Full tournament hosting suite included. See pricing page for current rates.' }
@@ -71,13 +71,20 @@ var TERMS_SECTIONS = [
     title: 'Changes to Terms',
     body: 'We may update these terms periodically. Continued use after changes constitutes acceptance. We will notify users of significant changes via the platform.',
     items: null
+  },
+  {
+    id: 'contact',
+    num: '09.',
+    title: 'Contact',
+    body: 'For questions about these terms, billing disputes, or legal notices, email contact@tftclash.com. For general community support, you can also reach us in Discord.',
+    items: null
   }
 ]
 
 export default function TermsScreen() {
   var [activeSection, setActiveSection] = useState(null)
   var navigate = useNavigate()
-  var lastUpdated = new Date('2026-04-20').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
+  var lastUpdated = new Date('2026-04-21').toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase()
 
   function scrollTo(id) {
     var el = document.getElementById('terms-' + id)
@@ -209,11 +216,18 @@ export default function TermsScreen() {
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                   <h4 className="font-editorial text-xl text-on-surface">Questions about these terms?</h4>
-                  <p className="text-on-surface-variant text-sm mt-1">Reach out to the TFT Clash team via Discord for any legal or compliance questions.</p>
+                  <p className="text-on-surface-variant text-sm mt-1">
+                    Email <a className="text-primary hover:underline" href="mailto:contact@tftclash.com">contact@tftclash.com</a> for billing, refunds, and legal questions. For general support, reach us in Discord.
+                  </p>
                 </div>
-                <Btn variant="primary" size="md" href={DISCORD_URL}>
-                  Contact via Discord
-                </Btn>
+                <div className="flex gap-3">
+                  <Btn variant="primary" size="md" href="mailto:contact@tftclash.com">
+                    Email Us
+                  </Btn>
+                  <Btn variant="secondary" size="md" href={DISCORD_URL}>
+                    Discord
+                  </Btn>
+                </div>
               </div>
             </div>
           </div>

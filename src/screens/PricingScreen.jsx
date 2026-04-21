@@ -439,7 +439,7 @@ export default function PricingScreen() {
             </p>
             <div className="mt-8 flex gap-4 flex-wrap">
               <a
-                href="mailto:support@tftclash.com"
+                href="mailto:contact@tftclash.com"
                 className="inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 py-3 px-6 text-sm min-h-[44px] bg-surface-container-high text-on-surface border border-outline-variant/15 hover:bg-surface-container-highest"
               >
                 Email Support
