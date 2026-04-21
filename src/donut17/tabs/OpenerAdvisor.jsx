@@ -6,9 +6,10 @@ import ChampImg from '../lib/ChampImg'
 import CompFlowchart from './CompFlowchart'
 import { buildCompSummary } from '../lib/compSummary'
 
-// Comp data sourced verbatim from tftflow.com — tier placements, boards, carries,
-// augments, and patch notes are mirrored without curation. Each ranked card links
-// back to the tftflow comp page for the full flowchart.
+// Comp data sourced from tftflow.com: tier placements, boards, carries, augments,
+// and patch notes. Boards and tier ranges are factual game data we mirror.
+// Stage-by-stage flowcharts are synthesized in-app from the final board (see
+// lib/flowchart.js) since tftflow's variation boards are JS-hydrated client-side.
 
 var ECON_LABEL = {
   fast8: 'Fast 8',

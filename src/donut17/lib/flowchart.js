@@ -24,33 +24,36 @@ function champByKey(champions) {
 
 // Pick up to `size` units from board biased toward lower-cost where appropriate.
 // We always include carries if their cost fits; fill remaining slots with lowest
-// cost units from the remainder (reflects opener/stabilize reality).
+// cost units from the remainder (reflects opener/stabilize reality). When the
+// final board is all high-cost (Fast 9 comps), early stages would otherwise be
+// empty -- in that case we fall back to the lowest-cost units on the board so
+// the user sees a believable opener rather than a blank panel.
 function pickStageUnits(board, champByKeyMap, carrySet, opts) {
   var maxCost = opts.maxCost
   var size = opts.size
-  var eligible = (board || []).filter(function (k) {
-    var c = champByKeyMap[k]
-    if (!c) return true
-    return (c.cost || 1) <= maxCost
-  })
 
-  // sort: carries first, then ascending cost, then preserve order
-  var indexed = eligible.map(function (k, idx) {
+  var indexed = (board || []).map(function (k, idx) {
     var c = champByKeyMap[k]
     return {
       key: k,
       cost: c ? (c.cost || 1) : 1,
       carry: carrySet.has(k),
+      eligible: !c || (c.cost || 1) <= maxCost,
       idx: idx,
     }
   })
-  indexed.sort(function (a, b) {
+
+  var eligible = indexed.filter(function (e) { return e.eligible })
+  // Fall back to whole board when nothing fits the cost cap.
+  var pool = eligible.length > 0 ? eligible : indexed.slice()
+
+  pool.sort(function (a, b) {
     if (a.carry !== b.carry) return a.carry ? -1 : 1
     if (a.cost !== b.cost) return a.cost - b.cost
     return a.idx - b.idx
   })
 
-  return indexed.slice(0, size).map(function (e) { return e.key })
+  return pool.slice(0, size).map(function (e) { return e.key })
 }
 
 export function computeFlowchart(comp, champions, traits) {
