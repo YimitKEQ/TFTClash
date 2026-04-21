@@ -474,7 +474,6 @@ def build_comp_lines(champions):
                 "tftflowBestTier": best_tier,
                 "econ": comp.get("econ"),
                 "patch": comp.get("patch"),
-                "desc": comp.get("og_desc", ""),
                 "url": comp.get("url", ""),
                 "carry": primary_carry,
                 "carries": carries_keys,

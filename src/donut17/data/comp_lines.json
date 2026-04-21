@@ -11,7 +11,6 @@
     "tftflowBestTier": "OP",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "Stargazers change constellations each game, having different effects for the trait. Some are better than others; here’s how to best play Xayah in Set 17.",
     "url": "https://tftflow.com/composition/set17/stargazer-xayah",
     "carry": "nunu",
     "carries": [
@@ -56,7 +55,6 @@
     "tftflowBestTier": "OP",
     "econ": "fast9",
     "patch": "Patch 17.1",
-    "desc": "Graves is a unique champion with several frames that changes how he plays and many upgrades. Here’s the best board to play him in if you find him early.",
     "url": "https://tftflow.com/composition/set17/graves-fast-9",
     "carry": "tahmkench",
     "carries": [
@@ -100,7 +98,6 @@
     "tftflowBestTier": "OP",
     "econ": "fast9",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/invader-zed",
     "carry": "tahmkench",
     "carries": [
@@ -146,7 +143,6 @@
     "tftflowBestTier": "OP",
     "econ": "reroll3",
     "patch": "Patch 17.1",
-    "desc": "Samira Reroll takes advantage of Samira’s passive that deals damage on knockup with various knockup champions, keeping her in the Groove longer.",
     "url": "https://tftflow.com/composition/set17/samira-reroll",
     "carry": "nunu",
     "carries": [
@@ -192,7 +188,6 @@
     "tftflowBestTier": "OP",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "The ultimate one unit comp. Do you enjoy an immortal tank? That’s the only goal of this line: Make the Mighty Mech (Galio) completely unkillable. Here’s how.",
     "url": "https://tftflow.com/composition/set17/mecha",
     "carry": "galio",
     "carries": [
@@ -251,7 +246,6 @@
     "tftflowBestTier": "OP",
     "econ": "reroll3",
     "patch": "Patch 17.1",
-    "desc": "This Viktor comp takes advantage of the fact that you can get many traits by pairing Illaoi and Mordekaiser together, making it strong with Bronze for Life.",
     "url": "https://tftflow.com/composition/set17/viktor-illaoi-reroll",
     "carry": "rhaast",
     "carries": [
@@ -307,7 +301,6 @@
     "tftflowBestTier": "S+",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/dark-star",
     "carry": "nunu",
     "carries": [
@@ -356,7 +349,6 @@
     "tftflowBestTier": "S+",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/meeple-veigar",
     "carry": "rammus",
     "carries": [
@@ -403,7 +395,6 @@
     "tftflowBestTier": "S+",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "Space Groove brings back the Disco music! The trait is quite powerful and often works well with emblems since it plays many 2-breakpoint traits.",
     "url": "https://tftflow.com/composition/set17/space-groove-nami",
     "carry": "tahmkench",
     "carries": [
@@ -460,7 +451,6 @@
     "tftflowBestTier": "S+",
     "econ": "reroll3",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/anima-viktor-reroll",
     "carry": "illaoi",
     "carries": [
@@ -506,7 +496,6 @@
     "tftflowBestTier": "S+",
     "econ": "reroll1",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/teemo-reroll",
     "carry": "lissandra",
     "carries": [
@@ -545,7 +534,6 @@
     "tftflowBestTier": "S",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "Meeples are unique in that they have the ability to print units at 7 Meeple, which you can use temporarily before dropping down to 5 or even 3 Meeple late game.",
     "url": "https://tftflow.com/composition/set17/meeple-corki",
     "carry": "rammus",
     "carries": [
@@ -598,7 +586,6 @@
     "tftflowBestTier": "S",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "N.O.V.A. is one of the strongest utility traits ever made for TFT. Teamwide shred, sunder, crit, attack speed, etc. Here’s how to best play the units together.",
     "url": "https://tftflow.com/composition/set17/n-o-v-a",
     "carry": "masteryi",
     "carries": [
@@ -648,7 +635,6 @@
     "tftflowBestTier": "S",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/riven-yi",
     "carry": "tahmkench",
     "carries": [
@@ -695,7 +681,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll3",
     "patch": "Patch 17.1",
-    "desc": "Kai’Sa and Fizz have strong crossover and are able to activate many traits with Rhaast. This comp will get updated if any other variations pop up as well.",
     "url": "https://tftflow.com/composition/set17/kaisa-rogues",
     "carry": "kaisa",
     "carries": [
@@ -736,7 +721,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll2",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/pyke-gwen-reroll",
     "carry": "pantheon",
     "carries": [
@@ -772,7 +756,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll12",
     "patch": "Patch 17.1",
-    "desc": "Primordian is one of the main reroll traits for Set 17. It helps you hit your 3-stars by providing you units each round. Here’s how to play the reroll line.",
     "url": "https://tftflow.com/composition/set17/primordian-reroll",
     "carry": "reksai",
     "carries": [
@@ -810,7 +793,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll1",
     "patch": "Patch 17.1",
-    "desc": "Bonk! It’s a simple hero augment: Nasus now bonks. And he bonks hard. Here’s what units to play and how to itemize to ensure he keeps bonking.",
     "url": "https://tftflow.com/composition/set17/bonk-nasus",
     "carry": "leblanc",
     "carries": [
@@ -847,7 +829,6 @@
     "tftflowBestTier": "S",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "",
     "url": "https://tftflow.com/composition/set17/karma-nami",
     "carry": "nami",
     "carries": [
@@ -894,7 +875,6 @@
     "tftflowBestTier": "S",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "Shepherd LeBlanc summons “The Bond of the Stars” and with a Shepherd Emblem + Sona, can summon the strongest form of Bia & Bayin. Here’s how to play the line.",
     "url": "https://tftflow.com/composition/set17/shepherd-leblanc",
     "carry": "illaoi",
     "carries": [
@@ -939,7 +919,6 @@
     "tftflowBestTier": "S",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "This comp’s strength will often vary depending on your Arbiter. The balance will change throughout the set, but this page will always be updated.",
     "url": "https://tftflow.com/composition/set17/vanguard-leblanc",
     "carry": "nunu",
     "carries": [
@@ -988,7 +967,6 @@
     "tftflowBestTier": "S",
     "econ": "fast9",
     "patch": "Patch 17.1",
-    "desc": "Vex is an auto attack hypercarry that is often the pinnacle of AP comps. This is a board you should aim to transition into from a fast 9 spot.",
     "url": "https://tftflow.com/composition/set17/vex-ap-fast-9",
     "carry": "rammus",
     "carries": [
@@ -1031,7 +1009,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll3",
     "patch": "Patch 17.1",
-    "desc": "Anima is the loss streak trait for Set 17. Aim for big cashouts, itemize your Anima units with items from your cashout, and winout. Or go 8th trying.",
     "url": "https://tftflow.com/composition/set17/anima-diana-reroll",
     "carry": "illaoi",
     "carries": [
@@ -1076,7 +1053,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll2",
     "patch": "Patch 17.1",
-    "desc": "The Big Bang is Meepsie’s hero augment that causes him to slam into the board. Itemize him as an AP melee carry and watch him clear the board each fight.",
     "url": "https://tftflow.com/composition/set17/the-big-bang-meepsie",
     "carry": "ivernminion",
     "carries": [
@@ -1111,7 +1087,6 @@
     "tftflowBestTier": "S",
     "econ": "reroll1",
     "patch": "Patch 17.1",
-    "desc": "Twisted Fate Reroll goes for many different 1-costs, often with The Medallion constellation and 1-cost combat augments. Here’s how to play the line.",
     "url": "https://tftflow.com/composition/set17/twisted-fate-reroll-2",
     "carry": "caitlyn",
     "carries": [
@@ -1159,7 +1134,6 @@
     "tftflowBestTier": "A",
     "econ": "fast8",
     "patch": "Patch 17.1",
-    "desc": "Termeepnal Velocity is Poppy’s hero augment that changes her into a ranged carry. 7 Meeple can be used to print her at 3 star, allowing you to skip rerolling.",
     "url": "https://tftflow.com/composition/set17/termeepnal-velocity-poppy",
     "carry": "rammus",
     "carries": [
@@ -1194,7 +1168,6 @@
     "tftflowBestTier": "A",
     "econ": "reroll1",
     "patch": "Patch 17.1",
-    "desc": "Cho’Gath is back and bigger than ever. The optimal way to play Cho’Gath will likely evolve over the course of the set, so check here to see the latest tech.",
     "url": "https://tftflow.com/composition/set17/cho-ez-reroll",
     "carry": "chogath",
     "carries": [
@@ -1233,7 +1206,6 @@
     "tftflowBestTier": "A",
     "econ": "reroll1",
     "patch": "Patch 17.1",
-    "desc": "Stellar Combo is Aatrox’s hero augment that turns his ability into his League chain slam ability. There are many variations that are viable. Here’s all of them.",
     "url": "https://tftflow.com/composition/set17/stellar-combo-aatrox",
     "carry": "rammus",
     "carries": [
@@ -1270,7 +1242,6 @@
     "tftflowBestTier": "A",
     "econ": "reroll3",
     "patch": "Patch 17.1",
-    "desc": "Miss Fortune can turn into a Conduit and pair with Viktor for a strong reroll line. Its viability depends on Psionic item balance, so check here for latest.",
     "url": "https://tftflow.com/composition/set17/conduit-miss-fortune",
     "carry": "maokai",
     "carries": [
@@ -1313,7 +1284,6 @@
     "tftflowBestTier": "B",
     "econ": "reroll2",
     "patch": "Patch 17.1",
-    "desc": "Contract Killer is the hero augment for Pyke that turns his ability into his League ultimate, resetting on kills and farming gold. Here’s how to play it.",
     "url": "https://tftflow.com/composition/set17/contract-killer-pyke",
     "carry": "gragas",
     "carries": [
@@ -1350,7 +1320,6 @@
     "tftflowBestTier": "C",
     "econ": "reroll2",
     "patch": "Patch 17.1",
-    "desc": "Reach for the Stars is Jax’s hero augment. The best constellations will change with balance, but this guide will stay updated with them throughout the set.",
     "url": "https://tftflow.com/composition/set17/reach-for-the-stars-jax",
     "carry": "twistedfate",
     "carries": [
