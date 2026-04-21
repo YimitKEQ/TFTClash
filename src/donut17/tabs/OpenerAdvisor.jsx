@@ -3,6 +3,8 @@ import { scoreComps } from '../lib/scoring'
 import { costColor } from '../lib/imgFallback'
 import { computeActiveTraits, tierColor } from '../lib/traitComputer'
 import ChampImg from '../lib/ChampImg'
+import CompFlowchart from './CompFlowchart'
+import { buildCompSummary } from '../lib/compSummary'
 
 // Comp data sourced verbatim from tftflow.com — tier placements, boards, carries,
 // augments, and patch notes are mirrored without curation. Each ranked card links
@@ -39,6 +41,10 @@ export default function OpenerAdvisor(props) {
   var _p = useState([])
   var picked = _p[0]
   var setPicked = _p[1]
+
+  var _sel = useState(null)
+  var expandedId = _sel[0]
+  var setExpandedId = _sel[1]
 
   var _c = useState('all')
   var costFilter = _c[0]
@@ -86,6 +92,22 @@ export default function OpenerAdvisor(props) {
 
   var top = scored.slice(0, 3)
   var sourcePatch = comps && comps[0] && comps[0].patch ? comps[0].patch : ''
+
+  var expandedComp = useMemo(function () {
+    if (!expandedId) return null
+    return comps.find(function (c) { return c.id === expandedId }) || null
+  }, [expandedId, comps])
+
+  if (expandedComp) {
+    return (
+      <CompFlowchart
+        comp={expandedComp}
+        champions={champions}
+        traits={traits}
+        onBack={function(){ setExpandedId(null) }}
+      />
+    )
+  }
 
   return (
     <div>
@@ -206,6 +228,7 @@ export default function OpenerAdvisor(props) {
                   champions={champions}
                   traits={traits}
                   pickedKeys={picked}
+                  onOpen={function(){ setExpandedId(r.comp.id) }}
                 />
               )
             })}
@@ -228,6 +251,7 @@ function RankedComp(props) {
   var champions = props.champions
   var traits = props.traits
   var pickedKeys = props.pickedKeys || []
+  var onOpen = props.onOpen
   var champByKey = {}
   champions.forEach(function(x){ champByKey[x.key] = x })
 
@@ -237,6 +261,10 @@ function RankedComp(props) {
   var activeTraits = useMemo(function () {
     return computeActiveTraits(c.board, champions, traits)
   }, [c, champions, traits])
+
+  var summary = useMemo(function () {
+    return buildCompSummary(c, champions)
+  }, [c, champions])
 
   var pickedSet = new Set(pickedKeys)
   var carrySet = new Set(c.carries || (c.carry ? [c.carry] : []))
@@ -264,8 +292,8 @@ function RankedComp(props) {
                 </span>
               )}
             </div>
-            {c.desc && (
-              <p className="text-xs mt-1 font-body" style={{ color: 'rgba(228,225,236,0.7)' }}>{c.desc}</p>
+            {summary && (
+              <p className="text-xs mt-1 font-body" style={{ color: 'rgba(228,225,236,0.7)' }}>{summary}</p>
             )}
           </div>
           <div className="text-right shrink-0">
@@ -380,20 +408,22 @@ function RankedComp(props) {
           </div>
         )}
 
-        {c.url && (
-          <div className="mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,198,107,0.15)' }}>
-            <a
-              href={c.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-[10px] uppercase tracking-widest inline-flex items-center gap-1"
-              style={{ color: accent }}
+        <div className="mt-4 pt-3 flex items-center justify-between gap-3 flex-wrap" style={{ borderTop: '1px solid rgba(255,198,107,0.15)' }}>
+          <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.4)' }}>
+            {c.patch || 'Patch 17'}
+          </span>
+          {onOpen && (
+            <button
+              type="button"
+              onClick={onOpen}
+              className="font-mono text-[11px] uppercase tracking-widest inline-flex items-center gap-1 px-3 py-1 cursor-pointer"
+              style={{ background: accent + '18', color: accent, border: '1px solid ' + accent + '55' }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
-              Full flowchart on tftflow.com
-            </a>
-          </div>
-        )}
+              Open flowchart
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )

@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { makeImgFallback, costColor } from '../lib/imgFallback'
+import { buildCompSummary } from '../lib/compSummary'
+import CompFlowchart from './CompFlowchart'
 
 var ECON_LABEL = {
   fast8: 'Fast 8',
@@ -38,6 +40,11 @@ function econLabel(econ) {
 export default function CompLines(props) {
   var comps = props.data.comps
   var champions = props.data.champions
+  var traits = props.data.traits
+
+  var _sel = useState(null)
+  var selectedId = _sel[0]
+  var setSelectedId = _sel[1]
 
   var _t = useState('all')
   var tierFilter = _t[0]
@@ -46,6 +53,17 @@ export default function CompLines(props) {
   var _e = useState('all')
   var econFilter = _e[0]
   var setEconFilter = _e[1]
+
+  var selectedComp = useMemo(function () {
+    if (!selectedId) return null
+    return comps.find(function (c) { return c.id === selectedId }) || null
+  }, [selectedId, comps])
+
+  useEffect(function () {
+    if (selectedComp) {
+      try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch (e) {}
+    }
+  }, [selectedId])
 
   var champByKey = useMemo(function () {
     var m = {}
@@ -80,6 +98,17 @@ export default function CompLines(props) {
     base.sort(function (a, b) { return tierRank(bestTierOf(a)) - tierRank(bestTierOf(b)) })
     return base
   }, [comps, tierFilter, econFilter])
+
+  if (selectedComp) {
+    return (
+      <CompFlowchart
+        comp={selectedComp}
+        champions={champions}
+        traits={traits}
+        onBack={function () { setSelectedId(null) }}
+      />
+    )
+  }
 
   return (
     <div>
@@ -125,7 +154,7 @@ export default function CompLines(props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {filtered.map(function (comp) {
-          return <CompCard key={comp.id} comp={comp} champByKey={champByKey}/>
+          return <CompCard key={comp.id} comp={comp} champByKey={champByKey} onOpen={function(){setSelectedId(comp.id)}}/>
         })}
         {filtered.length === 0 && (
           <div className="md:col-span-2 d17-panel p-8 text-center font-mono text-sm" style={{ color: '#9d8e7c' }}>
@@ -140,6 +169,7 @@ export default function CompLines(props) {
 function CompCard(props) {
   var comp = props.comp
   var champByKey = props.champByKey
+  var onOpen = props.onOpen
   var bestTier = bestTierOf(comp)
   var accent = TIER_COLOR[bestTier] || '#FFC66B'
   var tierList = comp.tftflowTiers || (bestTier ? [bestTier] : [])
@@ -147,9 +177,19 @@ function CompCard(props) {
   var board = comp.board || []
   var primaryCarryKey = (comp.carries && comp.carries[0]) || comp.carry
   var primaryCarry = primaryCarryKey ? champByKey[primaryCarryKey] : null
+  var summary = useMemo(function () {
+    var chs = Object.values(champByKey)
+    return buildCompSummary(comp, chs)
+  }, [comp, champByKey])
 
   return (
-    <article className="d17-panel relative overflow-hidden">
+    <article
+      className="d17-panel relative overflow-hidden cursor-pointer transition-transform hover:-translate-y-0.5"
+      onClick={onOpen}
+      onKeyDown={function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); onOpen() } }}
+      role="button"
+      tabIndex={0}
+    >
       <div
         aria-hidden="true"
         style={{
@@ -178,8 +218,8 @@ function CompCard(props) {
                 </span>
               )}
             </div>
-            {comp.desc && (
-              <p className="text-xs mt-1 font-body leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>{comp.desc}</p>
+            {summary && (
+              <p className="text-xs mt-1 font-body leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>{summary}</p>
             )}
           </div>
         </div>
@@ -261,23 +301,18 @@ function CompCard(props) {
           </div>
         )}
 
-        {comp.url && (
-          <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-            <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.4)' }}>
-              {comp.patch || 'tftflow.com'}
-            </span>
-            <a
-              href={comp.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-mono text-[10px] uppercase tracking-widest inline-flex items-center gap-1 hover:underline"
-              style={{ color: accent }}
-            >
-              Full flowchart on tftflow.com
-              <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle' }}>open_in_new</span>
-            </a>
-          </div>
-        )}
+        <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+          <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.4)' }}>
+            {comp.patch || 'Patch 17'}
+          </span>
+          <span
+            className="font-mono text-[10px] uppercase tracking-widest inline-flex items-center gap-1"
+            style={{ color: accent }}
+          >
+            Open flowchart
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
+          </span>
+        </div>
       </div>
     </article>
   )
