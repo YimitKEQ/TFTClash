@@ -496,9 +496,9 @@ export default function HomeScreen() {
           <div aria-hidden="true" className="tactical-grid absolute inset-0 -z-10 pointer-events-none"></div>
 
           {/* Season pill — brand eyebrow */}
-          <div className="inline-flex items-center gap-2.5 px-6 py-2.5 rounded-full border border-primary/40 bg-primary/10 shadow-lg shadow-primary/10">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shadow-sm shadow-primary"></span>
-            <span className="font-label text-sm tracking-[0.35em] uppercase text-primary font-bold">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/25 bg-primary/5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+            <span className="font-label text-[11px] tracking-[0.3em] uppercase text-primary font-bold">
               {seasonLabel}
             </span>
           </div>
@@ -701,43 +701,33 @@ export default function HomeScreen() {
           </section>
         )}
 
-        {/* ── Go Pro Banner ─────────────────────────────────────────────────── */}
-        <section className="mt-16 mb-8">
-          <div className="relative overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/15 via-surface-container to-primary/10 p-8 md:p-12 text-center shadow-2xl shadow-primary/10">
-            <div aria-hidden="true" className="absolute inset-0 tactical-grid opacity-40 pointer-events-none" />
-            <div className="relative z-10 max-w-3xl mx-auto">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/20 border border-primary/30 mb-5">
-                <Icon name="workspace_premium" size={16} className="text-primary" fill />
-                <span className="font-label text-xs tracking-[0.3em] uppercase text-primary font-bold">Ascendant Tier</span>
-              </div>
-              <h2 className="font-display text-5xl md:text-7xl text-on-surface tracking-tighter uppercase leading-none mb-4">
-                Go <span className="text-primary">Pro</span>
-              </h2>
-              <p className="font-headline text-lg md:text-xl text-on-surface/80 mb-8 max-w-2xl mx-auto">
-                Unlock advanced stats, priority check-in, an ad-free experience, and your Ascendant profile badge. 4.99/mo keeps the lights on.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
-                <Btn
-                  variant="primary"
-                  size="xl"
-                  icon="workspace_premium"
-                  iconPosition="left"
-                  onClick={function(){ navigate('/pricing') }}
-                >
-                  See All Tiers
-                </Btn>
-                <Btn
-                  href={getDonateUrl()}
-                  variant="secondary"
-                  size="lg"
-                  icon="favorite"
-                  iconPosition="left"
-                >
-                  Or Donate
-                </Btn>
-              </div>
+        {/* ── Support the platform ─────────────────────────────────────────── */}
+        <section className="mt-16 mb-4">
+          <Panel padding="spacious" elevation="elevated" className="text-center">
+            <SectionHeader
+              eyebrow="Community Supported"
+              title="Keep TFT Clash free forever"
+              description="Running weekly tournaments costs real money. If you get value from competing here, a tip keeps the lights on, the servers fast, and the entry fee at zero."
+              align="center"
+            />
+            <div className="mt-2 flex flex-col sm:flex-row justify-center items-center gap-3">
+              <Btn
+                href={getDonateUrl()}
+                variant="primary"
+                size="lg"
+                icon="favorite"
+                iconPosition="left"
+              >
+                Donate via PayPal
+              </Btn>
+              <Btn
+                variant="link"
+                onClick={function(){ navigate('/pricing') }}
+              >
+                Or go Pro
+              </Btn>
             </div>
-          </div>
+          </Panel>
         </section>
 
         {/* ── Final CTA ────────────────────────────────────────────────────── */}
