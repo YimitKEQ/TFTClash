@@ -178,6 +178,21 @@ function RankedComp(props) {
   var champByKey = {}
   champions.forEach(function(x){ champByKey[x.key] = x })
   var metaStats = (props.meta.comps && props.meta.comps[c.id]) || null
+  var tier = c.tier || (metaStats && metaStats.tier) || null
+
+  var _exp = useState(props.rank === 1)
+  var expanded = _exp[0]
+  var setExpanded = _exp[1]
+
+  var carryChamp = champByKey[c.carry]
+  var carryItems = c.items && carryChamp ? (c.items[carryChamp.name] || c.items.carry || c.items[c.carry]) : null
+  var itemRows = []
+  if (c.items && typeof c.items === 'object') {
+    Object.keys(c.items).forEach(function (unitName) {
+      var list = c.items[unitName]
+      if (Array.isArray(list) && list.length) itemRows.push({ unit: unitName, items: list })
+    })
+  }
 
   return (
     <div className="d17-panel p-5 relative overflow-hidden">
@@ -191,13 +206,23 @@ function RankedComp(props) {
       />
       <div className="relative">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono text-xs" style={{ color: c.color }}>#{props.rank}</span>
-              <h3 className="font-editorial italic text-xl" style={{ color: '#e4e1ec' }}>{c.name}</h3>
-              {metaStats && metaStats.tier && (
+              <h3 className="font-editorial italic text-xl truncate" style={{ color: '#e4e1ec' }}>{c.name}</h3>
+              {tier && (
                 <span className="px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest" style={{ background: c.color + '22', color: c.color, border: '1px solid ' + c.color + '55' }}>
-                  {metaStats.tier}
+                  {tier}
+                </span>
+              )}
+              {c.strategy && (
+                <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>
+                  {c.strategy}
+                </span>
+              )}
+              {c.difficulty && (
+                <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.45)' }}>
+                  | {c.difficulty}
                 </span>
               )}
             </div>
@@ -213,15 +238,19 @@ function RankedComp(props) {
           {(c.core || []).map(function (k) {
             var ch = champByKey[k]
             if (!ch) return null
+            var isCarry = k === c.carry
             return (
               <img
                 key={k}
                 alt={ch.name}
                 src={ch.assets && ch.assets.face}
                 onError={makeImgFallback(ch.cost)}
-                className="w-8 h-8 object-cover"
-                style={{ border: '1px solid ' + costColor(ch.cost) }}
-                title={ch.name}
+                className="w-9 h-9 object-cover"
+                style={{
+                  border: isCarry ? '2px solid #FFC66B' : '1px solid ' + costColor(ch.cost),
+                  boxShadow: isCarry ? '0 0 10px rgba(255,198,107,0.5)' : 'none'
+                }}
+                title={ch.name + (isCarry ? ' (CARRY)' : '')}
               />
             )
           })}
@@ -232,13 +261,121 @@ function RankedComp(props) {
             <span style={{ color: '#9d8e7c' }}>GOD: </span>
             <span style={{ color: '#FFC66B' }}>{c.god}</span>
           </div>
-          {metaStats && metaStats.avg_placement && (
+          {metaStats && metaStats.avg_placement ? (
             <div className="text-right">
               <span style={{ color: '#9d8e7c' }}>AVG: </span>
               <span style={{ color: '#67e2d9' }}>{Number(metaStats.avg_placement).toFixed(2)}</span>
             </div>
+          ) : (
+            <div className="text-right">
+              <button
+                type="button"
+                onClick={function(){ setExpanded(function(v){ return !v }) }}
+                className="font-mono text-[10px] uppercase tracking-widest cursor-pointer"
+                style={{ color: c.color }}
+              >
+                {expanded ? 'Hide plan' : 'Show plan'}
+              </button>
+            </div>
           )}
         </div>
+
+        {expanded && (
+          <div className="mt-4 pt-4 space-y-3" style={{ borderTop: '1px solid rgba(255,198,107,0.15)' }}>
+            {carryItems && carryItems.length > 0 && (
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
+                  Carry Items ({carryChamp ? carryChamp.name : c.carry})
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {carryItems.map(function (it, idx) {
+                    return (
+                      <span
+                        key={idx}
+                        className="font-mono text-[10px] px-2 py-0.5"
+                        style={{ background: '#0e0d15', color: '#FFC66B', border: '1px solid rgba(255,198,107,0.25)' }}
+                      >{it}</span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {c.carousel && c.carousel.length > 0 && (
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>Carousel Priority</p>
+                <p className="font-body text-xs" style={{ color: 'rgba(228,225,236,0.75)' }}>
+                  {c.carousel.join(' > ')}
+                </p>
+              </div>
+            )}
+
+            {c.augments && c.augments.length > 0 && (
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>Augment Picks</p>
+                <div className="flex flex-wrap gap-1">
+                  {c.augments.map(function (a, idx) {
+                    return (
+                      <span
+                        key={idx}
+                        className="font-mono text-[10px] px-2 py-0.5"
+                        style={{ background: c.color + '18', color: c.color, border: '1px solid ' + c.color + '44' }}
+                      >{a}</span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {c.gameplan && (
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>Gameplan</p>
+                <p className="font-body text-xs leading-relaxed" style={{ color: 'rgba(228,225,236,0.8)' }}>
+                  {c.gameplan}
+                </p>
+              </div>
+            )}
+
+            {c.godWhy && (
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#9d8e7c' }}>
+                  Why {c.god}?
+                </p>
+                <p className="font-body text-xs italic" style={{ color: 'rgba(228,225,236,0.7)' }}>
+                  {c.godWhy}
+                </p>
+              </div>
+            )}
+
+            {itemRows.length > 1 && (
+              <details>
+                <summary
+                  className="font-mono text-[9px] uppercase tracking-widest cursor-pointer"
+                  style={{ color: c.color }}
+                >Full item board ({itemRows.length} units)</summary>
+                <div className="mt-2 space-y-1">
+                  {itemRows.map(function (row, idx) {
+                    return (
+                      <div key={idx} className="text-[10px] font-mono">
+                        <span style={{ color: '#FFC66B' }}>{row.unit}:</span>{' '}
+                        <span style={{ color: 'rgba(228,225,236,0.7)' }}>{row.items.join(', ')}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </details>
+            )}
+
+            {!(props.rank === 1) && (
+              <button
+                type="button"
+                onClick={function(){ setExpanded(false) }}
+                className="font-mono text-[9px] uppercase tracking-widest cursor-pointer"
+                style={{ color: '#9d8e7c' }}
+              >Collapse</button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

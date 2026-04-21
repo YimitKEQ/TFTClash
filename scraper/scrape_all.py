@@ -340,170 +340,23 @@ def build_gods():
     ]
 
 
+COMPS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sources", "set17_comps.json")
+
+
 def build_comp_lines():
-    """Pre-built theorycrafted comp lines - semi-manual, updated as meta develops."""
-    return [
-        {
-            "id": "darkstar-vertical",
-            "name": "Dark Star Vertical",
-            "color": "#7c3aed",
-            "carry": "jhin",
-            "desc": "Scale Dark Star Black Holes. Jhin 5-cost carry with massive range.",
-            "core": ["chogath", "lissandra", "mordekaiser", "kaisa", "karma", "jhin"],
-            "flex": ["shen", "morgana", "nunu"],
-            "items": {
-                "carry": ["Jhin: IE + Last Whisper + Giant Slayer"],
-                "tank": ["Mordekaiser: Warmog's + Gargoyle + Dragon's Claw"]
-            },
-            "god": "Varus",
-            "godWhy": "+4% five-cost odds helps hit Jhin faster",
-            "gameplan": "Cho+Liss early for Dark Star 2 -> Morde 2-star -> Kai'Sa 3-star -> roll 8 for Karma+Jhin"
-        },
-        {
-            "id": "nova-reroll",
-            "name": "NOVA Reroll",
-            "color": "#06b6d4",
-            "carry": "aatrox",
-            "desc": "Stack NOVA trait with early Aatrox/Sejuani. Reroll to 3-star at level 6.",
-            "core": ["aatrox", "sejuani", "cassiopeia", "leblanc", "zilean"],
-            "flex": ["lucian", "vayne", "gragas"],
-            "items": {
-                "carry": ["Aatrox: Warmog's + Gargoyle + Redemption"],
-                "support": ["Zilean: Locket + Redemption"]
-            },
-            "god": "Evelynn",
-            "godWhy": "Lose streak to build gold, then stabilize with HP bonus",
-            "gameplan": "Lose streak 1-3 -> hit econ threshold -> reroll 6 for 3-stars -> slow roll 7 for final unit"
-        },
-        {
-            "id": "stargazer-6",
-            "name": "Stargazer 6",
-            "color": "#f472b6",
-            "carry": "xayah",
-            "desc": "Stack Stargazer for passive bonus and scale Xayah as the primary AD carry.",
-            "core": ["xayah", "rakan", "orianna", "kennen", "ahri", "syndra"],
-            "flex": ["lulu", "janna", "nami"],
-            "items": {
-                "carry": ["Xayah: Rageblade + Runaan's + Guinsoo"],
-                "flex": ["Orianna: Locket + Warmog's"]
-            },
-            "god": "Yasuo",
-            "godWhy": "Wind Hex synergizes directly with Stargazer AS scaling",
-            "gameplan": "Early Rakan+Orianna -> add Ahri/Kennen -> roll 8 for Xayah+Syndra -> cap with Rakan 2"
-        },
-        {
-            "id": "bastion-frontline",
-            "name": "Bastion 6 Tank Wall",
-            "color": "#64748b",
-            "carry": "kaisa",
-            "desc": "Frontline fortress with 6 Bastions soaking all damage while Kai'Sa shreds from range.",
-            "core": ["aatrox", "malphite", "sejuani", "shen", "taric", "kaisa"],
-            "flex": ["poppy", "leona", "braum"],
-            "items": {
-                "carry": ["Kai'Sa: Rageblade + Runaan's + IE"],
-                "tank": ["Malphite: Warmog's + Sunfire + Gargoyle"]
-            },
-            "god": "Kayle",
-            "godWhy": "Radiant item on Kai'Sa or main tank is game-ending",
-            "gameplan": "Build Bastion 4 early -> transition to 6 at level 8 -> add Kai'Sa items"
-        },
-        {
-            "id": "void-fast9",
-            "name": "Void Fast 9",
-            "color": "#7e22ce",
-            "carry": "chogath",
-            "desc": "Slam econ items, fast level to 9, find Cho'Gath as the star of your Void board.",
-            "core": ["rek'sai", "chogath", "kassadin", "velkovz", "malzahar", "belveth"],
-            "flex": ["zac", "ekko", "jayce"],
-            "items": {
-                "carry": ["Cho'Gath: Warmog's + Sunfire + Morellonomicon"],
-                "support": ["Mal'zahar: Locket + Spear of Shojin"]
-            },
-            "god": "Ahri",
-            "godWhy": "Extra gold and XP helps hit level 9 faster",
-            "gameplan": "Econ to 50g -> level 8 at 4-1 -> roll down for cores -> push to 9 for Cho'Gath"
-        },
-        {
-            "id": "invoker-flex",
-            "name": "Invoker AP Flex",
-            "color": "#0ea5e9",
-            "carry": "lux",
-            "desc": "Invoker mana engine powering Lux as the primary AP carry. Very consistent.",
-            "core": ["lux", "syndra", "karma", "orianna", "zilean", "soraka"],
-            "flex": ["sona", "janna", "nami"],
-            "items": {
-                "carry": ["Lux: Spear of Shojin + Jeweled Gauntlet + Rabaddon"],
-                "support": ["Soraka: Chalice + Locket"]
-            },
-            "god": "Ekko",
-            "godWhy": "Anomaly item scales perfectly with AP carries",
-            "gameplan": "Invoker 2 early with Karma/Soraka -> Lux 2 at level 7 -> add Syndra/Orianna for 4-invoker"
-        },
-        {
-            "id": "slayer-reroll",
-            "name": "Slayer Reroll",
-            "color": "#ef4444",
-            "carry": "draven",
-            "desc": "Draven 3-star reroll with Slayer lifesteal keeping him alive through fights.",
-            "core": ["draven", "darius", "katarina", "swain", "pyke"],
-            "flex": ["vi", "samira", "urgot"],
-            "items": {
-                "carry": ["Draven: Bloodthirster + Rageblade + IE"],
-                "flex": ["Darius: Warmog's + Gargoyle"]
-            },
-            "god": "Varus",
-            "godWhy": "Pair copies of Draven accelerate finding 3-star",
-            "gameplan": "Econ through 2-1 -> reroll 6 for Draven 3 -> slow roll 7 for Pyke/Swain support"
-        },
-        {
-            "id": "guardian-angel",
-            "name": "Warden Control",
-            "color": "#16a34a",
-            "carry": "malphite",
-            "desc": "Stack Warden taunt to control the fight and let your tanks deal surprising damage.",
-            "core": ["malphite", "braum", "leona", "poppy", "cho'gath"],
-            "flex": ["amumu", "galio", "rammus"],
-            "items": {
-                "carry": ["Malphite: Warmog's + Morellonomicon + Rabadon"],
-                "tank": ["Leona: Sunfire + Gargoyle + Redemption"]
-            },
-            "god": "Soraka",
-            "godWhy": "HP stacking synergizes with tankiness of warden builds",
-            "gameplan": "Build Warden 2-4 early -> roll 7 for Leona 2/Malphite 2 -> cap with final tank at 8"
-        },
-        {
-            "id": "sniper-backline",
-            "name": "Sniper Backline",
-            "color": "#ca8a04",
-            "carry": "jinx",
-            "desc": "Spread your board to maximize Sniper trait bonus, Jinx dealing massive damage from the corner.",
-            "core": ["jinx", "caitlyn", "ezreal", "graves", "miss fortune"],
-            "flex": ["gangplank", "tristana", "quinn"],
-            "items": {
-                "carry": ["Jinx: IE + Last Whisper + Giant Slayer"],
-                "flex": ["Caitlyn: BT + Rageblade"]
-            },
-            "god": "Thresh",
-            "godWhy": "Random loot can snowball early - dice gods willing",
-            "gameplan": "Graves/Caitlyn early for Sniper 2 -> reroll for Jinx 2 -> push Sniper 4 at level 8"
-        },
-        {
-            "id": "empress-5cost",
-            "name": "Empress Capped Board",
-            "color": "#e11d48",
-            "carry": "belveth",
-            "desc": "Build around Bel'Veth Empress trait for maximum void scaling into late game.",
-            "core": ["belveth", "rek'sai", "chogath", "kassadin", "malzahar", "velkovz"],
-            "flex": ["warwick", "ekko", "jayce"],
-            "items": {
-                "carry": ["Bel'Veth: Rageblade + Runaan's + Guinsoo"],
-                "support": ["Kassadin: Locket + Spear of Shojin"]
-            },
-            "god": "Aurelion Sol",
-            "godWhy": "Reach 50g for comp anvil containing Empress emblem",
-            "gameplan": "Econ through mid-game -> find Bel'Veth at 8 -> add 5th Void at 9 for Empress activation"
-        },
-    ]
+    """Load curated Set 17 meta comps from scraper/sources/set17_comps.json.
+
+    Source: WebFetched from mobalytics + tftacademy meta guides. Each comp has
+    full carry/core/flex rosters, items by unit, carousel priority, augments,
+    god patron + reasoning, and stage-by-stage gameplan.
+    """
+    if not os.path.exists(COMPS_FILE):
+        print("  WARNING: {} missing - no comps will be written".format(COMPS_FILE))
+        return []
+    with open(COMPS_FILE, "r", encoding="utf-8") as f:
+        comps = json.load(f)
+    print("  Loaded {} curated comps from set17_comps.json".format(len(comps)))
+    return comps
 
 
 def write_json(path, data):
