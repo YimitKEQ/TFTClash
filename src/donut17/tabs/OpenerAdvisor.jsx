@@ -105,7 +105,9 @@ export default function OpenerAdvisor(props) {
         comp={expandedComp}
         champions={champions}
         traits={traits}
+        allComps={comps}
         onBack={function(){ setExpandedId(null) }}
+        onOpenComp={function(id){ setExpandedId(id) }}
       />
     )
   }

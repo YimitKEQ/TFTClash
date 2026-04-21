@@ -1,8 +1,11 @@
 import { useMemo } from 'react'
-import { makeImgFallback, costColor } from '../lib/imgFallback'
 import { computeFlowchart, splitAugments } from '../lib/flowchart'
 import { tierColor as traitTierColor } from '../lib/traitComputer'
 import { buildCompSummary } from '../lib/compSummary'
+import { findPivots } from '../lib/pivots'
+import { makeImgFallback } from '../lib/imgFallback'
+import HexBoard from '../lib/HexBoard'
+import ChampImg from '../lib/ChampImg'
 
 var TIER_COLOR = {
   'OP': '#ff6b9d',
@@ -31,7 +34,9 @@ export default function CompFlowchart(props) {
   var comp = props.comp
   var champions = props.champions
   var traits = props.traits
+  var allComps = props.allComps || []
   var onBack = props.onBack
+  var onOpenComp = props.onOpenComp
 
   var champByKey = useMemo(function () {
     var m = {}
@@ -47,18 +52,16 @@ export default function CompFlowchart(props) {
     return buildCompSummary(comp, champions)
   }, [comp, champions])
 
+  var pivots = useMemo(function () {
+    return findPivots(comp, allComps, { max: 4 })
+  }, [comp, allComps])
+
   var bestTier = comp.tftflowBestTier || comp.tier || ''
   var accent = TIER_COLOR[bestTier] || '#FFC66B'
   var tierList = comp.tftflowTiers || (bestTier ? [bestTier] : [])
   var carrySet = new Set(comp.carries || (comp.carry ? [comp.carry] : []))
   var carryKeys = Array.from(carrySet)
   var augBuckets = splitAugments(comp.augments)
-
-  var traitByApi = useMemo(function () {
-    var m = {}
-    traits.forEach(function (t) { m[t.apiName] = t })
-    return m
-  }, [traits])
 
   return (
     <div>
@@ -74,22 +77,27 @@ export default function CompFlowchart(props) {
 
       <Hero comp={comp} accent={accent} tierList={tierList} carryKeys={carryKeys} champByKey={champByKey} summary={summary}/>
 
-      <div className="mt-8">
+      {/* Stage rail */}
+      <div className="mt-8 mb-10">
+        <StageRail flow={flow} accent={accent}/>
+      </div>
+
+      <div>
         <SectionHead label="Flowchart" accent={accent}/>
         <p className="text-xs font-body mb-6" style={{ color: 'rgba(228,225,236,0.55)' }}>
-          Synthetic progression derived from the final board + cost curve. Your real transitions flex with rolls, econ, and lobby contest.
+          Stage-by-stage hex boards synthesized from the final comp + champion stats. Positioning is heuristic (tanks front, carries back) and you should flex it based on your lobby's threat.
         </p>
-        <div className="space-y-5">
+        <div>
           {flow.map(function (stage, i) {
             return (
-              <StageCard
-                key={stage.key}
-                stage={stage}
-                accent={accent}
-                champByKey={champByKey}
-                traitByApi={traitByApi}
-                showArrow={i < flow.length - 1}
-              />
+              <div key={stage.key}>
+                <StageCard stage={stage} accent={accent} champByKey={champByKey}/>
+                {i < flow.length - 1 && (
+                  <div className="flex justify-center" aria-hidden="true">
+                    <div className="d17-stage-arrow" style={{ height: 36 }}/>
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>
@@ -99,7 +107,7 @@ export default function CompFlowchart(props) {
         <div className="mt-10">
           <SectionHead label="Augment Priority" accent={accent}/>
           <p className="text-xs font-body mb-6" style={{ color: 'rgba(228,225,236,0.55)' }}>
-            Ranked by the meta source. Top 3 are bread-and-butter, next 4 are strong flex, last are contextual.
+            Ranked by the meta source. Top are bread-and-butter, strong are flex, rest are contextual.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <AugColumn label="Top" accent="#FFC66B" augs={augBuckets.top}/>
@@ -109,12 +117,33 @@ export default function CompFlowchart(props) {
         </div>
       )}
 
+      {pivots.length > 0 && (
+        <div className="mt-10">
+          <SectionHead label="Pivot Lines" accent={accent}/>
+          <p className="text-xs font-body mb-6" style={{ color: 'rgba(228,225,236,0.55)' }}>
+            Other meta comps that share carries or board units with this one. If you get contested, these are the cleanest transitions.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {pivots.map(function (p) {
+              return (
+                <PivotCard
+                  key={p.comp.id}
+                  pivot={p}
+                  champByKey={champByKey}
+                  onOpen={onOpenComp ? function(){ onOpenComp(p.comp.id) } : null}
+                />
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {comp.url && (
         <div className="mt-10 d17-panel-lo p-5 flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>Source</p>
             <p className="text-sm font-body mt-1" style={{ color: 'rgba(228,225,236,0.75)' }}>
-              Board + tiers + augments sourced from tftflow.com, {comp.patch || 'current patch'}.
+              Board + tiers + augments mirrored from tftflow.com, {comp.patch || 'current patch'}. Positioning + stage transitions synthesized in-app.
             </p>
           </div>
           <a
@@ -124,11 +153,36 @@ export default function CompFlowchart(props) {
             className="font-mono text-[11px] uppercase tracking-widest inline-flex items-center gap-1 hover:underline"
             style={{ color: accent }}
           >
-            Open original flowchart
+            View on tftflow
             <span className="material-symbols-outlined" style={{ fontSize: 14 }}>open_in_new</span>
           </a>
         </div>
       )}
+    </div>
+  )
+}
+
+function StageRail(props) {
+  var flow = props.flow
+  var accent = props.accent
+  return (
+    <div className="d17-panel-lo p-4 flex items-center gap-2 md:gap-4 overflow-x-auto">
+      {flow.map(function (s, i) {
+        return (
+          <div key={s.key} className="flex items-center gap-2 md:gap-4 shrink-0">
+            <div className="flex flex-col items-start gap-0.5 min-w-[110px]">
+              <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>{s.label}</span>
+              <div className="flex items-baseline gap-2">
+                <span className="font-editorial italic text-lg" style={{ color: s.isFinal ? accent : '#e4e1ec' }}>{s.stage}</span>
+                <span className="font-mono text-[10px]" style={{ color: '#67e2d9' }}>LVL {s.level}</span>
+              </div>
+            </div>
+            {i < flow.length - 1 && (
+              <span className="material-symbols-outlined" style={{ color: 'rgba(255,198,107,0.35)', fontSize: 18 }}>chevron_right</span>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -225,95 +279,47 @@ function StageCard(props) {
   var stage = props.stage
   var accent = props.accent
   var champByKey = props.champByKey
-  var traitByApi = props.traitByApi
-  var showArrow = props.showArrow
 
   return (
-    <div className="relative">
-      <div className="d17-panel p-5 relative overflow-hidden">
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
-            background: stage.isFinal ? accent : 'rgba(255,198,107,0.35)',
-          }}
-        />
-        <div className="pl-3 flex flex-col md:flex-row md:items-start md:gap-6 gap-4">
-          {/* Step number + level */}
-          <div className="flex md:flex-col items-center md:items-start gap-3 md:gap-1 shrink-0 md:w-32">
-            <div className="flex items-baseline gap-2">
-              <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>Stage</span>
-              <span className="font-editorial italic text-2xl" style={{ color: stage.isFinal ? accent : '#e4e1ec' }}>{stage.stage}</span>
-            </div>
-            <div className="flex items-baseline gap-1">
-              <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>LVL</span>
-              <span className="font-mono text-lg" style={{ color: '#e4e1ec' }}>{stage.level}</span>
-            </div>
-            <p className="font-label uppercase tracking-widest text-[10px]" style={{ color: stage.isFinal ? accent : 'rgba(228,225,236,0.55)' }}>
-              {stage.label}
-            </p>
+    <div className="d17-panel p-5 relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', left: 0, top: 0, bottom: 0, width: 4,
+          background: stage.isFinal ? accent : 'rgba(255,198,107,0.35)',
+        }}
+      />
+      <div className="pl-3 grid grid-cols-12 gap-4">
+        <div className="col-span-12 md:col-span-3">
+          <div className="flex items-baseline gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>Stage</span>
+            <span className="font-editorial italic text-3xl" style={{ color: stage.isFinal ? accent : '#e4e1ec' }}>{stage.stage}</span>
           </div>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#67e2d9' }}>Level {stage.level}</span>
+            <span className="font-mono text-[10px]" style={{ color: '#9d8e7c' }}>{stage.units.length} units</span>
+          </div>
+          <p className="font-label uppercase tracking-widest text-[10px] mt-2" style={{ color: stage.isFinal ? accent : 'rgba(228,225,236,0.55)' }}>
+            {stage.label}
+          </p>
+          {stage.target && (
+            <p className="font-body text-xs mt-2 leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
+              {stage.target}
+            </p>
+          )}
 
-          {/* Units hex row */}
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap gap-1.5">
-              {stage.units.map(function (k, i) {
-                var ch = champByKey[k]
-                var isCarry = stage.carrySet.has(k)
-                if (!ch) {
-                  return (
-                    <div
-                      key={i + k}
-                      className="w-12 h-12 flex items-center justify-center font-mono text-[10px]"
-                      style={{ background: '#0e0d15', color: '#504535', border: '1px dashed #504535' }}
-                    >?</div>
-                  )
-                }
-                return (
-                  <div key={i + k} className="relative group">
-                    <img
-                      alt={ch.name}
-                      src={ch.assets && ch.assets.face}
-                      onError={makeImgFallback(ch.cost)}
-                      className="w-12 h-12 object-cover"
-                      style={{
-                        border: isCarry ? '2px solid #FFC66B' : '1px solid ' + costColor(ch.cost),
-                        boxShadow: isCarry ? '0 0 10px rgba(255,198,107,0.55)' : 'none',
-                      }}
-                      title={ch.name + (isCarry ? ' (carry)' : '')}
-                    />
-                    {isCarry && (
-                      <span
-                        aria-hidden="true"
-                        className="absolute -top-1 -right-1 font-mono text-[8px] font-bold px-1 leading-none"
-                        style={{ background: '#FFC66B', color: '#0e0d15' }}
-                      >C</span>
-                    )}
-                    <span
-                      className="absolute bottom-0 inset-x-0 text-center font-mono text-[8px] uppercase py-0.5"
-                      style={{ background: 'rgba(14,13,21,0.85)', color: 'rgba(228,225,236,0.85)' }}
-                    >
-                      {ch.name}
-                    </span>
-                  </div>
-                )
-              })}
-              {stage.units.length === 0 && (
-                <span className="font-mono text-xs" style={{ color: '#504535' }}>-- no eligible units --</span>
-              )}
-            </div>
-
-            {/* Active traits */}
-            {stage.traits.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
+          {stage.traits.length > 0 && (
+            <div className="mt-4">
+              <p className="font-mono text-[9px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>Active Traits</p>
+              <div className="flex flex-wrap gap-1">
                 {stage.traits.map(function (t) {
                   var color = traitTierColor(t.tier)
                   return (
                     <span
                       key={t.apiName}
-                      className="font-mono text-[10px] uppercase tracking-widest inline-flex items-center gap-1 px-2 py-0.5"
+                      className="font-mono text-[10px] uppercase tracking-wide inline-flex items-center gap-1 px-2 py-0.5"
                       style={{ background: color + '14', color: color, border: '1px solid ' + color + '44' }}
-                      title={t.name + ' ' + t.count + '/' + t.maxBreakpoint}
+                      title={t.name + ' ' + t.count + '/' + t.maxBreakpoint + ' (' + t.tier + ')'}
                     >
                       <span style={{ fontWeight: 700 }}>{t.count}</span>
                       <span>{t.name}</span>
@@ -321,19 +327,88 @@ function StageCard(props) {
                   )
                 })}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+
+        <div className="col-span-12 md:col-span-9">
+          <HexBoard
+            placed={stage.placed}
+            champByKey={champByKey}
+            size={stage.isFinal ? 60 : 52}
+            showLabels={true}
+          />
         </div>
       </div>
-      {showArrow && (
-        <div
-          className="flex justify-center"
-          style={{ height: 14, color: 'rgba(255,198,107,0.35)' }}
-          aria-hidden="true"
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>arrow_downward</span>
+    </div>
+  )
+}
+
+function PivotCard(props) {
+  var p = props.pivot
+  var c = p.comp
+  var champByKey = props.champByKey
+  var onOpen = props.onOpen
+  var tier = c.tftflowBestTier || c.tier || ''
+  var accent = TIER_COLOR[tier] || '#FFC66B'
+
+  return (
+    <div className="d17-panel p-4 relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(120deg, ' + accent + '14 0%, transparent 65%)',
+          pointerEvents: 'none',
+        }}
+      />
+      <div className="relative flex items-start gap-3">
+        <div className="flex -space-x-2 shrink-0">
+          {(c.carries || (c.carry ? [c.carry] : [])).slice(0, 2).map(function (k) {
+            var ch = champByKey[k]
+            if (!ch) return null
+            return (
+              <ChampImg
+                key={k}
+                champion={ch}
+                carry
+                size={44}
+                style={{ width: 44, height: 44 }}
+              />
+            )
+          })}
         </div>
-      )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-editorial italic text-lg truncate" style={{ color: '#e4e1ec' }}>{c.name}</p>
+            {tier && (
+              <span className="font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5"
+                style={{ background: accent + '22', color: accent, border: '1px solid ' + accent + '55' }}>{tier}</span>
+            )}
+          </div>
+          <div className="mt-1 flex items-center gap-3 flex-wrap">
+            {p.sharedCarries.length > 0 && (
+              <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#FFC66B' }}>
+                {p.sharedCarries.length} shared carr{p.sharedCarries.length === 1 ? 'y' : 'ies'}
+              </span>
+            )}
+            <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#67e2d9' }}>
+              {p.sharedUnits.length} shared units
+            </span>
+          </div>
+          {onOpen && (
+            <button
+              type="button"
+              onClick={onOpen}
+              className="mt-3 font-mono text-[10px] uppercase tracking-widest inline-flex items-center gap-1 px-2 py-1 cursor-pointer"
+              style={{ background: accent + '14', color: accent, border: '1px solid ' + accent + '44' }}
+            >
+              Inspect pivot
+              <span className="material-symbols-outlined" style={{ fontSize: 12 }}>chevron_right</span>
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

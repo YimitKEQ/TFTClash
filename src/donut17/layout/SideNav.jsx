@@ -3,6 +3,7 @@ var TABS = [
   { k: 'synergy',   label: 'Synergy Grid',    icon: 'grid_view' },
   { k: 'champions', label: 'Champions',       icon: 'groups' },
   { k: 'comps',     label: 'Comp Lines',      icon: 'account_tree' },
+  { k: 'planner',   label: 'Team Planner',    icon: 'extension' },
   { k: 'gods',      label: 'Gods',            icon: 'temple_buddhist' },
   { k: 'items',     label: 'Items',           icon: 'inventory_2' },
   { k: 'augments',  label: 'Augments',        icon: 'diamond' },

@@ -105,7 +105,9 @@ export default function CompLines(props) {
         comp={selectedComp}
         champions={champions}
         traits={traits}
+        allComps={comps}
         onBack={function () { setSelectedId(null) }}
+        onOpenComp={function(id){ setSelectedId(id) }}
       />
     )
   }

@@ -8,12 +8,14 @@
 // from the final board -- no copied prose.
 
 import { computeActiveTraits } from './traitComputer'
+import { positionBoard } from './positioning'
+import { stageBeats } from './pivots'
 
 var STAGE_DEFS = [
-  { key: 'opener',  label: 'Opener',     stage: '2-1',  level: 4, maxCost: 2, size: 4 },
-  { key: 'midgame', label: 'Stabilize',  stage: '3-2',  level: 6, maxCost: 3, size: 6 },
-  { key: 'spike',   label: 'Power Spike', stage: '4-1', level: 7, maxCost: 4, size: 7 },
-  { key: 'final',   label: 'Final Board', stage: '5+',  level: 9, maxCost: 5, size: 9 },
+  { key: 'opener',  label: 'Opener',     maxCost: 2, size: 4 },
+  { key: 'midgame', label: 'Stabilize',  maxCost: 3, size: 6 },
+  { key: 'spike',   label: 'Power Spike', maxCost: 4, size: 7 },
+  { key: 'final',   label: 'Final Board', maxCost: 5, size: 9 },
 ]
 
 function champByKey(champions) {
@@ -60,19 +62,24 @@ export function computeFlowchart(comp, champions, traits) {
   var byKey = champByKey(champions)
   var carrySet = new Set(comp.carries || (comp.carry ? [comp.carry] : []))
   var board = comp.board || []
+  var beats = stageBeats(comp.econ)
 
-  return STAGE_DEFS.map(function (def) {
+  return STAGE_DEFS.map(function (def, i) {
     var isFinal = def.key === 'final'
     var units = isFinal
       ? board.slice()
       : pickStageUnits(board, byKey, carrySet, { maxCost: def.maxCost, size: def.size })
     var activeTraits = computeActiveTraits(units, champions, traits)
+    var placed = positionBoard(units, byKey, carrySet)
+    var beat = beats[i] || beats[beats.length - 1]
     return {
       key: def.key,
       label: def.label,
-      stage: def.stage,
-      level: def.level,
+      stage: beat.stage,
+      level: beat.level,
+      target: beat.target,
       units: units,
+      placed: placed,
       traits: activeTraits,
       carrySet: carrySet,
       isFinal: isFinal,

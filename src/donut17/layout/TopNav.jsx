@@ -27,6 +27,7 @@ export default function TopNav(props) {
           <TopLink label="Opener"   k="opener"   tab={tab} onTab={onTab}/>
           <TopLink label="Champs"   k="champions"tab={tab} onTab={onTab}/>
           <TopLink label="Comps"    k="comps"    tab={tab} onTab={onTab}/>
+          <TopLink label="Planner"  k="planner"  tab={tab} onTab={onTab}/>
           <TopLink label="Gods"     k="gods"     tab={tab} onTab={onTab}/>
         </div>
       </div>

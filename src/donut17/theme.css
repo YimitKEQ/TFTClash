@@ -120,3 +120,53 @@
 .d17 ::-webkit-scrollbar-track { background: var(--d17-bg-deep); }
 .d17 ::-webkit-scrollbar-thumb { background: var(--d17-outline); border-radius: 2px; }
 .d17 ::-webkit-scrollbar-thumb:hover { background: var(--d17-gold-deep); }
+
+/* Hex board primitives -- pointy-top hexagons, used by HexBoard + TeamPlanner */
+.d17 .d17-hex {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.d17 .d17-hex-ring {
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+.d17 .d17-hex-fg {
+  position: absolute;
+  inset: 2px;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  -webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background: #0e0d15;
+  overflow: hidden;
+}
+.d17 .d17-hex-empty {
+  background: rgba(14, 13, 21, 0.55);
+  border: 1px solid rgba(80, 69, 53, 0.30);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.d17 .d17-hex-empty:hover {
+  background: rgba(255, 198, 107, 0.06);
+  border-color: rgba(255, 198, 107, 0.35);
+}
+.d17 .d17-hex-board-bg {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,198,107,0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #0e0d15 0%, #1b1b23 100%);
+  border: 1px solid rgba(255, 198, 107, 0.10);
+}
+.d17 .d17-row-label {
+  position: absolute;
+  left: -68px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(157, 142, 124, 0.65);
+  white-space: nowrap;
+}
+.d17 .d17-stage-arrow {
+  width: 2px;
+  background: linear-gradient(180deg, rgba(255,198,107,0.45), rgba(255,198,107,0));
+  margin: 0 auto;
+}
