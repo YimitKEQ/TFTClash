@@ -115,6 +115,58 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
+-- 5b. Clear cached tournament_state in site_settings.
+--
+-- The client caches `tournament_state` (phase, registeredIds, dbTournamentId,
+-- activeTournamentId, etc.) in site_settings. If we leave a dbTournamentId
+-- pointing to a deleted tournament, the next register click hits a FK
+-- violation against registrations. Reset the whole payload to a clean
+-- pre-tournament shape so the admin panel can seed Season 1 fresh.
+--
+-- Note: value is stored as a JSON-stringified JSON (historical double-encode);
+-- we match that by writing a quoted JSON string.
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  fresh_state text;
+BEGIN
+  IF to_regclass('public.site_settings') IS NOT NULL THEN
+    fresh_state := jsonb_build_object(
+      'phase', 'registration',
+      'round', 1,
+      'lobbies', '[]'::jsonb,
+      'lockedLobbies', '[]'::jsonb,
+      'checkedInIds', '[]'::jsonb,
+      'registeredIds', '[]'::jsonb,
+      'waitlistIds', '[]'::jsonb,
+      'maxPlayers', 128,
+      'clashName', 'Clash Week 1',
+      'server', 'EU',
+      'region', 'EU',
+      'isFinale', false,
+      'rulesOverride', '',
+      'prizePool', '[]'::jsonb,
+      'roundCount', 4,
+      'seedingMethod', 'snake',
+      'clashNumber', 1,
+      'totalGames', 4,
+      'cutLine', 13,
+      'cutAfterGame', 4,
+      'checkinWindowMins', 30,
+      'formatPreset', 'custom'
+    )::text;
+
+    UPDATE public.site_settings
+    SET value = to_jsonb(fresh_state)
+    WHERE key = 'tournament_state';
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  -- If site_settings schema diverges, skip silently; the rest of the reset
+  -- still succeeded. Admin can clear the row manually.
+  NULL;
+END $$;
+
+-- ---------------------------------------------------------------------------
 -- 6. Reset player competitive stats (keep rows, bio, socials, auth links,
 -- region, rank, profile_pic_url, is_admin, tier).
 -- ---------------------------------------------------------------------------
