@@ -532,6 +532,21 @@ def main():
     items = parse_items(data)
     augments = parse_augments(data)
 
+    # Remap champion traits from display names ("Doomer") to apiNames ("TFT17_VexUniqueTrait")
+    name_to_api = {}
+    for t in traits:
+        api = t.get("apiName")
+        nm = t.get("name")
+        if api and nm:
+            name_to_api[nm] = api
+            name_to_api[nm.lower()] = api
+    for champ in champions:
+        remapped = []
+        for raw in champ.get("traits", []):
+            api = name_to_api.get(raw) or name_to_api.get(str(raw).lower()) or raw
+            remapped.append(api)
+        champ["traits"] = remapped
+
     print("\nParsed: {} champions, {} traits, {} items, {} augments".format(
         len(champions), len(traits), len(items), len(augments)))
 
@@ -544,6 +559,24 @@ def main():
     # 4. Build static data
     gods = build_gods()
     comp_lines = build_comp_lines()
+
+    # Prune comp_line champion refs that don't exist in the Set 17 roster
+    known_keys = {c["key"] for c in champions}
+    pruned_total = 0
+    pruned_comps = 0
+    for comp in comp_lines:
+        before = len(comp.get("core", [])) + len(comp.get("flex", []))
+        comp["core"] = [k for k in comp.get("core", []) if k in known_keys]
+        comp["flex"] = [k for k in comp.get("flex", []) if k in known_keys]
+        after = len(comp["core"]) + len(comp["flex"])
+        if after < before:
+            pruned_comps += 1
+            pruned_total += before - after
+        if comp.get("carry") and comp["carry"] not in known_keys:
+            # Fall back to first core unit if carry isn't in the set
+            comp["carry"] = comp["core"][0] if comp["core"] else comp.get("carry")
+    if pruned_total:
+        print("  Pruned {} stale unit refs across {} comps".format(pruned_total, pruned_comps))
 
     # 5. Build synergy grid
     origins = [t for t in traits if t.get("type") == "origin"]

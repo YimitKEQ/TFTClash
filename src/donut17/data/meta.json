@@ -1,0 +1,32 @@
+{
+  "updated_at": "2026-04-21T15:50:33.676205Z",
+  "sources": [
+    {
+      "name": "metatft.com",
+      "comps": 0,
+      "units": 0,
+      "augments": 0
+    },
+    {
+      "name": "tactics.tools",
+      "comps": 0,
+      "units": 0,
+      "augments": 0
+    },
+    {
+      "name": "lolchess.gg",
+      "comps": 0,
+      "units": 0,
+      "augments": 0
+    },
+    {
+      "name": "tftacademy.com",
+      "comps": 0,
+      "units": 0,
+      "augments": 0
+    }
+  ],
+  "comps": {},
+  "champions": {},
+  "augments": {}
+}

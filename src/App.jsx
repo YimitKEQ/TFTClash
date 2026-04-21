@@ -94,6 +94,7 @@ var StatsHubScreenNew = lazyWithRetry(function(){ return import('./screens/Stats
 var SponsorsScreenNew = lazyWithRetry(function(){ return import('./screens/SponsorsScreen'); });
 var CommandCenterScreen = lazyWithRetry(function(){ return import('./screens/CommandCenterScreen'); });
 var ContentEngineScreen = lazyWithRetry(function(){ return import('./screens/ContentEngineScreen'); });
+var Donut17ScreenNew = lazyWithRetry(function(){ return import('./donut17/Donut17Screen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -243,7 +244,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -389,7 +390,7 @@ function TFTClash(){
     archive:"/archive",recap:"/season-recap",rules:"/rules",faq:"/faq",
     account:"/account","host-apply":"/host/apply","host-dashboard":"/host/dashboard",
     admin:"/admin",privacy:"/privacy",terms:"/terms",clash:"/clash",
-    tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear",sponsors:"/sponsors"
+    tournaments:"/tournaments",roster:"/roster",featured:"/featured",gear:"/gear",sponsors:"/sponsors",donut17:"/donut17"
   };
 
   var navTo=useCallback(function(s,sub){
@@ -704,6 +705,8 @@ function TFTClash(){
         {screen==="status"&&<StatusScreenNew/>}
 
         {screen==="sponsors"&&<SponsorsScreenNew/>}
+
+        {screen==="donut17"&&<Donut17ScreenNew/>}
 
 
         </ScreenBoundary>
