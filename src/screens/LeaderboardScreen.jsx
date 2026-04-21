@@ -227,20 +227,20 @@ export default function LeaderboardScreen(props) {
           <div className="flex justify-center mb-4">
             <span className="brand-eyebrow">Global Competition</span>
           </div>
-          <h1 className="font-editorial italic text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
-          <p className="text-on-surface-variant max-w-2xl mx-auto font-body opacity-80 leading-relaxed">
+          <h1 className="font-display text-5xl sm:text-6xl md:text-8xl text-on-surface mb-5 tracking-tighter uppercase leading-none">Ranked Standings</h1>
+          <p className="text-on-surface/80 max-w-2xl mx-auto font-headline text-lg md:text-xl tracking-tight">
             Every placement earns points. Every week is a chance to climb. One season, one ladder, every region.
           </p>
         </header>
 
         {/* Leaderboard Sponsors */}
-        <div className="mb-8">
+        <div className="mb-20">
           <SponsorShowcase placement="leaderboard" variant="strip" />
         </div>
 
         {/* Podium */}
         {top3.length >= 3 && (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-20 px-4">
+          <section className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-20 px-4 pt-16">
             <PodiumCard player={top3[1]} rank={2} onClick={function() { openPlayer(top3[1]) }} />
             <PodiumCard player={top3[0]} rank={1} onClick={function() { openPlayer(top3[0]) }} />
             <PodiumCard player={top3[2]} rank={3} onClick={function() { openPlayer(top3[2]) }} />

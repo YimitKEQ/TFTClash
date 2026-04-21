@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Icon } from '../ui';
 import { DISCORD_URL } from '../../lib/constants';
+import AdBanner from '../shared/AdBanner';
 
 var SCREEN_TO_ROUTE = {
   home: '/', login: '/login', signup: '/signup',
@@ -145,6 +146,11 @@ export default function Sidebar() {
           </>
         )}
       </nav>
+
+      {/* Sidebar Ad (hidden for Pro/Bundle/Host) */}
+      <div className="px-4 pb-3 shrink-0">
+        <AdBanner size="rectangle" className="w-full" />
+      </div>
 
       {/* CTA */}
       <div className="px-5 py-5 border-t border-white/[0.05] shrink-0 space-y-2">

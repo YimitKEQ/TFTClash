@@ -130,10 +130,34 @@ export default function TournamentTab() {
   var flashTournaments = _flashTournaments[0]
   var setFlashTournaments = _flashTournaments[1]
 
+  // Per-region active clashes (tracks concurrent EU + NA schedules)
+  var _regionalClashes = useState({ EU: null, NA: null })
+  var regionalClashes = _regionalClashes[0]
+  var setRegionalClashes = _regionalClashes[1]
+
+  function refreshRegionalClashes() {
+    supabase.from('tournaments')
+      .select('id, name, region, phase, date, max_players, round_count, registration_open')
+      .eq('type', WEEKLY_CLASH_TYPE)
+      .in('phase', ['registration', 'check_in', 'in_progress'])
+      .order('date', { ascending: false })
+      .then(function(res) {
+        if (res.error || !res.data) { setRegionalClashes({ EU: null, NA: null }); return }
+        var byRegion = { EU: null, NA: null }
+        res.data.forEach(function(t) {
+          var r = (t.region === 'NA') ? 'NA' : 'EU'
+          if (!byRegion[r]) byRegion[r] = t
+        })
+        setRegionalClashes(byRegion)
+      })
+      .catch(function(e) { console.error('[TournamentTab] refresh regional clashes failed:', e) })
+  }
+
   useEffect(function() {
     supabase.from('tournaments').select('id, name, date, phase, type').eq('type', 'flash_tournament').order('date', { ascending: false }).limit(20).then(function(res) {
       if (res.data) setFlashTournaments(res.data)
     }).catch(function(e) { console.error('[TournamentTab] DB op failed:', e); })
+    refreshRegionalClashes()
   }, [])
 
   function buildPrizePool(rows) {
@@ -269,10 +293,33 @@ export default function TournamentTab() {
     if (tId) {
       supabase.from('tournaments').update({ phase: toDbPhase(phase) }).eq('id', tId).then(function(r) {
         if (r.error) toast('DB phase update failed: ' + r.error.message, 'error')
+        else refreshRegionalClashes()
       }).catch(function() { toast('DB phase update failed', 'error') })
     }
     addAudit('ACTION', 'Phase set to: ' + phase)
     toast('Phase: ' + PHASE_LABELS[phase], 'success')
+  }
+
+  function focusClash(t) {
+    if (!t || !t.id) return
+    if (ts.dbTournamentId === t.id || ts.activeTournamentId === t.id) return
+    var dbPhaseMap = { check_in: 'checkin', in_progress: 'inprogress' }
+    var appPhase = dbPhaseMap[t.phase] || t.phase || 'registration'
+    setTournamentState(function(s) {
+      return Object.assign({}, s, {
+        dbTournamentId: t.id,
+        activeTournamentId: t.id,
+        clashName: t.name || 'Clash',
+        phase: appPhase,
+        server: t.region === 'NA' ? 'NA' : 'EU',
+        maxPlayers: t.max_players || s.maxPlayers || 24,
+        roundCount: t.round_count || s.roundCount || 3,
+        totalGames: t.round_count || s.totalGames || 3
+      })
+    })
+    setClashForm(function(f) { return Object.assign({}, f, { server: t.region === 'NA' ? 'NA' : 'EU', name: t.name || f.name }) })
+    addAudit('ACTION', 'Focused clash: ' + (t.name || t.id) + ' [' + (t.region || 'EU') + ']')
+    toast('Focused: ' + (t.name || 'Clash') + ' (' + (t.region || 'EU') + ')', 'success')
   }
 
   function openCheckin() {
@@ -366,6 +413,7 @@ export default function TournamentTab() {
         toast('Registration open: ' + name + ' (' + regLabel + ')', 'success')
         setClashNumberInput('')
         setOpening(false)
+        refreshRegionalClashes()
       }).catch(function(e) {
         toast('Failed to open registration', 'error')
         setOpening(false)
@@ -503,8 +551,58 @@ export default function TournamentTab() {
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
+  function renderRegionalClashCard(region) {
+    var t = regionalClashes[region]
+    var isFocused = t && (ts.dbTournamentId === t.id || ts.activeTournamentId === t.id)
+    var phaseLabel = t ? (PHASE_LABELS[({ check_in: 'checkin', in_progress: 'inprogress' })[t.phase] || t.phase] || t.phase) : ''
+    var borderClass = isFocused ? 'border-primary/60 bg-primary/[0.06]' : 'border-outline-variant/20 bg-surface-container'
+    return (
+      <div className={'flex-1 min-w-[220px] rounded-lg border p-3 ' + borderClass}>
+        <div className="flex items-center justify-between mb-2">
+          <span className={'text-[11px] font-bold uppercase tracking-widest ' + (region === 'NA' ? 'text-tertiary' : 'text-secondary')}>{region}</span>
+          {isFocused && (
+            <span className="text-[9px] font-bold uppercase tracking-widest text-primary bg-primary/15 px-1.5 py-0.5 rounded">Focused</span>
+          )}
+        </div>
+        {t ? (
+          <>
+            <div className="text-sm font-bold text-on-surface truncate">{t.name}</div>
+            <div className="text-[10px] text-on-surface/60 mt-0.5">{phaseLabel} &middot; {t.max_players}p &middot; {t.round_count}g</div>
+            <div className="mt-3 flex gap-2">
+              {!isFocused && (
+                <Btn variant="secondary" size="sm" onClick={function() { focusClash(t) }}>Focus</Btn>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-sm text-on-surface/40">No active clash</div>
+            <div className="text-[10px] text-on-surface/30 mt-0.5">Open registration below and set Server to {region}</div>
+          </>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-6">
+
+      <Panel>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <Icon name="public" size={16} className="text-primary" />
+            <span className="font-bold text-sm text-on-surface">Active Regional Clashes</span>
+          </div>
+          <Btn variant="ghost" size="sm" onClick={refreshRegionalClashes}>Refresh</Btn>
+        </div>
+        <div className="flex flex-col md:flex-row gap-3">
+          {renderRegionalClashCard('EU')}
+          {renderRegionalClashCard('NA')}
+        </div>
+        <div className="text-[10px] text-on-surface/40 mt-3">
+          Both regions run concurrent schedules. Use Focus to switch which clash the controls below target. Creating a new clash for a region replaces its active one.
+        </div>
+      </Panel>
 
       <Panel>
         <div className="flex items-center gap-2 mb-4">
@@ -723,10 +821,12 @@ export default function TournamentTab() {
           </div>
           <div className="text-[10px] text-on-surface/40 mt-2">Creates a fresh clash row in the database. Leave blank to auto-number.</div>
           {ts.dbTournamentId && (
-            <div className="text-[10px] text-success mt-2 font-bold">Active: {ts.clashName || 'Clash'} ({ts.clashNumber ? '#' + ts.clashNumber : 'no number'})</div>
+            <div className="text-[10px] text-success mt-2 font-bold">
+              Focused: {ts.clashName || 'Clash'} ({ts.clashNumber ? '#' + ts.clashNumber : 'no number'}) - {clashForm.server || 'EU'}
+            </div>
           )}
           {!ts.dbTournamentId && (
-            <div className="text-[10px] text-error mt-2 font-bold">No active clash. Click Open Registration to create one.</div>
+            <div className="text-[10px] text-error mt-2 font-bold">No focused clash. Click Open Registration or Focus an active regional clash above.</div>
           )}
         </div>
 

@@ -203,10 +203,10 @@ function H2HPanel(props) {
 
   return (
     <Panel className="mb-6 p-0 overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Icon name="swords" size={16} className="text-primary" />
-          <span className="font-label text-xs uppercase tracking-widest text-on-surface/70">Head-to-Head</span>
+      <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Icon name="swords" size={20} className="text-primary" />
+          <span className="font-headline text-base uppercase tracking-widest text-on-surface font-bold">Head-to-Head</span>
         </div>
         <div className="relative">
           {useSearch ? (
@@ -257,22 +257,22 @@ function H2HPanel(props) {
           <Empty message="No head-to-head data yet - play some clashes!" />
         ) : (
           <>
-            <div className="grid grid-cols-[1fr_56px_80px_80px] gap-2 px-2 pb-2 mb-1 border-b border-white/[0.04]">
+            <div className="grid grid-cols-[1fr_64px_96px_88px] gap-3 px-3 pb-3 mb-2 border-b border-white/[0.08]">
               {['Opponent', 'Games', 'Record', 'Avg'].map(function(h) {
-                return <span key={h} className={'text-[10px] font-label uppercase tracking-widest text-on-surface/30' + (h !== 'Opponent' ? ' text-center' : '')}>{h}</span>;
+                return <span key={h} className={'text-xs font-label font-bold uppercase tracking-widest text-on-surface/70' + (h !== 'Opponent' ? ' text-center' : '')}>{h}</span>;
               })}
             </div>
             {shown.map(function(r, i) {
               var isWinning = r.wins > r.losses;
               var isLosing = r.losses > r.wins;
               return (
-                <div key={r.opponent} className="grid grid-cols-[1fr_56px_80px_80px] gap-2 px-2 py-2.5 border-b border-white/[0.03] last:border-0 items-center">
+                <div key={r.opponent} className="grid grid-cols-[1fr_64px_96px_88px] gap-3 px-3 py-3 border-b border-white/[0.03] last:border-0 items-center">
                   <span className="text-sm font-label font-semibold text-on-surface truncate">{r.opponent}</span>
-                  <span className="text-xs font-mono text-on-surface/50 text-center">{r.meetings}</span>
-                  <span className={'text-xs font-mono text-center font-bold ' + (isWinning ? 'text-success' : isLosing ? 'text-error' : 'text-on-surface/50')}>
+                  <span className="text-sm font-mono text-on-surface/70 text-center">{r.meetings}</span>
+                  <span className={'text-sm font-mono text-center font-bold ' + (isWinning ? 'text-success' : isLosing ? 'text-error' : 'text-on-surface/50')}>
                     {r.wins + 'W ' + r.losses + 'L'}
                   </span>
-                  <span className="text-xs font-mono text-on-surface/60 text-center">{r.avgPlace.toFixed(2)}</span>
+                  <span className="text-sm font-mono text-on-surface/70 text-center">{r.avgPlace.toFixed(2)}</span>
                 </div>
               );
             })}

@@ -9,13 +9,13 @@ export default function PageHeader({ title, subtitle, description, goldWord, gri
           <span className="brand-eyebrow">{subtitle}</span>
         </div>
       )}
-      <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight leading-none mb-4">
+      <h1 className="text-5xl sm:text-6xl md:text-8xl font-display tracking-tighter uppercase leading-none mb-5 text-on-surface">
         {goldWord ? (
           <>{title} <span className="gold-gradient-text">{goldWord}</span></>
         ) : title}
       </h1>
       {description && (
-        <p className="max-w-2xl mx-auto text-on-surface-variant text-lg leading-relaxed italic">
+        <p className="max-w-2xl mx-auto text-on-surface/80 text-lg md:text-xl font-headline tracking-tight leading-relaxed">
           {description}
         </p>
       )}

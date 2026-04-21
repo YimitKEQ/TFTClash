@@ -238,16 +238,16 @@ export default function PricingScreen() {
 
         {/* Header */}
         <header className="text-center mb-16">
-          <h1 className="font-editorial italic text-5xl md:text-7xl mb-4 text-on-surface">
-            Competing is always free.
+          <h1 className="font-display text-5xl sm:text-6xl md:text-8xl mb-5 text-on-surface tracking-tighter uppercase leading-none">
+            Competing is <span className="text-primary">Always Free</span>
           </h1>
-          <p className="font-label text-sm uppercase tracking-[0.2em] text-on-surface-variant opacity-60 max-w-lg mx-auto">
+          <p className="font-headline text-lg md:text-xl tracking-tight text-on-surface/80 max-w-2xl mx-auto">
             Pro gives you the edge. Scrim Pass unlocks private practice. Host runs your league.
           </p>
         </header>
 
         {/* Pricing Cards - 5 tiers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
 
           <TierCard
             tier="free"
@@ -324,33 +324,6 @@ export default function PricingScreen() {
           />
 
         </div>
-
-        {/* Free-to-compete banner */}
-        <Panel padding="spacious" elevation="low" className="mt-20 relative overflow-hidden text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="font-display text-3xl mb-3 tracking-tighter">
-              FREE TO COMPETE, ALWAYS.
-            </h2>
-            <p className="text-on-surface-variant max-w-2xl mx-auto mb-6 text-sm">
-              Every weekly clash is free to enter. Paid tiers add tools, not access. Climb on merit, no paywall.
-            </p>
-            <div className="inline-flex items-center gap-6 font-mono text-xs opacity-50 uppercase flex-wrap justify-center">
-              <div className="flex items-center gap-2">
-                <Icon name="verified_user" size={16} />
-                Fair Play
-              </div>
-              <div className="flex items-center gap-2">
-                <Icon name="public" size={16} />
-                EUW - EUNE - NA
-              </div>
-              <div className="flex items-center gap-2">
-                <Icon name="groups" size={16} />
-                Community Moderated
-              </div>
-            </div>
-          </div>
-        </Panel>
 
         {/* Donation Section */}
         {getDonateUrl() ? (
