@@ -6,7 +6,7 @@ export var TFT_DEBUG = typeof window !== "undefined" && window.location.search.i
 export function dbg() { if (TFT_DEBUG) console.log.apply(console, arguments); }
 
 // ─── DISCORD ─────────────────────────────────────────────────────────────────
-export var DISCORD_URL = "https://discord.gg/2wM3AgYAPr";
+export var DISCORD_URL = "https://discord.gg/HJH3NQqqXH";
 
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 

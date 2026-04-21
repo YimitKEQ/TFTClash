@@ -42,6 +42,11 @@ function score(item, q) {
   return 0
 }
 
+function escapeIlike(raw) {
+  // Supabase/PostgREST ilike treats %, _, , and * specially. Strip to safe chars.
+  return String(raw).replace(/[%_*,()]/g, '')
+}
+
 export default function CommandPalette(props) {
   var open = props.open
   var onClose = props.onClose
@@ -53,29 +58,64 @@ export default function CommandPalette(props) {
   var _sel = useState(0)
   var sel = _sel[0]
   var setSel = _sel[1]
-  var _players = useState([])
-  var players = _players[0]
-  var setPlayers = _players[1]
   var _tournaments = useState([])
   var tournaments = _tournaments[0]
   var setTournaments = _tournaments[1]
-  var _loaded = useState(false)
-  var loaded = _loaded[0]
-  var setLoaded = _loaded[1]
+  var _tournamentsLoaded = useState(false)
+  var tournamentsLoaded = _tournamentsLoaded[0]
+  var setTournamentsLoaded = _tournamentsLoaded[1]
+  var _playerResults = useState([])
+  var playerResults = _playerResults[0]
+  var setPlayerResults = _playerResults[1]
+  var _playerLoading = useState(false)
+  var playerLoading = _playerLoading[0]
+  var setPlayerLoading = _playerLoading[1]
   var inputRef = useRef(null)
+  var itemsRef = useRef([])
+  var searchTokenRef = useRef(0)
 
-  // Lazy-load players + tournaments on first open
+  // Lazy-load tournaments (small list) on first open. Players are searched on demand.
   useEffect(function() {
-    if (!open || loaded) return
-    Promise.all([
-      supabase.from('players').select('id,username,rank').order('season_pts', { ascending: false }).limit(200),
-      supabase.from('tournaments').select('id,name,phase').order('created_at', { ascending: false }).limit(50)
-    ]).then(function(r) {
-      setPlayers((r[0] && r[0].data) || [])
-      setTournaments((r[1] && r[1].data) || [])
-      setLoaded(true)
-    }).catch(function() { setLoaded(true) })
-  }, [open, loaded])
+    if (!open || tournamentsLoaded) return
+    supabase.from('tournaments').select('id,name,phase').order('created_at', { ascending: false }).limit(50)
+      .then(function(r) {
+        setTournaments((r && r.data) || [])
+        setTournamentsLoaded(true)
+      }).catch(function() { setTournamentsLoaded(true) })
+  }, [open, tournamentsLoaded])
+
+  // Debounced player search: only fire when query has >= 2 chars.
+  useEffect(function() {
+    if (!open) return
+    var raw = q.trim()
+    if (raw.length < 2) {
+      setPlayerResults([])
+      setPlayerLoading(false)
+      return
+    }
+    searchTokenRef.current += 1
+    var myToken = searchTokenRef.current
+    setPlayerLoading(true)
+    var handle = setTimeout(function() {
+      var term = escapeIlike(raw)
+      if (!term) { setPlayerResults([]); setPlayerLoading(false); return }
+      supabase.from('players')
+        .select('id,username,rank,region')
+        .ilike('username', term + '%')
+        .order('season_pts', { ascending: false })
+        .limit(20)
+        .then(function(r) {
+          if (myToken !== searchTokenRef.current) return
+          setPlayerResults((r && r.data) || [])
+          setPlayerLoading(false)
+        }).catch(function() {
+          if (myToken !== searchTokenRef.current) return
+          setPlayerResults([])
+          setPlayerLoading(false)
+        })
+    }, 180)
+    return function() { clearTimeout(handle) }
+  }, [q, open])
 
   // Focus input on open, reset on close
   useEffect(function() {
@@ -84,6 +124,7 @@ export default function CommandPalette(props) {
       setTimeout(function() { if (inputRef.current) inputRef.current.focus() }, 30)
     } else {
       setQ('')
+      setPlayerResults([])
     }
   }, [open])
 
@@ -96,7 +137,7 @@ export default function CommandPalette(props) {
       if (e.key === 'ArrowUp') { e.preventDefault(); setSel(function(s) { return Math.max(0, s - 1) }); return }
       if (e.key === 'Enter') {
         e.preventDefault()
-        var items = window.__cmdpal_items || []
+        var items = itemsRef.current || []
         var item = items[sel]
         if (item) go(item)
       }
@@ -107,44 +148,49 @@ export default function CommandPalette(props) {
 
   var items = useMemo(function() {
     var query = q.trim().toLowerCase()
-    var list = []
-    ROUTES.forEach(function(r) {
-      list.push({ type: 'route', label: r.label, path: r.path, icon: r.icon, keywords: r.keywords })
+    var routeItems = ROUTES.map(function(r) {
+      return { type: 'route', label: r.label, path: r.path, icon: r.icon, keywords: r.keywords }
     })
-    players.forEach(function(p) {
-      list.push({
-        type: 'player',
-        label: p.username || '',
-        sub: p.rank || '',
-        path: '/player/' + encodeURIComponent(p.username || ''),
-        icon: 'person',
-        keywords: 'player profile'
-      })
-    })
-    tournaments.forEach(function(t) {
+    var tournamentItems = tournaments.map(function(t) {
       var nm = t.name || ('Tournament ' + t.id)
-      list.push({
+      return {
         type: 'tournament',
         label: nm,
         sub: t.phase || '',
         path: '/tournament/' + t.id,
         icon: 'emoji_events',
         keywords: 'tournament clash ' + (t.phase || '')
-      })
+      }
+    })
+    var playerItems = playerResults.map(function(p) {
+      return {
+        type: 'player',
+        label: p.username || '',
+        sub: [p.rank, p.region].filter(Boolean).join(' - '),
+        path: '/player/' + encodeURIComponent(p.username || ''),
+        icon: 'person',
+        keywords: 'player profile'
+      }
     })
 
     if (!query) {
-      return list.slice(0, 40)
+      // No query: just show nav + tournaments. Players are search-only.
+      return routeItems.concat(tournamentItems).slice(0, 40)
     }
-    var scored = list.map(function(it) { return { it: it, s: score(it, query) } })
+
+    // Score routes + tournaments by query, then prepend player results (already server-filtered).
+    var local = routeItems.concat(tournamentItems)
+      .map(function(it) { return { it: it, s: score(it, query) } })
       .filter(function(x) { return x.s > 0 })
       .sort(function(a, b) { return b.s - a.s })
-      .slice(0, 40)
-    return scored.map(function(x) { return x.it })
-  }, [q, players, tournaments])
+      .map(function(x) { return x.it })
 
-  // Stash items for Enter handler (avoids closure staleness)
-  useEffect(function() { window.__cmdpal_items = items }, [items])
+    return playerItems.concat(local).slice(0, 40)
+  }, [q, tournaments, playerResults])
+
+  // Stash items for Enter handler (avoids closure staleness) — scoped via ref,
+  // not a window global.
+  useEffect(function() { itemsRef.current = items }, [items])
 
   // Clamp selection
   useEffect(function() {
@@ -159,6 +205,11 @@ export default function CommandPalette(props) {
 
   if (!open) return null
 
+  var query = q.trim()
+  var showPlayerHint = query.length >= 1 && query.length < 2
+  var showPlayerLoading = playerLoading && query.length >= 2
+  var showNoMatches = items.length === 0 && !showPlayerLoading && !showPlayerHint
+
   return (
     <div
       className="fixed inset-0 z-[10001] flex items-start justify-center pt-[12vh] px-4 bg-black/60 backdrop-blur-sm"
@@ -171,13 +222,23 @@ export default function CommandPalette(props) {
             ref={inputRef}
             value={q}
             onChange={function(e) { setQ(e.target.value); setSel(0) }}
-            placeholder="Jump to a player, tournament, or page..."
+            placeholder="Jump to a page, tournament, or search players..."
             className="flex-1 bg-transparent outline-none text-sm text-on-surface placeholder-on-surface/30"
           />
           <kbd className="font-mono text-[10px] text-on-surface/40 border border-outline-variant/20 rounded px-1.5 py-0.5">ESC</kbd>
         </div>
         <div className="max-h-[50vh] overflow-y-auto py-1">
-          {items.length === 0 && (
+          {showPlayerHint && (
+            <div className="text-center py-3 text-[11px] text-on-surface/40 font-label uppercase tracking-widest">
+              Keep typing to search players...
+            </div>
+          )}
+          {showPlayerLoading && items.length === 0 && (
+            <div className="text-center py-6 text-[11px] text-on-surface/40 font-label uppercase tracking-widest">
+              Searching players...
+            </div>
+          )}
+          {showNoMatches && (
             <div className="text-center py-10 text-xs text-on-surface/40 font-label uppercase tracking-widest">
               No matches
             </div>
@@ -200,6 +261,11 @@ export default function CommandPalette(props) {
               </button>
             )
           })}
+          {showPlayerLoading && items.length > 0 && (
+            <div className="text-center py-2 text-[10px] text-on-surface/30 font-label uppercase tracking-widest">
+              Searching players...
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between gap-3 px-4 py-2 border-t border-outline-variant/10 text-[10px] text-on-surface/30 font-label uppercase tracking-wider">
           <div className="flex items-center gap-3">
