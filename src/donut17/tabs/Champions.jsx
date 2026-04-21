@@ -5,6 +5,20 @@ export default function Champions(props) {
   var champions = props.data.champions
   var traits = props.data.traits
   var meta = props.data.meta || {}
+  var comps = props.data.comps || []
+
+  var compUsage = useMemo(function () {
+    var byKey = {}
+    comps.forEach(function (c) {
+      var carrySet = new Set(c.carries || (c.carry ? [c.carry] : []))
+      ;(c.board || []).forEach(function (k) {
+        if (!byKey[k]) byKey[k] = { asCarry: [], asSupport: [] }
+        if (carrySet.has(k)) byKey[k].asCarry.push({ id: c.id, name: c.name })
+        else byKey[k].asSupport.push({ id: c.id, name: c.name })
+      })
+    })
+    return byKey
+  }, [comps])
 
   var _c = useState('all')
   var costFilter = _c[0]
@@ -129,7 +143,7 @@ export default function Champions(props) {
 
         <div className="col-span-12 xl:col-span-4">
           {selectedChamp ? (
-            <Detail champ={selectedChamp} traitByApi={traitByApi} meta={meta}/>
+            <Detail champ={selectedChamp} traitByApi={traitByApi} meta={meta} usage={compUsage[selectedChamp.key]}/>
           ) : (
             <div className="d17-panel p-6 sticky top-28">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: 32 }}>arrow_back</span>
@@ -149,6 +163,7 @@ function Detail(props) {
   var c = props.champ
   var traitByApi = props.traitByApi
   var metaStats = (props.meta.champions && props.meta.champions[c.key]) || null
+  var usage = props.usage || { asCarry: [], asSupport: [] }
 
   return (
     <div className="d17-panel-hi sticky top-28">
@@ -205,6 +220,48 @@ function Detail(props) {
               {metaStats.play_rate != null && <Stat k="PLAY" v={metaStats.play_rate + '%'}/>}
               {metaStats.avg_placement != null && <Stat k="AVG" v={Number(metaStats.avg_placement).toFixed(2)}/>}
             </div>
+          </>
+        )}
+
+        {(usage.asCarry.length > 0 || usage.asSupport.length > 0) && (
+          <>
+            <div className="d17-divider my-4"/>
+            <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>Featured In</p>
+            {usage.asCarry.length > 0 && (
+              <div className="mb-3">
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#FFC66B' }}>As carry ({usage.asCarry.length})</p>
+                <div className="flex flex-wrap gap-1">
+                  {usage.asCarry.map(function (u) {
+                    return (
+                      <span key={u.id} className="font-mono text-[10px] px-1.5 py-0.5 uppercase tracking-wide"
+                        style={{ background: 'rgba(255,198,107,0.10)', color: '#FFC66B', border: '1px solid rgba(255,198,107,0.28)' }}>
+                        {u.name}
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+            {usage.asSupport.length > 0 && (
+              <div>
+                <p className="font-mono text-[9px] uppercase tracking-widest mb-1" style={{ color: '#67e2d9' }}>As support ({usage.asSupport.length})</p>
+                <div className="flex flex-wrap gap-1">
+                  {usage.asSupport.slice(0, 8).map(function (u) {
+                    return (
+                      <span key={u.id} className="font-mono text-[10px] px-1.5 py-0.5 uppercase tracking-wide"
+                        style={{ background: 'rgba(103,226,217,0.06)', color: 'rgba(228,225,236,0.78)', border: '1px solid rgba(103,226,217,0.20)' }}>
+                        {u.name}
+                      </span>
+                    )
+                  })}
+                  {usage.asSupport.length > 8 && (
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 uppercase" style={{ color: 'rgba(228,225,236,0.5)' }}>
+                      +{usage.asSupport.length - 8}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
