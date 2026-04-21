@@ -6,6 +6,7 @@ var TIER_COLORS = { 1: '#c0c0c0', 2: '#FFC66B', 3: '#d9b9ff' }
 export default function Augments(props) {
   var augs = props.data.augments || []
   var meta = props.data.meta || {}
+  var comps = props.data.comps || []
 
   var _s = useState('all')
   var tierFilter = _s[0]
@@ -15,6 +16,25 @@ export default function Augments(props) {
   var query = _q[0]
   var setQuery = _q[1]
 
+  var _u = useState(false)
+  var onlyUsed = _u[0]
+  var setOnlyUsed = _u[1]
+
+  // Build a lookup: lowercased augment name -> list of { id, name } that reference it
+  var usageMap = useMemo(function () {
+    var map = {}
+    comps.forEach(function (c) {
+      var list = c.augments || []
+      list.forEach(function (raw) {
+        var key = String(raw || '').toLowerCase().trim()
+        if (!key) return
+        if (!map[key]) map[key] = []
+        map[key].push({ id: c.id, name: c.name })
+      })
+    })
+    return map
+  }, [comps])
+
   var filtered = useMemo(function () {
     return augs.filter(function (a) {
       if (tierFilter !== 'all' && a.tier !== Number(tierFilter)) return false
@@ -22,9 +42,20 @@ export default function Augments(props) {
         var q = query.toLowerCase()
         if ((a.name || '').toLowerCase().indexOf(q) === -1) return false
       }
+      if (onlyUsed) {
+        var usage = usageMap[String(a.name || '').toLowerCase().trim()]
+        if (!usage || usage.length === 0) return false
+      }
       return true
     })
-  }, [augs, tierFilter, query])
+  }, [augs, tierFilter, query, onlyUsed, usageMap])
+
+  var totalUsed = useMemo(function () {
+    return augs.filter(function (a) {
+      var usage = usageMap[String(a.name || '').toLowerCase().trim()]
+      return usage && usage.length > 0
+    }).length
+  }, [augs, usageMap])
 
   return (
     <div>
@@ -32,7 +63,7 @@ export default function Augments(props) {
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>The Gifts</span>
         <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Augments</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
-          Every augment in the pool, grouped by rarity. Meta tier and avg placement shown when the scraper has fresh data.
+          Every augment in the pool, grouped by rarity. {totalUsed} appear in tracked meta comps.
         </p>
       </header>
 
@@ -43,6 +74,16 @@ export default function Augments(props) {
           <FilterBtn v="2"   l="Gold"      current={tierFilter} set={setTierFilter} color={TIER_COLORS[2]}/>
           <FilterBtn v="3"   l="Prismatic" current={tierFilter} set={setTierFilter} color={TIER_COLORS[3]}/>
         </div>
+        <button
+          type="button"
+          onClick={function(){ setOnlyUsed(!onlyUsed) }}
+          className="font-mono text-[10px] py-1 px-3 uppercase cursor-pointer"
+          style={{
+            background: onlyUsed ? 'rgba(103,226,217,0.14)' : 'transparent',
+            color: onlyUsed ? '#67e2d9' : 'rgba(228,225,236,0.55)',
+            border: onlyUsed ? '1px solid rgba(103,226,217,0.45)' : '1px solid rgba(157,142,124,0.15)'
+          }}
+        >Meta only</button>
         <input
           className="flex-1 min-w-[240px] bg-transparent px-3 py-2 font-mono text-xs uppercase tracking-wider"
           style={{ background: '#0e0d15', borderBottom: '1px solid rgba(255,198,107,0.22)', color: '#e4e1ec' }}
@@ -57,6 +98,7 @@ export default function Augments(props) {
         {filtered.map(function (a) {
           var metaStats = (meta.augments && meta.augments[a.apiName]) || null
           var color = TIER_COLORS[a.tier] || '#9d8e7c'
+          var usage = usageMap[String(a.name || '').toLowerCase().trim()] || []
           return (
             <div key={a.apiName} className="d17-panel p-4" style={{ borderLeft: '3px solid ' + color }}>
               <div className="flex items-start gap-3">
@@ -68,11 +110,11 @@ export default function Augments(props) {
                     className="w-10 h-10 shrink-0"
                   />
                 ) : null}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-editorial italic text-base" style={{ color: color }}>{a.name}</p>
+                    <p className="font-editorial italic text-base truncate" style={{ color: color }}>{a.name}</p>
                     {metaStats && metaStats.tier && (
-                      <span className="px-1.5 py-0.5 font-mono text-[9px] uppercase" style={{ background: color + '22', color: color, border: '1px solid ' + color + '55' }}>{metaStats.tier}</span>
+                      <span className="px-1.5 py-0.5 font-mono text-[9px] uppercase shrink-0" style={{ background: color + '22', color: color, border: '1px solid ' + color + '55' }}>{metaStats.tier}</span>
                     )}
                   </div>
                   <p className="text-[11px] mt-1 leading-snug font-body" style={{ color: 'rgba(228,225,236,0.65)' }}>{stripHtml(a.desc)}</p>
@@ -82,6 +124,29 @@ export default function Augments(props) {
                       <span className="font-mono text-[10px]" style={{ color: '#67e2d9' }}>AVG {Number(metaStats.avg_placement).toFixed(2)}</span>
                     )}
                   </div>
+                  {usage.length > 0 && (
+                    <div className="mt-3 pt-3" style={{ borderTop: '1px dashed rgba(255,198,107,0.18)' }}>
+                      <p className="font-mono text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#67e2d9' }}>
+                        Used in {usage.length} comp{usage.length === 1 ? '' : 's'}
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {usage.slice(0, 4).map(function (u) {
+                          return (
+                            <span
+                              key={u.id}
+                              className="font-mono text-[9px] px-1.5 py-0.5 uppercase tracking-wide"
+                              style={{ background: 'rgba(103,226,217,0.08)', color: 'rgba(228,225,236,0.78)', border: '1px solid rgba(103,226,217,0.22)' }}
+                            >{u.name}</span>
+                          )
+                        })}
+                        {usage.length > 4 && (
+                          <span className="font-mono text-[9px] px-1.5 py-0.5 uppercase tracking-wide" style={{ color: 'rgba(228,225,236,0.5)' }}>
+                            +{usage.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
