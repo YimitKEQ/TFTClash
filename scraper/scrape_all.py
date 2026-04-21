@@ -93,6 +93,16 @@ def parse_champions(data, set_data):
         key = cdragon_to_tt_key(api_name)
         pascal = cdragon_to_tt_pascal(api_name)
 
+        # Build a chain of image URLs. cdragon is authoritative but emits .tex
+        # which browsers can't render -- rewrite to .png so cdragon auto-converts.
+        raw_square = champ.get("squarePath", champ.get("icon", ""))
+        cdragon_square = icon_url(raw_square)
+        if cdragon_square.endswith(".tex"):
+            cdragon_square = cdragon_square[:-4] + ".png"
+        # cdragon HUD square -- the in-game portrait icon, tightly cropped.
+        hud_square = (CDRAGON_BASE + "plugins/rcp-be-lol-game-data/global/default/"
+                      "assets/characters/tft17_{}/hud/tft17_{}_square.tft_set17.png").format(key, key)
+
         champs.append({
             "apiName": api_name,
             "key": key,
@@ -115,11 +125,12 @@ def parse_champions(data, set_data):
                 "variables": ability.get("variables", []),
             },
             "assets": {
+                "hud": hud_square,
+                "square": cdragon_square,
                 "face": "https://ap.tft.tools/img/new17/face/tft17_{}.jpg?w=36".format(key),
                 "face_lg": "https://ap.tft.tools/img/new17/face/tft17_{}.jpg?w=64".format(key),
                 "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_{}.jpg?w=290".format(pascal),
                 "ability": "https://ap.tft.tools/img/new17/ability/TFT17_{}.png?w=22".format(pascal),
-                "square": icon_url(champ.get("squarePath", champ.get("icon", ""))),
             },
             "role": "",
             "bis": [],
@@ -413,21 +424,23 @@ def main():
     gods = build_gods()
     comp_lines = build_comp_lines()
 
-    # Prune comp_line champion refs that don't exist in the Set 17 roster
+    # Prune comp board/early/flex refs that don't exist in the Set 17 roster.
     known_keys = {c["key"] for c in champions}
     pruned_total = 0
     pruned_comps = 0
     for comp in comp_lines:
-        before = len(comp.get("core", [])) + len(comp.get("flex", []))
-        comp["core"] = [k for k in comp.get("core", []) if k in known_keys]
-        comp["flex"] = [k for k in comp.get("flex", []) if k in known_keys]
-        after = len(comp["core"]) + len(comp["flex"])
-        if after < before:
+        touched = False
+        for field in ("board", "early", "flex"):
+            before = len(comp.get(field, []))
+            comp[field] = [k for k in comp.get(field, []) if k in known_keys]
+            after = len(comp[field])
+            if after < before:
+                pruned_total += before - after
+                touched = True
+        if touched:
             pruned_comps += 1
-            pruned_total += before - after
         if comp.get("carry") and comp["carry"] not in known_keys:
-            # Fall back to first core unit if carry isn't in the set
-            comp["carry"] = comp["core"][0] if comp["core"] else comp.get("carry")
+            comp["carry"] = (comp.get("board") or comp.get("early") or [comp["carry"]])[0]
     if pruned_total:
         print("  Pruned {} stale unit refs across {} comps".format(pruned_total, pruned_comps))
 

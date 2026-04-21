@@ -25,8 +25,11 @@ export function scoreComps(pickedKeys, champions, comps) {
   })
 
   var results = comps.map(function (comp) {
-    var coreSet = new Set(comp.core || [])
+    // Points: carry match = 5, board match = 3, early match = 2.5, flex match = 2.
+    var boardSet = new Set(comp.board || [])
+    var earlySet = new Set(comp.early || [])
     var flexSet = new Set(comp.flex || [])
+    var carryKey = comp.carry
     var directHits = 0
     var traitHits = 0
     var hitUnits = []
@@ -34,27 +37,34 @@ export function scoreComps(pickedKeys, champions, comps) {
     var keys = Array.from(picked)
     for (i = 0; i < keys.length; i++) {
       var k = keys[i]
-      if (coreSet.has(k)) {
+      if (k === carryKey) {
+        directHits += 5
+        hitUnits.push({ key: k, type: 'carry' })
+      } else if (earlySet.has(k)) {
+        directHits += 2.5
+        hitUnits.push({ key: k, type: 'early' })
+      } else if (boardSet.has(k)) {
         directHits += 3
-        hitUnits.push({ key: k, type: 'core' })
+        hitUnits.push({ key: k, type: 'board' })
       } else if (flexSet.has(k)) {
         directHits += 2
         hitUnits.push({ key: k, type: 'flex' })
       }
     }
-    var compChamps = (comp.core || []).concat(comp.flex || [])
+    var compChamps = (comp.board || []).concat(comp.early || []).concat(comp.flex || [])
+    var seen = {}
     for (i = 0; i < compChamps.length; i++) {
+      if (seen[compChamps[i]]) continue
+      seen[compChamps[i]] = 1
       var cc = champByKey[compChamps[i]]
       if (!cc || !cc.traits) continue
       var j
       for (j = 0; j < cc.traits.length; j++) {
-        if (pickedTraits.has(cc.traits[j])) traitHits += 1
+        if (pickedTraits.has(cc.traits[j])) traitHits += 0.5
       }
     }
     var overlap = directHits + traitHits
     var tierBonus = tierBonusFor(comp)
-    // Tier only influences ranking once there is real overlap, so zero-match
-    // comps don't surface above a weak match just because they're S-tier.
     var score = overlap + (overlap > 0 ? tierBonus : 0)
     return {
       comp: comp,

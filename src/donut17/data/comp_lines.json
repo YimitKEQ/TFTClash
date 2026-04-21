@@ -1,31 +1,46 @@
 [
   {
     "id": "turbo-doomer",
-    "name": "Turbo Doomer",
+    "name": "Turbo Doomer Vex",
     "tier": "S",
     "difficulty": "Hard",
     "strategy": "Fast 9",
     "color": "#9B72CF",
     "carry": "vex",
-    "desc": "Ascend to Level 9 and field 5-cost Doomer Vex alongside a Dark Star frontline. Cap with Bard and Blitzcrank for legendary power.",
-    "core": [
+    "desc": "Ascend to Level 9 and cap with 5-cost Doomer Vex. Vanguard + Bastion frontline, Astronaut utility, Bard and Blitzcrank as late-game cappers.",
+    "board": [
       "vex",
-      "bard",
       "blitzcrank",
+      "bard",
+      "shen",
+      "mordekaiser",
       "rammus",
-      "shen"
-    ],
-    "flex": [
       "karma",
       "rhaast",
-      "ivernminion",
-      "mordekaiser"
+      "ivernminion"
     ],
-    "traits": [
-      "Doomer",
-      "Dark Star 2",
+    "early": [
+      "poppy",
+      "veigar",
+      "gnar",
+      "pantheon"
+    ],
+    "flex": [
+      "morgana",
+      "gwen",
+      "chogath"
+    ],
+    "traitTargets": [
+      "Doomer 1",
+      "Dark Star 3",
+      "Astronaut 3",
       "Vanguard 2",
-      "Meeple 3"
+      "Bastion 2"
+    ],
+    "carryItems": [
+      "Guinsoo's Rageblade",
+      "Giant Slayer",
+      "Hextech Gunblade"
     ],
     "items": {
       "Vex": [
@@ -53,45 +68,60 @@
       "Needlessly Large Rod",
       "Giant's Belt",
       "Recurve Bow",
-      "Tear of the Goddess",
-      "Chain Vest"
+      "Tear of the Goddess"
     ],
     "augments": [
       "Late Game Specialist",
-      "Aura Farming",
-      "Level Up"
+      "Level Up!",
+      "Wandering Trainer"
     ],
     "god": "Ahri",
     "godWhy": "Ahri's XP + gold offerings rush the Fast 9 timing this comp needs.",
-    "gameplan": "Stage 2-3: hold items, play Dark Star/Brawler frontline. Stage 4: level 7->8 while preserving gold. Stage 5-2: level 9 and roll hard for Vex 2, then cap with Bard/Blitzcrank."
+    "stages": {
+      "stage_2": "Open with any 1-cost Astronaut or Vanguard front. Win streak if possible but don't force; take an econ augment.",
+      "stage_3": "Hit Level 6 at 3-2. Slam BIS components on a placeholder (Gnar / Poppy). Play 2-star 2-costs you have many of.",
+      "stage_4": "Push Level 7 at 4-1 if healthy. Start showing Vanguard 2 + Bastion 2. Roll only if stabilizing.",
+      "stage_5": "Level 8 at 5-1, Level 9 at 5-5 or 6-1. Roll hard for Vex + Bard; Blitzcrank is the final capper."
+    }
   },
   {
     "id": "stay-groovy",
-    "name": "Stay Groovy",
+    "name": "Stay Groovy Nami",
     "tier": "S",
     "difficulty": "Medium",
     "strategy": "Fast 8",
     "color": "#67e2d9",
     "carry": "nami",
-    "desc": "Pop off with 5 Space Groove. Nami hypercarry backed by Nunu wall, Riven pressure, and Blitzcrank utility.",
-    "core": [
+    "desc": "Space Groove 5 with Nami as the AP hypercarry. Shield frontline and backline Space Groove utility.",
+    "board": [
       "nami",
       "blitzcrank",
       "nunu",
       "riven",
-      "shen"
-    ],
-    "flex": [
-      "tahmkench",
+      "shen",
       "ornn",
       "gwen",
-      "pantheon"
+      "tahmkench"
     ],
-    "traits": [
+    "early": [
+      "teemo",
+      "nasus",
+      "gwen"
+    ],
+    "flex": [
+      "samira",
+      "pantheon",
+      "gragas"
+    ],
+    "traitTargets": [
       "Space Groove 5",
       "Vanguard 2",
-      "Bastion 2",
-      "Brawler 2"
+      "Bastion 2"
+    ],
+    "carryItems": [
+      "Jeweled Gauntlet",
+      "Nashor's Tooth",
+      "Guardbreaker"
     ],
     "items": {
       "Nami": [
@@ -112,532 +142,698 @@
     },
     "carousel": [
       "Needlessly Large Rod",
-      "Sparring Gloves",
-      "Recurve Bow",
-      "Giant's Belt"
+      "Tear of the Goddess",
+      "Giant's Belt",
+      "Chain Vest"
     ],
     "augments": [
-      "Space Groove Emblem",
-      "Cruel Pact",
-      "Pandora's Items"
+      "Space Groove Heart",
+      "Vanguard Crown",
+      "Bastion Emblem"
     ],
     "god": "Evelynn",
-    "godWhy": "Evelynn's assassination tempo pairs with Riven/Nami burst while Nunu stalls.",
-    "gameplan": "Stage 2: winstreak with early Space Groove pairs. Stage 3-4: Fast 8 with 30-50g health buffer. Stage 5: level 9 for 5-cost flex."
+    "godWhy": "Lose streak to stack gold, then stabilize with Space Groove 5 and a 2-star Nami.",
+    "stages": {
+      "stage_2": "Play Teemo + Nasus + any Space Groove 1-costs. Hold AP items for Nami.",
+      "stage_3": "Level 6, play 2-star Space Groove 2-costs (Gwen). Lose streak is fine, econ through.",
+      "stage_4": "Level 7 at 4-1. Roll for Nami 2 + Ornn 2. Space Groove 3 active.",
+      "stage_5": "Level 8 at 5-1, roll for Blitzcrank + Shen cappers. Tahm Kench adds 5th Space Groove."
+    }
   },
   {
     "id": "snipin-vibin",
-    "name": "Snipin & Vibin",
+    "name": "Snipin' & Vibin' Jhin",
     "tier": "S",
     "difficulty": "Medium",
     "strategy": "Fast 8",
-    "color": "#e11d48",
+    "color": "#f4b65e",
     "carry": "jhin",
-    "desc": "Triple Sniper backline with Jhin + Xayah. Stargazer 3 boost, Nunu frontline absorbs everything.",
-    "core": [
+    "desc": "Jhin as the 5-cost Eradicator backline carry. Stargazer frontline + Xayah secondary damage.",
+    "board": [
       "jhin",
       "xayah",
       "nunu",
       "bard",
-      "rammus"
-    ],
-    "flex": [
-      "rhaast",
-      "gnar",
-      "jax",
-      "mordekaiser"
-    ],
-    "traits": [
-      "Sniper 3",
-      "Stargazer 3",
-      "Meeple 3",
-      "Dark Star 2",
-      "Bastion 2"
-    ],
-    "items": {
-      "Xayah": [
-        "Kraken's Fury",
-        "Guinsoo's Rageblade",
-        "Infinity Edge"
-      ],
-      "Jhin": [
-        "Deathblade",
-        "Giant Slayer",
-        "Infinity Edge"
-      ],
-      "Nunu": [
-        "Evenshroud",
-        "Fimbulwinter",
-        "Spirit Visage"
-      ]
-    },
-    "carousel": [
-      "Recurve Bow",
-      "BF Sword",
-      "Negatron Cloak",
-      "Giant's Belt",
-      "Chain Vest"
-    ],
-    "augments": [
-      "Sniper Heart",
-      "Stargazer Crown",
-      "Pandora's Items"
-    ],
-    "god": "Ekko",
-    "godWhy": "Ekko's reroll offerings find Jhin and Xayah 2 fast for Fast 8 spikes.",
-    "gameplan": "Stage 2: 4 Stargazer + 2 Bastion winstreak. Stage 4-2: level 8, roll for Jhin/Xayah 2. Stage 5: slot Bard + Mordekaiser for legendary cap."
-  },
-  {
-    "id": "cards-cartridges",
-    "name": "Cards & Cartridges",
-    "tier": "S",
-    "difficulty": "Medium",
-    "strategy": "Level 5 slow roll",
-    "color": "#FFC66B",
-    "carry": "twistedfate",
-    "desc": "1-cost reroll around Fateweaver 4 + Stargazer 3. Hit Twisted Fate 3 and cap with NOVA/Rogue late.",
-    "core": [
-      "twistedfate",
-      "caitlyn",
-      "talon",
-      "aatrox",
+      "karma",
+      "shen",
+      "lulu",
       "jax"
     ],
-    "flex": [
-      "akali",
-      "belveth",
-      "kindred",
-      "tahmkench"
+    "early": [
+      "twistedfate",
+      "talon",
+      "caitlyn"
     ],
-    "traits": [
-      "Fateweaver 4",
-      "Stargazer 3",
-      "Bastion 2",
-      "N.O.V.A. 2",
-      "Rogue 2"
+    "flex": [
+      "sona",
+      "fiora",
+      "kindred"
+    ],
+    "traitTargets": [
+      "Eradicator 1",
+      "Stargazer 5",
+      "Dark Star 2",
+      "Bulwark 1",
+      "Astronaut 1"
+    ],
+    "carryItems": [
+      "Infinity Edge",
+      "Last Whisper",
+      "Giant Slayer"
     ],
     "items": {
-      "Twisted Fate": [
-        "Nashor's Tooth",
-        "Rabadon's Deathcap",
-        "Jeweled Gauntlet"
+      "Jhin": [
+        "Infinity Edge",
+        "Last Whisper",
+        "Giant Slayer"
       ],
-      "Talon": [
-        "Thief's Gloves"
+      "Xayah": [
+        "Guinsoo's Rageblade",
+        "Runaan's Hurricane",
+        "Guardbreaker"
       ],
-      "Jax": [
-        "Bramble Vest",
+      "Nunu": [
         "Warmog's Armor",
+        "Bramble Vest",
         "Dragon's Claw"
       ]
     },
     "carousel": [
+      "B. F. Sword",
       "Recurve Bow",
       "Giant's Belt",
-      "Needlessly Large Rod",
-      "Sparring Gloves",
       "Chain Vest"
     ],
     "augments": [
-      "Fateweaver Crest",
+      "Eradicator Emblem",
       "Stargazer Crown",
-      "Built Different"
+      "Sniper's Nest"
+    ],
+    "god": "Ekko",
+    "godWhy": "Anomaly item on Jhin or Xayah scales better than any augment reroll.",
+    "stages": {
+      "stage_2": "Play Stargazer 3 early (TF + Talon + Lulu or Xayah). Hold AD items.",
+      "stage_3": "Level 6, slow roll for 2-star Xayah + Lulu. Jax adds Bulwark early.",
+      "stage_4": "Level 7 at 4-1. Roll for Nunu + Karma to add Stargazer 5 + Dark Star 2.",
+      "stage_5": "Level 8 at 5-1. Hit Jhin + Bard + Shen to cap the board."
+    }
+  },
+  {
+    "id": "cards-cartridges",
+    "name": "Cards & Cartridges TF",
+    "tier": "S",
+    "difficulty": "Easy",
+    "strategy": "Level 6 Reroll",
+    "color": "#38bdf8",
+    "carry": "twistedfate",
+    "desc": "Fateweaver 4 Twisted Fate 3-star reroll. Cap with late-game 4-costs for Fateweaver flex.",
+    "board": [
+      "twistedfate",
+      "talon",
+      "caitlyn",
+      "milio",
+      "jax",
+      "corki",
+      "karma",
+      "nunu"
+    ],
+    "early": [
+      "twistedfate",
+      "talon",
+      "caitlyn",
+      "lulu"
+    ],
+    "flex": [
+      "lulu",
+      "xayah",
+      "kindred"
+    ],
+    "traitTargets": [
+      "Fateweaver 4",
+      "Stargazer 3",
+      "Bulwark 1",
+      "Timebreaker 2"
+    ],
+    "carryItems": [
+      "Infinity Edge",
+      "Jeweled Gauntlet",
+      "Spear of Shojin"
+    ],
+    "items": {
+      "Twisted Fate": [
+        "Infinity Edge",
+        "Jeweled Gauntlet",
+        "Spear of Shojin"
+      ],
+      "Talon": [
+        "Bloodthirster",
+        "Edge of Night",
+        "Hand of Justice"
+      ],
+      "Jax": [
+        "Warmog's Armor",
+        "Bramble Vest",
+        "Gargoyle Stoneplate"
+      ]
+    },
+    "carousel": [
+      "Sparring Gloves",
+      "B. F. Sword",
+      "Needlessly Large Rod",
+      "Tear of the Goddess"
+    ],
+    "augments": [
+      "Fateweaver Heart",
+      "Three's Company",
+      "Level Up!"
     ],
     "god": "Yasuo",
-    "godWhy": "Yasuo's extra rolls fuel the 1-cost reroll tempo this comp lives on.",
-    "gameplan": "Stage 2: do not level past 4, save gold, open fort if HP is safe. Stage 3-2: level 5 and slow roll 50g+ for Twisted Fate 3. Stage 4-2: level 6-7 and add NOVA/Rogue."
+    "godWhy": "Wind Hex boosts AS on Twisted Fate so his cards fire faster each combat.",
+    "stages": {
+      "stage_2": "Win streak with TF + Talon + Caitlyn. Don't level past 5.",
+      "stage_3": "Stay Level 5-6, slow roll for TF 3 + Talon 3. Preserve HP, don't level.",
+      "stage_4": "Level 7 at 4-1 or after hitting both 3-stars. Add Jax + Milio for Fateweaver 4.",
+      "stage_5": "Level 8 at 5-2. Cap with Corki + Karma + Nunu."
+    }
   },
   {
     "id": "primordian-reroll",
     "name": "Primordian NOVA Reroll",
     "tier": "S",
-    "difficulty": "Easy",
-    "strategy": "Level 5 slow roll",
-    "color": "#a3e635",
+    "difficulty": "Medium",
+    "strategy": "Level 7 Reroll",
+    "color": "#fb923c",
     "carry": "belveth",
-    "desc": "Primordian 3 + NOVA 5 reroll. Bel'Veth 3 carries; cap with Kindred 2 as secondary late.",
-    "core": [
+    "desc": "Bel'Veth 3-star carry with Primordian 3. Cap with Kindred + Rek'Sai tank for NOVA 5 frontline.",
+    "board": [
       "belveth",
-      "caitlyn",
       "reksai",
       "briar",
-      "kindred"
+      "urgot",
+      "kindred",
+      "caitlyn",
+      "aatrox",
+      "tahmkench"
+    ],
+    "early": [
+      "aatrox",
+      "briar",
+      "reksai"
     ],
     "flex": [
-      "maokai",
-      "akali",
-      "aatrox"
+      "jax",
+      "milio",
+      "karma"
     ],
-    "traits": [
-      "N.O.V.A. 5",
+    "traitTargets": [
       "Primordian 3",
-      "Marauder 2",
+      "N.O.V.A. 5",
       "Brawler 2",
+      "Bastion 2",
       "Challenger 2"
+    ],
+    "carryItems": [
+      "Guinsoo's Rageblade",
+      "Bloodthirster",
+      "Titan's Resolve"
     ],
     "items": {
       "Bel'Veth": [
-        "Quicksilver",
-        "Runaan's Hurricane",
-        "Giant Slayer"
+        "Guinsoo's Rageblade",
+        "Bloodthirster",
+        "Titan's Resolve"
       ],
       "Caitlyn": [
-        "Kraken's Fury",
-        "Guinsoo's Rageblade",
+        "Infinity Edge",
+        "Last Whisper",
         "Giant Slayer"
       ],
       "Rek'Sai": [
-        "Sunfire Cape",
-        "Spirit Visage",
-        "Bramble Vest"
-      ]
-    },
-    "carousel": [
-      "Recurve Bow",
-      "BF Sword",
-      "Chain Vest",
-      "Negatron Cloak"
-    ],
-    "augments": [
-      "Primordian Crest",
-      "Slow and Steady",
-      "Double Trouble"
-    ],
-    "god": "Soraka",
-    "godWhy": "Soraka keeps you healthy while slow-rolling at 5 for Bel'Veth 3.",
-    "gameplan": "Stage 2: field 3 Primordian ASAP, do not level. Stage 3-2: level 5, slow roll 50g+ for Bel'Veth 3. Stage 4+: level 6-8 and add NOVA for Kindred duo."
-  },
-  {
-    "id": "nova-flex",
-    "name": "N.O.V.A. Flex",
-    "tier": "S",
-    "difficulty": "Medium",
-    "strategy": "Fast 8",
-    "color": "#60a5fa",
-    "carry": "kindred",
-    "desc": "Full 5 N.O.V.A. board with Kindred hypercarry. Graves and Tahm Kench swing as dual carry/tank.",
-    "core": [
-      "kindred",
-      "tahmkench",
-      "graves",
-      "shen",
-      "maokai"
-    ],
-    "flex": [
-      "akali",
-      "aatrox",
-      "caitlyn",
-      "belveth"
-    ],
-    "traits": [
-      "N.O.V.A. 5",
-      "Bastion 2",
-      "Brawler 2",
-      "Challenger 2"
-    ],
-    "items": {
-      "Kindred": [
-        "Guinsoo's Rageblade",
-        "Giant Slayer",
-        "Kraken's Fury"
-      ],
-      "Graves": [
-        "Hand of Justice",
-        "Sterak's Gage",
-        "Quicksilver"
-      ],
-      "Tahm Kench": [
-        "Spirit Visage",
-        "Sunfire Cape",
-        "Steadfast Hammer"
-      ]
-    },
-    "carousel": [
-      "Recurve Bow",
-      "BF Sword",
-      "Giant's Belt",
-      "Chain Vest"
-    ],
-    "augments": [
-      "N.O.V.A. Crest",
-      "March of Progress",
-      "Pandora's Items"
-    ],
-    "god": "Kayle",
-    "godWhy": "Kayle's combat buffs stack on the 5 N.O.V.A. bonuses for a ridiculous mid-game spike.",
-    "gameplan": "Stage 2-3: pivot into NOVA when you see AD components + econ augment. Stage 4-2: level 8, roll for Kindred + Tahm 2. Stage 5: add 5-cost flex (Bard/Blitz/Shen)."
-  },
-  {
-    "id": "nova-yi",
-    "name": "NOVA YI",
-    "tier": "A",
-    "difficulty": "Medium",
-    "strategy": "Fast 8",
-    "color": "#f97316",
-    "carry": "kindred",
-    "desc": "NOVA Emblem gives Yi/Fiora/Graves +1 NOVA. Kindred is the primary; Yi as Psionic bruiser side-carry.",
-    "core": [
-      "kindred",
-      "masteryi",
-      "tahmkench",
-      "fiora",
-      "aatrox"
-    ],
-    "flex": [
-      "akali",
-      "belveth",
-      "maokai",
-      "shen"
-    ],
-    "traits": [
-      "N.O.V.A. 5",
-      "Marauder 3",
-      "Brawler 2",
-      "Divine Duelist 1"
-    ],
-    "items": {
-      "Kindred": [
-        "Guinsoo's Rageblade",
-        "Runaan's Hurricane",
-        "Power Gauntlet"
-      ],
-      "Master Yi": [
-        "Bloodthirster",
-        "Titan's Resolve",
-        "Guardian Angel"
-      ],
-      "Tahm Kench": [
         "Warmog's Armor",
         "Protector's Vow",
         "Sunfire Cape"
       ]
     },
     "carousel": [
-      "BF Sword",
       "Recurve Bow",
+      "B. F. Sword",
       "Chain Vest",
       "Giant's Belt"
     ],
     "augments": [
-      "NOVA Emblem",
-      "Marauder Crest",
-      "Training Reward"
+      "Primordian Heart",
+      "N.O.V.A. Crown",
+      "Brawler Emblem"
     ],
-    "god": "Varus",
-    "godWhy": "Varus offerings help hit Kindred 2 + a 5-cost cap while NOVA provides the consistent scaling.",
-    "gameplan": "Stage 2: Primordian/Timebreaker econ opener. Stage 4-1: level 7 and stabilize Brawler. Stage 4-2: level 8, roll for Kindred 2 + Tahm 2. Always pick NOVA Emblem when offered."
+    "god": "Soraka",
+    "godWhy": "HP stacking keeps Bel'Veth alive long enough to stack Rageblade.",
+    "stages": {
+      "stage_2": "Open with Aatrox + Briar + Rek'Sai (NOVA 3 + Primordian 2).",
+      "stage_3": "Level 6 at 3-2, slow roll for Bel'Veth 3 + Rek'Sai 3.",
+      "stage_4": "Level 7 at 4-2 only after hitting 3-stars. Add Urgot + Kindred for NOVA 5.",
+      "stage_5": "Level 8 at 5-2 to cap with Tahm Kench frontline."
+    }
   },
   {
-    "id": "mirror-mayhem",
-    "name": "Mirror Mayhem",
-    "tier": "A",
+    "id": "nova-flex",
+    "name": "N.O.V.A. Flex Kindred",
+    "tier": "S",
     "difficulty": "Medium",
     "strategy": "Fast 8",
     "color": "#c084fc",
-    "carry": "leblanc",
-    "desc": "Vanguard Voyager flex with LeBlanc + Karma + Nunu triple threat. Arbiter 3 + Shepherd 3 for mid-range power.",
-    "core": [
-      "leblanc",
-      "karma",
-      "nunu",
-      "nasus",
-      "veigar"
+    "carry": "kindred",
+    "desc": "NOVA 5 frontline with Kindred as flexible 4-cost carry. Scales hard into late game.",
+    "board": [
+      "kindred",
+      "aatrox",
+      "briar",
+      "reksai",
+      "urgot",
+      "maokai",
+      "tahmkench",
+      "karma"
+    ],
+    "early": [
+      "aatrox",
+      "briar",
+      "reksai",
+      "caitlyn"
     ],
     "flex": [
-      "aurora",
-      "shen",
-      "pantheon",
-      "galio"
+      "belveth",
+      "akali",
+      "jinx"
     ],
-    "traits": [
-      "Vanguard 4",
-      "Arbiter 3",
-      "Shepherd 3",
-      "Voyager 2",
-      "Dark Star 2",
-      "Conduit 2"
+    "traitTargets": [
+      "N.O.V.A. 5",
+      "Primordian 2",
+      "DRX 2",
+      "Challenger 2",
+      "Brawler 2"
+    ],
+    "carryItems": [
+      "Guinsoo's Rageblade",
+      "Infinity Edge",
+      "Last Whisper"
     ],
     "items": {
-      "LeBlanc": [
-        "Jeweled Gauntlet",
-        "Rabadon's Deathcap",
-        "Hextech Gunblade"
+      "Kindred": [
+        "Guinsoo's Rageblade",
+        "Infinity Edge",
+        "Last Whisper"
       ],
-      "Karma": [
-        "Nashor's Tooth",
-        "Spear of Shojin",
-        "Archangel's Staff"
-      ],
-      "Nunu": [
+      "Aatrox": [
         "Warmog's Armor",
+        "Gargoyle Stoneplate",
+        "Bloodthirster"
+      ],
+      "Tahm Kench": [
         "Dragon's Claw",
-        "Crownguard"
+        "Bramble Vest",
+        "Protector's Vow"
       ]
     },
     "carousel": [
-      "Tear of the Goddess",
-      "Needlessly Large Rod",
       "Recurve Bow",
-      "Negatron Cloak",
+      "B. F. Sword",
+      "Chain Vest",
+      "Negatron Cloak"
+    ],
+    "augments": [
+      "N.O.V.A. Crown",
+      "Challenger Heart",
+      "Combat Training"
+    ],
+    "god": "Kayle",
+    "godWhy": "Radiant Guinsoo's or Infinity Edge on Kindred ends fights instantly.",
+    "stages": {
+      "stage_2": "Aatrox + Briar + Caitlyn, win streak with NOVA 3.",
+      "stage_3": "Level 6 at 3-2, add Rek'Sai + Urgot. Keep econ.",
+      "stage_4": "Level 7 at 4-1, roll for Kindred 2 + Maokai.",
+      "stage_5": "Level 8 at 5-1, cap with Tahm Kench + Karma."
+    }
+  },
+  {
+    "id": "psionic-yi",
+    "name": "Psionic Master Yi",
+    "tier": "A",
+    "difficulty": "Medium",
+    "strategy": "Fast 8",
+    "color": "#ec4899",
+    "carry": "masteryi",
+    "desc": "Master Yi as the frontline bruiser carry with Psionic 4 backline support.",
+    "board": [
+      "masteryi",
+      "viktor",
+      "sona",
+      "zoe",
+      "gragas",
+      "pyke",
+      "pantheon",
+      "aurelionsol"
+    ],
+    "early": [
+      "zoe",
+      "gragas",
+      "pyke"
+    ],
+    "flex": [
+      "milio",
+      "tahmkench",
+      "urgot"
+    ],
+    "traitTargets": [
+      "Psionic 4",
+      "Commander 1",
+      "Mana-Charged 3",
+      "Brawler 2",
+      "Marauder 2"
+    ],
+    "carryItems": [
+      "Guinsoo's Rageblade",
+      "Bloodthirster",
+      "Titan's Resolve"
+    ],
+    "items": {
+      "Master Yi": [
+        "Guinsoo's Rageblade",
+        "Bloodthirster",
+        "Titan's Resolve"
+      ],
+      "Viktor": [
+        "Spear of Shojin",
+        "Jeweled Gauntlet",
+        "Rabadon's Deathcap"
+      ],
+      "Pantheon": [
+        "Warmog's Armor",
+        "Protector's Vow",
+        "Gargoyle Stoneplate"
+      ]
+    },
+    "carousel": [
+      "Recurve Bow",
+      "B. F. Sword",
+      "Tear of the Goddess",
       "Giant's Belt"
     ],
     "augments": [
-      "Pandora's Items",
-      "Small Grab Bag",
-      "Rolling for Days"
+      "Psionic Crown",
+      "Commander Heart",
+      "Titanic Force"
     ],
-    "god": "Aurelion Sol",
-    "godWhy": "Aurelion Sol's anvils let you pick the emblem that completes Vanguard/Arbiter/Shepherd overlap.",
-    "gameplan": "Stage 2-3: play Shepherd summons to streak. Stage 4-1/4-2: Fast 8 and drop LeBlanc. Stage 5: add Karma as AP secondary."
+    "god": "Varus",
+    "godWhy": "Increased 5-cost odds helps hit Sona (Commander activation) and Aurelion Sol.",
+    "stages": {
+      "stage_2": "Zoe + Gragas + Pyke for Psionic 2 opener.",
+      "stage_3": "Level 6 at 3-2, find Viktor 2 + Psionic 4.",
+      "stage_4": "Level 7 at 4-1, roll for Master Yi 2.",
+      "stage_5": "Level 8 at 5-1, hit Sona for Commander or Aurelion Sol to cap."
+    }
   },
   {
-    "id": "slap-zap",
-    "name": "Slap & Zap",
-    "tier": "S",
-    "difficulty": "Medium",
-    "strategy": "Level 7 slow roll",
-    "color": "#fbbf24",
-    "carry": "viktor",
-    "desc": "Viktor 2 hypercarry with Nami and Illaoi as AP secondaries. Replicator + Space Groove overlap.",
-    "core": [
-      "viktor",
-      "nami",
+    "id": "mirror-mayhem",
+    "name": "Mirror Mayhem LeBlanc",
+    "tier": "A",
+    "difficulty": "Hard",
+    "strategy": "Fast 8",
+    "color": "#a78bfa",
+    "carry": "leblanc",
+    "desc": "LeBlanc with Replicator summons carry. ADMIN vertical for summon scaling.",
+    "board": [
+      "leblanc",
+      "zoe",
+      "leona",
+      "diana",
       "illaoi",
-      "blitzcrank",
-      "shen"
+      "karma",
+      "nunu",
+      "lissandra"
+    ],
+    "early": [
+      "leona",
+      "zoe",
+      "lissandra"
     ],
     "flex": [
-      "tahmkench",
-      "ornn",
-      "riven"
+      "akali",
+      "sona",
+      "teemo"
     ],
-    "traits": [
-      "Replicator 3",
-      "Space Groove 3",
-      "Bastion 2",
-      "Brawler 2"
+    "traitTargets": [
+      "ADMIN 4",
+      "Summoner 4",
+      "Replicator 2",
+      "Vanguard 2"
+    ],
+    "carryItems": [
+      "Rabadon's Deathcap",
+      "Jeweled Gauntlet",
+      "Nashor's Tooth"
     ],
     "items": {
-      "Viktor": [
+      "LeBlanc": [
+        "Rabadon's Deathcap",
         "Jeweled Gauntlet",
-        "Ionic Spark",
-        "Hextech Gunblade"
+        "Nashor's Tooth"
       ],
-      "Nami": [
-        "Nashor's Tooth",
-        "Archangel's Staff",
-        "Guardbreaker"
+      "Karma": [
+        "Spear of Shojin",
+        "Hextech Gunblade",
+        "Morellonomicon"
       ],
-      "Illaoi": [
+      "Nunu": [
         "Warmog's Armor",
-        "Bramble Vest",
-        "Spirit Visage"
+        "Protector's Vow",
+        "Bramble Vest"
       ]
     },
     "carousel": [
       "Needlessly Large Rod",
       "Tear of the Goddess",
-      "Sparring Gloves",
+      "Giant's Belt",
       "Chain Vest"
     ],
     "augments": [
-      "Replicator Crest",
-      "Two Tanky",
-      "Cruel Pact"
+      "ADMIN Heart",
+      "Summoner Crown",
+      "Replicator Emblem"
+    ],
+    "god": "Aurelion Sol",
+    "godWhy": "Comp anvil contains Summoner/ADMIN emblem for vertical scaling.",
+    "stages": {
+      "stage_2": "Leona + Zoe + Lissandra for ADMIN 2. Hold AP items.",
+      "stage_3": "Level 6, add Diana + Illaoi. ADMIN 4.",
+      "stage_4": "Level 7, roll for LeBlanc 2.",
+      "stage_5": "Level 8, cap with Karma + Nunu."
+    }
+  },
+  {
+    "id": "slap-zap",
+    "name": "Slap & Zap Viktor",
+    "tier": "S",
+    "difficulty": "Easy",
+    "strategy": "Level 7 Reroll",
+    "color": "#fbbf24",
+    "carry": "viktor",
+    "desc": "Viktor 3-star reroll Psionic carry. Cheap reroll comp with Illaoi / Nami cap.",
+    "board": [
+      "viktor",
+      "zoe",
+      "gragas",
+      "pyke",
+      "illaoi",
+      "nami",
+      "sona",
+      "pantheon"
+    ],
+    "early": [
+      "zoe",
+      "gragas",
+      "pyke"
+    ],
+    "flex": [
+      "gwen",
+      "milio",
+      "masteryi"
+    ],
+    "traitTargets": [
+      "Psionic 4",
+      "Commander 1",
+      "Mana-Charged 3",
+      "Space Groove 2",
+      "Brawler 2"
+    ],
+    "carryItems": [
+      "Spear of Shojin",
+      "Jeweled Gauntlet",
+      "Rabadon's Deathcap"
+    ],
+    "items": {
+      "Viktor": [
+        "Spear of Shojin",
+        "Jeweled Gauntlet",
+        "Rabadon's Deathcap"
+      ],
+      "Nami": [
+        "Morellonomicon",
+        "Nashor's Tooth",
+        "Hextech Gunblade"
+      ],
+      "Illaoi": [
+        "Warmog's Armor",
+        "Protector's Vow",
+        "Gargoyle Stoneplate"
+      ]
+    },
+    "carousel": [
+      "Tear of the Goddess",
+      "Needlessly Large Rod",
+      "Giant's Belt",
+      "Chain Vest"
+    ],
+    "augments": [
+      "Psionic Heart",
+      "Three's Company",
+      "Level Up!"
     ],
     "god": "Thresh",
-    "godWhy": "Thresh anvils fish for Viktor 2 on the level 7 slow roll.",
-    "gameplan": "Stage 2-3: build econ, hold AP items. Stage 4-1: level 7 and slow roll for Viktor 2. Stage 5: level 8 and slot Nami + Blitz."
+    "godWhy": "Free random rewards help snowball a reroll comp that's light on econ.",
+    "stages": {
+      "stage_2": "Zoe + Gragas + Pyke for Psionic 2 + Brawler 2.",
+      "stage_3": "Slow roll Level 6 for Viktor 3.",
+      "stage_4": "Level 7 at 4-2 after hitting Viktor 3. Add Illaoi + Nami.",
+      "stage_5": "Level 8 at 5-2 to cap with Sona for Commander."
+    }
   },
   {
     "id": "two-tanky",
-    "name": "Two Tanky Takeover",
+    "name": "Two Tanky Samira",
     "tier": "S",
     "difficulty": "Medium",
-    "strategy": "Level 7 slow roll",
-    "color": "#dc2626",
+    "strategy": "Level 7 Reroll",
+    "color": "#ef4444",
     "carry": "samira",
-    "desc": "Samira knock-up chain with Ornn as tanky secondary. Two Tanky augment locks this in.",
-    "core": [
+    "desc": "Samira 3-star Space Groove reroll with beefy frontline from Ornn + Nasus.",
+    "board": [
       "samira",
+      "nasus",
       "ornn",
+      "teemo",
+      "gwen",
+      "nami",
       "shen",
-      "maokai",
-      "pantheon"
+      "tahmkench"
+    ],
+    "early": [
+      "samira",
+      "nasus",
+      "teemo"
     ],
     "flex": [
-      "rhaast",
-      "tahmkench",
-      "leona"
+      "gragas",
+      "pantheon",
+      "blitzcrank"
     ],
-    "traits": [
-      "Bastion 3",
-      "Brawler 3",
-      "Vanguard 2"
+    "traitTargets": [
+      "Space Groove 5",
+      "Bastion 2",
+      "Brawler 2",
+      "Assassin 2"
+    ],
+    "carryItems": [
+      "Infinity Edge",
+      "Last Whisper",
+      "Bloodthirster"
     ],
     "items": {
       "Samira": [
         "Infinity Edge",
         "Last Whisper",
-        "Quicksilver"
+        "Bloodthirster"
       ],
       "Ornn": [
         "Warmog's Armor",
+        "Bramble Vest",
+        "Gargoyle Stoneplate"
+      ],
+      "Nasus": [
         "Sunfire Cape",
-        "Dragon's Claw"
+        "Dragon's Claw",
+        "Protector's Vow"
       ]
     },
     "carousel": [
-      "BF Sword",
-      "Sparring Gloves",
+      "B. F. Sword",
+      "Recurve Bow",
       "Giant's Belt",
       "Chain Vest"
     ],
     "augments": [
-      "Two Tanky",
-      "Knock-Up Hearts",
-      "Training Reward"
+      "Space Groove Crown",
+      "Assassin Heart",
+      "Combat Training"
     ],
     "god": "Yasuo",
-    "godWhy": "Yasuo rerolls find Samira 2 + Ornn 2 at the 7 slow-roll window.",
-    "gameplan": "Stage 2: open fort with Brawlers. Stage 4-1: level 7, slow roll with 50+ gold for Samira 2. Stage 5: level 8 for Shen/Blitz cap."
+    "godWhy": "Fire Hex burn stacks with Samira's AD bleed for massive frontline damage.",
+    "stages": {
+      "stage_2": "Samira + Nasus + Teemo for Space Groove 3.",
+      "stage_3": "Slow roll Level 6 for Samira 3 + Ornn 2.",
+      "stage_4": "Level 7 at 4-2. Add Gwen + Nami for Space Groove 5.",
+      "stage_5": "Level 8 at 5-2. Cap with Shen + Tahm Kench."
+    }
   },
   {
     "id": "rogue-diff",
-    "name": "Rogue Diff",
+    "name": "Rogue Diff Kai'Sa",
     "tier": "S",
     "difficulty": "Hard",
-    "strategy": "Level 7 slow roll",
-    "color": "#db2777",
+    "strategy": "Level 7 Reroll",
+    "color": "#14b8a6",
     "carry": "kaisa",
-    "desc": "Kai'Sa backline assassin with Rhaast + Ornn frontline. Rogue 4 punishes squishy backlines.",
-    "core": [
+    "desc": "Kai'Sa 3-star Assassin reroll. Dark Star 2 + Assassin 4 for burst damage.",
+    "board": [
       "kaisa",
+      "fizz",
+      "gwen",
+      "briar",
       "rhaast",
       "ornn",
-      "fizz",
-      "shen"
+      "riven",
+      "jhin"
+    ],
+    "early": [
+      "kaisa",
+      "gwen",
+      "briar"
     ],
     "flex": [
-      "akali",
       "talon",
-      "gwen"
+      "samira",
+      "nunu"
     ],
-    "traits": [
-      "Rogue 4",
-      "Bastion 2",
-      "Redeemer 1"
+    "traitTargets": [
+      "Assassin 4",
+      "Dark Star 2",
+      "Space Groove 2",
+      "Timebreaker 2",
+      "Eradicator 1"
+    ],
+    "carryItems": [
+      "Infinity Edge",
+      "Jeweled Gauntlet",
+      "Guardbreaker"
     ],
     "items": {
       "Kai'Sa": [
-        "Guinsoo's Rageblade",
-        "Kraken's Fury",
-        "Infinity Edge"
+        "Infinity Edge",
+        "Jeweled Gauntlet",
+        "Guardbreaker"
       ],
       "Rhaast": [
         "Bloodthirster",
-        "Titan's Resolve",
-        "Steraks Gage"
+        "Edge of Night",
+        "Hand of Justice"
       ],
       "Ornn": [
         "Warmog's Armor",
@@ -646,177 +842,316 @@
       ]
     },
     "carousel": [
-      "Recurve Bow",
-      "BF Sword",
+      "B. F. Sword",
+      "Needlessly Large Rod",
       "Sparring Gloves",
       "Chain Vest"
     ],
     "augments": [
-      "Rogue Crest",
-      "Portable Forge",
-      "Aura Farming"
+      "Assassin Crown",
+      "Dark Star Heart",
+      "Ambusher"
     ],
     "god": "Evelynn",
-    "godWhy": "Evelynn's assassin synergy stacks with Rogue backline access.",
-    "gameplan": "Stage 3: level 6 with Rogue 2. Stage 4-1: level 7, slow roll for Kai'Sa 2 + Rhaast 2. Stage 5: level 8 + Shen/Bard cap."
+    "godWhy": "Lose streak HP trade fuels Eve's econ offerings for the reroll phase.",
+    "stages": {
+      "stage_2": "Kai'Sa + Gwen + Briar for Assassin 3.",
+      "stage_3": "Slow roll Level 6 for Kai'Sa 3.",
+      "stage_4": "Level 7 at 4-2. Add Rhaast + Ornn for Assassin 4 + Bastion.",
+      "stage_5": "Level 8 at 5-2. Cap with Jhin + Riven."
+    }
   },
   {
     "id": "mecha-sol",
     "name": "Mecha Sol",
     "tier": "B",
-    "difficulty": "Medium",
+    "difficulty": "Hard",
     "strategy": "Fast 8",
-    "color": "#2dd4bf",
+    "color": "#7e22ce",
     "carry": "aurelionsol",
-    "desc": "Aurelion Sol AP cannon with Mecha frontline. Scales into legendary burst late.",
-    "core": [
+    "desc": "Aurelion Sol Mecha carry. Galio + Urgot as secondary tanks. Capped fast 8 build.",
+    "board": [
       "aurelionsol",
       "galio",
+      "urgot",
       "corki",
-      "shen",
-      "blitzcrank"
+      "veigar",
+      "lulu",
+      "karma",
+      "nunu"
+    ],
+    "early": [
+      "veigar",
+      "poppy",
+      "lulu"
     ],
     "flex": [
-      "gwen",
-      "jinx",
-      "urgot"
+      "milio",
+      "bard",
+      "sona"
     ],
-    "traits": [
-      "Mecha 4",
+    "traitTargets": [
+      "Mecha 3",
+      "Astronaut 4",
       "Replicator 2",
-      "Bastion 2",
-      "Voyager 2"
+      "Bastion 2"
+    ],
+    "carryItems": [
+      "Spear of Shojin",
+      "Jeweled Gauntlet",
+      "Rabadon's Deathcap"
     ],
     "items": {
       "Aurelion Sol": [
-        "Rabadon's Deathcap",
+        "Spear of Shojin",
         "Jeweled Gauntlet",
-        "Archangel's Staff"
+        "Rabadon's Deathcap"
       ],
       "Galio": [
         "Warmog's Armor",
-        "Sunfire Cape",
-        "Crownguard"
+        "Protector's Vow",
+        "Dragon's Claw"
       ],
       "Corki": [
         "Guinsoo's Rageblade",
-        "Giant Slayer",
-        "Red Buff"
-      ]
-    },
-    "carousel": [
-      "Needlessly Large Rod",
-      "Tear of the Goddess",
-      "Chain Vest"
-    ],
-    "augments": [
-      "Mecha Crest",
-      "Voyager Emblem",
-      "Level Up"
-    ],
-    "god": "Kayle",
-    "godWhy": "Kayle combat buffs let Aurelion Sol melt squishy backlines.",
-    "gameplan": "Stage 2-3: Mecha 2 + Voyager 2 winstreak. Stage 4-2: level 8. Stage 5: roll for Aurelion Sol 2 and drop Bard/Morgana flex."
-  },
-  {
-    "id": "fast-9-jhin-stargazer",
-    "name": "Fast 9 Jhin Stargazer",
-    "tier": "A",
-    "difficulty": "Hard",
-    "strategy": "Fast 9",
-    "color": "#0ea5e9",
-    "carry": "xayah",
-    "desc": "Stargazer 6 + Sniper 3 legendary board. Xayah + Jhin + Bard + Shen wins every endgame fight.",
-    "core": [
-      "xayah",
-      "jhin",
-      "bard",
-      "shen",
-      "blitzcrank"
-    ],
-    "flex": [
-      "rammus",
-      "nunu",
-      "karma"
-    ],
-    "traits": [
-      "Stargazer 6",
-      "Sniper 3",
-      "Meeple 3",
-      "Bastion 2"
-    ],
-    "items": {
-      "Xayah": [
-        "Kraken's Fury",
-        "Guinsoo's Rageblade",
-        "Infinity Edge"
-      ],
-      "Jhin": [
-        "Deathblade",
-        "Giant Slayer",
+        "Guardbreaker",
         "Last Whisper"
-      ],
-      "Bard": [
-        "Morellonomicon",
-        "Spear of Shojin",
-        "Hextech Gunblade"
       ]
     },
     "carousel": [
-      "Recurve Bow",
-      "BF Sword",
+      "Tear of the Goddess",
       "Needlessly Large Rod",
       "Giant's Belt",
       "Chain Vest"
     ],
     "augments": [
-      "Stargazer Crown",
+      "Mecha Crown",
+      "Astronaut Heart",
+      "Level Up!"
+    ],
+    "god": "Kayle",
+    "godWhy": "Radiant Rabadon's Deathcap on Aurelion Sol is a 1-shot button.",
+    "stages": {
+      "stage_2": "Veigar + Poppy + Lulu for Astronaut 2 + Replicator 2.",
+      "stage_3": "Level 6, slow roll for 2-star 2-costs. Preserve items for AP.",
+      "stage_4": "Level 7 at 4-1. Hit Galio + Urgot + Corki for Mecha 3.",
+      "stage_5": "Level 8 at 5-1. Roll for Aurelion Sol."
+    }
+  },
+  {
+    "id": "fast-9-jhin-stargazer",
+    "name": "Fast 9 Jhin Stargazer",
+    "tier": "A",
+    "difficulty": "Very Hard",
+    "strategy": "Fast 9",
+    "color": "#6366f1",
+    "carry": "xayah",
+    "desc": "Fast 9 Xayah carry with Jhin + Bard late game. Stargazer 5 + Sniper utility.",
+    "board": [
+      "xayah",
+      "jhin",
+      "bard",
+      "shen",
+      "karma",
+      "nunu",
+      "lulu",
+      "talon",
+      "jax"
+    ],
+    "early": [
+      "twistedfate",
+      "talon",
+      "caitlyn",
+      "lulu"
+    ],
+    "flex": [
+      "milio",
+      "fiora",
+      "sona"
+    ],
+    "traitTargets": [
+      "Stargazer 5",
+      "Eradicator 1",
+      "Dark Star 2",
+      "Bulwark 1",
+      "Astronaut 1"
+    ],
+    "carryItems": [
+      "Guinsoo's Rageblade",
+      "Runaan's Hurricane",
+      "Infinity Edge"
+    ],
+    "items": {
+      "Xayah": [
+        "Guinsoo's Rageblade",
+        "Runaan's Hurricane",
+        "Infinity Edge"
+      ],
+      "Jhin": [
+        "Infinity Edge",
+        "Last Whisper",
+        "Giant Slayer"
+      ],
+      "Bard": [
+        "Spear of Shojin",
+        "Morellonomicon",
+        "Void Staff"
+      ]
+    },
+    "carousel": [
+      "Recurve Bow",
+      "B. F. Sword",
+      "Tear of the Goddess",
+      "Sparring Gloves"
+    ],
+    "augments": [
       "Late Game Specialist",
-      "Aura Farming"
+      "Stargazer Crown",
+      "Level Up!"
     ],
     "god": "Ahri",
-    "godWhy": "Ahri XP + gold is the fastest path to level 9 and 5-cost spam.",
-    "gameplan": "Stage 2-3: lose streak to save HP. Stage 4-1: level 8 for Stargazer 4. Stage 5-2: level 9 and roll for Xayah, Jhin, Bard, Shen."
+    "godWhy": "Ahri's gold + XP pushes Level 9 by 5-5 for Bard + Jhin double capper.",
+    "stages": {
+      "stage_2": "Stargazer 3 opener (TF, Talon, Lulu, Xayah).",
+      "stage_3": "Level 6 at 3-2, preserve econ. Don't over-roll.",
+      "stage_4": "Level 7 at 4-1, Level 8 at 4-5. Add Nunu + Karma.",
+      "stage_5": "Level 9 at 5-5. Roll for Bard + Jhin to cap."
+    }
   },
   {
     "id": "tf-reroll",
-    "name": "TF Reroll",
+    "name": "TF Reroll Fateweaver",
     "tier": "A",
     "difficulty": "Easy",
-    "strategy": "Level 6 slow roll",
-    "color": "#f59e0b",
+    "strategy": "Level 6 Reroll",
+    "color": "#fde047",
     "carry": "twistedfate",
-    "desc": "Classic Twisted Fate 3 with Fateweaver 4. Easier variant of Cards & Cartridges.",
-    "core": [
+    "desc": "Fateweaver 4 with TF 3-star at Level 6. Cheap econ-friendly reroll.",
+    "board": [
       "twistedfate",
       "caitlyn",
       "talon",
-      "aatrox",
-      "veigar"
+      "milio",
+      "jax",
+      "corki",
+      "lulu",
+      "aatrox"
+    ],
+    "early": [
+      "twistedfate",
+      "caitlyn",
+      "talon",
+      "lulu"
     ],
     "flex": [
-      "jax",
-      "pantheon",
-      "gwen"
+      "veigar",
+      "gnar",
+      "akali"
     ],
-    "traits": [
+    "traitTargets": [
       "Fateweaver 4",
-      "Bastion 2",
-      "Rogue 2"
+      "Stargazer 3",
+      "DRX 2",
+      "Bulwark 1",
+      "Timebreaker 2"
+    ],
+    "carryItems": [
+      "Infinity Edge",
+      "Jeweled Gauntlet",
+      "Spear of Shojin"
     ],
     "items": {
       "Twisted Fate": [
-        "Nashor's Tooth",
+        "Infinity Edge",
         "Jeweled Gauntlet",
-        "Hextech Gunblade"
+        "Spear of Shojin"
       ],
-      "Talon": [
-        "Thief's Gloves"
+      "Caitlyn": [
+        "Guinsoo's Rageblade",
+        "Last Whisper",
+        "Hand of Justice"
       ],
       "Jax": [
+        "Warmog's Armor",
         "Bramble Vest",
-        "Dragon's Claw",
-        "Warmog's Armor"
+        "Gargoyle Stoneplate"
+      ]
+    },
+    "carousel": [
+      "Sparring Gloves",
+      "B. F. Sword",
+      "Needlessly Large Rod",
+      "Tear of the Goddess"
+    ],
+    "augments": [
+      "Fateweaver Heart",
+      "Three's Company",
+      "Level Up!"
+    ],
+    "god": "Yasuo",
+    "godWhy": "Wind Hex AS boost scales TF's cards hard in the reroll phase.",
+    "stages": {
+      "stage_2": "TF + Caitlyn + Talon for Fateweaver 2 + Stargazer 2.",
+      "stage_3": "Slow roll Level 5-6 for TF 3.",
+      "stage_4": "Level 7 at 4-1 only after TF 3. Add Milio + Jax for Fateweaver 4.",
+      "stage_5": "Level 8 at 5-2. Cap with Corki + Aatrox."
+    }
+  },
+  {
+    "id": "vanguard-teemo",
+    "name": "Vanguard Teemo",
+    "tier": "B",
+    "difficulty": "Medium",
+    "strategy": "Level 6 Reroll",
+    "color": "#22c55e",
+    "carry": "teemo",
+    "desc": "Teemo 3-star with Vanguard 4 wall. Shroom spam reroll comp.",
+    "board": [
+      "teemo",
+      "poppy",
+      "nasus",
+      "leona",
+      "mordekaiser",
+      "ornn",
+      "tahmkench",
+      "nami"
+    ],
+    "early": [
+      "teemo",
+      "poppy",
+      "nasus"
+    ],
+    "flex": [
+      "gragas",
+      "gnar",
+      "veigar"
+    ],
+    "traitTargets": [
+      "Vanguard 4",
+      "Space Groove 3",
+      "Bastion 2",
+      "Summoner 2"
+    ],
+    "carryItems": [
+      "Guinsoo's Rageblade",
+      "Jeweled Gauntlet",
+      "Morellonomicon"
+    ],
+    "items": {
+      "Teemo": [
+        "Guinsoo's Rageblade",
+        "Jeweled Gauntlet",
+        "Morellonomicon"
+      ],
+      "Mordekaiser": [
+        "Warmog's Armor",
+        "Gargoyle Stoneplate",
+        "Protector's Vow"
+      ],
+      "Nasus": [
+        "Sunfire Cape",
+        "Bramble Vest",
+        "Dragon's Claw"
       ]
     },
     "carousel": [
@@ -826,109 +1161,95 @@
       "Giant's Belt"
     ],
     "augments": [
-      "Fateweaver Crest",
-      "Built Different",
-      "Cruel Pact"
-    ],
-    "god": "Yasuo",
-    "godWhy": "Extra rolls make 3-starring TF + Talon almost guaranteed.",
-    "gameplan": "Stage 2: do not level, hold gold. Stage 3-2: level 5 slow roll. Stage 4-1: level 6 and roll for TF 3. Stage 5: level 7-8 for cap."
-  },
-  {
-    "id": "vanguard-teemo",
-    "name": "Vanguard Teemo",
-    "tier": "B",
-    "difficulty": "Easy",
-    "strategy": "Level 6 slow roll",
-    "color": "#84cc16",
-    "carry": "teemo",
-    "desc": "Teemo 3 AS monster with Vanguard 4 frontline. Classic 1-cost reroll fallback.",
-    "core": [
-      "teemo",
-      "poppy",
-      "leona",
-      "nasus",
-      "lissandra"
-    ],
-    "flex": [
-      "gnar",
-      "mordekaiser",
-      "akali"
-    ],
-    "traits": [
-      "Vanguard 4",
-      "Bastion 2",
-      "Meeple 2"
-    ],
-    "items": {
-      "Teemo": [
-        "Guinsoo's Rageblade",
-        "Nashor's Tooth",
-        "Red Buff"
-      ],
-      "Poppy": [
-        "Warmog's Armor",
-        "Bramble Vest",
-        "Dragon's Claw"
-      ]
-    },
-    "carousel": [
-      "Recurve Bow",
-      "Chain Vest",
-      "Negatron Cloak"
-    ],
-    "augments": [
-      "Vanguard Crest",
-      "Built Different",
-      "Little Buddies"
+      "Vanguard Crown",
+      "Summoner Heart",
+      "Combat Training"
     ],
     "god": "Soraka",
-    "godWhy": "Soraka sustain keeps your 1-cost reroll board alive to hit 3-stars.",
-    "gameplan": "Stage 2: do not level. Stage 3-2: level 5 and slow roll for Teemo 3 + Poppy 3. Stage 4: level 6-7 and cap with Vanguard 4."
+    "godWhy": "HP stacking maxes the Vanguard wall so Teemo shrooms win by attrition.",
+    "stages": {
+      "stage_2": "Teemo + Poppy + Nasus for Vanguard 2 + Space Groove 2.",
+      "stage_3": "Slow roll Level 6 for Teemo 3 + Poppy 3.",
+      "stage_4": "Level 7 at 4-2. Add Leona + Mordekaiser for Vanguard 4.",
+      "stage_5": "Level 8 at 5-2. Cap with Ornn + Tahm Kench + Nami."
+    }
   },
   {
     "id": "invader-zed",
     "name": "Invader Zed",
     "tier": "X",
-    "difficulty": "Hard",
+    "difficulty": "Very Hard",
     "strategy": "Hero Augment",
-    "color": "#8b5cf6",
+    "color": "#f43f5e",
     "carry": "zed",
-    "desc": "Zed hero-augment carry only. Requires Invader Zed augment and Galaxy Hunter trait.",
-    "core": [
+    "desc": "Zed Hero Augment carry. Requires the augment to hit -- high variance, high ceiling.",
+    "board": [
       "zed",
+      "talon",
+      "fizz",
+      "gwen",
+      "briar",
+      "kaisa",
       "rhaast",
-      "aatrox",
-      "akali",
-      "shen"
+      "ornn"
+    ],
+    "early": [
+      "zed",
+      "talon",
+      "fizz"
     ],
     "flex": [
-      "fizz",
-      "talon",
-      "gwen"
+      "kindred",
+      "riven",
+      "samira"
     ],
-    "traits": [
-      "Rogue 4",
+    "traitTargets": [
       "Galaxy Hunter 1",
-      "Bastion 2"
+      "Assassin 4",
+      "Stargazer 2",
+      "Primordian 2",
+      "Bastion 1"
+    ],
+    "carryItems": [
+      "Infinity Edge",
+      "Jeweled Gauntlet",
+      "Guardbreaker"
     ],
     "items": {
       "Zed": [
         "Infinity Edge",
-        "Last Whisper",
-        "Quicksilver"
+        "Jeweled Gauntlet",
+        "Guardbreaker"
+      ],
+      "Rhaast": [
+        "Bloodthirster",
+        "Edge of Night",
+        "Hand of Justice"
+      ],
+      "Ornn": [
+        "Warmog's Armor",
+        "Bramble Vest",
+        "Protector's Vow"
       ]
     },
     "carousel": [
-      "BF Sword",
+      "B. F. Sword",
+      "Needlessly Large Rod",
       "Sparring Gloves",
       "Chain Vest"
     ],
     "augments": [
-      "Invader Zed (REQUIRED)"
+      "Zed Hero Augment",
+      "Assassin Heart",
+      "Ambusher"
     ],
     "god": "Evelynn",
-    "godWhy": "Evelynn backline access is exactly what Zed wants.",
-    "gameplan": "Requires Invader Zed hero augment. Slam items on Zed, level 7 slow roll for Zed 2, cap with Rhaast + Shen."
+    "godWhy": "Lose streak HP trade powers Eve econ and stacks Zed's lethality window.",
+    "stages": {
+      "stage_2": "Roll Zed Hero Augment at 2-1. Play Zed + Talon + Fizz.",
+      "stage_3": "Slow roll Level 6 for 2-star reroll pieces.",
+      "stage_4": "Level 7 at 4-2. Add Rhaast + Ornn for Assassin 4.",
+      "stage_5": "Level 8 at 5-2. Cap with Kai'Sa + Briar."
+    }
   }
 ]

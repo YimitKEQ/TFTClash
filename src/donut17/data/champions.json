@@ -85,11 +85,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_aatrox/hud/tft17_aatrox_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_aatrox/skins/base/images/tft17_aatrox_splash_centered_30.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_aatrox.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_aatrox.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Aatrox.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Aatrox.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_aatrox/skins/base/images/tft17_aatrox_splash_centered_30.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Aatrox.png?w=22"
     },
     "role": "",
     "bis": []
@@ -181,11 +182,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_briar/hud/tft17_briar_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_briar/skins/base/images/tft17_briar_splash_centered_10.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_briar.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_briar.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Briar.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Briar.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_briar/skins/base/images/tft17_briar_splash_centered_10.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Briar.png?w=22"
     },
     "role": "",
     "bis": []
@@ -288,11 +290,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_caitlyn/hud/tft17_caitlyn_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_caitlyn/skins/base/images/tft17_caitlyn_splash_centered_48.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_caitlyn.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_caitlyn.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Caitlyn.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Caitlyn.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_caitlyn/skins/base/images/tft17_caitlyn_splash_centered_48.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Caitlyn.png?w=22"
     },
     "role": "",
     "bis": []
@@ -395,11 +398,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_chogath/hud/tft17_chogath_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_chogath/skins/base/images/tft17_chogath_splash_centered_7.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_chogath.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_chogath.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Chogath.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Chogath.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_chogath/skins/base/images/tft17_chogath_splash_centered_7.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Chogath.png?w=22"
     },
     "role": "",
     "bis": []
@@ -502,11 +506,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_ezreal/hud/tft17_ezreal_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_ezreal/skins/base/images/tft17_ezreal_splash_centered_5.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_ezreal.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_ezreal.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Ezreal.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Ezreal.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_ezreal/skins/base/images/tft17_ezreal_splash_centered_5.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Ezreal.png?w=22"
     },
     "role": "",
     "bis": []
@@ -546,11 +551,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_bluegolem/hud/tft17_bluegolem_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft_bluegolem.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_bluegolem.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_bluegolem.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_BlueGolem.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_BlueGolem.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft_bluegolem.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_BlueGolem.png?w=22"
     },
     "role": "",
     "bis": []
@@ -641,11 +647,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_leona/hud/tft17_leona_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_leona/skins/base/images/tft17_leona_splash_centered_64.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_leona.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_leona.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Leona.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Leona.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_leona/skins/base/images/tft17_leona_splash_centered_64.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Leona.png?w=22"
     },
     "role": "",
     "bis": []
@@ -701,11 +708,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_lissandra/hud/tft17_lissandra_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_lissandra/skins/base/images/tft17_lissandra_splash_centered_12.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_lissandra.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_lissandra.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Lissandra.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Lissandra.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_lissandra/skins/base/images/tft17_lissandra_splash_centered_12.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Lissandra.png?w=22"
     },
     "role": "",
     "bis": []
@@ -745,11 +753,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_darkstar_fakeunit/hud/tft17_darkstar_fakeunit_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_darkstar_fakeunit/hud/tft17_darkstar_fakeunit_bigsplash.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_darkstar_fakeunit.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_darkstar_fakeunit.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_DarkStar_FakeUnit.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_DarkStar_FakeUnit.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_darkstar_fakeunit/hud/tft17_darkstar_fakeunit_bigsplash.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_DarkStar_FakeUnit.png?w=22"
     },
     "role": "",
     "bis": []
@@ -828,11 +837,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_nasus/hud/tft17_nasus_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_nasus/skins/base/images/tft17_nasus_splash_centered_25.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_nasus.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_nasus.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Nasus.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Nasus.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_nasus/skins/base/images/tft17_nasus_splash_centered_25.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Nasus.png?w=22"
     },
     "role": "",
     "bis": []
@@ -923,11 +933,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_poppy/hud/tft17_poppy_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_poppy/skins/base/images/tft17_poppy_splash_centered_16.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_poppy.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_poppy.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Poppy.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Poppy.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_poppy/skins/base/images/tft17_poppy_splash_centered_16.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Poppy.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1006,11 +1017,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_reksai/hud/tft17_reksai_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_reksai/skins/base/images/tft17_reksai_splash_centered_26.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_reksai.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_reksai.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_RekSai.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_RekSai.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_reksai/skins/base/images/tft17_reksai_splash_centered_26.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_RekSai.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1037,11 +1049,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_slime_crab/hud/tft17_slime_crab_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft_scuttlecrab.tft_set13.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_slime_crab.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_slime_crab.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_SLIME_Crab.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_SLIME_Crab.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft_scuttlecrab.tft_set13.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_SLIME_Crab.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1120,11 +1133,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_talon/hud/tft17_talon_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_talon/skins/base/images/tft17_talon_splash_centered_39.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_talon.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_talon.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Talon.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Talon.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_talon/skins/base/images/tft17_talon_splash_centered_39.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Talon.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1227,11 +1241,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_teemo/hud/tft17_teemo_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_teemo/skins/base/images/tft17_teemo_splash_centered_47.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_teemo.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_teemo.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Teemo.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Teemo.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_teemo/skins/base/images/tft17_teemo_splash_centered_47.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Teemo.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1258,11 +1273,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_trainingdummy/hud/tft17_trainingdummy_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tftdebug_dummy.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_trainingdummy.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_trainingdummy.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_TrainingDummy.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TrainingDummy.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tftdebug_dummy.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TrainingDummy.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1317,11 +1333,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_twistedfate/hud/tft17_twistedfate_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_twistedfate/skins/base/images/tft17_twistedfate_splash_centered_45.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_twistedfate.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_twistedfate.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_TwistedFate.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TwistedFate.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_twistedfate/skins/base/images/tft17_twistedfate_splash_centered_45.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TwistedFate.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1388,11 +1405,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_veigar/hud/tft17_veigar_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_veigar/skins/base/images/tft17_veigar_splash_centered_32.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_veigar.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_veigar.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Veigar.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Veigar.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_veigar/skins/base/images/tft17_veigar_splash_centered_32.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Veigar.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1519,11 +1537,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_akali/hud/tft17_akali_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_akali/skins/base/images/tft17_akali_splash_centered_68.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_akali.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_akali.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Akali.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Akali.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_akali/skins/base/images/tft17_akali_splash_centered_68.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Akali.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1627,11 +1646,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_belveth/hud/tft17_belveth_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_belveth/skins/base/images/tft17_belveth_splash_centered_19.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_belveth.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_belveth.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Belveth.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Belveth.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_belveth/skins/base/images/tft17_belveth_splash_centered_19.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Belveth.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1734,11 +1754,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_gnar/hud/tft17_gnar_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_gnar/skins/base/images/tft17_gnar_splash_centered_15.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_gnar.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_gnar.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Gnar.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Gnar.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_gnar/skins/base/images/tft17_gnar_splash_centered_15.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Gnar.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1841,11 +1862,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_gragas/hud/tft17_gragas_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_gragas/skins/base/images/tft17_gragas_splash_centered_10.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_gragas.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_gragas.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Gragas.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Gragas.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_gragas/skins/base/images/tft17_gragas_splash_centered_10.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Gragas.png?w=22"
     },
     "role": "",
     "bis": []
@@ -1928,11 +1950,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_gwen/hud/tft17_gwen_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_gwen/skins/base/images/tft17_gwen_splash_centered_1.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_gwen.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_gwen.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Gwen.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Gwen.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_gwen/skins/base/images/tft17_gwen_splash_centered_1.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Gwen.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2035,11 +2058,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_jax/hud/tft17_jax_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_jax/skins/base/images/tft17_jax.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_jax.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_jax.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Jax.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Jax.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_jax/skins/base/images/tft17_jax.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Jax.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2166,11 +2190,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_jinx/hud/tft17_jinx_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_jinx/skins/base/images/tft17_jinx_splash_centered_38.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_jinx.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_jinx.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Jinx.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Jinx.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_jinx/skins/base/images/tft17_jinx_splash_centered_38.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Jinx.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2298,11 +2323,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_ivernminion/hud/tft17_ivernminion_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_ivernminion/skins/base/images/tft17_ivernminion_splash_centered_27.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_ivernminion.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_ivernminion.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_IvernMinion.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_IvernMinion.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_ivernminion/skins/base/images/tft17_ivernminion_splash_centered_27.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_IvernMinion.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2357,11 +2383,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_milio/hud/tft17_milio_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_milio/skins/base/images/tft17_milio_splash_centered_0.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_milio.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_milio.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Milio.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Milio.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_milio/skins/base/images/tft17_milio_splash_centered_0.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Milio.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2453,11 +2480,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_mordekaiser/hud/tft17_mordekaiser_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_mordekaiser/skins/base/images/tft17_mordekaiser_splash_centered_6.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_mordekaiser.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_mordekaiser.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Mordekaiser.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Mordekaiser.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_mordekaiser/skins/base/images/tft17_mordekaiser_splash_centered_6.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Mordekaiser.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2549,11 +2577,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pantheon/hud/tft17_pantheon_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_pantheon/skins/base/images/tft17_pantheon_splash_centered_16.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pantheon.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pantheon.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Pantheon.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Pantheon.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_pantheon/skins/base/images/tft17_pantheon_splash_centered_16.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Pantheon.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2620,11 +2649,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pyke/hud/tft17_pyke_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_pyke/skins/base/images/tft17_pyke_splash_centered_25.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pyke.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pyke.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Pyke.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Pyke.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_pyke/skins/base/images/tft17_pyke_splash_centered_25.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Pyke.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2715,11 +2745,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_zoe/hud/tft17_zoe_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_zoe/skins/base/images/tft17_zoe_splash_centered_43.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_zoe.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_zoe.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Zoe.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Zoe.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_zoe/skins/base/images/tft17_zoe_splash_centered_43.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Zoe.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2810,11 +2841,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_aurora/hud/tft17_aurora_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_aurora/skins/base/images/tft17_aurora_splash_centered_1.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_aurora.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_aurora.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Aurora.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Aurora.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_aurora/skins/base/images/tft17_aurora_splash_centered_1.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Aurora.png?w=22"
     },
     "role": "",
     "bis": []
@@ -2965,11 +2997,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_diana/hud/tft17_diana_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_diana/skins/base/images/tft17_dianasplash_pc.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_diana.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_diana.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Diana.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Diana.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_diana/skins/base/images/tft17_dianasplash_pc.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Diana.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3072,11 +3105,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_fizz/hud/tft17_fizz_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_fizz/skins/base/images/tft17_fizz_splash_centered_26.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_fizz.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_fizz.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Fizz.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Fizz.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_fizz/skins/base/images/tft17_fizz_splash_centered_26.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Fizz.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3168,11 +3202,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_illaoi/hud/tft17_illaoi_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_illaoi/skins/base/images/tft17_illaoi_splash_centered_27.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_illaoi.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_illaoi.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Illaoi.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Illaoi.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_illaoi/skins/base/images/tft17_illaoi_splash_centered_27.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Illaoi.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3287,11 +3322,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_kaisa/hud/tft17_kaisa_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_kaisa/skins/base/images/tft17_kaisa_splash_centered_69.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_kaisa.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_kaisa.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Kaisa.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Kaisa.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_kaisa/skins/base/images/tft17_kaisa_splash_centered_69.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Kaisa.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3346,11 +3382,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_lulu/hud/tft17_lulu_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_lulu/skins/base/images/tft17_lulu_splash_centered_14.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_lulu.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_lulu.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Lulu.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Lulu.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_lulu/skins/base/images/tft17_lulu_splash_centered_14.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Lulu.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3441,11 +3478,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_maokai/hud/tft17_maokai_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_maokai/skins/base/images/tft17_maokai_splash_centered_33.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_maokai.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_maokai.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Maokai.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Maokai.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_maokai/skins/base/images/tft17_maokai_splash_centered_33.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Maokai.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3536,11 +3574,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_missfortune/hud/tft17_missfortune_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_missfortune/skins/base/images/tft17_missfortune_splash_centered_16.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_missfortune.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_missfortune.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_MissFortune.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_MissFortune.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_missfortune/skins/base/images/tft17_missfortune_splash_centered_16.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_MissFortune.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3619,11 +3658,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_ornn/hud/tft17_ornn_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_ornn/skins/base/images/tft17_ornn_splash_centered_11.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_ornn.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_ornn.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Ornn.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Ornn.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_ornn/skins/base/images/tft17_ornn_splash_centered_11.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Ornn.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3713,11 +3753,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_rhaast/hud/tft17_rhaast_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_rhaast/skins/base/images/tft17_kaynsplash_uncentered.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_rhaast.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_rhaast.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Rhaast.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Rhaast.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_rhaast/skins/base/images/tft17_kaynsplash_uncentered.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Rhaast.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3808,11 +3849,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_samira/hud/tft17_samira_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_samira/skins/base/images/tft17_samira_splash_centered_10.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_samira.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_samira.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Samira.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Samira.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_samira/skins/base/images/tft17_samira_splash_centered_10.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Samira.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3904,11 +3946,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_urgot/hud/tft17_urgot_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_urgot/skins/base/images/tft17_urgot_splash_centered_32.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_urgot.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_urgot.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Urgot.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Urgot.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_urgot/skins/base/images/tft17_urgot_splash_centered_32.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Urgot.png?w=22"
     },
     "role": "",
     "bis": []
@@ -3987,11 +4030,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_viktor/hud/tft17_viktor_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_viktor/skins/base/images/tft17_viktor_splash_centered_5.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_viktor.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_viktor.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Viktor.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Viktor.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_viktor/skins/base/images/tft17_viktor_splash_centered_5.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Viktor.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4070,11 +4114,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_aurelionsol/hud/tft17_aurelionsol_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_aurelionsol/skins/base/images/tft17_aurelionsol_splash_centered_2.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_aurelionsol.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_aurelionsol.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_AurelionSol.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_AurelionSol.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_aurelionsol/skins/base/images/tft17_aurelionsol_splash_centered_2.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_AurelionSol.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4225,11 +4270,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_corki/hud/tft17_corki_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_corki/skins/base/images/tft17_corki_splash_centered_26.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_corki.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_corki.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Corki.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Corki.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_corki/skins/base/images/tft17_corki_splash_centered_26.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Corki.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4344,11 +4390,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_karma/hud/tft17_karma_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_karma/skins/base/images/tft17_karma_splash_centered_8.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_karma.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_karma.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Karma.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Karma.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_karma/skins/base/images/tft17_karma_splash_centered_8.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Karma.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4475,11 +4522,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_kindred/hud/tft17_kindred_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_kindred/skins/base/images/tft17_kindred_splash_centered_23.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_kindred.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_kindred.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Kindred.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Kindred.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_kindred/skins/base/images/tft17_kindred_splash_centered_23.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Kindred.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4570,11 +4618,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_leblanc/hud/tft17_leblanc_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_leblanc/skins/base/images/tft17_leblanc_splash_centered_29.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_leblanc.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_leblanc.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Leblanc.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Leblanc.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_leblanc/skins/base/images/tft17_leblanc_splash_centered_29.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Leblanc.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4677,11 +4726,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_masteryi/hud/tft17_masteryi_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_masteryi/skins/base/images/tft17_masteryi_splash_centered_33.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_masteryi.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_masteryi.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_MasterYi.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_MasterYi.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_masteryi/skins/base/images/tft17_masteryi_splash_centered_33.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_MasterYi.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4760,11 +4810,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_nami/hud/tft17_nami_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_nami/skins/base/images/tft17_nami_splash_centered_41.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_nami.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_nami.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Nami.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Nami.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_nami/skins/base/images/tft17_nami_splash_centered_41.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Nami.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4867,11 +4918,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_nunu/hud/tft17_nunu_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_nunu/skins/base/images/tft17_nunu_splash_centered_35.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_nunu.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_nunu.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Nunu.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Nunu.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_nunu/skins/base/images/tft17_nunu_splash_centered_35.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Nunu.png?w=22"
     },
     "role": "",
     "bis": []
@@ -4998,11 +5050,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_rammus/hud/tft17_rammus_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_rammus/skins/base/images/tft17_rammus_splash_centered_17.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_rammus.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_rammus.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Rammus.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Rammus.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_rammus/skins/base/images/tft17_rammus_splash_centered_17.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Rammus.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5129,11 +5182,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_riven/hud/tft17_riven_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_riven/skins/base/images/tft17_riven_splash_centered_18.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_riven.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_riven.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Riven.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Riven.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_riven/skins/base/images/tft17_riven_splash_centered_18.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Riven.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5248,11 +5302,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_tahmkench/hud/tft17_tahmkench_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_tahmkench/skins/base/images/tft17_tahmkench_splash_centered_11.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_tahmkench.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_tahmkench.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_TahmKench.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TahmKench.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_tahmkench/skins/base/images/tft17_tahmkench_splash_centered_11.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TahmKench.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5343,11 +5398,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_galio/hud/tft17_galio_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_galio/skins/base/images/tft17_galio.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_galio.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_galio.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Galio.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Galio.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_galio/skins/base/images/tft17_galio.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Galio.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5474,11 +5530,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_xayah/hud/tft17_xayah_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_xayah/skins/base/images/tft17_xayah_splash_centered_1.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_xayah.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_xayah.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Xayah.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Xayah.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_xayah/skins/base/images/tft17_xayah_splash_centered_1.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Xayah.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5590,11 +5647,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_enemy_aatrox/hud/tft17_enemy_aatrox_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_enemy_aatrox/skins/base/images/tft17_enemy_aatrox_splash_centered_33.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_enemy_aatrox.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_enemy_aatrox.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Enemy_Aatrox.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Enemy_Aatrox.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_enemy_aatrox/skins/base/images/tft17_enemy_aatrox_splash_centered_33.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Enemy_Aatrox.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5733,11 +5791,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_bard/hud/tft17_bard_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_bard/skins/base/images/tft17_bard_splash_centered_8.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_bard.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_bard.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Bard.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Bard.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_bard/skins/base/images/tft17_bard_splash_centered_8.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Bard.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5829,11 +5888,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_blitzcrank/hud/tft17_blitzcrank_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_blitzcrank/skins/base/images/tft17_blitzcrank_splash_uncentered_65.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_blitzcrank.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_blitzcrank.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Blitzcrank.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Blitzcrank.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_blitzcrank/skins/base/images/tft17_blitzcrank_splash_uncentered_65.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Blitzcrank.png?w=22"
     },
     "role": "",
     "bis": []
@@ -5937,11 +5997,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_fiora/hud/tft17_fiora_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_fiora/skins/base/images/tft17_fiora_splash_centered_51.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_fiora.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_fiora.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Fiora.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Fiora.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_fiora/skins/base/images/tft17_fiora_splash_centered_51.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Fiora.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6031,11 +6092,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_graves/hud/tft17_graves_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_graves/skins/base/images/tft17_graves_splash_centered_18.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_graves.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_graves.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Graves.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Graves.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_graves/skins/base/images/tft17_graves_splash_centered_18.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Graves.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6179,11 +6241,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_jhin/hud/tft17_jhin_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_jhin/skins/base/images/tft17_jhin_splash_centered_37.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_jhin.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_jhin.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Jhin.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Jhin.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_jhin/skins/base/images/tft17_jhin_splash_centered_37.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Jhin.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6285,11 +6348,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_morgana/hud/tft17_morgana_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_morgana/skins/base/images/tft17_morgana_splash_centered_50.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_morgana.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_morgana.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Morgana.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Morgana.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_morgana/skins/base/images/tft17_morgana_splash_centered_50.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Morgana.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6404,11 +6468,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_shen/hud/tft17_shen_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_shen/skins/base/images/tft17_shen_splash_centered_49.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_shen.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_shen.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Shen.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Shen.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_shen/skins/base/images/tft17_shen_splash_centered_49.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Shen.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6500,11 +6565,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_sona/hud/tft17_sona_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_sona/skins/base/images/tft17_sona_splash_centered_17.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_sona.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_sona.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Sona.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Sona.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_sona/skins/base/images/tft17_sona_splash_centered_17.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Sona.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6582,11 +6648,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_vex/hud/tft17_vex_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_vex/skins/base/images/tft17_vex_splash_centered_10.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_vex.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_vex.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Vex.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Vex.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_vex/skins/base/images/tft17_vex_splash_centered_10.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Vex.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6640,11 +6707,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_zed/hud/tft17_zed_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_zed/skins/base/images/tft17_zed_splash_centered_68.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_zed.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_zed.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Zed.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Zed.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_zed/skins/base/images/tft17_zed_splash_centered_68.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Zed.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6684,11 +6752,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_armorykeyornn/hud/tft17_armorykeyornn_square.tft_set17.png",
+      "square": "",
       "face": "https://ap.tft.tools/img/new17/face/tft17_armorykeyornn.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_armorykeyornn.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_ArmoryKeyOrnn.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeyOrnn.png?w=22",
-      "square": ""
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeyOrnn.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6728,11 +6797,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_armorykeycompleted/hud/tft17_armorykeycompleted_square.tft_set17.png",
+      "square": "",
       "face": "https://ap.tft.tools/img/new17/face/tft17_armorykeycompleted.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_armorykeycompleted.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_ArmoryKeyCompleted.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeyCompleted.png?w=22",
-      "square": ""
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeyCompleted.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6772,11 +6842,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_armorykeycomponent/hud/tft17_armorykeycomponent_square.tft_set17.png",
+      "square": "",
       "face": "https://ap.tft.tools/img/new17/face/tft17_armorykeycomponent.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_armorykeycomponent.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_ArmoryKeyComponent.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeyComponent.png?w=22",
-      "square": ""
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeyComponent.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6816,11 +6887,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_armorykeysupport/hud/tft17_armorykeysupport_square.tft_set17.png",
+      "square": "",
       "face": "https://ap.tft.tools/img/new17/face/tft17_armorykeysupport.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_armorykeysupport.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_ArmoryKeySupport.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeySupport.png?w=22",
-      "square": ""
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_ArmoryKeySupport.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6860,11 +6932,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_emblemarmorykey/hud/tft17_emblemarmorykey_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft5_emblemarmorykey.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_emblemarmorykey.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_emblemarmorykey.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_EmblemArmoryKey.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_EmblemArmoryKey.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft5_emblemarmorykey.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_EmblemArmoryKey.png?w=22"
     },
     "role": "",
     "bis": []
@@ -6916,11 +6989,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_emblemarmorykey/hud/tft17_emblemarmorykey_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft5_emblemarmorykey.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_emblemarmorykey.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_emblemarmorykey.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_EmblemArmoryKey.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_EmblemArmoryKey.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft5_emblemarmorykey.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_EmblemArmoryKey.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7032,11 +7106,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_summon/hud/tft17_summon_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_summon/skins/base/images/shiro_hidden.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_summon.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_summon.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_Summon.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Summon.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/characters/tft17_summon/skins/base/images/shiro_hidden.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_Summon.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7063,11 +7138,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pve_krug/hud/tft17_pve_krug_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pve_krug.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pve_krug.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_PVE_Krug.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Krug.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Krug.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7094,11 +7170,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pve_elderdragon/hud/tft17_pve_elderdragon_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_elderdragon.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pve_elderdragon.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pve_elderdragon.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_PVE_ElderDragon.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_ElderDragon.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_elderdragon.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_ElderDragon.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7125,11 +7202,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pve_pix/hud/tft17_pve_pix_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pve_pix.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pve_pix.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_PVE_Pix.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Pix.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Pix.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7156,11 +7234,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pve_gromp/hud/tft17_pve_gromp_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pve_gromp.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pve_gromp.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_PVE_Gromp.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Gromp.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Gromp.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7187,11 +7266,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pve_raptor/hud/tft17_pve_raptor_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pve_raptor.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pve_raptor.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_PVE_Raptor.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Raptor.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Raptor.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7218,11 +7298,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_pve_minion/hud/tft17_pve_minion_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_pve_minion.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_pve_minion.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_PVE_Minion.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Minion.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft17_pve_defaultsplash.tft_set17.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_PVE_Minion.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7262,11 +7343,12 @@
       ]
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_mercenarychest/hud/tft17_mercenarychest_square.tft_set17.png",
+      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft6_mercenarychest.png",
       "face": "https://ap.tft.tools/img/new17/face/tft17_mercenarychest.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_mercenarychest.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_MercenaryChest.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_MercenaryChest.png?w=22",
-      "square": "https://raw.communitydragon.org/pbe/game/assets/ux/tft/championsplashes/tft6_mercenarychest.tex"
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_MercenaryChest.png?w=22"
     },
     "role": "",
     "bis": []
@@ -7293,11 +7375,12 @@
       "variables": []
     },
     "assets": {
+      "hud": "https://raw.communitydragon.org/pbe/plugins/rcp-be-lol-game-data/global/default/assets/characters/tft17_timebreakercore/hud/tft17_timebreakercore_square.tft_set17.png",
+      "square": "",
       "face": "https://ap.tft.tools/img/new17/face/tft17_timebreakercore.jpg?w=36",
       "face_lg": "https://ap.tft.tools/img/new17/face/tft17_timebreakercore.jpg?w=64",
       "wide": "https://ap.tft.tools/img/new17/face_full_ultrawide/TFT17_TimebreakerCore.jpg?w=290",
-      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TimebreakerCore.png?w=22",
-      "square": ""
+      "ability": "https://ap.tft.tools/img/new17/ability/TFT17_TimebreakerCore.png?w=22"
     },
     "role": "",
     "bis": []
