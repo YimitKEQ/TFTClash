@@ -1,0 +1,634 @@
+import React from 'react';
+import { supabase } from '../../lib/supabase';
+
+var COLUMN_COLORS = {
+  ideas: '#A78BFA',
+  writing: '#5BA3DB',
+  production: '#E8A020',
+  review: '#EC4899',
+  published: '#10B981',
+  archive: '#6B7280',
+};
+
+var COLUMN_LABELS = {
+  ideas: 'Ideas',
+  writing: 'Writing',
+  production: 'Production',
+  review: 'Review',
+  published: 'Published',
+  archive: 'Archive',
+};
+
+var COLUMN_ORDER = ['ideas', 'writing', 'production', 'review', 'published', 'archive'];
+
+var PATCH_DATES = [
+  { id: '14.1', label: '14.1', date: '2026-04-15', notes: 'Set 14 launch' },
+  { id: '14.2', label: '14.2', date: '2026-04-29', notes: 'First balance' },
+  { id: '14.3', label: '14.3', date: '2026-05-13', notes: '' },
+  { id: '14.4', label: '14.4', date: '2026-05-27', notes: '' },
+  { id: '14.5', label: '14.5', date: '2026-06-10', notes: '' },
+  { id: '14.6', label: '14.6', date: '2026-06-24', notes: 'Mid-set' },
+  { id: '14.7', label: '14.7', date: '2026-07-08', notes: '' },
+  { id: '14.8', label: '14.8', date: '2026-07-22', notes: '' },
+];
+
+var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function Icon(props) {
+  return (
+    <span className={'material-symbols-outlined ' + (props.className || '')} style={props.style}>
+      {props.name}
+    </span>
+  );
+}
+
+function isoDay(date) {
+  var y = date.getFullYear();
+  var m = ('0' + (date.getMonth() + 1)).slice(-2);
+  var d = ('0' + date.getDate()).slice(-2);
+  return y + '-' + m + '-' + d;
+}
+
+function startOfMonthGrid(monthAnchor) {
+  var first = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1);
+  var startOffset = first.getDay();
+  var grid = [];
+  for (var i = 0; i < 42; i++) {
+    var d = new Date(first);
+    d.setDate(first.getDate() - startOffset + i);
+    grid.push(d);
+  }
+  return grid;
+}
+
+function daysBetween(later, earlier) {
+  var ms = later.getTime() - earlier.getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+function FocusPanel(props) {
+  var cards = props.cards || [];
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var todayIso = isoDay(today);
+  var weekEnd = new Date(today);
+  weekEnd.setDate(today.getDate() + 7);
+  var weekEndIso = isoDay(weekEnd);
+
+  var dueToday = cards.filter(function(c) {
+    return c.due_date === todayIso && c.column_id !== 'published' && c.column_id !== 'archive';
+  });
+  var overdue = cards.filter(function(c) {
+    if (!c.due_date) return false;
+    if (c.column_id === 'published' || c.column_id === 'archive') return false;
+    return c.due_date < todayIso;
+  });
+  var dueThisWeek = cards.filter(function(c) {
+    if (!c.due_date) return false;
+    if (c.column_id === 'published' || c.column_id === 'archive') return false;
+    return c.due_date > todayIso && c.due_date <= weekEndIso;
+  });
+
+  var stuck = cards.filter(function(c) {
+    if (c.column_id !== 'production' && c.column_id !== 'review') return false;
+    var ref = new Date(c.updated_at || c.created_at);
+    if (isNaN(ref.getTime())) return false;
+    return daysBetween(today, ref) >= 5;
+  });
+
+  var publishedRecent = cards
+    .filter(function(c) { return c.column_id === 'published'; })
+    .sort(function(a, b) {
+      return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+    });
+  var lastPub = publishedRecent[0];
+  var droughtDays = null;
+  if (lastPub) {
+    var ref2 = new Date(lastPub.updated_at || lastPub.created_at);
+    droughtDays = daysBetween(today, ref2);
+    if (droughtDays < 0) droughtDays = 0;
+  }
+
+  var bullets = [
+    { label: 'Due today', count: dueToday.length, icon: 'today', color: '#5BA3DB', cards: dueToday },
+    { label: 'Overdue', count: overdue.length, icon: 'priority_high', color: overdue.length > 0 ? '#EF4444' : '#6B7280', cards: overdue },
+    { label: 'Due this week', count: dueThisWeek.length, icon: 'date_range', color: '#E8A020', cards: dueThisWeek },
+    { label: 'Stuck 5+ days', count: stuck.length, icon: 'hourglass_top', color: stuck.length > 0 ? '#EC4899' : '#6B7280', cards: stuck },
+  ];
+
+  var droughtTone = droughtDays === null
+    ? 'No publishes yet'
+    : droughtDays === 0
+      ? 'Shipped today - keep the streak'
+      : droughtDays + (droughtDays === 1 ? ' day' : ' days') + ' since last publish';
+
+  return (
+    <div className="bg-gradient-to-br from-[#13172a] via-[#0f1320] to-[#0b0e1a] border border-white/5 rounded-2xl p-5 mb-6">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#5BA3DB]/15 flex items-center justify-center">
+            <Icon name="wb_sunny" className="text-[#5BA3DB] text-xl" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Today's Focus</h3>
+            <p className="text-[11px] text-white/40 mt-0.5 tracking-wide">
+              {today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+            </p>
+          </div>
+        </div>
+        <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold ' + (droughtDays !== null && droughtDays >= 5 ? 'bg-red-500/15 text-red-400' : 'bg-emerald-500/10 text-emerald-400')}>
+          <Icon name={droughtDays !== null && droughtDays >= 5 ? 'warning' : 'rocket_launch'} className="text-base" />
+          {droughtTone}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        {bullets.map(function(b) {
+          return (
+            <div key={b.label} className="bg-[#0b0e1a] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3">
+              <Icon name={b.icon} className="text-xl" style={{ color: b.color }} />
+              <div className="min-w-0 flex-1">
+                <p className="text-2xl font-bold text-white leading-none tabular-nums">{b.count}</p>
+                <p className="text-[10px] text-white/40 mt-1 uppercase tracking-wider font-semibold truncate">{b.label}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {dueToday.length === 0 && overdue.length === 0 ? (
+        <div className="bg-[#0b0e1a]/60 border border-emerald-500/20 rounded-xl px-4 py-3 flex items-center gap-3">
+          <Icon name="check_circle" className="text-emerald-400 text-xl" />
+          <p className="text-sm text-white/80">Inbox zero on the schedule. Pick from the Board or queue something new.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {(overdue.length > 0 ? overdue : dueToday).slice(0, 6).map(function(c) {
+            var bg = COLUMN_COLORS[c.column_id] || '#6B7280';
+            return (
+              <button
+                key={c.id}
+                onClick={function() { props.onCardClick(c); }}
+                className="text-left bg-[#0b0e1a] border border-white/5 hover:border-[#5BA3DB]/40 hover:-translate-y-0.5 transition-all rounded-xl px-4 py-3 flex items-center gap-3"
+              >
+                <span className="w-1 h-10 rounded-full shrink-0" style={{ backgroundColor: bg }} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-white truncate">{c.title}</p>
+                  <p className="text-[11px] text-white/40 mt-0.5">
+                    {COLUMN_LABELS[c.column_id]}
+                    {c.assignee && ' - ' + c.assignee}
+                  </p>
+                </div>
+                <Icon name="arrow_forward" className="text-white/30 text-base shrink-0" />
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CardChip(props) {
+  var c = props.card;
+  var color = COLUMN_COLORS[c.column_id] || '#6B7280';
+
+  function handleDragStart(e) {
+    e.dataTransfer.setData('cardId', c.id);
+    e.dataTransfer.setData('sourceDate', c.due_date || '');
+    e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
+  }
+
+  return (
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      onClick={function(e) { e.stopPropagation(); props.onClick(c); }}
+      className="text-left bg-[#0b0e1a] hover:bg-[#13172a] border-l-2 px-1.5 py-1 rounded text-[10px] truncate cursor-pointer transition-colors"
+      style={{ borderColor: color, color: '#E2E8F0' }}
+      title={c.title + ' (' + COLUMN_LABELS[c.column_id] + ')'}
+    >
+      <span className="truncate block">{c.title}</span>
+    </div>
+  );
+}
+
+function MonthCalendar(props) {
+  var monthAnchor = props.monthAnchor;
+  var cards = props.cards;
+  var grid = startOfMonthGrid(monthAnchor);
+  var monthIdx = monthAnchor.getMonth();
+  var todayIso = isoDay(new Date());
+
+  function patchOnDate(iso) {
+    return PATCH_DATES.find(function(p) { return p.date === iso; });
+  }
+
+  function cardsOnDate(iso) {
+    return cards.filter(function(c) { return c.due_date === iso; });
+  }
+
+  function handleDayDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    e.currentTarget.classList.add('bg-[#5BA3DB]/8', 'border-[#5BA3DB]/30');
+  }
+
+  function handleDayDragLeave(e) {
+    e.currentTarget.classList.remove('bg-[#5BA3DB]/8', 'border-[#5BA3DB]/30');
+  }
+
+  function handleDayDrop(e, iso) {
+    e.preventDefault();
+    e.currentTarget.classList.remove('bg-[#5BA3DB]/8', 'border-[#5BA3DB]/30');
+    var cardId = e.dataTransfer.getData('cardId');
+    var sourceDate = e.dataTransfer.getData('sourceDate');
+    if (!cardId || sourceDate === iso) return;
+    props.onMoveCard(cardId, iso);
+  }
+
+  return (
+    <div className="bg-[#13172a] border border-white/5 rounded-2xl p-4">
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {DOW.map(function(d) {
+          return (
+            <div key={d} className="text-[10px] text-white/40 font-bold uppercase tracking-wider text-center pb-2">
+              {d}
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-7 gap-1">
+        {grid.map(function(day, idx) {
+          var iso = isoDay(day);
+          var inMonth = day.getMonth() === monthIdx;
+          var isToday = iso === todayIso;
+          var dayCards = cardsOnDate(iso);
+          var patch = patchOnDate(iso);
+
+          var sortedCards = dayCards.slice().sort(function(a, b) {
+            return COLUMN_ORDER.indexOf(a.column_id) - COLUMN_ORDER.indexOf(b.column_id);
+          });
+          var visibleCards = sortedCards.slice(0, 3);
+          var overflow = dayCards.length - visibleCards.length;
+
+          var baseCls = 'group relative min-h-[92px] p-1.5 rounded-lg border transition-all flex flex-col gap-1 ';
+          var stateCls;
+          if (!inMonth) {
+            stateCls = 'opacity-30 border-transparent';
+          } else if (isToday) {
+            stateCls = 'border-[#E8A020]/40 bg-[#E8A020]/5';
+          } else if (patch) {
+            stateCls = 'border-[#E8A020]/30 bg-[#0b0e1a]';
+          } else {
+            stateCls = 'border-white/5 bg-[#0b0e1a] hover:border-white/10';
+          }
+
+          return (
+            <div
+              key={idx}
+              onDragOver={handleDayDragOver}
+              onDragLeave={handleDayDragLeave}
+              onDrop={function(e) { handleDayDrop(e, iso); }}
+              onClick={function() { if (inMonth) props.onDayClick(iso); }}
+              className={baseCls + stateCls + (inMonth ? ' cursor-pointer' : '')}
+            >
+              <div className="flex items-center justify-between">
+                <span className={'text-[11px] font-bold tabular-nums ' + (isToday ? 'text-[#E8A020]' : inMonth ? 'text-white/70' : 'text-white/30')}>
+                  {day.getDate()}
+                </span>
+                {patch && (
+                  <span className="text-[9px] px-1 rounded bg-[#E8A020]/20 text-[#E8A020] font-bold uppercase tracking-wider" title={'Patch ' + patch.label + (patch.notes ? ' - ' + patch.notes : '')}>
+                    {patch.label}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-col gap-0.5 flex-1">
+                {visibleCards.map(function(c) {
+                  return <CardChip key={c.id} card={c} onClick={props.onCardClick} />;
+                })}
+                {overflow > 0 && (
+                  <span className="text-[9px] text-white/40 font-semibold px-1">+{overflow} more</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CardDetailDrawer(props) {
+  var c = props.card;
+  var onCloseRef = React.useRef(props.onClose);
+  onCloseRef.current = props.onClose;
+
+  React.useEffect(function() {
+    function onKey(e) { if (e.key === 'Escape') onCloseRef.current(); }
+    window.addEventListener('keydown', onKey);
+    return function() { window.removeEventListener('keydown', onKey); };
+  }, []);
+
+  if (!c) return null;
+  var color = COLUMN_COLORS[c.column_id] || '#6B7280';
+  var hasBrief = !!(c.brief && (
+    (c.brief.hookLine && c.brief.hookLine.trim()) ||
+    (c.brief.talkingPoints && c.brief.talkingPoints.length) ||
+    (c.brief.titleOptions && c.brief.titleOptions.length)
+  ));
+
+  var nextColumn = null;
+  var idx = COLUMN_ORDER.indexOf(c.column_id);
+  if (idx >= 0 && idx < COLUMN_ORDER.length - 2) {
+    nextColumn = COLUMN_ORDER[idx + 1];
+  }
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end bg-black/60 backdrop-blur-sm" onClick={props.onClose}>
+      <div
+        className="w-full max-w-md bg-[#13172a] border-l border-white/10 h-full overflow-y-auto"
+        onClick={function(e) { e.stopPropagation(); }}
+      >
+        <div className="p-5 border-b border-white/5 flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+              <span className="text-[10px] uppercase tracking-wider font-bold" style={{ color: color }}>{COLUMN_LABELS[c.column_id]}</span>
+              {c.patch_id && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-white/50 font-semibold">{c.patch_id}</span>
+              )}
+            </div>
+            <h3 className="text-white font-bold text-base leading-snug">{c.title}</h3>
+          </div>
+          <button onClick={props.onClose} className="text-white/40 hover:text-white p-1 rounded-lg hover:bg-white/5 shrink-0">
+            <Icon name="close" className="text-xl" />
+          </button>
+        </div>
+
+        <div className="p-5 flex flex-col gap-4">
+          <div className="grid grid-cols-2 gap-3 text-[12px]">
+            <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Due</p>
+              <p className="text-white mt-0.5">{c.due_date || 'Unscheduled'}</p>
+            </div>
+            <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Owner</p>
+              <p className="text-white mt-0.5">{c.assignee || 'Unassigned'}</p>
+            </div>
+            <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Type</p>
+              <p className="text-white mt-0.5 capitalize">{c.content_type}</p>
+            </div>
+            <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Platform</p>
+              <p className="text-white mt-0.5 uppercase">{c.platform}</p>
+            </div>
+          </div>
+
+          {c.description && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1.5">Notes</p>
+              <p className="text-sm text-white/80 whitespace-pre-line bg-[#0b0e1a] rounded-lg px-3 py-2 leading-relaxed">{c.description}</p>
+            </div>
+          )}
+
+          {hasBrief && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-[#E8A020] font-bold mb-2 flex items-center gap-1">
+                <Icon name="auto_stories" className="text-sm" />
+                Brief
+              </p>
+              <div className="bg-[#E8A020]/5 border border-[#E8A020]/15 rounded-lg p-3 flex flex-col gap-3">
+                {c.brief.hookLine && c.brief.hookLine.trim() && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Hook</p>
+                    <p className="text-sm text-white/85 italic">"{c.brief.hookLine}"</p>
+                  </div>
+                )}
+                {c.brief.talkingPoints && c.brief.talkingPoints.length > 0 && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Talking points</p>
+                    <ul className="list-decimal list-inside text-sm text-white/80 flex flex-col gap-0.5">
+                      {c.brief.talkingPoints.map(function(p, i) {
+                        return <li key={i}>{p}</li>;
+                      })}
+                    </ul>
+                  </div>
+                )}
+                {c.brief.chosenTitle && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Chosen title</p>
+                    <p className="text-sm text-white font-semibold">{c.brief.chosenTitle}</p>
+                  </div>
+                )}
+                {c.brief.cta && (
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">CTA</p>
+                    <p className="text-sm text-white/80">{c.brief.cta}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2 pt-2">
+            {nextColumn && (
+              <button
+                onClick={function() { props.onAdvance(c, nextColumn); }}
+                className="w-full py-2.5 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                <Icon name="arrow_forward" className="text-base" />
+                Advance to {COLUMN_LABELS[nextColumn]}
+              </button>
+            )}
+            <button
+              onClick={function() { props.onClearDate(c); }}
+              className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+            >
+              <Icon name="event_busy" className="text-base" />
+              Clear due date
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BTSchedule() {
+  var [cards, setCards] = React.useState([]);
+  var [loading, setLoading] = React.useState(true);
+  var [monthAnchor, setMonthAnchor] = React.useState(function() {
+    var d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  var [selectedCard, setSelectedCard] = React.useState(null);
+
+  React.useEffect(function() { loadCards(); }, []);
+
+  function loadCards() {
+    setLoading(true);
+    supabase
+      .from('bt_content_cards')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards load failed', res.error);
+          setLoading(false);
+          return;
+        }
+        setCards(res.data || []);
+        setLoading(false);
+      });
+  }
+
+  function moveCardToDate(cardId, newDate) {
+    supabase
+      .from('bt_content_cards')
+      .update({ due_date: newDate, updated_at: new Date().toISOString() })
+      .eq('id', cardId)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards reschedule failed', res.error);
+          return;
+        }
+        loadCards();
+      });
+  }
+
+  function clearCardDate(card) {
+    supabase
+      .from('bt_content_cards')
+      .update({ due_date: null, updated_at: new Date().toISOString() })
+      .eq('id', card.id)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards clear date failed', res.error);
+          return;
+        }
+        loadCards();
+        setSelectedCard(null);
+      });
+  }
+
+  function advanceCard(card, newColumnId) {
+    supabase
+      .from('bt_content_cards')
+      .update({ column_id: newColumnId, updated_at: new Date().toISOString() })
+      .eq('id', card.id)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards advance failed', res.error);
+          return;
+        }
+        loadCards();
+        setSelectedCard(function(prev) {
+          return prev ? Object.assign({}, prev, { column_id: newColumnId }) : null;
+        });
+      });
+  }
+
+  function createOnDate(iso) {
+    var title = window.prompt('Quick card title for ' + iso + ':', '');
+    if (!title || !title.trim()) return;
+    var payload = {
+      title: title.trim(),
+      column_id: 'ideas',
+      content_type: 'short',
+      platform: 'both',
+      assignee: '',
+      priority: 'medium',
+      due_date: iso,
+    };
+    supabase
+      .from('bt_content_cards')
+      .insert(payload)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards quick create failed', res.error);
+          return;
+        }
+        loadCards();
+      });
+  }
+
+  function shiftMonth(delta) {
+    setMonthAnchor(function(prev) {
+      return new Date(prev.getFullYear(), prev.getMonth() + delta, 1);
+    });
+  }
+
+  function jumpToToday() {
+    var d = new Date();
+    setMonthAnchor(new Date(d.getFullYear(), d.getMonth(), 1));
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64 text-white/30">
+        <Icon name="progress_activity" className="animate-spin text-3xl mr-3" />
+        Loading schedule...
+      </div>
+    );
+  }
+
+  var monthLabel = monthAnchor.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Schedule</h2>
+          <p className="text-sm text-white/40 mt-0.5">Drag cards across days to reschedule. Patch days are highlighted gold.</p>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={function() { shiftMonth(-1); }}
+            className="w-9 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 flex items-center justify-center transition-colors"
+            title="Previous month"
+          >
+            <Icon name="chevron_left" className="text-lg" />
+          </button>
+          <button
+            onClick={jumpToToday}
+            className="px-3 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 hover:text-white text-xs font-semibold transition-colors"
+          >
+            Today
+          </button>
+          <button
+            onClick={function() { shiftMonth(1); }}
+            className="w-9 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 flex items-center justify-center transition-colors"
+            title="Next month"
+          >
+            <Icon name="chevron_right" className="text-lg" />
+          </button>
+          <span className="ml-3 text-sm font-semibold text-white tabular-nums">{monthLabel}</span>
+        </div>
+      </div>
+
+      <FocusPanel cards={cards} onCardClick={setSelectedCard} />
+
+      <MonthCalendar
+        monthAnchor={monthAnchor}
+        cards={cards}
+        onCardClick={setSelectedCard}
+        onMoveCard={moveCardToDate}
+        onDayClick={createOnDate}
+      />
+
+      {selectedCard && (
+        <CardDetailDrawer
+          card={selectedCard}
+          onClose={function() { setSelectedCard(null); }}
+          onAdvance={advanceCard}
+          onClearDate={clearCardDate}
+        />
+      )}
+    </div>
+  );
+}
+
+export default BTSchedule;

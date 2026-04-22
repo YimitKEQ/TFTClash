@@ -1,5 +1,6 @@
 import React from 'react';
 import BTBoard from './brosephtech/BTBoard';
+import BTSchedule from './brosephtech/BTSchedule';
 import BTStudio from './brosephtech/BTStudio';
 import BTMetrics from './brosephtech/BTMetrics';
 import BTTierLists from './brosephtech/BTTierLists';
@@ -10,6 +11,7 @@ var SESSION_KEY = 'bt_unlocked';
 
 var TABS = [
   { id: 'board', label: 'Content Board', icon: 'view_kanban' },
+  { id: 'schedule', label: 'Schedule', icon: 'calendar_month' },
   { id: 'studio', label: 'Studio', icon: 'auto_awesome' },
   { id: 'tierlists', label: 'Tier Lists', icon: 'leaderboard' },
   { id: 'metrics', label: 'Metrics', icon: 'trending_up' },
@@ -257,6 +259,7 @@ function BrosephTechScreen() {
         className={'max-w-7xl mx-auto px-6 py-8 transition-opacity duration-100 ' + (fade ? 'opacity-0' : 'opacity-100')}
       >
         {tab === 'board' && <BTBoard />}
+        {tab === 'schedule' && <BTSchedule />}
         {tab === 'studio' && <BTStudio />}
         {tab === 'tierlists' && <BTTierLists />}
         {tab === 'metrics' && <BTMetrics />}
