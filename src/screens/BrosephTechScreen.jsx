@@ -1,6 +1,8 @@
 import React from 'react';
 import BTBoard from './brosephtech/BTBoard';
+import BTStudio from './brosephtech/BTStudio';
 import BTMetrics from './brosephtech/BTMetrics';
+import BTTierLists from './brosephtech/BTTierLists';
 import BTSops from './brosephtech/BTSops';
 
 var PIN = '1738';
@@ -8,6 +10,8 @@ var SESSION_KEY = 'bt_unlocked';
 
 var TABS = [
   { id: 'board', label: 'Content Board', icon: 'view_kanban' },
+  { id: 'studio', label: 'Studio', icon: 'auto_awesome' },
+  { id: 'tierlists', label: 'Tier Lists', icon: 'leaderboard' },
   { id: 'metrics', label: 'Metrics', icon: 'trending_up' },
   { id: 'sops', label: 'Production SOPs', icon: 'menu_book' },
 ];
@@ -253,6 +257,8 @@ function BrosephTechScreen() {
         className={'max-w-7xl mx-auto px-6 py-8 transition-opacity duration-100 ' + (fade ? 'opacity-0' : 'opacity-100')}
       >
         {tab === 'board' && <BTBoard />}
+        {tab === 'studio' && <BTStudio />}
+        {tab === 'tierlists' && <BTTierLists />}
         {tab === 'metrics' && <BTMetrics />}
         {tab === 'sops' && <BTSops />}
       </div>

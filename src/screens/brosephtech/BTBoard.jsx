@@ -1,5 +1,6 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
+import BTPatchBanner from './BTPatchBanner';
 
 var COLUMNS = [
   { id: 'ideas',      label: 'Ideas',      icon: 'lightbulb',    color: '#A78BFA', accent: 'rgba(167,139,250,0.15)' },
@@ -36,6 +37,19 @@ var PLATFORMS = [
   { id: 'tiktok', label: 'TikTok', color: '#E8A020' },
 ];
 
+var EMPTY_BRIEF = {
+  hook: '',
+  hookLine: '',
+  hookOptions: [],
+  talkingPoints: [],
+  cta: '',
+  refLinks: [],
+  thumbnailIdea: '',
+  titleOptions: [],
+  chosenTitle: '',
+  estimatedLength: '',
+};
+
 var EMPTY_FORM = {
   title: '',
   description: '',
@@ -45,7 +59,114 @@ var EMPTY_FORM = {
   assignee: '',
   priority: 'medium',
   due_date: '',
+  patch_id: '',
+  brief: null,
 };
+
+var TFT_TERMS = [
+  'augment', 'augments', 'comp', 'comps', 'team comp', 'reroll', 'fast 8', 'fast 9',
+  'capped', 'uncapped', 'opener', 'transition', 'tempo', 'econ', 'pivot',
+  'tier list', 'tierlist', 'meta', 'patch', 'set 14', 'set 13', 'item', 'items',
+  'champion', 'champions', 'unit', 'units', 'trait', 'traits', 'hero augment',
+  'prismatic', 'silver', 'gold', 'portal', 'portals', 'hyperroll', 'rerolls',
+  'one cost', '1-cost', '2-cost', '3-cost', '4-cost', '5-cost', 'one-cost',
+  'lobby', 'placement', 'climb', 'rank', 'challenger', 'gm', 'master',
+  'broken', 'busted', 'nerf', 'buff', 'op', 'cheese',
+];
+
+var POWER_WORDS = [
+  'broken', 'busted', 'insane', 'op', 'free lp', 'win', 'wins', 'climb', 'climbing',
+  'best', 'worst', 'secret', 'hidden', 'meta', 'pro', 'easy', 'simple',
+  'guaranteed', 'fastest', 'must', 'never', 'always', 'killer', 'cracked',
+  'overpowered', 'unstoppable', 'instant', 'ultimate', 'top', 'free',
+  'destroy', 'dominate', 'crushing', 'masterclass', 'unbeatable',
+];
+
+function scoreTitle(text) {
+  var raw = (text || '').trim();
+  if (!raw) return { score: 0, signals: [] };
+  var lower = raw.toLowerCase();
+  var len = raw.length;
+  var words = raw.split(/\s+/).filter(Boolean).length;
+  var score = 50;
+  var signals = [];
+
+  if (len < 25) {
+    score -= 12;
+    signals.push({ ok: false, text: 'Too short - aim for 40-65 chars' });
+  } else if (len > 75) {
+    score -= 14;
+    signals.push({ ok: false, text: 'Too long - cut to under 75 chars' });
+  } else if (len >= 40 && len <= 65) {
+    score += 14;
+    signals.push({ ok: true, text: 'Length is in the sweet spot (' + len + ')' });
+  } else {
+    score += 4;
+    signals.push({ ok: true, text: 'Length is acceptable (' + len + ')' });
+  }
+
+  if (words >= 5 && words <= 11) {
+    score += 6;
+    signals.push({ ok: true, text: 'Word count is scannable' });
+  }
+
+  if (/\d/.test(raw)) {
+    score += 8;
+    signals.push({ ok: true, text: 'Contains a number - boosts CTR' });
+  }
+
+  if (/\?$|how |why |what |when |which /i.test(raw)) {
+    score += 6;
+    signals.push({ ok: true, text: 'Curiosity hook (question/how/why)' });
+  }
+
+  if (/\byou\b|\byour\b/i.test(raw)) {
+    score += 5;
+    signals.push({ ok: true, text: 'Speaks to viewer (you/your)' });
+  }
+
+  var champHits = 0;
+  for (var i = 0; i < TFT_TERMS.length; i++) {
+    if (lower.indexOf(TFT_TERMS[i]) !== -1) champHits++;
+  }
+  if (champHits >= 1) {
+    score += Math.min(champHits * 4, 10);
+    signals.push({ ok: true, text: 'Specific TFT term (' + champHits + ')' });
+  } else {
+    score -= 6;
+    signals.push({ ok: false, text: 'No TFT-specific terms - get concrete' });
+  }
+
+  var powerHits = 0;
+  for (var j = 0; j < POWER_WORDS.length; j++) {
+    if (lower.indexOf(POWER_WORDS[j]) !== -1) powerHits++;
+  }
+  if (powerHits >= 1) {
+    score += Math.min(powerHits * 5, 12);
+    signals.push({ ok: true, text: 'Power word (' + powerHits + ')' });
+  }
+
+  if (/patch \d|set \d|\d\.\d/i.test(raw)) {
+    score += 6;
+    signals.push({ ok: true, text: 'Patch/set reference - timely signal' });
+  }
+
+  var caps = raw.replace(/[^A-Z]/g, '').length;
+  var letters = raw.replace(/[^A-Za-z]/g, '').length;
+  if (letters > 0 && caps / letters > 0.55) {
+    score -= 12;
+    signals.push({ ok: false, text: 'Too many caps - reads as shouting' });
+  }
+
+  if (/!{2,}|\?{2,}/.test(raw)) {
+    score -= 6;
+    signals.push({ ok: false, text: 'Excess punctuation hurts trust' });
+  }
+
+  if (score < 0) score = 0;
+  if (score > 100) score = 100;
+  return { score: Math.round(score), signals: signals };
+}
 
 function Icon(props) {
   return (
@@ -103,8 +224,437 @@ function Inp(props) {
   );
 }
 
+function ListEditor(props) {
+  var items = props.items || [];
+  var [draft, setDraft] = React.useState('');
+
+  function add() {
+    var trimmed = draft.trim();
+    if (!trimmed) return;
+    var next = items.concat([trimmed]);
+    props.onChange(next);
+    setDraft('');
+  }
+
+  function remove(idx) {
+    var next = items.slice();
+    next.splice(idx, 1);
+    props.onChange(next);
+  }
+
+  function onKey(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      add();
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex flex-col gap-1.5 mb-2">
+        {items.length === 0 && (
+          <p className="text-[11px] text-white/25 italic px-1">No {props.singular || 'items'} yet</p>
+        )}
+        {items.map(function(item, idx) {
+          return (
+            <div key={idx} className="flex items-start gap-2 bg-[#0b0e1a] border border-white/5 rounded-lg px-3 py-2">
+              <span className="text-[11px] text-white/30 mt-0.5 font-mono">{idx + 1}</span>
+              <p className="text-sm text-white/85 flex-1 leading-snug">{item}</p>
+              <button
+                type="button"
+                onClick={function() { remove(idx); }}
+                className="text-white/30 hover:text-red-400 transition-colors shrink-0"
+              >
+                <Icon name="close" className="text-base" />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={draft}
+          onChange={function(e) { setDraft(e.target.value); }}
+          onKeyDown={onKey}
+          placeholder={props.placeholder || ('Add ' + (props.singular || 'item') + '...')}
+          className="flex-1 bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#5BA3DB] transition-colors"
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!draft.trim()}
+          className="px-3 py-2 rounded-lg bg-[#5BA3DB]/15 hover:bg-[#5BA3DB]/25 disabled:opacity-30 text-[#5BA3DB] text-xs font-semibold transition-colors flex items-center gap-1"
+        >
+          <Icon name="add" className="text-base" />
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ScoreMeter(props) {
+  var score = props.score || 0;
+  var color = score >= 75 ? '#10B981' : score >= 55 ? '#E8A020' : score >= 35 ? '#F59E0B' : '#EF4444';
+  var label = score >= 75 ? 'Strong' : score >= 55 ? 'Solid' : score >= 35 ? 'Weak' : 'Re-write';
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden">
+        <div
+          className="h-full transition-all"
+          style={{ width: score + '%', backgroundColor: color }}
+        />
+      </div>
+      <span className="text-[11px] font-bold tabular-nums" style={{ color: color }}>{score}</span>
+      <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: color }}>{label}</span>
+    </div>
+  );
+}
+
+function TitleWorkshop(props) {
+  var brief = props.brief || EMPTY_BRIEF;
+  var titles = brief.titleOptions || [];
+  var chosen = brief.chosenTitle || '';
+  var [draft, setDraft] = React.useState('');
+
+  var draftScore = React.useMemo(function() { return scoreTitle(draft); }, [draft]);
+  var liveTitleScore = React.useMemo(function() { return scoreTitle(props.cardTitle || ''); }, [props.cardTitle]);
+
+  function patchBrief(patch) {
+    var next = Object.assign({}, brief, patch);
+    props.onBriefChange(next);
+  }
+
+  function add() {
+    var t = draft.trim();
+    if (!t) return;
+    if (titles.indexOf(t) !== -1) {
+      setDraft('');
+      return;
+    }
+    var next = titles.concat([t]);
+    patchBrief({ titleOptions: next });
+    setDraft('');
+  }
+
+  function remove(idx) {
+    var next = titles.slice();
+    next.splice(idx, 1);
+    patchBrief({ titleOptions: next, chosenTitle: chosen === titles[idx] ? '' : chosen });
+  }
+
+  function pick(t) {
+    patchBrief({ chosenTitle: t });
+    if (props.onPickTitle) props.onPickTitle(t);
+  }
+
+  function onKey(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      add();
+    }
+  }
+
+  var sortedTitles = titles.slice().map(function(t) {
+    return { text: t, scored: scoreTitle(t) };
+  }).sort(function(a, b) { return b.scored.score - a.scored.score; });
+
+  return (
+    <div className="bg-[#0b0e1a]/60 border border-white/5 rounded-xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h4 className="text-white font-semibold text-sm flex items-center gap-2">
+            <Icon name="title" style={{ color: '#E8A020' }} className="text-base" />
+            Title Workshop
+          </h4>
+          <p className="text-[11px] text-white/40 mt-0.5">Score variants and pick the strongest</p>
+        </div>
+        {props.cardTitle && (
+          <div className="text-right">
+            <p className="text-[10px] text-white/40 uppercase tracking-wider font-semibold mb-0.5">Live title</p>
+            <ScoreMeter score={liveTitleScore.score} />
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-2 mb-3">
+        <input
+          type="text"
+          value={draft}
+          onChange={function(e) { setDraft(e.target.value); }}
+          onKeyDown={onKey}
+          placeholder="Type a variant and hit enter..."
+          className="flex-1 bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#E8A020] transition-colors"
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!draft.trim()}
+          className="px-3 py-2 rounded-lg bg-[#E8A020]/15 hover:bg-[#E8A020]/25 disabled:opacity-30 text-[#E8A020] text-xs font-semibold transition-colors flex items-center gap-1"
+        >
+          <Icon name="add" className="text-base" />
+          Score
+        </button>
+      </div>
+
+      {draft.trim() && (
+        <div className="mb-3 bg-[#13172a] border border-[#E8A020]/30 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-[11px] uppercase tracking-wider text-white/40 font-semibold">Live score</p>
+            <ScoreMeter score={draftScore.score} />
+          </div>
+          <ul className="flex flex-col gap-1">
+            {draftScore.signals.map(function(s, i) {
+              return (
+                <li key={i} className="flex items-center gap-1.5 text-[11px]">
+                  <Icon
+                    name={s.ok ? 'check_circle' : 'error'}
+                    className={'text-sm ' + (s.ok ? 'text-emerald-400' : 'text-red-400')}
+                  />
+                  <span className="text-white/70">{s.text}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {sortedTitles.length === 0 ? (
+        <p className="text-[11px] text-white/30 italic text-center py-3">Add 3-5 variants to compare</p>
+      ) : (
+        <div className="flex flex-col gap-1.5">
+          {sortedTitles.map(function(entry, idx) {
+            var isChosen = entry.text === chosen;
+            var rank = idx === 0 ? 'Top' : idx + 1;
+            return (
+              <div
+                key={entry.text}
+                className={'flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ' + (isChosen ? 'bg-[#E8A020]/10 border-[#E8A020]/40' : 'bg-[#0b0e1a] border-white/5 hover:border-white/15')}
+              >
+                <span className="text-[10px] font-bold text-white/40 w-7 shrink-0">{rank}</span>
+                <p className="text-sm text-white flex-1 leading-snug">{entry.text}</p>
+                <ScoreMeter score={entry.scored.score} />
+                <button
+                  type="button"
+                  onClick={function() { pick(entry.text); }}
+                  className={'text-[10px] px-2 py-1 rounded font-semibold transition-colors ' + (isChosen ? 'bg-[#E8A020] text-[#0b0e1a]' : 'bg-white/5 hover:bg-white/15 text-white/70')}
+                  title="Use as card title"
+                >
+                  {isChosen ? 'Chosen' : 'Use'}
+                </button>
+                <button
+                  type="button"
+                  onClick={function() { remove(titles.indexOf(entry.text)); }}
+                  className="text-white/25 hover:text-red-400 transition-colors"
+                  title="Remove"
+                >
+                  <Icon name="close" className="text-sm" />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BriefForm(props) {
+  var brief = props.brief || EMPTY_BRIEF;
+
+  function patch(patchObj) {
+    var next = Object.assign({}, brief, patchObj);
+    props.onChange(next);
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="bg-gradient-to-br from-[#5BA3DB]/8 to-transparent border border-[#5BA3DB]/15 rounded-xl p-4">
+        <label className="text-[11px] text-[#5BA3DB] mb-1.5 block font-semibold uppercase tracking-wider flex items-center gap-1.5">
+          <Icon name="bolt" className="text-sm" />
+          Hook (first 3 seconds)
+        </label>
+        <textarea
+          value={brief.hookLine || ''}
+          onChange={function(e) { patch({ hookLine: e.target.value }); }}
+          rows={2}
+          className="w-full bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#5BA3DB] resize-none transition-colors"
+          placeholder="The line you'll open the video with..."
+        />
+        <p className="text-[10px] text-white/30 mt-1.5">Pull from Studio &gt; Hook Bank for proven templates</p>
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Talking points</label>
+        <ListEditor
+          items={brief.talkingPoints || []}
+          onChange={function(next) { patch({ talkingPoints: next }); }}
+          singular="talking point"
+          placeholder="Add a beat the script must cover..."
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">CTA / outro</label>
+          <textarea
+            value={brief.cta || ''}
+            onChange={function(e) { patch({ cta: e.target.value }); }}
+            rows={2}
+            className="w-full bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#5BA3DB] resize-none transition-colors"
+            placeholder="Subscribe / try this comp / link below..."
+          />
+        </div>
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Thumbnail idea</label>
+          <textarea
+            value={brief.thumbnailIdea || ''}
+            onChange={function(e) { patch({ thumbnailIdea: e.target.value }); }}
+            rows={2}
+            className="w-full bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#5BA3DB] resize-none transition-colors"
+            placeholder="Visual concept, text overlay, expression..."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Reference links</label>
+          <ListEditor
+            items={brief.refLinks || []}
+            onChange={function(next) { patch({ refLinks: next }); }}
+            singular="link"
+            placeholder="VOD, doc, tweet, screenshot..."
+          />
+        </div>
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Estimated runtime</label>
+          <Inp
+            value={brief.estimatedLength || ''}
+            onChange={function(e) { patch({ estimatedLength: e.target.value }); }}
+            placeholder="e.g. 8-10 min"
+          />
+          <p className="text-[10px] text-white/30 mt-1.5">Helps the editor block timeline</p>
+        </div>
+      </div>
+
+      <TitleWorkshop
+        brief={brief}
+        cardTitle={props.cardTitle}
+        onBriefChange={props.onChange}
+        onPickTitle={props.onPickTitle}
+      />
+    </div>
+  );
+}
+
+function CardFields(props) {
+  var form = props.form;
+  var set = props.set;
+  return (
+    <div className="flex flex-col gap-4">
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Title *</label>
+        <Inp
+          value={form.title}
+          onChange={function(e) { set('title', e.target.value); }}
+          placeholder="e.g. Set 14 1-cost carries tier list"
+          autoFocus={!props.isEdit}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Column</label>
+          <Sel value={form.column_id} onChange={function(e) { set('column_id', e.target.value); }}>
+            {COLUMNS.map(function(c) {
+              return <option key={c.id} value={c.id}>{c.label}</option>;
+            })}
+          </Sel>
+        </div>
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Priority</label>
+          <Sel value={form.priority} onChange={function(e) { set('priority', e.target.value); }}>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </Sel>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Type</label>
+          <Sel value={form.content_type} onChange={function(e) { set('content_type', e.target.value); }}>
+            {CONTENT_TYPES.map(function(t) {
+              return <option key={t.id} value={t.id}>{t.label}</option>;
+            })}
+          </Sel>
+        </div>
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Platform</label>
+          <Sel value={form.platform} onChange={function(e) { set('platform', e.target.value); }}>
+            {PLATFORMS.map(function(p) {
+              return <option key={p.id} value={p.id}>{p.label}</option>;
+            })}
+          </Sel>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Assignee</label>
+          <Sel value={form.assignee} onChange={function(e) { set('assignee', e.target.value); }}>
+            <option value="">Unassigned</option>
+            {TEAM.map(function(m) {
+              return <option key={m} value={m}>{m}</option>;
+            })}
+          </Sel>
+        </div>
+        <div>
+          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Due date</label>
+          <Inp
+            type="date"
+            value={form.due_date || ''}
+            onChange={function(e) { set('due_date', e.target.value); }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Patch tag</label>
+        <Inp
+          value={form.patch_id || ''}
+          onChange={function(e) { set('patch_id', e.target.value); }}
+          placeholder="e.g. 14.2 or set-14"
+        />
+        <p className="text-[10px] text-white/30 mt-1.5">Tag a patch so timeline can group cards</p>
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Notes</label>
+        <textarea
+          value={form.description || ''}
+          onChange={function(e) { set('description', e.target.value); }}
+          rows={3}
+          className="w-full bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#5BA3DB] resize-none transition-colors"
+          placeholder="Quick notes, context, links..."
+        />
+      </div>
+    </div>
+  );
+}
+
 function CardModal(props) {
-  var [form, setForm] = React.useState(props.initial || EMPTY_FORM);
+  var initialForm = React.useMemo(function() {
+    var base = Object.assign({}, EMPTY_FORM, props.initial || {});
+    base.brief = base.brief && typeof base.brief === 'object' ? Object.assign({}, EMPTY_BRIEF, base.brief) : null;
+    return base;
+  }, [props.initial]);
+
+  var [form, setForm] = React.useState(initialForm);
+  var [tab, setTab] = React.useState('card');
   var [saving, setSaving] = React.useState(false);
   var onCloseRef = React.useRef(props.onClose);
   onCloseRef.current = props.onClose;
@@ -115,6 +665,19 @@ function CardModal(props) {
       next[field] = value;
       return next;
     });
+  }
+
+  function setBrief(nextBrief) {
+    setForm(function(prev) { return Object.assign({}, prev, { brief: nextBrief }); });
+  }
+
+  function handlePickTitle(t) {
+    setForm(function(prev) { return Object.assign({}, prev, { title: t }); });
+  }
+
+  function ensureBrief() {
+    if (form.brief) return;
+    setBrief(Object.assign({}, EMPTY_BRIEF));
   }
 
   function handleSubmit(e) {
@@ -132,13 +695,22 @@ function CardModal(props) {
     return function() { window.removeEventListener('keydown', onKey); };
   }, []);
 
+  var briefHasContent = !!(form.brief && (
+    (form.brief.hookLine && form.brief.hookLine.trim()) ||
+    (form.brief.talkingPoints && form.brief.talkingPoints.length) ||
+    (form.brief.cta && form.brief.cta.trim()) ||
+    (form.brief.thumbnailIdea && form.brief.thumbnailIdea.trim()) ||
+    (form.brief.titleOptions && form.brief.titleOptions.length)
+  ));
+
   return (
     <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in" onClick={props.onClose}>
       <div
-        className="bg-[#13172a] border border-white/10 rounded-2xl w-full max-w-lg p-6 shadow-2xl"
+        className="bg-[#13172a] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col"
+        style={{ maxHeight: '92vh' }}
         onClick={function(e) { e.stopPropagation(); }}
       >
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between px-6 pt-5 pb-3">
           <h3 className="text-white font-semibold flex items-center gap-2">
             <Icon name={props.isEdit ? 'edit_note' : 'add_circle'} style={{ color: '#5BA3DB' }} />
             {props.isEdit ? 'Edit card' : 'New content card'}
@@ -151,102 +723,58 @@ function CardModal(props) {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Title *</label>
-            <Inp
-              value={form.title}
-              onChange={function(e) { set('title', e.target.value); }}
-              placeholder="e.g. Set 13 1-cost carries tier list"
-              autoFocus
-            />
-          </div>
+        <div className="px-6 flex gap-1 border-b border-white/5">
+          <button
+            type="button"
+            onClick={function() { setTab('card'); }}
+            className={'flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'card' ? 'border-[#5BA3DB] text-[#5BA3DB]' : 'border-transparent text-white/40 hover:text-white/80')}
+          >
+            <Icon name="dashboard_customize" className="text-base" />
+            Card
+          </button>
+          <button
+            type="button"
+            onClick={function() { setTab('brief'); ensureBrief(); }}
+            className={'flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'brief' ? 'border-[#E8A020] text-[#E8A020]' : 'border-transparent text-white/40 hover:text-white/80')}
+          >
+            <Icon name="auto_stories" className="text-base" />
+            Brief & Title
+            {briefHasContent && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020]" title="Brief has content" />
+            )}
+          </button>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Column</label>
-              <Sel value={form.column_id} onChange={function(e) { set('column_id', e.target.value); }}>
-                {COLUMNS.map(function(c) {
-                  return <option key={c.id} value={c.id}>{c.label}</option>;
-                })}
-              </Sel>
-            </div>
-            <div>
-              <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Priority</label>
-              <Sel value={form.priority} onChange={function(e) { set('priority', e.target.value); }}>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </Sel>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Type</label>
-              <Sel value={form.content_type} onChange={function(e) { set('content_type', e.target.value); }}>
-                {CONTENT_TYPES.map(function(t) {
-                  return <option key={t.id} value={t.id}>{t.label}</option>;
-                })}
-              </Sel>
-            </div>
-            <div>
-              <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Platform</label>
-              <Sel value={form.platform} onChange={function(e) { set('platform', e.target.value); }}>
-                {PLATFORMS.map(function(p) {
-                  return <option key={p.id} value={p.id}>{p.label}</option>;
-                })}
-              </Sel>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Assignee</label>
-              <Sel value={form.assignee} onChange={function(e) { set('assignee', e.target.value); }}>
-                <option value="">Unassigned</option>
-                {TEAM.map(function(m) {
-                  return <option key={m} value={m}>{m}</option>;
-                })}
-              </Sel>
-            </div>
-            <div>
-              <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Due date</label>
-              <Inp
-                type="date"
-                value={form.due_date || ''}
-                onChange={function(e) { set('due_date', e.target.value); }}
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <div className="flex-1 overflow-y-auto px-6 py-5">
+            {tab === 'card' ? (
+              <CardFields form={form} set={set} isEdit={props.isEdit} />
+            ) : (
+              <BriefForm
+                brief={form.brief || EMPTY_BRIEF}
+                cardTitle={form.title}
+                onChange={setBrief}
+                onPickTitle={handlePickTitle}
               />
-            </div>
+            )}
           </div>
 
-          <div>
-            <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Notes</label>
-            <textarea
-              value={form.description || ''}
-              onChange={function(e) { set('description', e.target.value); }}
-              rows={3}
-              className="w-full bg-[#0b0e1a] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-[#5BA3DB] resize-none transition-colors"
-              placeholder="Script ideas, references, links, hooks..."
-            />
-          </div>
-
-          <div className="flex gap-3 pt-1">
+          <div className="flex gap-3 px-6 py-4 border-t border-white/5 bg-[#0f1320]/40 rounded-b-2xl">
             <button
               type="submit"
               disabled={saving || !form.title.trim()}
               className="flex-1 py-2.5 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
             >
               {saving ? (
-                <>
+                <React.Fragment>
                   <Icon name="progress_activity" className="animate-spin text-base" />
                   Saving
-                </>
+                </React.Fragment>
               ) : (
-                <>
+                <React.Fragment>
                   <Icon name="check" className="text-base" />
                   {props.isEdit ? 'Save changes' : 'Add card'}
-                </>
+                </React.Fragment>
               )}
             </button>
             {props.onDelete && (
@@ -292,6 +820,12 @@ function KanbanCard(props) {
     overdue = due < today && !['published','archive'].includes(card.column_id);
   }
 
+  var hasBrief = !!(card.brief && (
+    (card.brief.hookLine && card.brief.hookLine.trim()) ||
+    (card.brief.talkingPoints && card.brief.talkingPoints.length) ||
+    (card.brief.titleOptions && card.brief.titleOptions.length)
+  ));
+
   return (
     <div
       draggable
@@ -322,6 +856,17 @@ function KanbanCard(props) {
         >
           {platform.label}
         </span>
+        {card.patch_id && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-white/5 text-white/50">
+            {card.patch_id}
+          </span>
+        )}
+        {hasBrief && (
+          <span className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#E8A020] flex items-center gap-0.5" title="Brief written">
+            <Icon name="auto_stories" className="text-[11px]" />
+            Brief
+          </span>
+        )}
         {card.assignee && <TeamAvatar name={card.assignee} />}
       </div>
 
@@ -488,6 +1033,8 @@ function BTBoard() {
       assignee: form.assignee,
       priority: form.priority,
       due_date: form.due_date || null,
+      patch_id: form.patch_id || null,
+      brief: form.brief || null,
     };
     var editId = form.id || null;
 
@@ -601,6 +1148,8 @@ function BTBoard() {
           </button>
         </div>
       </div>
+
+      <BTPatchBanner cards={cards} />
 
       <BoardStats cards={cards} />
 
