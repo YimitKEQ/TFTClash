@@ -1,28 +1,6 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
-
-var CHAMPIONS = [
-  { name: 'Garen', cost: 1 }, { name: 'Lulu', cost: 1 }, { name: 'Ziggs', cost: 1 },
-  { name: 'Yasuo', cost: 1 }, { name: 'Vex', cost: 1 }, { name: 'Sylas', cost: 1 },
-  { name: 'Riven', cost: 1 }, { name: 'Nasus', cost: 1 }, { name: 'Renekton', cost: 1 },
-  { name: 'Sett', cost: 1 }, { name: 'Kog Maw', cost: 1 }, { name: 'Karma', cost: 1 },
-  { name: 'Akali', cost: 1 }, { name: 'Kayle', cost: 1 },
-  { name: 'Ahri', cost: 2 }, { name: 'Annie', cost: 2 }, { name: 'Brand', cost: 2 },
-  { name: 'Lillia', cost: 2 }, { name: 'LeBlanc', cost: 2 }, { name: 'Jax', cost: 2 },
-  { name: 'Jhin', cost: 2 }, { name: 'Caitlyn', cost: 2 }, { name: 'Vi', cost: 2 },
-  { name: 'Zac', cost: 2 }, { name: 'Gragas', cost: 2 }, { name: 'Heimerdinger', cost: 2 },
-  { name: 'Trundle', cost: 2 }, { name: 'Galio', cost: 2 },
-  { name: 'Ezreal', cost: 3 }, { name: 'Jinx', cost: 3 }, { name: 'Lux', cost: 3 },
-  { name: 'Lucian', cost: 3 }, { name: 'Senna', cost: 3 }, { name: 'Veigar', cost: 3 },
-  { name: 'Sona', cost: 3 }, { name: 'Soraka', cost: 3 }, { name: 'Elise', cost: 3 },
-  { name: 'Diana', cost: 3 }, { name: 'Twitch', cost: 3 }, { name: 'Sivir', cost: 3 },
-  { name: 'Rakan', cost: 4 }, { name: 'Xayah', cost: 4 }, { name: 'Rell', cost: 4 },
-  { name: 'Yone', cost: 4 }, { name: 'Gangplank', cost: 4 }, { name: 'Renata', cost: 4 },
-  { name: 'Kalista', cost: 4 }, { name: 'Karthus', cost: 4 }, { name: 'Mordekaiser', cost: 4 },
-  { name: 'Aurora', cost: 4 },
-  { name: 'Mel', cost: 5 }, { name: 'Aphelios', cost: 5 }, { name: 'Smolder', cost: 5 },
-  { name: 'Briar', cost: 5 }, { name: 'Camille', cost: 5 },
-];
+import { CHAMPIONS } from '../../lib/btset17';
 
 var COST_COLORS = {
   1: '#9CA3AF',
@@ -55,27 +33,34 @@ function Icon(props) {
 function ChampChip(props) {
   var champ = props.champ;
   var color = COST_COLORS[champ.cost] || '#9CA3AF';
+  var selected = !!props.selected;
 
   function handleDragStart(e) {
     e.dataTransfer.setData('champName', champ.name);
     e.dataTransfer.effectAllowed = 'move';
   }
 
+  function handleClick() {
+    if (props.locked) return;
+    if (props.onTap) props.onTap(champ.name);
+  }
+
   return (
     <div
       draggable={!props.locked}
       onDragStart={handleDragStart}
-      className="px-2.5 py-1 rounded-lg text-xs font-semibold cursor-move select-none transition-transform hover:scale-105 inline-flex items-center gap-1"
+      onClick={handleClick}
+      className={'px-2.5 py-1.5 rounded-lg text-xs font-semibold select-none transition-all inline-flex items-center gap-1 ' + (props.locked ? 'cursor-default' : 'cursor-pointer hover:scale-105 active:scale-95') + (selected ? ' ring-2 ring-[#FFD700] shadow-lg' : '')}
       style={{
-        backgroundColor: color + '20',
-        border: '1.5px solid ' + color,
-        color: color,
+        backgroundColor: selected ? color + '40' : color + '20',
+        border: '1.5px solid ' + (selected ? '#FFD700' : color),
+        color: selected ? '#FFD700' : color,
       }}
-      title={champ.cost + '-cost'}
+      title={props.locked ? champ.cost + '-cost' : 'Tap to select, then tap a tier'}
     >
       <span
         className="w-1.5 h-1.5 rounded-full"
-        style={{ backgroundColor: color }}
+        style={{ backgroundColor: selected ? '#FFD700' : color }}
       />
       {champ.name}
     </div>
@@ -86,6 +71,7 @@ function TierRow(props) {
   var tier = props.tier;
   var champs = props.champs;
   var [dragOver, setDragOver] = React.useState(false);
+  var armed = !!props.armed;
 
   function handleDragOver(e) {
     e.preventDefault();
@@ -101,11 +87,17 @@ function TierRow(props) {
     var name = e.dataTransfer.getData('champName');
     if (name && props.onDrop) props.onDrop(name, tier.id);
   }
+  function handleTapZone() {
+    if (armed && props.onTapTier) props.onTapTier(tier.id);
+  }
 
   return (
-    <div className="flex items-stretch rounded-xl overflow-hidden mb-2" style={{ backgroundColor: tier.bg }}>
+    <div
+      className={'flex items-stretch rounded-xl overflow-hidden mb-2 transition-all ' + (armed ? 'ring-2 ring-[#FFD700]/40' : '')}
+      style={{ backgroundColor: tier.bg }}
+    >
       <div
-        className="w-16 shrink-0 flex items-center justify-center font-bold text-3xl"
+        className="w-12 sm:w-16 shrink-0 flex items-center justify-center font-bold text-2xl sm:text-3xl"
         style={{ color: tier.color, fontFamily: 'Russo One, sans-serif' }}
       >
         {tier.label}
@@ -114,15 +106,26 @@ function TierRow(props) {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={'flex-1 p-3 flex flex-wrap gap-2 min-h-[60px] border-l-2 transition-all ' + (dragOver ? 'bg-white/5' : '')}
+        onClick={handleTapZone}
+        className={'flex-1 p-2 sm:p-3 flex flex-wrap gap-1.5 sm:gap-2 min-h-[64px] border-l-2 transition-all ' + (dragOver || armed ? 'bg-white/5' : '') + (armed ? ' cursor-pointer' : '')}
         style={{ borderLeftColor: tier.color + '40' }}
       >
         {champs.length === 0 ? (
-          <span className="text-white/20 text-xs italic self-center">{props.readOnly ? '' : 'Drop champions here'}</span>
+          <span className="text-white/20 text-xs italic self-center">
+            {props.readOnly ? '' : (armed ? 'Tap to place here' : 'Drop or tap to place')}
+          </span>
         ) : (
           champs.map(function(name) {
             var champ = CHAMPIONS.find(function(c) { return c.name === name; }) || { name: name, cost: 1 };
-            return <ChampChip key={name} champ={champ} locked={props.readOnly} />;
+            return (
+              <ChampChip
+                key={name}
+                champ={champ}
+                locked={props.readOnly}
+                selected={props.selectedChamp === name}
+                onTap={props.onTapChamp}
+              />
+            );
           })
         )}
       </div>
@@ -141,6 +144,7 @@ function TierListEditor(props) {
   var [presenting, setPresenting] = React.useState(false);
   var [saving, setSaving] = React.useState(false);
   var [customChamp, setCustomChamp] = React.useState('');
+  var [selectedChamp, setSelectedChamp] = React.useState(null);
 
   function moveChamp(name, toTier) {
     var next = {};
@@ -151,6 +155,25 @@ function TierListEditor(props) {
       next[toTier] = (next[toTier] || []).concat([name]);
     }
     setTiers(next);
+  }
+
+  function handleTapChamp(name) {
+    setSelectedChamp(function(prev) {
+      if (prev === name) {
+        // Tap selected champ in tier returns to pool
+        var inTier = false;
+        for (var k in tiers) { if (tiers[k].indexOf(name) !== -1) { inTier = true; break; } }
+        if (inTier) moveChamp(name, 'pool');
+        return null;
+      }
+      return name;
+    });
+  }
+
+  function handleTapTier(tierId) {
+    if (!selectedChamp) return;
+    moveChamp(selectedChamp, tierId);
+    setSelectedChamp(null);
   }
 
   function poolDragOver(e) {
@@ -261,7 +284,7 @@ function TierListEditor(props) {
             type="text"
             value={title}
             onChange={function(e) { setTitle(e.target.value); }}
-            placeholder="Tier list title (e.g. Patch 14.7 4-cost carries)"
+            placeholder="Tier list title (e.g. Patch 17.3 4-cost carries)"
             className="w-full bg-[#0b0e1a] border border-white/10 rounded-xl px-4 py-3 text-white text-base font-semibold focus:outline-none focus:border-[#5BA3DB] transition-colors"
             autoFocus
           />
@@ -275,6 +298,22 @@ function TierListEditor(props) {
         />
       </div>
 
+      {selectedChamp ? (
+        <div className="mb-3 px-3 py-2 rounded-xl bg-[#FFD700]/10 border border-[#FFD700]/30 flex items-center justify-between gap-2 sm:hidden">
+          <span className="text-xs text-[#FFD700] font-semibold flex items-center gap-1.5">
+            <Icon name="touch_app" className="text-base" />
+            <span className="font-bold">{selectedChamp}</span> selected - tap a tier
+          </span>
+          <button
+            type="button"
+            onClick={function() { setSelectedChamp(null); }}
+            className="text-[#FFD700]/70 hover:text-[#FFD700] text-xs font-semibold px-2 py-1 rounded-lg active:bg-[#FFD700]/10"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : null}
+
       <div className="mb-5">
         {TIERS.map(function(t) {
           return (
@@ -283,6 +322,10 @@ function TierListEditor(props) {
               tier={t}
               champs={tiers[t.id] || []}
               onDrop={moveChamp}
+              armed={!!selectedChamp}
+              onTapTier={handleTapTier}
+              selectedChamp={selectedChamp}
+              onTapChamp={handleTapChamp}
             />
           );
         })}
@@ -336,7 +379,14 @@ function TierListEditor(props) {
             <p className="text-white/30 text-xs italic self-center">No champions match the filter</p>
           ) : (
             availableChamps.map(function(c) {
-              return <ChampChip key={c.name} champ={c} />;
+              return (
+                <ChampChip
+                  key={c.name}
+                  champ={c}
+                  selected={selectedChamp === c.name}
+                  onTap={handleTapChamp}
+                />
+              );
             })
           )}
         </div>

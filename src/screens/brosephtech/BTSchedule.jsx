@@ -1,5 +1,6 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
+import { PATCHES } from '../../lib/btset17';
 
 var COLUMN_COLORS = {
   ideas: '#A78BFA',
@@ -20,17 +21,6 @@ var COLUMN_LABELS = {
 };
 
 var COLUMN_ORDER = ['ideas', 'writing', 'production', 'review', 'published', 'archive'];
-
-var PATCH_DATES = [
-  { id: '14.1', label: '14.1', date: '2026-04-15', notes: 'Set 14 launch' },
-  { id: '14.2', label: '14.2', date: '2026-04-29', notes: 'First balance' },
-  { id: '14.3', label: '14.3', date: '2026-05-13', notes: '' },
-  { id: '14.4', label: '14.4', date: '2026-05-27', notes: '' },
-  { id: '14.5', label: '14.5', date: '2026-06-10', notes: '' },
-  { id: '14.6', label: '14.6', date: '2026-06-24', notes: 'Mid-set' },
-  { id: '14.7', label: '14.7', date: '2026-07-08', notes: '' },
-  { id: '14.8', label: '14.8', date: '2026-07-22', notes: '' },
-];
 
 var DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -222,7 +212,7 @@ function MonthCalendar(props) {
   var todayIso = isoDay(new Date());
 
   function patchOnDate(iso) {
-    return PATCH_DATES.find(function(p) { return p.date === iso; });
+    return PATCHES.find(function(p) { return p.date === iso; });
   }
 
   function cardsOnDate(iso) {
@@ -457,6 +447,98 @@ function CardDetailDrawer(props) {
   );
 }
 
+function AgendaView(props) {
+  var cards = props.cards || [];
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  var days = [];
+  for (var i = 0; i < 21; i++) {
+    var d = new Date(today);
+    d.setDate(today.getDate() + i);
+    var iso = isoDay(d);
+    var dayCards = cards.filter(function(c) { return c.due_date === iso; });
+    var patch = PATCHES.find(function(p) { return p.date === iso; });
+    if (dayCards.length || patch || i === 0) {
+      days.push({ date: d, iso: iso, cards: dayCards, patch: patch });
+    }
+  }
+
+  if (days.length === 0) {
+    return (
+      <div className="bg-[#13172a] border border-white/5 rounded-xl p-6 text-center">
+        <Icon name="event_available" className="text-3xl text-white/20" />
+        <p className="text-sm text-white/60 mt-2">Nothing scheduled in the next 3 weeks.</p>
+        <p className="text-xs text-white/40 mt-1">Tap a day on the calendar to add a card.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {days.map(function(day) {
+        var isToday = day.iso === isoDay(today);
+        var dow = day.date.toLocaleDateString('en-GB', { weekday: 'short' });
+        var label = day.date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        return (
+          <div
+            key={day.iso}
+            className={'bg-[#13172a] border rounded-xl overflow-hidden ' + (isToday ? 'border-[#5BA3DB]/40' : 'border-white/5')}
+          >
+            <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-white/5">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className={'w-9 h-9 rounded-lg flex flex-col items-center justify-center shrink-0 ' + (isToday ? 'bg-[#5BA3DB]/15 text-[#5BA3DB]' : 'bg-white/5 text-white/70')}>
+                  <span className="text-[9px] uppercase font-bold leading-none">{dow}</span>
+                  <span className="text-sm font-bold leading-none mt-0.5">{day.date.getDate()}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white leading-tight">{isToday ? 'Today' : label}</p>
+                  {day.patch ? (
+                    <p className="text-[10px] text-[#E8A020] font-bold uppercase tracking-wider mt-0.5 flex items-center gap-1">
+                      <Icon name="rocket_launch" className="text-[11px]" />
+                      {day.patch.label} {day.patch.notes ? '- ' + day.patch.notes : ''}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              <button
+                onClick={function() { props.onDayClick(day.iso); }}
+                className="w-9 h-9 rounded-lg bg-white/5 active:bg-white/10 text-white/60 flex items-center justify-center"
+                title="Add card on this day"
+              >
+                <Icon name="add" className="text-base" />
+              </button>
+            </div>
+            {day.cards.length ? (
+              <div className="p-2 space-y-1.5">
+                {day.cards.map(function(card) {
+                  var color = COLUMN_COLORS[card.column_id] || '#6B7280';
+                  return (
+                    <button
+                      key={card.id}
+                      onClick={function() { props.onCardClick(card); }}
+                      className="w-full text-left bg-[#0b0e1a] border border-white/5 rounded-lg px-3 py-2 active:bg-[#0e1222] flex items-center gap-2"
+                    >
+                      <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: color }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white font-medium truncate">{card.title || 'Untitled'}</p>
+                        <p className="text-[10px] uppercase tracking-wider font-bold mt-0.5" style={{ color: color }}>
+                          {COLUMN_LABELS[card.column_id]}
+                        </p>
+                      </div>
+                      <Icon name="chevron_right" className="text-white/30 text-base shrink-0" />
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function BTSchedule() {
   var [cards, setCards] = React.useState([]);
   var [loading, setLoading] = React.useState(true);
@@ -465,6 +547,10 @@ function BTSchedule() {
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   var [selectedCard, setSelectedCard] = React.useState(null);
+  var [view, setView] = React.useState(function() {
+    if (typeof window === 'undefined') return 'calendar';
+    return window.innerWidth < 640 ? 'agenda' : 'calendar';
+  });
 
   React.useEffect(function() { loadCards(); }, []);
 
@@ -580,44 +666,73 @@ function BTSchedule() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Schedule</h2>
-          <p className="text-sm text-white/40 mt-0.5">Drag cards across days to reschedule. Patch days are highlighted gold.</p>
+          <p className="text-sm text-white/40 mt-0.5 hidden sm:block">Drag cards across days to reschedule. Patch days are highlighted gold.</p>
+          <p className="text-xs text-white/40 mt-0.5 sm:hidden">Tap any day to add a card.</p>
         </div>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={function() { shiftMonth(-1); }}
-            className="w-9 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 flex items-center justify-center transition-colors"
-            title="Previous month"
-          >
-            <Icon name="chevron_left" className="text-lg" />
-          </button>
-          <button
-            onClick={jumpToToday}
-            className="px-3 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 hover:text-white text-xs font-semibold transition-colors"
-          >
-            Today
-          </button>
-          <button
-            onClick={function() { shiftMonth(1); }}
-            className="w-9 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 flex items-center justify-center transition-colors"
-            title="Next month"
-          >
-            <Icon name="chevron_right" className="text-lg" />
-          </button>
-          <span className="ml-3 text-sm font-semibold text-white tabular-nums">{monthLabel}</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="inline-flex bg-[#13172a] border border-white/5 rounded-xl p-0.5">
+            <button
+              onClick={function() { setView('agenda'); }}
+              className={'flex items-center gap-1 px-2.5 h-9 text-xs font-semibold rounded-lg transition-all ' + (view === 'agenda' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80')}
+            >
+              <Icon name="view_agenda" className="text-base" />
+              <span className="hidden sm:inline">Agenda</span>
+            </button>
+            <button
+              onClick={function() { setView('calendar'); }}
+              className={'flex items-center gap-1 px-2.5 h-9 text-xs font-semibold rounded-lg transition-all ' + (view === 'calendar' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80')}
+            >
+              <Icon name="calendar_month" className="text-base" />
+              <span className="hidden sm:inline">Calendar</span>
+            </button>
+          </div>
+          {view === 'calendar' ? (
+            <div className="flex items-center gap-1">
+              <button
+                onClick={function() { shiftMonth(-1); }}
+                className="w-9 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 flex items-center justify-center transition-colors"
+                title="Previous month"
+              >
+                <Icon name="chevron_left" className="text-lg" />
+              </button>
+              <button
+                onClick={jumpToToday}
+                className="px-3 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 hover:text-white text-xs font-semibold transition-colors"
+              >
+                Today
+              </button>
+              <button
+                onClick={function() { shiftMonth(1); }}
+                className="w-9 h-9 rounded-lg bg-[#13172a] hover:bg-[#1a1f36] border border-white/5 text-white/70 flex items-center justify-center transition-colors"
+                title="Next month"
+              >
+                <Icon name="chevron_right" className="text-lg" />
+              </button>
+              <span className="ml-2 text-sm font-semibold text-white tabular-nums whitespace-nowrap">{monthLabel}</span>
+            </div>
+          ) : null}
         </div>
       </div>
 
       <FocusPanel cards={cards} onCardClick={setSelectedCard} />
 
-      <MonthCalendar
-        monthAnchor={monthAnchor}
-        cards={cards}
-        onCardClick={setSelectedCard}
-        onMoveCard={moveCardToDate}
-        onDayClick={createOnDate}
-      />
+      {view === 'calendar' ? (
+        <MonthCalendar
+          monthAnchor={monthAnchor}
+          cards={cards}
+          onCardClick={setSelectedCard}
+          onMoveCard={moveCardToDate}
+          onDayClick={createOnDate}
+        />
+      ) : (
+        <AgendaView
+          cards={cards}
+          onCardClick={setSelectedCard}
+          onDayClick={createOnDate}
+        />
+      )}
 
       {selectedCard && (
         <CardDetailDrawer

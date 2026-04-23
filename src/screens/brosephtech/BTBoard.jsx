@@ -1,6 +1,7 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import BTPatchBanner from './BTPatchBanner';
+import { MECHANIC_TERMS } from '../../lib/btset17';
 
 var COLUMNS = [
   { id: 'ideas',      label: 'Ideas',      icon: 'lightbulb',    color: '#A78BFA', accent: 'rgba(167,139,250,0.15)' },
@@ -66,13 +67,13 @@ var EMPTY_FORM = {
 var TFT_TERMS = [
   'augment', 'augments', 'comp', 'comps', 'team comp', 'reroll', 'fast 8', 'fast 9',
   'capped', 'uncapped', 'opener', 'transition', 'tempo', 'econ', 'pivot',
-  'tier list', 'tierlist', 'meta', 'patch', 'set 14', 'set 13', 'item', 'items',
+  'tier list', 'tierlist', 'meta', 'patch', 'item', 'items',
   'champion', 'champions', 'unit', 'units', 'trait', 'traits', 'hero augment',
   'prismatic', 'silver', 'gold', 'portal', 'portals', 'hyperroll', 'rerolls',
   'one cost', '1-cost', '2-cost', '3-cost', '4-cost', '5-cost', 'one-cost',
   'lobby', 'placement', 'climb', 'rank', 'challenger', 'gm', 'master',
   'broken', 'busted', 'nerf', 'buff', 'op', 'cheese',
-];
+].concat(MECHANIC_TERMS);
 
 var POWER_WORDS = [
   'broken', 'busted', 'insane', 'op', 'free lp', 'win', 'wins', 'climb', 'climbing',
@@ -627,7 +628,7 @@ function CardFields(props) {
         <Inp
           value={form.patch_id || ''}
           onChange={function(e) { set('patch_id', e.target.value); }}
-          placeholder="e.g. 14.2 or set-14"
+          placeholder="e.g. 17.2 or set-17"
         />
         <p className="text-[10px] text-white/30 mt-1.5">Tag a patch so timeline can group cards</p>
       </div>
@@ -704,10 +705,9 @@ function CardModal(props) {
   ));
 
   return (
-    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in" onClick={props.onClose}>
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-stretch sm:items-center justify-center z-50 sm:p-4 animate-in fade-in" onClick={props.onClose}>
       <div
-        className="bg-[#13172a] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col"
-        style={{ maxHeight: '92vh' }}
+        className="bg-[#13172a] border-0 sm:border sm:border-white/10 rounded-none sm:rounded-2xl w-full sm:max-w-2xl shadow-2xl flex flex-col h-screen sm:h-auto sm:max-h-[92vh]"
         onClick={function(e) { e.stopPropagation(); }}
       >
         <div className="flex items-center justify-between px-6 pt-5 pb-3">
@@ -988,11 +988,174 @@ function BoardStats(props) {
   );
 }
 
+function ListCardRow(props) {
+  var card = props.card;
+  var col = props.col;
+  var cols = props.allColumns;
+  var idx = cols.findIndex(function(c) { return c.id === col.id; });
+  var prevCol = idx > 0 ? cols[idx - 1] : null;
+  var nextCol = idx < cols.length - 1 ? cols[idx + 1] : null;
+
+  var typeLabel = (CONTENT_TYPES.find(function(t) { return t.id === card.content_type; }) || {}).label || card.content_type;
+  var platform = PLATFORMS.find(function(p) { return p.id === card.platform; }) || PLATFORMS[0];
+
+  var hasBrief = !!(card.brief && (
+    (card.brief.hookLine && card.brief.hookLine.trim()) ||
+    (card.brief.talkingPoints && card.brief.talkingPoints.length)
+  ));
+
+  function move(dir, e) {
+    e.stopPropagation();
+    var target = dir === 'next' ? nextCol : prevCol;
+    if (target) props.onMove(card.id, target.id);
+  }
+
+  return (
+    <div
+      onClick={function() { props.onEdit(card); }}
+      className="bg-[#0b0e1a] border border-white/5 rounded-xl p-3 active:bg-[#0e1222] transition-all flex items-center gap-3"
+    >
+      <span
+        className="w-1 self-stretch rounded-full shrink-0"
+        style={{ backgroundColor: col.color }}
+      />
+      <div className="flex-1 min-w-0">
+        <p className="text-white text-sm font-medium leading-snug truncate">{card.title || 'Untitled'}</p>
+        <div className="flex flex-wrap gap-1 mt-1.5 items-center">
+          <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#5BA3DB]/10 text-[#5BA3DB] font-semibold uppercase tracking-wide">
+            {typeLabel}
+          </span>
+          <span
+            className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide"
+            style={{ backgroundColor: platform.color + '18', color: platform.color }}
+          >
+            {platform.label}
+          </span>
+          {card.patch_id && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/5 text-white/50">
+              {card.patch_id}
+            </span>
+          )}
+          {hasBrief && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#E8A020] flex items-center gap-0.5">
+              <Icon name="auto_stories" className="text-[10px]" />
+              Brief
+            </span>
+          )}
+          {card.due_date && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/5 text-white/40 flex items-center gap-0.5">
+              <Icon name="calendar_today" className="text-[10px]" />
+              {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          type="button"
+          disabled={!prevCol}
+          onClick={function(e) { move('prev', e); }}
+          className={'w-9 h-9 rounded-lg flex items-center justify-center transition-all ' + (prevCol ? 'bg-white/5 text-white/70 active:bg-white/10' : 'bg-white/[0.02] text-white/15')}
+          title={prevCol ? 'Move to ' + prevCol.label : 'No previous column'}
+        >
+          <Icon name="chevron_left" className="text-base" />
+        </button>
+        <button
+          type="button"
+          disabled={!nextCol}
+          onClick={function(e) { move('next', e); }}
+          className={'w-9 h-9 rounded-lg flex items-center justify-center transition-all ' + (nextCol ? 'bg-white/5 text-white/70 active:bg-white/10' : 'bg-white/[0.02] text-white/15')}
+          title={nextCol ? 'Move to ' + nextCol.label : 'No next column'}
+        >
+          <Icon name="chevron_right" className="text-base" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BoardListView(props) {
+  var [openColumns, setOpenColumns] = React.useState(function() {
+    var initial = {};
+    props.columns.forEach(function(c) { initial[c.id] = c.id !== 'archive'; });
+    return initial;
+  });
+
+  function toggle(id) {
+    setOpenColumns(function(prev) {
+      var next = Object.assign({}, prev);
+      next[id] = !prev[id];
+      return next;
+    });
+  }
+
+  return (
+    <div className="space-y-2">
+      {props.columns.map(function(col) {
+        var colCards = props.cards.filter(function(c) { return c.column_id === col.id; });
+        var open = openColumns[col.id];
+        return (
+          <div key={col.id} className="bg-[#13172a] border border-white/5 rounded-xl overflow-hidden">
+            <button
+              onClick={function() { toggle(col.id); }}
+              className="w-full px-3 sm:px-4 py-3 flex items-center gap-2 active:bg-white/5 transition-colors"
+            >
+              <span
+                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: col.color + '20', color: col.color }}
+              >
+                <Icon name={col.icon} className="text-base" />
+              </span>
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-white text-sm font-bold tracking-tight">{col.label}</p>
+                <p className="text-[11px] text-white/40">{colCards.length} card{colCards.length === 1 ? '' : 's'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={function(e) { e.stopPropagation(); props.onAddCard(col.id); }}
+                className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 flex items-center justify-center"
+                title="Add card here"
+              >
+                <Icon name="add" className="text-base" />
+              </button>
+              <Icon name={open ? 'expand_less' : 'expand_more'} className="text-white/40 ml-1" />
+            </button>
+            {open ? (
+              <div className="border-t border-white/5 p-2 sm:p-3 space-y-2">
+                {colCards.length === 0 ? (
+                  <p className="text-[11px] text-white/30 text-center py-3">No cards</p>
+                ) : (
+                  colCards.map(function(card) {
+                    return (
+                      <ListCardRow
+                        key={card.id}
+                        card={card}
+                        col={col}
+                        allColumns={props.columns}
+                        onEdit={props.onEditCard}
+                        onMove={props.onMoveCard}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function BTBoard() {
   var [cards, setCards] = React.useState([]);
   var [loading, setLoading] = React.useState(true);
   var [modal, setModal] = React.useState(null);
   var [filterAssignee, setFilterAssignee] = React.useState('');
+  var [view, setView] = React.useState(function() {
+    if (typeof window === 'undefined') return 'kanban';
+    return window.innerWidth < 640 ? 'list' : 'kanban';
+  });
 
   React.useEffect(function() {
     loadCards();
@@ -1124,15 +1287,33 @@ function BTBoard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Content Board</h2>
           <p className="text-sm text-white/40 mt-0.5">
             {cards.length} cards total
             {filterAssignee && ' - filtered: ' + filterAssignee}
-            <span className="ml-3 text-[11px] text-white/25">Press <kbd className="px-1.5 py-0.5 bg-white/5 rounded border border-white/10 text-white/40">N</kbd> for new card</span>
+            <span className="hidden sm:inline ml-3 text-[11px] text-white/25">Press <kbd className="px-1.5 py-0.5 bg-white/5 rounded border border-white/10 text-white/40">N</kbd> for new card</span>
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="inline-flex bg-[#13172a] border border-white/5 rounded-xl p-0.5">
+            <button
+              onClick={function() { setView('kanban'); }}
+              className={'flex items-center gap-1 px-2.5 h-9 text-xs font-semibold rounded-lg transition-all ' + (view === 'kanban' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80')}
+              title="Kanban view"
+            >
+              <Icon name="view_kanban" className="text-base" />
+              <span className="hidden sm:inline">Kanban</span>
+            </button>
+            <button
+              onClick={function() { setView('list'); }}
+              className={'flex items-center gap-1 px-2.5 h-9 text-xs font-semibold rounded-lg transition-all ' + (view === 'list' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80')}
+              title="List view"
+            >
+              <Icon name="view_list" className="text-base" />
+              <span className="hidden sm:inline">List</span>
+            </button>
+          </div>
           <Sel value={filterAssignee} onChange={function(e) { setFilterAssignee(e.target.value); }}>
             <option value="">All team</option>
             {TEAM.map(function(m) {
@@ -1141,10 +1322,11 @@ function BTBoard() {
           </Sel>
           <button
             onClick={function() { handleAddCard('ideas'); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#5BA3DB] to-[#4a92ca] hover:from-[#6BB3EB] hover:to-[#5BA3DB] text-white text-sm font-semibold transition-all shadow-lg shadow-[#5BA3DB]/10"
+            className="flex items-center gap-2 px-3 sm:px-4 h-10 rounded-xl bg-gradient-to-r from-[#5BA3DB] to-[#4a92ca] hover:from-[#6BB3EB] hover:to-[#5BA3DB] text-white text-sm font-semibold transition-all shadow-lg shadow-[#5BA3DB]/10"
           >
             <Icon name="add" className="text-base" />
-            New card
+            <span className="hidden sm:inline">New card</span>
+            <span className="sm:hidden">New</span>
           </button>
         </div>
       </div>
@@ -1165,7 +1347,7 @@ function BTBoard() {
             Add first card
           </button>
         </div>
-      ) : (
+      ) : view === 'kanban' ? (
         <div className="flex gap-4 overflow-x-auto pb-6 -mx-2 px-2">
           {COLUMNS.map(function(col) {
             var colCards = visibleCards.filter(function(c) { return c.column_id === col.id; });
@@ -1181,6 +1363,14 @@ function BTBoard() {
             );
           })}
         </div>
+      ) : (
+        <BoardListView
+          columns={COLUMNS}
+          cards={visibleCards}
+          onAddCard={handleAddCard}
+          onEditCard={handleEditCard}
+          onMoveCard={handleMoveCard}
+        />
       )}
 
       {modal && (

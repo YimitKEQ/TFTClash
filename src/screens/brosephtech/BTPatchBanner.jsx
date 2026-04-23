@@ -1,22 +1,5 @@
 import React from 'react';
-
-var CURRENT_SET = {
-  number: 14,
-  name: 'Set 14',
-  startDate: '2026-04-15',
-  endDate: '2026-08-26',
-};
-
-var UPCOMING_PATCHES = [
-  { id: '14.1', label: 'Patch 14.1', date: '2026-04-15', notes: 'Set 14 launch' },
-  { id: '14.2', label: 'Patch 14.2', date: '2026-04-29', notes: 'First balance' },
-  { id: '14.3', label: 'Patch 14.3', date: '2026-05-13', notes: '' },
-  { id: '14.4', label: 'Patch 14.4', date: '2026-05-27', notes: '' },
-  { id: '14.5', label: 'Patch 14.5', date: '2026-06-10', notes: '' },
-  { id: '14.6', label: 'Patch 14.6', date: '2026-06-24', notes: 'Mid-set update' },
-  { id: '14.7', label: 'Patch 14.7', date: '2026-07-08', notes: '' },
-  { id: '14.8', label: 'Patch 14.8', date: '2026-07-22', notes: '' },
-];
+import { CURRENT_SET, PATCHES } from '../../lib/btset17';
 
 function Icon(props) {
   return (
@@ -40,7 +23,7 @@ function formatShort(dateStr) {
 function BTPatchBanner(props) {
   var cards = props.cards || [];
 
-  var nextPatch = UPCOMING_PATCHES.find(function(p) { return daysUntil(p.date) > 0; });
+  var nextPatch = PATCHES.find(function(p) { return daysUntil(p.date) > 0; });
   var setDays = daysUntil(CURRENT_SET.endDate);
 
   var publishedCards = cards
@@ -65,14 +48,14 @@ function BTPatchBanner(props) {
   else publishLabel = droughtDays + ' day' + (droughtDays === 1 ? '' : 's') + ' ago';
 
   return (
-    <div className="mb-5 grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="mb-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
       <div className="bg-gradient-to-br from-[#13172a] to-[#0f1320] border border-white/5 rounded-xl px-4 py-3 flex items-center gap-3">
         <div className="w-10 h-10 rounded-lg bg-[#5BA3DB]/15 flex items-center justify-center shrink-0">
           <Icon name="auto_awesome" className="text-[#5BA3DB] text-xl" />
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider">Current set</p>
-          <p className="text-white text-sm font-bold truncate">{CURRENT_SET.name}</p>
+          <p className="text-white text-sm font-bold truncate">{CURRENT_SET.fullName}</p>
           <p className="text-[11px] text-[#5BA3DB] font-semibold">
             {setDays > 0 ? setDays + ' days left' : 'Set ended ' + Math.abs(setDays) + 'd ago'}
           </p>
@@ -88,7 +71,7 @@ function BTPatchBanner(props) {
             <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider">Next patch</p>
             <p className="text-white text-sm font-bold truncate">{nextPatch.label}</p>
             <p className="text-[11px] text-[#E8A020] font-semibold">
-              {daysUntil(nextPatch.date)} days · {formatShort(nextPatch.date)}
+              {daysUntil(nextPatch.date)} days - {formatShort(nextPatch.date)}
             </p>
           </div>
         </div>
@@ -99,7 +82,7 @@ function BTPatchBanner(props) {
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] text-white/40 font-semibold uppercase tracking-wider">Next patch</p>
-            <p className="text-white/60 text-sm">Schedule TBD</p>
+            <p className="text-white/60 text-sm">Set ended - no more patches</p>
           </div>
         </div>
       )}
