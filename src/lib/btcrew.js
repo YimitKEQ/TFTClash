@@ -114,6 +114,28 @@ function resolveCrewName(value) {
   return value;
 }
 
+// Normalize a card's assignees into a deduped array of resolved crew names.
+// Cards may carry assignees as a jsonb array, the legacy single assignee string,
+// or both - we always return the array form so callers can stop branching.
+function cardAssignees(card) {
+  if (!card) return [];
+  var raw = [];
+  if (Array.isArray(card.assignees)) raw = card.assignees;
+  else if (card.assignees && typeof card.assignees === 'string') {
+    try { var parsed = JSON.parse(card.assignees); if (Array.isArray(parsed)) raw = parsed; } catch (_) {}
+  }
+  if (raw.length === 0 && card.assignee) raw = [card.assignee];
+  var seen = {};
+  var out = [];
+  raw.forEach(function(value) {
+    var name = resolveCrewName(value);
+    if (!name || seen[name]) return;
+    seen[name] = true;
+    out.push(name);
+  });
+  return out;
+}
+
 function getCrewMember(value) {
   var resolved = resolveCrewName(value);
   return BT_CREW_BY_NAME[resolved] || null;
@@ -154,6 +176,7 @@ export {
   BT_CREW_BY_NAME,
   BT_LEGACY_ALIASES,
   resolveCrewName,
+  cardAssignees,
   getCrewMember,
   getCrewByRole,
   getCrewForStepRole,

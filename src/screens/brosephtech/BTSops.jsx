@@ -1,6 +1,6 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
-import { BT_CREW, getCrewForStepRole, resolveCrewName, workloadStatus } from '../../lib/btcrew';
+import { BT_CREW, getCrewForStepRole, cardAssignees, workloadStatus } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 var SOPS_TABLES = ['bt_content_cards'];
@@ -137,7 +137,8 @@ function CrewMap(props) {
   var maxCap = 8;
   var rows = BT_CREW.map(function(m) {
     var memberCards = cards.filter(function(c) {
-      return resolveCrewName(c.assignee) === m.name && ACTIVE_COLUMN_IDS.indexOf(c.column_id) !== -1;
+      if (ACTIVE_COLUMN_IDS.indexOf(c.column_id) === -1) return false;
+      return cardAssignees(c).indexOf(m.name) !== -1;
     });
     var status = workloadStatus(memberCards.length);
     var pct = Math.min(100, Math.round((memberCards.length / maxCap) * 100));

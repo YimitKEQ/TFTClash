@@ -2,7 +2,7 @@ import React from 'react';
 import { supabase } from '../../lib/supabase';
 import BTPatchBanner from './BTPatchBanner';
 import { MECHANIC_TERMS, PATCHES } from '../../lib/btset17';
-import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, workloadStatus } from '../../lib/btcrew';
+import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, cardAssignees, workloadStatus } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 var BOARD_TABLES = ['bt_content_cards'];
@@ -61,11 +61,56 @@ var EMPTY_FORM = {
   content_type: 'short',
   platform: 'both',
   assignee: '',
+  assignees: [],
+  subtasks: [],
   priority: 'medium',
   due_date: '',
   patch_id: '',
   brief: null,
 };
+
+var STALE_DAYS_THRESHOLD = 5;
+var STALE_BLOCKED_COLUMNS = ['published', 'archive'];
+
+function daysSinceIso(dateStr) {
+  if (!dateStr) return null;
+  var when = new Date(dateStr);
+  if (isNaN(when.getTime())) return null;
+  var now = new Date();
+  return Math.floor((now - when) / (1000 * 60 * 60 * 24));
+}
+
+function cardStaleDays(card) {
+  if (!card) return 0;
+  if (STALE_BLOCKED_COLUMNS.indexOf(card.column_id) !== -1) return 0;
+  var anchor = card.column_changed_at || card.updated_at || card.created_at;
+  var d = daysSinceIso(anchor);
+  if (d === null) return 0;
+  return d >= STALE_DAYS_THRESHOLD ? d : 0;
+}
+
+function normalizeSubtasks(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(function(s) {
+      if (!s || typeof s !== 'object') return null;
+      var text = typeof s.text === 'string' ? s.text : '';
+      if (!text.trim()) return null;
+      return {
+        id: s.id || (Date.now() + '-' + Math.random().toString(36).slice(2, 8)),
+        text: text,
+        done: !!s.done,
+      };
+    })
+    .filter(Boolean);
+}
+
+function subtaskProgress(card) {
+  var list = normalizeSubtasks(card && card.subtasks);
+  if (list.length === 0) return null;
+  var done = list.filter(function(s) { return s.done; }).length;
+  return { done: done, total: list.length, pct: Math.round((done / list.length) * 100) };
+}
 
 var TFT_TERMS = [
   'augment', 'augments', 'comp', 'comps', 'team comp', 'reroll', 'fast 8', 'fast 9',
@@ -209,24 +254,49 @@ function TeamAvatar(props) {
 }
 
 function CrewPicker(props) {
-  var current = resolveCrewName(props.value || '');
+  var raw = Array.isArray(props.value) ? props.value : (props.value ? [props.value] : []);
+  var selected = {};
+  raw.forEach(function(value) {
+    var name = resolveCrewName(value);
+    if (name) selected[name] = true;
+  });
+  var anySelected = Object.keys(selected).length > 0;
+
+  function emit(nextSet) {
+    var ordered = BT_CREW
+      .filter(function(m) { return nextSet[m.name]; })
+      .map(function(m) { return m.name; });
+    props.onChange(ordered);
+  }
+
+  function toggle(name) {
+    var next = Object.assign({}, selected);
+    if (next[name]) delete next[name];
+    else next[name] = true;
+    emit(next);
+  }
+
+  function clear() {
+    emit({});
+  }
+
   return (
     <div className="flex flex-wrap gap-1.5">
       <button
         type="button"
-        onClick={function() { props.onChange(''); }}
-        className={'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ' + (!current ? 'border-white/30 bg-white/10 text-white' : 'border-white/8 text-white/40 hover:text-white/70 hover:border-white/15')}
+        onClick={clear}
+        className={'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ' + (!anySelected ? 'border-white/30 bg-white/10 text-white' : 'border-white/8 text-white/40 hover:text-white/70 hover:border-white/15')}
       >
         <span className="material-symbols-outlined text-[14px]">person_off</span>
         Unassigned
       </button>
       {BT_CREW.map(function(m) {
-        var active = current === m.name;
+        var active = !!selected[m.name];
         return (
           <button
             key={m.id}
             type="button"
-            onClick={function() { props.onChange(m.name); }}
+            onClick={function() { toggle(m.name); }}
             className={'flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-semibold transition-all ' + (active ? '' : 'border-white/8 text-white/55 hover:text-white/90 hover:border-white/20')}
             style={active ? {
               borderColor: m.color + '99',
@@ -234,14 +304,59 @@ function CrewPicker(props) {
               color: '#fff',
               boxShadow: '0 4px 16px -6px ' + m.halo,
             } : {}}
-            title={m.name}
+            title={m.name + (active ? ' (assigned)' : '')}
           >
             <TeamAvatar name={m.name} size={20} />
             <span>{m.name}</span>
+            {active && <span className="material-symbols-outlined text-[12px] opacity-80">check</span>}
           </button>
         );
       })}
     </div>
+  );
+}
+
+function AvatarStack(props) {
+  var names = Array.isArray(props.names) ? props.names : [];
+  if (names.length === 0) return null;
+  var size = props.size || 22;
+  var overlap = props.overlap == null ? 8 : props.overlap;
+  var max = props.max || 4;
+  var visible = names.slice(0, max);
+  var extra = names.length - visible.length;
+  return (
+    <span className="inline-flex items-center" title={names.join(', ')}>
+      {visible.map(function(name, i) {
+        return (
+          <span
+            key={name + i}
+            style={{
+              marginLeft: i === 0 ? 0 : -overlap,
+              zIndex: visible.length - i,
+              borderRadius: '999px',
+              boxShadow: '0 0 0 2px rgba(13,17,32,0.95)',
+              display: 'inline-block',
+            }}
+          >
+            <TeamAvatar name={name} size={size} />
+          </span>
+        );
+      })}
+      {extra > 0 && (
+        <span
+          className="inline-flex items-center justify-center font-bold text-white/80 bg-white/10 rounded-full"
+          style={{
+            width: size,
+            height: size,
+            fontSize: 10,
+            marginLeft: -overlap,
+            boxShadow: '0 0 0 2px rgba(13,17,32,0.95)',
+          }}
+        >
+          +{extra}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -289,7 +404,8 @@ function CrewWorkload(props) {
   var maxCap = 8;
   var rows = BT_CREW.map(function(m) {
     var memberCards = cards.filter(function(c) {
-      return resolveCrewName(c.assignee) === m.name && ACTIVE_COLUMN_IDS.indexOf(c.column_id) !== -1;
+      if (ACTIVE_COLUMN_IDS.indexOf(c.column_id) === -1) return false;
+      return cardAssignees(c).indexOf(m.name) !== -1;
     });
     var status = workloadStatus(memberCards.length);
     var pct = Math.min(100, Math.round((memberCards.length / maxCap) * 100));
@@ -444,7 +560,7 @@ function PatchWarRoom(props) {
 function IdeaCaptureFAB(props) {
   var [open, setOpen] = React.useState(false);
   var [text, setText] = React.useState('');
-  var [assignee, setAssignee] = React.useState('');
+  var [assignees, setAssignees] = React.useState([]);
   var [saving, setSaving] = React.useState(false);
   var inputRef = React.useRef(null);
 
@@ -455,14 +571,14 @@ function IdeaCaptureFAB(props) {
   function close() {
     setOpen(false);
     setText('');
-    setAssignee('');
+    setAssignees([]);
   }
 
   function submit() {
     var trimmed = text.trim();
     if (!trimmed) return;
     setSaving(true);
-    props.onCapture({ title: trimmed, assignee: assignee }, function(ok) {
+    props.onCapture({ title: trimmed, assignees: assignees }, function(ok) {
       setSaving(false);
       if (ok) close();
     });
@@ -523,7 +639,7 @@ function IdeaCaptureFAB(props) {
           />
           <div className="mt-3">
             <p className="text-[10px] text-white/45 font-semibold uppercase tracking-wider mb-1.5">Assign to</p>
-            <CrewPicker value={assignee} onChange={setAssignee} />
+            <CrewPicker value={assignees} onChange={setAssignees} />
           </div>
           <div className="flex items-center justify-between mt-4">
             <p className="text-[10px] text-white/40">Lands in <strong className="text-white/70">Ideas</strong> column. Press Enter to ship.</p>
@@ -898,6 +1014,103 @@ function BriefForm(props) {
   );
 }
 
+function SubtaskList(props) {
+  var items = Array.isArray(props.items) ? props.items : [];
+  var [draft, setDraft] = React.useState('');
+
+  function emit(next) {
+    props.onChange(normalizeSubtasks(next));
+  }
+
+  function add() {
+    var trimmed = draft.trim();
+    if (!trimmed) return;
+    var next = items.concat([{
+      id: Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      text: trimmed,
+      done: false,
+    }]);
+    emit(next);
+    setDraft('');
+  }
+
+  function toggle(id) {
+    emit(items.map(function(s) {
+      return s.id === id ? Object.assign({}, s, { done: !s.done }) : s;
+    }));
+  }
+
+  function remove(id) {
+    emit(items.filter(function(s) { return s.id !== id; }));
+  }
+
+  var done = items.filter(function(s) { return s.done; }).length;
+
+  return (
+    <div className="bg-[#0b0e1a] border border-white/10 rounded-lg p-2.5">
+      {items.length > 0 && (
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#10B981] to-[#5BA3DB] transition-all"
+              style={{ width: items.length === 0 ? '0%' : Math.round((done / items.length) * 100) + '%' }}
+            />
+          </div>
+          <span className="text-[10px] text-white/50 font-semibold tabular-nums">{done}/{items.length}</span>
+        </div>
+      )}
+      <ul className="flex flex-col gap-1 mb-2">
+        {items.map(function(s) {
+          return (
+            <li key={s.id} className="flex items-center gap-2 group rounded-md hover:bg-white/[0.03] px-1 py-1">
+              <button
+                type="button"
+                onClick={function() { toggle(s.id); }}
+                className={'w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ' + (s.done ? 'bg-[#10B981] border-[#10B981] text-white' : 'border-white/30 hover:border-white/60')}
+                title={s.done ? 'Mark incomplete' : 'Mark done'}
+              >
+                {s.done && <span className="material-symbols-outlined text-[12px]">check</span>}
+              </button>
+              <span className={'flex-1 text-sm leading-snug ' + (s.done ? 'text-white/35 line-through' : 'text-white/90')}>{s.text}</span>
+              <button
+                type="button"
+                onClick={function() { remove(s.id); }}
+                className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-opacity"
+                title="Remove"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="flex items-center gap-1.5">
+        <input
+          type="text"
+          value={draft}
+          onChange={function(e) { setDraft(e.target.value); }}
+          onKeyDown={function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              add();
+            }
+          }}
+          placeholder="Add subtask, press Enter"
+          className="flex-1 bg-transparent border border-white/10 rounded-md px-2 py-1.5 text-white text-xs focus:outline-none focus:border-white/30 transition-colors"
+        />
+        <button
+          type="button"
+          onClick={add}
+          disabled={!draft.trim()}
+          className="px-2.5 py-1.5 rounded-md text-xs font-semibold text-white bg-white/10 hover:bg-white/15 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CardFields(props) {
   var form = props.form;
   var set = props.set;
@@ -961,8 +1174,17 @@ function CardFields(props) {
       </div>
 
       <div>
-        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Assignee</label>
-        <CrewPicker value={form.assignee} onChange={function(v) { set('assignee', v); }} />
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Assigned crew</label>
+        <CrewPicker value={cardAssignees(form)} onChange={function(v) { set('assignees', v); }} />
+        <p className="text-[10px] text-white/30 mt-1.5">Tap to add or remove. Multiple crew can co-own a card.</p>
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Subtasks</label>
+        <SubtaskList
+          items={normalizeSubtasks(form.subtasks)}
+          onChange={function(next) { set('subtasks', next); }}
+        />
       </div>
 
       <div>
@@ -1168,6 +1390,10 @@ function KanbanCard(props) {
     (card.brief.titleOptions && card.brief.titleOptions.length)
   ));
 
+  var assignedNames = cardAssignees(card);
+  var progress = subtaskProgress(card);
+  var staleDays = cardStaleDays(card);
+
   return (
     <div
       draggable
@@ -1209,16 +1435,42 @@ function KanbanCard(props) {
             Brief
           </span>
         )}
-        {card.assignee && <TeamAvatar name={card.assignee} />}
+        {assignedNames.length > 0 && (
+          <span className="ml-auto"><AvatarStack names={assignedNames} size={20} /></span>
+        )}
       </div>
 
-      {card.due_date && (
-        <div className={'flex items-center gap-1 mt-2 text-[10px] ' + (overdue ? 'text-red-400' : 'text-white/30')}>
-          <Icon name="calendar_today" className="text-[11px]" />
-          {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-          {overdue && <span className="ml-1 font-semibold">OVERDUE</span>}
+      {progress && (
+        <div className="mt-2 flex items-center gap-2">
+          <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#10B981] to-[#5BA3DB] transition-all"
+              style={{ width: progress.pct + '%' }}
+            />
+          </div>
+          <span className="text-[10px] text-white/45 font-semibold tabular-nums">{progress.done}/{progress.total}</span>
         </div>
       )}
+
+      <div className="flex items-center gap-2 mt-2 flex-wrap">
+        {card.due_date && (
+          <div className={'flex items-center gap-1 text-[10px] ' + (overdue ? 'text-red-400' : 'text-white/30')}>
+            <Icon name="calendar_today" className="text-[11px]" />
+            {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            {overdue && <span className="ml-1 font-semibold">OVERDUE</span>}
+          </div>
+        )}
+        {staleDays > 0 && (
+          <span
+            className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold uppercase tracking-wide flex items-center gap-0.5"
+            style={{ background: 'rgba(232,160,32,0.18)', color: '#FFD487' }}
+            title={'No column move in ' + staleDays + ' days'}
+          >
+            <Icon name="hourglass_top" className="text-[11px]" />
+            Stuck {staleDays}d
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -1346,6 +1598,10 @@ function ListCardRow(props) {
     (card.brief.talkingPoints && card.brief.talkingPoints.length)
   ));
 
+  var assignedNames = cardAssignees(card);
+  var progress = subtaskProgress(card);
+  var staleDays = cardStaleDays(card);
+
   function move(dir, e) {
     e.stopPropagation();
     var target = dir === 'next' ? nextCol : prevCol;
@@ -1362,7 +1618,10 @@ function ListCardRow(props) {
         style={{ backgroundColor: col.color }}
       />
       <div className="flex-1 min-w-0">
-        <p className="text-white text-sm font-medium leading-snug truncate">{card.title || 'Untitled'}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-white text-sm font-medium leading-snug truncate flex-1">{card.title || 'Untitled'}</p>
+          {assignedNames.length > 0 && <AvatarStack names={assignedNames} size={18} />}
+        </div>
         <div className="flex flex-wrap gap-1 mt-1.5 items-center">
           <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#5BA3DB]/10 text-[#5BA3DB] font-semibold uppercase tracking-wide">
             {typeLabel}
@@ -1384,10 +1643,22 @@ function ListCardRow(props) {
               Brief
             </span>
           )}
+          {progress && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-[#10B981]/15 text-[#10B981] flex items-center gap-0.5" title="Subtask progress">
+              <Icon name="checklist" className="text-[10px]" />
+              {progress.done}/{progress.total}
+            </span>
+          )}
           {card.due_date && (
             <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide bg-white/5 text-white/40 flex items-center gap-0.5">
               <Icon name="calendar_today" className="text-[10px]" />
               {new Date(card.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </span>
+          )}
+          {staleDays > 0 && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide flex items-center gap-0.5" style={{ background: 'rgba(232,160,32,0.18)', color: '#FFD487' }} title={'No column move in ' + staleDays + ' days'}>
+              <Icon name="hourglass_top" className="text-[10px]" />
+              Stuck {staleDays}d
             </span>
           )}
         </div>
@@ -1530,13 +1801,17 @@ function BTBoard() {
   }
 
   function handleSave(form, done) {
+    var assignees = cardAssignees(form);
+    var subtasks = normalizeSubtasks(form.subtasks);
     var payload = {
       title: form.title,
       description: form.description,
       column_id: form.column_id,
       content_type: form.content_type,
       platform: form.platform,
-      assignee: form.assignee,
+      assignee: assignees[0] || '',
+      assignees: assignees,
+      subtasks: subtasks,
       priority: form.priority,
       due_date: form.due_date || null,
       patch_id: form.patch_id || null,
@@ -1602,10 +1877,12 @@ function BTBoard() {
   }
 
   function handleQuickCapture(payload, done) {
+    var assignees = Array.isArray(payload.assignees) ? payload.assignees : (payload.assignee ? [payload.assignee] : []);
     var insertPayload = Object.assign({}, EMPTY_FORM, {
       title: payload.title,
       column_id: 'ideas',
-      assignee: payload.assignee || '',
+      assignee: assignees[0] || '',
+      assignees: assignees,
       brief: null,
     });
     delete insertPayload.id;
@@ -1663,17 +1940,17 @@ function BTBoard() {
   }
 
   var visibleCards = filterAssignee
-    ? cards.filter(function(c) { return resolveCrewName(c.assignee) === filterAssignee; })
+    ? cards.filter(function(c) { return cardAssignees(c).indexOf(filterAssignee) !== -1; })
     : cards;
 
   var crewCounts = {};
   BT_CREW_NAMES.forEach(function(n) { crewCounts[n] = 0; });
   cards.forEach(function(c) {
-    var name = resolveCrewName(c.assignee);
-    if (!name) return;
     if (ACTIVE_COLUMN_IDS.indexOf(c.column_id) === -1) return;
-    if (crewCounts[name] == null) crewCounts[name] = 0;
-    crewCounts[name] += 1;
+    cardAssignees(c).forEach(function(name) {
+      if (crewCounts[name] == null) crewCounts[name] = 0;
+      crewCounts[name] += 1;
+    });
   });
 
   return (
