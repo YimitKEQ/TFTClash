@@ -1,7 +1,8 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import BTPatchBanner from './BTPatchBanner';
-import { MECHANIC_TERMS } from '../../lib/btset17';
+import { MECHANIC_TERMS, PATCHES } from '../../lib/btset17';
+import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, workloadStatus } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 var BOARD_TABLES = ['bt_content_cards'];
@@ -15,16 +16,15 @@ var COLUMNS = [
   { id: 'archive',    label: 'Archive',    icon: 'archive',      color: '#6B7280', accent: 'rgba(107,114,128,0.15)' },
 ];
 
-var TEAM = ['Levitate', 'Co-Founder', 'Founder 3', 'Scriptwriter', 'Editor', 'GFX'];
+var ACTIVE_COLUMN_IDS = ['ideas', 'writing', 'production', 'review'];
 
-var TEAM_COLORS = {
-  'Levitate': '#5BA3DB',
-  'Co-Founder': '#E8A020',
-  'Founder 3': '#A78BFA',
-  'Scriptwriter': '#EC4899',
-  'Editor': '#10B981',
-  'GFX': '#F59E0B',
-};
+// Patch reaction quick-templates - dropped into Ideas column when a patch lands.
+var PATCH_TEMPLATES = [
+  { kind: 'short',    column: 'writing',    title: 'Patch X.Y - 60s tier list shake-up',         hook: 'These are the only comps that matter on patch X.Y.' },
+  { kind: 'short',    column: 'ideas',      title: 'Patch X.Y - top 5 buffs you must abuse',     hook: 'Patch X.Y just made these 5 units broken.' },
+  { kind: 'longform', column: 'writing',    title: 'Patch X.Y full breakdown',                   hook: 'Everything that changed on patch X.Y, ranked by what actually matters.' },
+  { kind: 'short',    column: 'ideas',      title: 'Patch X.Y - the secret nerf nobody noticed', hook: 'Riot snuck in a nerf on patch X.Y that breaks the meta.' },
+];
 
 var PRIORITY_COLORS = { high: '#EF4444', medium: '#F59E0B', low: '#6B7280' };
 var PRIORITY_LABELS = { high: 'High', medium: 'Med', low: 'Low' };
@@ -181,22 +181,368 @@ function Icon(props) {
 }
 
 function TeamAvatar(props) {
-  var name = props.name || '';
-  if (!name) return null;
-  var initial = name.charAt(0).toUpperCase();
-  var bg = TEAM_COLORS[name] || '#6B7280';
+  var raw = props.name || '';
+  if (!raw) return null;
+  var member = getCrewMember(raw);
+  var displayName = member ? member.name : raw;
+  var initial = (member ? member.initial : raw.charAt(0)).toUpperCase();
+  var bg = member ? member.color : '#6B7280';
+  var size = props.size || 22;
+  var fontSize = size >= 36 ? 14 : size >= 28 ? 12 : 10;
+  var titleText = member ? displayName + ' - ' + member.title : displayName;
   return (
     <div
-      className="shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+      className="shrink-0 rounded-full flex items-center justify-center font-bold text-white"
       style={{
-        width: props.size || 20,
-        height: props.size || 20,
+        width: size,
+        height: size,
         backgroundColor: bg,
-        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.15)',
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18), 0 4px 12px -4px ' + (member ? member.halo : 'rgba(0,0,0,0.4)'),
+        fontSize: fontSize,
+        letterSpacing: '0.02em',
       }}
-      title={name}
+      title={titleText}
     >
       {initial}
+    </div>
+  );
+}
+
+function CrewPicker(props) {
+  var current = resolveCrewName(props.value || '');
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      <button
+        type="button"
+        onClick={function() { props.onChange(''); }}
+        className={'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold border transition-all ' + (!current ? 'border-white/30 bg-white/10 text-white' : 'border-white/8 text-white/40 hover:text-white/70 hover:border-white/15')}
+      >
+        <span className="material-symbols-outlined text-[14px]">person_off</span>
+        Unassigned
+      </button>
+      {BT_CREW.map(function(m) {
+        var active = current === m.name;
+        return (
+          <button
+            key={m.id}
+            type="button"
+            onClick={function() { props.onChange(m.name); }}
+            className={'flex items-center gap-1.5 px-2 py-1 rounded-full border text-[11px] font-semibold transition-all ' + (active ? '' : 'border-white/8 text-white/55 hover:text-white/90 hover:border-white/20')}
+            style={active ? {
+              borderColor: m.color + '99',
+              background: m.accent,
+              color: '#fff',
+              boxShadow: '0 4px 16px -6px ' + m.halo,
+            } : {}}
+            title={m.name + ' - ' + m.title}
+          >
+            <TeamAvatar name={m.name} size={20} />
+            <span>{m.name}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CrewFilterStrip(props) {
+  var current = props.value || '';
+  return (
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+      <button
+        type="button"
+        onClick={function() { props.onChange(''); }}
+        className={'shrink-0 inline-flex items-center gap-1.5 px-3 h-9 rounded-full border text-[11px] font-semibold transition-all ' + (!current ? 'border-white/30 bg-white/10 text-white' : 'border-white/10 text-white/55 hover:text-white hover:border-white/20')}
+      >
+        <span className="material-symbols-outlined text-[15px]">groups</span>
+        All
+      </button>
+      {BT_CREW.map(function(m) {
+        var count = props.counts ? (props.counts[m.name] || 0) : 0;
+        var active = current === m.name;
+        return (
+          <button
+            key={m.id}
+            type="button"
+            onClick={function() { props.onChange(active ? '' : m.name); }}
+            className={'shrink-0 inline-flex items-center gap-1.5 px-2 h-9 rounded-full border text-[11px] font-semibold transition-all ' + (active ? '' : 'border-white/10 text-white/65 hover:text-white hover:border-white/25')}
+            style={active ? {
+              borderColor: m.color + '99',
+              background: m.accent,
+              color: '#fff',
+              boxShadow: '0 4px 16px -6px ' + m.halo,
+            } : {}}
+            title={m.name + ' - ' + m.title + ' (' + count + ' active)'}
+          >
+            <TeamAvatar name={m.name} size={22} />
+            <span className="hidden md:inline">{m.name}</span>
+            <span className="px-1.5 rounded-full bg-white/10 text-[10px] tabular-nums">{count}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function CrewWorkload(props) {
+  var cards = props.cards || [];
+  var maxCap = 8;
+  var rows = BT_CREW.map(function(m) {
+    var memberCards = cards.filter(function(c) {
+      return resolveCrewName(c.assignee) === m.name && ACTIVE_COLUMN_IDS.indexOf(c.column_id) !== -1;
+    });
+    var status = workloadStatus(memberCards.length);
+    var pct = Math.min(100, Math.round((memberCards.length / maxCap) * 100));
+    return { member: m, count: memberCards.length, status: status, pct: pct };
+  });
+
+  return (
+    <div className="bg-[#13172a]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mb-5">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="text-white text-sm font-bold flex items-center gap-2">
+            <span className="material-symbols-outlined text-base text-[#E8A020]">groups</span>
+            Crew workload
+          </h3>
+          <p className="text-[11px] text-white/40 mt-0.5">Active cards per crew member, excluding published and archive.</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        {rows.map(function(row) {
+          return (
+            <button
+              key={row.member.id}
+              type="button"
+              onClick={function() { if (props.onSelect) props.onSelect(row.member.name); }}
+              className="text-left bg-[#0b0e1a]/60 border border-white/5 rounded-xl px-3 py-2.5 hover:border-white/15 transition-all"
+            >
+              <div className="flex items-center gap-2.5">
+                <TeamAvatar name={row.member.name} size={32} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-semibold truncate">{row.member.name}</p>
+                  <p className="text-[10px] text-white/40 truncate">{row.member.short}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white text-base font-bold leading-none tabular-nums">{row.count}</p>
+                  <p className="text-[9px] uppercase tracking-wider font-bold mt-0.5" style={{ color: row.status.color }}>{row.status.label}</p>
+                </div>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div
+                  className="h-full transition-all"
+                  style={{ width: row.pct + '%', background: row.status.color }}
+                />
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function daysUntilIso(dateStr) {
+  if (!dateStr) return null;
+  var target = new Date(dateStr + 'T00:00:00');
+  var now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.floor((target - now) / 86400000);
+}
+
+function PatchWarRoom(props) {
+  var nextPatch = null;
+  var nextPatchDays = null;
+  for (var i = 0; i < PATCHES.length; i += 1) {
+    var d = daysUntilIso(PATCHES[i].date);
+    if (d != null && d >= -2 && d <= 5) {
+      nextPatch = PATCHES[i];
+      nextPatchDays = d;
+      break;
+    }
+  }
+  if (!nextPatch) return null;
+
+  var existing = (props.cards || []).filter(function(c) {
+    return c.patch_id && c.patch_id.indexOf(nextPatch.label) !== -1;
+  }).length;
+
+  var label = nextPatchDays > 0
+    ? nextPatch.label + ' lands in ' + nextPatchDays + ' day' + (nextPatchDays === 1 ? '' : 's')
+    : nextPatchDays === 0 ? nextPatch.label + ' is live today' : nextPatch.label + ' shipped ' + Math.abs(nextPatchDays) + 'd ago - keep cooking';
+
+  function handleQuickAdd(template) {
+    if (!props.onCreate) return;
+    var resolvedTitle = template.title.replace(/X\.Y/g, nextPatch.label);
+    props.onCreate({
+      column_id: template.column,
+      content_type: template.kind,
+      platform: template.kind === 'longform' ? 'youtube' : 'both',
+      title: resolvedTitle,
+      patch_id: nextPatch.label,
+      priority: 'high',
+      brief: { hookLine: template.hook.replace(/X\.Y/g, nextPatch.label) },
+    });
+  }
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-2xl border border-[#E8A020]/30 bg-gradient-to-br from-[#1a1305] via-[#13172a] to-[#0b0e1a] p-4 mb-5"
+      style={{ boxShadow: '0 12px 36px -10px rgba(232,160,32,0.35), inset 0 1px 0 rgba(255,255,255,0.08)' }}
+    >
+      <div
+        className="pointer-events-none absolute -top-12 -right-12 w-56 h-56 rounded-full"
+        style={{ background: 'radial-gradient(circle, rgba(232,160,32,0.35), transparent 70%)', filter: 'blur(20px)' }}
+      />
+      <div className="relative flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-start gap-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-[#E8A020]/40"
+            style={{ background: 'rgba(232,160,32,0.18)' }}
+          >
+            <span className="material-symbols-outlined text-[#FFD487]">rocket_launch</span>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#E8A020] font-bold">Patch war room</p>
+            <p className="text-white text-base font-bold leading-tight mt-0.5">{label}</p>
+            <p className="text-[11px] text-white/55 mt-0.5">
+              {existing > 0 ? existing + ' patch card' + (existing === 1 ? '' : 's') + ' already on the board' : 'No patch coverage queued yet - drop a template'}
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-[11px] text-white/40 uppercase tracking-wider font-bold">Drop {nextPatch.label}</p>
+        </div>
+      </div>
+      <div className="relative mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {PATCH_TEMPLATES.map(function(t, i) {
+          var resolvedTitle = t.title.replace(/X\.Y/g, nextPatch.label);
+          return (
+            <button
+              key={'tpl-' + i}
+              type="button"
+              onClick={function() { handleQuickAdd(t); }}
+              className="text-left bg-[#0b0e1a]/60 border border-white/8 hover:border-[#E8A020]/40 rounded-xl px-3 py-2 transition-all flex items-center gap-2.5"
+            >
+              <span
+                className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-[10px] font-bold uppercase"
+                style={{ background: t.kind === 'longform' ? 'rgba(91,163,219,0.18)' : 'rgba(232,160,32,0.18)', color: t.kind === 'longform' ? '#5BA3DB' : '#E8A020' }}
+              >
+                {t.kind === 'longform' ? 'LF' : 'SH'}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-[12px] font-semibold truncate">{resolvedTitle}</p>
+                <p className="text-[10px] text-white/45 truncate">Drop into {t.column}</p>
+              </div>
+              <span className="material-symbols-outlined text-white/50 text-[18px]">add</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function IdeaCaptureFAB(props) {
+  var [open, setOpen] = React.useState(false);
+  var [text, setText] = React.useState('');
+  var [assignee, setAssignee] = React.useState('');
+  var [saving, setSaving] = React.useState(false);
+  var inputRef = React.useRef(null);
+
+  React.useEffect(function() {
+    if (open && inputRef.current) inputRef.current.focus();
+  }, [open]);
+
+  function close() {
+    setOpen(false);
+    setText('');
+    setAssignee('');
+  }
+
+  function submit() {
+    var trimmed = text.trim();
+    if (!trimmed) return;
+    setSaving(true);
+    props.onCapture({ title: trimmed, assignee: assignee }, function(ok) {
+      setSaving(false);
+      if (ok) close();
+    });
+  }
+
+  function onKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submit();
+    }
+    if (e.key === 'Escape') close();
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={function() { setOpen(true); }}
+        className="fixed z-30 right-4 sm:right-8 bottom-24 sm:bottom-8 w-14 h-14 rounded-full flex items-center justify-center text-white transition-all hover:scale-105"
+        style={{
+          background: 'linear-gradient(135deg, rgba(232,160,32,0.95), rgba(239,139,140,0.95))',
+          boxShadow: '0 16px 40px -10px rgba(232,160,32,0.6), inset 0 1px 0 rgba(255,255,255,0.45), 0 0 0 1px rgba(255,255,255,0.18)',
+        }}
+        title="Quick idea capture"
+      >
+        <span className="material-symbols-outlined text-2xl">bolt</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={close}>
+      <div
+        className="w-full sm:max-w-md mx-2 mb-2 sm:mb-0 rounded-t-3xl sm:rounded-3xl border border-white/15 backdrop-blur-2xl"
+        style={{ background: 'rgba(13,17,32,0.85)', boxShadow: '0 24px 60px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.18)' }}
+        onClick={function(e) { e.stopPropagation(); }}
+      >
+        <div className="flex items-center justify-between px-5 pt-4 pb-2">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-[#E8A020]/20 text-[#FFD487]">
+              <span className="material-symbols-outlined text-base">bolt</span>
+            </span>
+            <p className="text-white text-sm font-bold">Capture an idea</p>
+          </div>
+          <button onClick={close} className="text-white/40 hover:text-white">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div className="px-5 pb-5">
+          <textarea
+            ref={inputRef}
+            value={text}
+            onChange={function(e) { setText(e.target.value); }}
+            onKeyDown={onKey}
+            placeholder="Drop the idea, hook, or angle..."
+            rows={3}
+            className="w-full bg-[#0b0e1a]/70 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm resize-none focus:outline-none focus:border-[#E8A020]/60 transition-colors"
+          />
+          <div className="mt-3">
+            <p className="text-[10px] text-white/45 font-semibold uppercase tracking-wider mb-1.5">Assign to</p>
+            <CrewPicker value={assignee} onChange={setAssignee} />
+          </div>
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-[10px] text-white/40">Lands in <strong className="text-white/70">Ideas</strong> column. Press Enter to ship.</p>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={saving || !text.trim()}
+              className="px-4 py-2 rounded-xl font-semibold text-sm text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              style={{
+                background: 'linear-gradient(135deg, #E8A020, #EF8B8C)',
+                boxShadow: '0 8px 24px -8px rgba(232,160,32,0.5), inset 0 1px 0 rgba(255,255,255,0.4)',
+              }}
+            >
+              {saving ? 'Saving...' : 'Drop'}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -606,24 +952,18 @@ function CardFields(props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Assignee</label>
-          <Sel value={form.assignee} onChange={function(e) { set('assignee', e.target.value); }}>
-            <option value="">Unassigned</option>
-            {TEAM.map(function(m) {
-              return <option key={m} value={m}>{m}</option>;
-            })}
-          </Sel>
-        </div>
-        <div>
-          <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Due date</label>
-          <Inp
-            type="date"
-            value={form.due_date || ''}
-            onChange={function(e) { set('due_date', e.target.value); }}
-          />
-        </div>
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Due date</label>
+        <Inp
+          type="date"
+          value={form.due_date || ''}
+          onChange={function(e) { set('due_date', e.target.value); }}
+        />
+      </div>
+
+      <div>
+        <label className="text-[11px] text-white/40 mb-1.5 block font-semibold uppercase tracking-wider">Assignee</label>
+        <CrewPicker value={form.assignee} onChange={function(v) { set('assignee', v); }} />
       </div>
 
       <div>
@@ -1262,6 +1602,43 @@ function BTBoard() {
       });
   }
 
+  function handleQuickCapture(payload, done) {
+    var insertPayload = Object.assign({}, EMPTY_FORM, {
+      title: payload.title,
+      column_id: 'ideas',
+      assignee: payload.assignee || '',
+      brief: null,
+    });
+    delete insertPayload.id;
+    supabase
+      .from('bt_content_cards')
+      .insert(insertPayload)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards quick capture failed', res.error);
+          done(false);
+          return;
+        }
+        loadCards();
+        done(true);
+      });
+  }
+
+  function handlePatchTemplateCreate(template) {
+    var insertPayload = Object.assign({}, EMPTY_FORM, template);
+    delete insertPayload.id;
+    supabase
+      .from('bt_content_cards')
+      .insert(insertPayload)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards patch template failed', res.error);
+          return;
+        }
+        loadCards();
+      });
+  }
+
   var modalRef = React.useRef(modal);
   modalRef.current = modal;
 
@@ -1286,7 +1663,19 @@ function BTBoard() {
     );
   }
 
-  var visibleCards = filterAssignee ? cards.filter(function(c) { return c.assignee === filterAssignee; }) : cards;
+  var visibleCards = filterAssignee
+    ? cards.filter(function(c) { return resolveCrewName(c.assignee) === filterAssignee; })
+    : cards;
+
+  var crewCounts = {};
+  BT_CREW_NAMES.forEach(function(n) { crewCounts[n] = 0; });
+  cards.forEach(function(c) {
+    var name = resolveCrewName(c.assignee);
+    if (!name) return;
+    if (ACTIVE_COLUMN_IDS.indexOf(c.column_id) === -1) return;
+    if (crewCounts[name] == null) crewCounts[name] = 0;
+    crewCounts[name] += 1;
+  });
 
   return (
     <div>
@@ -1318,12 +1707,6 @@ function BTBoard() {
               <span className="hidden sm:inline">List</span>
             </button>
           </div>
-          <Sel value={filterAssignee} onChange={function(e) { setFilterAssignee(e.target.value); }}>
-            <option value="">All team</option>
-            {TEAM.map(function(m) {
-              return <option key={m} value={m}>{m}</option>;
-            })}
-          </Sel>
           <button
             onClick={function() { handleAddCard('ideas'); }}
             className="flex items-center gap-2 px-3 sm:px-4 h-10 rounded-xl bg-gradient-to-r from-[#5BA3DB] to-[#4a92ca] hover:from-[#6BB3EB] hover:to-[#5BA3DB] text-white text-sm font-semibold transition-all shadow-lg shadow-[#5BA3DB]/10"
@@ -1337,7 +1720,15 @@ function BTBoard() {
 
       <BTPatchBanner cards={cards} />
 
+      <PatchWarRoom cards={cards} onCreate={handlePatchTemplateCreate} />
+
       <BoardStats cards={cards} />
+
+      <CrewWorkload cards={cards} onSelect={function(name) { setFilterAssignee(name === filterAssignee ? '' : name); }} />
+
+      <div className="mb-5">
+        <CrewFilterStrip value={filterAssignee} counts={crewCounts} onChange={setFilterAssignee} />
+      </div>
 
       {cards.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-center py-16 bg-[#13172a]/40 border border-dashed border-white/10 rounded-2xl">
@@ -1386,6 +1777,8 @@ function BTBoard() {
           onDelete={modal.isEdit ? handleDelete : null}
         />
       )}
+
+      <IdeaCaptureFAB onCapture={handleQuickCapture} />
     </div>
   );
 }

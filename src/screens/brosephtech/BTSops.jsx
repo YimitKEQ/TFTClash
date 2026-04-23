@@ -1,4 +1,5 @@
 import React from 'react';
+import { BT_CREW, getCrewForStepRole } from '../../lib/btcrew';
 
 var SOPS = [
   {
@@ -7,15 +8,15 @@ var SOPS = [
     subtitle: 'TikTok / YouTube Shorts - 30 to 90 seconds',
     icon: 'bolt',
     color: '#E8A020',
-    owner: 'Levitate - Scriptwriter - Editor',
+    owner: 'Levitate + Cathy + Bacrif',
     cadenceTarget: '3-5 per week',
     steps: [
       { role: 'Levitate', action: 'Pick topic: trending TFT mechanic, patch highlight, or hot meta build. Must be explainable in under 60 seconds. Confirm there is current search interest by checking TFT Reddit hot posts and pro Twitter.' },
-      { role: 'Scriptwriter', action: 'Write 30-60 second script. Hook must land in the first 3 seconds with a pattern break (e.g. "This augment combo is broken" / "You need to stop ignoring this"). Max 120 words total.' },
+      { role: 'Cathy', action: 'Write 30-60 second script. Hook must land in the first 3 seconds with a pattern break (e.g. "This augment combo is broken" / "You need to stop ignoring this"). Max 120 words total.' },
       { role: 'Levitate', action: 'Approve script or request changes. One revision cycle max - speed matters more than perfection on shorts.' },
       { role: 'Levitate', action: 'Record gameplay showing exactly what the script describes. Capture minimum 2x the footage length you need so the editor has cut options.' },
-      { role: 'Editor', action: 'Edit: cut dead time aggressively, add captions (auto-gen then verify every word), trending audio if appropriate, 1-second BrosephTech wing flash as intro. Export 9:16 1080x1920 mp4.' },
-      { role: 'GFX', action: 'Design TikTok cover frame if needed (TikTok shows first frame as thumbnail). Bold 4-word text + clear hero subject, BT blue/gold palette.' },
+      { role: 'Bacrif', action: 'Edit: cut dead time aggressively, add captions (auto-gen then verify every word), trending audio if appropriate, 1-second BrosephTech wing flash as intro. Export 9:16 1080x1920 mp4.' },
+      { role: 'Axel', action: 'Design TikTok cover frame if needed (TikTok shows first frame as thumbnail). Bold 4-word text + clear hero subject, BT blue/gold palette.' },
       { role: 'Levitate', action: 'Upload to TikTok + YouTube Shorts. Schedule for peak time (8-9pm CET) or post immediately if the topic is time-sensitive (patch day).' },
       { role: 'Levitate', action: 'Monitor first 2 hours. Reply to all comments in first hour. Check view velocity at 30 min and 2 hrs. After 48 hrs, note avg views in the Metrics tab.' },
     ],
@@ -32,15 +33,15 @@ var SOPS = [
     subtitle: 'YouTube main channel - 10 to 20 minutes',
     icon: 'videocam',
     color: '#5BA3DB',
-    owner: 'Levitate - Scriptwriter - Editor - GFX',
+    owner: 'Levitate + Cathy + Bacrif + Axel',
     cadenceTarget: '1-2 per week',
     steps: [
       { role: 'Levitate', action: 'Topic research: what is the highest-searched TFT question right now? Check TFT Reddit, patch notes, pro player Twitter, TFTacademy trends. Confirm it has search volume before committing to 10+ hours of production.' },
-      { role: 'Scriptwriter', action: 'Write full script. Structure: Hook (30s) then Overview (1 min) then Deep-dive sections (bulk of video) then Summary + Patreon CTA. Aim for 1500-2000 words for a 10-12 min video.' },
+      { role: 'Cathy', action: 'Write full script. Structure: Hook (30s) then Overview (1 min) then Deep-dive sections (bulk of video) then Summary + Patreon CTA. Aim for 1500-2000 words for a 10-12 min video.' },
       { role: 'Levitate', action: 'Review and approve script. Annotate any gameplay cues directly in the script ("show this unit combo here", "board state at stage 4-1").' },
       { role: 'Levitate', action: 'Record gameplay clips matching script cues. Record voiceover separately with a proper mic for clean audio. Save all raw files to the shared drive in the correct project folder.' },
-      { role: 'Editor', action: 'Edit: sync voiceover with gameplay, add lower thirds for every unit/item name, BT intro card (3-5s), chapter markers matching script sections, 20s end screen with Patreon + next video CTA. Export 16:9 1080p60.' },
-      { role: 'GFX', action: 'Design YouTube thumbnail. Rules: big text (3-5 words max), contrasting colors, max 3 visual elements (character/board, expression, text). A/B test two thumbnails if the topic is competitive.' },
+      { role: 'Bacrif', action: 'Edit: sync voiceover with gameplay, add lower thirds for every unit/item name, BT intro card (3-5s), chapter markers matching script sections, 20s end screen with Patreon + next video CTA. Export 16:9 1080p60.' },
+      { role: 'Axel', action: 'Design YouTube thumbnail. Rules: big text (3-5 words max), contrasting colors, max 3 visual elements (character/board, expression, text). A/B test two thumbnails if the topic is competitive.' },
       { role: 'Levitate', action: 'SEO pass: title with primary keyword in the first 40 chars, description with keyword in the first 150 chars plus full content summary, 5-8 tags, add to the correct playlist.' },
       { role: 'Levitate', action: 'Upload, set premiere for 48 hrs out or publish immediately if patch-relevant. Post a teaser clip in Patreon the same day. Announce on TikTok and Twitter within 1 hr of publish.' },
       { role: 'Levitate', action: 'After 7 days: log avg views in the Metrics tab. Note if the thumbnail or title was changed mid-run, and record what drove the change.' },
@@ -79,14 +80,14 @@ var SOPS = [
     subtitle: 'Guest features, podcast spots, team streams',
     icon: 'group',
     color: '#A78BFA',
-    owner: 'Levitate - Co-Founder',
+    owner: 'Levitate + Maestosoya + Bacrif',
     cadenceTarget: '1-2 per month',
     steps: [
       { role: 'Levitate', action: 'Identify the guest and the hook. Why is this collab interesting right now? What does each side get out of it (reach, authority, content bank)?' },
-      { role: 'Co-Founder', action: 'Reach out to the guest with a tight pitch: format, expected length, deliverables for both sides, proposed dates. Keep the outreach message under 120 words.' },
+      { role: 'Maestosoya', action: 'Reach out to the guest with a tight pitch: format, expected length, deliverables for both sides, proposed dates. Keep the outreach message under 120 words.' },
       { role: 'Levitate', action: 'Once confirmed, prep a shared doc with: topic list, board state screenshots to react to, 3 guaranteed talking points the guest can carry the conversation on. Send it 48 hrs before recording.' },
       { role: 'Levitate', action: 'Record session. Use OBS with the guest on a separate audio track for clean editing. Record at least 1.5x the target runtime.' },
-      { role: 'Editor', action: 'Cut down to target runtime, prioritize the guest\'s best insights, add BT-branded lower thirds whenever the guest speaks.' },
+      { role: 'Bacrif', action: 'Cut down to target runtime, prioritize the guest\'s best insights, add BT-branded lower thirds whenever the guest speaks.' },
       { role: 'Levitate', action: 'Both channels post on the same day. Tag the guest in every caption, thumbnail, and pinned comment. Cross-promote to their community.' },
     ],
     tips: [
@@ -102,6 +103,56 @@ function Icon(props) {
     <span className={'material-symbols-outlined ' + (props.className || '')} style={props.style}>
       {props.name}
     </span>
+  );
+}
+
+function CrewAvatar(props) {
+  var member = props.member;
+  if (!member) return null;
+  var size = props.size || 24;
+  return (
+    <div
+      className="shrink-0 rounded-full flex items-center justify-center font-bold text-white"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: member.color,
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18), 0 4px 12px -4px ' + member.halo,
+        fontSize: size >= 36 ? 14 : 11,
+      }}
+      title={member.name + ' - ' + member.title}
+    >
+      {member.initial}
+    </div>
+  );
+}
+
+function CrewMap() {
+  return (
+    <div className="bg-gradient-to-br from-[#13172a] to-[#0f1320] border border-white/10 rounded-2xl p-4 mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Icon name="groups" className="text-[#E8A020] text-base" />
+        <h3 className="text-white text-sm font-bold">The crew</h3>
+        <p className="text-[11px] text-white/40">Who owns what across every workflow.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+        {BT_CREW.map(function(m) {
+          return (
+            <div
+              key={m.id}
+              className="bg-[#0b0e1a]/60 border border-white/5 rounded-xl px-3 py-2.5 flex items-center gap-3"
+            >
+              <CrewAvatar member={m} size={36} />
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-sm font-bold truncate">{m.name}</p>
+                <p className="text-[11px] truncate" style={{ color: m.color }}>{m.title}</p>
+                <p className="text-[10px] text-white/45 truncate">{m.blurb}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -141,9 +192,21 @@ function SopCard(props) {
       {open && (
         <div className="border-t border-white/5 px-5 pb-5 pt-4">
           <div className="mb-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
-            <div>
-              <span className="text-white/30 uppercase tracking-wider font-semibold">Owner flow: </span>
-              <span className="text-white/70">{sop.owner}</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-white/30 uppercase tracking-wider font-semibold">Owner flow:</span>
+              <div className="flex items-center gap-1.5">
+                {sop.owner.split('+').map(function(part) {
+                  var name = part.trim();
+                  var member = getCrewForStepRole(name);
+                  if (!member) return <span key={name} className="text-white/70">{name}</span>;
+                  return (
+                    <span key={member.id} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full" style={{ background: member.accent, color: member.color }}>
+                      <CrewAvatar member={member} size={16} />
+                      <span className="font-semibold">{member.name}</span>
+                    </span>
+                  );
+                })}
+              </div>
             </div>
             <div className="sm:hidden">
               <span className="text-white/30 uppercase tracking-wider font-semibold">Target: </span>
@@ -153,8 +216,11 @@ function SopCard(props) {
 
           <ol className="flex flex-col gap-3 mb-5">
             {sop.steps.map(function(step, i) {
+              var member = getCrewForStepRole(step.role);
+              var roleColor = member ? member.color : sop.color;
+              var roleAccent = member ? member.accent : (sop.color + '15');
               return (
-                <li key={i} className="flex gap-4">
+                <li key={i} className="flex gap-3">
                   <span
                     className="shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold mt-0.5"
                     style={{
@@ -167,9 +233,10 @@ function SopCard(props) {
                   </span>
                   <div className="flex-1">
                     <span
-                      className="inline-block text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded mr-2 mb-0.5"
-                      style={{ backgroundColor: sop.color + '15', color: sop.color }}
+                      className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-1.5 py-1 rounded mr-2 mb-0.5"
+                      style={{ backgroundColor: roleAccent, color: roleColor }}
                     >
+                      {member ? <CrewAvatar member={member} size={16} /> : null}
                       {step.role}
                     </span>
                     <span className="text-white/80 text-sm leading-relaxed">{step.action}</span>
@@ -234,6 +301,8 @@ function BTSops() {
           />
         </div>
       </div>
+
+      <CrewMap />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-gradient-to-br from-[#5BA3DB]/10 to-transparent border border-[#5BA3DB]/15 rounded-xl p-4">

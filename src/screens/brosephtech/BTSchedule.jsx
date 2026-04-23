@@ -1,7 +1,29 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { PATCHES } from '../../lib/btset17';
+import { getCrewMember, resolveCrewName } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
+
+function ScheduleCrewAvatar(props) {
+  var member = getCrewMember(props.name);
+  if (!member) return null;
+  var size = props.size || 18;
+  return (
+    <span
+      className="inline-flex items-center justify-center rounded-full font-bold text-white shrink-0"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: member.color,
+        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18), 0 3px 8px -3px ' + member.halo,
+        fontSize: size >= 28 ? 12 : 10,
+      }}
+      title={member.name + ' - ' + member.title}
+    >
+      {member.initial}
+    </span>
+  );
+}
 
 var SCHEDULE_TABLES = ['bt_content_cards'];
 
@@ -167,9 +189,14 @@ function FocusPanel(props) {
                 <span className="w-1 h-10 rounded-full shrink-0" style={{ backgroundColor: bg }} />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-white truncate">{c.title}</p>
-                  <p className="text-[11px] text-white/40 mt-0.5">
-                    {COLUMN_LABELS[c.column_id]}
-                    {c.assignee && ' - ' + c.assignee}
+                  <p className="text-[11px] text-white/40 mt-0.5 flex items-center gap-1.5">
+                    <span>{COLUMN_LABELS[c.column_id]}</span>
+                    {c.assignee ? (
+                      <span className="inline-flex items-center gap-1 text-white/60">
+                        <ScheduleCrewAvatar name={c.assignee} />
+                        {resolveCrewName(c.assignee) || c.assignee}
+                      </span>
+                    ) : null}
                   </p>
                 </div>
                 <Icon name="arrow_forward" className="text-white/30 text-base shrink-0" />
@@ -368,7 +395,14 @@ function CardDetailDrawer(props) {
             </div>
             <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
               <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Owner</p>
-              <p className="text-white mt-0.5">{c.assignee || 'Unassigned'}</p>
+              {c.assignee ? (
+                <p className="text-white mt-0.5 flex items-center gap-1.5">
+                  <ScheduleCrewAvatar name={c.assignee} size={20} />
+                  <span className="truncate">{resolveCrewName(c.assignee) || c.assignee}</span>
+                </p>
+              ) : (
+                <p className="text-white/50 mt-0.5">Unassigned</p>
+              )}
             </div>
             <div className="bg-[#0b0e1a] rounded-lg px-3 py-2">
               <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">Type</p>
