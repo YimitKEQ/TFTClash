@@ -1,5 +1,8 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
+import useBTSync from './useBTSync';
+
+var METRICS_TABLES = ['bt_metrics_snapshots'];
 
 var METRICS = [
   { key: 'yt_subs',          label: 'YouTube Subs',     icon: 'play_circle',         color: '#FF0000' },
@@ -121,8 +124,9 @@ function BTMetrics() {
     loadSnapshots();
   }, []);
 
+  useBTSync(METRICS_TABLES, function() { loadSnapshots(); });
+
   function loadSnapshots() {
-    setLoading(true);
     supabase
       .from('bt_metrics_snapshots')
       .select('*')

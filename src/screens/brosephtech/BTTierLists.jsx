@@ -1,6 +1,9 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { BT_CHAMPIONS, BT_ITEM_GROUPS, BT_ITEMS_ALL, getChamp, getItem } from '../../lib/btassets';
+import useBTSync from './useBTSync';
+
+var TIERLIST_TABLES = ['bt_tier_lists'];
 
 var COST_COLORS = {
   1: '#9CA3AF',
@@ -749,8 +752,9 @@ function BTTierLists() {
 
   React.useEffect(function() { loadLists(); }, []);
 
+  useBTSync(TIERLIST_TABLES, function() { loadLists(); });
+
   function loadLists() {
-    setLoading(true);
     supabase
       .from('bt_tier_lists')
       .select('*')

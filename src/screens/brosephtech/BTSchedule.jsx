@@ -1,6 +1,9 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { PATCHES } from '../../lib/btset17';
+import useBTSync from './useBTSync';
+
+var SCHEDULE_TABLES = ['bt_content_cards'];
 
 var COLUMN_COLORS = {
   ideas: '#A78BFA',
@@ -554,8 +557,9 @@ function BTSchedule() {
 
   React.useEffect(function() { loadCards(); }, []);
 
+  useBTSync(SCHEDULE_TABLES, function() { loadCards(); });
+
   function loadCards() {
-    setLoading(true);
     supabase
       .from('bt_content_cards')
       .select('*')

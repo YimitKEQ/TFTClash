@@ -2,6 +2,9 @@ import React from 'react';
 import { supabase } from '../../lib/supabase';
 import BTPatchBanner from './BTPatchBanner';
 import { MECHANIC_TERMS } from '../../lib/btset17';
+import useBTSync from './useBTSync';
+
+var BOARD_TABLES = ['bt_content_cards'];
 
 var COLUMNS = [
   { id: 'ideas',      label: 'Ideas',      icon: 'lightbulb',    color: '#A78BFA', accent: 'rgba(167,139,250,0.15)' },
@@ -1161,8 +1164,9 @@ function BTBoard() {
     loadCards();
   }, []);
 
+  useBTSync(BOARD_TABLES, function() { loadCards(); });
+
   function loadCards() {
-    setLoading(true);
     supabase
       .from('bt_content_cards')
       .select('*')

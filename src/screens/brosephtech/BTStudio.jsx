@@ -1,5 +1,8 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
+import useBTSync from './useBTSync';
+
+var STUDIO_TABLES = ['bt_hooks', 'bt_ideas', 'bt_content_cards'];
 
 var CATEGORIES = [
   { id: 'all',         label: 'All hooks',     color: '#5BA3DB' },
@@ -148,13 +151,14 @@ function BTStudio() {
     return function() { window.removeEventListener('keydown', onKey); };
   }, []);
 
+  useBTSync(STUDIO_TABLES, function() { loadAll(); });
+
   function flashToast(msg) {
     setToast(msg);
     setTimeout(function() { setToast(''); }, 1800);
   }
 
   function loadAll() {
-    setLoading(true);
     Promise.all([
       supabase.from('bt_hooks').select('*').order('use_count', { ascending: false }),
       supabase.from('bt_ideas').select('*').eq('status', 'inbox').order('created_at', { ascending: false }),

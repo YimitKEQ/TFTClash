@@ -1,6 +1,9 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { CURRENT_SET, MECHANIC_TERMS, findChampInText, nextPatch } from '../../lib/btset17';
+import useBTSync from './useBTSync';
+
+var MARKETING_TABLES = ['bt_content_cards'];
 
 var TOOLS = [
   { id: 'repurpose', label: 'Repurposer', icon: 'all_inclusive', desc: 'One brief becomes 5 platform-native posts' },
@@ -586,15 +589,15 @@ function BTMarketing() {
   var [cards, setCards] = React.useState([]);
   var [loading, setLoading] = React.useState(true);
 
-  React.useEffect(function() {
-    var cancelled = false;
-    setLoading(true);
+  var cancelRef = React.useRef(false);
+  function loadCards() {
+    cancelRef.current = false;
     supabase
       .from('bt_content_cards')
       .select('*')
       .order('updated_at', { ascending: false })
       .then(function(res) {
-        if (cancelled) return;
+        if (cancelRef.current) return;
         if (res.error) {
           console.warn('bt_content_cards load failed', res.error);
           setCards([]);
@@ -603,8 +606,14 @@ function BTMarketing() {
         }
         setLoading(false);
       });
-    return function() { cancelled = true; };
+  }
+
+  React.useEffect(function() {
+    loadCards();
+    return function() { cancelRef.current = true; };
   }, []);
+
+  useBTSync(MARKETING_TABLES, loadCards);
 
   var np = nextPatch();
 
