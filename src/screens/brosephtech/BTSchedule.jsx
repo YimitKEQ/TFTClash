@@ -1,7 +1,7 @@
 import React from 'react';
 import { supabase } from '../../lib/supabase';
 import { PATCHES } from '../../lib/btset17';
-import { getCrewMember, resolveCrewName, cardAssignees } from '../../lib/btcrew';
+import { BT_CREW, getCrewMember, resolveCrewName, cardAssignees } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
 function ScheduleCrewAvatar(props) {
@@ -586,6 +586,199 @@ function AgendaView(props) {
   );
 }
 
+function StandupView(props) {
+  var cards = props.cards || [];
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  var todayIso = isoDay(today);
+  var tomorrowIso = isoDay(tomorrow);
+  var overdueCutoff = todayIso;
+
+  function isActive(c) {
+    return c.column_id !== 'published' && c.column_id !== 'archive';
+  }
+
+  var overdue = cards.filter(function(c) { return isActive(c) && c.due_date && c.due_date < overdueCutoff; });
+  var dueToday = cards.filter(function(c) { return isActive(c) && c.due_date === todayIso; });
+  var dueTomorrow = cards.filter(function(c) { return isActive(c) && c.due_date === tomorrowIso; });
+  var inReview = cards.filter(function(c) { return c.column_id === 'review'; });
+  var unscheduled = cards.filter(function(c) { return isActive(c) && !c.due_date && c.column_id !== 'ideas'; });
+
+  var rows = BT_CREW.map(function(member) {
+    function mine(list) {
+      return list.filter(function(c) { return cardAssignees(c).indexOf(member.name) !== -1; });
+    }
+    var mineOverdue = mine(overdue);
+    var mineToday = mine(dueToday);
+    var mineTomorrow = mine(dueTomorrow);
+    var mineReview = mine(inReview);
+    var mineActive = cards.filter(function(c) {
+      return isActive(c) && cardAssignees(c).indexOf(member.name) !== -1;
+    });
+    return {
+      member: member,
+      overdue: mineOverdue,
+      today: mineToday,
+      tomorrow: mineTomorrow,
+      review: mineReview,
+      activeCount: mineActive.length,
+    };
+  });
+
+  function Bucket(bucketProps) {
+    if (!bucketProps.cards || bucketProps.cards.length === 0) return null;
+    return (
+      <div className="mt-1.5">
+        <p
+          className="text-[10px] uppercase tracking-wider font-bold mb-1 flex items-center gap-1"
+          style={{ color: bucketProps.color }}
+        >
+          <Icon name={bucketProps.icon} className="text-[12px]" />
+          {bucketProps.label}
+          <span className="text-white/35 font-semibold tabular-nums">{bucketProps.cards.length}</span>
+        </p>
+        <div className="flex flex-col gap-1">
+          {bucketProps.cards.map(function(c) {
+            var colColor = COLUMN_COLORS[c.column_id] || '#6B7280';
+            return (
+              <button
+                type="button"
+                key={c.id}
+                onClick={function() { props.onCardClick(c); }}
+                className="w-full text-left bg-[#0b0e1a] hover:bg-[#13172a] border border-white/5 rounded-lg px-2.5 py-1.5 flex items-center gap-2 transition-colors"
+              >
+                <span className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: colColor }} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-[12px] font-semibold truncate leading-tight">{c.title || 'Untitled'}</p>
+                  <p className="text-[10px] text-white/40 truncate">
+                    {COLUMN_LABELS[c.column_id]}
+                    {c.due_date && ' - ' + new Date(c.due_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  var unassignedOverdue = overdue.filter(function(c) { return cardAssignees(c).length === 0; });
+  var unassignedToday = dueToday.filter(function(c) { return cardAssignees(c).length === 0; });
+  var unassignedTomorrow = dueTomorrow.filter(function(c) { return cardAssignees(c).length === 0; });
+  var unassignedReview = inReview.filter(function(c) { return cardAssignees(c).length === 0; });
+  var hasUnassigned = unassignedOverdue.length + unassignedToday.length + unassignedTomorrow.length + unassignedReview.length > 0;
+
+  var dateHeader = today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  return (
+    <div className="space-y-4">
+      <div className="bg-gradient-to-br from-[#5BA3DB]/10 via-[#13172a] to-[#13172a] border border-[#5BA3DB]/25 rounded-2xl p-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-[#5BA3DB] font-bold">Daily standup</p>
+            <p className="text-white text-base font-bold leading-tight mt-0.5">{dateHeader}</p>
+            <p className="text-[11px] text-white/55 mt-0.5">What's due, what's overdue, and what's with whom. Click any card to open it.</p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] px-2 py-1 rounded-lg font-semibold uppercase tracking-wide bg-red-500/15 text-red-300" title="Overdue across crew">
+              <span className="tabular-nums">{overdue.length}</span> overdue
+            </span>
+            <span className="text-[10px] px-2 py-1 rounded-lg font-semibold uppercase tracking-wide bg-[#E8A020]/15 text-[#FFD487]">
+              <span className="tabular-nums">{dueToday.length}</span> due today
+            </span>
+            <span className="text-[10px] px-2 py-1 rounded-lg font-semibold uppercase tracking-wide bg-[#5BA3DB]/15 text-[#7CC0EE]">
+              <span className="tabular-nums">{dueTomorrow.length}</span> tomorrow
+            </span>
+            <span className="text-[10px] px-2 py-1 rounded-lg font-semibold uppercase tracking-wide bg-[#EC4899]/15 text-[#F472B6]">
+              <span className="tabular-nums">{inReview.length}</span> in review
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {rows.map(function(row) {
+          var empty = row.overdue.length + row.today.length + row.tomorrow.length + row.review.length === 0;
+          return (
+            <div
+              key={row.member.id}
+              className="bg-[#13172a] border border-white/5 rounded-2xl p-3.5"
+              style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 12px -6px ' + row.member.halo }}
+            >
+              <div className="flex items-center gap-2.5 pb-2 border-b border-white/5">
+                <ScheduleCrewAvatar name={row.member.name} size={32} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-bold leading-tight">{row.member.name}</p>
+                  <p className="text-[10px] text-white/40">{row.activeCount} active card{row.activeCount === 1 ? '' : 's'}</p>
+                </div>
+                {empty && (
+                  <span className="text-[10px] text-white/30 italic">Clear today</span>
+                )}
+              </div>
+              <Bucket label="Overdue" icon="warning" color="#FCA5A5" cards={row.overdue} />
+              <Bucket label="Due today" icon="today" color="#FFD487" cards={row.today} />
+              <Bucket label="Due tomorrow" icon="schedule" color="#7CC0EE" cards={row.tomorrow} />
+              <Bucket label="In review" icon="visibility" color="#F472B6" cards={row.review} />
+              {empty && (
+                <p className="text-[11px] text-white/30 mt-2">No overdue, due, or review items - good runway.</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {hasUnassigned && (
+        <div className="bg-[#13172a] border border-white/8 rounded-2xl p-3.5">
+          <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+            <span className="material-symbols-outlined text-white/40 text-base">person_off</span>
+            <p className="text-white text-sm font-bold">Unassigned</p>
+            <p className="text-[10px] text-white/30 ml-auto">Needs an owner</p>
+          </div>
+          <Bucket label="Overdue" icon="warning" color="#FCA5A5" cards={unassignedOverdue} />
+          <Bucket label="Due today" icon="today" color="#FFD487" cards={unassignedToday} />
+          <Bucket label="Due tomorrow" icon="schedule" color="#7CC0EE" cards={unassignedTomorrow} />
+          <Bucket label="In review" icon="visibility" color="#F472B6" cards={unassignedReview} />
+        </div>
+      )}
+
+      {unscheduled.length > 0 && (
+        <div className="bg-[#0b0e1a]/70 border border-dashed border-white/10 rounded-2xl p-3.5">
+          <div className="flex items-center gap-2 pb-1.5">
+            <span className="material-symbols-outlined text-white/40 text-base">event_busy</span>
+            <p className="text-white text-sm font-semibold">Active but no due date</p>
+            <p className="text-[10px] text-white/30 ml-auto tabular-nums">{unscheduled.length}</p>
+          </div>
+          <p className="text-[11px] text-white/40 mb-2">These are in flight but not scheduled - pick a date before they slip.</p>
+          <div className="flex flex-wrap gap-1.5">
+            {unscheduled.slice(0, 12).map(function(c) {
+              var names = cardAssignees(c);
+              return (
+                <button
+                  type="button"
+                  key={c.id}
+                  onClick={function() { props.onCardClick(c); }}
+                  className="flex items-center gap-1.5 bg-[#13172a] hover:bg-[#1a1f36] border border-white/8 rounded-full pl-1 pr-2.5 py-0.5 text-[11px] text-white/80 transition-colors"
+                  title={c.title}
+                >
+                  {names.length > 0 ? <ScheduleCrewAvatar name={names[0]} size={18} /> : <span className="w-4 h-4 rounded-full bg-white/5" />}
+                  <span className="truncate max-w-[160px]">{c.title}</span>
+                </button>
+              );
+            })}
+            {unscheduled.length > 12 && (
+              <span className="text-[10px] text-white/30 self-center pl-1">+{unscheduled.length - 12} more</span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BTSchedule() {
   var [cards, setCards] = React.useState([]);
   var [loading, setLoading] = React.useState(true);
@@ -722,6 +915,14 @@ function BTSchedule() {
         <div className="flex items-center gap-1.5 flex-wrap">
           <div className="inline-flex bg-[#13172a] border border-white/5 rounded-xl p-0.5">
             <button
+              onClick={function() { setView('standup'); }}
+              className={'flex items-center gap-1 px-2.5 h-9 text-xs font-semibold rounded-lg transition-all ' + (view === 'standup' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80')}
+              title="Daily standup grouped by crew"
+            >
+              <Icon name="groups" className="text-base" />
+              <span className="hidden sm:inline">Standup</span>
+            </button>
+            <button
               onClick={function() { setView('agenda'); }}
               className={'flex items-center gap-1 px-2.5 h-9 text-xs font-semibold rounded-lg transition-all ' + (view === 'agenda' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white/80')}
             >
@@ -764,9 +965,11 @@ function BTSchedule() {
         </div>
       </div>
 
-      <FocusPanel cards={cards} onCardClick={setSelectedCard} />
+      {view !== 'standup' && (
+        <FocusPanel cards={cards} onCardClick={setSelectedCard} />
+      )}
 
-      {view === 'calendar' ? (
+      {view === 'calendar' && (
         <MonthCalendar
           monthAnchor={monthAnchor}
           cards={cards}
@@ -774,11 +977,18 @@ function BTSchedule() {
           onMoveCard={moveCardToDate}
           onDayClick={createOnDate}
         />
-      ) : (
+      )}
+      {view === 'agenda' && (
         <AgendaView
           cards={cards}
           onCardClick={setSelectedCard}
           onDayClick={createOnDate}
+        />
+      )}
+      {view === 'standup' && (
+        <StandupView
+          cards={cards}
+          onCardClick={setSelectedCard}
         />
       )}
 

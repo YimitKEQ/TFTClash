@@ -5,7 +5,9 @@ import { MECHANIC_TERMS, PATCHES } from '../../lib/btset17';
 import { BT_CREW, BT_CREW_NAMES, getCrewMember, resolveCrewName, cardAssignees, workloadStatus } from '../../lib/btcrew';
 import useBTSync from './useBTSync';
 
-var BOARD_TABLES = ['bt_content_cards'];
+var BOARD_TABLES = ['bt_content_cards', 'bt_card_templates'];
+
+var TEMPLATE_FIELDS = ['title', 'description', 'column_id', 'content_type', 'platform', 'assignees', 'subtasks', 'priority', 'patch_id', 'brief'];
 
 var COLUMNS = [
   { id: 'ideas',      label: 'Ideas',      icon: 'lightbulb',    color: '#A78BFA', accent: 'rgba(167,139,250,0.15)' },
@@ -362,6 +364,9 @@ function AvatarStack(props) {
 
 function CrewFilterStrip(props) {
   var current = props.value || '';
+  var meName = 'Levitate';
+  var meActive = current === meName;
+  var meCount = props.counts ? (props.counts[meName] || 0) : 0;
   return (
     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
       <button
@@ -371,6 +376,22 @@ function CrewFilterStrip(props) {
       >
         <span className="material-symbols-outlined text-[15px]">groups</span>
         All
+      </button>
+      <button
+        type="button"
+        onClick={function() { props.onChange(meActive ? '' : meName); }}
+        className={'shrink-0 inline-flex items-center gap-1.5 px-3 h-9 rounded-full border text-[11px] font-semibold transition-all ' + (meActive ? '' : 'border-white/10 text-white/65 hover:text-white hover:border-white/25')}
+        style={meActive ? {
+          borderColor: 'rgba(91,163,219,0.75)',
+          background: 'linear-gradient(135deg, rgba(91,163,219,0.25), rgba(167,139,250,0.2))',
+          color: '#fff',
+          boxShadow: '0 4px 16px -6px rgba(91,163,219,0.6)',
+        } : {}}
+        title="Only cards assigned to me"
+      >
+        <span className="material-symbols-outlined text-[15px]">person</span>
+        My cards
+        <span className="px-1.5 rounded-full bg-white/10 text-[10px] tabular-nums">{meCount}</span>
       </button>
       {BT_CREW.map(function(m) {
         var count = props.counts ? (props.counts[m.name] || 0) : 0;
@@ -1287,11 +1308,11 @@ function CardModal(props) {
           </button>
         </div>
 
-        <div className="px-6 flex gap-1 border-b border-white/5">
+        <div className="px-6 flex gap-1 border-b border-white/5 overflow-x-auto">
           <button
             type="button"
             onClick={function() { setTab('card'); }}
-            className={'flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'card' ? 'border-[#5BA3DB] text-[#5BA3DB]' : 'border-transparent text-white/40 hover:text-white/80')}
+            className={'shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'card' ? 'border-[#5BA3DB] text-[#5BA3DB]' : 'border-transparent text-white/40 hover:text-white/80')}
           >
             <Icon name="dashboard_customize" className="text-base" />
             Card
@@ -1299,7 +1320,7 @@ function CardModal(props) {
           <button
             type="button"
             onClick={function() { setTab('brief'); ensureBrief(); }}
-            className={'flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'brief' ? 'border-[#E8A020] text-[#E8A020]' : 'border-transparent text-white/40 hover:text-white/80')}
+            className={'shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'brief' ? 'border-[#E8A020] text-[#E8A020]' : 'border-transparent text-white/40 hover:text-white/80')}
           >
             <Icon name="auto_stories" className="text-base" />
             Brief & Title
@@ -1307,13 +1328,22 @@ function CardModal(props) {
               <span className="w-1.5 h-1.5 rounded-full bg-[#E8A020]" title="Brief has content" />
             )}
           </button>
+          {props.isEdit && (
+            <button
+              type="button"
+              onClick={function() { setTab('comments'); }}
+              className={'shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-all ' + (tab === 'comments' ? 'border-[#A78BFA] text-[#A78BFA]' : 'border-transparent text-white/40 hover:text-white/80')}
+            >
+              <Icon name="forum" className="text-base" />
+              Comments
+            </button>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           <div className="flex-1 overflow-y-auto px-6 py-5">
-            {tab === 'card' ? (
-              <CardFields form={form} set={set} isEdit={props.isEdit} />
-            ) : (
+            {tab === 'card' && <CardFields form={form} set={set} isEdit={props.isEdit} />}
+            {tab === 'brief' && (
               <BriefForm
                 brief={form.brief || EMPTY_BRIEF}
                 cardTitle={form.title}
@@ -1321,13 +1351,16 @@ function CardModal(props) {
                 onPickTitle={handlePickTitle}
               />
             )}
+            {tab === 'comments' && (
+              <CommentsThread cardId={props.cardId} />
+            )}
           </div>
 
-          <div className="flex gap-3 px-6 py-4 border-t border-white/5 bg-[#0f1320]/40 rounded-b-2xl">
+          <div className="flex gap-2 px-6 py-4 border-t border-white/5 bg-[#0f1320]/40 rounded-b-2xl flex-wrap">
             <button
               type="submit"
               disabled={saving || !form.title.trim()}
-              className="flex-1 py-2.5 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+              className="flex-1 min-w-[140px] py-2.5 rounded-xl bg-[#5BA3DB] hover:bg-[#4a92ca] disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
             >
               {saving ? (
                 <React.Fragment>
@@ -1341,6 +1374,12 @@ function CardModal(props) {
                 </React.Fragment>
               )}
             </button>
+            {props.onSaveAsTemplate && (
+              <SaveTemplatePopover
+                canSave={!!form.title.trim()}
+                onSave={function(name, done) { props.onSaveAsTemplate(form, name, done); }}
+              />
+            )}
             {props.onDelete && (
               <button
                 type="button"
@@ -1348,7 +1387,7 @@ function CardModal(props) {
                 className="px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-semibold transition-colors flex items-center gap-1.5"
               >
                 <Icon name="delete" className="text-base" />
-                Delete
+                <span className="hidden sm:inline">Delete</span>
               </button>
             )}
           </div>
@@ -1760,8 +1799,448 @@ function BoardListView(props) {
   );
 }
 
+function TemplatesMenu(props) {
+  var [open, setOpen] = React.useState(false);
+  var ref = React.useRef(null);
+  var templates = props.templates || [];
+
+  React.useEffect(function() {
+    if (!open) return undefined;
+    function onDocClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDocClick);
+    return function() { document.removeEventListener('mousedown', onDocClick); };
+  }, [open]);
+
+  function handleDelete(e, id) {
+    e.stopPropagation();
+    if (!window.confirm('Delete this template?')) return;
+    props.onDelete(id);
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={function() { setOpen(!open); }}
+        className="flex items-center gap-1.5 px-3 h-10 rounded-xl bg-[#13172a] hover:bg-[#1a1f36] border border-white/10 text-white/85 text-sm font-semibold transition-all"
+        title="Saved templates"
+      >
+        <Icon name="bookmark" className="text-base" />
+        <span className="hidden sm:inline">Templates</span>
+        {templates.length > 0 && (
+          <span className="px-1.5 py-0.5 rounded-full bg-white/10 text-[10px] tabular-nums">{templates.length}</span>
+        )}
+        <Icon name={open ? 'expand_less' : 'expand_more'} className="text-base text-white/40" />
+      </button>
+      {open && (
+        <div
+          className="absolute right-0 mt-2 w-72 sm:w-80 max-h-[60vh] overflow-y-auto bg-[#13172a] border border-white/10 rounded-2xl z-30"
+          style={{ boxShadow: '0 20px 50px -10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)' }}
+        >
+          <div className="px-4 pt-3 pb-2 border-b border-white/5 flex items-center justify-between">
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-white/50">Saved templates</p>
+            <span className="text-[10px] text-white/30">Click to drop a card</span>
+          </div>
+          {templates.length === 0 ? (
+            <div className="px-4 py-6 text-center">
+              <Icon name="bookmark_add" className="text-3xl text-white/20" />
+              <p className="text-white/50 text-xs mt-2 font-semibold">No templates yet</p>
+              <p className="text-white/30 text-[11px] mt-1">Save any card as a template from the editor footer.</p>
+            </div>
+          ) : (
+            <ul className="py-1">
+              {templates.map(function(t) {
+                var payload = t.payload || {};
+                var assignees = cardAssignees(payload);
+                var typeMeta = CONTENT_TYPES.find(function(c) { return c.id === payload.content_type; }) || CONTENT_TYPES[0];
+                var colId = payload.column_id || 'ideas';
+                return (
+                  <li key={t.id} className="px-1">
+                    <div className="group flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/[0.04] transition-colors">
+                      <button
+                        type="button"
+                        onClick={function() { setOpen(false); props.onCreate(t); }}
+                        className="flex-1 min-w-0 text-left"
+                      >
+                        <p className="text-white text-sm font-semibold truncate">{t.name}</p>
+                        <p className="text-[11px] text-white/40 truncate">
+                          {typeMeta.label} - {colId}
+                          {assignees.length > 0 && ' - ' + assignees.join(', ')}
+                        </p>
+                      </button>
+                      {assignees.length > 0 && (
+                        <AvatarStack names={assignees} size={18} max={3} />
+                      )}
+                      <button
+                        type="button"
+                        onClick={function(e) { handleDelete(e, t.id); }}
+                        className="opacity-0 group-hover:opacity-100 text-white/30 hover:text-red-400 transition-all p-1"
+                        title="Delete template"
+                      >
+                        <Icon name="delete" className="text-base" />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SaveTemplatePopover(props) {
+  var [open, setOpen] = React.useState(false);
+  var [name, setName] = React.useState('');
+  var [busy, setBusy] = React.useState(false);
+  var inputRef = React.useRef(null);
+
+  React.useEffect(function() {
+    if (open && inputRef.current) inputRef.current.focus();
+  }, [open]);
+
+  React.useEffect(function() {
+    if (!open) return undefined;
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return function() { window.removeEventListener('keydown', onKey); };
+  }, [open]);
+
+  function submit() {
+    var trimmed = name.trim();
+    if (!trimmed || busy) return;
+    setBusy(true);
+    props.onSave(trimmed, function(ok) {
+      setBusy(false);
+      if (ok) {
+        setName('');
+        setOpen(false);
+      }
+    });
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={function() { setOpen(true); }}
+        disabled={!props.canSave}
+        className="px-3 py-2.5 rounded-xl bg-[#E8A020]/10 hover:bg-[#E8A020]/20 disabled:opacity-30 disabled:cursor-not-allowed text-[#FFD487] text-sm font-semibold transition-colors flex items-center gap-1.5"
+        title={props.canSave ? 'Save this card as a reusable template' : 'Add a title before saving as template'}
+      >
+        <Icon name="bookmark_add" className="text-base" />
+        <span className="hidden sm:inline">Template</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 bg-[#0b0e1a] border border-[#E8A020]/40 rounded-xl px-2 py-1.5 max-w-full">
+      <Icon name="bookmark" className="text-base text-[#FFD487] shrink-0" />
+      <input
+        ref={inputRef}
+        type="text"
+        value={name}
+        onChange={function(e) { setName(e.target.value); }}
+        onKeyDown={function(e) {
+          if (e.key === 'Enter') { e.preventDefault(); submit(); }
+        }}
+        placeholder="Template name..."
+        className="min-w-0 flex-1 bg-transparent border-0 text-white text-sm focus:outline-none"
+        maxLength={60}
+      />
+      <button
+        type="button"
+        onClick={submit}
+        disabled={!name.trim() || busy}
+        className="px-2.5 py-1 rounded-lg bg-[#E8A020] hover:bg-[#FFB840] disabled:opacity-30 text-[#0b0e1a] text-xs font-bold shrink-0"
+      >
+        {busy ? '...' : 'Save'}
+      </button>
+      <button
+        type="button"
+        onClick={function() { setOpen(false); }}
+        className="text-white/40 hover:text-white/80 px-1 shrink-0"
+      >
+        <Icon name="close" className="text-base" />
+      </button>
+    </div>
+  );
+}
+
+function relativeTimeShort(iso) {
+  if (!iso) return '';
+  var when = new Date(iso);
+  if (isNaN(when.getTime())) return '';
+  var diff = (Date.now() - when.getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+  return when.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
+
+function CommentsThread(props) {
+  var cardId = props.cardId;
+  var [comments, setComments] = React.useState([]);
+  var [loading, setLoading] = React.useState(true);
+  var [draft, setDraft] = React.useState('');
+  var [busy, setBusy] = React.useState(false);
+  var meName = 'Levitate';
+  var endRef = React.useRef(null);
+
+  function load() {
+    if (!cardId) {
+      setComments([]);
+      setLoading(false);
+      return;
+    }
+    supabase
+      .from('bt_card_comments')
+      .select('*')
+      .eq('card_id', cardId)
+      .order('created_at', { ascending: true })
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_card_comments load failed', res.error);
+          setLoading(false);
+          return;
+        }
+        setComments(res.data || []);
+        setLoading(false);
+      });
+  }
+
+  React.useEffect(load, [cardId]);
+  useBTSync(['bt_card_comments'], load);
+
+  React.useEffect(function() {
+    if (endRef.current && comments.length > 0) {
+      endRef.current.scrollIntoView({ block: 'end' });
+    }
+  }, [comments.length]);
+
+  function submit() {
+    var body = draft.trim();
+    if (!body || busy || !cardId) return;
+    setBusy(true);
+    supabase
+      .from('bt_card_comments')
+      .insert({ card_id: cardId, author: meName, body: body })
+      .then(function(res) {
+        setBusy(false);
+        if (res.error) {
+          console.error('bt_card_comments post failed', res.error);
+          return;
+        }
+        setDraft('');
+        load();
+        if (props.onPosted) props.onPosted();
+      });
+  }
+
+  function remove(id) {
+    if (!window.confirm('Delete this comment?')) return;
+    supabase
+      .from('bt_card_comments')
+      .delete()
+      .eq('id', id)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_card_comments delete failed', res.error);
+          return;
+        }
+        load();
+      });
+  }
+
+  if (!cardId) {
+    return (
+      <div className="text-center py-8 px-4 bg-[#0b0e1a]/60 border border-dashed border-white/8 rounded-xl">
+        <Icon name="forum" className="text-3xl text-white/20" />
+        <p className="text-white/45 text-sm mt-2 font-semibold">Save the card to start a comment thread</p>
+        <p className="text-white/25 text-[11px] mt-1">Comments live with each card and sync to the whole crew in real-time.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 max-h-[44vh] overflow-y-auto pr-1">
+        {loading ? (
+          <div className="flex items-center justify-center py-6 text-white/30 text-xs">
+            <Icon name="progress_activity" className="animate-spin text-base mr-2" />
+            Loading comments...
+          </div>
+        ) : comments.length === 0 ? (
+          <div className="text-center py-6 text-white/35 text-[12px]">
+            No comments yet - be the first to drop a note for the crew.
+          </div>
+        ) : (
+          comments.map(function(c) {
+            var member = getCrewMember(c.author);
+            var isMine = (member && member.name === meName) || c.author === meName;
+            return (
+              <div key={c.id} className={'flex items-start gap-2 ' + (isMine ? 'flex-row-reverse' : '')}>
+                <TeamAvatar name={c.author} size={28} />
+                <div className={'min-w-0 max-w-[80%] ' + (isMine ? 'text-right' : '')}>
+                  <div className={'flex items-center gap-1.5 text-[10px] text-white/40 mb-0.5 ' + (isMine ? 'justify-end' : '')}>
+                    <span className="font-semibold text-white/60">{member ? member.name : (c.author || 'Unknown')}</span>
+                    <span>{relativeTimeShort(c.created_at)}</span>
+                    {isMine && (
+                      <button
+                        type="button"
+                        onClick={function() { remove(c.id); }}
+                        className="text-white/25 hover:text-red-400 transition-colors"
+                        title="Delete"
+                      >
+                        <Icon name="delete" className="text-[12px]" />
+                      </button>
+                    )}
+                  </div>
+                  <div
+                    className="inline-block text-left text-[13px] text-white/90 px-3 py-2 rounded-2xl"
+                    style={{
+                      background: isMine ? 'linear-gradient(135deg, rgba(91,163,219,0.22), rgba(167,139,250,0.18))' : 'rgba(255,255,255,0.05)',
+                      border: '1px solid ' + (isMine ? 'rgba(91,163,219,0.35)' : 'rgba(255,255,255,0.06)'),
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {c.body}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={endRef} />
+      </div>
+      <div className="flex items-end gap-2 bg-[#0b0e1a] border border-white/10 rounded-xl p-2">
+        <TeamAvatar name={meName} size={28} />
+        <textarea
+          value={draft}
+          onChange={function(e) { setDraft(e.target.value); }}
+          onKeyDown={function(e) {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          placeholder="Drop a note for the crew. Cmd/Ctrl + Enter to send."
+          rows={2}
+          className="flex-1 bg-transparent text-white text-sm resize-none focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={submit}
+          disabled={!draft.trim() || busy}
+          className="px-3 py-2 rounded-lg bg-[#5BA3DB]/15 hover:bg-[#5BA3DB]/25 disabled:opacity-30 text-[#5BA3DB] text-sm font-semibold transition-colors flex items-center gap-1"
+          title="Send (Cmd/Ctrl + Enter)"
+        >
+          {busy ? <Icon name="progress_activity" className="animate-spin text-base" /> : <Icon name="send" className="text-base" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function BottleneckHeatmap(props) {
+  var cards = props.cards || [];
+  var rows = ACTIVE_COLUMN_IDS.map(function(colId) {
+    var col = COLUMNS.find(function(c) { return c.id === colId; });
+    var inColumn = cards.filter(function(c) { return c.column_id === colId; });
+    var ages = inColumn
+      .map(function(c) {
+        var anchor = c.column_changed_at || c.updated_at || c.created_at;
+        return daysSinceIso(anchor);
+      })
+      .filter(function(d) { return d != null && d >= 0; });
+    var avg = ages.length ? ages.reduce(function(a, b) { return a + b; }, 0) / ages.length : 0;
+    var stuckCount = ages.filter(function(d) { return d >= STALE_DAYS_THRESHOLD; }).length;
+    return { col: col, count: inColumn.length, avg: avg, stuck: stuckCount };
+  });
+
+  var hasAnyCards = rows.some(function(r) { return r.count > 0; });
+  if (!hasAnyCards) return null;
+
+  var maxAvg = Math.max.apply(null, rows.map(function(r) { return r.avg; }).concat([1]));
+  var totalStuck = rows.reduce(function(a, r) { return a + r.stuck; }, 0);
+
+  return (
+    <div className="bg-[#13172a]/70 backdrop-blur-xl border border-white/10 rounded-2xl p-4 mb-5">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div>
+          <h3 className="text-white text-sm font-bold flex items-center gap-2">
+            <span className="material-symbols-outlined text-base text-[#EF8B8C]">trending_down</span>
+            Stage bottlenecks
+          </h3>
+          <p className="text-[11px] text-white/40 mt-0.5">Average days cards have lived in each active column. Longer bars mean things are stalling.</p>
+        </div>
+        {totalStuck > 0 && (
+          <span
+            className="text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide"
+            style={{ background: 'rgba(239,68,68,0.15)', color: '#FCA5A5' }}
+            title={totalStuck + ' card(s) stuck >= ' + STALE_DAYS_THRESHOLD + ' days across all columns'}
+          >
+            {totalStuck} stuck total
+          </span>
+        )}
+      </div>
+      <div className="space-y-2">
+        {rows.map(function(r) {
+          if (!r.col) return null;
+          var pct = r.count === 0 ? 0 : Math.max(6, Math.round((r.avg / maxAvg) * 100));
+          return (
+            <div key={r.col.id} className="flex items-center gap-3">
+              <div className="flex items-center gap-2 w-28 shrink-0">
+                <span className="material-symbols-outlined text-base" style={{ color: r.col.color }}>{r.col.icon}</span>
+                <span className="text-white text-[12px] font-semibold tracking-tight">{r.col.label}</span>
+              </div>
+              <div className="flex-1 h-5 bg-white/5 rounded-md overflow-hidden relative">
+                {r.count > 0 && (
+                  <div
+                    className="h-full transition-all"
+                    style={{
+                      width: pct + '%',
+                      background: 'linear-gradient(90deg, ' + r.col.color + 'aa, ' + r.col.color + '55)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18)',
+                    }}
+                  />
+                )}
+                <div className="absolute inset-0 flex items-center px-2 text-[10px] font-bold text-white/85 tabular-nums">
+                  {r.count === 0 ? 'empty' : r.avg.toFixed(1) + 'd avg'}
+                </div>
+              </div>
+              <div className="w-24 shrink-0 flex items-center gap-1.5 justify-end">
+                <span className="text-[10px] text-white/45 tabular-nums">{r.count}</span>
+                {r.stuck > 0 && (
+                  <span
+                    className="text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide"
+                    style={{ background: 'rgba(239,68,68,0.15)', color: '#FCA5A5' }}
+                    title={r.stuck + ' card(s) stuck >= ' + STALE_DAYS_THRESHOLD + ' days'}
+                  >
+                    {r.stuck} stuck
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function BTBoard() {
   var [cards, setCards] = React.useState([]);
+  var [templates, setTemplates] = React.useState([]);
   var [loading, setLoading] = React.useState(true);
   var [modal, setModal] = React.useState(null);
   var [filterAssignee, setFilterAssignee] = React.useState('');
@@ -1772,9 +2251,13 @@ function BTBoard() {
 
   React.useEffect(function() {
     loadCards();
+    loadTemplates();
   }, []);
 
-  useBTSync(BOARD_TABLES, function() { loadCards(); });
+  useBTSync(BOARD_TABLES, function() {
+    loadCards();
+    loadTemplates();
+  });
 
   function loadCards() {
     supabase
@@ -1789,6 +2272,20 @@ function BTBoard() {
         }
         setCards(res.data || []);
         setLoading(false);
+      });
+  }
+
+  function loadTemplates() {
+    supabase
+      .from('bt_card_templates')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_card_templates load failed', res.error);
+          return;
+        }
+        setTemplates(res.data || []);
       });
   }
 
@@ -1915,6 +2412,53 @@ function BTBoard() {
       });
   }
 
+  function handleCreateFromTemplate(template) {
+    var payload = (template && template.payload) || {};
+    var base = Object.assign({}, EMPTY_FORM, payload);
+    delete base.id;
+    base.due_date = '';
+    setModal({ initial: base, isEdit: false });
+  }
+
+  function handleDeleteTemplate(id) {
+    supabase
+      .from('bt_card_templates')
+      .delete()
+      .eq('id', id)
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_card_templates delete failed', res.error);
+          return;
+        }
+        loadTemplates();
+      });
+  }
+
+  function handleSaveAsTemplate(form, name, done) {
+    var trimmedName = (name || '').trim();
+    if (!trimmedName) { done(false); return; }
+    var assignees = cardAssignees(form);
+    var subtasks = normalizeSubtasks(form.subtasks);
+    var payload = {};
+    TEMPLATE_FIELDS.forEach(function(field) {
+      if (field === 'assignees') payload.assignees = assignees;
+      else if (field === 'subtasks') payload.subtasks = subtasks.map(function(s) { return { id: s.id, text: s.text, done: false }; });
+      else payload[field] = form[field] == null ? null : form[field];
+    });
+    supabase
+      .from('bt_card_templates')
+      .insert({ name: trimmedName, payload: payload, created_by: 'Levitate' })
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_card_templates insert failed', res.error);
+          done(false);
+          return;
+        }
+        loadTemplates();
+        done(true);
+      });
+  }
+
   var modalRef = React.useRef(modal);
   modalRef.current = modal;
 
@@ -1983,6 +2527,11 @@ function BTBoard() {
               <span className="hidden sm:inline">List</span>
             </button>
           </div>
+          <TemplatesMenu
+            templates={templates}
+            onCreate={handleCreateFromTemplate}
+            onDelete={handleDeleteTemplate}
+          />
           <button
             onClick={function() { handleAddCard('ideas'); }}
             className="flex items-center gap-2 px-3 sm:px-4 h-10 rounded-xl bg-gradient-to-r from-[#5BA3DB] to-[#4a92ca] hover:from-[#6BB3EB] hover:to-[#5BA3DB] text-white text-sm font-semibold transition-all shadow-lg shadow-[#5BA3DB]/10"
@@ -1999,6 +2548,8 @@ function BTBoard() {
       <PatchWarRoom cards={cards} onCreate={handlePatchTemplateCreate} />
 
       <BoardStats cards={cards} />
+
+      <BottleneckHeatmap cards={cards} />
 
       <CrewWorkload cards={cards} onSelect={function(name) { setFilterAssignee(name === filterAssignee ? '' : name); }} />
 
@@ -2048,7 +2599,9 @@ function BTBoard() {
         <CardModal
           initial={modal.initial}
           isEdit={modal.isEdit}
+          cardId={modal.isEdit && modal.initial ? modal.initial.id : null}
           onSave={handleSave}
+          onSaveAsTemplate={handleSaveAsTemplate}
           onClose={function() { setModal(null); }}
           onDelete={modal.isEdit ? handleDelete : null}
         />
