@@ -1,5 +1,10 @@
 import React from 'react';
-import { BT_CREW, getCrewForStepRole } from '../../lib/btcrew';
+import { supabase } from '../../lib/supabase';
+import { BT_CREW, getCrewForStepRole, resolveCrewName, workloadStatus } from '../../lib/btcrew';
+import useBTSync from './useBTSync';
+
+var SOPS_TABLES = ['bt_content_cards'];
+var ACTIVE_COLUMN_IDS = ['ideas', 'writing', 'production', 'review'];
 
 var SOPS = [
   {
@@ -120,33 +125,54 @@ function CrewAvatar(props) {
         boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18), 0 4px 12px -4px ' + member.halo,
         fontSize: size >= 36 ? 14 : 11,
       }}
-      title={member.name + ' - ' + member.title}
+      title={member.name}
     >
       {member.initial}
     </div>
   );
 }
 
-function CrewMap() {
+function CrewMap(props) {
+  var cards = props.cards || [];
+  var maxCap = 8;
+  var rows = BT_CREW.map(function(m) {
+    var memberCards = cards.filter(function(c) {
+      return resolveCrewName(c.assignee) === m.name && ACTIVE_COLUMN_IDS.indexOf(c.column_id) !== -1;
+    });
+    var status = workloadStatus(memberCards.length);
+    var pct = Math.min(100, Math.round((memberCards.length / maxCap) * 100));
+    return { member: m, count: memberCards.length, status: status, pct: pct };
+  });
+
   return (
     <div className="bg-gradient-to-br from-[#13172a] to-[#0f1320] border border-white/10 rounded-2xl p-4 mb-6">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="groups" className="text-[#E8A020] text-base" />
         <h3 className="text-white text-sm font-bold">The crew</h3>
-        <p className="text-[11px] text-white/40">Who owns what across every workflow.</p>
+        <p className="text-[11px] text-white/40">Active cards per crew member.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-        {BT_CREW.map(function(m) {
+        {rows.map(function(row) {
           return (
             <div
-              key={m.id}
-              className="bg-[#0b0e1a]/60 border border-white/5 rounded-xl px-3 py-2.5 flex items-center gap-3"
+              key={row.member.id}
+              className="bg-[#0b0e1a]/60 border border-white/5 rounded-xl px-3 py-2.5"
             >
-              <CrewAvatar member={m} size={36} />
-              <div className="min-w-0 flex-1">
-                <p className="text-white text-sm font-bold truncate">{m.name}</p>
-                <p className="text-[11px] truncate" style={{ color: m.color }}>{m.title}</p>
-                <p className="text-[10px] text-white/45 truncate">{m.blurb}</p>
+              <div className="flex items-center gap-2.5">
+                <CrewAvatar member={row.member} size={32} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-bold truncate">{row.member.name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-white text-base font-bold leading-none tabular-nums">{row.count}</p>
+                  <p className="text-[9px] uppercase tracking-wider font-bold mt-0.5" style={{ color: row.status.color }}>{row.status.label}</p>
+                </div>
+              </div>
+              <div className="mt-2 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                <div
+                  className="h-full transition-all"
+                  style={{ width: row.pct + '%', background: row.status.color }}
+                />
               </div>
             </div>
           );
@@ -276,6 +302,26 @@ function SopCard(props) {
 
 function BTSops() {
   var [search, setSearch] = React.useState('');
+  var [cards, setCards] = React.useState([]);
+
+  function loadCards() {
+    supabase
+      .from('bt_content_cards')
+      .select('*')
+      .then(function(res) {
+        if (res.error) {
+          console.error('bt_content_cards load failed', res.error);
+          return;
+        }
+        setCards(res.data || []);
+      });
+  }
+
+  React.useEffect(function() {
+    loadCards();
+  }, []);
+
+  useBTSync(SOPS_TABLES, function() { loadCards(); });
 
   var filtered = SOPS.filter(function(s) {
     if (!search.trim()) return true;
@@ -302,7 +348,7 @@ function BTSops() {
         </div>
       </div>
 
-      <CrewMap />
+      <CrewMap cards={cards} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-gradient-to-br from-[#5BA3DB]/10 to-transparent border border-[#5BA3DB]/15 rounded-xl p-4">

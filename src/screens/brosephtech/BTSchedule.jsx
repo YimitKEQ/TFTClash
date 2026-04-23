@@ -18,7 +18,7 @@ function ScheduleCrewAvatar(props) {
         boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.18), 0 3px 8px -3px ' + member.halo,
         fontSize: size >= 28 ? 12 : 10,
       }}
-      title={member.name + ' - ' + member.title}
+      title={member.name}
     >
       {member.initial}
     </span>

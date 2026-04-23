@@ -6,14 +6,14 @@ var BT_CREW = [
   {
     id: 'levitate',
     name: 'Levitate',
-    title: 'Founder & On-Camera',
-    short: 'On-cam talent',
+    title: 'Founder',
+    short: 'Founder',
     role: 'creator',
     initial: 'L',
     color: '#5BA3DB',
     accent: 'rgba(91,163,219,0.18)',
     halo: 'rgba(91,163,219,0.55)',
-    blurb: 'Voice of the channel. Records, presents, ships.',
+    blurb: 'Runs the channel and the show.',
   },
   {
     id: 'maestosoya',

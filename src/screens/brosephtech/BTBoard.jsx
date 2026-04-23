@@ -189,7 +189,7 @@ function TeamAvatar(props) {
   var bg = member ? member.color : '#6B7280';
   var size = props.size || 22;
   var fontSize = size >= 36 ? 14 : size >= 28 ? 12 : 10;
-  var titleText = member ? displayName + ' - ' + member.title : displayName;
+  var titleText = displayName;
   return (
     <div
       className="shrink-0 rounded-full flex items-center justify-center font-bold text-white"
@@ -234,7 +234,7 @@ function CrewPicker(props) {
               color: '#fff',
               boxShadow: '0 4px 16px -6px ' + m.halo,
             } : {}}
-            title={m.name + ' - ' + m.title}
+            title={m.name}
           >
             <TeamAvatar name={m.name} size={20} />
             <span>{m.name}</span>
@@ -272,7 +272,7 @@ function CrewFilterStrip(props) {
               color: '#fff',
               boxShadow: '0 4px 16px -6px ' + m.halo,
             } : {}}
-            title={m.name + ' - ' + m.title + ' (' + count + ' active)'}
+            title={m.name + ' (' + count + ' active)'}
           >
             <TeamAvatar name={m.name} size={22} />
             <span className="hidden md:inline">{m.name}</span>
@@ -320,7 +320,6 @@ function CrewWorkload(props) {
                 <TeamAvatar name={row.member.name} size={32} />
                 <div className="min-w-0 flex-1">
                   <p className="text-white text-sm font-semibold truncate">{row.member.name}</p>
-                  <p className="text-[10px] text-white/40 truncate">{row.member.short}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-white text-base font-bold leading-none tabular-nums">{row.count}</p>
