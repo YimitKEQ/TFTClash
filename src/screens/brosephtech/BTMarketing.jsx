@@ -590,13 +590,13 @@ function BTMarketing() {
     var cancelled = false;
     setLoading(true);
     supabase
-      .from('bt_cards')
+      .from('bt_content_cards')
       .select('*')
       .order('updated_at', { ascending: false })
       .then(function(res) {
         if (cancelled) return;
         if (res.error) {
-          console.warn('bt_cards load failed', res.error);
+          console.warn('bt_content_cards load failed', res.error);
           setCards([]);
         } else {
           setCards(res.data || []);
