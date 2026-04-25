@@ -149,7 +149,7 @@ export default function RulesScreen() {
             <span className="font-label text-primary uppercase tracking-[0.2em] text-sm mb-2 block">
               Handbook v4.2
             </span>
-            <h1 className="font-headline text-5xl md:text-7xl font-bold text-on-surface">
+            <h1 className="font-display text-5xl md:text-7xl font-bold text-on-surface">
               Rules &amp; Regulations
             </h1>
           </div>
@@ -182,7 +182,7 @@ export default function RulesScreen() {
                 <h3 className="font-label text-primary uppercase tracking-widest text-xs font-bold mb-4">
                   {fact.label}
                 </h3>
-                <p className="font-headline text-2xl font-bold text-on-surface mb-2 leading-tight">
+                <p className="font-display text-2xl font-bold text-on-surface mb-2 leading-tight">
                   {fact.title}
                 </p>
                 <p className="font-body text-slate-400 text-sm leading-relaxed">
@@ -218,7 +218,7 @@ export default function RulesScreen() {
                   >
                     <div className="flex items-center gap-4">
                       <span className="font-mono text-primary text-sm">{acc.num}</span>
-                      <span className="font-headline text-xl font-bold text-on-surface">{acc.title}</span>
+                      <span className="font-display text-xl font-bold text-on-surface">{acc.title}</span>
                     </div>
                     <span className={'transition-colors ' + (isOpen ? 'text-primary' : 'text-slate-500 group-hover:text-primary')}>
                       <Icon name={isOpen ? 'remove' : 'add'} size={20} />
@@ -267,7 +267,7 @@ export default function RulesScreen() {
                   </span>
                 </div>
                 <div>
-                  <p className="font-headline text-lg font-bold text-on-surface mb-1">Live Admin Support</p>
+                  <p className="font-display text-lg font-bold text-on-surface mb-1">Live Admin Support</p>
                   <p className="font-body text-sm text-slate-400">Reach us on Discord</p>
                 </div>
               </div>

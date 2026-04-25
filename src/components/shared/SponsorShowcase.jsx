@@ -25,7 +25,7 @@ function SponsorLogo(props) {
         />
       ) : (
         <div className={heightClass + ' aspect-square rounded-lg bg-surface-container-high border border-outline-variant/20 flex items-center justify-center'}>
-          <span className="font-headline text-2xl font-bold text-primary">{initial}</span>
+          <span className="font-display text-2xl font-bold text-primary">{initial}</span>
         </div>
       )}
       {sponsor.tagline ? (

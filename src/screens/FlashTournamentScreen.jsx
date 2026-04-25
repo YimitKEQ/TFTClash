@@ -774,10 +774,13 @@ export default function FlashTournamentScreen(props) {
           {"Back to Events"}
         </button>
 
-        {/* ── Page header ── */}
+        {/* ── Page hero ── */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div>
-            <h1 className="font-editorial italic text-3xl md:text-4xl text-on-background mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="font-label text-[11px] font-bold text-secondary tracking-[.18em] uppercase mb-1.5">
+              Flash Tournament
+            </div>
+            <h1 className="font-editorial italic text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
               {tournament.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">

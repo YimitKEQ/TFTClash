@@ -60,7 +60,7 @@ function HouseAd(props) {
         </div>
         <div className="space-y-1">
           <p className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Go Ad-Free</p>
-          <p className="font-serif text-sm text-on-surface leading-snug">Priority registration, full career stats, zero ads.</p>
+          <p className="font-editorial text-sm text-on-surface leading-snug">Priority registration, full career stats, zero ads.</p>
         </div>
         <button
           onClick={handleUpgrade}

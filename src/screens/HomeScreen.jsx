@@ -271,7 +271,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
       <div className="flex justify-between items-end gap-4">
         <div className="flex flex-col gap-2">
           <span className="brand-eyebrow">Top 5 · Live</span>
-          <h2 className="font-headline text-3xl italic">
+          <h2 className="font-display text-3xl italic">
             Elite <span className="text-primary">Leaderboard</span>
           </h2>
         </div>
@@ -509,7 +509,7 @@ export default function HomeScreen() {
           </h1>
 
           {/* Tagline */}
-          <p className="max-w-xl mx-auto text-on-surface-variant font-headline text-xl opacity-70">
+          <p className="max-w-xl mx-auto text-on-surface-variant font-display text-xl opacity-70">
             Free weekly tournaments. Real competition. One leaderboard to rule them all.
           </p>
 
@@ -584,7 +584,7 @@ export default function HomeScreen() {
           <section className="space-y-6">
             <div className="flex flex-col items-center gap-2">
               <span className="brand-eyebrow">Get Started</span>
-              <h2 className="font-headline text-2xl sm:text-3xl italic text-on-surface text-center">
+              <h2 className="font-display text-2xl sm:text-3xl italic text-on-surface text-center">
                 How It <span className="text-primary">Works</span>
               </h2>
             </div>
@@ -676,7 +676,7 @@ export default function HomeScreen() {
           <section className="space-y-6">
             <div className="flex flex-col items-center gap-2">
               <span className="brand-eyebrow">The Basics</span>
-              <h2 className="font-headline text-2xl sm:text-3xl italic text-on-surface text-center">
+              <h2 className="font-display text-2xl sm:text-3xl italic text-on-surface text-center">
                 Common <span className="text-primary">Questions</span>
               </h2>
             </div>

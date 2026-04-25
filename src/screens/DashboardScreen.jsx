@@ -748,7 +748,7 @@ function ClashCard() {
     >
       <div className="p-5 pb-4">
         <div className="flex items-baseline justify-between mb-1">
-          <span className="font-headline text-base font-bold text-on-surface">
+          <span className="font-display text-base font-bold text-on-surface">
             {weekLabel}
           </span>
           {linkedPlayer && (

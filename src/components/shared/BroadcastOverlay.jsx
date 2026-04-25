@@ -53,7 +53,7 @@ function BroadcastOverlay(props) {
 
   if (type === "standings") {
     return (
-      <div className={bgClass + " " + paddingClass + " font-sans min-h-screen"}>
+      <div className={bgClass + " " + paddingClass + " font-label min-h-screen"}>
         <div className="flex items-center justify-between mb-3">
           <div className="text-[11px] font-bold text-primary uppercase tracking-widest">
             {tournamentState.clashName || "TFT Clash"}
@@ -103,7 +103,7 @@ function BroadcastOverlay(props) {
 
   if (type === "lobbies" && tournamentState.lobbies) {
     return (
-      <div className={bgClass + " p-3 font-sans"}>
+      <div className={bgClass + " p-3 font-label"}>
         <div className="text-[11px] font-bold text-amber-400 uppercase mb-2">Lobby Assignments</div>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-2">
           {(tournamentState.lobbies || []).map(function(lobby, li) {

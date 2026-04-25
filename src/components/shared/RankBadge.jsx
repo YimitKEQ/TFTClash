@@ -4,7 +4,7 @@ export default function RankBadge({ rank, className = '' }) {
   const color = RCOLS[rank] || '#9AAABF'
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-sans uppercase tracking-widest border ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-label uppercase tracking-widest border ${className}`}
       style={{ color, borderColor: `${color}33`, backgroundColor: `${color}1a` }}
     >
       {rank}

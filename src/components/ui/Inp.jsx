@@ -2,7 +2,7 @@ export default function Inp({ label, icon, className = '', ...props }) {
   return (
     <div className="space-y-2">
       {label && (
-        <label className="font-sans text-xs uppercase tracking-widest text-on-surface/70 block ml-1">
+        <label className="font-label text-xs uppercase tracking-widest text-on-surface/70 block ml-1">
           {label}
         </label>
       )}

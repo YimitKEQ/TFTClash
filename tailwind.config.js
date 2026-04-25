@@ -65,13 +65,10 @@ export default {
       },
       fontFamily: {
         "display":   ["Russo One", "sans-serif"],
-        "headline":  ["Space Grotesk", "sans-serif"],
         "editorial": ["Playfair Display", "serif"],
-        "serif":     ["Playfair Display", "serif"],
         "body":      ["Inter", "sans-serif"],
         "label":     ["Barlow Condensed", "sans-serif"],
         "mono":      ["JetBrains Mono", "monospace"],
-        "sans":      ["Barlow Condensed", "sans-serif"],
       },
       borderRadius: {
         DEFAULT: "0.125rem",

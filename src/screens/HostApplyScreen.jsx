@@ -78,7 +78,7 @@ export default function HostApplyScreen() {
           <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6">
             <Icon name="check_circle" fill={true} size={32} className="text-primary" />
           </div>
-          <h2 className="font-headline text-2xl font-bold text-on-surface mb-3">Application Submitted</h2>
+          <h2 className="font-display text-2xl font-bold text-on-surface mb-3">Application Submitted</h2>
           <p className="text-on-surface/60 text-sm leading-relaxed mb-2">
             We review all host applications within 48 hours. You will be notified at{" "}
             <span className="text-secondary">{(currentUser && currentUser.email) || "your email"}</span> once approved.
@@ -254,7 +254,7 @@ export default function HostApplyScreen() {
           {/* Prestige Info Card */}
           <div className="bg-surface-container-lowest p-8 rounded-xl border border-primary/10">
             <Icon name="verified_user" fill={true} size={28} className="text-primary mb-4" />
-            <h4 className="font-headline text-xl font-bold text-on-surface mb-2">Prestige Access</h4>
+            <h4 className="font-display text-xl font-bold text-on-surface mb-2">Prestige Access</h4>
             <p className="text-sm text-on-surface-variant leading-relaxed mb-6">
               Approved hosts get a branded tournament page, custom lobby commands, and direct support from the TFT Clash team.
             </p>

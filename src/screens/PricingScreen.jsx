@@ -159,7 +159,7 @@ function TierCard(props) {
         <span className={'font-label uppercase tracking-widest text-xs font-bold ' + accentText}>
           {subtitle}
         </span>
-        <h3 className="font-serif text-3xl mt-1">{label}</h3>
+        <h3 className="font-editorial text-3xl mt-1">{label}</h3>
         <div className="flex items-baseline mt-3">
           {price === 0 ? (
             <span className="font-display text-4xl">Free</span>
@@ -357,7 +357,7 @@ export default function PricingScreen() {
           <section className="mt-16 text-center">
             <Panel padding="spacious" className="inline-flex flex-col items-center max-w-lg">
               <Icon name="favorite" size={28} className="text-error mb-3" fill />
-              <h3 className="font-serif text-2xl mb-2">Support TFT Clash</h3>
+              <h3 className="font-editorial text-2xl mb-2">Support TFT Clash</h3>
               <p className="text-sm text-on-surface-variant mb-6 max-w-sm">
                 Running tournaments costs time and money. If you enjoy competing here, consider a one-time donation to help keep the lights on.
               </p>
@@ -379,7 +379,7 @@ export default function PricingScreen() {
 
         {/* Feature Comparison Table */}
         <section className="mt-24">
-          <h2 className="font-serif text-4xl mb-12">The Specification</h2>
+          <h2 className="font-editorial text-4xl mb-12">The Specification</h2>
           <div className="w-full overflow-x-auto">
             <div className="min-w-[700px]">
               {/* Header */}
@@ -433,7 +433,7 @@ export default function PricingScreen() {
             <h4 className="font-label uppercase tracking-widest text-xs text-primary mb-2">
               Inquiries
             </h4>
-            <h2 className="font-serif text-4xl mb-6">Frequently Asked Questions</h2>
+            <h2 className="font-editorial text-4xl mb-6">Frequently Asked Questions</h2>
             <p className="text-on-surface-variant text-sm">
               Still unsure? Our support team is active on Discord.
             </p>

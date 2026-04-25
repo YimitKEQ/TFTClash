@@ -80,7 +80,7 @@ export default function Sidebar() {
     return (
       <button
         onClick={function() { navTo(id); }}
-        className={'flex items-center gap-4 px-6 py-3.5 w-full text-left border-none cursor-pointer transition-all duration-200 font-sans uppercase text-xs font-semibold tracking-widest relative ' +
+        className={'flex items-center gap-4 px-6 py-3.5 w-full text-left border-none cursor-pointer transition-all duration-200 font-label uppercase text-xs font-semibold tracking-widest relative ' +
           (isActive
             ? 'text-primary bg-primary/10 border-r-2 border-primary'
             : 'text-on-surface/40 hover:text-on-surface hover:bg-white/[0.04] bg-transparent')}
@@ -105,7 +105,7 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="px-6 py-6 border-b border-white/[0.05]">
         <div className="font-display font-bold text-primary text-base uppercase tracking-tight">TFT Clash</div>
-        <div className="font-sans uppercase text-[10px] font-semibold text-on-surface/30 tracking-widest mt-0.5">Elite Competition</div>
+        <div className="font-label uppercase text-[10px] font-semibold text-on-surface/30 tracking-widest mt-0.5">Elite Competition</div>
       </div>
 
       {/* Nav items */}
@@ -150,7 +150,7 @@ export default function Sidebar() {
       <div className="px-5 py-5 border-t border-white/[0.05] shrink-0 space-y-2">
         <button
           onClick={function() { navTo(currentUser ? 'clash' : 'signup'); }}
-          className="w-full py-3 rounded-full bg-gradient-to-br from-primary to-[#CC8A28] text-[#07070E] font-sans font-bold uppercase tracking-widest text-sm cursor-pointer border-none active:scale-95 transition-transform shadow-[0_4px_20px_rgba(232,168,56,0.3)]"
+          className="w-full py-3 rounded-full bg-gradient-to-br from-primary to-[#CC8A28] text-[#07070E] font-label font-bold uppercase tracking-widest text-sm cursor-pointer border-none active:scale-95 transition-transform shadow-[0_4px_20px_rgba(232,168,56,0.3)]"
         >
           {currentUser ? 'Join Clash' : 'Sign Up Free'}
         </button>
@@ -158,7 +158,7 @@ export default function Sidebar() {
           href={DISCORD_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-full py-2.5 rounded-full bg-[#5865F2]/15 hover:bg-[#5865F2]/25 text-[#A8B0F8] font-sans font-bold uppercase tracking-widest text-xs border border-[#5865F2]/30 flex items-center justify-center gap-2 transition-colors"
+          className="w-full py-2.5 rounded-full bg-[#5865F2]/15 hover:bg-[#5865F2]/25 text-[#A8B0F8] font-label font-bold uppercase tracking-widest text-xs border border-[#5865F2]/30 flex items-center justify-center gap-2 transition-colors"
         >
           <Icon name="forum" size={16} />
           Join Discord

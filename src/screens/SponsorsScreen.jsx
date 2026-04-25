@@ -156,7 +156,7 @@ function StatCard(props) {
       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
         <Icon name={props.icon} className="text-primary text-lg" />
       </div>
-      <span className="font-headline text-4xl font-bold text-primary mb-1">{props.value}</span>
+      <span className="font-display text-4xl font-bold text-primary mb-1">{props.value}</span>
       <span className="font-label text-xs tracking-widest uppercase text-on-surface-variant">{props.label}</span>
     </Panel>
   )
@@ -482,17 +482,17 @@ export default function SponsorsScreen() {
         />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
           <Panel elevation="elevated" radius="xl" padding="default" className="text-center">
-            <p className="font-headline text-3xl font-bold text-primary mb-1">100K+</p>
+            <p className="font-display text-3xl font-bold text-primary mb-1">100K+</p>
             <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant mb-2">TFT Discord Members</p>
             <p className="text-on-surface-variant/60 text-xs">Active in the official Riot-partnered TFT community</p>
           </Panel>
           <Panel elevation="elevated" radius="xl" padding="default" className="text-center">
-            <p className="font-headline text-3xl font-bold text-primary mb-1">$500K</p>
+            <p className="font-display text-3xl font-bold text-primary mb-1">$500K</p>
             <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant mb-2">EWC 2026 Prize Pool</p>
             <p className="text-on-surface-variant/60 text-xs">TFT at its peak competitive moment</p>
           </Panel>
           <Panel elevation="elevated" radius="xl" padding="default" className="text-center">
-            <p className="font-headline text-3xl font-bold text-primary mb-1">Top 50</p>
+            <p className="font-display text-3xl font-bold text-primary mb-1">Top 50</p>
             <p className="font-label text-xs tracking-widest uppercase text-on-surface-variant mb-2">Pro Player Network</p>
             <p className="text-on-surface-variant/60 text-xs">Direct relationships with competitive players and creators</p>
           </Panel>
@@ -504,7 +504,7 @@ export default function SponsorsScreen() {
         <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-5">
           <Icon name="handshake" className="text-on-primary text-2xl" />
         </div>
-        <h2 className="font-headline text-3xl font-bold text-on-surface mb-3">Ready to Partner?</h2>
+        <h2 className="font-display text-3xl font-bold text-on-surface mb-3">Ready to Partner?</h2>
         <p className="text-on-surface-variant max-w-lg mx-auto mb-8 leading-relaxed">
           The grassroots tier is where brand loyalty is built. Players remember who showed up before they went pro.
           Let us build something that works for both of us.

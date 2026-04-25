@@ -8,7 +8,7 @@ export default function StatCard({ label, value, icon, trend, className = '' }) 
           <Icon name={icon} size={48} />
         </div>
       )}
-      <span className="font-sans text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">
+      <span className="font-label text-on-surface/40 uppercase text-xs tracking-widest mb-4 block">
         {label}
       </span>
       <div className="flex items-end gap-2">

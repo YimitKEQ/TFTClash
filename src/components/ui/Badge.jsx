@@ -8,7 +8,7 @@ const badgeVariants = {
 
 export default function Badge({ children, variant = 'primary', className = '' }) {
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-sans uppercase tracking-widest border ${badgeVariants[variant] || badgeVariants.primary} ${className}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-[10px] font-label uppercase tracking-widest border ${badgeVariants[variant] || badgeVariants.primary} ${className}`}>
       {children}
     </span>
   )

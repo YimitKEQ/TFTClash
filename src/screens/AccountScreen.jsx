@@ -419,7 +419,7 @@ export default function AccountScreen() {
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Icon name="account_circle" size={48} className="text-on-surface/30 mb-4" />
-          <h2 className="font-serif text-2xl text-on-surface mb-3">Sign in to view your account</h2>
+          <h2 className="font-editorial text-2xl text-on-surface mb-3">Sign in to view your account</h2>
           <Btn variant="primary" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
         </div>
       </PageLayout>
@@ -441,7 +441,7 @@ export default function AccountScreen() {
           <Panel padding="spacious">
             <div className="flex items-center gap-3 mb-6">
               <Icon name="lock_reset" size={28} className="text-primary" />
-              <h2 className="font-serif text-2xl text-on-surface">Set New Password</h2>
+              <h2 className="font-editorial text-2xl text-on-surface">Set New Password</h2>
             </div>
             <p className="text-sm text-on-surface/60 mb-6">
               Enter a new password for your account. You will be signed out after saving.
@@ -1386,7 +1386,7 @@ export default function AccountScreen() {
                 <div className="flex items-center gap-4">
                   <span className="material-symbols-outlined text-primary text-3xl">favorite</span>
                   <div>
-                    <h3 className="font-headline text-lg font-bold text-on-surface">Support TFT Clash</h3>
+                    <h3 className="font-display text-lg font-bold text-on-surface">Support TFT Clash</h3>
                     <p className="font-body text-xs text-on-surface-variant mt-1">Keep the platform free for everyone.</p>
                   </div>
                 </div>
@@ -1569,7 +1569,7 @@ export default function AccountScreen() {
             {linkedPlayer ? (
               <div>
                 <div className="flex items-center gap-3 mb-6 flex-wrap">
-                  <span className="font-serif text-xl text-on-surface">{myAchievements.length} of {ACHIEVEMENTS.length} unlocked</span>
+                  <span className="font-editorial text-xl text-on-surface">{myAchievements.length} of {ACHIEVEMENTS.length} unlocked</span>
                   {['legendary', 'gold', 'silver', 'bronze'].map(function(tier) {
                     var n = myAchievements.filter(function(a) { return a.tier === tier; }).length;
                     if (!n) return null;

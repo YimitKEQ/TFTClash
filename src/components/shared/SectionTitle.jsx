@@ -12,10 +12,10 @@ export default function SectionTitle(props) {
   var eyebrowClass = align === 'center' ? 'brand-eyebrow mx-auto' : 'brand-eyebrow'
 
   var titleClass = size === 'xl'
-    ? 'font-headline text-3xl sm:text-5xl font-bold leading-[1.05]'
+    ? 'font-display text-3xl sm:text-5xl font-bold leading-[1.05]'
     : size === 'lg'
-      ? 'font-headline text-2xl sm:text-4xl font-bold leading-tight'
-      : 'font-headline text-xl sm:text-2xl font-bold leading-tight'
+      ? 'font-display text-2xl sm:text-4xl font-bold leading-tight'
+      : 'font-display text-xl sm:text-2xl font-bold leading-tight'
 
   var layout = action
     ? (align === 'center'

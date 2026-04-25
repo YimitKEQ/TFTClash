@@ -474,7 +474,7 @@ export default function SponsorsTab() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={function() { setPreviewSponsor(null) }}>
           <div className="bg-surface-container-highest rounded-xl p-8 max-w-2xl w-[90%] max-h-[80vh] overflow-auto" onClick={function(e) { e.stopPropagation() }}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-headline text-xl font-bold">Sponsor Preview</h3>
+              <h3 className="font-display text-xl font-bold">Sponsor Preview</h3>
               <Btn variant="ghost" size="sm" icon="close" onClick={function() { setPreviewSponsor(null) }}>Close</Btn>
             </div>
             <div className="mb-6">

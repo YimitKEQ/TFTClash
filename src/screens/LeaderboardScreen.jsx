@@ -59,13 +59,13 @@ function PodiumCard({ player, rank, onClick }) {
             <Icon name="emoji_events" fill size={52} className="text-primary drop-shadow-[0_2px_8px_rgba(255,206,120,0.6)]" />
           </div>
           <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center gold-glow-boss">
-            <span className="font-headline text-5xl font-bold text-primary">{initial}</span>
+            <span className="font-display text-5xl font-bold text-primary">{initial}</span>
           </div>
           <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-primary-container text-on-primary-fixed font-label font-bold px-6 py-2 rounded text-sm shadow-xl uppercase tracking-widest whitespace-nowrap">
             {player.name.toUpperCase()}
           </div>
         </div>
-        <h3 className="font-headline text-2xl mb-1 mt-4">{player.name}</h3>
+        <h3 className="font-display text-2xl mb-1 mt-4">{player.name}</h3>
         <p className="font-mono text-primary text-lg font-bold">{(player.pts || 0) + ' pts'}</p>
         <div className="mt-6 h-36 w-full bg-gradient-to-b from-primary/10 to-surface-container-low rounded-t-xl"></div>
       </div>
@@ -83,13 +83,13 @@ function PodiumCard({ player, rank, onClick }) {
     <div className={orderClass + ' flex flex-col items-center'}>
       <div className="relative group cursor-pointer mb-6" onClick={onClick}>
         <div className={'w-24 h-24 rounded-full border-4 ' + borderClass + ' ' + glowClass + ' overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center'}>
-          <span className={'font-headline text-3xl font-bold ' + imgFilter} style={{ color: medalColor }}>{initial}</span>
+          <span className={'font-display text-3xl font-bold ' + imgFilter} style={{ color: medalColor }}>{initial}</span>
         </div>
         <div className={'absolute -bottom-2 left-1/2 -translate-x-1/2 ' + labelBg + ' text-surface font-label font-bold px-3 py-1 rounded text-xs uppercase tracking-widest'}>
           {medalLabel}
         </div>
       </div>
-      <h3 className="font-headline text-xl mb-1">{player.name}</h3>
+      <h3 className="font-display text-xl mb-1">{player.name}</h3>
       <p className="font-mono text-tertiary text-sm">{(player.pts || 0) + ' pts'}</p>
       <div className={'mt-4 ' + heightClass + ' w-full bg-surface-container-low rounded-t-xl opacity-40'}></div>
     </div>
@@ -327,7 +327,7 @@ export default function LeaderboardScreen(props) {
         {!isLoadingData && sorted.length === 0 && (
           <Panel padding="none" className="px-8 py-16 text-center">
             <Icon name="leaderboard" size={48} className="text-on-surface/20 block mb-4 mx-auto" />
-            <div className="font-headline text-xl text-on-surface mb-2">No players found</div>
+            <div className="font-display text-xl text-on-surface mb-2">No players found</div>
             <div className="text-sm text-on-surface-variant">
               {search || regionFilter !== 'All' || tierFilter !== 'All'
                 ? 'Try adjusting your filters.'

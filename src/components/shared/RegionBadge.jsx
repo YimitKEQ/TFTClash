@@ -11,7 +11,7 @@ export default function RegionBadge({ region, size = 'sm', showFlag = true, show
 
   return (
     <span
-      className={'inline-flex items-center gap-1 rounded font-sans uppercase tracking-widest border font-bold ' + pad + ' ' + className}
+      className={'inline-flex items-center gap-1 rounded font-label uppercase tracking-widest border font-bold ' + pad + ' ' + className}
       style={{ color: color, borderColor: color + '44', backgroundColor: color + '1a' }}
       title={meta ? meta.full + ' server' : 'Region not set'}
     >

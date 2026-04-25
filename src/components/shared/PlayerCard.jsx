@@ -10,7 +10,7 @@ export default function PlayerCard({ player, onClick, className = '' }) {
         {player.name?.[0] || '?'}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-headline text-sm text-on-surface truncate">{player.name}</div>
+        <div className="font-display text-sm text-on-surface truncate">{player.name}</div>
         <div className="font-mono text-xs text-on-surface/40">{player.pts || 0} pts</div>
       </div>
       <RankBadge rank={player.rank || 'Iron'} />

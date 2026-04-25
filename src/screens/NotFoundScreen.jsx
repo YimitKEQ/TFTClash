@@ -17,10 +17,10 @@ export default function NotFoundScreen() {
     <PageLayout>
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
         <Icon name="search_off" size={64} className="text-primary/30 mb-6" />
-        <h1 className="font-serif text-8xl md:text-9xl text-primary/20 font-bold leading-none mb-2">
+        <h1 className="font-editorial text-8xl md:text-9xl text-primary/20 font-bold leading-none mb-2">
           404
         </h1>
-        <h2 className="font-serif text-2xl md:text-3xl text-on-surface mb-3">
+        <h2 className="font-editorial text-2xl md:text-3xl text-on-surface mb-3">
           Page not found
         </h2>
         <p className="text-on-surface/50 text-sm max-w-sm mb-8">

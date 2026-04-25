@@ -5,6 +5,7 @@ import { Btn, Icon } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
+import Podium from '../components/shared/Podium'
 import RegionBadge from '../components/shared/RegionBadge'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
@@ -247,6 +248,15 @@ export default function TournamentDetailScreen() {
   var registeredIds = event.registeredIds || []
   var prizes = Array.isArray(event.prize_pool_json) ? event.prize_pool_json : []
 
+  var champRow = standings[0] || null
+  var champName = (champRow && champRow.playerName) || event.champion || ''
+  var champPts = champRow ? champRow.total : null
+  var champWins = champRow ? champRow.wins : 0
+  var champGames = champRow && champRow.games ? champRow.games.length : 0
+  var champTop4 = champRow ? champRow.top4 : 0
+  var champTop4Pct = champGames > 0 ? Math.round((champTop4 / champGames) * 100) : null
+  var podiumPlayers = standings.slice(0, 3).map(function(s) { return { name: s.playerName, pts: s.total } })
+
   return (
     <PageLayout>
       <div className="max-w-5xl mx-auto">
@@ -260,43 +270,44 @@ export default function TournamentDetailScreen() {
           {"Back to Events"}
         </button>
 
-        {/* Page header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div>
-            <h1 className="font-editorial italic text-3xl md:text-4xl text-on-background mb-2">
-              {event.logo && <span className="mr-3 not-italic">{event.logo}</span>}
-              {event.name}
-            </h1>
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className={"px-3 py-1 rounded font-label text-xs tracking-wider font-bold border " + (isCompleted ? "bg-primary/10 text-primary border-primary/20" : event.status === 'live' ? "bg-tertiary/10 text-tertiary border-tertiary/20" : "bg-secondary/10 text-secondary border-secondary/20")}>
-                {isCompleted ? 'COMPLETED' : event.status === 'live' ? 'LIVE' : 'UPCOMING'}
-              </span>
-              {event.date && (
-                <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
-                  <Icon name="calendar_today" size={13} />
-                  {event.date}
-                </div>
-              )}
-              {event.format && (
-                <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
-                  <Icon name="sports_esports" size={13} />
-                  {event.format}
-                </div>
-              )}
-              {event.region && <RegionBadge region={event.region} size="md" />}
-            </div>
-            {(event.tags || []).length > 0 && (
-              <div className="flex gap-2 flex-wrap mt-3">
-                {(event.tags || []).map(function(t) {
-                  return (
-                    <span key={t} className="bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-label px-2 py-0.5 rounded uppercase tracking-wider">
-                      {t}
-                    </span>
-                  )
-                })}
+        {/* Page hero */}
+        <div className="mb-8">
+          <div className="font-label text-[11px] font-bold text-secondary tracking-[.18em] uppercase mb-1.5">
+            {event.host ? "Hosted by " + event.host : "Custom Tournament"}
+          </div>
+          <h1 className="font-editorial italic text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
+            {event.logo && <span className="mr-3 not-italic">{event.logo}</span>}
+            {event.name}
+          </h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className={"px-3 py-1 rounded font-label text-xs tracking-wider font-bold border " + (isCompleted ? "bg-primary/10 text-primary border-primary/20" : event.status === 'live' ? "bg-tertiary/10 text-tertiary border-tertiary/20" : "bg-secondary/10 text-secondary border-secondary/20")}>
+              {isCompleted ? 'COMPLETED' : event.status === 'live' ? 'LIVE' : 'UPCOMING'}
+            </span>
+            {event.date && (
+              <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
+                <Icon name="calendar_today" size={13} />
+                {event.date}
               </div>
             )}
+            {event.format && (
+              <div className="flex items-center gap-2 text-on-surface-variant/50 font-mono text-xs">
+                <Icon name="sports_esports" size={13} />
+                {event.format}
+              </div>
+            )}
+            {event.region && <RegionBadge region={event.region} size="md" />}
           </div>
+          {(event.tags || []).length > 0 && (
+            <div className="flex gap-2 flex-wrap mt-3">
+              {(event.tags || []).map(function(t) {
+                return (
+                  <span key={t} className="bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-label px-2 py-0.5 rounded uppercase tracking-wider">
+                    {t}
+                  </span>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {prizes.length > 0 && (
@@ -348,19 +359,60 @@ export default function TournamentDetailScreen() {
           </div>
         </div>
 
-        {/* Champion banner */}
-        {isCompleted && event.champion && (
-          <div className="mb-6 bg-primary/8 border border-primary/30 rounded px-5 py-4 flex items-center gap-4">
-            <Icon name="emoji_events" size={24} fill className="text-primary" />
-            <div className="flex-1">
-              <div className="font-bold text-primary text-base mb-0.5">{"Champion: " + event.champion}</div>
-              {event.top4 && event.top4.length > 0 && (
-                <div className="text-on-surface-variant text-xs">
-                  {"Top 4: " + event.top4.join(', ')}
-                </div>
+        {/* Champion banner - clash-style for completed tournaments */}
+        {isCompleted && champName && (
+          <div className="relative overflow-hidden rounded-xl px-6 md:px-8 py-6 md:py-7 mb-6 flex items-center gap-5 md:gap-6 flex-wrap" style={{
+            background: "linear-gradient(135deg,rgba(232,168,56,.22),rgba(155,114,207,.08),rgba(8,8,15,1))",
+            border: "1px solid rgba(232,168,56,.55)",
+            boxShadow: "0 0 60px rgba(232,168,56,.18),inset 0 0 80px rgba(232,168,56,.04)"
+          }}>
+            <div className="absolute top-0 left-0 right-0 h-[3px]" style={{ background: "linear-gradient(90deg,transparent,#E8A838,#FFD700,#E8A838,transparent)" }} />
+            <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(232,168,56,.3),transparent)" }} />
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shrink-0" style={{
+              background: "linear-gradient(135deg,rgba(232,168,56,.25),rgba(232,168,56,.06))",
+              border: "2px solid rgba(232,168,56,.7)",
+              boxShadow: "0 0 24px rgba(232,168,56,.35)"
+            }}>
+              <Icon name="emoji_events" size={36} fill className="text-primary" />
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <div className="font-label text-[11px] font-bold text-primary tracking-[.16em] uppercase mb-1 flex items-center gap-1">
+                <Icon name="emoji_events" size={11} className="text-primary" />
+                Tournament Champion
+              </div>
+              <div className="font-editorial text-on-surface font-extrabold leading-none mb-2" style={{ fontSize: "clamp(24px,3.6vw,40px)" }}>{champName}</div>
+              {event.top4 && event.top4.length > 0 && !champRow && (
+                <div className="text-on-surface-variant text-xs">{"Top 4: " + event.top4.join(', ')}</div>
               )}
             </div>
+            {champPts != null && (
+              <div className="flex gap-3 flex-wrap">
+                <div className="text-center px-3 md:px-4 py-2 md:py-2.5 bg-black/30 rounded-lg min-w-[60px]">
+                  <div className="font-mono text-lg md:text-xl font-bold leading-none text-primary">{champPts}</div>
+                  <div className="font-label text-[10px] text-muted font-semibold uppercase tracking-[.06em] mt-1">Pts</div>
+                </div>
+                <div className="text-center px-3 md:px-4 py-2 md:py-2.5 bg-black/30 rounded-lg min-w-[60px]">
+                  <div className="font-mono text-lg md:text-xl font-bold leading-none text-success">{champWins}</div>
+                  <div className="font-label text-[10px] text-muted font-semibold uppercase tracking-[.06em] mt-1">Wins</div>
+                </div>
+                <div className="text-center px-3 md:px-4 py-2 md:py-2.5 bg-black/30 rounded-lg min-w-[60px]">
+                  <div className="font-mono text-lg md:text-xl font-bold leading-none text-secondary">{champGames}</div>
+                  <div className="font-label text-[10px] text-muted font-semibold uppercase tracking-[.06em] mt-1">Games</div>
+                </div>
+                {champTop4Pct != null && (
+                  <div className="text-center px-3 md:px-4 py-2 md:py-2.5 bg-black/30 rounded-lg min-w-[60px]">
+                    <div className="font-mono text-lg md:text-xl font-bold leading-none text-tertiary">{champTop4Pct + '%'}</div>
+                    <div className="font-label text-[10px] text-muted font-semibold uppercase tracking-[.06em] mt-1">Top4%</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
+        )}
+
+        {/* Podium - top 3 standings (mirrors HoF / Clash layout) */}
+        {isCompleted && podiumPlayers.length >= 3 && (
+          <Podium players={podiumPlayers} className="mb-2" />
         )}
 
         {/* Tabs */}

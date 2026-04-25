@@ -45,7 +45,7 @@ export default function ResultsScreen() {
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-24 text-center px-6">
           <Icon name="emoji_events" size={64} className="text-primary/20 mb-6" />
-          <h2 className="font-serif text-2xl text-on-surface mb-3">No clash results yet</h2>
+          <h2 className="font-editorial text-2xl text-on-surface mb-3">No clash results yet</h2>
           <p className="text-on-surface/40 text-sm max-w-xs">
             The first clash is coming soon! Results will appear here after the opening tournament.
           </p>

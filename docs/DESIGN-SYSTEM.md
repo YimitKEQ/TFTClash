@@ -1,21 +1,20 @@
 # TFT Clash Design System
 
-Last updated: 2026-04-13
+Last updated: 2026-04-25
 
 This is the authoritative reference for visual consistency across TFT Clash. Every new screen and every edit to an existing screen must conform to these rules. The rules exist because without them, every screen drifts and the product stops feeling like one product.
 
-## Typography, six lanes, strict
+## Typography, five lanes, strict
 
 | Token | Typeface | Use for | Never use for |
 |---|---|---|---|
-| `font-display` | Russo One 400 | TFT CLASH wordmark, hero numerals, countdown digits | Body, headers, buttons |
-| `font-headline` | Space Grotesk 500-700 | Section titles, card titles, modal titles, page titles | Paragraphs, labels, numbers |
-| `font-editorial` (alias: `font-serif`) | Playfair Display 400-700 italic | 1-2 italic accents per page max (e.g. "Competing is always free.") | Buttons, labels, body |
+| `font-display` | Russo One 400 | TFT CLASH wordmark, hero numerals, countdown digits, section/card/page titles, all-caps brand callouts | Body, paragraphs, buttons |
+| `font-editorial` | Playfair Display 400-700 italic | 1-2 italic accents per page max (e.g. "Competing is always free."), tournament hero titles | Buttons, labels, body |
 | `font-body` | Inter 400-600 | Paragraphs, button labels, input text, card body, descriptions | Stat numerals, uppercase labels, hero headings |
-| `font-label` (alias: `font-sans`) | Barlow Condensed 400-700 | Uppercase eyebrows, tags, tab labels, anything with `uppercase tracking-widest` | Body, large titles |
-| `font-mono` (alias: `font-stats`) | JetBrains Mono 400-700 | All UI numerals (stats, pts, placements, countdown, timestamps, ranks) | Prose, titles, labels |
+| `font-label` | Barlow Condensed 400-700 | Uppercase eyebrows, tags, tab labels, anything with `uppercase tracking-widest` | Body, large titles |
+| `font-mono` | JetBrains Mono 400-700 | All UI numerals (stats, pts, placements, countdown, timestamps, ranks) | Prose, titles, labels |
 
-**Aliases are deprecated** (`font-sans`, `font-condensed`, `font-sans-condensed`, `font-nav`, `font-technical`, `font-stats`). They still resolve for backwards compatibility, but new code uses canonical names only.
+**Removed aliases** (do NOT add back): `font-headline` (collapsed into `font-display`), `font-serif` (use `font-editorial`), `font-sans` (use `font-label`), `font-condensed`, `font-sans-condensed`, `font-nav`, `font-technical`, `font-stats`. The rule is one canonical name per typeface.
 
 ## Border radius, four values, strict
 
@@ -78,7 +77,7 @@ Import from `src/components/shared/SectionHeader.jsx`. Never roll your own intro
 2. Group content into `<Panel>` blocks
 3. Every section intro is a `<SectionHeader>`
 4. Every button is a `<Btn>`
-5. Fonts: `font-headline` for titles, `font-body` for prose, `font-label` for eyebrows, `font-mono` for numbers
+5. Fonts: `font-display` for titles + brand wordmarks, `font-body` for prose, `font-label` for eyebrows + tags + buttons, `font-mono` for numbers, `font-editorial` for sparing italic accents only
 6. No inline `rounded-[Npx]`, no inline gradient backgrounds
 7. No inline styles (`style={{...}}`) for colors, use Tailwind tokens
 

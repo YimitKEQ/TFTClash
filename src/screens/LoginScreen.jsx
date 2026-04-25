@@ -38,7 +38,7 @@ export default function LoginScreen() {
           {/* Auth panel */}
           <Panel className="p-8 space-y-6">
             <div className="space-y-1">
-              <h2 className="font-headline text-xl font-bold text-on-surface">Sign In</h2>
+              <h2 className="font-display text-xl font-bold text-on-surface">Sign In</h2>
               <p className="text-xs font-label uppercase tracking-widest text-on-surface/40">Continue with your Discord account</p>
             </div>
 

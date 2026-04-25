@@ -252,7 +252,7 @@ export default function ChallengesScreen() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-serif text-xl">{c.name}</h3>
+                          <h3 className="font-editorial text-xl">{c.name}</h3>
                           <p className={'text-xs text-on-surface/60 font-body ' + (done ? 'line-through' : '')}>{c.desc}</p>
                         </div>
                         <div className="text-right flex-shrink-0 ml-4">
@@ -341,7 +341,7 @@ export default function ChallengesScreen() {
                   </div>
                 </div>
                 <div className="mt-8 pt-6 border-t border-outline-variant/10">
-                  <p className="font-serif italic text-on-surface/80 text-center text-sm leading-relaxed">
+                  <p className="font-editorial italic text-on-surface/80 text-center text-sm leading-relaxed">
                     "Show up. Stack wins. Repeat."
                   </p>
                 </div>
@@ -375,7 +375,7 @@ export default function ChallengesScreen() {
                         <Icon name="check_circle" fill size={22} className="text-tertiary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-serif text-lg text-tertiary">{c.name}</h3>
+                        <h3 className="font-editorial text-lg text-tertiary">{c.name}</h3>
                         <p className="text-xs text-on-surface/50 font-body mt-0.5">{c.desc}</p>
                       </div>
                       <span className="font-mono text-tertiary text-sm flex-shrink-0">{'+' + c.xp + ' XP'}</span>

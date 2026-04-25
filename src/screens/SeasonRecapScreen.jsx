@@ -268,7 +268,7 @@ export default function SeasonRecapScreen() {
           </div>
           <h1 className="text-6xl md:text-8xl font-editorial italic font-black tracking-tight leading-none mb-4">
             {seasonName + ' '}
-            <span className="font-serif gold-gradient-text">
+            <span className="font-editorial gold-gradient-text">
               Recap
             </span>
           </h1>
@@ -295,7 +295,7 @@ export default function SeasonRecapScreen() {
             <h2 className="font-label text-on-surface-variant uppercase tracking-widest text-sm mb-1 mt-2">
               Final Tier
             </h2>
-            <div className="text-4xl font-serif font-bold text-on-surface">{rankLabel}</div>
+            <div className="text-4xl font-editorial font-bold text-on-surface">{rankLabel}</div>
             <div className="mt-3 font-mono text-xs text-primary/60">
               {'Season Peak: ' + player.pts + ' pts'}
             </div>
@@ -304,7 +304,7 @@ export default function SeasonRecapScreen() {
           {/* Narrative performance summary */}
           <div className="md:col-span-8 p-10 bg-surface-container-low rounded flex flex-col justify-center">
             <Icon name="format_quote" fill size={32} className="text-primary mb-4" />
-            <p className="text-2xl font-serif text-on-surface leading-snug">
+            <p className="text-2xl font-editorial text-on-surface leading-snug">
               {narrativeParts.map(function(part, idx) {
                 if (part.italic) {
                   return <span key={"part-" + idx + "-" + part.text.slice(0, 20)} className="text-primary italic">{part.text}</span>
@@ -372,7 +372,7 @@ export default function SeasonRecapScreen() {
               <Icon name="trophy" fill size={160} className="text-primary opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
             </div>
             <div className="absolute bottom-8 left-8 z-20">
-              <h4 className="font-serif text-3xl font-bold">The Obsidian Trophy</h4>
+              <h4 className="font-editorial text-3xl font-bold">The Obsidian Trophy</h4>
               <p className="font-label text-primary uppercase tracking-widest text-sm">
                 {seasonName + ' Commemorative Item'}
               </p>

@@ -101,7 +101,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   <Icon name="military_tech" size={18} className="text-outline" />
                 </div>
               </div>
-              <h3 className="font-headline text-xl font-bold mb-0.5"
+              <h3 className="font-display text-xl font-bold mb-0.5"
                 >
                 {top3[1].name}
               </h3>
@@ -129,7 +129,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   <Icon name="star" size={18} fill={true} className="text-on-primary" />
                 </div>
               </div>
-              <h3 className="font-headline text-2xl font-black text-primary mb-0.5"
+              <h3 className="font-display text-2xl font-black text-primary mb-0.5"
                 >
                 {top3[0].name}
               </h3>
@@ -155,7 +155,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   <Icon name="military_tech" size={18} className="text-[#CD7F32]" />
                 </div>
               </div>
-              <h3 className="font-headline text-xl font-bold mb-0.5"
+              <h3 className="font-display text-xl font-bold mb-0.5"
                 >
                 {top3[2].name}
               </h3>
@@ -301,7 +301,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   <Icon name="trending_up" size={22} className="text-tertiary" />
                 </div>
                 <div>
-                  <p className="font-headline text-sm font-bold mb-0.5"
+                  <p className="font-display text-sm font-bold mb-0.5"
                     >
                     Most Improved
                   </p>
@@ -318,7 +318,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   <Icon name="bolt" size={22} className="text-secondary" />
                 </div>
                 <div>
-                  <p className="font-headline text-sm font-bold mb-0.5"
+                  <p className="font-display text-sm font-bold mb-0.5"
                     >
                     Biggest Upset
                   </p>
@@ -335,7 +335,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                   <Icon name="emoji_events" size={22} className="text-primary" />
                 </div>
                 <div>
-                  <p className="font-headline text-sm font-bold mb-0.5"
+                  <p className="font-display text-sm font-bold mb-0.5"
                     >
                     Champion
                   </p>

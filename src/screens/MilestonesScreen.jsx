@@ -98,7 +98,7 @@ function AchievementCard(props) {
           {statusLabel}
         </span>
       </div>
-      <h4 className="font-serif text-xl text-on-surface mb-2">{a.name}</h4>
+      <h4 className="font-editorial text-xl text-on-surface mb-2">{a.name}</h4>
       <p className="text-on-surface-variant text-sm mb-6 leading-snug">{a.desc}</p>
       <div className="flex items-center gap-3">
         <div className="flex-1 h-1 bg-surface-container-highest">
@@ -132,7 +132,7 @@ function MilestoneRow(props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1 flex-wrap">
-            <span className="font-serif text-lg text-on-surface">{m.name}</span>
+            <span className="font-editorial text-lg text-on-surface">{m.name}</span>
             {myUnlocked && (
               <span className="bg-tertiary/10 text-tertiary px-2 py-0.5 text-[10px] font-label font-bold uppercase tracking-widest rounded">Unlocked</span>
             )}
@@ -263,7 +263,7 @@ export default function MilestonesScreen() {
           <div className="flex justify-between items-end mb-4 flex-wrap gap-4">
             <div>
               <span className="font-label uppercase tracking-widest text-xs text-primary font-bold">Current Standing</span>
-              <h2 className="font-serif text-3xl text-on-surface">
+              <h2 className="font-editorial text-3xl text-on-surface">
                 {currentTierLabel}
                 <span className="text-on-surface-variant font-mono text-xl ml-3 tracking-tighter">{myPts.toLocaleString()} pts</span>
               </h2>
@@ -541,7 +541,7 @@ export default function MilestonesScreen() {
             <span className="bg-primary text-on-primary px-3 py-1 text-xs font-label font-bold uppercase tracking-widest mb-4 inline-block">
               Challenger Tier Exclusive
             </span>
-            <h3 className="font-serif text-4xl lg:text-5xl text-on-surface mb-4">Season Champion Rewards</h3>
+            <h3 className="font-editorial text-4xl lg:text-5xl text-on-surface mb-4">Season Champion Rewards</h3>
             <p className="text-on-surface-variant text-lg mb-8 max-w-xl">
               The season's top-tier cosmetics. Only unlocked by players who hit Challenger before the finale.
             </p>

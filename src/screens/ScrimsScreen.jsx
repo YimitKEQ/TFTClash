@@ -761,7 +761,7 @@ export default function ScrimsScreen() {
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-32 text-center">
           <Icon name="lock" size={32} className="text-on-surface-variant mb-4 opacity-40"/>
-          <div className="font-serif text-2xl font-bold text-on-surface mb-2">Friends Only</div>
+          <div className="font-editorial text-2xl font-bold text-on-surface mb-2">Friends Only</div>
           <div className="text-sm text-on-surface-variant">Ask an admin to grant access.</div>
         </div>
       </PageLayout>
@@ -803,7 +803,7 @@ export default function ScrimsScreen() {
             <div className="col-span-12 lg:col-span-4">
               <Panel padding="none" className="overflow-hidden">
                 <div className="px-5 py-4 bg-surface-container">
-                  <h2 className="font-serif text-xl font-bold">New Session</h2>
+                  <h2 className="font-editorial text-xl font-bold">New Session</h2>
                 </div>
                 <div className="p-5 space-y-4">
                   <div>
@@ -1118,7 +1118,7 @@ export default function ScrimsScreen() {
                         <Panel padding="none" className="overflow-hidden">
                           <div className="px-5 py-4 bg-surface-container flex items-center justify-between">
                             <div>
-                              <h3 className="font-serif text-xl font-bold">Round {currentRound} Complete</h3>
+                              <h3 className="font-editorial text-xl font-bold">Round {currentRound} Complete</h3>
                               <p className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mt-0.5">Cross-lobby standings</p>
                             </div>
                             <Btn variant="primary" size="sm" icon="skip_next" onClick={nextRound}>
@@ -1353,7 +1353,7 @@ export default function ScrimsScreen() {
                 <Panel padding="none" className="overflow-hidden">
                   <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
                     <div>
-                      <h2 className="font-serif text-2xl font-bold">Player Leaderboard</h2>
+                      <h2 className="font-editorial text-2xl font-bold">Player Leaderboard</h2>
                       <p className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mt-0.5">Sorted by total points</p>
                     </div>
                   </div>
@@ -1422,7 +1422,7 @@ export default function ScrimsScreen() {
                 {safeSessions.length >= 2 && (
                   <Panel padding="none" className="overflow-hidden">
                     <div className="px-6 py-4 bg-surface-container">
-                      <h2 className="font-serif text-2xl font-bold">Session Breakdown</h2>
+                      <h2 className="font-editorial text-2xl font-bold">Session Breakdown</h2>
                       <p className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mt-0.5">Points and avg per session - track improvement over time</p>
                     </div>
                     <div className="p-6 overflow-x-auto">
@@ -1491,7 +1491,7 @@ export default function ScrimsScreen() {
                   <Panel padding="none" className="overflow-hidden">
                     <div className="px-6 py-4 bg-surface-container flex items-center justify-between">
                       <div>
-                        <h2 className="font-serif text-2xl font-bold">Comp Performance</h2>
+                        <h2 className="font-editorial text-2xl font-bold">Comp Performance</h2>
                         <p className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest mt-0.5">{compList.length} comps tracked across {allGames.length} games</p>
                       </div>
                     </div>
@@ -1755,7 +1755,7 @@ export default function ScrimsScreen() {
         {confirmDelete && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <Panel padding="default" className="max-w-sm w-full">
-              <div className="font-serif text-lg font-bold text-on-surface mb-2">Delete {confirmDelete.type}?</div>
+              <div className="font-editorial text-lg font-bold text-on-surface mb-2">Delete {confirmDelete.type}?</div>
               <div className="text-sm text-on-surface-variant mb-5">This cannot be undone.</div>
               <div className="flex gap-3">
                 <Btn variant="secondary" size="md" onClick={function() { setConfirmDelete(null); }} className="flex-1">Cancel</Btn>

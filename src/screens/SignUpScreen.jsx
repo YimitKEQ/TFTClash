@@ -51,7 +51,7 @@ export default function SignUpScreen() {
           {/* Auth panel */}
           <Panel className="p-8 space-y-6">
             <div className="space-y-1">
-              <h2 className="font-headline text-xl font-bold text-on-surface">Join the Arena</h2>
+              <h2 className="font-display text-xl font-bold text-on-surface">Join the Arena</h2>
               <p className="text-xs font-label uppercase tracking-widest text-on-surface/40">Free to compete, every week</p>
             </div>
 

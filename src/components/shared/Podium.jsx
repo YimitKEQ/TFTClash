@@ -47,7 +47,7 @@ function PodiumSlot({ player, place, color, barHeight, avatarSize, imgClass, ord
           {isFirst ? player.name : `${place}${placeSuffix}`}
         </div>
       </div>
-      <h3 className={`font-headline ${isFirst ? 'text-3xl' : 'text-2xl'} mb-1`}>{player.name}</h3>
+      <h3 className={`font-display ${isFirst ? 'text-3xl' : 'text-2xl'} mb-1`}>{player.name}</h3>
       <p className={`font-mono ${isFirst ? 'text-primary text-lg font-bold' : 'text-tertiary text-sm'}`}>{player.pts || 0} pts</p>
       <div
         className={`${isFirst ? 'mt-6' : 'mt-4'} ${barHeight} w-full rounded-t-xl ${

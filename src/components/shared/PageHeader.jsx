@@ -9,7 +9,7 @@ export default function PageHeader({ title, subtitle, description, goldWord, gri
           <span className="brand-eyebrow">{subtitle}</span>
         </div>
       )}
-      <h1 className="text-5xl md:text-7xl font-serif font-black tracking-tight leading-none mb-4">
+      <h1 className="text-5xl md:text-7xl font-editorial font-black tracking-tight leading-none mb-4">
         {goldWord ? (
           <>{title} <span className="gold-gradient-text">{goldWord}</span></>
         ) : title}

@@ -18,7 +18,7 @@ export default function SectionHeader({ eyebrow, title, description, action, ali
             {eyebrow}
           </span>
         ) : null}
-        <h2 className="font-headline text-2xl sm:text-3xl font-bold text-on-surface leading-tight">
+        <h2 className="font-display text-2xl sm:text-3xl font-bold text-on-surface leading-tight">
           {title}
         </h2>
         {description ? (

@@ -43,7 +43,7 @@ function SeasonHero(props) {
       {/* Large season number watermark */}
       <div className="absolute bottom-6 left-6">
         <div
-          className={'font-serif text-7xl font-bold leading-none select-none ' + (isLegacy ? 'text-white/10' : 'text-primary/20')}
+          className={'font-editorial text-7xl font-bold leading-none select-none ' + (isLegacy ? 'text-white/10' : 'text-primary/20')}
         >
           {season.number}
         </div>
@@ -83,7 +83,7 @@ function SeasonCard(props) {
           {/* Header row */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h2 className={'font-serif text-4xl text-on-surface' + (isLegacy ? ' opacity-80' : '')}>
+              <h2 className={'font-editorial text-4xl text-on-surface' + (isLegacy ? ' opacity-80' : '')}>
                 {season.title}
               </h2>
               <p className="font-label text-slate-500 uppercase tracking-widest text-sm">

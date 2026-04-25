@@ -70,7 +70,7 @@ export default function FAQScreen() {
 
       {/* Hero Header & Search */}
       <section className="text-center mb-16 mt-4">
-        <h1 className="text-5xl md:text-7xl font-headline font-bold text-on-background mb-6 leading-tight">
+        <h1 className="text-5xl md:text-7xl font-display font-bold text-on-background mb-6 leading-tight">
           {'How can we '}
           <span className="text-primary italic font-editorial">assist</span>
           {' you?'}
@@ -126,7 +126,7 @@ export default function FAQScreen() {
             <span className="text-primary font-mono text-xs uppercase tracking-[0.2em] mb-4 block">
               {FEATURED.label}
             </span>
-            <h3 className="text-2xl font-headline font-bold leading-tight mb-4 text-on-surface">
+            <h3 className="text-2xl font-display font-bold leading-tight mb-4 text-on-surface">
               {FEATURED.q}
             </h3>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-6 font-body">
@@ -176,7 +176,7 @@ export default function FAQScreen() {
                   onClick={function () { toggleItem(key) }}
                   className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
                 >
-                  <span className="text-xl font-headline font-bold text-on-surface pr-4">
+                  <span className="text-xl font-display font-bold text-on-surface pr-4">
                     {item.q}
                   </span>
                   <Icon
@@ -203,7 +203,7 @@ export default function FAQScreen() {
         <Panel padding="none" className="relative overflow-hidden p-12 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-primary/5 rounded-full blur-[100px]"></div>
           <div className="relative z-10 max-w-xl">
-            <h2 className="text-3xl font-headline font-bold mb-4 text-on-background">
+            <h2 className="text-3xl font-display font-bold mb-4 text-on-background">
               {'Still need '}
               <span className="italic text-primary font-editorial">human</span>
               {' support?'}

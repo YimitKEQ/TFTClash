@@ -133,7 +133,7 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
       </div>
       <div className="p-6">
         <div className="flex justify-between items-start mb-3">
-          <h3 className="font-headline text-2xl font-bold leading-tight">{ev.name}</h3>
+          <h3 className="font-display text-2xl font-bold leading-tight">{ev.name}</h3>
           <Icon name="share" className="text-on-surface-variant/40" size={20} />
         </div>
         <div className="space-y-4 mb-4">
@@ -348,7 +348,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
         <Panel elevation="elevated" padding="none" className="relative h-[500px] w-full mb-16 overflow-hidden flex items-center justify-center">
           <div className="text-center">
             <Icon name="event" size={48} className="text-on-surface-variant/20 block mb-4" />
-            <h3 className="font-headline text-3xl font-bold text-on-surface mb-2">No Featured Events Yet</h3>
+            <h3 className="font-display text-3xl font-bold text-on-surface mb-2">No Featured Events Yet</h3>
             <p className="text-on-surface-variant text-sm max-w-sm mx-auto">
               Featured tournaments and community events will appear here once created by event organizers.
             </p>
@@ -412,7 +412,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
           <Panel elevation="highest" padding="spacious" accent="gold" className="flex flex-col justify-between">
             <div>
               <span className="font-label text-xs text-primary uppercase tracking-widest mb-4 block">Quick FAQ</span>
-              <h4 className="font-headline text-3xl font-bold mb-4">How to Join Community Events?</h4>
+              <h4 className="font-display text-3xl font-bold mb-4">How to Join Community Events?</h4>
               <p className="text-on-surface-variant text-sm mb-6 leading-relaxed">
                 Most community tournaments are open to all ranks. Ensure your Riot account is linked to your TFT Clash profile to automatically sync your stats and eligibility.
               </p>
@@ -433,7 +433,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
               >
                 <Icon name="verified_user" size={24} />
               </div>
-              <h4 className="font-headline text-2xl font-bold">Safe and Fair Play</h4>
+              <h4 className="font-display text-2xl font-bold">Safe and Fair Play</h4>
             </div>
             <p className="text-on-surface-variant text-sm leading-relaxed mb-4">
               All tournaments are monitored by TFT Clash staff and community moderators. Cheating or unsportsmanlike behavior results in permanent bans from the platform.
@@ -448,7 +448,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
       {/* Past events list */}
       {past.length > 0 && (
         <div className="mt-16">
-          <h3 className="font-headline text-2xl font-bold text-on-surface mb-6">Past Events</h3>
+          <h3 className="font-display text-2xl font-bold text-on-surface mb-6">Past Events</h3>
           <div className="flex flex-col gap-3">
             {past.map(function(ev) {
               return (
@@ -459,7 +459,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                   onClick={function() { navigate('/tournament/' + ev.id) }}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-headline font-bold text-base text-on-surface mb-0.5">{ev.name}</div>
+                    <div className="font-display font-bold text-base text-on-surface mb-0.5">{ev.name}</div>
                     <div className="text-[11px] text-on-surface-variant font-label uppercase tracking-wider">
                       {ev.date + ' - ' + ev.registered + ' players'}
                     </div>
@@ -484,7 +484,7 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
       {/* Host CTA */}
       <Panel elevation="highest" padding="none" className="mt-16 p-10 text-center">
         <Icon name="sports_esports" size={40} className="text-primary block mx-auto mb-4" />
-        <h3 className="font-headline text-3xl font-bold text-on-surface mb-3">Run Your Own Tournament</h3>
+        <h3 className="font-display text-3xl font-bold text-on-surface mb-3">Run Your Own Tournament</h3>
         <p className="text-on-surface-variant text-sm leading-relaxed max-w-md mx-auto mb-8">
           Get featured here. Create and manage TFT tournaments with our full host suite.
         </p>
@@ -611,7 +611,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
     return (
       <Panel padding="none" className="p-16 text-center">
         <Icon name="bolt" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
-        <div className="font-headline text-2xl font-bold text-on-surface mb-2">No Tournaments Yet</div>
+        <div className="font-display text-2xl font-bold text-on-surface mb-2">No Tournaments Yet</div>
         <div className="text-sm text-on-surface-variant leading-relaxed">
           Flash tournaments will appear here when admins create them.
         </div>
@@ -672,7 +672,7 @@ function TournamentsTab({ navigate, currentUser, players, onAuthClick, toast }) 
                   </div>
                 </div>
 
-                <h3 className="font-headline text-2xl font-bold text-on-surface mb-3">{t.name}</h3>
+                <h3 className="font-display text-2xl font-bold text-on-surface mb-3">{t.name}</h3>
 
                 {prizes.length > 0 && (
                   <div className="flex gap-2 mb-4 flex-wrap">
@@ -764,7 +764,7 @@ function SeasonTab({ seasonConfig, tournamentState, navigate }) {
     return (
       <Panel padding="none" className="p-16 text-center">
         <Icon name="calendar_month" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
-        <div className="font-headline text-2xl font-bold text-on-surface mb-2">Season Calendar Coming Soon</div>
+        <div className="font-display text-2xl font-bold text-on-surface mb-2">Season Calendar Coming Soon</div>
         <div className="text-sm text-on-surface-variant max-w-md mx-auto">
           Once the admin sets the season start date and number of weeks, the full calendar will appear here.
         </div>
@@ -806,7 +806,7 @@ function SeasonTab({ seasonConfig, tournamentState, navigate }) {
   return (
     <div>
       <div className="mb-10">
-        <h2 className="font-headline text-3xl font-bold text-on-surface mb-2">Season Calendar</h2>
+        <h2 className="font-display text-3xl font-bold text-on-surface mb-2">Season Calendar</h2>
         <p className="text-on-surface-variant text-sm font-body">
           {totalWeeks + ' weeks of competition. Every ' + dayOfWeek + ' at ' + startTime + '. Free to enter.'}
         </p>
@@ -826,7 +826,7 @@ function SeasonTab({ seasonConfig, tournamentState, navigate }) {
               className={'px-5 py-4 transition-colors ' + (isCurrent ? 'border-primary/40' : '') + (isComplete ? ' opacity-60' : '')}
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="font-headline font-bold text-base text-on-surface">{'Week ' + w.number}</div>
+                <div className="font-display font-bold text-base text-on-surface">{'Week ' + w.number}</div>
                 <span className={'text-[10px] font-bold rounded px-2 py-0.5 uppercase tracking-widest font-label border ' + badge.cls}>
                   {badge.label}
                 </span>
@@ -875,7 +875,7 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
     return (
       <Panel padding="none" className="p-16 text-center">
         <Icon name="archive" size={40} className="text-on-surface-variant/20 block mx-auto mb-4" />
-        <div className="font-headline text-2xl font-bold text-on-surface mb-2">No Past Clashes</div>
+        <div className="font-display text-2xl font-bold text-on-surface mb-2">No Past Clashes</div>
         <div className="text-sm text-on-surface-variant">Completed clashes will be archived here.</div>
       </Panel>
     )
@@ -895,7 +895,7 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
               {'#' + (clashes.length - idx)}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-headline font-bold text-base text-on-surface mb-0.5">
+              <div className="font-display font-bold text-base text-on-surface mb-0.5">
                 {clash.name || ('Clash #' + (clashes.length - idx))}
               </div>
               <div className="font-label text-[11px] text-on-surface-variant uppercase tracking-wider">

@@ -34,7 +34,7 @@ export default function CountdownTimer(props) {
         return (
           <div key={seg.label} className="flex flex-col items-center">
             <span className="font-mono text-3xl md:text-4xl font-bold text-on-surface">{String(seg.value).padStart(2, '0')}</span>
-            <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface/40 mt-1">{seg.label}</span>
+            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface/40 mt-1">{seg.label}</span>
           </div>
         )
       })}
