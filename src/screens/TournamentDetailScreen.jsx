@@ -343,9 +343,9 @@ export default function TournamentDetailScreen() {
                 </Btn>
               )}
               {!isCompleted && currentUser && isFull && !isRegistered && (
-                <button disabled className="px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded bg-surface-container-high text-on-surface-variant/50 cursor-not-allowed">
+                <Btn variant="secondary" size="sm" disabled>
                   Tournament Full
-                </button>
+                </Btn>
               )}
               {!isCompleted && !currentUser && (
                 <Btn variant="primary" size="sm" onClick={function() { setAuthScreen('login'); }}>

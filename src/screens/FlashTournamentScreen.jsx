@@ -674,23 +674,23 @@ export default function FlashTournamentScreen(props) {
   var regBtnLabel = 'Register';
   var regBtnAction = handleRegister;
   var regBtnDisabled = false;
-  var regBtnClass = 'bg-primary text-on-primary shadow-lg shadow-primary/20 hover:brightness-110';
+  var regBtnVariant = 'primary';
   var regionBlocked = myPlayer && tournament && !canRegisterInRegion(myPlayer.region, tournament.region);
   if (!myReg && regionBlocked && (phase === 'registration' || phase === 'check_in')) {
     regBtnLabel = (tournament.region || 'Region') + ' Only - Switch Region';
-    regBtnClass = 'bg-error/15 text-error border border-error/30';
+    regBtnVariant = 'destructive';
     regBtnAction = function() { navigate('/account'); };
   }
   if (myReg && myReg.status === 'registered' && phase === 'check_in') {
-    regBtnLabel = 'Check In'; regBtnClass = 'bg-tertiary text-on-tertiary shadow-lg shadow-tertiary/20 hover:brightness-110'; regBtnAction = handleCheckIn;
+    regBtnLabel = 'Check In'; regBtnVariant = 'tertiary'; regBtnAction = handleCheckIn;
   } else if (myReg && myReg.status === 'checked_in') {
-    regBtnLabel = 'Checked In'; regBtnClass = 'bg-tertiary/20 text-tertiary'; regBtnDisabled = true;
+    regBtnLabel = 'Checked In'; regBtnVariant = 'tertiary'; regBtnDisabled = true;
   } else if (myReg && myReg.status === 'waitlisted') {
-    regBtnLabel = 'Waitlisted (#' + (myReg.waitlist_position || '?') + ')'; regBtnClass = 'bg-surface-container-high text-on-surface-variant'; regBtnDisabled = true;
+    regBtnLabel = 'Waitlisted (#' + (myReg.waitlist_position || '?') + ')'; regBtnVariant = 'secondary'; regBtnDisabled = true;
   } else if (myReg && myReg.status === 'registered') {
-    regBtnLabel = 'Registered'; regBtnClass = 'bg-tertiary/20 text-tertiary'; regBtnDisabled = true;
+    regBtnLabel = 'Registered'; regBtnVariant = 'tertiary'; regBtnDisabled = true;
   } else if (phase !== 'registration' && phase !== 'check_in') {
-    regBtnLabel = phase === 'draft' ? 'Registration Not Open' : 'Registration Closed'; regBtnDisabled = true; regBtnClass = 'bg-surface-container-high text-on-surface-variant/50';
+    regBtnLabel = phase === 'draft' ? 'Registration Not Open' : 'Registration Closed'; regBtnDisabled = true; regBtnVariant = 'secondary';
   }
 
   var canUnregister = myReg && (phase === 'registration' || phase === 'check_in') && myReg.status !== 'dropped';
@@ -827,34 +827,34 @@ export default function FlashTournamentScreen(props) {
             </div>
             <div className="flex gap-2 flex-wrap">
               {phase === 'draft' && (
-                <button onClick={adminOpenRegistration} className="px-3 py-1.5 bg-secondary text-on-secondary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                <Btn variant="secondary" size="sm" onClick={adminOpenRegistration}>
                   Open Registration
-                </button>
+                </Btn>
               )}
               {phase === 'registration' && (
-                <button onClick={adminOpenCheckIn} className="px-3 py-1.5 bg-primary text-on-primary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                <Btn variant="primary" size="sm" onClick={adminOpenCheckIn}>
                   Open Check-In
-                </button>
+                </Btn>
               )}
               {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
-                <button onClick={generateLobbies} disabled={actionLoading} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-label font-bold text-[10px] tracking-widest uppercase rounded disabled:opacity-40 hover:brightness-110 transition-all">
+                <Btn variant="tertiary" size="sm" onClick={generateLobbies} disabled={actionLoading} loading={actionLoading}>
                   {actionLoading ? 'Generating...' : 'Generate Lobbies'}
-                </button>
+                </Btn>
               )}
               {(phase === 'check_in' || phase === 'registration') && (
-                <button onClick={adminStartTournament} className="px-3 py-1.5 bg-surface-container-high text-on-surface font-label font-bold text-[10px] tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                <Btn variant="secondary" size="sm" onClick={adminStartTournament}>
                   Start Tournament
-                </button>
+                </Btn>
               )}
               {isLive && allLobbiesLocked && !isLastGame && (
-                <button onClick={startNextGame} className="px-3 py-1.5 bg-primary text-on-primary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                <Btn variant="primary" size="sm" onClick={startNextGame}>
                   {"Start Game " + (currentGameNumber + 1)}
-                </button>
+                </Btn>
               )}
               {isLive && allLobbiesLocked && isLastGame && (
-                <button onClick={finalizeTournament} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                <Btn variant="tertiary" size="sm" onClick={finalizeTournament}>
                   Finalize Tournament
-                </button>
+                </Btn>
               )}
             </div>
           </div>
@@ -873,19 +873,24 @@ export default function FlashTournamentScreen(props) {
               </div>
             </div>
             <div className="flex gap-2 items-center">
-              <button
+              <Btn
+                variant={regBtnVariant}
+                size="md"
                 onClick={regBtnAction}
                 disabled={regBtnDisabled || actionLoading}
-                className={"px-5 py-2.5 font-label font-bold text-xs tracking-widest uppercase rounded transition-all disabled:opacity-40 disabled:pointer-events-none " + regBtnClass}>
+                loading={actionLoading}
+              >
                 {actionLoading ? '...' : regBtnLabel}
-              </button>
+              </Btn>
               {canUnregister && (
-                <button
+                <Btn
+                  variant="secondary"
+                  size="sm"
                   onClick={handleUnregister}
                   disabled={actionLoading}
-                  className="px-3 py-2 bg-surface-container-high text-on-surface-variant font-label font-bold text-[10px] tracking-widest uppercase rounded hover:bg-error/10 hover:text-error transition-colors">
+                >
                   Unregister
-                </button>
+                </Btn>
               )}
             </div>
           </div>
@@ -1133,8 +1138,8 @@ export default function FlashTournamentScreen(props) {
                             return (<option key={"place-" + (i + 1)} value={i + 1}>{i + 1}</option>);
                           })}
                         </Sel>
-                        <button onClick={function() { submitReport(myPlacement); }} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Submit</button>
-                        <button onClick={function() { setMyPlacement(0); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
+                        <Btn variant="primary" size="sm" onClick={function() { submitReport(myPlacement); }}>Submit</Btn>
+                        <Btn variant="secondary" size="sm" onClick={function() { setMyPlacement(0); }}>Cancel</Btn>
                       </div>
                     )}
                   </div>
@@ -1209,8 +1214,8 @@ export default function FlashTournamentScreen(props) {
                       className="w-full bg-surface-container-lowest border border-error/15 rounded text-xs text-on-surface px-3 py-2 mb-3 focus:outline-none focus:ring-1 focus:ring-error box-border"
                     />
                     <div className="flex gap-2">
-                      <button onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason} className="px-4 py-2 bg-error text-on-error font-label font-bold text-xs tracking-widest uppercase rounded disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">Submit Dispute</button>
-                      <button onClick={function() { setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''}); }} className="px-3 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">Cancel</button>
+                      <Btn variant="destructive" size="sm" onClick={submitDispute} disabled={!disputeForm.claimed || !disputeForm.reason}>Submit Dispute</Btn>
+                      <Btn variant="secondary" size="sm" onClick={function() { setDisputeForm({open: false, lobbyId: null, claimed: 0, reason: '', screenshotUrl: ''}); }}>Cancel</Btn>
                     </div>
                   </div>
                 )}
@@ -1435,7 +1440,7 @@ export default function FlashTournamentScreen(props) {
                             onChange={function(e) { var v = e.target.value; setLobbyCodeInputs(function(prev) { var next = Object.assign({}, prev); next[codeKey] = v; return next; }); }}
                             className="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded text-sm text-on-surface font-mono placeholder:text-on-surface-variant/30 px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
                           />
-                          <button onClick={function() { submitLobbyCode(lobby.id, codeInput); }} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">Save</button>
+                          <Btn variant="primary" size="sm" onClick={function() { submitLobbyCode(lobby.id, codeInput); }}>Save</Btn>
                         </div>
                       )}
 
@@ -1634,8 +1639,8 @@ export default function FlashTournamentScreen(props) {
                       </div>
                       {isOpen && (
                         <div className="flex gap-2 shrink-0">
-                          <button onClick={function() { resolveDispute(d.id, true); }} className="px-3 py-1.5 bg-tertiary text-on-tertiary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Accept</button>
-                          <button onClick={function() { resolveDispute(d.id, false); }} className="px-3 py-1.5 bg-error text-on-error font-label font-bold text-[10px] tracking-widest uppercase rounded hover:brightness-110 transition-all">Reject</button>
+                          <Btn variant="tertiary" size="sm" onClick={function() { resolveDispute(d.id, true); }}>Accept</Btn>
+                          <Btn variant="destructive" size="sm" onClick={function() { resolveDispute(d.id, false); }}>Reject</Btn>
                         </div>
                       )}
                     </div>
@@ -1658,24 +1663,24 @@ export default function FlashTournamentScreen(props) {
             <div className="p-5">
               <div className="flex gap-2 flex-wrap">
                 {phase === 'draft' && (
-                  <button onClick={adminOpenRegistration} className="px-4 py-2 bg-secondary text-on-secondary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  <Btn variant="secondary" size="sm" onClick={adminOpenRegistration}>
                     Open Registration
-                  </button>
+                  </Btn>
                 )}
                 {phase === 'registration' && (
-                  <button onClick={adminOpenCheckIn} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                  <Btn variant="primary" size="sm" onClick={adminOpenCheckIn}>
                     Open Check-In
-                  </button>
+                  </Btn>
                 )}
                 {phase === 'check_in' && (
-                  <button onClick={adminCloseCheckIn} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded hover:brightness-110 transition-all">
+                  <Btn variant="primary" size="sm" onClick={adminCloseCheckIn}>
                     Close Check-In
-                  </button>
+                  </Btn>
                 )}
                 {phase === 'check_in' && checkedInCount >= 2 && lobbies.length === 0 && (
-                  <button onClick={generateLobbies} disabled={actionLoading} className="px-4 py-2 bg-tertiary text-on-tertiary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 disabled:opacity-40 disabled:pointer-events-none hover:brightness-110 transition-all">
+                  <Btn variant="tertiary" size="sm" onClick={generateLobbies} disabled={actionLoading} loading={actionLoading}>
                     {actionLoading ? 'Generating...' : 'Generate Lobbies'}
-                  </button>
+                  </Btn>
                 )}
                 {phase === 'check_in' && lobbies.length > 0 && (
                   <span className="flex items-center gap-1.5 text-[10px] font-label font-bold text-tertiary bg-tertiary/10 rounded px-3 py-2 border border-tertiary/20">
@@ -1684,19 +1689,19 @@ export default function FlashTournamentScreen(props) {
                   </span>
                 )}
                 {(phase === 'check_in' || phase === 'registration') && (
-                  <button onClick={adminStartTournament} className="px-4 py-2 bg-surface-container-high text-on-surface font-label font-bold text-xs tracking-widest uppercase rounded hover:bg-surface-container-highest transition-colors">
+                  <Btn variant="secondary" size="sm" onClick={adminStartTournament}>
                     Start Tournament
-                  </button>
+                  </Btn>
                 )}
                 {isLive && allLobbiesLocked && !isLastGame && (
-                  <button onClick={startNextGame} className="px-4 py-2 bg-primary text-on-primary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-primary/20 hover:brightness-110 transition-all">
+                  <Btn variant="primary" size="sm" onClick={startNextGame}>
                     {"Start Game " + (currentGameNumber + 1)}
-                  </button>
+                  </Btn>
                 )}
                 {isLive && allLobbiesLocked && isLastGame && (
-                  <button onClick={finalizeTournament} className="px-4 py-2 bg-tertiary text-on-tertiary font-label font-bold text-xs tracking-widest uppercase rounded shadow-lg shadow-tertiary/20 hover:brightness-110 transition-all">
+                  <Btn variant="tertiary" size="sm" onClick={finalizeTournament}>
                     Finalize Tournament
-                  </button>
+                  </Btn>
                 )}
               </div>
               <div className="text-[10px] font-mono text-on-surface-variant/40 mt-3">
