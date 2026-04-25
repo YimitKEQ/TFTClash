@@ -166,6 +166,106 @@ function TournamentCard({ ev, currentUser, onAuthClick, onRegister, navigate }) 
   )
 }
 
+// ── Prize pool podium strip (Wave 25) ─────────────────────────────────────────
+
+function parsePrizeAmount(input) {
+  if (input == null) return 0
+  var s = String(input)
+  var multiplier = 1
+  if (/[kK]/.test(s)) multiplier = 1000
+  else if (/[mM]/.test(s)) multiplier = 1000000
+  var num = parseFloat(s.replace(/[^0-9.]/g, ''))
+  if (!isFinite(num)) return 0
+  return num * multiplier
+}
+
+function formatPrizeShort(amount) {
+  if (amount >= 1000000) return '$' + (amount / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (amount >= 1000) return '$' + (amount / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+  return '$' + Math.round(amount)
+}
+
+function PrizePoolPodium(props) {
+  var events = props.events || []
+  var navigate = props.navigate
+
+  var ranked = events
+    .map(function(ev) {
+      return { ev: ev, amount: parsePrizeAmount(ev.prizePool) }
+    })
+    .filter(function(x) { return x.amount > 0 })
+    .sort(function(a, b) { return b.amount - a.amount })
+    .slice(0, 3)
+
+  if (ranked.length === 0) return null
+
+  // Visual order: 2nd place left, 1st center, 3rd right (classic podium).
+  // We still navigate by id and label by their actual rank.
+  var visualOrder = []
+  if (ranked[1]) visualOrder.push({ rank: 2, row: ranked[1] })
+  visualOrder.push({ rank: 1, row: ranked[0] })
+  if (ranked[2]) visualOrder.push({ rank: 3, row: ranked[2] })
+
+  var heightForRank = function(rank) {
+    if (rank === 1) return 'h-32 sm:h-36'
+    if (rank === 2) return 'h-24 sm:h-28'
+    return 'h-20 sm:h-24'
+  }
+
+  var medalColor = function(rank) {
+    if (rank === 1) return 'text-primary'
+    if (rank === 2) return 'text-on-surface'
+    return 'text-tertiary'
+  }
+
+  var borderColor = function(rank) {
+    if (rank === 1) return 'border-primary/40'
+    if (rank === 2) return 'border-on-surface/30'
+    return 'border-tertiary/40'
+  }
+
+  return (
+    <section className="mb-8 rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-5">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Icon name="emoji_events" className="text-primary" />
+          <h3 className="font-display text-base tracking-wide">PRIZE POOL PODIUM</h3>
+        </div>
+        <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
+          Top {ranked.length} {ranked.length === 1 ? 'event' : 'events'} by purse
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        {visualOrder.map(function(slot) {
+          var ev = slot.row.ev
+          var amount = slot.row.amount
+          var rank = slot.rank
+          var label = ev.name || 'Untitled Event'
+          return (
+            <button
+              key={ev.id || ('rank-' + rank)}
+              type="button"
+              onClick={function() { if (navigate && ev.id) navigate('/tournament/' + ev.id) }}
+              className={'rounded-xl bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/30 transition-colors border p-4 flex flex-col items-center text-center ' + borderColor(rank) + ' ' + heightForRank(rank) + ' justify-end'}
+            >
+              <div className={'font-display text-2xl sm:text-3xl ' + medalColor(rank)}>
+                {formatPrizeShort(amount)}
+              </div>
+              <div className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant/60 mt-1">
+                {rank === 1 ? 'GRAND PURSE' : rank === 2 ? 'RUNNER UP' : 'THIRD'}
+              </div>
+              <div className="font-label uppercase tracking-wide text-xs text-on-surface mt-2 line-clamp-2 w-full" title={label}>
+                {label}
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 // ── Featured (live/upcoming community events) tab ─────────────────────────────
 
 function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthClick, navigate, toast }) {
@@ -356,6 +456,9 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
           </div>
         </Panel>
       )}
+
+      {/* Prize pool podium - Wave 25 */}
+      <PrizePoolPodium events={allEvents} navigate={navigate} />
 
       {/* Calendar subscribe banner */}
       <Panel className="mb-8 p-4 flex items-center gap-4 flex-wrap">
