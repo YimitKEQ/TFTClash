@@ -1,4 +1,4 @@
--- Migration 071: Hard-delete "Levitate's Clash Test" data
+-- Migration 073: Hard-delete "Levitate's Clash Test" data
 --
 -- Removes the dummy/QA tournament rows that leaked into production. Matches by
 -- name (case-insensitive) on the tournaments table; cascades to registrations,
@@ -33,7 +33,7 @@ BEGIN
   IF to_regclass('public.audit_log') IS NOT NULL THEN
     DELETE FROM public.audit_log
     WHERE LOWER(action) LIKE '%levitate%clash%test%'
-       OR LOWER(detail) LIKE '%levitate%clash%test%';
+       OR LOWER(details::text) LIKE '%levitate%clash%test%';
   END IF;
 END $$;
 

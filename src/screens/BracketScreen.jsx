@@ -502,13 +502,17 @@ function BracketScreen(){
 
   var allLocked=lobbies.length>0&&lobbies.every(function(_,i){return lockedLobbies.includes(i);});
 
-  // Auto-advance countdown when all lobbies locked
+  // Auto-advance countdown when all lobbies locked.
+  // advanceTriggeredRef guards against double-fire if state churns rapidly at countdown=0.
+  var advanceTriggeredRef=useRef(false);
   useEffect(function(){
     if(!isAdmin||!allLocked||round>=(tournamentState.totalGames||4)){
       if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}
       setAutoAdvanceCountdown(null);
+      advanceTriggeredRef.current=false;
       return;
     }
+    advanceTriggeredRef.current=false;
     setAutoAdvanceCountdown(15);
     autoAdvanceRef.current=setInterval(function(){
       setAutoAdvanceCountdown(function(c){
@@ -520,23 +524,27 @@ function BracketScreen(){
     return function(){if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}};
   },[allLocked,isAdmin,round,tournamentState.totalGames]);
 
-  // Trigger advance when countdown hits 0
+  // Trigger advance when countdown hits 0.
+  // Includes lobbies/round in deps so the closure captures latest state at the moment of advance.
   useEffect(function(){
     if(autoAdvanceCountdown!==0||!isAdmin||!allLocked)return;
+    if(advanceTriggeredRef.current)return;
+    advanceTriggeredRef.current=true;
     var maxRounds=tournamentState.totalGames||4;
     if(round<maxRounds){
       var nextRound=round+1;
+      var currentLobbies=lobbies;
       setTournamentState(function(ts){
         var newRH=Object.assign({},ts.roundHistory||{});
         if(ts.lockedPlacements&&Object.keys(ts.lockedPlacements).length>0)newRH[round]=ts.lockedPlacements;
         var newRL=Object.assign({},ts.roundLobbies||{});
-        newRL[round]=lobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});});
+        newRL[round]=currentLobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});});
         return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRH,roundLobbies:newRL});
       });
       toast("Auto-advanced to Game "+nextRound,"success");
     }
     setAutoAdvanceCountdown(null);
-  },[autoAdvanceCountdown]);
+  },[autoAdvanceCountdown,isAdmin,allLocked,round,lobbies,tournamentState.totalGames]);
 
   function cancelAutoAdvance(){
     if(autoAdvanceRef.current){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;}

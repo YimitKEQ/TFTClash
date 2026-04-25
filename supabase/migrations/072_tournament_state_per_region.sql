@@ -15,7 +15,7 @@ BEGIN;
 INSERT INTO public.site_settings (key, value, updated_at)
 VALUES (
   'tournament_state_na',
-  '{}'::text,
+  '{}'::jsonb,
   NOW()
 )
 ON CONFLICT (key) DO NOTHING;
@@ -24,25 +24,18 @@ ON CONFLICT (key) DO NOTHING;
 -- migrate it into the NA slot and reset EU to empty so admin can re-schedule.
 DO $$
 DECLARE
-  existing_value text;
-  parsed jsonb;
+  existing_value jsonb;
 BEGIN
   SELECT value INTO existing_value FROM public.site_settings WHERE key = 'tournament_state';
   IF existing_value IS NOT NULL THEN
-    BEGIN
-      parsed := existing_value::jsonb;
-      IF parsed->>'server' = 'NA' THEN
-        UPDATE public.site_settings
-          SET value = existing_value, updated_at = NOW()
-          WHERE key = 'tournament_state_na';
-        UPDATE public.site_settings
-          SET value = '{}'::text, updated_at = NOW()
-          WHERE key = 'tournament_state';
-      END IF;
-    EXCEPTION WHEN OTHERS THEN
-      -- value isn't valid JSON; leave it alone
-      NULL;
-    END;
+    IF existing_value->>'server' = 'NA' THEN
+      UPDATE public.site_settings
+        SET value = existing_value, updated_at = NOW()
+        WHERE key = 'tournament_state_na';
+      UPDATE public.site_settings
+        SET value = '{}'::jsonb, updated_at = NOW()
+        WHERE key = 'tournament_state';
+    END IF;
   END IF;
 END $$;
 
