@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { PTS } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
-import { applyCutLine, computeTournamentStandings } from '../lib/tournament.js'
+import { applyCutLine } from '../lib/tournament.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
 import { Panel, Btn, Inp, Sel } from '../components/ui'
 import Icon from '../components/ui/Icon.jsx'
@@ -261,9 +261,11 @@ function BracketScreen(){
     var lobby=lobbies[li];
     if(!placementEntry[li])return false;
     var vals=lobby.map(function(p){return parseInt(placementEntry[li].placements[p.id]||"0");});
-    var valid=vals.every(function(v){return v>=1&&v<=8;});
-    var unique=new Set(vals).size===vals.length;
-    return valid&&unique;
+    var rangeValid=vals.every(function(v){return v>=0&&v<=8;});
+    // 1-8 placements must be unique; DNP (0) can repeat.
+    var placedVals=vals.filter(function(v){return v>0;});
+    var unique=new Set(placedVals).size===placedVals.length;
+    return rangeValid&&unique;
   }
 
   function applyGameResults(li){
@@ -273,23 +275,38 @@ function BracketScreen(){
     lobby.forEach(function(p){placements[p.id]=parseInt(placementEntry[li].placements[p.id]||"0");});
     var allClashIds=pastClashes.map(function(c){return "c"+c.id;});
 
-    setPlayers(function(prev){return prev.map(function(p){
+    // Snapshot every player's NEW values ONCE based on current ref state, so
+    // local setState and DB writes use the SAME numbers (prevents double-count).
+    var snapshot={};
+    lobby.forEach(function(p){
       var place=placements[p.id];
-      if(place===undefined)return p;
+      if(place===undefined)return;
+      var current=playersRef.current.find(function(x){return x.id===p.id;})||p;
       var earned=PTS[place]||0;
-      var bonuses=computeSeasonBonuses(p,currentClashId,allClashIds,seasonConfig);
-      var totalEarned=earned+(bonuses.bonusPts||0);
-      var newGames=(p.games||0)+1;
-      var newWins=(p.wins||0)+(place===1?1:0);
-      var newTop4=(p.top4||0)+(place<=4?1:0);
-      var newPts=(p.pts||0)+totalEarned;
-      var newAvg=(((parseFloat(p.avg)||0)*(p.games||0)+place)/newGames).toFixed(2);
-      var newHistory=[...(p.clashHistory||[]),{round:round,place:place,pts:earned,clashId:currentClashId,bonusPts:bonuses.bonusPts||0,comebackTriggered:bonuses.comebackTriggered,attendanceMilestone:bonuses.attendanceMilestone}];
-      var newSparkline=[...(p.sparkline||[p.pts]),newPts];
-      var newStreak=place<=4?(p.currentStreak||0)+1:0;
+      var bonuses=place>0?computeSeasonBonuses(current,currentClashId,allClashIds,seasonConfig):{bonusPts:0,comebackTriggered:false,attendanceMilestone:null};
+      var bonusPts=bonuses.bonusPts||0;
+      var totalEarned=earned+bonusPts;
+      var newGames=(current.games||0)+1;
+      var newWins=(current.wins||0)+(place===1?1:0);
+      var newTop4=(current.top4||0)+(place>=1&&place<=4?1:0);
+      var newPts=(current.pts||0)+totalEarned;
+      var newAvgRaw=place>0?(((parseFloat(current.avg)||0)*(current.games||0)+place)/newGames):(parseFloat(current.avg)||0);
+      var newAvg=parseFloat(newAvgRaw.toFixed(2));
+      snapshot[p.id]={
+        place:place,earned:earned,bonusPts:bonusPts,bonuses:bonuses,
+        newPts:newPts,newWins:newWins,newTop4:newTop4,newGames:newGames,newAvg:newAvg
+      };
+    });
+
+    setPlayers(function(prev){return prev.map(function(p){
+      var snap=snapshot[p.id];
+      if(!snap)return p;
+      var newHistory=[...(p.clashHistory||[]),{round:round,place:snap.place,pts:snap.earned,clashId:currentClashId,bonusPts:snap.bonusPts,comebackTriggered:snap.bonuses.comebackTriggered,attendanceMilestone:snap.bonuses.attendanceMilestone,lobbyIndex:li}];
+      var newSparkline=[...(p.sparkline||[p.pts]),snap.newPts];
+      var newStreak=snap.place>=1&&snap.place<=4?(p.currentStreak||0)+1:0;
       var bestStreak=Math.max(p.bestStreak||0,newStreak);
       var newAttendanceStreak=getAttendanceStreak(p,allClashIds.concat([currentClashId]));
-      return Object.assign({},p,{pts:newPts,wins:newWins,top4:newTop4,games:newGames,avg:newAvg,
+      return Object.assign({},p,{pts:snap.newPts,wins:snap.newWins,top4:snap.newTop4,games:snap.newGames,avg:String(snap.newAvg),
         clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak,bestStreak:bestStreak,
         lastClashId:currentClashId,attendanceStreak:newAttendanceStreak});
     });});
@@ -309,6 +326,20 @@ function BracketScreen(){
           lockedPlacements:Object.keys(ts.lockedPlacements||{}).reduce(function(acc,k){if(String(k)!==String(li))acc[k]=ts.lockedPlacements[k];return acc;},{})
         });
       });
+      // Also revert local player state so UI stays consistent with DB.
+      setPlayers(function(prev){return prev.map(function(p){
+        var snap=snapshot[p.id];
+        if(!snap)return p;
+        var totalReverted=snap.earned+snap.bonusPts;
+        var hist=(p.clashHistory||[]).filter(function(h){return!(h.clashId===currentClashId&&h.round===round&&h.lobbyIndex===li);});
+        var newGames=Math.max((p.games||1)-1,0);
+        var newWins=Math.max((p.wins||0)-(snap.place===1?1:0),0);
+        var newTop4=Math.max((p.top4||0)-(snap.place>=1&&snap.place<=4?1:0),0);
+        var newPts=Math.max((p.pts||0)-totalReverted,0);
+        var newAvg=newGames>0&&snap.place>0?(((parseFloat(p.avg)||0)*(p.games||1)-snap.place)/newGames):0;
+        return Object.assign({},p,{pts:newPts,wins:newWins,top4:newTop4,games:newGames,
+          avg:String(parseFloat(newAvg.toFixed(2))),clashHistory:hist});
+      });});
       setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:true})});});
     }
 
@@ -324,29 +355,28 @@ function BracketScreen(){
       var dbTid=tournamentState.dbTournamentId;
       var gameRows=[];
       lobby.forEach(function(p){
-        var place=parseInt(placementEntry[li].placements[p.id]||"0");
-        if(place>0)gameRows.push({tournament_id:dbTid,round_number:round,player_id:p.id,placement:place,points:PTS[place]||0,is_dnp:false,game_number:round});
+        var snap=snapshot[p.id];
+        if(!snap)return;
+        // Persist only ranked placements (place>0) into game_results.
+        // Persist total points (base + bonus) so re-summing matches local state.
+        if(snap.place>0){
+          gameRows.push({tournament_id:dbTid,round_number:round,player_id:p.id,
+            placement:snap.place,points:snap.earned+snap.bonusPts,is_dnp:false,game_number:round});
+        }
       });
       if(gameRows.length>0){
         supabase.from('game_results').insert(gameRows).then(function(res){
           if(res.error){toast("Failed to save game results - please retry","error");rollbackLock();return;}
-          lobby.forEach(function(lp){
-              var place=parseInt(placementEntry[li].placements[lp.id]||"0");
-              if(place<=0)return;
-              var updatedP=playersRef.current.find(function(pp){return pp.id===lp.id;});
-              if(!updatedP)return;
-              var newGames=(updatedP.games||0)+1;
-              var newWins=(updatedP.wins||0)+(place===1?1:0);
-              var newTop4=(updatedP.top4||0)+(place<=4?1:0);
-              var newPts=(updatedP.pts||0)+(PTS[place]||0);
-              var newAvg=(((parseFloat(updatedP.avg)||0)*(updatedP.games||0)+place)/newGames);
-              supabase.from('players').update({
-                season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
-                avg_placement:parseFloat(newAvg.toFixed(2))
-              }).eq('id',lp.id).then(function(pr){
-                if(pr.error)console.warn('Player stat update failed:',pr.error.message);
-              }).catch(function(e){console.warn('Player stat update error:',e);});
-            });
+          // Use precomputed snapshot — same numbers as local state, no double-count.
+          Object.keys(snapshot).forEach(function(pid){
+            var u=snapshot[pid];
+            supabase.from('players').update({
+              season_pts:u.newPts,wins:u.newWins,top4:u.newTop4,games:u.newGames,
+              avg_placement:u.newAvg
+            }).eq('id',pid).then(function(pr){
+              if(pr&&pr.error)console.warn('Player stat update failed:',pr.error.message);
+            }).catch(function(e){console.warn('Player stat update error:',e);});
+          });
         }).catch(function(){ toast('Failed to save game results','error'); rollbackLock(); });
       }
     }
@@ -355,9 +385,11 @@ function BracketScreen(){
     var myLobby=currentUser?lobbies[li]&&lobbies[li].some(function(p){return p.name===currentUser.username;}):false;
     var myPlayer=myLobby?checkedIn.find(function(p){return p.name===currentUser.username;}):null;
     if(myPlayer){
-      var myPlace=placements[myPlayer.id];
-      var myPts=PTS[myPlace]||0;
-      toast("Your results are in! You placed #"+myPlace+" (+"+myPts+"pts)","success");
+      var snapMy=snapshot[myPlayer.id];
+      var myPlace=snapMy?snapMy.place:0;
+      var myPts=snapMy?(snapMy.earned+snapMy.bonusPts):0;
+      if(myPlace>0)toast("Your results are in! You placed #"+myPlace+" (+"+myPts+"pts)","success");
+      else toast("Your results are in! Marked DNP","info");
     }else{
       toast("Lobby "+(li+1)+" results applied!","success");
     }
@@ -388,21 +420,49 @@ function BracketScreen(){
   function unlockLobby(li){
     if(!window.confirm("Unlock Lobby "+(li+1)+"? This will revert all results for this lobby in the current round."))return;
     var savedPlacements=(tournamentState.lockedPlacements||{})[li];
+
+    // Snapshot reverts ONCE so local + DB writes stay aligned (mirrors applyGameResults).
+    var revertSnapshot={};
     if(savedPlacements){
-      setPlayers(function(prev){return prev.map(function(p){
-        var place=savedPlacements[p.id];
-        if(place===undefined)return p;
+      Object.keys(savedPlacements).forEach(function(pid){
+        var place=savedPlacements[pid];
+        if(place===undefined)return;
+        var current=playersRef.current.find(function(x){return String(x.id)===String(pid);});
+        if(!current)return;
+        var hist=current.clashHistory||[];
+        var matchIdx=-1;
+        for(var i=hist.length-1;i>=0;i--){
+          var h=hist[i];
+          var lobbyMatch=h.lobbyIndex===undefined||h.lobbyIndex===li;
+          if(h.clashId===currentClashId&&h.round===round&&lobbyMatch){matchIdx=i;break;}
+        }
+        var bonusPts=matchIdx>=0?(hist[matchIdx].bonusPts||0):0;
         var earned=PTS[place]||0;
-        var newGames=Math.max((p.games||1)-1,0);
-        var newWins=Math.max((p.wins||0)-(place===1?1:0),0);
-        var newTop4=Math.max((p.top4||0)-(place<=4?1:0),0);
-        var newPts=Math.max((p.pts||0)-earned,0);
-        var newAvg=newGames>0?(((parseFloat(p.avg)||0)*(p.games||1)-place)/newGames).toFixed(2):"0.00";
-        var newHistory=(p.clashHistory||[]).filter(function(h){return !(h.round===round&&h.clashId===currentClashId);});
+        var totalReverted=earned+bonusPts;
+        var newGames=Math.max((current.games||1)-1,0);
+        var newWins=Math.max((current.wins||0)-(place===1?1:0),0);
+        var newTop4=Math.max((current.top4||0)-(place>=1&&place<=4?1:0),0);
+        var newPts=Math.max((current.pts||0)-totalReverted,0);
+        var newAvgRaw=newGames>0&&place>0?(((parseFloat(current.avg)||0)*(current.games||1)-place)/newGames):0;
+        var newAvg=parseFloat(newAvgRaw.toFixed(2));
+        revertSnapshot[pid]={place:place,earned:earned,bonusPts:bonusPts,
+          newPts:newPts,newWins:newWins,newTop4:newTop4,newGames:newGames,newAvg:newAvg};
+      });
+
+      setPlayers(function(prev){return prev.map(function(p){
+        var snap=revertSnapshot[p.id];
+        if(!snap)return p;
+        var newHistory=(p.clashHistory||[]).filter(function(h){
+          var lobbyMatch=h.lobbyIndex===undefined||h.lobbyIndex===li;
+          return!(h.round===round&&h.clashId===currentClashId&&lobbyMatch);
+        });
         var newSparkline=(p.sparkline||[]).slice(0,-1);
-        var newStreak=place<=4?Math.max((p.currentStreak||0)-1,0):p.currentStreak;
-        return Object.assign({},p,{pts:newPts,wins:newWins,top4:newTop4,games:newGames,avg:newAvg,
-          clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak});
+        var newStreak=snap.place>=1&&snap.place<=4?Math.max((p.currentStreak||0)-1,0):p.currentStreak;
+        return Object.assign({},p,{
+          pts:snap.newPts,wins:snap.newWins,top4:snap.newTop4,games:snap.newGames,
+          avg:String(snap.newAvg),
+          clashHistory:newHistory,sparkline:newSparkline,currentStreak:newStreak
+        });
       });});
     }
     setTournamentState(function(ts){
@@ -420,26 +480,18 @@ function BracketScreen(){
           .in('player_id',lobbyPlayerIds)
           .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       }
-      supabase.from('lobbies').update({status:'active'})
+      // Reset to 'pending' so it matches the initial lobby insert state.
+      supabase.from('lobbies').update({status:'pending'})
         .eq('tournament_id',tournamentState.dbTournamentId)
         .eq('lobby_number',li+1)
         .eq('round_number',round)
         .then(function(res){}).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
       if(savedPlacements){
-        lobbyPlayerIds.forEach(function(pid){
-          var place=savedPlacements[pid];
-          if(place===undefined)return;
-          var pp=players.find(function(q){return q.id===pid;});
-          if(!pp)return;
-          var earned=PTS[place]||0;
-          var newGames=Math.max((pp.games||1)-1,0);
-          var newWins=Math.max((pp.wins||0)-(place===1?1:0),0);
-          var newTop4=Math.max((pp.top4||0)-(place<=4?1:0),0);
-          var newPts=Math.max((pp.pts||0)-earned,0);
-          var newAvg=newGames>0?(((parseFloat(pp.avg)||0)*(pp.games||1)-place)/newGames):0;
+        Object.keys(revertSnapshot).forEach(function(pid){
+          var u=revertSnapshot[pid];
           supabase.from('players').update({
-            season_pts:newPts,wins:newWins,top4:newTop4,games:newGames,
-            avg_placement:parseFloat(newAvg.toFixed(2))
+            season_pts:u.newPts,wins:u.newWins,top4:u.newTop4,games:u.newGames,
+            avg_placement:u.newAvg
           }).eq('id',pid).then(function(pr){
           }).catch(function(e){ console.error('[BracketScreen] DB op failed:', e); });
         });
@@ -659,17 +711,24 @@ function BracketScreen(){
                     var nextRound=round+1;
                     var cutMsg="";
                     if(cutL>0&&round===cutG){
-                      var standings=computeTournamentStandings(checkedIn,[],null);
+                      // Build standings from this clash's history (computeTournamentStandings
+                      // expects game_results and was being called with []).
+                      var standings=checkedIn.map(function(p){
+                        var clashEntries=(p.clashHistory||[]).filter(function(h){return h.clashId===currentClashId;});
+                        var tournamentPts=clashEntries.reduce(function(s,h){return s+((h.pts||0)+(h.bonusPts||0));},0);
+                        return Object.assign({},p,{tournamentPts:tournamentPts,gamesInTournament:clashEntries.length});
+                      });
                       var cutResult=applyCutLine(standings,cutL,cutG);
                       var elimCount=cutResult.eliminated.length;
                       if(elimCount>0){
                         cutMsg=" - "+elimCount+" players eliminated (below "+cutL+"pts)";
-                        cutResult.eliminated.forEach(function(ep){
-                          setPlayers(function(ps){return ps.map(function(p){return p.id===ep.id?Object.assign({},p,{checkedIn:false}):p;});});
-                        });
+                        var elimIds=cutResult.eliminated.map(function(ep){return String(ep.id);});
+                        setPlayers(function(ps){return ps.map(function(p){return elimIds.indexOf(String(p.id))>=0?Object.assign({},p,{checkedIn:false}):p;});});
                         setTournamentState(function(ts){
-                          var kept=(ts.checkedInIds||[]).filter(function(cid){return!cutResult.eliminated.some(function(e){return String(e.id)===String(cid);});});
-                          return Object.assign({},ts,{checkedInIds:kept});
+                          var kept=(ts.checkedInIds||[]).filter(function(cid){return elimIds.indexOf(String(cid))<0;});
+                          var existingElim=(ts.eliminatedIds||[]).map(String);
+                          var mergedElim=existingElim.concat(elimIds.filter(function(eid){return existingElim.indexOf(eid)<0;}));
+                          return Object.assign({},ts,{checkedInIds:kept,eliminatedIds:mergedElim});
                         });
                       }
                     }
