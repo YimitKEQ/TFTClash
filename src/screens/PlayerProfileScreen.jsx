@@ -499,6 +499,17 @@ export default function PlayerProfileScreen() {
               <Btn variant="secondary" size="sm" icon="share" onClick={handleShare}>
                 Share
               </Btn>
+              <Btn
+                variant="secondary"
+                size="sm"
+                icon="image"
+                onClick={function() {
+                  var url = '/api/share-card?name=' + encodeURIComponent(player.name);
+                  window.open(url, '_blank', 'noopener,noreferrer');
+                }}
+              >
+                Share card
+              </Btn>
               {!isOwnProfile && (
                 <>
                   <Btn

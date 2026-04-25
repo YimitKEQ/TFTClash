@@ -11,6 +11,7 @@ var SCREEN_TO_ROUTE = {
   events: '/events', hof: '/hall-of-fame', archive: '/archive', results: '/results',
   milestones: '/milestones', challenges: '/challenges', scrims: '/scrims',
   pricing: '/pricing', sponsors: '/sponsors', account: '/account', admin: '/admin',
+  marketplace: '/marketplace', roadmap: '/roadmap',
   'host-apply': '/host/apply', 'host-dashboard': '/host/dashboard',
   ops: '/ops', rules: '/rules', faq: '/faq', stats: '/stats',
   bracket: '/bracket', profile: '/player', recap: '/season-recap',
@@ -129,9 +130,11 @@ export default function Sidebar() {
         <NavItem id="archive"     icon="inventory_2"           label="Archive" />
 
         <SectionHeading label="Community" />
-        <NavItem id="milestones" icon="redeem"    label="Milestones" />
-        <NavItem id="challenges" icon="star"      label="Challenges" />
-        <NavItem id="sponsors"   icon="handshake" label="Sponsors" />
+        <NavItem id="milestones"  icon="redeem"     label="Milestones" />
+        <NavItem id="challenges"  icon="star"       label="Challenges" />
+        <NavItem id="sponsors"    icon="handshake"  label="Sponsors" />
+        <NavItem id="marketplace" icon="storefront" label="Marketplace" />
+        <NavItem id="roadmap"     icon="route"      label="Roadmap" />
         {canScrims && <NavItem id="scrims" icon="sports_esports" label="Scrims" />}
 
         <SectionHeading label="Account" />
