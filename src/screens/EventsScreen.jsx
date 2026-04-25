@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, PillTab, PillTabGroup } from '../components/ui'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
+import PlatformStatsBar from '../components/shared/PlatformStatsBar'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
@@ -963,6 +964,10 @@ export default function EventsScreen() {
   return (
     <PageLayout>
       <div className="pt-8 pb-24">
+        <div className="mb-8">
+          <PlatformStatsBar />
+        </div>
+
         {/* Tab bar */}
         <PillTabGroup align="start" className="mb-12">
           {tabs.map(function(t) {
