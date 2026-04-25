@@ -13,6 +13,8 @@ import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 import PerformanceHeatmap from '../components/shared/PerformanceHeatmap'
 import TwitchEmbed from '../components/shared/TwitchEmbed'
+import TrophyCase from '../components/shared/TrophyCase'
+import ActivityTimeline from '../components/shared/ActivityTimeline'
 import { supabase } from '../lib/supabase'
 
 // ─── RATE BAR ─────────────────────────────────────────────────────────────────
@@ -711,6 +713,16 @@ export default function PlayerProfileScreen() {
                 </div>
               </div>
             </Panel>
+          </div>
+
+          {/* Trophy Case + Activity Timeline */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TrophyCase
+              player={player}
+              compact={true}
+              onShowAll={function () { setTab('achievements'); }}
+            />
+            <ActivityTimeline player={player} limit={6} />
           </div>
 
           {/* Career Stats + Rates Grid */}

@@ -26,7 +26,7 @@ function writeCached(threadId, text) {
 }
 
 function sanitize(s) {
-  return String(s == null ? '' : s).replace(/[<>"'`\\{}]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60)
+  return String(s == null ? '' : s).replace(/[<>"'`\\{}\r\n]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60)
 }
 
 function buildPrompt(eventName, podium) {
@@ -67,13 +67,21 @@ export default function AiMatchRecap(props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: buildPrompt(eventName, podium) }),
     })
-      .then(function (r) { return r.json() })
+      .then(function (r) {
+        if (!r.ok) {
+          setLoading(false)
+          setErr('Server error (' + r.status + ')')
+          return null
+        }
+        return r.json()
+      })
       .then(function (data) {
+        if (!data) return
         setLoading(false)
-        if (data && data.text) {
+        if (data.text) {
           writeCached(threadId, data.text)
           setCached({ text: data.text, ts: Date.now() })
-        } else if (data && data.error) {
+        } else if (data.error) {
           setErr(data.error)
         } else {
           setErr('No recap returned')

@@ -9,6 +9,7 @@ import SectionHeader from '../components/shared/SectionHeader'
 import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import RegionBadge from '../components/shared/RegionBadge'
+import OnboardingHint from '../components/shared/OnboardingHint'
 import { REGION_META, normalizeRegion, canRegisterInRegion } from '../lib/regions'
 import { supabase } from '../lib/supabase'
 import { getDonateUrl } from '../lib/paypal'
@@ -485,10 +486,39 @@ export default function HomeScreen() {
 
   var seasonLabel = sharedCountdown.clashName || seasonConfig.seasonName || 'TFT Clash'
 
+  var hasLinkedPlayer = !!(currentUser && players.find(function (p) {
+    return (p.authUserId && currentUser.id && String(p.authUserId) === String(currentUser.id)) ||
+      (p.name && currentUser.username && p.name.toLowerCase() === String(currentUser.username).toLowerCase())
+  }))
+
   return (
     <PageLayout showSidebar={false} maxWidth="max-w-[880px]">
 
       <div className="space-y-8 sm:space-y-12">
+
+        {!currentUser && (
+          <OnboardingHint
+            variant="guest"
+            icon="rocket_launch"
+            title="First time on TFT Clash?"
+            body="Free weekly tournaments, EU + NA brackets, full season leaderboard. Sign in with Discord to compete or just browse upcoming events as a spectator."
+            ctaLabel="Sign in"
+            onCta={function () { navigate('/login') }}
+            secondaryLabel="Browse events"
+            onSecondary={function () { navigate('/events') }}
+          />
+        )}
+
+        {currentUser && !hasLinkedPlayer && (
+          <OnboardingHint
+            variant="linked-player"
+            icon="link"
+            title="Link your Riot ID to start scoring"
+            body="Add your Riot ID in account settings so your clash placements show up on the leaderboard and your stats start counting."
+            ctaLabel="Open account"
+            onCta={function () { navigate('/account') }}
+          />
+        )}
 
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
         <section className="relative text-center space-y-6 sm:space-y-8 py-8 sm:py-12">

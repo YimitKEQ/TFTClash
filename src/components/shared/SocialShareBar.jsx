@@ -37,7 +37,7 @@ export default function SocialShareBar(props) {
   var url = props.url || (typeof window !== 'undefined' ? window.location.href : '')
   var text = props.text || 'Check this out on TFT Clash'
 
-  var _copied = useState(false)
+  var _copied = useState(null)
   var copied = _copied[0]
   var setCopied = _copied[1]
 
@@ -49,20 +49,24 @@ export default function SocialShareBar(props) {
     }
   }
 
+  function flashCopied(which) {
+    setCopied(which)
+    setTimeout(function () { setCopied(null) }, 1500)
+  }
+
   function copyLink() {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return
     navigator.clipboard.writeText(url).then(function () {
-      setCopied(true)
-      setTimeout(function () { setCopied(false) }, 1500)
+      flashCopied('link')
     }).catch(function () {})
   }
 
   function copyMarkdown() {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return
-    var md = '[' + text + '](' + url + ')'
+    var safeText = String(text || '').replace(/[\[\]]/g, '')
+    var md = '[' + safeText + '](' + url + ')'
     navigator.clipboard.writeText(md).then(function () {
-      setCopied(true)
-      setTimeout(function () { setCopied(false) }, 1500)
+      flashCopied('md')
     }).catch(function () {})
   }
 
@@ -91,16 +95,16 @@ export default function SocialShareBar(props) {
       />
       <ShareButton
         icon="link"
-        label={copied ? 'Copied!' : 'Copy'}
+        label={copied === 'link' ? 'Copied!' : 'Copy'}
         title="Copy link"
-        color={copied ? 'bg-success/15 border-success/40 text-success' : 'bg-surface-container border-outline-variant/15 text-on-surface hover:border-primary/30'}
+        color={copied === 'link' ? 'bg-success/15 border-success/40 text-success' : 'bg-surface-container border-outline-variant/15 text-on-surface hover:border-primary/30'}
         onClick={copyLink}
       />
       <ShareButton
         icon="format_quote"
-        label="MD"
+        label={copied === 'md' ? 'Copied!' : 'MD'}
         title="Copy markdown link"
-        color="bg-surface-container border-outline-variant/15 text-on-surface hover:border-primary/30"
+        color={copied === 'md' ? 'bg-success/15 border-success/40 text-success' : 'bg-surface-container border-outline-variant/15 text-on-surface hover:border-primary/30'}
         onClick={copyMarkdown}
       />
     </div>
