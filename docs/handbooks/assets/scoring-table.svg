@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" width="1200" height="380" font-family="Inter, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F0F16"/>
+      <stop offset="100%" stop-color="#1B1B27"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="380" fill="url(#bg4)"/>
+  <text x="60" y="60" font-size="14" font-weight="700" letter-spacing="6" fill="#74C7B5">EMEA POINT SYSTEM</text>
+  <text x="60" y="100" font-size="28" font-weight="900" fill="#FFFFFF">Official Riot scoring per round</text>
+
+  <g transform="translate(60, 160)">
+    <text font-size="12" font-weight="700" letter-spacing="3" fill="#9aa0aa">
+      <tspan x="0" y="0">PLACE</tspan>
+      <tspan x="120" y="0">POINTS</tspan>
+      <tspan x="260" y="0">DESCRIPTION</tspan>
+    </text>
+    <line x1="0" y1="14" x2="1080" y2="14" stroke="#2a2a35" stroke-width="1"/>
+  </g>
+
+  <g font-size="14" transform="translate(60, 200)">
+    <g><text x="0" y="0" font-weight="800" fill="#E8A838">1st</text><text x="120" y="0" font-family="JetBrains Mono, monospace" fill="#E8A838" font-weight="700">8 pts</text><text x="260" y="0" fill="#FFFFFF">Lobby win</text></g>
+    <g transform="translate(0, 24)"><text fill="#D9B9FF" font-weight="800">2nd</text><text x="120" font-family="JetBrains Mono, monospace" fill="#D9B9FF" font-weight="700">7 pts</text><text x="260" fill="#FFFFFF">Top-2</text></g>
+    <g transform="translate(0, 48)"><text fill="#74C7B5" font-weight="800">3rd</text><text x="120" font-family="JetBrains Mono, monospace" fill="#74C7B5" font-weight="700">6 pts</text><text x="260" fill="#FFFFFF">Podium</text></g>
+    <g transform="translate(0, 72)"><text fill="#74C7B5" font-weight="800">4th</text><text x="120" font-family="JetBrains Mono, monospace" fill="#74C7B5" font-weight="700">5 pts</text><text x="260" fill="#FFFFFF">Top-4 cut line</text></g>
+    <g transform="translate(0, 96)"><text fill="#9aa0aa">5th</text><text x="120" font-family="JetBrains Mono, monospace" fill="#9aa0aa">4 pts</text><text x="260" fill="#9aa0aa">Bottom-4</text></g>
+    <g transform="translate(0, 120)"><text fill="#9aa0aa">6th</text><text x="120" font-family="JetBrains Mono, monospace" fill="#9aa0aa">3 pts</text><text x="260" fill="#9aa0aa">Bottom-4</text></g>
+    <g transform="translate(0, 144)"><text fill="#9aa0aa">7th</text><text x="120" font-family="JetBrains Mono, monospace" fill="#9aa0aa">2 pts</text><text x="260" fill="#9aa0aa">Bottom-4</text></g>
+    <g transform="translate(0, 168)"><text fill="#FF5050">8th</text><text x="120" font-family="JetBrains Mono, monospace" fill="#FF5050">1 pt</text><text x="260" fill="#9aa0aa">Bottom of lobby</text></g>
+  </g>
+
+  <g transform="translate(640, 160)">
+    <text font-size="13" font-weight="700" letter-spacing="3" fill="#9aa0aa" y="0">TIEBREAKERS (in order)</text>
+    <text font-size="13" fill="#FFFFFF" font-weight="700" y="32">1. Total tournament points</text>
+    <text font-size="12" fill="#9aa0aa" y="50">Highest cumulative scoring across all 4 rounds.</text>
+    <text font-size="13" fill="#FFFFFF" font-weight="700" y="84">2. Wins + top-4 (wins count 2x)</text>
+    <text font-size="12" fill="#9aa0aa" y="102">A 1st place beats two 4th places at the same total.</text>
+    <text font-size="13" fill="#FFFFFF" font-weight="700" y="136">3. Most of each placement</text>
+    <text font-size="12" fill="#9aa0aa" y="154">Compare 1sts, then 2nds, then 3rds, then 4ths.</text>
+    <text font-size="13" fill="#FFFFFF" font-weight="700" y="188">4. Most recent finish</text>
+    <text font-size="12" fill="#9aa0aa" y="206">Last round placement decides if all else equal.</text>
+  </g>
+</svg>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" font-family="Inter, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0F0F16"/>
+      <stop offset="100%" stop-color="#1B1B27"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E8A838"/>
+      <stop offset="100%" stop-color="#D9B9FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="600" fill="url(#bg)"/>
+  <text x="60" y="60" font-size="14" font-weight="700" letter-spacing="6" fill="#74C7B5">TFT CLASH</text>
+  <text x="60" y="100" font-size="36" font-weight="900" fill="#FFFFFF">Three sides, one platform</text>
+
+  <!-- Players -->
+  <g transform="translate(60, 160)">
+    <rect width="320" height="380" rx="14" fill="#1F1F2A" stroke="#74C7B5" stroke-width="2"/>
+    <text x="24" y="44" font-size="13" font-weight="700" letter-spacing="4" fill="#74C7B5">PLAYERS</text>
+    <text x="24" y="84" font-size="22" font-weight="800" fill="#FFFFFF">Free to compete</text>
+    <text x="24" y="120" font-size="14" fill="#9aa0aa">- Sign up, link Riot ID</text>
+    <text x="24" y="146" font-size="14" fill="#9aa0aa">- Register for clashes</text>
+    <text x="24" y="172" font-size="14" fill="#9aa0aa">- Climb the season ladder</text>
+    <text x="24" y="198" font-size="14" fill="#9aa0aa">- Earn LP, badges, awards</text>
+    <text x="24" y="224" font-size="14" fill="#9aa0aa">- Profile, share card, stats</text>
+    <line x1="24" y1="252" x2="296" y2="252" stroke="#2a2a35" stroke-width="1"/>
+    <text x="24" y="282" font-size="12" font-weight="700" letter-spacing="3" fill="#74C7B5">PRO ($4.99/mo)</text>
+    <text x="24" y="306" font-size="13" fill="#9aa0aa">- Custom card art</text>
+    <text x="24" y="328" font-size="13" fill="#9aa0aa">- Detailed comp analytics</text>
+    <text x="24" y="350" font-size="13" fill="#9aa0aa">- Priority queue</text>
+  </g>
+
+  <!-- Hosts -->
+  <g transform="translate(440, 160)">
+    <rect width="320" height="380" rx="14" fill="#1F1F2A" stroke="url(#gold)" stroke-width="2"/>
+    <text x="24" y="44" font-size="13" font-weight="700" letter-spacing="4" fill="#E8A838">HOSTS</text>
+    <text x="24" y="84" font-size="22" font-weight="800" fill="#FFFFFF">$19.99/mo</text>
+    <text x="24" y="120" font-size="14" fill="#9aa0aa">- Branded tournament pages</text>
+    <text x="24" y="146" font-size="14" fill="#9aa0aa">- Custom prize pools</text>
+    <text x="24" y="172" font-size="14" fill="#9aa0aa">- Sponsor placement</text>
+    <text x="24" y="198" font-size="14" fill="#9aa0aa">- Multi-stage brackets</text>
+    <text x="24" y="224" font-size="14" fill="#9aa0aa">- OBS overlay built-in</text>
+    <text x="24" y="250" font-size="14" fill="#9aa0aa">- Match threads + chat</text>
+    <line x1="24" y1="278" x2="296" y2="278" stroke="#2a2a35" stroke-width="1"/>
+    <text x="24" y="308" font-size="12" font-weight="700" letter-spacing="3" fill="#E8A838">REVENUE</text>
+    <text x="24" y="332" font-size="13" fill="#9aa0aa">- Sponsorship splits</text>
+    <text x="24" y="354" font-size="13" fill="#9aa0aa">- Bounties + tips from fans</text>
+  </g>
+
+  <!-- Spectators -->
+  <g transform="translate(820, 160)">
+    <rect width="320" height="380" rx="14" fill="#1F1F2A" stroke="#D9B9FF" stroke-width="2"/>
+    <text x="24" y="44" font-size="13" font-weight="700" letter-spacing="4" fill="#D9B9FF">SPECTATORS</text>
+    <text x="24" y="84" font-size="22" font-weight="800" fill="#FFFFFF">Free, always</text>
+    <text x="24" y="120" font-size="14" fill="#9aa0aa">- Live brackets + odds</text>
+    <text x="24" y="146" font-size="14" fill="#9aa0aa">- Twitch embeds</text>
+    <text x="24" y="172" font-size="14" fill="#9aa0aa">- Per-tournament chat</text>
+    <text x="24" y="198" font-size="14" fill="#9aa0aa">- Follow your favorites</text>
+    <text x="24" y="224" font-size="14" fill="#9aa0aa">- Calendar feed (.ics)</text>
+    <text x="24" y="250" font-size="14" fill="#9aa0aa">- Match threads</text>
+    <line x1="24" y1="278" x2="296" y2="278" stroke="#2a2a35" stroke-width="1"/>
+    <text x="24" y="308" font-size="12" font-weight="700" letter-spacing="3" fill="#D9B9FF">DRIVES VIRALITY</text>
+    <text x="24" y="332" font-size="13" fill="#9aa0aa">- Shareable cards</text>
+    <text x="24" y="354" font-size="13" fill="#9aa0aa">- OG images for socials</text>
+  </g>
+
+  <text x="60" y="580" font-size="12" font-weight="500" letter-spacing="2" fill="#5C7A8C">tftclash.com</text>
+</svg>
