@@ -25,7 +25,7 @@
       ]
     },
     {
-      "source": "/api/(ai-commentary|delete-account|paypal-webhook|check-admin|cron-retention-notify|ping-search-engines|health)(.*)",
+      "source": "/api/(ai-commentary|delete-account|paypal-webhook|check-admin|cron-retention-notify|ping-search-engines|health|discord-notify|cancel-subscription)(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },

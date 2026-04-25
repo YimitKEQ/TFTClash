@@ -13,6 +13,8 @@ import BountyBoard from '../components/shared/BountyBoard'
 import VodGallery from '../components/shared/VodGallery'
 import PredictionGame from '../components/shared/PredictionGame'
 import AiScoutReport from '../components/shared/AiScoutReport'
+import AiMatchRecap from '../components/shared/AiMatchRecap'
+import SocialShareBar from '../components/shared/SocialShareBar'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
@@ -638,6 +640,29 @@ export default function TournamentDetailScreen() {
                   })}
                 />
               )}
+
+              {/* AI match recap - completed events */}
+              {isCompleted && standings && standings.length > 0 && (
+                <AiMatchRecap
+                  threadId={'t-' + (eventId || 'unknown')}
+                  eventName={event.name || event.title || ''}
+                  podium={standings.slice(0, 3).map(function (s) {
+                    var p = (players || []).find(function (pl) { return String(pl.id) === String(s.player_id) })
+                    return { id: s.player_id, name: p ? p.name : (s.player_name || 'Unknown') }
+                  })}
+                />
+              )}
+
+              {/* Social share bar - always visible on tournament pages */}
+              <div className="rounded-2xl border border-outline-variant/10 bg-surface-container/60 backdrop-blur p-4">
+                <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60 mb-2">Spread the word</div>
+                <SocialShareBar
+                  url={typeof window !== 'undefined' ? window.location.href : 'https://tftclash.com'}
+                  text={isCompleted
+                    ? ((event.name || 'TFT Clash') + ' just wrapped on tftclash.com')
+                    : ((event.name || 'TFT Clash tournament') + ' — coming up on tftclash.com')}
+                />
+              </div>
 
               {/* Prediction game - fans pick winner + top4 */}
               <PredictionGame

@@ -74,9 +74,16 @@ export function readIdeas() {
   return seeded.concat(readUserIdeas())
 }
 
+/**
+ * @deprecated Idea storage was split into seeded (DEFAULT_ROADMAP + delta map) and
+ * user-submitted (USER_IDEAS_KEY). Use submitIdea() to add new entries and toggleVote()
+ * to mutate vote counts. Calling writeIdeas() is a no-op and exists only to avoid
+ * breaking imports during the migration.
+ */
 export function writeIdeas() {
-  // No-op: kept for backward compatibility. Ideas are split into seeded (read from
-  // DEFAULT_ROADMAP + delta map) and user-submitted (USER_IDEAS_KEY).
+  if (typeof console !== 'undefined' && console.warn) {
+    console.warn('[roadmap] writeIdeas() is deprecated and is now a no-op. Use submitIdea / toggleVote.')
+  }
 }
 
 export function readMyVotes() {

@@ -145,6 +145,7 @@ export default function PredictionsScreen() {
 
   useEffect(function () {
     function refresh() { setEntries(readMyPredictionsAcrossThreads(currentUser)) }
+    refresh()
     function onStorage(e) {
       if (e.key === 'tft-predictions-v1') refresh()
     }
@@ -187,7 +188,8 @@ export default function PredictionsScreen() {
 
     var standings = []
     if (event && event.results && Array.isArray(event.results)) standings = event.results
-    var isCompleted = !!(event && (event.completed || event.is_completed || (standings.length > 0)))
+    // Only flag completion via explicit flag — partial standings during live play would otherwise score predictions prematurely.
+    var isCompleted = !!(event && (event.completed || event.is_completed || event.status === 'final' || event.phase === 'final'))
     var actualWinnerId = isCompleted && standings[0] ? (standings[0].player_id || standings[0].id) : null
     var actualTop4Ids = isCompleted ? standings.slice(0, 4).map(function (s) { return s.player_id || s.id }) : []
 
