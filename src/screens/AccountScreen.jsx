@@ -9,6 +9,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Icon, Inp, PillTab, PillTabGroup } from '../components/ui'
 import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
+import RecentMatchesStrip from '../components/shared/RecentMatchesStrip'
 import { medalForPlacement, currencySymbol } from '../lib/prizes.js'
 
 // ─── Shared components ──────────────────────────────────���─────────────────────
@@ -92,11 +93,21 @@ export default function AccountScreen() {
   var riotIdError = _riotIdError[0]; var setRiotIdError = _riotIdError[1];
 
   var _notifPrefs = useState(function() {
+    var defaults = {
+      clashReminders: true,
+      resultNotifs: true,
+      waitlistPings: true,
+      disputeUpdates: true,
+      weeklyDigest: true,
+      hostAnnouncements: true,
+    };
     try {
       var raw = localStorage.getItem('tft-notif-prefs');
-      return raw ? JSON.parse(raw) : { clashReminders: true, resultNotifs: true };
+      if (!raw) return defaults;
+      var parsed = JSON.parse(raw);
+      return Object.assign({}, defaults, parsed && typeof parsed === 'object' ? parsed : {});
     } catch(e) {
-      return { clashReminders: true, resultNotifs: true };
+      return defaults;
     }
   });
   var notifPrefs = _notifPrefs[0]; var setNotifPrefsRaw = _notifPrefs[1];
@@ -1340,37 +1351,50 @@ export default function AccountScreen() {
               </section>
             ) : null}
 
+            {linkedPlayer && (
+              <div className="md:col-span-12 mb-2">
+                <RecentMatchesStrip player={linkedPlayer} limit={5} title="LAST 5 CLASHES" />
+              </div>
+            )}
+
             {/* Notification Preferences */}
             <Panel padding="spacious" className="md:col-span-6">
               <div className="flex items-center gap-2 mb-6">
                 <Icon name="notifications" size={20} className="text-primary" />
                 <h3 className="font-label text-sm font-bold uppercase tracking-widest">Notification Preferences</h3>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-outline-variant/10">
-                  <div>
-                    <div className="font-body text-sm text-on-surface">Clash Reminders</div>
-                    <div className="text-xs text-on-surface/40 mt-0.5">Remind me before weekly clashes start</div>
-                  </div>
-                  <button
-                    onClick={function() { setNotifPref('clashReminders', !notifPrefs.clashReminders); toast(notifPrefs.clashReminders ? 'Clash reminders off' : 'Clash reminders on', 'info'); }}
-                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors ' + (notifPrefs.clashReminders ? 'bg-primary' : 'bg-surface-container-highest')}
-                  >
-                    <span className={'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ' + (notifPrefs.clashReminders ? 'translate-x-6' : 'translate-x-1')} />
-                  </button>
-                </div>
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-body text-sm text-on-surface">Result Notifications</div>
-                    <div className="text-xs text-on-surface/40 mt-0.5">Notify me when tournament results are posted</div>
-                  </div>
-                  <button
-                    onClick={function() { setNotifPref('resultNotifs', !notifPrefs.resultNotifs); toast(notifPrefs.resultNotifs ? 'Result notifications off' : 'Result notifications on', 'info'); }}
-                    className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors ' + (notifPrefs.resultNotifs ? 'bg-primary' : 'bg-surface-container-highest')}
-                  >
-                    <span className={'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ' + (notifPrefs.resultNotifs ? 'translate-x-6' : 'translate-x-1')} />
-                  </button>
-                </div>
+              <div className="space-y-1">
+                {[
+                  { key: 'clashReminders',    label: 'Clash Reminders',     desc: 'Remind me before weekly clashes start' },
+                  { key: 'resultNotifs',      label: 'Result Notifications', desc: 'Notify when tournament results are posted' },
+                  { key: 'waitlistPings',     label: 'Waitlist Spot Opens', desc: 'Tell me the moment a waitlist seat frees up' },
+                  { key: 'disputeUpdates',    label: 'Dispute Updates',     desc: 'Alert on accept / reject of any dispute I filed' },
+                  { key: 'weeklyDigest',      label: 'Weekly Digest',       desc: 'Mondays: my placements, leaderboard moves, headlines' },
+                  { key: 'hostAnnouncements', label: 'Host Announcements',  desc: 'Hear from hosts running tournaments I follow' },
+                ].map(function(row, idx, arr) {
+                  var enabled = !!notifPrefs[row.key];
+                  var isLast = idx === arr.length - 1;
+                  return (
+                    <div key={row.key} className={'flex items-center justify-between py-3 ' + (isLast ? '' : 'border-b border-outline-variant/10')}>
+                      <div className="min-w-0 pr-3">
+                        <div className="font-body text-sm text-on-surface">{row.label}</div>
+                        <div className="text-xs text-on-surface/40 mt-0.5">{row.desc}</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={function() {
+                          setNotifPref(row.key, !enabled);
+                          toast((enabled ? row.label + ' off' : row.label + ' on'), 'info');
+                        }}
+                        aria-pressed={enabled}
+                        aria-label={row.label + ' toggle'}
+                        className={'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ' + (enabled ? 'bg-primary' : 'bg-surface-container-highest')}
+                      >
+                        <span className={'inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ' + (enabled ? 'translate-x-6' : 'translate-x-1')} />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </Panel>
 
