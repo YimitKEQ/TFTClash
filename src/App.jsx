@@ -90,6 +90,7 @@ var ClashScreenNew = lazyWithRetry(function(){ return import('./screens/ClashScr
 var NotFoundScreen = lazyWithRetry(function(){ return import('./screens/NotFoundScreen'); });
 var StatusScreenNew = lazyWithRetry(function(){ return import('./screens/StatusScreen'); });
 var ChangelogScreenNew = lazyWithRetry(function(){ return import('./screens/ChangelogScreen'); });
+var ObsOverlayScreenNew = lazyWithRetry(function(){ return import('./screens/ObsOverlayScreen'); });
 var StatsHubScreenNew = lazyWithRetry(function(){ return import('./screens/StatsHubScreen'); });
 
 var SponsorsScreenNew = lazyWithRetry(function(){ return import('./screens/SponsorsScreen'); });
@@ -265,6 +266,7 @@ function TFTClash(){
     if(segs[0]==="results"&&segs[1]){navSourceRef.current="router";setScreen("results");setSubRoute(segs[1]);return;}
     if(segs[0]==="flash"&&segs[1]){navSourceRef.current="router";setScreen("flash-"+segs[1]);return;}
     if(segs[0]==="tournament"&&segs[1]){navSourceRef.current="router";setScreen("tournament-"+segs[1]);return;}
+    if(segs[0]==="obs"&&segs[1]){navSourceRef.current="router";setScreen("obs-"+segs[1]);return;}
     if(segs[0]==="host"){
       if(segs[1]==="apply"){navSourceRef.current="router";setScreen("host-apply");return;}
       if(segs[1]==="dashboard"){navSourceRef.current="router";setScreen("host-dashboard");return;}
@@ -584,6 +586,14 @@ function TFTClash(){
     </>
 
   );
+
+  if (screen.indexOf("obs-") === 0) {
+    return (
+      <React.Suspense fallback={null}>
+        <ObsOverlayScreenNew />
+      </React.Suspense>
+    );
+  }
 
   if (screen === "broadcast") {
     var bParams = {};

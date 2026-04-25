@@ -13,6 +13,7 @@ import { DISCORD_URL } from '../lib/constants'
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { RegionBadge } from '../components/shared'
+import { tickStreak, streakTier } from '../lib/loginStreak.js'
 
 function generateSeasonNarrative(players, sortedPts) {
   if (!sortedPts || sortedPts.length < 2) return null
@@ -1063,6 +1064,11 @@ export default function DashboardScreen() {
   var M = countdown.minutes
   var S = countdown.seconds
 
+  // Daily login streak (localStorage). Bumps on first dashboard mount per UTC day.
+  var _streak = useState(function () { return tickStreak() })
+  var streak = _streak[0]
+  var streakInfo = streakTier(streak.streak || 0)
+
   // Tick for activity feed refresh
   var _tick = useState(0)
   var tick = _tick[0]
@@ -1462,6 +1468,22 @@ export default function DashboardScreen() {
       {announcement && <AnnouncementStrip text={announcement} />}
       {hostAnnouncements && hostAnnouncements.length > 0 && (
         <AnnouncementStrip text={hostAnnouncements[0].msg} variant="host" />
+      )}
+
+      {/* Daily login streak strip */}
+      {streak && streak.streak > 0 && (
+        <div className="flex items-center justify-between gap-3 rounded px-4 py-2.5 mb-3 border bg-surface-container/60 border-outline-variant/15 backdrop-blur-sm">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: streakInfo.color + '22', color: streakInfo.color }}>
+              <Icon name={streakInfo.icon} size={16} />
+            </div>
+            <div className="min-w-0">
+              <div className="font-mono text-sm font-bold text-on-surface">Day {streak.streak} <span className="font-label text-[10px] uppercase tracking-widest" style={{ color: streakInfo.color }}>{streakInfo.label}</span></div>
+              <div className="font-mono text-[10px] text-on-surface/40 truncate">Best {streak.best || streak.streak} - {streak.total} total visits - come back tomorrow to keep it going</div>
+            </div>
+          </div>
+          <span className="font-mono text-[10px] text-on-surface/40 hidden sm:inline">streak</span>
+        </div>
       )}
 
       {/* Pulse Header - player identity + countdown */}

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats, getAchievements, checkAchievements, syncAchievements, ACHIEVEMENTS, isHotStreak, isOnTilt } from '../lib/stats.js'
 import { computeAwards } from '../lib/weirdStats.js'
+import { isFollowing, isRival, toggleFollow, toggleRival } from '../lib/follows.js'
 import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -10,6 +11,7 @@ import { Panel, Btn, Icon, Badge, Tag, StatCard, CopyBtn, PillTab, PillTabGroup 
 import SectionHeader from '../components/shared/SectionHeader.jsx'
 import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
+import PerformanceHeatmap from '../components/shared/PerformanceHeatmap'
 import { supabase } from '../lib/supabase'
 
 // ─── RATE BAR ─────────────────────────────────────────────────────────────────
@@ -228,6 +230,16 @@ export default function PlayerProfileScreen() {
 
   var achievements = player ? getAchievements(player) : [];
   var weirdAwards = player ? computeAwards(player) : [];
+
+  var _following = useState(player ? isFollowing(player.name) : false);
+  var following = _following[0]; var setFollowing = _following[1];
+  var _rival = useState(player ? isRival(player.name) : false);
+  var rival = _rival[0]; var setRival = _rival[1];
+  useEffect(function() {
+    if (!player) return;
+    setFollowing(isFollowing(player.name));
+    setRival(isRival(player.name));
+  }, [player && player.name]);
   var s = player ? getStats(player) : { games: 0, wins: 0, top4: 0, bot4: 0, top1Rate: '0.0', top4Rate: '0.0', bot4Rate: '0.0', avgPlacement: '-', perClashAvp: null, roundAvgs: { r1: null, r2: null, r3: null, finals: null }, comebackRate: 0, clutchRate: 0, ppg: 0 };
 
   // Subscription badge
@@ -487,17 +499,32 @@ export default function PlayerProfileScreen() {
                 Share
               </Btn>
               {!isOwnProfile && (
-                <Btn
-                  variant="secondary"
-                  size="sm"
-                  icon="person_add"
-                  onClick={function() {
-                    navigate('/standings');
-                    if (toast) toast('View full rankings on the Standings page', 'info');
-                  }}
-                >
-                  Compare
-                </Btn>
+                <>
+                  <Btn
+                    variant={following ? 'primary' : 'secondary'}
+                    size="sm"
+                    icon={following ? 'check' : 'person_add'}
+                    onClick={function() {
+                      var on = toggleFollow(player.name);
+                      setFollowing(on);
+                      if (toast) toast(on ? 'Following ' + player.name : 'Unfollowed ' + player.name, on ? 'success' : 'info');
+                    }}
+                  >
+                    {following ? 'Following' : 'Follow'}
+                  </Btn>
+                  <Btn
+                    variant={rival ? 'primary' : 'secondary'}
+                    size="sm"
+                    icon={rival ? 'gpp_bad' : 'crisis_alert'}
+                    onClick={function() {
+                      var on = toggleRival(player.name);
+                      setRival(on);
+                      if (toast) toast(on ? 'Marked ' + player.name + ' as rival' : 'Removed rival flag', on ? 'success' : 'info');
+                    }}
+                  >
+                    {rival ? 'Rival' : 'Mark Rival'}
+                  </Btn>
+                </>
               )}
               {isOwnProfile && (
                 <Btn variant="secondary" size="sm" icon="edit" onClick={function() { navigate('/account'); }}>
@@ -823,6 +850,9 @@ export default function PlayerProfileScreen() {
                   </Panel>
                 );
               })}
+            </div>
+            <div className="mt-6">
+              <PerformanceHeatmap player={player} />
             </div>
           </div>
         </div>
