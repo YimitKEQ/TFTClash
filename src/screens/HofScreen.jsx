@@ -17,6 +17,9 @@ function computeLifetimeRecords(pastClashes) {
       var key = String(c.champion)
       champCounts[key] = (champCounts[key] || 0) + 1
     }
+    // pastClashes[i].pts represents the winning champion's tournament point
+    // total (set when the clash is finalized in ClashReportScreen). Treating
+    // it as the per-champion run score is correct here.
     var pts = Number(c.pts || 0)
     if (pts > topScore) {
       topScore = pts
@@ -24,14 +27,17 @@ function computeLifetimeRecords(pastClashes) {
     }
     prizeTotal += Number(c.prize_pool || c.prizePool || 0) || 0
   }
+  // Tiebreaker for mostCrowned: when two players share the highest crown
+  // count, pick the alphabetically earlier name. Without this the result
+  // depends on for-in insertion order (engine-defined).
   var mostCrowned = null
   var mostCrownedCount = 0
   for (var n in champCounts) {
-    if (Object.prototype.hasOwnProperty.call(champCounts, n)) {
-      if (champCounts[n] > mostCrownedCount) {
-        mostCrownedCount = champCounts[n]
-        mostCrowned = n
-      }
+    if (!Object.prototype.hasOwnProperty.call(champCounts, n)) continue
+    var cnt = champCounts[n]
+    if (cnt > mostCrownedCount || (cnt === mostCrownedCount && mostCrowned !== null && n < mostCrowned)) {
+      mostCrownedCount = cnt
+      mostCrowned = n
     }
   }
   return {
@@ -42,6 +48,16 @@ function computeLifetimeRecords(pastClashes) {
     topScoreChamp: topScoreChamp,
     prizeTotal: prizeTotal,
   }
+}
+
+function isPlayerInRoster(name, players) {
+  if (!name || !Array.isArray(players)) return false
+  var lc = String(name).toLowerCase()
+  for (var i = 0; i < players.length; i++) {
+    var p = players[i]
+    if (p && p.name && String(p.name).toLowerCase() === lc) return true
+  }
+  return false
 }
 
 function compactDollar(n) {
@@ -96,12 +112,20 @@ function LifetimeTile(props) {
 function LifetimeRecordsStrip(props) {
   var records = props.records
   var openProfile = props.openProfile
+  var roster = props.roster || []
   if (!records) return null
 
   var prizeStr = compactDollar(records.prizeTotal)
   var crownLabel = records.mostCrownedCount > 0
     ? (records.mostCrownedCount + (records.mostCrownedCount === 1 ? ' clash crown' : ' clash crowns'))
     : null
+
+  // Only attach onClick when the named champion still has an active player
+  // record. openProfile silently no-ops for non-roster names; surfacing it as
+  // a clickable button would mislead the user. The tile still renders, just
+  // without the cursor-pointer affordance for retired/legacy champs.
+  var crownClickable = records.mostCrowned && isPlayerInRoster(records.mostCrowned, roster)
+  var topClickable = records.topScoreChamp && isPlayerInRoster(records.topScoreChamp, roster)
 
   return (
     <div>
@@ -123,7 +147,7 @@ function LifetimeRecordsStrip(props) {
             value={records.mostCrowned}
             sub={crownLabel}
             tone="tertiary"
-            onClick={function () { openProfile(records.mostCrowned) }}
+            onClick={crownClickable ? function () { openProfile(records.mostCrowned) } : null}
           />
         ) : (
           <LifetimeTile
@@ -141,7 +165,7 @@ function LifetimeRecordsStrip(props) {
             value={records.topScore + ' pts'}
             sub={records.topScoreChamp ? ('by ' + records.topScoreChamp) : null}
             tone="secondary"
-            onClick={records.topScoreChamp ? function () { openProfile(records.topScoreChamp) } : null}
+            onClick={topClickable ? function () { openProfile(records.topScoreChamp) } : null}
           />
         ) : (
           <LifetimeTile
@@ -519,7 +543,7 @@ export default function HofScreen(props) {
 
         {/* Lifetime Records — distinct from season-only Legacy Archives below */}
         {lifetimeRecords && lifetimeRecords.totalClashes > 0 && (
-          <LifetimeRecordsStrip records={lifetimeRecords} openProfile={openProfile} />
+          <LifetimeRecordsStrip records={lifetimeRecords} openProfile={openProfile} roster={players} />
         )}
 
         {/* Legacy Archives / Trophy Cabinet */}
