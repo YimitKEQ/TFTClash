@@ -16,6 +16,7 @@ import TwitchEmbed from '../components/shared/TwitchEmbed'
 import TrophyCase from '../components/shared/TrophyCase'
 import ActivityTimeline from '../components/shared/ActivityTimeline'
 import ProfileShareCard from '../components/shared/ProfileShareCard'
+import ComparePlayersCard from '../components/shared/ComparePlayersCard'
 import { supabase } from '../lib/supabase'
 
 // ─── RATE BAR ─────────────────────────────────────────────────────────────────
@@ -231,6 +232,13 @@ export default function PlayerProfileScreen() {
   var pBanner = player ? ((userMeta && userMeta.bannerUrl) || player.bannerUrl || '') : '';
   var pAccent = player ? ((userMeta && userMeta.profileAccent) || player.profileAccent || '') : '';
   var isOwnProfile = currentUser && player && (currentUser.username === player.name || currentUser.id === player.auth_user_id);
+
+  var myPlayer = currentUser ? players.find(function(p) {
+    if (p.authUserId && currentUser.id && String(p.authUserId) === String(currentUser.id)) return true;
+    if (p.name && currentUser.username && p.name.toLowerCase() === currentUser.username.toLowerCase()) return true;
+    if (p.riotId && currentUser.riotId && p.riotId.toLowerCase() === currentUser.riotId.toLowerCase()) return true;
+    return false;
+  }) : null;
 
   var achievements = player ? getAchievements(player) : [];
   var weirdAwards = player ? computeAwards(player) : [];
@@ -728,6 +736,11 @@ export default function PlayerProfileScreen() {
 
           {/* Share card */}
           <ProfileShareCard player={player} />
+
+          {/* Head-to-head compare (only when viewing someone else) */}
+          {!isOwnProfile && myPlayer && player && (
+            <ComparePlayersCard mine={myPlayer} theirs={player} />
+          )}
 
           {/* Career Stats + Rates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
