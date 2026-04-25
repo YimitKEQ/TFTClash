@@ -1,8 +1,19 @@
 import { useMemo } from 'react'
 import { Icon } from '../ui'
 
+// Require this many completed games in a single clash before its average
+// placement is treated as meaningful. Below this threshold the AVP is hidden
+// to avoid celebrating a 1-game outlier.
+var AVP_MIN_GAMES = 3
+
 function tournamentKey(entry) {
   return String(entry.tournamentId || entry.tournament_id || entry.clashId || entry.clash_id || '')
+}
+
+function tournamentKeyNumeric(entry) {
+  var raw = entry.tournamentId || entry.tournament_id || entry.clashId || entry.clash_id
+  var n = Number(raw)
+  return isNaN(n) ? 0 : n
 }
 
 function gameOrder(entry) {
@@ -14,7 +25,10 @@ function groupByClash(hist) {
   var groups = {}
   for (var i = 0; i < hist.length; i++) {
     var e = hist[i]
-    var key = tournamentKey(e) || ('idx_' + i)
+    // All entries with no tournament_id fall into a single 'legacy' bucket
+    // rather than each becoming its own clash group, which would otherwise
+    // inflate totalClashes and artificially split the bestClashPts score.
+    var key = tournamentKey(e) || 'legacy'
     if (!groups[key]) groups[key] = []
     groups[key].push(e)
   }
@@ -59,7 +73,7 @@ function computeBests(player) {
     }
     if (pts > bestClashPts) bestClashPts = pts
     if (top4 > mostTop4InClash) mostTop4InClash = top4
-    if (counted >= 3) {
+    if (counted >= AVP_MIN_GAMES) {
       var avp = placeSum / counted
       if (bestClashAvpKey === null || avp < bestClashAvp) {
         bestClashAvp = avp
@@ -69,13 +83,16 @@ function computeBests(player) {
     }
   }
 
+  // Career win streak: counts consecutive 1st-place finishes across ALL games
+  // in chronological order, including across tournament boundaries. Two wins
+  // separated by a tournament gap still count as a 2-streak. Sort numerically
+  // by tournament_id so IDs >= 10 don't get lexicographically misordered.
   var longestWinStreak = 0
   var run = 0
   var allGames = hist.slice().sort(function (a, b) {
-    var ka = tournamentKey(a)
-    var kb = tournamentKey(b)
-    if (ka < kb) return -1
-    if (ka > kb) return 1
+    var ka = tournamentKeyNumeric(a)
+    var kb = tournamentKeyNumeric(b)
+    if (ka !== kb) return ka - kb
     return gameOrder(a) - gameOrder(b)
   })
   for (var k = 0; k < allGames.length; k++) {
@@ -139,11 +156,11 @@ export default function PersonalBestsCard(props) {
   if (!bests) return null
   if (bests.totalClashes === 0) return null
 
-  var anyValue = bests.bestClashPts > 0 || bests.longestWinStreak > 0 || bests.mostTop4InClash > 0 || bests.bestClashAvpGames >= 3
+  var anyValue = bests.bestClashPts > 0 || bests.longestWinStreak > 0 || bests.mostTop4InClash > 0 || bests.bestClashAvpGames >= AVP_MIN_GAMES
   if (!anyValue) return null
 
-  var avpStr = bests.bestClashAvpGames >= 3 ? bests.bestClashAvp.toFixed(2) : '-'
-  var avpSub = bests.bestClashAvpGames >= 3 ? (bests.bestClashAvpGames + ' games in clash') : 'Need 3+ games'
+  var avpStr = bests.bestClashAvpGames >= AVP_MIN_GAMES ? bests.bestClashAvp.toFixed(2) : '-'
+  var avpSub = bests.bestClashAvpGames >= AVP_MIN_GAMES ? (bests.bestClashAvpGames + ' games in clash') : ('Need ' + AVP_MIN_GAMES + '+ games')
   var streakStr = bests.longestWinStreak > 0 ? String(bests.longestWinStreak) : '-'
   var streakSub = bests.longestWinStreak >= 2 ? 'consecutive wins' : (bests.longestWinStreak === 1 ? 'lone wins so far' : 'no wins yet')
 

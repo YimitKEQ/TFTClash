@@ -55,8 +55,12 @@ export default function PlatformStatsBar(props) {
     var cancelled = false
 
     function load() {
-      var tournamentsQ = supabase.from('tournaments').select('id,prize_pool,phase,status').limit(2000)
-      var playersQ = supabase.from('players').select('id,banned').eq('banned', false).limit(2000)
+      // Filter tournaments to phase=complete on the server so we don't pull
+      // in-progress rows just to discard them client-side. Prize pool still
+      // needs the rows to sum across — selecting only id,prize_pool keeps
+      // payload tight.
+      var tournamentsQ = supabase.from('tournaments').select('id,prize_pool').eq('phase', 'complete').limit(2000)
+      var playersQ = supabase.from('players').select('id', { count: 'exact', head: true }).eq('banned', false)
       var gamesQ = supabase.from('game_results').select('id', { count: 'exact', head: true })
 
       Promise.all([tournamentsQ, playersQ, gamesQ])
@@ -69,15 +73,12 @@ export default function PlatformStatsBar(props) {
           var completedTournaments = 0
           var prizePool = 0
           if (tournRes && tournRes.data) {
+            completedTournaments = tournRes.data.length
             for (var i = 0; i < tournRes.data.length; i++) {
-              var t = tournRes.data[i]
-              if (t.phase === 'complete') {
-                completedTournaments += 1
-                prizePool += Number(t.prize_pool) || 0
-              }
+              prizePool += Number(tournRes.data[i].prize_pool) || 0
             }
           }
-          var playerCount = (playerRes && playerRes.data) ? playerRes.data.length : 0
+          var playerCount = (playerRes && typeof playerRes.count === 'number') ? playerRes.count : 0
           var gameCount = (gamesRes && typeof gamesRes.count === 'number') ? gamesRes.count : 0
 
           setStats({
