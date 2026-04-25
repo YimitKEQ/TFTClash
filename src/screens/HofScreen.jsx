@@ -4,6 +4,166 @@ import { getStats } from '../lib/stats.js'
 import { Icon, Panel } from '../components/ui'
 import PageLayout from '../components/layout/PageLayout'
 
+function computeLifetimeRecords(pastClashes) {
+  if (!Array.isArray(pastClashes) || pastClashes.length === 0) return null
+  var champCounts = {}
+  var topScore = 0
+  var topScoreChamp = null
+  var prizeTotal = 0
+  for (var i = 0; i < pastClashes.length; i++) {
+    var c = pastClashes[i]
+    if (!c) continue
+    if (c.champion) {
+      var key = String(c.champion)
+      champCounts[key] = (champCounts[key] || 0) + 1
+    }
+    var pts = Number(c.pts || 0)
+    if (pts > topScore) {
+      topScore = pts
+      topScoreChamp = c.champion || null
+    }
+    prizeTotal += Number(c.prize_pool || c.prizePool || 0) || 0
+  }
+  var mostCrowned = null
+  var mostCrownedCount = 0
+  for (var n in champCounts) {
+    if (Object.prototype.hasOwnProperty.call(champCounts, n)) {
+      if (champCounts[n] > mostCrownedCount) {
+        mostCrownedCount = champCounts[n]
+        mostCrowned = n
+      }
+    }
+  }
+  return {
+    totalClashes: pastClashes.length,
+    mostCrowned: mostCrowned,
+    mostCrownedCount: mostCrownedCount,
+    topScore: topScore,
+    topScoreChamp: topScoreChamp,
+    prizeTotal: prizeTotal,
+  }
+}
+
+function compactDollar(n) {
+  if (typeof n !== 'number' || isNaN(n) || n <= 0) return null
+  if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (n >= 1000) return '$' + (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K'
+  return '$' + n
+}
+
+function LifetimeTile(props) {
+  var icon = props.icon
+  var label = props.label
+  var value = props.value
+  var sub = props.sub
+  var tone = props.tone || 'primary'
+  var onClick = props.onClick
+
+  var ring = 'border-' + tone + '/30'
+  var iconWrap = 'bg-' + tone + '/15 text-' + tone
+
+  var inner = (
+    <div className={'rounded-xl border ' + ring + ' bg-surface-container/40 backdrop-blur p-4 sm:p-5 flex items-start gap-3 h-full'}>
+      <div className={'flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ' + iconWrap}>
+        <Icon name={icon} size={20} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60 truncate">
+          {label}
+        </div>
+        <div className="font-display text-xl sm:text-2xl tracking-wide text-on-surface mt-0.5 truncate">
+          {value}
+        </div>
+        {sub && (
+          <div className="text-[10px] font-mono text-on-surface-variant/50 mt-0.5 truncate">
+            {sub}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="text-left transition-colors hover:opacity-90 cursor-pointer w-full">
+        {inner}
+      </button>
+    )
+  }
+  return inner
+}
+
+function LifetimeRecordsStrip(props) {
+  var records = props.records
+  var openProfile = props.openProfile
+  if (!records) return null
+
+  var prizeStr = compactDollar(records.prizeTotal)
+  var crownLabel = records.mostCrownedCount > 0
+    ? (records.mostCrownedCount + (records.mostCrownedCount === 1 ? ' clash crown' : ' clash crowns'))
+    : null
+
+  return (
+    <div>
+      <h3 className="font-label text-primary tracking-[0.4em] text-xs mb-6">
+        LIFETIME RECORDS
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <LifetimeTile
+          icon="emoji_events"
+          label="Past Clashes"
+          value={records.totalClashes}
+          sub="completed tournaments"
+          tone="primary"
+        />
+        {records.mostCrowned ? (
+          <LifetimeTile
+            icon="workspace_premium"
+            label="Most Decorated"
+            value={records.mostCrowned}
+            sub={crownLabel}
+            tone="tertiary"
+            onClick={function () { openProfile(records.mostCrowned) }}
+          />
+        ) : (
+          <LifetimeTile
+            icon="workspace_premium"
+            label="Most Decorated"
+            value="-"
+            sub="awaiting first crown"
+            tone="tertiary"
+          />
+        )}
+        {records.topScore > 0 ? (
+          <LifetimeTile
+            icon="local_fire_department"
+            label="Best Clash Run"
+            value={records.topScore + ' pts'}
+            sub={records.topScoreChamp ? ('by ' + records.topScoreChamp) : null}
+            tone="secondary"
+            onClick={records.topScoreChamp ? function () { openProfile(records.topScoreChamp) } : null}
+          />
+        ) : (
+          <LifetimeTile
+            icon="local_fire_department"
+            label="Best Clash Run"
+            value="-"
+            sub="no scores recorded"
+            tone="secondary"
+          />
+        )}
+        <LifetimeTile
+          icon="payments"
+          label="All-Time Prize Pool"
+          value={prizeStr || '-'}
+          sub={prizeStr ? 'awarded across history' : 'no payouts yet'}
+          tone="primary"
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function HofScreen(props) {
   var embedded = props.embedded || false
   var ctx = useApp()
@@ -50,6 +210,8 @@ export default function HofScreen(props) {
     : pastChamps
 
   var wp = players.filter(function(p) { return (p.games || 0) > 0 })
+
+  var lifetimeRecords = computeLifetimeRecords(pastClashes)
 
   var hofRecs = []
 
@@ -353,6 +515,11 @@ export default function HofScreen(props) {
               })}
             </div>
           </div>
+        )}
+
+        {/* Lifetime Records — distinct from season-only Legacy Archives below */}
+        {lifetimeRecords && lifetimeRecords.totalClashes > 0 && (
+          <LifetimeRecordsStrip records={lifetimeRecords} openProfile={openProfile} />
         )}
 
         {/* Legacy Archives / Trophy Cabinet */}
