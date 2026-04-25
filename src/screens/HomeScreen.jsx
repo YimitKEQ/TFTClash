@@ -384,6 +384,83 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
   )
 }
 
+// ── LatestChampionStrip ──────────────────────────────────────────────────────
+
+function shortDateLabel(d) {
+  if (!d) return ''
+  try {
+    var dt = new Date(d)
+    if (isNaN(dt.getTime())) return ''
+    return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+  } catch (e) {
+    return ''
+  }
+}
+
+function LatestChampionStrip(props) {
+  var clash = props.clash
+  var champPlayer = props.champPlayer
+  var navigate = props.navigate
+
+  if (!clash || !clash.champion) return null
+
+  var dateStr = shortDateLabel(clash.date)
+  var pts = (champPlayer && (champPlayer.pts || 0)) || 0
+  var stats = champPlayer ? getStats(champPlayer) : null
+  var initial = clash.champion ? clash.champion[0].toUpperCase() : '?'
+
+  return (
+    <button
+      type="button"
+      onClick={function () {
+        if (champPlayer) {
+          navigate('/player/' + encodeURIComponent(clash.champion))
+        } else {
+          navigate('/results')
+        }
+      }}
+      className="w-full text-left rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-surface-container/40 to-tertiary/10 backdrop-blur p-4 sm:p-5 flex items-center gap-4 hover:border-primary/45 hover:shadow-[0_0_36px_rgba(255,198,107,0.18)] transition-all group"
+    >
+      <span className="relative flex-shrink-0">
+        <span className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-primary/60 bg-surface-container-highest font-display text-primary text-xl">
+          {initial}
+        </span>
+        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary text-on-primary shadow-md">
+          <Icon name="emoji_events" size={14} />
+        </span>
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[10px] font-label tracking-widest uppercase text-primary/80 mb-0.5">
+          Latest Champion
+          {dateStr && (
+            <span className="text-on-surface-variant/40 normal-case ml-2">{dateStr}</span>
+          )}
+        </div>
+        <div className="font-display text-lg sm:text-xl tracking-wide text-on-surface truncate">
+          {clash.champion}
+        </div>
+        <div className="flex items-center gap-3 mt-1 text-[11px] font-mono text-on-surface-variant/60 flex-wrap">
+          <span className="truncate max-w-[180px]">{clash.name || 'Recent clash'}</span>
+          {pts > 0 && (
+            <span className="text-primary font-bold">{pts + ' pts'}</span>
+          )}
+          {stats && stats.avgPlacement && (
+            <span>AVP {stats.avgPlacement}</span>
+          )}
+          {clash.players > 0 && (
+            <span>{clash.players + ' players'}</span>
+          )}
+        </div>
+      </div>
+      <Icon
+        name="chevron_right"
+        size={22}
+        className="text-on-surface-variant/40 group-hover:text-primary flex-shrink-0"
+      />
+    </button>
+  )
+}
+
 // ── HomeScreen ────────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
@@ -523,6 +600,17 @@ export default function HomeScreen() {
 
         <PinnedTournamentsBar compact={true} />
         <LiveNowPanel limit={4} />
+
+        {pastClashes && pastClashes.length > 0 && (
+          <LatestChampionStrip
+            clash={pastClashes[0]}
+            champPlayer={players.find(function (p) {
+              return p && p.name && pastClashes[0].champion &&
+                String(p.name).toLowerCase() === String(pastClashes[0].champion).toLowerCase()
+            })}
+            navigate={navigate}
+          />
+        )}
 
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
         <section className="relative text-center space-y-6 sm:space-y-8 py-8 sm:py-12">
