@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  var secret = process.env.PING_SECRET || process.env.ADMIN_PASSWORD;
+  var secret = process.env.PING_SECRET;
   if (!secret || req.headers['x-ping-secret'] !== secret) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

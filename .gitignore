@@ -20,6 +20,7 @@ supabase/.temp/
 .claude-backup/
 .superpowers/
 .mcp.json
+.gstack/
 
 # Obsidian / local notes (auto-generated or personal)
 .obsidian/

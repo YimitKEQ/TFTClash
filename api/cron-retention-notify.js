@@ -22,7 +22,7 @@ var D7 = {
 function isAuthorised(req) {
   // Vercel automatically adds `x-vercel-cron: 1` on scheduled invocations.
   if (req.headers['x-vercel-cron']) return true;
-  var secret = process.env.PING_SECRET || process.env.ADMIN_PASSWORD;
+  var secret = process.env.PING_SECRET;
   if (!secret) return false;
   return req.headers['x-ping-secret'] === secret;
 }

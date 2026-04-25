@@ -110,3 +110,32 @@ Routes: `/`, `/login`, `/signup`, `/standings`, `/leaderboard`, `/bracket`, `/pl
 
 See `docs/TASKS.md` for the full prioritized backlog.
 See `docs/TOURNAMENT-SYSTEM.md` for tournament system details.
+
+---
+
+## gstack
+
+gstack is installed (prefixed mode) at `~/.claude/skills/gstack`. Use these for AI-assisted dev:
+
+**Planning & forcing-question gates (run BEFORE coding):**
+`/gstack-office-hours` `/gstack-plan-ceo-review` `/gstack-plan-eng-review` `/gstack-plan-design-review` `/gstack-plan-devex-review` `/gstack-autoplan`
+
+**Design system + mockup generation:**
+`/gstack-design-consultation` `/gstack-design-shotgun` `/gstack-design-html` `/gstack-design-review`
+
+**Code review, debugging, security:**
+`/gstack-review` `/gstack-investigate` `/gstack-cso` `/gstack-codex`
+
+**Live browser QA + dogfooding (preferred over playwright/MCP browser):**
+`/gstack-browse` `/gstack-qa` `/gstack-qa-only` `/gstack-pair-agent` `/gstack-open-gstack-browser`
+
+**Release + ops:**
+`/gstack-ship` `/gstack-land-and-deploy` `/gstack-canary` `/gstack-benchmark` `/gstack-document-release` `/gstack-retro`
+
+**Safety guardrails:**
+`/gstack-careful` `/gstack-freeze` `/gstack-guard` `/gstack-unfreeze`
+
+**Memory + utility:**
+`/gstack-learn` `/gstack-context-save` `/gstack-context-restore` `/gstack-health` `/gstack-upgrade`
+
+Use `/gstack-browse` for all web browsing. Do not use `mcp__claude-in-chrome__*` tools.
