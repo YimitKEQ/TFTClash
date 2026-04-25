@@ -81,7 +81,9 @@ function AlmostFullStrip(props) {
           <h3 className="font-display text-base tracking-wide">FILLING UP FAST</h3>
         </div>
         <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
-          {rows.length + (rows.length === 1 ? ' clash' : ' clashes') + ' near capacity'}
+          {rows.length > 4
+            ? ('Top 4 of ' + rows.length + ' near capacity')
+            : (rows.length + (rows.length === 1 ? ' clash' : ' clashes') + ' near capacity')}
         </span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
@@ -92,7 +94,7 @@ function AlmostFullStrip(props) {
             <button
               key={t.id}
               type="button"
-              onClick={function () { navigate('/flash/' + t.id) }}
+              onClick={function () { navigate('/flash/' + row.t.id) }}
               className="text-left rounded-xl border border-outline-variant/15 bg-surface-container-low/60 hover:bg-surface-container hover:border-tertiary/40 transition-colors p-3 sm:p-4 group"
             >
               <div className="flex items-start justify-between gap-3 mb-2">
