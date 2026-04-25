@@ -1,9 +1,24 @@
 import { Icon } from '../ui'
 import { getStats } from '../../lib/stats.js'
 
-function delta(a, b) {
-  var d = (a || 0) - (b || 0)
-  return d
+function computeBestStreak(player) {
+  if (!player) return 0
+  var hist = player.clashHistory
+  if (!Array.isArray(hist) || hist.length === 0) {
+    return Number(player.bestStreak) || 0
+  }
+  var best = 0
+  var run = 0
+  for (var i = 0; i < hist.length; i++) {
+    var place = hist[i].placement || hist[i].place || 0
+    if (place === 1) {
+      run += 1
+      if (run > best) best = run
+    } else {
+      run = 0
+    }
+  }
+  return best
 }
 
 function fmtSigned(n, digits) {
@@ -72,6 +87,8 @@ export default function ComparePlayersCard(props) {
   var top4RateTheirs = parseFloat(sTheirs.top4Rate) || 0
   var avpMine = parseFloat(sMine.avgPlacement) || 0
   var avpTheirs = parseFloat(sTheirs.avgPlacement) || 0
+  var bestStreakMine = computeBestStreak(mine)
+  var bestStreakTheirs = computeBestStreak(theirs)
 
   return (
     <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5">
@@ -102,7 +119,7 @@ export default function ComparePlayersCard(props) {
       <StatRow label="Games" mine={mine.games || 0} theirs={theirs.games || 0} betterIsHigher={true} />
       <StatRow label="AVG Place" mine={avpMine} theirs={avpTheirs} digits={2} betterIsHigher={false} />
       <StatRow label="Top 4 %" mine={top4RateMine} theirs={top4RateTheirs} digits={1} betterIsHigher={true} />
-      <StatRow label="Best Streak" mine={mine.bestStreak || 0} theirs={theirs.bestStreak || 0} betterIsHigher={true} />
+      <StatRow label="Best Streak" mine={bestStreakMine} theirs={bestStreakTheirs} betterIsHigher={true} />
     </div>
   )
 }

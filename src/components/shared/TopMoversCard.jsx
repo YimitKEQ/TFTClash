@@ -2,19 +2,36 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '../ui'
 
+function sortHistAsc(hist) {
+  var copy = hist.slice()
+  copy.sort(function (a, b) {
+    var atid = String(a.tournamentId || a.tournament_id || '')
+    var btid = String(b.tournamentId || b.tournament_id || '')
+    if (atid < btid) return -1
+    if (atid > btid) return 1
+    var ag = Number(a.gameNumber || a.game_number || a.game || 0)
+    var bg = Number(b.gameNumber || b.game_number || b.game || 0)
+    return ag - bg
+  })
+  return copy
+}
+
 function computeMovers(players, gamesWindow) {
   if (!Array.isArray(players)) return []
   var movers = []
   for (var i = 0; i < players.length; i++) {
     var p = players[i]
     if (!p || !p.clashHistory || p.clashHistory.length === 0) continue
-    var hist = p.clashHistory
+    var hist = sortHistAsc(p.clashHistory)
     var start = Math.max(0, hist.length - gamesWindow)
     var window = hist.slice(start)
     var gained = 0
     for (var j = 0; j < window.length; j++) {
       gained += window[j].points || window[j].pts || 0
     }
+    // Players with zero or negative window gain are excluded so the panel only
+    // celebrates upward momentum. Players whose clashHistory hasn't enriched
+    // yet may briefly read as "no movement" until the AppContext fetch lands.
     if (gained <= 0) continue
     var avgPlace = 0
     for (var k = 0; k < window.length; k++) {
@@ -37,7 +54,7 @@ function computeMovers(players, gamesWindow) {
 function placeColor(p) {
   if (p <= 1.5) return 'text-primary'
   if (p <= 3) return 'text-tertiary'
-  if (p <= 4.5) return 'text-secondary'
+  if (p <= 4) return 'text-secondary'
   return 'text-on-surface-variant/60'
 }
 
