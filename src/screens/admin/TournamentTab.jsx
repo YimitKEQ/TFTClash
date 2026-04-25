@@ -34,8 +34,17 @@ function toDbPhase(phase) {
 
 export default function TournamentTab() {
   var ctx = useApp()
-  var tournamentState = ctx.tournamentState
-  var setTournamentState = ctx.setTournamentState
+  // EU and NA tournament states are stored in separate site_settings rows so they can run concurrently.
+  // The admin form below is region-aware: reads/writes route to whichever region the dropdown selects.
+  var tournamentStateEu = ctx.tournamentState
+  var setTournamentStateEu = ctx.setTournamentState
+  var tournamentStateNa = ctx.tournamentStateNa
+  var setTournamentStateNa = ctx.setTournamentStateNa
+  var _adminRegion = useState(((tournamentStateNa && tournamentStateNa.phase && tournamentStateNa.phase !== 'idle') ? 'NA' : (tournamentStateEu && tournamentStateEu.server)) || 'EU')
+  var adminRegion = _adminRegion[0]
+  var setAdminRegion = _adminRegion[1]
+  var tournamentState = adminRegion === 'NA' ? tournamentStateNa : tournamentStateEu
+  var setTournamentState = adminRegion === 'NA' ? setTournamentStateNa : setTournamentStateEu
   var scheduledEvents = ctx.scheduledEvents
   var setScheduledEvents = ctx.setScheduledEvents
   var setAuditLog = ctx.setAuditLog
@@ -522,7 +531,29 @@ export default function TournamentTab() {
           </div>
           <div>
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Server</label>
-            <Sel value={clashForm.server} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { server: v })) }}>
+            <Sel value={clashForm.server} onChange={function(v) {
+              setAdminRegion(v)
+              var nextTs = v === 'NA' ? tournamentStateNa : tournamentStateEu
+              setClashForm({
+                name: (nextTs && nextTs.clashName) || 'Weekly Clash',
+                clashLocal: isoToLocalInput((nextTs && nextTs.clashTimestamp) || ''),
+                server: v,
+                isFinale: !!(nextTs && nextTs.isFinale),
+                rulesOverride: (nextTs && nextTs.rulesOverride) || '',
+                prizeRows: (nextTs && Array.isArray(nextTs.prizePool) && nextTs.prizePool.length > 0)
+                  ? nextTs.prizePool.map(function(r) { return {
+                      placement: String(r.placement || ''),
+                      prize: String(r.prize || ''),
+                      image: String(r.image || ''),
+                      type: String(r.type || 'other'),
+                      amount: r.amount != null ? String(r.amount) : '',
+                      currency: String(r.currency || 'EUR'),
+                      sponsor_id: String(r.sponsor_id || ''),
+                      eligibility: String(r.eligibility || '')
+                    } })
+                  : [emptyPrizeRow(1), emptyPrizeRow(2), emptyPrizeRow(3)]
+              })
+            }}>
               <option value="EU">EU</option>
               <option value="NA">NA</option>
             </Sel>

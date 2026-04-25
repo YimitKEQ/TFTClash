@@ -97,6 +97,13 @@ export function AppProvider(props) {
   var tournamentState = _tournamentState[0];
   var setTournamentState = _tournamentState[1];
 
+  // NA region runs concurrently with EU; stored in `site_settings.tournament_state_na`.
+  // Most consumers read `tournamentState` as before. NA-region screens / users can
+  // pick `tournamentStateNa` explicitly via context.
+  var _tournamentStateNa = useState({phase:"idle",round:1,lobbies:[],lockedLobbies:[],checkedInIds:[],registeredIds:[],waitlistIds:[],maxPlayers:24,server:"NA"});
+  var tournamentStateNa = _tournamentStateNa[0];
+  var setTournamentStateNa = _tournamentStateNa[1];
+
   var _seasonConfig = useState(DEFAULT_SEASON_CONFIG);
   var seasonConfig = _seasonConfig[0];
   var setSeasonConfig = _seasonConfig[1];
@@ -198,7 +205,7 @@ export function AppProvider(props) {
   var setClashRemindersOn = _clashRemindersOn[1];
 
   // ── Refs for realtime tracking ──
-  var rtRef = useRef({tournament_state:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,featured_events:false,challenge_completions:false,scrim_host_access:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
+  var rtRef = useRef({tournament_state:false,tournament_state_na:false,quick_clashes:false,announcement:false,season_config:false,org_sponsors:false,scheduled_events:false,audit_log:false,featured_events:false,challenge_completions:false,scrim_host_access:false,scrim_access:false,scrim_data:false,ticker_overrides:false});
   var announcementInitRef = useRef(false);
   var settingsLoadedRef = useRef(false); // true once site_settings are fetched — guards sync useEffects from overwriting DB on mount
   var navSourceRef = useRef("user");
@@ -566,7 +573,7 @@ export function AppProvider(props) {
 
     // Settings/config: load from site_settings
     supabase.from('site_settings').select('key,value')
-      .in('key',['tournament_state','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','scrim_host_access','scrim_access','scrim_data','ticker_overrides','featured_events','challenge_completions'])
+      .in('key',['tournament_state','tournament_state_na','quick_clashes','announcement','season_config','org_sponsors','scheduled_events','audit_log','scrim_host_access','scrim_access','scrim_data','ticker_overrides','featured_events','challenge_completions'])
       .then(function(res){
 
         if(!res.data){setIsLoadingData(false);return;}
@@ -578,6 +585,7 @@ export function AppProvider(props) {
               var val=typeof row.value==='string'?JSON.parse(row.value):row.value;
 
               if(row.key==='tournament_state'&&val){rtRef.current.tournament_state=true;setTournamentState(val);}
+              if(row.key==='tournament_state_na'&&val&&typeof val==='object'&&Object.keys(val).length>0){rtRef.current.tournament_state_na=true;setTournamentStateNa(val);}
               if(row.key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
               if(row.key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
               if(row.key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(Array.isArray(val)?val:[]);}
@@ -676,6 +684,7 @@ export function AppProvider(props) {
           if(!val)return;
 
           if(key==='tournament_state'){rtRef.current.tournament_state=true;setTournamentState(val);}
+          if(key==='tournament_state_na'){rtRef.current.tournament_state_na=true;setTournamentStateNa(val);}
           if(key==='quick_clashes'&&Array.isArray(val)){rtRef.current.quick_clashes=true;setQuickClashes(val);}
           if(key==='season_config'&&val){rtRef.current.season_config=true;setSeasonConfig(val);}
           if(key==='org_sponsors'&&val){rtRef.current.org_sponsors=true;setOrgSponsors(Array.isArray(val)?val:[]);}
@@ -766,9 +775,20 @@ export function AppProvider(props) {
   useEffect(function(){
     if(isSimulation())return; // Never sync simulation state to DB
     if(rtRef.current.tournament_state){rtRef.current.tournament_state=false;return;}
-    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state',value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
-      .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    if(supabase.from&&isAdmin){
+      // Route NA-server states to the NA slot so EU and NA can run concurrently.
+      var key=(tournamentState&&tournamentState.server==='NA')?'tournament_state_na':'tournament_state';
+      supabase.from('site_settings').upsert({key:key,value:JSON.stringify(tournamentState),updated_at:new Date().toISOString()})
+        .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+    }
   },[tournamentState]);
+
+  useEffect(function(){
+    if(isSimulation())return;
+    if(rtRef.current.tournament_state_na){rtRef.current.tournament_state_na=false;return;}
+    if(supabase.from&&isAdmin)supabase.from('site_settings').upsert({key:'tournament_state_na',value:JSON.stringify(tournamentStateNa),updated_at:new Date().toISOString()})
+      .then(function(res){if(res&&res.error)toast('Settings sync failed','error');});
+  },[tournamentStateNa]);
 
   // ── Debug: expose state to window for diagnostics (DEV ONLY — never in production) ──
   useEffect(function(){
@@ -1091,6 +1111,7 @@ export function AppProvider(props) {
       profilePlayer: profilePlayer, setProfilePlayer: setProfilePlayer,
       comparePlayer: comparePlayer, setComparePlayer: setComparePlayer,
       tournamentState: tournamentState, setTournamentState: setTournamentState,
+      tournamentStateNa: tournamentStateNa, setTournamentStateNa: setTournamentStateNa,
       seasonConfig: seasonConfig, setSeasonConfig: setSeasonConfig,
       quickClashes: quickClashes, setQuickClashes: setQuickClashes,
       orgSponsors: orgSponsors, setOrgSponsors: setOrgSponsors,
@@ -1136,7 +1157,7 @@ export function AppProvider(props) {
     scrimAccess, scrimHostAccess, tickerOverrides, scrimSessions,
     notifications, toasts, disputes,
     announcement, profilePlayer, comparePlayer,
-    tournamentState, seasonConfig, quickClashes,
+    tournamentState, tournamentStateNa, seasonConfig, quickClashes,
     orgSponsors, scheduledEvents, auditLog,
     hostApps, hostTournaments, hostBranding, hostAnnouncements,
     pastClashes, featuredEvents, challengeCompletions,

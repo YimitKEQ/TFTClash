@@ -132,7 +132,7 @@ function TierCard(props) {
   var isCurrent = currentTier === tier
   var subscribeUrl = currentUser ? getSubscribeUrl(tier, currentUser.auth_user_id || currentUser.id) : null
   var accentText = accent === 'tertiary' ? 'text-tertiary' : 'text-primary'
-  var panelClass = 'relative flex flex-col transition-all hover:bg-surface-container'
+  var panelClass = 'relative flex flex-col h-full transition-all hover:bg-surface-container'
   if (highlighted) {
     panelClass += ' ring-2 ring-primary/40 -mt-2 z-10'
   }
@@ -247,7 +247,7 @@ export default function PricingScreen() {
         </header>
 
         {/* Pricing Cards - 5 tiers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-stretch">
 
           <TierCard
             tier="free"
@@ -324,33 +324,6 @@ export default function PricingScreen() {
           />
 
         </div>
-
-        {/* Free-to-compete banner */}
-        <Panel padding="spacious" elevation="low" className="mt-20 relative overflow-hidden text-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="font-display text-3xl mb-3 tracking-tighter">
-              FREE TO COMPETE, ALWAYS.
-            </h2>
-            <p className="text-on-surface-variant max-w-2xl mx-auto mb-6 text-sm">
-              Every weekly clash is free to enter. Paid tiers add tools, not access. Climb on merit, no paywall.
-            </p>
-            <div className="inline-flex items-center gap-6 font-mono text-xs opacity-50 uppercase flex-wrap justify-center">
-              <div className="flex items-center gap-2">
-                <Icon name="verified_user" size={16} />
-                Fair Play
-              </div>
-              <div className="flex items-center gap-2">
-                <Icon name="public" size={16} />
-                EUW - EUNE - NA
-              </div>
-              <div className="flex items-center gap-2">
-                <Icon name="groups" size={16} />
-                Community Moderated
-              </div>
-            </div>
-          </div>
-        </Panel>
 
         {/* Donation Section */}
         {getDonateUrl() ? (

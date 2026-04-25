@@ -657,9 +657,9 @@ function TFTClash(){
 
         {screen==="bracket"    &&<BracketScreenNew/>}
 
-        {screen==="profile"    &&(profilePlayer||(subRoute&&players.find(function(p){return p.name===subRoute||p.username===subRoute;})))&&<PlayerProfileScreenNew/>}
+        {screen==="profile"    &&(profilePlayer||subRoute)&&<PlayerProfileScreenNew/>}
 
-        {screen==="profile"    &&!profilePlayer&&!(subRoute&&players.find(function(p){return p.name===subRoute||p.username===subRoute;}))&&<AccountScreenNew/>}
+        {screen==="profile"    &&!profilePlayer&&!subRoute&&<AccountScreenNew/>}
 
         {screen==="results"    &&<ResultsScreenNew/>}
 

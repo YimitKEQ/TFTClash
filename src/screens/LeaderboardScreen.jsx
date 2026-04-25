@@ -53,10 +53,10 @@ function PodiumCard({ player, rank, onClick }) {
 
   if (isFirst) {
     return (
-      <div className="order-1 md:order-2 flex flex-col items-center -translate-y-8">
+      <div className="order-1 md:order-2 flex flex-col items-center pt-12 md:-translate-y-2">
         <div className="relative group cursor-pointer mb-6" onClick={onClick}>
-          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20">
-            <Icon name="emoji_events" fill size={52} className="text-primary drop-shadow-[0_2px_8px_rgba(255,206,120,0.6)]" />
+          <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-20">
+            <Icon name="emoji_events" fill size={48} className="text-primary drop-shadow-[0_2px_8px_rgba(255,206,120,0.6)]" />
           </div>
           <div className="w-36 h-36 rounded-full border-4 border-primary overflow-hidden bg-surface-container-high transition-transform duration-300 group-hover:scale-105 flex items-center justify-center gold-glow-boss">
             <span className="font-display text-5xl font-bold text-primary">{initial}</span>
@@ -234,13 +234,13 @@ export default function LeaderboardScreen(props) {
         </header>
 
         {/* Leaderboard Sponsors */}
-        <div className="mb-8">
+        <div className="mb-12">
           <SponsorShowcase placement="leaderboard" variant="strip" />
         </div>
 
         {/* Podium */}
         {top3.length >= 3 && (
-          <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-20 px-4">
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end mb-20 px-4 pt-4">
             <PodiumCard player={top3[1]} rank={2} onClick={function() { openPlayer(top3[1]) }} />
             <PodiumCard player={top3[0]} rank={1} onClick={function() { openPlayer(top3[0]) }} />
             <PodiumCard player={top3[2]} rank={3} onClick={function() { openPlayer(top3[2]) }} />
