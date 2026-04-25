@@ -12,6 +12,7 @@ import MatchThread from '../components/shared/MatchThread'
 import BountyBoard from '../components/shared/BountyBoard'
 import VodGallery from '../components/shared/VodGallery'
 import PredictionGame from '../components/shared/PredictionGame'
+import AiScoutReport from '../components/shared/AiScoutReport'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
@@ -576,6 +577,18 @@ export default function TournamentDetailScreen() {
                 registeredIds={registeredIds}
                 hostId={event && event.host_id}
               />
+
+              {/* AI scout report - on-demand preview */}
+              {!isCompleted && (
+                <AiScoutReport
+                  threadId={'t-' + (eventId || 'unknown')}
+                  eventName={event.name || event.title || ''}
+                  players={registeredIds.map(function (un) {
+                    var p = (players || []).find(function (pl) { return pl.name && pl.name.toLowerCase() === String(un).toLowerCase() })
+                    return p || { id: un, name: un }
+                  })}
+                />
+              )}
 
               {/* Prediction game - fans pick winner + top4 */}
               <PredictionGame
