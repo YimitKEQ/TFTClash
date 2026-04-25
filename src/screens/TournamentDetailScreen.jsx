@@ -9,6 +9,7 @@ import Podium from '../components/shared/Podium'
 import RegionBadge from '../components/shared/RegionBadge'
 import LiveOdds from '../components/shared/LiveOdds'
 import MatchThread from '../components/shared/MatchThread'
+import BountyBoard from '../components/shared/BountyBoard'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
@@ -558,6 +559,13 @@ export default function TournamentDetailScreen() {
 
               {/* Match thread - localStorage chat board */}
               <MatchThread threadId={'t-' + (eventId || 'unknown')} currentUser={currentUser} />
+
+              {/* Fan bounty board - localStorage pledge tracker */}
+              <BountyBoard
+                threadId={'t-' + (eventId || 'unknown')}
+                currentUser={currentUser}
+                registeredIds={registeredIds}
+              />
 
               {/* Host management link */}
               {currentUser && event.dbTournamentId && currentUser.auth_user_id === event.host_id && (

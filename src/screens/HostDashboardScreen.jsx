@@ -6,6 +6,112 @@ import PageLayout from '../components/layout/PageLayout'
 import { Panel, Btn, Inp, Icon, Tag, Divider, PillTab } from '../components/ui'
 import { Sel, Bar, StatusPill, ACCENT_COLORS, WIZ_STEPS } from './host-dashboard/HostComponents'
 import { RoundControl } from './host-dashboard/CommandCenter'
+import { readTemplates, saveTemplate, deleteTemplate } from '../lib/tournamentTemplates.js'
+
+function TemplatesTab(props) {
+  var toast = props.toast
+  var _list = useState(function() { return readTemplates() })
+  var list = _list[0]
+  var setList = _list[1]
+  var _showForm = useState(false)
+  var showForm = _showForm[0]
+  var setShowForm = _showForm[1]
+  var _form = useState({ name: '', format: 'Standard', size: 8, rounds: 4, region: '', description: '', rulesText: '' })
+  var form = _form[0]
+  var setForm = _form[1]
+
+  function update(field, val) {
+    setForm(function(f) { var n = Object.assign({}, f); n[field] = val; return n })
+  }
+
+  function onSave() {
+    if (!form.name.trim()) { toast && toast('Template name required', 'error'); return }
+    saveTemplate(form)
+    setList(readTemplates())
+    setShowForm(false)
+    setForm({ name: '', format: 'Standard', size: 8, rounds: 4, region: '', description: '', rulesText: '' })
+    toast && toast('Template saved', 'success')
+  }
+
+  function onDelete(id) {
+    deleteTemplate(id)
+    setList(readTemplates())
+    toast && toast('Template removed', 'info')
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-4">
+        <h2 className="font-editorial text-2xl text-on-background flex-1">Tournament Templates</h2>
+        <Btn variant="primary" size="sm" icon={showForm ? "close" : "add"} onClick={function() { setShowForm(function(v) { return !v }) }}>
+          {showForm ? 'Cancel' : 'New template'}
+        </Btn>
+      </div>
+
+      <p className="text-on-surface-variant text-sm">
+        Save tournament configs once, spin up future events from a saved template. Stored locally in your browser.
+      </p>
+
+      {showForm && (
+        <div className="bg-surface-container-low border border-outline-variant/15 rounded-lg p-5 space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" value={form.name} onChange={function(e) { update('name', e.target.value.slice(0, 80)) }} placeholder="Template name" className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface placeholder-on-surface-variant/40 focus:outline-none focus:border-primary/40" />
+            <select value={form.format} onChange={function(e) { update('format', e.target.value) }} className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/40">
+              <option>Standard</option>
+              <option>Multi-stage</option>
+              <option>Flash</option>
+              <option>Scrim</option>
+            </select>
+            <input type="number" min={4} max={128} value={form.size} onChange={function(e) { update('size', parseInt(e.target.value, 10) || 8) }} placeholder="Players" className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/40" />
+            <input type="number" min={1} max={12} value={form.rounds} onChange={function(e) { update('rounds', parseInt(e.target.value, 10) || 4) }} placeholder="Rounds" className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/40" />
+            <input type="text" value={form.region} onChange={function(e) { update('region', e.target.value.slice(0, 20)) }} placeholder="Region (e.g. EUW)" className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/40 md:col-span-2" />
+            <textarea value={form.description} onChange={function(e) { update('description', e.target.value.slice(0, 500)) }} placeholder="Description (auto-fills tournament page)" rows={2} className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface placeholder-on-surface-variant/40 focus:outline-none focus:border-primary/40 resize-none md:col-span-2" />
+            <textarea value={form.rulesText} onChange={function(e) { update('rulesText', e.target.value.slice(0, 2000)) }} placeholder="Rules text (default tiebreakers + Riot ToS)" rows={3} className="bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface placeholder-on-surface-variant/40 focus:outline-none focus:border-primary/40 resize-none md:col-span-2" />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Btn variant="secondary" size="sm" onClick={function() { setShowForm(false) }}>Cancel</Btn>
+            <Btn variant="primary" size="sm" icon="save" onClick={onSave}>Save template</Btn>
+          </div>
+        </div>
+      )}
+
+      {list.length === 0 ? (
+        <div className="bg-surface-container-low border border-outline-variant/10 rounded-lg p-8 text-center">
+          <Icon name="bookmark" size={36} className="text-on-surface-variant/20 mx-auto mb-3" />
+          <p className="text-on-surface text-sm font-semibold">No templates saved yet</p>
+          <p className="text-on-surface-variant text-xs mt-1">Save your first config to spin up future events in one click.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {list.slice().sort(function(a, b) { return b.createdAt - a.createdAt }).map(function(t) {
+            return (
+              <div key={t.id} className="bg-surface-container-low border border-outline-variant/15 rounded-lg p-4">
+                <div className="flex items-start gap-2 mb-2">
+                  <Icon name="bookmark" size={16} className="text-primary mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-editorial text-base text-on-surface truncate">{t.name}</h4>
+                    <p className="text-[10px] font-label uppercase tracking-wider text-on-surface-variant/50 mt-0.5">
+                      {t.format + ' · ' + t.size + 'p · ' + t.rounds + ' rounds' + (t.region ? ' · ' + t.region : '')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={function() { onDelete(t.id) }}
+                    className="text-[10px] font-label uppercase tracking-widest text-error/70 hover:text-error"
+                  >
+                    Delete
+                  </button>
+                </div>
+                {t.description && (
+                  <p className="text-xs text-on-surface-variant leading-snug line-clamp-2">{t.description}</p>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 // --- HostDashboardScreen ---
 export default function HostDashboardScreen() {
@@ -1276,6 +1382,11 @@ export default function HostDashboardScreen() {
           </div>
         )}
 
+        {/* Templates tab */}
+        {tab === "templates" && (
+          <TemplatesTab toast={toast} />
+        )}
+
         {/* Command Center tab */}
         {tab === "commandcenter" && (
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-4 lg:items-start">
@@ -1482,7 +1593,8 @@ export default function HostDashboardScreen() {
               ["announce", "Announce", "campaign"],
               ["branding", "Branding", "palette"],
               ["game-flow", "Game Flow", "shuffle"],
-              ["registrations", "Players", "group"]
+              ["registrations", "Players", "group"],
+              ["templates", "Templates", "bookmark"]
             ].map(function(arr) {
               return (
                 <PillTab

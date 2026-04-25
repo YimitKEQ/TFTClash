@@ -38,15 +38,45 @@ export default async function handler(req, res) {
 
   var nowIso = new Date().toISOString()
   var rows = []
+  var playerFilter = (req.query && req.query.player) ? String(req.query.player).slice(0, 60) : ''
+  var hostFilter = (req.query && req.query.host) ? String(req.query.host).slice(0, 60) : ''
+  var calLabel = 'TFT Clash'
 
   try {
-    var resp = await sb
+    var query = sb
       .from('scheduled_events')
-      .select('id,name,starts_at,ends_at,description,event_type')
+      .select('id,name,starts_at,ends_at,description,event_type,host')
       .gte('starts_at', nowIso)
       .order('starts_at', { ascending: true })
       .limit(100)
+    if (hostFilter) {
+      query = query.eq('host', hostFilter)
+      calLabel = 'TFT Clash — ' + hostFilter
+    }
+    var resp = await query
     if (resp.data) rows = resp.data
+
+    if (playerFilter) {
+      calLabel = 'TFT Clash — ' + playerFilter
+      var pResp = await sb
+        .from('players')
+        .select('id')
+        .ilike('name', playerFilter)
+        .limit(1)
+        .maybeSingle()
+      var pid = pResp && pResp.data && pResp.data.id
+      if (pid) {
+        var rResp = await sb
+          .from('registrations')
+          .select('tournament_id')
+          .eq('player_id', pid)
+          .in('status', ['registered', 'checked_in'])
+        var keepIds = (rResp && rResp.data ? rResp.data : []).map(function (r) { return r.tournament_id })
+        rows = rows.filter(function (r) { return keepIds.indexOf(r.id) !== -1 })
+      } else {
+        rows = []
+      }
+    }
   } catch (e) {
     rows = []
   }
@@ -57,7 +87,7 @@ export default async function handler(req, res) {
   lines.push('PRODID:-//TFT Clash//Tournament Calendar//EN')
   lines.push('CALSCALE:GREGORIAN')
   lines.push('METHOD:PUBLISH')
-  lines.push('X-WR-CALNAME:TFT Clash')
+  lines.push('X-WR-CALNAME:' + escapeText(calLabel))
   lines.push('X-WR-CALDESC:Upcoming TFT Clash tournaments and events')
   lines.push('X-WR-TIMEZONE:UTC')
 

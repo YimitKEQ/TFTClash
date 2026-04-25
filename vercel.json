@@ -16,7 +16,16 @@
   ],
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/api/(public-players|public-tournaments|widget|calendar|share-card)(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+      ]
+    },
+    {
+      "source": "/api/((?!public-players|public-tournaments|widget|calendar|share-card).*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
@@ -63,7 +72,10 @@
     "api/ping-search-engines.js": { "memory": 128, "maxDuration": 15 },
     "api/cron-retention-notify.js": { "memory": 256, "maxDuration": 30 },
     "api/calendar.js":            { "memory": 128, "maxDuration": 10 },
-    "api/share-card.js":          { "memory": 128, "maxDuration": 10 }
+    "api/share-card.js":          { "memory": 128, "maxDuration": 10 },
+    "api/widget.js":              { "memory": 128, "maxDuration": 10 },
+    "api/public-players.js":      { "memory": 128, "maxDuration": 10 },
+    "api/public-tournaments.js":  { "memory": 128, "maxDuration": 10 }
   },
   "crons": [
     { "path": "/api/cron-retention-notify", "schedule": "0 14 * * *" }
