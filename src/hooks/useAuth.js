@@ -6,7 +6,6 @@ export function useAuth() {
     currentUser: ctx.currentUser,
     setCurrentUser: ctx.setCurrentUser,
     isAdmin: ctx.isAdmin,
-    setIsAdmin: ctx.setIsAdmin,
     isAuthLoading: ctx.isAuthLoading,
     isLoggedIn: !!ctx.currentUser,
   }

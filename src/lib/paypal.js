@@ -101,18 +101,27 @@ export function pollForSubscription(supabase, userId, opts) {
 }
 
 // ─── Cancel Subscription ──────────────────────────────────────────────────────
+// Calls the server endpoint which talks to PayPal upstream and flags the row.
+// The webhook then sets status='cancelled' once PayPal confirms.
 
-export function cancelSubscription(supabase, userId) {
-  return supabase
-    .from('user_subscriptions')
-    .update({ cancel_at_period_end: true })
-    .eq('user_id', userId)
-    .select()
-    .single()
-    .then(function(resp) {
-      if (resp.error) throw resp.error;
-      return resp.data;
+export function cancelSubscription(supabase, _userId) {
+  return supabase.auth.getSession().then(function(s) {
+    var token = s && s.data && s.data.session && s.data.session.access_token;
+    if (!token) throw new Error('Not authenticated');
+    return fetch('/api/cancel-subscription', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token,
+      },
+      body: JSON.stringify({}),
+    }).then(function(resp) {
+      return resp.json().then(function(body) {
+        if (!resp.ok) throw new Error(body && body.error ? body.error : 'Cancellation failed');
+        return body.data || null;
+      });
     });
+  });
 }
 
 // ─── Get Subscription ─────────────────────────────────────────────────────────

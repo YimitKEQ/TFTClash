@@ -64,8 +64,9 @@ export default function ItemIcon(props) {
             <span
               className="block font-body text-[10px] mt-1.5 leading-snug"
               style={{ color: 'rgba(228,225,236,0.75)' }}
-              dangerouslySetInnerHTML={{ __html: stripTags(item.desc).slice(0, 200) }}
-            />
+            >
+              {stripTags(item.desc).slice(0, 200)}
+            </span>
           )}
         </span>
       )}

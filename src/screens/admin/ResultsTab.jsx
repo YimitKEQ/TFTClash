@@ -178,7 +178,7 @@ export default function ResultsTab() {
               <span className="text-xs text-on-surface/50">Lobby:</span>
               {Array.from({ length: numLobbies }, function(_, i) { return i + 1 }).map(function(n) {
                 return (
-                  <button key={n} onClick={function() { setLobby(n) }} className={'px-2.5 py-1 text-xs font-bold rounded border ' + (lobby === n ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}>
+                  <button key={n} type="button" onClick={function() { setLobby(n) }} className={'px-2.5 py-1 text-xs font-bold rounded border ' + (lobby === n ? 'bg-primary/10 border-primary text-primary' : 'border-outline-variant/20 text-on-surface/50 hover:bg-white/5')}>
                     {n}
                     {published.indexOf('lobby' + n) !== -1 && ' ✓'}
                   </button>

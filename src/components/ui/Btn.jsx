@@ -7,6 +7,13 @@ const variants = {
   link: 'text-primary hover:underline underline-offset-4 decoration-2',
 }
 
+const variantAliases = {
+  dark: 'secondary',
+  danger: 'destructive',
+  success: 'tertiary',
+  purple: 'tertiary',
+}
+
 const sizes = {
   sm: 'py-2 px-4 text-xs min-h-[44px]',
   md: 'py-3 px-6 text-sm min-h-[44px]',
@@ -14,14 +21,16 @@ const sizes = {
   xl: 'py-5 w-full text-sm min-h-[56px]',
 }
 
-export default function Btn({ children, variant = 'primary', size = 'md', icon, iconPosition = 'left', loading = false, disabled = false, className = '', href, ...props }) {
+export default function Btn({ children, variant, v, size = 'md', icon, iconPosition = 'left', loading = false, disabled = false, className = '', href, ...props }) {
+  var resolvedVariant = variant || v || 'primary'
+  if (variantAliases[resolvedVariant]) resolvedVariant = variantAliases[resolvedVariant]
   var focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface'
   var base = 'inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 motion-reduce:transition-none disabled:opacity-50 disabled:cursor-not-allowed ' + focusRing
-  if (variant === 'link') {
+  if (resolvedVariant === 'link') {
     base = 'inline-flex items-center gap-1 font-label font-bold uppercase tracking-widest text-xs transition-all duration-200 motion-reduce:transition-none disabled:opacity-50 ' + focusRing
   }
-  var variantClass = variants[variant] || variants.primary
-  var sizeClass = variant === 'link' ? '' : (sizes[size] || sizes.md)
+  var variantClass = variants[resolvedVariant] || variants.primary
+  var sizeClass = resolvedVariant === 'link' ? '' : (sizes[size] || sizes.md)
   var combined = base + ' ' + variantClass + ' ' + sizeClass + ' ' + className
 
   var inner = (

@@ -36,7 +36,14 @@ export class AppPage {
   /** Click a primary nav link (Clash, Standings, Events, Stats, Hall of Fame, Pricing). */
   async clickNavLink(label) {
     const nav = this.page.locator('header nav').first();
-    const btn = nav.getByRole('button', { name: label, exact: true });
+    // The "Clash" button has a dynamic label based on tournament phase:
+    // "Clash", "● LIVE CLASH", "Clash - Joined", "Clash - Register",
+    // "Clash - Check-In", "Clash - Checked In", "Clash - Results".
+    // Match any of those when the caller asks for "Clash".
+    const matcher = label === 'Clash'
+      ? { name: /clash/i }
+      : { name: label, exact: true };
+    const btn = nav.getByRole('button', matcher).first();
     await btn.waitFor({ timeout: 5000 });
     await btn.click();
     await this.page.waitForTimeout(400);

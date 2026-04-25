@@ -53,10 +53,6 @@ export function AppProvider(props) {
   var isAdmin = _isAdmin[0];
   var setIsAdmin = _isAdmin[1];
 
-  var _adminOverride = useState(null);
-  var adminOverride = _adminOverride[0];
-  var setAdminOverride = _adminOverride[1];
-
   var _scrimAccess = useState([]);
   var scrimAccess = _scrimAccess[0];
   var setScrimAccess = _scrimAccess[1];
@@ -406,9 +402,9 @@ export function AppProvider(props) {
               setCurrentUser({
                 id:pRes.data.id,username:pRes.data.username,email:'levitate@tftclash.gg',
                 riotId:pRes.data.riot_id||'Levitate#EUW',rank:pRes.data.rank,region:pRes.data.region||'EUW',
-                is_admin:pRes.data.is_admin===true,auth_user_id:pRes.data.auth_user_id||'dev-auth-levitate'
+                is_admin:false,auth_user_id:pRes.data.auth_user_id||'dev-auth-levitate'
               });
-              setIsAdmin(pRes.data.is_admin===true);
+              setIsAdmin(false);
             }
             setIsAuthLoading(false);
           }).catch(function(){setIsAuthLoading(false);});
@@ -537,7 +533,7 @@ export function AppProvider(props) {
   // ── useEffect: sync isAdmin from currentUser.is_admin (DB source of truth only) ──
   useEffect(function(){
     var dbAdmin = !!(currentUser && currentUser.is_admin === true);
-    setIsAdmin(currentUser && adminOverride !== null ? adminOverride : dbAdmin);
+    setIsAdmin(dbAdmin);
     // Ensure user_roles entry exists for admins so RLS policies work correctly
     if(dbAdmin && currentUser.auth_user_id && supabase.from){
       supabase.from('user_roles').upsert(
@@ -545,13 +541,13 @@ export function AppProvider(props) {
         {onConflict: 'user_id,role'}
       );
     }
-  }, [currentUser, adminOverride]);
+  }, [currentUser]);
 
-  // Reset override when user identity changes (logout/switch)
+  // Track previous user identity for any future cross-user effect cleanup
   var prevUserIdRef = useRef(currentUser && (currentUser.auth_user_id || currentUser.id));
   useEffect(function(){
     var curId = currentUser && (currentUser.auth_user_id || currentUser.id);
-    if(prevUserIdRef.current !== curId){ setAdminOverride(null); }
+    if(prevUserIdRef.current !== curId){ /* identity changed */ }
     prevUserIdRef.current = curId;
   }, [currentUser]);
 
@@ -864,13 +860,16 @@ export function AppProvider(props) {
     if(lastPhaseRef.current===null){lastPhaseRef.current=phase;return;}
     if(lastPhaseRef.current===phase)return;
     lastPhaseRef.current=phase;
-    var webhook=seasonConfig&&seasonConfig.discordWebhookUrl;
-    if(!webhook)return;
+    if(seasonConfig&&seasonConfig.discordNotifications===false)return;
     var clashName=(tournamentState.clashName)||'TFT Clash';
     var clashTime=tournamentState.clashTimestamp?new Date(tournamentState.clashTimestamp).toLocaleString():'TBD';
     var phaseLabels={registration:'**Registration is OPEN**',checkin:'**Check-in is now LIVE**',inprogress:'**Tournament has STARTED**',complete:'**Tournament COMPLETE**'};
     var content=(phaseLabels[phase]||('Phase: '+phase))+' for '+clashName+'\nClash time: '+clashTime;
-    fetch(webhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:content})}).catch(function(){});
+    supabase.auth.getSession().then(function(s){
+      var token=s&&s.data&&s.data.session&&s.data.session.access_token;
+      if(!token)return;
+      fetch('/api/discord-notify',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({content:content})}).catch(function(){});
+    });
   },[tournamentState&&tournamentState.phase]);
 
   useEffect(function(){
@@ -1080,7 +1079,7 @@ export function AppProvider(props) {
       // Core data
       players: players, setPlayers: setPlayers,
       isLoadingData: isLoadingData,
-      isAdmin: isAdmin, setIsAdmin: setIsAdmin, setAdminOverride: setAdminOverride,
+      isAdmin: isAdmin,
       scrimAccess: scrimAccess, setScrimAccess: setScrimAccess,
       scrimHostAccess: scrimHostAccess, setScrimHostAccess: setScrimHostAccess,
       tickerOverrides: tickerOverrides, setTickerOverrides: setTickerOverrides,

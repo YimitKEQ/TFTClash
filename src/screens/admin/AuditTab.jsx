@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../lib/supabase.js'
 import { Panel, Btn, Icon } from '../../components/ui'
 
@@ -27,18 +27,25 @@ export default function AuditTab() {
   var hasMore = _hasMore[0]
   var setHasMore = _hasMore[1]
 
+  var cancelRef = useRef({ cancelled: false })
+
   useEffect(function() {
+    cancelRef.current.cancelled = true
+    var ticket = { cancelled: false }
+    cancelRef.current = ticket
     setEntries([])
     setPage(0)
     setHasMore(true)
-    loadPage(0, filter)
+    loadPage(0, filter, ticket)
+    return function() { ticket.cancelled = true }
   }, [filter])
 
-  function loadPage(pageNum, currentFilter) {
+  function loadPage(pageNum, currentFilter, ticket) {
     setLoading(true)
     var q = supabase.from('audit_log').select('*').order('created_at', { ascending: false }).range(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE - 1)
     if (currentFilter && currentFilter !== 'All') q = q.eq('action', currentFilter)
     q.then(function(res) {
+      if (ticket && ticket.cancelled) return
       setLoading(false)
       if (res.error) { return }
       var data = res.data || []
@@ -48,13 +55,13 @@ export default function AuditTab() {
         setEntries(function(prev) { return prev.concat(data) })
       }
       if (data.length < PAGE_SIZE) setHasMore(false)
-    }).catch(function() { setLoading(false) })
+    }).catch(function() { if (!ticket || !ticket.cancelled) setLoading(false) })
   }
 
   function loadMore() {
     var nextPage = page + 1
     setPage(nextPage)
-    loadPage(nextPage, filter)
+    loadPage(nextPage, filter, cancelRef.current)
   }
 
   return (

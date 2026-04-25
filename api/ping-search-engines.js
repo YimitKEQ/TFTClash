@@ -2,7 +2,7 @@
 // Call this manually or set up a Vercel deploy hook to POST to /api/ping-search-engines
 // Bing and Yandex both support IndexNow. Google recommends sitemap submission instead.
 
-var INDEXNOW_KEY = 'tftclash-indexnow-9b72cf2026';
+var INDEXNOW_KEY = process.env.INDEXNOW_KEY || '';
 var SITE_DOMAIN = 'https://tftclash.com';
 
 var URLS = [
@@ -34,6 +34,10 @@ export default async function handler(req, res) {
   var secret = process.env.PING_SECRET;
   if (!secret || req.headers['x-ping-secret'] !== secret) {
     return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  if (!INDEXNOW_KEY) {
+    return res.status(503).json({ error: 'INDEXNOW_KEY not configured' });
   }
 
   var body = JSON.stringify({

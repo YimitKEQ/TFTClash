@@ -277,7 +277,7 @@ function TFTClash(){
   },[location.pathname]);
   var players=ctx.players, setPlayers=ctx.setPlayers;
   var isLoadingData=ctx.isLoadingData;
-  var isAdmin=ctx.isAdmin, setIsAdmin=ctx.setIsAdmin;
+  var isAdmin=ctx.isAdmin;
   var scrimAccess=ctx.scrimAccess, setScrimAccess=ctx.setScrimAccess;
   var scrimHostAccess=ctx.scrimHostAccess||[];
   var tickerOverrides=ctx.tickerOverrides, setTickerOverrides=ctx.setTickerOverrides;

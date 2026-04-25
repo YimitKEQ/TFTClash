@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { Btn, Inp, Panel, Icon } from '../ui';
-import { supabase } from '../../lib/supabase';
+import { Btn, Icon } from '../ui';
 
 var SCREEN_TO_ROUTE = {
   home: '/', login: '/login', signup: '/signup', standings: '/standings',
@@ -107,8 +106,6 @@ export default function Navbar() {
   var setScreen = ctx.setScreen;
   var players = ctx.players;
   var isAdmin = ctx.isAdmin;
-  var setIsAdmin = ctx.setIsAdmin;
-  var setAdminOverride = ctx.setAdminOverride;
   var toast = ctx.toast;
   var disputes = ctx.disputes;
   var currentUser = ctx.currentUser;
@@ -124,14 +121,6 @@ export default function Navbar() {
   var drawer = _drawer[0];
   var setDrawer = _drawer[1];
 
-  var _pwModal = useState(false);
-  var pwModal = _pwModal[0];
-  var setPwModal = _pwModal[1];
-
-  var _pw = useState('');
-  var pw = _pw[0];
-  var setPw = _pw[1];
-
   var navTo = useCallback(function(s) {
     var base = s.split('/')[0];
     var canS = isAdmin || (currentUser && ((scrimAccess || []).includes(currentUser.username) || (scrimHostAccess || []).includes(currentUser.username)));
@@ -142,22 +131,6 @@ export default function Navbar() {
     if (route) navigate(route);
     else navigate('/' + base);
   }, [isAdmin, currentUser, scrimAccess, scrimHostAccess, toast, navigate, setScreen, setAuthScreen]);
-
-  function tryLogin() {
-    supabase.auth.getSession().then(function(sess) {
-      var token = sess.data && sess.data.session && sess.data.session.access_token;
-      var headers = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = 'Bearer ' + token;
-      fetch('/api/check-admin', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ password: pw })
-      }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data && data.isAdmin) { setAdminOverride(true); setPwModal(false); setPw(''); toast('Admin activated', 'success'); }
-        else toast('Wrong password', 'error');
-      });
-    });
-  }
 
   var phase = tournamentState && tournamentState.phase;
   var dispCount = (disputes || []).length;
@@ -249,23 +222,6 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Admin password modal */}
-      {pwModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1002] p-4">
-          <Panel glow className="w-full max-w-[340px] p-[26px]">
-            <h3 className="text-on-surface text-lg mb-4">Admin Access</h3>
-            <Inp value={pw} onChange={function(e) { setPw(e && e.target ? e.target.value : e); }}
-              type="password" placeholder="Enter password..."
-              onKeyDown={function(e) { if (e.key === 'Enter') tryLogin(); }}
-              className="mb-3.5" />
-            <div className="flex gap-2.5">
-              <Btn variant="primary" className="flex-1" onClick={tryLogin}>Login</Btn>
-              <Btn variant="ghost" onClick={function() { setPwModal(false); setPw(''); }}>Cancel</Btn>
-            </div>
-          </Panel>
-        </div>
-      )}
-
       {/* Drawer */}
       {drawer && (
         <>
@@ -287,13 +243,11 @@ export default function Navbar() {
                 <DrawerSection label="Admin" items={adminItems} />
               )}
             </div>
-            <div className="p-5 border-t border-white/[0.06] shrink-0">
-              {!isAdmin ? (
-                <Btn variant="ghost" className="w-full" onClick={function() { setDrawer(false); setPwModal(true); }}>Admin Login</Btn>
-              ) : (
-                <Btn variant="destructive" className="w-full" onClick={function() { setAdminOverride(false); setDrawer(false); toast('Admin off', 'success'); }}>Exit Admin</Btn>
-              )}
-            </div>
+            {isAdmin && (
+              <div className="p-5 border-t border-white/[0.06] shrink-0">
+                <span className="font-label uppercase text-[10px] font-semibold text-tertiary tracking-widest">Admin Active</span>
+              </div>
+            )}
           </div>
         </>
       )}

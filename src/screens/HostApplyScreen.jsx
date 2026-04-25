@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
+import { sanitize } from '../lib/utils.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon } from '../components/ui'
 
@@ -47,19 +48,23 @@ export default function HostApplyScreen() {
       toast("Please log in to submit an application", "error");
       return;
     }
-    if (!org.trim() || !reason.trim()) {
+    var cleanOrg = sanitize(org).trim().slice(0, 200);
+    var cleanReason = sanitize(reason).trim().slice(0, 2000);
+    var cleanDiscord = sanitize(discord).trim().slice(0, 200);
+    var cleanVision = sanitize(vision).trim().slice(0, 2000);
+    if (!cleanOrg || !cleanReason) {
       toast("Organization name and reason are required", "error");
       return;
     }
     var res = await supabase.from("host_applications").insert({
       user_id: currentUser.auth_user_id,
-      name: currentUser.username || "",
+      name: sanitize(currentUser.username || "").slice(0, 80),
       email: currentUser.email || "",
-      org: org.trim(),
-      reason: reason.trim(),
+      org: cleanOrg,
+      reason: cleanReason,
       freq: freq,
-      discord: discord.trim(),
-      vision: vision.trim(),
+      discord: cleanDiscord,
+      vision: cleanVision,
       status: "pending"
     }).select().single();
     if (res.error) {

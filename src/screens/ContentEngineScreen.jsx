@@ -731,8 +731,9 @@ function CampaignTab(props) {
           <div className="space-y-3">
             {generated.map(function(g, i){
               var p = PLATFORMS.find(function(x){return x.id===g.platform})
+              var stableKey = (g.platform || 'p') + '-' + (g.type || 't') + '-' + i
               return (
-                <div key={i} className="rounded-lg p-3"
+                <div key={stableKey} className="rounded-lg p-3"
                   style={{background:'rgba(11,18,32,0.6)', border:'1px solid rgba(255,255,255,0.06)', borderLeft:'3px solid '+p.color}}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded"
@@ -948,7 +949,7 @@ function TrendsTab(props) {
         )}
         {trends && trends.posts && trends.posts.map(function(p,i){
           return (
-            <a key={i} href={p.url} target="_blank" rel="noopener noreferrer"
+            <a key={p.url || i} href={p.url} target="_blank" rel="noopener noreferrer"
               className="block py-3 px-4 border-b border-white/5 hover:bg-white/5 transition-all rounded"
               style={{textDecoration:'none'}}>
               <div className="flex items-start gap-3">

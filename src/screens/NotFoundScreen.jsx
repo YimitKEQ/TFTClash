@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
@@ -7,6 +8,38 @@ export default function NotFoundScreen() {
   var navigate = useNavigate()
   var ctx = useApp()
   var setScreen = ctx.setScreen
+
+  // SPA rewrite returns HTTP 200 for unknown URLs (we can't change that without
+  // server prerendering). Instead, signal "not found" to crawlers via a noindex
+  // meta tag so they don't dedupe the homepage across phantom routes.
+  useEffect(function() {
+    var prevTitle = document.title
+    document.title = '404 - Page not found - TFT Clash'
+
+    var robots = document.querySelector('meta[name="robots"]')
+    var created = false
+    var prevContent = null
+    if (robots) {
+      prevContent = robots.getAttribute('content')
+    } else {
+      robots = document.createElement('meta')
+      robots.setAttribute('name', 'robots')
+      document.head.appendChild(robots)
+      created = true
+    }
+    robots.setAttribute('content', 'noindex, nofollow')
+
+    return function() {
+      document.title = prevTitle
+      if (created) {
+        if (robots.parentNode) robots.parentNode.removeChild(robots)
+      } else if (prevContent !== null) {
+        robots.setAttribute('content', prevContent)
+      } else {
+        robots.removeAttribute('content')
+      }
+    }
+  }, [])
 
   function goHome() {
     setScreen('home')
