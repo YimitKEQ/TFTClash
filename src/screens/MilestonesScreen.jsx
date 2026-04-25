@@ -64,6 +64,108 @@ function getProgressPct(pts) {
   return Math.min(100, Math.round(pts / maxPts * 100));
 }
 
+function TierRarityStrip(props) {
+  var players = props.players || [];
+  var myPlayer = props.myPlayer;
+  var totalPlayers = players.length;
+
+  var rows = TIER_ORDER.map(function(tier) {
+    var catalog = ACHIEVEMENTS.filter(function(a) { return a.tier === tier; });
+    var totalCatalog = catalog.length;
+
+    var myEarnedCount = 0;
+    if (myPlayer) {
+      myEarnedCount = catalog.filter(function(a) {
+        try { return a.check(myPlayer); } catch (e) { return false; }
+      }).length;
+    }
+
+    var platformUnlockSum = 0;
+    if (totalPlayers > 0 && totalCatalog > 0) {
+      for (var ci = 0; ci < catalog.length; ci++) {
+        var ach = catalog[ci];
+        for (var pi = 0; pi < players.length; pi++) {
+          var pp = players[pi];
+          try { if (ach.check(pp)) platformUnlockSum += 1; } catch (e2) { /* skip */ }
+        }
+      }
+    }
+
+    var maxPossible = totalPlayers * totalCatalog;
+    var rarityPct = maxPossible > 0 ? Math.round((platformUnlockSum / maxPossible) * 100) : 0;
+
+    var rarityLabel;
+    if (totalCatalog === 0) rarityLabel = 'Empty';
+    else if (rarityPct >= 70) rarityLabel = 'Common';
+    else if (rarityPct >= 35) rarityLabel = 'Uncommon';
+    else if (rarityPct >= 10) rarityLabel = 'Rare';
+    else rarityLabel = 'Legendary';
+
+    return {
+      tier: tier,
+      label: TIER_LABELS[tier],
+      colors: TIER_COLORS[tier],
+      totalCatalog: totalCatalog,
+      myEarned: myEarnedCount,
+      rarityPct: rarityPct,
+      rarityLabel: rarityLabel,
+      maxPossible: maxPossible,
+    };
+  });
+
+  return (
+    <section className="mb-10 rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-5">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Icon name="diamond" className="text-secondary" size={20} />
+          <h3 className="font-display text-base tracking-wide">TIER RARITY</h3>
+        </div>
+        <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
+          {totalPlayers > 0 ? 'Across ' + totalPlayers + ' players' : 'No data yet'}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {rows.map(function(r) {
+          var myPct = r.totalCatalog > 0 ? Math.round((r.myEarned / r.totalCatalog) * 100) : 0;
+          return (
+            <div
+              key={r.tier}
+              className={'rounded-xl border bg-surface-container-low/60 p-4 ' + r.colors.border}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className={'font-label uppercase tracking-widest text-[10px] font-bold ' + r.colors.text}>
+                  {r.label}
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-widest text-on-surface-variant/50">
+                  {r.rarityLabel}
+                </span>
+              </div>
+
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className={'font-display text-2xl ' + r.colors.text}>{r.myEarned}</span>
+                <span className="font-mono text-xs text-on-surface-variant/60">/ {r.totalCatalog} mine</span>
+              </div>
+
+              <div className="h-1 bg-surface-container-highest rounded-full overflow-hidden mb-2">
+                <div
+                  className={'h-full ' + r.colors.bar}
+                  style={{ width: myPct + '%' }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] font-mono text-on-surface-variant/50">
+                <span>{'Platform ' + r.rarityPct + '%'}</span>
+                <span>{r.maxPossible > 0 ? r.totalCatalog + ' total' : '-'}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function AchievementCard(props) {
   var a = props.a;
   var unlocked = props.unlocked;
@@ -301,6 +403,9 @@ export default function MilestonesScreen() {
             })}
           </div>
         </section>
+
+        {/* Tier Rarity Strip — Wave 24 */}
+        <TierRarityStrip players={players} myPlayer={myPlayer} />
 
         {/* Tab Switcher */}
         <PillTabGroup align="start" className="mb-8">
