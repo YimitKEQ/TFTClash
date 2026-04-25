@@ -210,7 +210,10 @@ export default function HofScreen(props) {
   var kingGap = challengers[0] ? (king.pts || 0) - (challengers[0].pts || 0) : 0
 
   function openProfile(name) {
+    if (!name) return
+    var lower = String(name).toLowerCase()
     var p = players.find(function(pl) { return pl.name === name })
+    if (!p) p = players.find(function(pl) { return pl.name && pl.name.toLowerCase() === lower })
     if (p) {
       setProfilePlayer(p)
       setScreen('profile')

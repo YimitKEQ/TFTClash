@@ -29,8 +29,23 @@ function shortClashDate(input) {
   }
 }
 
+function findRosterMatch(name, roster) {
+  if (!name || !Array.isArray(roster)) return null
+  for (var i = 0; i < roster.length; i++) {
+    var p = roster[i]
+    if (p && p.name === name) return p
+  }
+  var lower = String(name).toLowerCase()
+  for (var j = 0; j < roster.length; j++) {
+    var q = roster[j]
+    if (q && q.name && q.name.toLowerCase() === lower) return q
+  }
+  return null
+}
+
 function RecentChampionsStrip(props) {
   var pastClashes = props.pastClashes || []
+  var roster = props.roster || []
   var navigate = props.navigate
   if (pastClashes.length === 0) return null
 
@@ -56,23 +71,30 @@ function RecentChampionsStrip(props) {
           var name = clash.champion || 'Unknown'
           var initial = name && name.length > 0 ? name[0].toUpperCase() : '?'
           var dateStr = shortClashDate(clash.date)
+          var hasPts = clash.pts != null && clash.pts !== ''
+          // Only attach navigation when the champion still exists in the roster.
+          // Past champs who left the platform render as static tiles to avoid
+          // landing the user on a dead profile route.
+          var match = findRosterMatch(clash.champion, roster)
+          var clickable = match !== null
+          var btnClass = 'rounded-xl border border-outline-variant/15 bg-surface-container-low/60 p-3 flex flex-col items-center gap-2 text-center transition-colors '
+            + (clickable ? 'hover:bg-surface-container hover:border-primary/30' : 'cursor-default')
           return (
             <button
               key={clash.id || (name + '-' + (clash.date || ''))}
               type="button"
-              onClick={function () {
-                if (clash.champion) navigate('/player/' + encodeURIComponent(clash.champion))
-              }}
-              className="rounded-xl border border-outline-variant/15 bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/30 transition-colors p-3 flex flex-col items-center gap-2 text-center"
+              disabled={!clickable}
+              onClick={clickable ? function () { navigate('/player/' + encodeURIComponent(match.name)) } : undefined}
+              className={btnClass}
             >
               <span className="w-10 h-10 rounded-full border-2 border-primary/40 bg-primary/10 flex items-center justify-center font-display text-base text-primary">
                 {initial}
               </span>
-              <span className="font-display text-xs sm:text-sm tracking-wide text-on-surface truncate w-full">
+              <span title={name} className="font-display text-xs sm:text-sm tracking-wide text-on-surface truncate w-full">
                 {name}
               </span>
               <span className="font-mono text-[10px] text-on-surface-variant/50">
-                {(clash.pts ? clash.pts + ' pts' : '') + (clash.pts && dateStr ? ' · ' : '') + (dateStr || '')}
+                {(hasPts ? clash.pts + ' pts' : '') + (hasPts && dateStr ? ' · ' : '') + (dateStr || '')}
               </span>
             </button>
           )
@@ -411,7 +433,7 @@ export default function ResultsScreen() {
               </div>
             )}
 
-            <RecentChampionsStrip pastClashes={pastClashes} navigate={navigate} />
+            <RecentChampionsStrip pastClashes={pastClashes} roster={players} navigate={navigate} />
 
             {/* Tab nav */}
             <PillTabGroup align="start">
