@@ -12,6 +12,7 @@ import SectionHeader from '../components/shared/SectionHeader.jsx'
 import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 import PerformanceHeatmap from '../components/shared/PerformanceHeatmap'
+import TwitchEmbed from '../components/shared/TwitchEmbed'
 import { supabase } from '../lib/supabase'
 
 // ─── RATE BAR ─────────────────────────────────────────────────────────────────
@@ -534,6 +535,23 @@ export default function PlayerProfileScreen() {
               <Btn variant="secondary" size="sm" icon="download" onClick={downloadStatsCard}>
                 Download Card
               </Btn>
+              <Btn
+                variant="secondary"
+                size="sm"
+                icon="image"
+                onClick={function () {
+                  var url = '/api/share-card?name=' + encodeURIComponent(player.name)
+                  window.open(url, '_blank', 'noopener,noreferrer')
+                  if (navigator.clipboard) {
+                    var full = (typeof window !== 'undefined' && window.location ? window.location.origin : '') + url
+                    navigator.clipboard.writeText(full).then(function () {
+                      if (toast) toast('Share card URL copied', 'success')
+                    }).catch(function () {})
+                  }
+                }}
+              >
+                Share Card
+              </Btn>
             </div>
           </div>
 
@@ -750,6 +768,11 @@ export default function PlayerProfileScreen() {
                   </div>
                 </div>
               </Panel>
+
+              {/* Twitch live embed */}
+              {pTwitch && (
+                <TwitchEmbed channel={pTwitch} compact />
+              )}
 
               {/* Socials */}
               {(pTwitch || pTwitter || pYoutube) && (

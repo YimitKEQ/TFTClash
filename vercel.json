@@ -62,7 +62,8 @@
     "api/delete-account.js":      { "memory": 256, "maxDuration": 10 },
     "api/ping-search-engines.js": { "memory": 128, "maxDuration": 15 },
     "api/cron-retention-notify.js": { "memory": 256, "maxDuration": 30 },
-    "api/calendar.js":            { "memory": 128, "maxDuration": 10 }
+    "api/calendar.js":            { "memory": 128, "maxDuration": 10 },
+    "api/share-card.js":          { "memory": 128, "maxDuration": 10 }
   },
   "crons": [
     { "path": "/api/cron-retention-notify", "schedule": "0 14 * * *" }
