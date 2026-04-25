@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats, getAchievements, checkAchievements, syncAchievements, ACHIEVEMENTS, isHotStreak, isOnTilt } from '../lib/stats.js'
+import { computeAwards } from '../lib/weirdStats.js'
 import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -226,6 +227,7 @@ export default function PlayerProfileScreen() {
   var isOwnProfile = currentUser && player && (currentUser.username === player.name || currentUser.id === player.auth_user_id);
 
   var achievements = player ? getAchievements(player) : [];
+  var weirdAwards = player ? computeAwards(player) : [];
   var s = player ? getStats(player) : { games: 0, wins: 0, top4: 0, bot4: 0, top1Rate: '0.0', top4Rate: '0.0', bot4Rate: '0.0', avgPlacement: '-', perClashAvp: null, roundAvgs: { r1: null, r2: null, r3: null, finals: null }, comebackRate: 0, clutchRate: 0, ppg: 0 };
 
   // Subscription badge
@@ -1097,6 +1099,23 @@ export default function PlayerProfileScreen() {
 
       {/* Achievements Tab */}
       {tab === 'achievements' && (
+        <>
+        {weirdAwards.length > 0 && (
+          <div className="mb-6">
+            <SectionHeader eyebrow="Algorithmic flair" title="Weird stat awards" />
+            <div className="flex flex-wrap gap-2 mt-3">
+              {weirdAwards.map(function(a) {
+                return (
+                  <span key={a.id} title={a.blurb}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-tertiary/30 bg-tertiary/10 text-tertiary text-xs font-label uppercase tracking-widest">
+                    <Icon name="auto_awesome" size={14} />
+                    {a.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {ACHIEVEMENTS.map(function(a) {
             var unlocked = false;
@@ -1122,6 +1141,7 @@ export default function PlayerProfileScreen() {
             );
           })}
         </div>
+        </>
       )}
     </PageLayout>
   );

@@ -8,6 +8,15 @@ export function dbg() { if (TFT_DEBUG) console.log.apply(console, arguments); }
 // ─── DISCORD ─────────────────────────────────────────────────────────────────
 export var DISCORD_URL = "https://discord.gg/HJH3NQqqXH";
 
+// ─── CURRENT TFT PATCH ────────────────────────────────────────────────────────
+// Bump when Riot drops a new patch. Used by <PatchBanner/> and meta-aware UI.
+export var TFT_PATCH = { version: "14.5", liveAt: "2026-04-23" };
+export function getPatchInfo() {
+  var live = new Date(TFT_PATCH.liveAt).getTime();
+  var d = Math.floor((Date.now() - live) / 86400000);
+  return { version: TFT_PATCH.version, daysSince: Math.max(0, d) };
+}
+
 // ─── CONSTANTS ────────────────────────────────────────────────────────────────
 
 export var RANKS = ["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];

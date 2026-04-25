@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase.js'
 import { PTS } from '../lib/constants.js'
 import { computeSeasonBonuses, getAttendanceStreak, isHotStreak, checkAchievements, syncAchievements } from '../lib/stats.js'
 import { applyCutLine } from '../lib/tournament.js'
+import { sfxLock, sfxAdvance, sfxWin, sfxFinalTick, sfxTick } from '../lib/audio.js'
 import { writeActivityEvent, createNotification } from '../lib/notifications.js'
 import { Panel, Btn, Inp, Sel } from '../components/ui'
 import Icon from '../components/ui/Icon.jsx'
@@ -319,6 +320,10 @@ function BracketScreen(){
     });
     setPlacementEntry(function(pe){return Object.assign({},pe,{[li]:Object.assign({},pe[li],{open:false})});});
 
+    sfxLock();
+    var hasFirst=Object.keys(snapshot).some(function(pid){return snapshot[pid].place===1;});
+    if(hasFirst)sfxWin();
+
     function rollbackLock(){
       setTournamentState(function(ts){
         return Object.assign({},ts,{
@@ -517,7 +522,8 @@ function BracketScreen(){
     autoAdvanceRef.current=setInterval(function(){
       setAutoAdvanceCountdown(function(c){
         if(c===null)return null;
-        if(c<=1){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;return 0;}
+        if(c<=1){clearInterval(autoAdvanceRef.current);autoAdvanceRef.current=null;sfxFinalTick();return 0;}
+        if(c<=5)sfxTick();
         return c-1;
       });
     },1000);
@@ -541,6 +547,7 @@ function BracketScreen(){
         newRL[round]=currentLobbies.map(function(lobby){return lobby.map(function(p){return {id:p.id,name:p.name,rank:p.rank,riotId:p.riotId||p.riot_id_eu||''};});});
         return Object.assign({},ts,{round:nextRound,lockedLobbies:[],savedLobbies:[],roundHistory:newRH,roundLobbies:newRL});
       });
+      sfxAdvance();
       toast("Auto-advanced to Game "+nextRound,"success");
     }
     setAutoAdvanceCountdown(null);
@@ -1090,9 +1097,9 @@ function BracketScreen(){
                     <div key={li} className={"bg-surface-container-high rounded overflow-hidden border-2 transition-all " + (isMyLobby?"border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]":locked?"border-tertiary/30":"border-outline-variant/15")}>
 
                       {/* Lobby header */}
-                      <div className={"px-4 py-3 flex justify-between items-center border-b " + (isMyLobby?"bg-secondary/10 border-secondary/20":locked?"bg-tertiary/5 border-tertiary/15":"bg-surface-container border-outline-variant/10")}>
-                        <div className="flex items-center gap-2">
-                          <span className={"font-display " + (isMyLobby?"text-secondary":locked?"text-tertiary":"text-on-surface-variant/80")}>
+                      <div className={"px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center border-b " + (isMyLobby?"bg-secondary/10 border-secondary/20":locked?"bg-tertiary/5 border-tertiary/15":"bg-surface-container border-outline-variant/10")}>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className={"font-display text-sm sm:text-base " + (isMyLobby?"text-secondary":locked?"text-tertiary":"text-on-surface-variant/80")}>
                             {"LOBBY " + lobbyLetter}
                           </span>
                           {isMyLobby&&(
@@ -1126,22 +1133,22 @@ function BracketScreen(){
                             <div
                               key={p.id}
                               onClick={function(){setProfilePlayer(p);navigate("/player/"+p.name);}}
-                              className={"flex items-center justify-between px-4 py-2 hover:bg-surface-container-highest transition-colors cursor-pointer " + (isMe?"bg-secondary/5":"")}>
-                              <div className="flex items-center gap-3">
+                              className={"flex items-center justify-between px-3 py-2 sm:px-4 hover:bg-surface-container-highest transition-colors cursor-pointer " + (isMe?"bg-secondary/5":"")}>
+                              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                                 <span className={"font-mono text-xs " + (pi===0?"text-primary":pi===1?"text-on-surface-variant/60":pi===2?"text-on-surface-variant/50":"text-on-surface-variant/30")}>
                                   {String(pi+1).padStart(2,"0")}
                                 </span>
-                                <div className="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center flex-shrink-0">
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-surface-container-low flex items-center justify-center flex-shrink-0">
                                   <Icon name="person" size={16} className="text-on-surface-variant/40" />
                                 </div>
-                                <div>
-                                  <div className={"text-sm font-semibold flex items-center gap-1 " + (isMe?"text-secondary":isMyLobby?"text-on-surface":"text-on-surface-variant/90")}>
+                                <div className="min-w-0">
+                                  <div className={"text-sm font-semibold flex items-center gap-1 truncate " + (isMe?"text-secondary":isMyLobby?"text-on-surface":"text-on-surface-variant/90")}>
                                     {p.name}
                                     {isHotStreak(p)&&<Icon name="local_fire_department" size={12} fill className="text-orange-400" />}
                                     {pi===0&&<span className="text-[8px] font-label font-bold tracking-wider uppercase bg-primary/15 text-primary px-1.5 py-0.5 rounded">HOST</span>}
                                   </div>
                                   <div className="text-[10px] text-on-surface-variant/40">{p.rank}</div>
-                                  {(p.riotId||p.riot_id_eu)&&<div className="flex items-center gap-1">
+                                  {(p.riotId||p.riot_id_eu)&&<div className="flex items-center gap-1 max-w-[160px] sm:max-w-none">
                                     <span className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId||p.riot_id_eu}</span>
                                     <button
                                       onClick={function(e){e.stopPropagation();navigator.clipboard.writeText(p.riotId||p.riot_id_eu||"");toast("Copied "+p.name+"'s Riot ID","success");}}

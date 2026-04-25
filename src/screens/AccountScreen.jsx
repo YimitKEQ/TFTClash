@@ -415,12 +415,45 @@ export default function AccountScreen() {
   }
 
   if (!user || !user.id) {
+    var guestFeatures = [
+      { icon: 'badge',           title: 'Custom Profile',       desc: 'Banner, accent color, bio, and social links — your competitive identity.' },
+      { icon: 'leaderboard',     title: 'Live Season Stats',    desc: 'Avg placement, top4 rate, win rate, point trend. All tracked automatically.' },
+      { icon: 'workspace_premium', title: 'Achievements + Awards', desc: '40+ achievements plus algorithmic flair like "Comeback King" and "Iron Butt".' },
+      { icon: 'notifications',   title: 'Smart Notifications',  desc: 'Clash reminders, result confirmations, dispute pings — never miss a window.' },
+      { icon: 'redeem',          title: 'Prize Claim Center',   desc: 'Win? Submit your claim form, track payout status, see your full history.' },
+      { icon: 'sell',            title: 'Pro + Host Upgrades',  desc: 'Unlock advanced stats, banners, multi-tournament management, and more.' }
+    ];
     return (
       <PageLayout>
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Icon name="account_circle" size={48} className="text-on-surface/30 mb-4" />
-          <h2 className="font-editorial text-2xl text-on-surface mb-3">Sign in to view your account</h2>
-          <Btn variant="primary" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          <div className="text-center mb-12">
+            <span className="font-label text-xs uppercase tracking-widest text-secondary">Your account</span>
+            <h1 className="font-editorial italic text-4xl md:text-5xl text-on-surface mt-3 mb-4">Sign in to claim your throne</h1>
+            <p className="text-on-surface-variant max-w-xl mx-auto mb-6">
+              Free to compete, always. Create an account to track your season, earn awards, and customize your competitive identity.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <Btn variant="primary" onClick={function() { setScreen('signup'); navigate('/signup'); }}>Create Account</Btn>
+              <Btn variant="ghost" onClick={function() { setScreen('login'); navigate('/login'); }}>Sign In</Btn>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
+            {guestFeatures.map(function(f) {
+              return (
+                <Panel key={f.title} className="p-5 hover:border-primary/30 transition-colors">
+                  <Icon name={f.icon} size={24} className="text-primary mb-3" />
+                  <div className="font-label uppercase text-sm tracking-wide text-on-surface mb-1">{f.title}</div>
+                  <div className="text-on-surface-variant text-sm leading-relaxed">{f.desc}</div>
+                </Panel>
+              );
+            })}
+          </div>
+          <Panel className="p-6 text-center bg-primary/5 border-primary/20">
+            <Icon name="bolt" size={20} className="text-primary mx-auto mb-2" />
+            <div className="font-label uppercase tracking-widest text-sm text-primary mb-1">Sign up takes 30 seconds</div>
+            <div className="text-on-surface-variant text-sm mb-4">Email + password. No credit card. No verification spam.</div>
+            <Btn variant="primary" onClick={function() { setScreen('signup'); navigate('/signup'); }}>Get Started Free</Btn>
+          </Panel>
         </div>
       </PageLayout>
     );

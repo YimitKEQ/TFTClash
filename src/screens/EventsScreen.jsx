@@ -356,6 +356,27 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
         </Panel>
       )}
 
+      {/* Calendar subscribe banner */}
+      <Panel className="mb-8 p-4 flex items-center gap-4 flex-wrap">
+        <Icon name="event_available" size={22} className="text-secondary" />
+        <div className="flex-1 min-w-[200px]">
+          <div className="font-label uppercase text-xs tracking-widest text-on-surface mb-0.5">Never miss a clash</div>
+          <div className="text-on-surface-variant text-sm">Subscribe to the live calendar feed in Google, Apple, or Outlook.</div>
+        </div>
+        <Btn
+          variant="ghost"
+          size="sm"
+          onClick={function() {
+            var url = window.location.origin + '/api/calendar'
+            navigator.clipboard.writeText(url).then(function() {}).catch(function() {})
+            window.open(url, '_blank')
+          }}
+        >
+          <Icon name="calendar_add_on" size={16} className="mr-1.5" />
+          Subscribe (.ics)
+        </Btn>
+      </Panel>
+
       {/* Tournament Filters */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div className="flex space-x-2 flex-wrap gap-y-2">

@@ -22,7 +22,8 @@ function Footer() {
     ["/rules", "Rules"],
     ["/faq", "FAQ"],
     ["/gear", "Gear"],
-    ["/sponsors", "Sponsors"]
+    ["/sponsors", "Sponsors"],
+    ["/changelog", "Changelog"]
   ];
   var hostingLinks = [
     ["/pricing", "Pricing"],
