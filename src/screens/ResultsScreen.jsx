@@ -17,6 +17,71 @@ import AwardCard from '../components/shared/AwardCard'
 var PODIUM_COLORS = MEDAL_COLORS
 var REWARDS = ['Clash Crown', 'Icon', 'Frame', 'Loot Orb', 'Loot Orb', '', '', '']
 
+function shortClashDate(input) {
+  if (!input) return ''
+  try {
+    var d = new Date(input)
+    if (isNaN(d.getTime())) return ''
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return months[d.getMonth()] + ' ' + d.getDate()
+  } catch (e) {
+    return ''
+  }
+}
+
+function RecentChampionsStrip(props) {
+  var pastClashes = props.pastClashes || []
+  var navigate = props.navigate
+  if (pastClashes.length === 0) return null
+
+  // Skip the most recent clash because the hero champion banner above already
+  // celebrates them — the strip is for prior clashes the user might want to
+  // jump back to. Cap at 6 to keep the strip horizontally compact on desktop.
+  var prior = pastClashes.slice(1, 7)
+  if (prior.length === 0) return null
+
+  return (
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Icon name="history" className="text-secondary" />
+          <h3 className="font-display text-base tracking-wide">RECENT CHAMPIONS</h3>
+        </div>
+        <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
+          Past {prior.length} {prior.length === 1 ? 'clash' : 'clashes'}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+        {prior.map(function (clash) {
+          var name = clash.champion || 'Unknown'
+          var initial = name && name.length > 0 ? name[0].toUpperCase() : '?'
+          var dateStr = shortClashDate(clash.date)
+          return (
+            <button
+              key={clash.id || (name + '-' + (clash.date || ''))}
+              type="button"
+              onClick={function () {
+                if (clash.champion) navigate('/player/' + encodeURIComponent(clash.champion))
+              }}
+              className="rounded-xl border border-outline-variant/15 bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/30 transition-colors p-3 flex flex-col items-center gap-2 text-center"
+            >
+              <span className="w-10 h-10 rounded-full border-2 border-primary/40 bg-primary/10 flex items-center justify-center font-display text-base text-primary">
+                {initial}
+              </span>
+              <span className="font-display text-xs sm:text-sm tracking-wide text-on-surface truncate w-full">
+                {name}
+              </span>
+              <span className="font-mono text-[10px] text-on-surface-variant/50">
+                {(clash.pts ? clash.pts + ' pts' : '') + (clash.pts && dateStr ? ' · ' : '') + (dateStr || '')}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function PlacementColor(i) {
   if (i === 0) return '#E8A838'
   if (i === 1) return '#C0C0C0'
@@ -345,6 +410,8 @@ export default function ResultsScreen() {
                 </div>
               </div>
             )}
+
+            <RecentChampionsStrip pastClashes={pastClashes} navigate={navigate} />
 
             {/* Tab nav */}
             <PillTabGroup align="start">
