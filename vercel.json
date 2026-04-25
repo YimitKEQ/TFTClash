@@ -11,12 +11,16 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/public-players", "destination": "/api/public?type=players" },
+    { "source": "/api/public-tournaments", "destination": "/api/public?type=tournaments" },
+    { "source": "/api/cron-retention-notify", "destination": "/api/cron?job=retention-notify" },
+    { "source": "/api/ping-search-engines", "destination": "/api/cron?job=ping-search" },
     { "source": "/api/:path*", "destination": "/api/:path*" },
     { "source": "/(.*)", "destination": "/" }
   ],
   "headers": [
     {
-      "source": "/api/(public-players|public-tournaments|widget|calendar|share-card)(.*)",
+      "source": "/api/(public|public-players|public-tournaments|widget|calendar|share-card)(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Access-Control-Allow-Origin", "value": "*" },
@@ -25,7 +29,7 @@
       ]
     },
     {
-      "source": "/api/(ai-commentary|delete-account|paypal-webhook|check-admin|cron-retention-notify|ping-search-engines|health|discord-notify|cancel-subscription)(.*)",
+      "source": "/api/(ai-commentary|delete-account|paypal-webhook|check-admin|cron|cron-retention-notify|ping-search-engines|health|discord-notify|cancel-subscription)(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
@@ -67,17 +71,15 @@
     "api/paypal-webhook.js":  { "memory": 256, "maxDuration": 10 },
     "api/check-admin.js":     { "memory": 128, "maxDuration": 5  },
     "api/health.js":          { "memory": 128, "maxDuration": 5  },
-    "api/ai-commentary.js":       { "memory": 128, "maxDuration": 10 },
-    "api/delete-account.js":      { "memory": 256, "maxDuration": 10 },
-    "api/ping-search-engines.js": { "memory": 128, "maxDuration": 15 },
-    "api/cron-retention-notify.js": { "memory": 256, "maxDuration": 30 },
-    "api/calendar.js":            { "memory": 128, "maxDuration": 10 },
-    "api/share-card.js":          { "memory": 128, "maxDuration": 10 },
-    "api/widget.js":              { "memory": 128, "maxDuration": 10 },
-    "api/public-players.js":      { "memory": 128, "maxDuration": 10 },
-    "api/public-tournaments.js":  { "memory": 128, "maxDuration": 10 }
+    "api/ai-commentary.js":   { "memory": 128, "maxDuration": 10 },
+    "api/delete-account.js":  { "memory": 256, "maxDuration": 10 },
+    "api/cron.js":            { "memory": 256, "maxDuration": 30 },
+    "api/calendar.js":        { "memory": 128, "maxDuration": 10 },
+    "api/share-card.js":      { "memory": 128, "maxDuration": 10 },
+    "api/widget.js":          { "memory": 128, "maxDuration": 10 },
+    "api/public.js":          { "memory": 128, "maxDuration": 10 }
   },
   "crons": [
-    { "path": "/api/cron-retention-notify", "schedule": "0 14 * * *" }
+    { "path": "/api/cron?job=retention-notify", "schedule": "0 14 * * *" }
   ]
 }
