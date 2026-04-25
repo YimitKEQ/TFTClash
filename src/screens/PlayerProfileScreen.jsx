@@ -17,6 +17,7 @@ import TrophyCase from '../components/shared/TrophyCase'
 import ActivityTimeline from '../components/shared/ActivityTimeline'
 import ProfileShareCard from '../components/shared/ProfileShareCard'
 import ComparePlayersCard from '../components/shared/ComparePlayersCard'
+import PersonalBestsCard from '../components/shared/PersonalBestsCard'
 import { supabase } from '../lib/supabase'
 
 // ─── RATE BAR ─────────────────────────────────────────────────────────────────
@@ -736,6 +737,9 @@ export default function PlayerProfileScreen() {
 
           {/* Share card */}
           <ProfileShareCard player={player} />
+
+          {/* Personal bests pulled from clashHistory */}
+          <PersonalBestsCard player={player} />
 
           {/* Head-to-head compare (only when viewing someone else) */}
           {!isOwnProfile && myPlayer && player && (

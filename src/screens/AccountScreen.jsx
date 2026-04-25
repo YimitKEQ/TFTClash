@@ -11,6 +11,7 @@ import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 import RecentMatchesStrip from '../components/shared/RecentMatchesStrip'
 import NextMilestoneCard from '../components/shared/NextMilestoneCard'
+import PersonalBestsCard from '../components/shared/PersonalBestsCard'
 import { medalForPlacement, currencySymbol } from '../lib/prizes.js'
 
 // ─── Shared components ──────────────────────────────────���─────────────────────
@@ -1361,6 +1362,12 @@ export default function AccountScreen() {
             {linkedPlayer && (
               <div className="md:col-span-12 mb-2">
                 <NextMilestoneCard player={linkedPlayer} />
+              </div>
+            )}
+
+            {linkedPlayer && (
+              <div className="md:col-span-12 mb-2">
+                <PersonalBestsCard player={linkedPlayer} />
               </div>
             )}
 
