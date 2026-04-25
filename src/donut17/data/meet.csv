@@ -1,0 +1,120 @@
+Condition Type,Stage,Condition,Comp,Notes
+Arbiter,Any,Arbiter - Chance for Leona Copy,Any,Use Leona 3 as tank for any comp for mid game tempo
+Arbiter,Any,Arbiter - Deal damage 10 times for 15 Mana,Zoe Reroll or Tempo,Zoe is very strong with this Arbiter and can perma cast. Build 1 adaptive on Zoe. Even better if you can get Ekko's Patience for Zoe or Ekko's Anomaly item from boon.
+Arbiter,Any,Arbiter - Gain Perm HP on 50 mana > every 4 sec > attacks 3 times > enemy dies > other,Reroll or Tempo,Use Leona as mid game tank for tempo
+Augment,2,Early Learning,1 cost reroll,Carry must be 1 cost
+Augment,2,No Scout No Pivot,1 2 or 3 cost reroll,Play pair of 1 star unit to hold spot on board if needed
+Augment,2,Forged in Strength,Mech or 3 cost Reroll,Can also just tempo if lot of loss streakers and you got good 1st artifact + upgrades
+Augment,2,Expedition,Mech or any,Radiant is strong for any comp. Take econ augment 3-2 if it was not econ opener or econ god
+Augment,2,Spreading Roots,Any,"Play towards emblem, be 7 or 8th place to get a reforger and reforge bad emblems. Ideally winstreak with the augment. Only need to play towards 1 emblem."
+Augment,2,Trait Tree,Any,"Play towards emblem, be 7 or 8th place to get a reforger and reforge bad emblems. Ideally winstreak with the augment. Only need to play towards 1 emblem."
+Augment,2,Pandoras Bench,1 or 2 cost reroll,Do not take for 3 cost.
+Augment,2,Two Tanky,Samira/Ornn Reroll,2 nunu > 2 ornn if you can't ornn 3
+Augment,2,URF,Any,"Spat for any comp that needs +1. Ideally its space groove/darkstar/nova with Spat, or if you have reforger than vanguard/rogue/voyager."
+Augment,2,Legion of Threes,3 Cost Reroll or Any,Augment gives lot of stats to 3 cost units. But can use to play non 3 cost carries as well if emblem allows for it.
+Augment,2,Bonk (Nasus Hero Augment),Nasus/Leona/Teemo Reroll into Vertical Vanguards,Must have some Nasus copies and a makeable item on 2-1. Do not play if people are holding nasus/teemo. 
+Augment,2,Pyke Hero Augment,Pyke/Gragas Reroll,Must have some pyke copies and a makeable item on 2-1. Ideally played on Varus portal for dups.
+Augment,2,Frontline Foundation,Any,Ideally have talon as he can use all the frontline emblems well. The 2 star unit you get can stall enough for talon to kill backline and win fights
+Augment,3,Spreading Roots,Any,"Take if no good direction, see emblem conditions. Only need 1 playable emblem"
+Augment,3,Trait Tree,Any,"Take if no good direction, see emblem conditions. Only need 1 playable emblem"
+Augment,3,Cosmic Restart,Any,"Take if no good direction/bad board, see emblem conditions. Only need 1 playable emblem. Need to Level up to 7 and roll for a board to save hp"
+Augment,3,URF,Any,"Spat for any comp that needs +1. Ideally its space groove/darkstar/nova with Spat, or if you have reforger than vanguard/rogue/voyager."
+Augment,3,Zed Augment + Emblem/Artifact/Anima Item,Any with good frontline,"Shojin + Eon + extra item on Zed. Yasuo Hexes do not work on Zed. If no other item, then 3rd item should be another Shojin or Adaptive. Zed really needs to get to lvl 9, so only click augment if lvl 9 is a possiblity."
+Augment ,2,Backline Blueprint,Any,"Ideally have frontline units so you can use the 3 cost you get as the damage dealer. Rogue plays into Kaisa/Fizz, Sniper plays into Samira or Xayah, Challenger plays into Nova/Kindred or Primodians"
+Emblem,Any,Space Groove,Nami/Riven Duo,"Emblem on Riven always, Nami wants shojin or nashor. Main tank TK2 > Rammus2 > Nunu2"
+Emblem,Any,Rogue,Fizz/Kaisa Reroll,Can also tempo and play a riven on board with something
+Emblem,Any,Vanguard,Leblanc or any AP comp,Vanguard on carry for ap. Play Shen and Voyager for lot of starting AP. Riven can generate lot of shields for AP if you can play her.
+Emblem,Any,Sheperd,Vertical Sheperds,Needs sona. Play Nami/Karma flex if no Sona. 
+Emblem,Any,Marauder,Master Yi Flex,Play 4 or 6 Maruder (needs Fiora). Can play 4 Nova or 4 Brawler. Master Yi needs Edge of Night + Dmg + 1 (dmg/qss)
+Emblem,Any,Dark Star,Playing 4 or 6 Darkstar,"Needs Jhin to play 6 Dark Start. 4 Dark star is already lot of stat. If 6 darkstar, bench and unbench the unit to make it the strongest."
+Emblem,Any,NOVA,Master Yi NOVA,Dont play Cait and don't put emblem on Master Yi unless Nova Striking him. Nova Strike should be Maokai. Master Yi needs Edge of Night + Dmg + 1 (dmg/qss)
+Emblem,Any,Brawler,Master Yi Flex,Play 4 Brawler 4 Maruder + 2. Brawler emblem on Yi. Master Yi needs Edge of Night + Dmg + Brawler Emblem
+Emblem,Any,Bastion,Any,"Useable in most comps with Aatrox or Shen if no one else. Emblem gives lot of attack speed, so can put it on backline for damage if needed"
+Emblem,Any,Primordian ,Primordian Reroll or any,"3 Primodian is very strong early. 4 Primordian isnt a breakpoint trait, but its still very strong. Can look to replace Briar or Reksai Late Game."
+Emblem,Any,Psionic,Any,"Emblem gives lot of stats, can put on any secondary carry. Good to fit in 2 psionic in any comp for another item on secondary carry or tank"
+Emblem,Any,Meeple,Meeple Corki/Riven,"Meeple emblem should be used on frontline as it only gives tank stats and managen. Can put on Riven as placeholder item, but look to move it"
+Emblem,Any,Sniper,Xayah or Any,Possible to fit 2 sniper on any board with Jhin who gives 10% omni shred/sunder as the worst case scenario.
+Emblem,Any,Challenger,Any,"Most likely trying to reforge, but 2 challenger is 15% attackspeed for whole team. Emblem is better on melee units (can put on tank for healing)"
+Emblem,Any,Arbiter,Leona/Zoe Reroll or Leblanc,Try to reforge if arbiter rule is bad. 
+Emblem,Any,Anima,None,Try to reforge after cashout
+Emblem,Any,Voyager,Any,Strong in any comp. Easy to fit 2 voyager on any any comp. Be sure to put units adjacent to the holder for more stats
+Emblem,Any,Stargazer,Stargazer Reroll or Xayah,"Strong for Boar, Serpent or Mountain Stargazer. Okay on The Alter on 2-1 to start stacking. Otherwise try to reforge."
+Emblem,Any,Timebreaker,Any with Riven,Lot of extra resources stage 4+ if you can keep it active. 3 timebreaker is also 25% as for whole team.
+God,Any,Varus,Reroll,Pick any of the reroll lines for lot of board strength from Varus Boon.
+God,Any,Kayle,Mech Or Reroll Or Tempo,"If you have no conditions or opener, can look to play Mech and pray for radiant frontline item. Good for reroll comps for extra items, and can also tempo with the items if you have upgrades."
+God,Any,Yasuo,Reroll or Mech,Hope for HP stacking hex on stage 2 to feed hp to main tank. Cryogenic also very good for frontline. Try to only take 2 hexes so you get 12 gold from boon.
+God,Any,Ahri,Tempo Fast 8/9,"Ahri gives lot of resources, so its easy to push levels. "
+God,Any,Asol,Any,"Can give emblem for direction. Boon quest can give 15 ad/ap which is good for scaling, but can also wait 3 rounds for item + gold for roll down/3 star 4 costs.
+https://traittracker.lol/"
+God,Any,Ekko,Any,"Can give spat/artifact for direction, but careful of being contested. Anomaly is good on Cait and Asol. Can give antiheal on caster, or be used as + 1 item for fighter/tank"
+God,Any,Evelynn,Any,"Can be strong for tempoing. Missing 2 shops for 15 gold on Stage 3 is very good, but untakeable on stage 4."
+God,Any,Soraka,Any/Lose Streak,Extra HP is useful for bonus life after lose streaking. Soraka Boon good for scamming extra placements or in vanguard comps
+God,Any,Thresh,Any,"Random rewards, boon is worse that others until stage 6. Only take it if other god options are untakeable."
+Item,Any,Titanic Hydra,Xayah,Very Strong Artifact on Xayah as it proccs and each bounce
+Item,Any,Horizon Focus + Mountain Stargazer,Lulu on Nami Flex Board,"Double Shojin + Horizon focus on Lulu. Do not have to reroll, and focus on getting good frontline."
+Opener,2,TF/Talon/Jax Copies,Stargazer Reroll,"Can play Stargazer + Aatrox Cait + Gwen Rhaast. Do Not Play on Fountain, and avoid playing on Huntress. Best on Medellion"
+Opener,2,Teemo/Leona/Liss Copies + bow/rod/rageblade,Teemo Reroll,Needs rageblade and good arbiter. Perm HP > armor/mr > shielding for arbiter. Avoid 3 star leona arbiter since you are reroll for the leona anyways.
+Opener,2,Primordian or Artifact (RFC/eve/flicker/mittens),Primordian Reroll,"Reroll on 5 until Reksai3/Briar3. Then Roll on Level 6 until Play Gwen on 6, Rhaast on 7 and Kindred on 8. Itemize Briar 3 over Belveth2/Akali2
+"
+Opener,2,Ezreal/Cho/Liss Copies,Ezreal/Cho/Liss Reroll,"Liss is not priority, but very strong. Looking to winstreak early game to get stacks. Needs a strong combat augment 2-1"
+Opener,2,Veigar/Poopy/Liss Copies,Veigar/Poppy/Liss Reroll,Play with strong ap items early game. Rerolling on level 4 and 5 until 3 star all 3 units instead of going 9 to print. Veigar really wants Nashor Nashor JG.
+Opener,2,Viktor Copies or Drone/Biomatter/Implant,Viktor Reroll or Tempo with Bronze For Life,"Viktor does not want managen. Illaoi 3 is hard to hit in current meta, avoid rerolling if lot of AP players in lobby. Drone on Viktor, Biomatter on main tank, and Implant for secondary AP carries. "
+Opener,2,Urgot/Aurora Copies or lot of Swords,Urgot/Aurora/Maokai Reroll,"Transform Urgot on 7, and Transform the Mech on 8. "
+Opener,2,Attack Speed/AD Items,Xayah or Kindred/Nova,"Xayah playable on all stargazer besides Fountain, but ideally Boar or Serpent. Kindred/Nova needs to tempo to top 4, and really needs to get to level 9 or needs shen on 8. Never play Cait."
+Opener,2,Rageblade/AP Items,Leblanc or Fast 9 Vex,"Play Leblanc if stuck on lvl 8, but ideally play towards Vex."
+Opener,2,AP/Managen Items,Nami/Karma Flex,"Play from tempo only, and praying for a top 4. "
+Opener,2,Timebreaker,Any,"Ideally play 3 cost reroll, or 4 costs with conditions. Looking to lose streak and be sure to grief the Anima players. It is your responsibility to grief them and save the lobby"
+Opener,2,Anima Opener,Mech or Xayah,Play from 2-1 for guaranateed 300. Play from 3-1 if on 5 loss. Battle Bunny Cross bow is BIS on Xayah with IE + Rageblade (must have both). Tank anima items good on Mech (Lament > Ice > Radiant field)
+Opener,2,No Opener,Any,"Take a strong econ or scaling augment, and look to play 3 cost reroll or pray for condition on 3-2.  It is your responsibility to grief the anima player and save the lobby"
+Opener ,2,Kaisa/Fizz Copies or Items,Kaisa/Fizz Reroll,Item Priority: Kaisa > Fizz > Utility > Tank.
+Fast 9,Any,Winstreak/High HP + AD Items,Fiora Flex,"Default comp is: Aatrox Akali Blitz Nunu Shen Morg Fiora Vex Graves. Graves and Morg slots can be anything. Flex units: Jhin/Rammus. Avoid playing graves with no upgrades (can just play rhaast). Vex can hold any AS items, but can look to get rageblade on 4-7 treasure if you have bow or rod open and no other items needed."
+Fast 9 ,Any,Winstreak/High HP + AP Items,AP Flex,"Comp 1: Rammus Meepsie Blitz Morde Pyke Sona Shen Morg Liss Bard - Carry Sona/Bard/Blitz. Morg is an open slot. Code: 0204604e01402d01803803b00002901cTFTSet17
+Comp 2: Morde Meepsie Blitz Nunu Illaoi Sona Bard Vex (+ Pyke if AP psionic item otherwise Karma). Itemize your upgraded units. Code: 0204604e01402d01803803b00002901cTFTSet17
+
+Key units: Bard (Great single target damage), Sona (needs lot of mana gen), Vex (best DPS with any attack speed), Blitz (good at 2 star).
+
+Main thing is to have frontline + itemized carry, doesnt matter who the units are. "
+Fast 9 ,Any,Lose Streak/High Econ,Any,"Ideally want to play around Vex as she is the best dps. Needs at least 1 combat augment otherwise will just lose out. Your 4 cost tanks might be gone, so have to be flexible on who your frontline is. Must be the 1st to roll on 9, otherwise your 5 costs might be gone too."
+Worth the Wait 1,2,Teemo,Vanguard Teemo into Vex,"Needs rageblade, after that you are cruising to 9. "
+Worth the Wait 1,2,Nasus,Any with Vanguard Frontline,"Worse than Leona, but 3 star is 3 star. Look to drop him later since Blitz is just better. "
+Worth the Wait 1,2,Leona,Any with Vanguard Frontline,Most likely playing towards Leblanc into Vex. Get perm hp arbiter for a really strong tank. 
+Worth the Wait 1,2,Lissandra,Liss + Nami Flex,Can play it into Viktor Reroll or Fast 8/9. Liss is very strong. 
+Worth the Wait 1,2,Caitlyn,Reroll or any Nova/Fateweaver comp,"Strong with Ekko Anomaly Item. Can play it into Reroll Stargazer, Nova comps as an extra carry, or with Meeple Corki. Could also Tempo and sell for Xayah."
+Worth the Wait 1,2,Reksai,Reroll Primodians or Tempo Fast 9,"3 Primodians are strong early/mid game, so can look to reroll or tempo. If rerolling, then just roll on 6 instead of the usual level 5. "
+Worth the Wait 1,2,Aatrox,Any,Free frontline with shred/sunder on any comp
+Worth the Wait 1,2,Talon,Reroll or Tempo Fast 9,Talon 3 is very strong. Focus on getting good frontline so talon has time to kill backline.
+Worth the Wait 1,2,Twisted Fate,Reroll or Tempo,"Can play it into Reroll Stargazer, Nova comps as an extra carry, or with Meeple Corki. Could also Tempo and go fast 9"
+Worth the Wait 1,2,Poppy,Meeple Corki or Tempo,Extra frontline for Corki.
+Worth the Wait 1,2,Veigar,Meeple Veigar,Really strong. Can end game on Veigar. Needs Nashor Nashor JG ideally.
+Worth the Wait 1,2,Cho Gath,4 or 6 Dark Star,Give items to Cho early game to ensure he is stacking. He can get really tanky and lets you play 4/6 darkstar with flex units.
+Worth the Wait 1,2,Briar,Reroll Primodians or Tempo Fast 9,"3 Primodians are strong early/mid game, so can look to reroll or tempo. If rerolling, then just roll on 6 instead of the usual level 5. "
+Worth the Wait 1,2,Ezreal,Flex AD,Really Strong if you can win early game and ensure Ezreal is stacking. Can end game on stacked ezreal. Play with Xayah and/or Jhin + 3 or 4 timebreakers. 
+Worth the Wait 2,2,Pyke,Voyager Flex,"Play around: Morde Illaoi Pyke Meepsie Viktor (if good psionic). 
+
+Can do split position to have Pyke kill backline to cheese wins. 
+"
+Worth the Wait 2,2,Bel Veth,Reroll Primodians or Tempo Fast 9,"3 Primodians are strong early/mid game, so can look to reroll or tempo. If rerolling, then just roll on 5. "
+Worth the Wait 2,2,Mordekaiser,Any with Vanguard Frontline,"Morde has great traits, can play into any comp."
+Worth the Wait 2,2,Akali,NOVA/Maruder Flex,Extra carry for comps that run akali. Strong early game.
+Worth the Wait 2,2,Meepsie,Any Comp with Sheperd/Voyager,"Meepsie has great traits, can play into any comp."
+Worth the Wait 2,2,Milio,Meeple Corki or Flex or Tempo,"Milio can deal a lot of damage. Extra damage for Corki board, but can also tempo and sell later."
+Worth the Wait 2,2,Gwen,Duo with Riven on any comp,"Gwen is very strong. She is a reset champion, so try to position on weakside. Can sometimes position same side as carry and she will wrap to backline since they are lowest HP."
+Worth the Wait 2,2,Zoe,Vanguard + Zoe Flex,"Ideally arbiter is: 10 hit for mana, otherwise pick any AP scaling one. Zoe 3 is very strong and can be the end game carry. Avoid playing more conduits, as the trait is pretty useless. "
+Worth the Wait 2,2,Jax,Stargazer Reroll or Xayah or Tempo,One of the best tanks in the game at 3 star. Can play anything.
+Worth the Wait 2,2,Gnar,Xayah or Meeple Corki,"Extra carry for the Xayah or Corki comps. Can sell later if needed, but Gnar does do a lot of damage."
+Worth the Wait 2,2,Pantheon,Nami or Yi/Riven Flex or Any,One of the best tanks in the game at 3 star. Can play anything.
+Worth the Wait 2,2,Gragas,Psionic Flex,"Can play 2 or 4 Psionic. Not the best tank, can be sold later if needed."
+Worth the Wait 2,2,Jinx,Primodian Reroll or Tempo,Can be played on the primodian reroll board as the challenger unit. But in general should just try to tempo and sell her later for better units.
+Aura Farming,2,Jhin,Xayah or Vertical Dark Star with +1 Spat,Jhin greatly enables the Xayah Comp. Very strong with +1 Dark Star as well for 6 Darkstar. Avoid playing 6 Darkstar without a +1
+Aura Farming,2,Bard,Meeple or AP Flex,Bard does great single target damage and can streal units for extra econ or chance at upgrades. Try to get at least 3 Meeple activated
+Aura Farming,2,Morgana,Any,Morgana has a great aura for any comp.
+Aura Farming,2,Sona,AP Flex or 4 Psionic,"Sona needs a lot of Mana Gen to be a carry, otherwise its not worth itemizing her. Can play AP Flex boards with Pyke or Viktor, or play 4 Psionic if you have Drone + 1."
+Aura Farming,2,Shen,NOVA Flex or Any,"Greatly enables melee comps like Primodian Reroll, Master Yi Flex, Nova Flex. But can play with 2 bastion on any comp. His sword is normally used for backline units for non melee comps"
+Aura Farming,2,Blitzcrank,Space Groove or Any with 2 vanguard,Blitz isnt a reliable main carry. So he gets the left over items. Ensure you have good primary carry like Nami/Karma on level 8. Can also be played in Xayah Comp over mordekaiser
+Aura Farming,2,Fiora,NOVA or Mech,"Fiora really likes Edge of Night. Can play into any comp with 2 maruder. Default line is NOVA, as it greatly buffs before."
+Aura Farming,2,Vex,Any with good frontline,Best hit from aura farming. Aim to get rageblade by 4-3 + AP items. Ensure you focus on good frontline and combat augments. Can roll on 7 for 3 cost frontline if needed (like Illaoi 2). 
+Aura Farming,2,Graves,Any with good secondary carry and frontline,"Graves is weak until 4 upgrades. Dont rely on him as the solo carry. 
+Path 1 (Caster Build with Shojin + Dmg): Power Frame > Coolant > Coolant > Void Coefficient > Tank Buster > AP Rounds > Anything
+Path 2 (Melee Build with Bruiser Items): Assault Frame > Melt Through > Grav Booster > Grav Booster > Heavy Plating > Shockwave > Anything
+
+Both builds/path are fine. Just depends on items and comp."
