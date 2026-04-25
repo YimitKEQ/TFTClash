@@ -13,6 +13,7 @@ import Gods          from './tabs/Gods'
 import Items         from './tabs/Items'
 import Augments      from './tabs/Augments'
 import TeamPlanner   from './tabs/TeamPlanner'
+import Meet          from './tabs/Meet'
 
 import champions  from './data/champions.json'
 import traits     from './data/traits.json'
@@ -62,6 +63,7 @@ export default function Donut17Screen() {
           {hasData && tab === 'gods'      && <Gods data={dataset}/>}
           {hasData && tab === 'items'     && <Items data={dataset}/>}
           {hasData && tab === 'augments'  && <Augments data={dataset}/>}
+          {tab === 'meet'      && <Meet/>}
         </main>
       </div>
     </div>

@@ -7,6 +7,7 @@ var TABS = [
   { k: 'gods',      label: 'Gods',            icon: 'temple_buddhist' },
   { k: 'items',     label: 'Items',           icon: 'inventory_2' },
   { k: 'augments',  label: 'Augments',        icon: 'diamond' },
+  { k: 'meet',      label: 'Meet',            icon: 'menu_book' },
 ]
 
 export default function SideNav(props) {
