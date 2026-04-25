@@ -14,6 +14,7 @@ import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInf
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { RegionBadge } from '../components/shared'
 import WatchlistPanel from '../components/shared/WatchlistPanel'
+import NextMilestoneCard from '../components/shared/NextMilestoneCard'
 import { tickStreak, streakTier } from '../lib/loginStreak.js'
 
 function generateSeasonNarrative(players, sortedPts) {
@@ -1680,6 +1681,12 @@ export default function DashboardScreen() {
               )
             })}
           </div>
+        </div>
+      )}
+
+      {linkedPlayer && (
+        <div className="mt-6">
+          <NextMilestoneCard player={linkedPlayer} />
         </div>
       )}
 
