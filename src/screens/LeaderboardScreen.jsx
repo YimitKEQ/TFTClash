@@ -7,6 +7,7 @@ import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon, Panel, Skeleton } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
+import WatchButton from '../components/shared/WatchButton'
 
 // MEDAL_COLORS imported from constants.js
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
@@ -133,6 +134,9 @@ function TableRow({ player, rank, isMe, onClick }) {
       </td>
       <td className={'px-4 sm:px-8 py-4 sm:py-5 font-mono text-sm whitespace-nowrap ' + ptsColor}>{(player.pts || 0) + ' pts'}</td>
       <td className={'hidden sm:table-cell px-8 py-5 font-mono text-sm ' + avgColor}>{stats.avgPlacement}</td>
+      <td className="hidden md:table-cell px-4 py-4 text-right">
+        <WatchButton name={player.name} size="sm" />
+      </td>
       <td className="px-4 sm:px-8 py-4 sm:py-5 text-right">
         <Icon name={trendIcon} size={18} className={'align-middle ' + trendColor} />
       </td>
@@ -143,7 +147,7 @@ function TableRow({ player, rank, isMe, onClick }) {
 function TierDividerRow({ divider }) {
   return (
     <tr className={divider.bg + ' ' + divider.border}>
-      <td colSpan={5} className="px-4 sm:px-8 py-3">
+      <td colSpan={6} className="px-4 sm:px-8 py-3">
         <div className="flex items-center justify-between">
           <span className={'font-label text-sm tracking-[0.3em] font-bold ' + divider.color}>{divider.label}</span>
           <span className="font-mono text-xs text-current opacity-40">{divider.sub}</span>
@@ -345,6 +349,7 @@ export default function LeaderboardScreen(props) {
                   <col />
                   <col className="w-28 sm:w-40" />
                   <col className="hidden sm:table-column w-32" />
+                  <col className="hidden md:table-column w-32" />
                   <col className="w-16 sm:w-24" />
                 </colgroup>
                 <thead className="bg-surface-container-lowest/50">
@@ -353,6 +358,7 @@ export default function LeaderboardScreen(props) {
                     <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Player</th>
                     <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase">Points</th>
                     <th className="hidden sm:table-cell px-8 py-5 font-label text-outline text-xs tracking-widest uppercase">Avg Place</th>
+                    <th className="hidden md:table-cell px-4 py-4 font-label text-outline text-xs tracking-widest uppercase text-right">Watch</th>
                     <th className="px-4 sm:px-8 py-4 sm:py-5 font-label text-outline text-xs tracking-widest uppercase text-right">Trend</th>
                   </tr>
                 </thead>

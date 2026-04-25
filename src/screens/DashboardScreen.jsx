@@ -13,6 +13,7 @@ import { DISCORD_URL } from '../lib/constants'
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { RegionBadge } from '../components/shared'
+import WatchlistPanel from '../components/shared/WatchlistPanel'
 import { tickStreak, streakTier } from '../lib/loginStreak.js'
 
 function generateSeasonNarrative(players, sortedPts) {
@@ -1681,6 +1682,10 @@ export default function DashboardScreen() {
           </div>
         </div>
       )}
+
+      <div className="mt-6">
+        <WatchlistPanel limit={6} />
+      </div>
     </PageLayout>
   )
 }
