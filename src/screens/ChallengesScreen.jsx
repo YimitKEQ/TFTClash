@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import { DAILY_CHALLENGES, WEEKLY_CHALLENGES, estimateXp, getXpProgress } from '../lib/stats.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Icon, PillTab, PillTabGroup } from '../components/ui'
 
 var MATERIAL_ICON_MAP = {
   'fire': 'local_fire_department',
@@ -181,23 +181,20 @@ export default function ChallengesScreen() {
         </header>
 
         {/* Main tab selector */}
-        <div className="flex gap-4 mb-8">
+        <PillTabGroup align="start" className="mb-8">
           {['active', 'completed', 'xp-log'].map(function(t) {
             var label = t === 'xp-log' ? 'XP Log' : t.charAt(0).toUpperCase() + t.slice(1);
-            var isActive = mainTab === t;
             return (
-              <button
+              <PillTab
                 key={t}
+                active={mainTab === t}
                 onClick={function() { setMainTab(t); }}
-                className={'font-label text-xs py-1 px-4 rounded-full border transition-colors ' + (isActive
-                  ? 'border-primary/30 text-primary bg-primary/5'
-                  : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
               >
-                {label.toUpperCase()}
-              </button>
+                {label}
+              </PillTab>
             );
           })}
-        </div>
+        </PillTabGroup>
 
         {/* Active Tab */}
         {mainTab === 'active' && (
@@ -207,24 +204,20 @@ export default function ChallengesScreen() {
             <div className="col-span-12 lg:col-span-8 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Active Quests</h2>
-                <div className="flex gap-4">
-                  <button
+                <PillTabGroup align="start" className="pb-0">
+                  <PillTab
+                    active={questTab === 'daily'}
                     onClick={function() { setQuestTab('daily'); }}
-                    className={'font-label text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'daily'
-                      ? 'border-primary/30 text-primary bg-primary/5'
-                      : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
                   >
-                    DAILY
-                  </button>
-                  <button
+                    Daily
+                  </PillTab>
+                  <PillTab
+                    active={questTab === 'weekly'}
                     onClick={function() { setQuestTab('weekly'); }}
-                    className={'font-label text-xs py-1 px-4 rounded-full border transition-colors ' + (questTab === 'weekly'
-                      ? 'border-primary/30 text-primary bg-primary/5'
-                      : 'border-on-surface/10 text-on-surface/40 hover:text-on-surface')}
                   >
-                    WEEKLY
-                  </button>
-                </div>
+                    Weekly
+                  </PillTab>
+                </PillTabGroup>
               </div>
 
               <div className="font-mono text-[10px] text-on-surface/30 uppercase tracking-widest -mt-2">

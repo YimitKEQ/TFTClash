@@ -10,7 +10,7 @@ import { ordinal, rc, avgCol, shareToTwitter, buildShareText } from '../lib/util
 import { writeActivityEvent, createNotification } from '../lib/notifications.js';
 import { useApp } from '../context/AppContext';
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS } from '../lib/tiers.js';
-import { Panel, Btn, Icon, Tag, Inp, Divider, Skeleton, Sel } from '../components/ui';
+import { Panel, Btn, Icon, Tag, Inp, Divider, Skeleton, Sel, PillTab, PillTabGroup } from '../components/ui';
 import RankBadge from '../components/shared/RankBadge';
 import Sparkline from '../components/shared/Sparkline';
 import AwardCard from '../components/shared/AwardCard';
@@ -1061,12 +1061,24 @@ function ResultsScreen(props) {
       )}
 
       {/* Tab nav */}
-      <div className="flex gap-1.5 mb-[18px] overflow-x-auto pb-0.5">
-        {[["results", "Full Standings"], ["awards", "Awards"], ["report", "Clash Report"]].map(function(item) {
-          var id = item[0]; var label = item[1];
-          return <Btn key={id} v={tab === id ? "primary" : "dark"} s="sm" onClick={function() { setTab(id); }} className="shrink-0">{label}</Btn>;
+      <PillTabGroup align="start" className="mb-[18px]">
+        {[
+          ["results", "Full Standings", "leaderboard"],
+          ["awards", "Awards", "workspace_premium"],
+          ["report", "Clash Report", "description"]
+        ].map(function(item) {
+          return (
+            <PillTab
+              key={item[0]}
+              icon={item[2]}
+              active={tab === item[0]}
+              onClick={function() { setTab(item[0]); }}
+            >
+              {item[1]}
+            </PillTab>
+          );
         })}
-      </div>
+      </PillTabGroup>
 
       {/* Full Standings */}
       {tab === "results" && (

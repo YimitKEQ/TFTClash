@@ -364,26 +364,22 @@ export default function MilestonesScreen() {
               {/* Tier filter + label row */}
               <div className="flex items-center justify-between flex-wrap gap-3">
                 <h3 className="font-label uppercase tracking-widest text-lg font-bold">Achievement Vault</h3>
-                <div className="flex gap-2 flex-wrap">
+                <PillTabGroup align="start" className="flex-wrap pb-0 -mx-0 px-0">
                   {[['all', 'All'], ['bronze', 'Bronze'], ['silver', 'Silver'], ['gold', 'Gold'], ['legendary', 'Legendary']].map(function(item) {
                     var v = item[0];
                     var l = item[1];
                     var active = filterTier === v;
-                    var colors = v !== 'all' ? TIER_COLORS[v] : null;
                     return (
-                      <button
+                      <PillTab
                         key={v}
+                        active={active}
                         onClick={function() { setFilterTier(v); }}
-                        className={'px-4 py-1.5 rounded-full text-xs font-label uppercase tracking-widest transition-colors border ' + (active
-                          ? (v === 'all' ? 'bg-surface-container-highest text-on-surface border-outline-variant/40' : colors.bg + ' ' + colors.text + ' ' + colors.border)
-                          : 'text-on-surface-variant border-outline-variant/10 hover:bg-surface-container-high'
-                        )}
                       >
                         {l}
-                      </button>
+                      </PillTab>
                     );
                   })}
-                </div>
+                </PillTabGroup>
               </div>
 
               {/* Achievement Cards Grid */}
