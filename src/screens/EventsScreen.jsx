@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon } from '../components/ui'
+import { Panel, Btn, Icon, PillTab, PillTabGroup } from '../components/ui'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage, normalizeRegion } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
@@ -943,26 +943,20 @@ export default function EventsScreen() {
     <PageLayout>
       <div className="pt-8 pb-24">
         {/* Tab bar */}
-        <div className="flex items-center justify-between mb-12 flex-wrap gap-4">
-          <div className="flex space-x-1">
-            {tabs.map(function(t) {
-              var isActive = activeTab === t.id
-              return (
-                <button
-                  key={t.id}
-                  onClick={function() { navigate('/events/' + t.id) }}
-                  className={'flex items-center gap-2 px-6 py-3 font-label text-xs font-bold uppercase tracking-widest transition-all duration-200 rounded-full ' + (isActive
-                    ? 'bg-primary text-on-primary'
-                    : 'text-on-surface/60 hover:text-on-surface glass-panel'
-                  )}
-                >
-                  <Icon name={t.icon} size={16} className={isActive ? '' : 'opacity-60'} />
-                  {t.label}
-                </button>
-              )
-            })}
-          </div>
-        </div>
+        <PillTabGroup align="start" className="mb-12">
+          {tabs.map(function(t) {
+            return (
+              <PillTab
+                key={t.id}
+                icon={t.icon}
+                active={activeTab === t.id}
+                onClick={function() { navigate('/events/' + t.id) }}
+              >
+                {t.label}
+              </PillTab>
+            )
+          })}
+        </PillTabGroup>
 
         {/* Tab content */}
         {activeTab === 'featured' && (

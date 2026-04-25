@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon } from '../components/ui'
+import { Icon, PillTab, PillTabGroup } from '../components/ui'
 import OverviewTab from './admin/OverviewTab'
 import PlayersTab from './admin/PlayersTab'
 import TournamentTab from './admin/TournamentTab'
@@ -55,27 +55,26 @@ export default function AdminScreen() {
           <h1 className="font-editorial italic text-xl font-bold text-on-surface">Admin Panel</h1>
         </div>
 
-        <div className="flex flex-wrap gap-1 mb-6 border-b border-outline-variant/10 pb-4">
+        <PillTabGroup align="start" className="mb-6">
           {TABS.map(function(t) {
-            var isActive = tab === t.id
             var badge = t.id === 'hosts' && pendingHosts > 0 ? pendingHosts : null
             return (
-              <button
+              <PillTab
                 key={t.id}
+                icon={t.icon}
+                active={tab === t.id}
                 onClick={function() { setTab(t.id) }}
-                className={'flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold uppercase tracking-wider rounded transition-all relative ' + (isActive ? 'bg-primary/10 text-primary' : 'text-on-surface/50 hover:bg-white/5 hover:text-on-surface/80')}
               >
-                <Icon name={t.icon} size={14} />
                 {t.label}
                 {badge && (
                   <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-error text-white rounded-full leading-none">
                     {badge}
                   </span>
                 )}
-              </button>
+              </PillTab>
             )
           })}
-        </div>
+        </PillTabGroup>
 
         <div>
           {tab === 'overview'   && <OverviewTab setTab={setTab} />}

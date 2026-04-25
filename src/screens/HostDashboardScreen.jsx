@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Inp, Icon, Tag, Divider } from '../components/ui'
+import { Panel, Btn, Inp, Icon, Tag, Divider, PillTab } from '../components/ui'
 import { Sel, Bar, StatusPill, ACCENT_COLORS, WIZ_STEPS } from './host-dashboard/HostComponents'
 import { RoundControl } from './host-dashboard/CommandCenter'
 
@@ -1469,23 +1469,31 @@ export default function HostDashboardScreen() {
         {/* Secondary nav for sub-sections */}
         {tab !== "overview" && (
           <div className="flex flex-wrap gap-2 pt-4 border-t border-outline-variant/10">
-            {[["commandcenter", "Round Control"], ["announce", "Announce"], ["branding", "Branding"], ["game-flow", "Game Flow"], ["registrations", "Players"]].map(function(arr) {
+            {[
+              ["commandcenter", "Round Control", "tune"],
+              ["announce", "Announce", "campaign"],
+              ["branding", "Branding", "palette"],
+              ["game-flow", "Game Flow", "shuffle"],
+              ["registrations", "Players", "group"]
+            ].map(function(arr) {
               return (
-                <button
+                <PillTab
                   key={arr[0]}
+                  icon={arr[2]}
+                  active={tab === arr[0]}
                   onClick={function() { setTab(arr[0]); }}
-                  className={"px-5 py-2 rounded-full font-label font-bold uppercase tracking-widest text-xs transition-all " + (tab === arr[0] ? "bg-primary text-on-primary" : "bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5")}
                 >
                   {arr[1]}
-                </button>
+                </PillTab>
               );
             })}
-            <button
+            <PillTab
+              icon="arrow_back"
+              active={false}
               onClick={function() { setTab("overview"); navigate("/host/dashboard"); }}
-              className="px-5 py-2 rounded-full font-label font-bold uppercase tracking-widest text-xs bg-surface-variant/20 border border-outline-variant/15 text-on-surface-variant hover:bg-white/5 transition-all"
             >
               Back to Overview
-            </button>
+            </PillTab>
           </div>
         )}
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon, Btn, Panel } from '../components/ui'
+import { Icon, Btn, Panel, PillTab, PillTabGroup } from '../components/ui'
 
 var SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
 var SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -1129,31 +1129,20 @@ export default function ContentEngineScreen(){
         </div>
 
         {/* TABS */}
-        <div className="flex gap-1 mb-6 overflow-x-auto" style={{borderBottom:'1px solid rgba(232,168,56,0.2)'}}>
+        <PillTabGroup align="start" className="mb-6">
           {TABS.map(function(t){
-            var active = tab === t.id
             return (
-              <button key={t.id} onClick={function(){setTab(t.id)}}
-                className="flex items-center gap-2 px-5 py-3 text-sm transition-all whitespace-nowrap"
-                style={{
-                  borderBottom: '2px solid ' + (active ? '#E8A838' : 'transparent'),
-                  marginBottom: '-1px',
-                  color: active ? '#E8A838' : '#BECBD9',
-                  background: active ? 'linear-gradient(180deg, rgba(232,168,56,0.08), transparent)' : 'transparent',
-                  fontFamily: 'Barlow Condensed, sans-serif',
-                  letterSpacing: '0.1em',
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  border: 'none',
-                  borderBottomWidth: '2px',
-                  borderBottomStyle: 'solid',
-                  cursor: 'pointer',
-                }}>
-                <Icon name={t.icon} size={16}/>{t.label}
-              </button>
+              <PillTab
+                key={t.id}
+                icon={t.icon}
+                active={tab === t.id}
+                onClick={function(){setTab(t.id)}}
+              >
+                {t.label}
+              </PillTab>
             )
           })}
-        </div>
+        </PillTabGroup>
 
         {tab === 'generate' && <GenerateTab currentUser={currentUser} toast={toast} social={social} refreshLibrary={loadPosts}/>}
         {tab === 'campaign' && <CampaignTab currentUser={currentUser} toast={toast} refreshLibrary={loadPosts}/>}

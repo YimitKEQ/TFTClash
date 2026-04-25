@@ -6,6 +6,7 @@ import Panel from '../components/ui/Panel'
 import Btn from '../components/ui/Btn'
 import Icon from '../components/ui/Icon'
 import Tag from '../components/ui/Tag'
+import PillTab, { PillTabGroup } from '../components/ui/PillTab'
 import { getStats } from '../lib/stats.js'
 import { isHotStreak, isComebackEligible, computeClashAwards } from '../lib/stats.js'
 import { HOMIES_IDS, MEDAL_COLORS } from '../lib/constants.js'
@@ -346,25 +347,24 @@ export default function ResultsScreen() {
             )}
 
             {/* Tab nav */}
-            <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+            <PillTabGroup align="start">
               {[
-                ['results', 'Full Standings'],
-                ['awards', 'Awards'],
-                ['report', 'Clash Report'],
+                ['results', 'Full Standings', 'leaderboard'],
+                ['awards', 'Awards', 'workspace_premium'],
+                ['report', 'Clash Report', 'description'],
               ].map(function(item) {
                 return (
-                  <Btn
+                  <PillTab
                     key={item[0]}
-                    variant={tab === item[0] ? 'primary' : 'secondary'}
-                    size="sm"
+                    icon={item[2]}
+                    active={tab === item[0]}
                     onClick={function() { setTab(item[0]) }}
-                    className="flex-shrink-0"
                   >
                     {item[1]}
-                  </Btn>
+                  </PillTab>
                 )
               })}
-            </div>
+            </PillTabGroup>
 
             {/* Full Standings */}
             {tab === 'results' && (

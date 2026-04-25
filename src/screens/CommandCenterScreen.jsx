@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Icon, Btn } from '../components/ui'
+import { Icon, Btn, PillTab, PillTabGroup } from '../components/ui'
 import { TIER_PRICES } from '../lib/paypal.js'
 import OpsOverview from './ops/OpsOverview'
 import OpsTournaments from './ops/OpsTournaments'
@@ -220,27 +220,26 @@ export default function CommandCenterScreen() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-1 border-b border-outline-variant/10 pb-0">
+        <PillTabGroup align="start">
           {TABS.map(function(t) {
-            var isActive = tab === t.id
             var hasBadge = t.id === 'comms' && stats && stats.openDisputes > 0
             return (
-              <button
+              <PillTab
                 key={t.id}
+                icon={t.icon}
+                active={tab === t.id}
                 onClick={function() { setTab(t.id) }}
-                className={'flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider transition-all relative border-b-2 -mb-px ' + (isActive ? 'border-primary text-primary bg-primary/5' : 'border-transparent text-on-surface/40 hover:text-on-surface/70 hover:bg-white/[0.02]')}
               >
-                <Icon name={t.icon} size={15} />
                 {t.label}
                 {hasBadge && (
                   <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold bg-error text-white rounded-full leading-none">
                     {stats.openDisputes}
                   </span>
                 )}
-              </button>
+              </PillTab>
             )
           })}
-        </div>
+        </PillTabGroup>
 
         {/* Tab Content */}
         <div>

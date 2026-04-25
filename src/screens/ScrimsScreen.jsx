@@ -5,7 +5,7 @@ import { PTS } from '../lib/constants.js'
 import { hasFeature, getMaxScrimPlayers } from '../lib/tiers.js'
 import { TIER_LABELS } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Btn, Panel, Icon } from '../components/ui'
+import { Btn, Panel, Icon, PillTab } from '../components/ui'
 
 // ── Bar Trend (replaces line sparkline) ──────────────────────────────────────
 // ── Placement Board ───────────────────────────────────────────────────────────
@@ -778,7 +778,7 @@ export default function ScrimsScreen() {
             <h1 className="font-editorial italic text-5xl font-black text-on-surface tracking-tight">Practice Arena</h1>
             <p className="text-on-surface-variant text-sm mt-1">{allGames.length} games logged across {safeSessions.length} sessions</p>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 flex-wrap justify-end flex-shrink-0">
             {[
               {id: 'lobbies', icon: 'dashboard', label: 'Lobbies'},
               ...(canManage ? [{id: 'record', icon: 'sports_esports', label: 'Record'}] : []),
@@ -786,10 +786,14 @@ export default function ScrimsScreen() {
               {id: 'history', icon: 'history', label: 'History'}
             ].map(function(t) {
               return (
-                <button key={t.id} onClick={function() { setTab(t.id); }}
-                  className={'flex items-center gap-1.5 px-3 py-2 font-label text-xs uppercase tracking-widest transition-all ' + (tab === t.id ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface-variant hover:text-on-surface')}>
-                  <Icon name={t.icon} size={13} className="text-current"/>{t.label}
-                </button>
+                <PillTab
+                  key={t.id}
+                  icon={t.icon}
+                  active={tab === t.id}
+                  onClick={function() { setTab(t.id); }}
+                >
+                  {t.label}
+                </PillTab>
               );
             })}
           </div>

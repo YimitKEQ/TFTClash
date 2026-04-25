@@ -5,7 +5,7 @@ import { getStats, getAchievements, checkAchievements, syncAchievements, ACHIEVE
 import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon, Badge, Tag, StatCard, CopyBtn } from '../components/ui'
+import { Panel, Btn, Icon, Badge, Tag, StatCard, CopyBtn, PillTab, PillTabGroup } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader.jsx'
 import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
@@ -572,21 +572,20 @@ export default function PlayerProfileScreen() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 overflow-x-auto pb-px border-b border-outline-variant/20 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <PillTabGroup align="start" className="mb-6">
         {tabs.map(function(t) {
           var label = t === 'h2h' ? 'H2H' : t === 'rounds' ? 'By Round' : t === 'deep-stats' ? 'Deep Stats' : t.charAt(0).toUpperCase() + t.slice(1);
-          var isActive = tab === t;
           return (
-            <button
+            <PillTab
               key={t}
+              active={tab === t}
               onClick={function() { setTab(t); }}
-              className={'flex-shrink-0 px-4 sm:px-5 py-3 min-h-[44px] font-label text-xs uppercase tracking-widest transition-all ' + (isActive ? 'text-primary border-b-2 border-primary -mb-px' : 'text-on-surface/40 hover:text-on-surface')}
             >
               {label}
-            </button>
+            </PillTab>
           );
         })}
-      </div>
+      </PillTabGroup>
 
       {/* Overview Tab */}
       {tab === 'overview' && (

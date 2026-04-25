@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { Btn, Icon } from '../components/ui'
+import { Btn, Icon, PillTab, PillTabGroup } from '../components/ui'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import PrizePoolCard from '../components/shared/PrizePoolCard'
@@ -416,21 +416,20 @@ export default function TournamentDetailScreen() {
         )}
 
         {/* Tabs */}
-        <div className="flex gap-0.5 mb-6 border-b border-outline-variant/10 overflow-x-auto" style={{WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none'}}>
+        <PillTabGroup align="start" className="mb-6">
           {DETAIL_TABS.map(function(t) {
-            var active = detailTab === t.id
             return (
-              <button
+              <PillTab
                 key={t.id}
+                icon={t.icon}
+                active={detailTab === t.id}
                 onClick={function() { setDetailTab(t.id); }}
-                className={"shrink-0 flex items-center gap-1.5 border-0 border-b-2 px-4 py-2.5 font-label text-xs tracking-wider uppercase cursor-pointer transition-all " + (active ? 'bg-primary/5 border-b-primary font-bold text-primary' : 'bg-transparent border-b-transparent font-bold text-on-surface-variant/50 hover:text-on-surface-variant')}
               >
-                <Icon name={t.icon} size={14} />
                 {t.label}
-              </button>
+              </PillTab>
             )
           })}
-        </div>
+        </PillTabGroup>
 
         {/* TAB: OVERVIEW */}
         {detailTab === 'overview' && (

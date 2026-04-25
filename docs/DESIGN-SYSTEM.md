@@ -56,6 +56,34 @@ Import from `src/components/ui/Panel.jsx`. Never write a raw `<div className="bg
 </Panel>
 ```
 
+## Pill tabs, always `<PillTab>`
+
+Import from `src/components/ui/PillTab.jsx` (re-exported from `src/components/ui`). Never write a raw `<button className="...rounded-full ... uppercase tracking-widest...">` for tab navigation.
+
+This is the canonical look for any tab strip, filter bar, or category switcher across the site. Active tabs use a soft `bg-primary/10` fill with primary border + glow; inactive tabs are muted with hover lift.
+
+**Props:** `active`, `onClick`, `icon`, `iconSize`, `iconPosition`, `children`, `className`
+**Group wrapper:** `<PillTabGroup align="center | start | between">` provides the standard horizontal scroller with mobile padding.
+
+```jsx
+<PillTabGroup>
+  {TABS.map(function(t) {
+    return (
+      <PillTab
+        key={t.id}
+        icon={t.icon}
+        active={tab === t.id}
+        onClick={function() { setTab(t.id) }}
+      >
+        {t.label}
+      </PillTab>
+    )
+  })}
+</PillTabGroup>
+```
+
+Use `<PillTab>` for any tab navigation, filter chips, or section switcher. Do not use `<Btn>` for tab toggles — `<Btn>` is for CTAs (Save, Submit, View All). Status pills (Active/Cancelled/Live) stay as `<Tag>`.
+
 ## Section headers, always `<SectionHeader>`
 
 Import from `src/components/shared/SectionHeader.jsx`. Never roll your own intro.

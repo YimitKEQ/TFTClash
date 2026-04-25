@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import PageLayout from '../components/layout/PageLayout'
 import PageHeader from '../components/shared/PageHeader'
-import { Panel, Icon, Skeleton } from '../components/ui'
+import { Panel, Icon, Skeleton, PillTab, PillTabGroup } from '../components/ui'
 import LeaderboardScreen from './LeaderboardScreen'
 import HofScreen from './HofScreen'
 import { rc } from '../lib/utils.js'
@@ -77,31 +77,20 @@ export default function StandingsScreen() {
         description="Season rankings, legends, and the full player roster"
       />
 
-      <div className="flex justify-start sm:justify-center gap-2 mb-8 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <PillTabGroup className="mb-8">
         {TABS.map(function(t) {
-          var active = tab === t.id
           return (
-            <button
+            <PillTab
               key={t.id}
+              icon={t.icon}
+              active={tab === t.id}
               onClick={function() { handleTabClick(t.id) }}
-              className={
-                'flex-shrink-0 flex items-center gap-2 px-5 py-3 min-h-[44px] rounded-full border font-label text-sm font-bold uppercase tracking-widest transition-all duration-200 whitespace-nowrap ' +
-                (active
-                  ? 'bg-primary/10 border-primary/30 text-primary shadow-sm shadow-primary/10'
-                  : 'bg-surface-container-low/40 border-outline-variant/10 text-on-surface/60 hover:text-on-surface hover:bg-surface-container-low')
-              }
             >
-              <Icon
-                name={t.icon}
-                size={18}
-                fill={active}
-                className={active ? 'text-primary' : 'text-on-surface/50'}
-              />
               {t.label}
-            </button>
+            </PillTab>
           )
         })}
-      </div>
+      </PillTabGroup>
 
       <AdBanner size="banner" className="w-full mb-6" />
 

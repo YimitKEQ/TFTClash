@@ -6,7 +6,7 @@ import { rc, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { supabase, CANONICAL_ORIGIN } from '../lib/supabase.js'
 import { pollForSubscription, TIER_LABELS, getDonateUrl } from '../lib/paypal.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon, Inp } from '../components/ui'
+import { Panel, Btn, Icon, Inp, PillTab, PillTabGroup } from '../components/ui'
 import Sparkline from '../components/shared/Sparkline'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
 import { medalForPlacement, currencySymbol } from '../lib/prizes.js'
@@ -525,21 +525,25 @@ export default function AccountScreen() {
         </header>
 
         {/* Navigation Tabs */}
-        <div className="flex space-x-12 mb-10 border-b border-outline-variant/10">
-          {[['account', 'Account'], ['prizes', 'Prizes'], ['milestones', 'Milestones'], ['challenges', 'Challenges']].map(function(item) {
-            var v = item[0];
-            var l = item[1];
+        <PillTabGroup align="start" className="mb-10">
+          {[
+            {id: 'account', label: 'Account', icon: 'person'},
+            {id: 'prizes', label: 'Prizes', icon: 'redeem'},
+            {id: 'milestones', label: 'Milestones', icon: 'flag'},
+            {id: 'challenges', label: 'Challenges', icon: 'flash_on'}
+          ].map(function(item) {
             return (
-              <button
-                key={v}
-                onClick={function() { setTab(v); }}
-                className={'pb-4 border-b-2 font-label uppercase tracking-[0.2em] text-sm transition-colors ' + (tab === v ? 'border-primary text-primary font-bold' : 'border-transparent text-on-surface/40 hover:text-on-surface')}
+              <PillTab
+                key={item.id}
+                icon={item.icon}
+                active={tab === item.id}
+                onClick={function() { setTab(item.id); }}
               >
-                {l}
-              </button>
+                {item.label}
+              </PillTab>
             );
           })}
-        </div>
+        </PillTabGroup>
 
         {/* ── ACCOUNT TAB ──────────────────────────────────────────────────────── */}
         {tab === 'account' && (

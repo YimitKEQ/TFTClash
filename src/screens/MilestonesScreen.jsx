@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { ACHIEVEMENTS, MILESTONES } from '../lib/stats.js'
-import { Btn, Icon } from '../components/ui'
+import { Btn, Icon, PillTab, PillTabGroup } from '../components/ui'
 import PageLayout from '../components/layout/PageLayout'
 
 var TIER_ORDER = ['bronze', 'silver', 'gold', 'legendary'];
@@ -303,22 +303,24 @@ export default function MilestonesScreen() {
         </section>
 
         {/* Tab Switcher */}
-        <div className="flex gap-2 mb-8 bg-surface-container-lowest rounded-full p-1 w-fit">
-          {[['achievements', 'Achievement Vault'], ['milestones', 'Season Milestones'], ['leaderboard', 'Leaders']].map(function(item) {
-            var v = item[0];
-            var l = item[1];
-            var active = tab === v;
+        <PillTabGroup align="start" className="mb-8">
+          {[
+            ['achievements', 'Achievement Vault', 'military_tech'],
+            ['milestones', 'Season Milestones', 'flag'],
+            ['leaderboard', 'Leaders', 'leaderboard']
+          ].map(function(item) {
             return (
-              <button
-                key={v}
-                onClick={function() { setTab(v); }}
-                className={'px-5 py-2 rounded-full text-xs font-label uppercase tracking-widest transition-all ' + (active ? 'bg-primary text-on-primary font-bold' : 'text-on-surface-variant hover:text-on-surface')}
+              <PillTab
+                key={item[0]}
+                icon={item[2]}
+                active={tab === item[0]}
+                onClick={function() { setTab(item[0]); }}
               >
-                {l}
-              </button>
+                {item[1]}
+              </PillTab>
             );
           })}
-        </div>
+        </PillTabGroup>
 
         {/* Achievements Tab */}
         {tab === 'achievements' && (

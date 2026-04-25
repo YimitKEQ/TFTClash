@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import PageLayout from '../components/layout/PageLayout'
-import { Btn, Panel, Icon } from '../components/ui'
+import { Btn, Panel, Icon, PillTab, PillTabGroup } from '../components/ui'
 import { FAQ_DATA, DISCORD_URL } from '../lib/constants.js'
 
 var CATEGORIES = FAQ_DATA.map(function (cat) {
@@ -93,25 +93,19 @@ export default function FAQScreen() {
 
       {/* Category Tabs */}
       <section className="mb-12">
-        <div className="flex flex-wrap gap-2 justify-center">
+        <PillTabGroup>
           {CATEGORIES.map(function (cat) {
-            var isActive = activeTab === cat
             return (
-              <button
+              <PillTab
                 key={cat}
+                active={activeTab === cat}
                 onClick={function () { handleTabClick(cat) }}
-                className={
-                  'px-6 py-2 rounded-full font-label font-bold uppercase tracking-wider text-sm transition-all ' +
-                  (isActive
-                    ? 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20'
-                    : 'bg-surface-container-high text-slate-400 hover:text-on-surface')
-                }
               >
                 {cat}
-              </button>
+              </PillTab>
             )
           })}
-        </div>
+        </PillTabGroup>
       </section>
 
       {/* Bento Grid */}

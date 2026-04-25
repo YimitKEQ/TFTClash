@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
-import { Btn, Panel, Icon } from '../components/ui'
+import { Btn, Panel, Icon, PillTab } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader.jsx'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -313,40 +313,34 @@ export default function TournamentsListScreen() {
 
             <section className="space-y-6">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant/10 self-start">
-                    {FILTER_TABS.map(function(tab) {
-                      var isActive = activeFilter === tab.key;
-                      return (
-                        <button
-                          key={tab.key}
-                          onClick={function() { setActiveFilter(tab.key); }}
-                          className={'px-5 py-1.5 rounded-full text-[11px] font-label font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
-                        >
-                          {tab.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex items-center bg-surface-container-low p-1 rounded-full border border-outline-variant/10 self-start">
-                    {[
-                      {key: 'all', label: 'All Regions'},
-                      userRegion ? {key: 'mine', label: 'My ' + userRegion} : null,
-                      {key: 'EU', label: 'EU'},
-                      {key: 'NA', label: 'NA'}
-                    ].filter(Boolean).map(function(tab) {
-                      var isActive = regionFilter === tab.key;
-                      return (
-                        <button
-                          key={tab.key}
-                          onClick={function() { setRegionFilter(tab.key); }}
-                          className={'px-4 py-1.5 rounded-full text-[11px] font-label font-bold uppercase tracking-wider transition-all ' + (isActive ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/60 hover:text-on-surface')}
-                        >
-                          {tab.label}
-                        </button>
-                      );
-                    })}
-                  </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {FILTER_TABS.map(function(tab) {
+                    return (
+                      <PillTab
+                        key={tab.key}
+                        active={activeFilter === tab.key}
+                        onClick={function() { setActiveFilter(tab.key); }}
+                      >
+                        {tab.label}
+                      </PillTab>
+                    );
+                  })}
+                  {[
+                    {key: 'all', label: 'All Regions'},
+                    userRegion ? {key: 'mine', label: 'My ' + userRegion} : null,
+                    {key: 'EU', label: 'EU'},
+                    {key: 'NA', label: 'NA'}
+                  ].filter(Boolean).map(function(tab) {
+                    return (
+                      <PillTab
+                        key={tab.key}
+                        active={regionFilter === tab.key}
+                        onClick={function() { setRegionFilter(tab.key); }}
+                      >
+                        {tab.label}
+                      </PillTab>
+                    );
+                  })}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
