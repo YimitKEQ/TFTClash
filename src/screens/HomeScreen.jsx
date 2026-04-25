@@ -444,7 +444,7 @@ function LatestChampionStrip(props) {
           {pts > 0 && (
             <span className="text-primary font-bold">{pts + ' pts'}</span>
           )}
-          {stats && stats.avgPlacement && (
+          {stats && stats.avgPlacement && stats.avgPlacement !== '-' && (
             <span>AVP {stats.avgPlacement}</span>
           )}
           {clash.players > 0 && (
@@ -605,7 +605,12 @@ export default function HomeScreen() {
           <LatestChampionStrip
             clash={pastClashes[0]}
             champPlayer={players.find(function (p) {
-              return p && p.name && pastClashes[0].champion &&
+              // Player names are unique on the platform (enforced server-side at
+              // signup), so case-insensitive name match is reliable. If two rows
+              // ever share a name only the stats line could show the wrong pts —
+              // the navigation target uses the clash record so click-through
+              // still resolves correctly.
+              return p && p.name && pastClashes[0].champion && !p.banned &&
                 String(p.name).toLowerCase() === String(pastClashes[0].champion).toLowerCase()
             })}
             navigate={navigate}

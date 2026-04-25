@@ -58,10 +58,24 @@ function TierDistributionCard(props) {
     var rank = RANKS[n]
     var c = counts[rank]
     if (c === 0) continue
-    rows.push({ rank: rank, count: c, color: rc(rank), pct: Math.round((c / total) * 100) })
+    var raw = (c / total) * 100
+    rows.push({ rank: rank, count: c, color: rc(rank), pct: Math.floor(raw), frac: raw - Math.floor(raw) })
   }
   if (unranked > 0) {
-    rows.push({ rank: 'Unranked', count: unranked, color: rc('Unranked'), pct: Math.round((unranked / total) * 100) })
+    var rawU = (unranked / total) * 100
+    rows.push({ rank: 'Unranked', count: unranked, color: rc('Unranked'), pct: Math.floor(rawU), frac: rawU - Math.floor(rawU) })
+  }
+
+  // Largest-remainder rounding so the displayed percents always sum to 100.
+  // Math.round on each cell can yield 99 or 101 when several fractions sit
+  // either side of .5; floor + redistribute leftover by largest fractional
+  // part avoids that without showing a misleading per-row number.
+  var sumPct = 0
+  for (var p1 = 0; p1 < rows.length; p1++) sumPct += rows[p1].pct
+  var leftover = 100 - sumPct
+  if (leftover > 0 && rows.length > 0) {
+    var order = rows.slice().sort(function (a, b) { return b.frac - a.frac })
+    for (var p2 = 0; p2 < leftover && p2 < order.length; p2++) order[p2].pct += 1
   }
 
   return (
