@@ -2,12 +2,12 @@ var TABS = [
   { k: 'opener',    label: 'Opener Advisor',  icon: 'auto_awesome' },
   { k: 'synergy',   label: 'Synergy Grid',    icon: 'grid_view' },
   { k: 'champions', label: 'Champions',       icon: 'groups' },
-  { k: 'comps',     label: 'Comp Lines',      icon: 'account_tree' },
+  { k: 'comps',     label: 'Team Comps',      icon: 'account_tree' },
+  { k: 'meet',      label: 'Line Selection',  icon: 'rule' },
   { k: 'planner',   label: 'Team Planner',    icon: 'extension' },
   { k: 'gods',      label: 'Gods',            icon: 'temple_buddhist' },
   { k: 'items',     label: 'Items',           icon: 'inventory_2' },
   { k: 'augments',  label: 'Augments',        icon: 'diamond' },
-  { k: 'meet',      label: 'Meet',            icon: 'menu_book' },
 ]
 
 export default function SideNav(props) {

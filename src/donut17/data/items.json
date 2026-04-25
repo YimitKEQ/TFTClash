@@ -159,12 +159,12 @@
     "desc": "At combat start, grant the ally who died first the previous combat @ShieldFloor@ to @ShieldCeiling@ Shield, based on the current Stage.",
     "effects": {
       "Shield": null,
-      "ShieldCeiling": 1000,
-      "ShieldFloor": 300
+      "ShieldCeiling": 800,
+      "ShieldFloor": 450
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1382.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_sorakasembrace.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_LesserDupe_Varus",
@@ -243,12 +243,12 @@
     "desc": "Gain @ReforgersUpfront@ Reforgers now and one at the start of each stage. Whenever you use a Reforger, gain @Gold@ gold.",
     "effects": {
       "Gold": 2.0,
-      "ReforgersUpfront": 3.0,
+      "ReforgersUpfront": 2.0,
       "{5c86db47}": 1.0
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1394.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_craftsmanship.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Chosen_5Cost",
@@ -348,7 +348,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1425.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_starlight.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Chosen_3Cost",
@@ -403,7 +403,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1425.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_starlight.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_XP_14",
@@ -432,7 +432,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon3597.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_pandorasseat.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_XP_Large",
@@ -454,7 +454,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1425.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_starlight.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_TomeOfTraits",
@@ -464,6 +464,18 @@
     "from": null,
     "unique": false,
     "icon": "https://raw.communitydragon.org/pbe/game/assets/characters/tft5_emblemarmorykey/hud/tft5_emblemarmorykey_square.tex"
+  },
+  {
+    "apiName": "TFT17_MarketOffering_FinalistGambit",
+    "name": "Finalist Gambit",
+    "desc": "Gain @Gold@ gold. If you make it to top 4, gain @FinalistGold@ more gold.",
+    "effects": {
+      "Gold": 3,
+      "{06752cbb}": 30
+    },
+    "from": null,
+    "unique": false,
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_finalistgambit.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Anomaly",
@@ -650,7 +662,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4227.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_grouphug.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_ThreeCostChampion_Owned",
@@ -685,7 +697,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1299.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_maxinterest.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_1star4cost_Eve",
@@ -709,7 +721,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1299.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_maxinterest.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_2Salvagers",
@@ -742,7 +754,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4227.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_grouphug.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_AnvilTransformation",
@@ -753,7 +765,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon7014.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_anviltransformation.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_AurelionSol_LevelQuest_Stage4",
@@ -769,14 +781,14 @@
   },
   {
     "apiName": "TFT17_MarketOffering_PenguPairs",
-    "name": "Pengu Pairs",
-    "desc": "When you select Pengu's blessing, gain an extra copy of the champion and @Gold@ gold.",
+    "name": "Super Parting Gift",
+    "desc": "The next time you select God Pengu's gift, gain an extra copy of the champion and @Gold@ gold.",
     "effects": {
       "Gold": 2.0
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4216.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_pengupairs.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_IncreasedInterest",
@@ -820,7 +832,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4296.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_humility.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Dummy_Evelynn",
@@ -1009,19 +1021,19 @@
     "effects": {},
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4377.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_recombobulator.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_SplitGold_Stage2",
     "name": "Chest of Greed",
     "desc": "Gain @Gold@ gold, plus @SplitGold@ gold split between all players who pick this (rounded down.)",
     "effects": {
-      "Gold": 3,
-      "{1b0ff491}": 15
+      "Gold": 2,
+      "{1b0ff491}": 12
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4271.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_splitgold.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Gold_4",
@@ -1037,12 +1049,12 @@
     "name": "Chest of Greed",
     "desc": "Gain @Gold@ gold, plus @SplitGold@ gold split between all players who pick this (rounded down.)",
     "effects": {
-      "Gold": 4,
-      "{1b0ff491}": 20
+      "Gold": 3,
+      "{1b0ff491}": 16
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4271.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_splitgold.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_RandomCompleted_Eve",
@@ -1069,12 +1081,12 @@
     "name": "Chest of Greed",
     "desc": "Gain @Gold@ gold, plus @SplitGold@ gold split between all players who pick this (rounded down.)",
     "effects": {
-      "Gold": 6,
+      "Gold": 4,
       "{1b0ff491}": 25
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4271.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_splitgold.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_BlueOrb_2Gold",
@@ -1169,7 +1181,7 @@
     "effects": {},
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1458.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_ephemeralrerolls.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_XP_Small",
@@ -1392,7 +1404,7 @@
     },
     "from": null,
     "unique": false,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon6627.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_divinerefund.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Gold_2_Reforger",
@@ -1747,7 +1759,7 @@
       "Interval": 5,
       "ManaRegen": 4.0,
       "ManaRegenOverTime": 1.0,
-      "TrueDamageConversion": 0.20000000298023224
+      "TrueDamageConversion": 0.25
     },
     "from": null,
     "unique": false,
@@ -2428,10 +2440,10 @@
     "name": "Lioness's Lament",
     "desc": "Every @HealthPerMissile*100@% max health lost, fire crescent projectiles in a line dealing physical damage equal to @ResistPercent*100@% of the holder's Armor and Magic Resist. Steal @ResistSteal@ Armor and Magic Resist from all enemies hit.<br><br><rules>Recommended Roles: Attack or Magic Tank</rules>",
     "effects": {
-      "Armor": 25.0,
+      "Armor": 30.0,
       "Health": 200.0,
-      "HealthPerMissile": 0.20000000298023224,
-      "MagicResist": 25.0,
+      "HealthPerMissile": 0.15000000596046448,
+      "MagicResist": 30.0,
       "ResistPercent": 0.5,
       "ResistSteal": 4
     },
@@ -2786,8 +2798,8 @@
       "HexRange": 3.0,
       "MagicResist": 30.0,
       "ShieldDuration": 4.0,
-      "ShieldPercent": 0.20000000298023224,
-      "StunDuration": 1.5
+      "ShieldPercent": 0.25,
+      "StunDuration": 2.0
     },
     "from": null,
     "unique": false,
@@ -4433,7 +4445,7 @@
     "effects": {
       "AD": 0.25,
       "AP": 25,
-      "AbilityDA": 0.44999998807907104,
+      "AbilityDA": 0.4000000059604645,
       "Duration": 2.0
     },
     "from": null,
@@ -4754,7 +4766,7 @@
     "desc": "The holder gains the Timebreaker trait.",
     "effects": {
       "AS": 15.0,
-      "Health": 300.0
+      "Health": 200.0
     },
     "from": null,
     "unique": true,
@@ -4861,8 +4873,8 @@
     "name": "Dark Star Emblem",
     "desc": "The holder gains the Dark Star trait.",
     "effects": {
-      "AD": 0.25,
-      "AP": 25.0
+      "AD": 0.18000000715255737,
+      "AP": 18.0
     },
     "from": null,
     "unique": true,
@@ -5883,7 +5895,7 @@
     "desc": "The holder is orbited by 3 foxfires. Each one deals <magicDamage>@FlatMagicDamage@&nbsp;(%i:scaleAP%)</magicDamage> magic damage and the orbit expands to hit the holder's current target.<br><br>For every @ManaSpent@ Mana the holder spends, foxfires travel @PercentSpeedIncrease*100@% faster for the rest of combat.",
     "effects": {
       "AP": 20,
-      "FlatMagicDamage": 55,
+      "FlatMagicDamage": 50,
       "ManaRegen": 4.0,
       "ManaSpent": 20,
       "PercentSpeedIncrease": 0.05000000074505806

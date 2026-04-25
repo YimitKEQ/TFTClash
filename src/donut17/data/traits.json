@@ -355,14 +355,14 @@
         "maxUnits": 5,
         "variables": {
           "TechBreakpoint": 100.0,
-          "TechPerCombat": 18.0,
-          "TechPerCombat_DU": 15,
+          "TechPerCombat": 20.0,
+          "TechPerCombat_DU": 20,
           "TechPerDeath_PVE": 1.0,
           "TechPerKill": 2,
           "TechPerLoss": 5.0,
           "TechPerLoss_DU": 5,
           "TechPerRound_PVE": 20.0,
-          "{18a09431}": 0.5
+          "{18a09431}": 0.8500000238418579
         }
       },
       {
@@ -370,14 +370,14 @@
         "maxUnits": 25000,
         "variables": {
           "TechBreakpoint": 100.0,
-          "TechPerCombat": 18.0,
-          "TechPerCombat_DU": 15,
+          "TechPerCombat": 20.0,
+          "TechPerCombat_DU": 20,
           "TechPerDeath_PVE": 1.0,
           "TechPerKill": 2,
           "TechPerLoss": 5.0,
           "TechPerLoss_DU": 5,
           "TechPerRound_PVE": 20.0,
-          "{18a09431}": 0.5
+          "{18a09431}": 0.8500000238418579
         }
       }
     ]
@@ -476,7 +476,7 @@
         "maxUnits": 25000,
         "variables": {
           "Medallion_DA": 12.0,
-          "Medallion_IncreasePer3Star": 4.0,
+          "Medallion_IncreasePer3Star": 5.0,
           "{37204635}": 10.0,
           "{3d49cc86}": 20.0,
           "{c32af02f}": 0.05000000074505806
@@ -496,7 +496,7 @@
         "minUnits": 3,
         "maxUnits": 4,
         "variables": {
-          "Huntress_AS": 0.10000000149011612,
+          "Huntress_AS": 0.11999999731779099,
           "Huntress_AS_Teamwide": 0.15000000596046448,
           "Huntress_Heal": 0.15000000596046448,
           "NumMarks": 3.0
@@ -878,7 +878,7 @@
         "minUnits": 4,
         "maxUnits": 4,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": null,
           "Mountain_DR": null,
           "Mountain_Health": 0.15000000596046448,
@@ -893,7 +893,7 @@
         "minUnits": 5,
         "maxUnits": 5,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": null,
           "Mountain_DR": null,
           "Mountain_Health": 0.15000000596046448,
@@ -908,7 +908,7 @@
         "minUnits": 6,
         "maxUnits": 6,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": 0.10000000149011612,
           "Mountain_DR": null,
           "Mountain_Health": 0.15000000596046448,
@@ -923,7 +923,7 @@
         "minUnits": 7,
         "maxUnits": 7,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": 0.10000000149011612,
           "Mountain_DR": 0.05999999865889549,
           "Mountain_Health": 0.15000000596046448,
@@ -938,7 +938,7 @@
         "minUnits": 8,
         "maxUnits": 8,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": 0.10000000149011612,
           "Mountain_DR": 0.05999999865889549,
           "Mountain_Health": 0.15000000596046448,
@@ -953,7 +953,7 @@
         "minUnits": 9,
         "maxUnits": 9,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": 0.10000000149011612,
           "Mountain_DR": 0.05999999865889549,
           "Mountain_Health": 0.15000000596046448,
@@ -968,7 +968,7 @@
         "minUnits": 10,
         "maxUnits": 10,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": 0.10000000149011612,
           "Mountain_DR": 0.05999999865889549,
           "Mountain_Health": 0.15000000596046448,
@@ -983,7 +983,7 @@
         "minUnits": 11,
         "maxUnits": 25000,
         "variables": {
-          "Mountain_ADAP": 0.20000000298023224,
+          "Mountain_ADAP": 0.15000000596046448,
           "Mountain_AS": 0.10000000149011612,
           "Mountain_DR": 0.05999999865889549,
           "Mountain_Health": 0.15000000596046448,

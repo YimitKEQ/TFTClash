@@ -24,12 +24,12 @@ export default function TopNav(props) {
         </div>
 
         <div className="hidden md:flex gap-6 items-center">
-          <TopLink label="Opener"   k="opener"   tab={tab} onTab={onTab}/>
-          <TopLink label="Champs"   k="champions"tab={tab} onTab={onTab}/>
-          <TopLink label="Comps"    k="comps"    tab={tab} onTab={onTab}/>
-          <TopLink label="Planner"  k="planner"  tab={tab} onTab={onTab}/>
-          <TopLink label="Gods"     k="gods"     tab={tab} onTab={onTab}/>
-          <TopLink label="Meet"     k="meet"     tab={tab} onTab={onTab}/>
+          <TopLink label="Opener"    k="opener"   tab={tab} onTab={onTab}/>
+          <TopLink label="Champs"    k="champions"tab={tab} onTab={onTab}/>
+          <TopLink label="Team Comps" k="comps"   tab={tab} onTab={onTab}/>
+          <TopLink label="Lines"     k="meet"     tab={tab} onTab={onTab}/>
+          <TopLink label="Planner"   k="planner"  tab={tab} onTab={onTab}/>
+          <TopLink label="Gods"      k="gods"     tab={tab} onTab={onTab}/>
         </div>
       </div>
 

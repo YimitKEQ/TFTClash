@@ -655,7 +655,7 @@
     "name": "Shieldmaiden",
     "desc": "Gain a Leona. Your strongest Leona becomes an Attack Fighter that dashes through enemies to deal physical damage, stunning the first target hit.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/missing-t1.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/leonahero_i.tft_set17_postlaunchaugments.tex"
   },
   {
     "apiName": "TFT17_Augment_AurelionSolGodAugment",
@@ -711,7 +711,7 @@
     "name": "Timestream",
     "desc": "Timebreakers gain @Health@ Health and @AttackSpeed*100@% Attack Speed every time you reroll (including free rerolls). Gain an Ezreal and a Pantheon.<br><br>(Health: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_HP@, Attack Speed: @TFTUnitProperty.:TFT17_Augment_Timebreaker_Timestream_AS*100@%)",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/missing-t2.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/timestream_ii.tft_set17_postlaunchaugments.tex"
   },
   {
     "apiName": "TFT17_Augment_AurelionSolGodAugment_BoonOfResurrection",
@@ -725,7 +725,7 @@
     "name": "Divine Amendment",
     "desc": "Arbiters add a second effect to their law.<br>Gain a Leona and a Zoe.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/missing-t2.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/divineamendment_ii.tft_set17_postlaunchaugments.tex"
   },
   {
     "apiName": "TFT17_Augment_AatroxCarry",
@@ -816,7 +816,7 @@
     "name": "Tour of the Galaxy",
     "desc": "Voyagers gain @HP@ Health, @AD*100@% Attack Damage, and @AP@% Ability Power, increased by @IncPercent*100@% each time you fight a new player. You prefer to fight players you haven't fought recently.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/missing-t2.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/tourofthegalaxy_ii.tft_set17_postlaunchaugments.tex"
   },
   {
     "apiName": "TFT17_Augment_NasusCarry",
@@ -879,7 +879,7 @@
     "name": "Heart of the Swarm",
     "desc": "All 3-star units now count towards Swarmling power. At level @LevelRequirement@, while fielding @Num3StarUnits@ unique 3-star units, Primordians summon the APEX PRIMORDIAN. Gain a Briar, Bel'veth, and Rek'sai.<br><br>Unique 3-Star Units Fielded: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalStarredUnits@ / @Num3StarUnits@<br><br>Levels: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalLevel@ / @LevelRequirement@",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/missing-t3.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/heartoftheswarm_iii.tft_set17_postlaunchaugments.tex"
   },
   {
     "apiName": "TFT5_Augment_RedeemedCrown",
@@ -3294,7 +3294,7 @@
     "name": "Soraka's Embrace",
     "desc": "At combat start, grant the ally who died first the previous combat @ShieldFloor@ to @ShieldCeiling@ Shield, based on the current Stage.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1382.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_sorakasembrace.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_LesserDupe_Varus",
@@ -3350,7 +3350,7 @@
     "name": "Craftsmanship",
     "desc": "Gain @ReforgersUpfront@ Reforgers now and one at the start of each stage. Whenever you use a Reforger, gain @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1394.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_craftsmanship.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Chosen_5Cost",
@@ -3413,7 +3413,7 @@
     "name": "Starcrossed Upgrade ++",
     "desc": "The next @Cost@-Cost you see in the shop will be 2-Star.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1425.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_starlight.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_SilverAugment",
@@ -3462,7 +3462,7 @@
     "name": "Starcrossed Upgrade +",
     "desc": "The next @Cost@-Cost you see in the shop will be 2-Star.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1425.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_starlight.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_XP_14",
@@ -3483,7 +3483,7 @@
     "name": "Pandora's Seat",
     "desc": "At the start of every round, champions on the @BenchSlotCount@ rightmost bench slots transform into random champions of the same cost.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon3597.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_pandorasseat.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_XP_Large",
@@ -3497,7 +3497,7 @@
     "name": "Starcrossed Upgrade",
     "desc": "The next @Cost@-Cost you see in the shop will be 2-Star.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1425.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_starlight.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_TomeOfTraits",
@@ -3505,6 +3505,13 @@
     "desc": "Drag this Tome to the Shop to open an Armory full of emblems! You will have 30 seconds to choose.",
     "tier": 0,
     "icon": "https://raw.communitydragon.org/pbe/game/assets/characters/tft5_emblemarmorykey/hud/tft5_emblemarmorykey_square.tex"
+  },
+  {
+    "apiName": "TFT17_MarketOffering_FinalistGambit",
+    "name": "Finalist Gambit",
+    "desc": "Gain @Gold@ gold. If you make it to top 4, gain @FinalistGold@ more gold.",
+    "tier": 0,
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_finalistgambit.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Anomaly",
@@ -3644,7 +3651,7 @@
     "name": "Better Together +",
     "desc": "Gain @Health@ Tactician Health. If at least 5 players choose this, gain @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4227.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_grouphug.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_ThreeCostChampion_Owned",
@@ -3665,7 +3672,7 @@
     "name": "Divine Investment",
     "desc": "Your maximum interest is increased by 1. Gain @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1299.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_maxinterest.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_1star4cost_Eve",
@@ -3679,7 +3686,7 @@
     "name": "Divine Investment",
     "desc": "Your maximum interest is increased by 1. Gain @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1299.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_maxinterest.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_2Salvagers",
@@ -3700,14 +3707,14 @@
     "name": "Better Together",
     "desc": "Gain @Health@ Tactician Health. If at least 5 players choose this, gain @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4227.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_grouphug.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_AnvilTransformation",
     "name": "Anvil Transformation",
     "desc": "Whenever you would get a component, gain a Component Anvil instead. Gain @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon7014.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_anviltransformation.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_AurelionSol_LevelQuest_Stage4",
@@ -3718,10 +3725,10 @@
   },
   {
     "apiName": "TFT17_MarketOffering_PenguPairs",
-    "name": "Pengu Pairs",
-    "desc": "When you select Pengu's blessing, gain an extra copy of the champion and @Gold@ gold.",
+    "name": "Super Parting Gift",
+    "desc": "The next time you select God Pengu's gift, gain an extra copy of the champion and @Gold@ gold.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4216.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_pengupairs.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Augment_LevelUp",
@@ -3756,7 +3763,7 @@
     "name": "Humility",
     "desc": "Set your loss streak to @Streak@ and gain @Health@ Tactician Health.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4296.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_humility.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Dummy_Evelynn",
@@ -3896,14 +3903,14 @@
     "name": "Mini Recombobulate",
     "desc": "Transform all 1 and 2-Cost champions on your board into random ones of a higher cost.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4377.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_recombobulator.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_SplitGold_Stage2",
     "name": "Chest of Greed",
     "desc": "Gain @Gold@ gold, plus @SplitGold@ gold split between all players who pick this (rounded down.)",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4271.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_splitgold.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Gold_4",
@@ -3917,7 +3924,7 @@
     "name": "Chest of Greed",
     "desc": "Gain @Gold@ gold, plus @SplitGold@ gold split between all players who pick this (rounded down.)",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4271.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_splitgold.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_RandomCompleted_Eve",
@@ -3938,7 +3945,7 @@
     "name": "Chest of Greed",
     "desc": "Gain @Gold@ gold, plus @SplitGold@ gold split between all players who pick this (rounded down.)",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon4271.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_splitgold.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_BlueOrb_2Gold",
@@ -4008,7 +4015,7 @@
     "name": "Ephemeral Rerolls",
     "desc": "At the start of each round, if you don't have a free reroll, gain a free reroll.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon1458.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_ephemeralrerolls.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_XP_Small",
@@ -4155,7 +4162,7 @@
     "name": "Divine Refund",
     "desc": "Gain @Gold@ gold. The next time you create an item, gain a copy of one of the components at random.",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/ux/summonericons/profileicon6627.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/items/hexcore/tft17_carouselmarket_divinerefund.tft_17_2.tex"
   },
   {
     "apiName": "TFT17_MarketOffering_Gold_2_Reforger",
@@ -12933,7 +12940,7 @@
     "name": "Late Game Scaling",
     "desc": "Gain @XPGain@ XP at the start of player combat rounds. Your 5-cost champions gain @BonusHealth*100@% Health and @AttackSpeed*100@% Attack Speed.<br><br><tftitemrules>Cyber City Tactician's Crown, 2025</tftitemrules>",
     "tier": 0,
-    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/lategamescaling_ii.tft_set16.tex"
+    "icon": "https://raw.communitydragon.org/pbe/game/assets/maps/tft/icons/augments/hexcore/lategamescaling_ii.tex"
   },
   {
     "apiName": "TFT_Augment_QualityOverQuantity",

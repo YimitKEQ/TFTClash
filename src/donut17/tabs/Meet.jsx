@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import meetData from '../data/meet.json'
+import { makeImgFallback, costColor } from '../lib/imgFallback'
 
 var TYPE_ORDER = [
   'Opener',
@@ -35,12 +36,15 @@ function normalizeType(raw) {
   return raw.trim()
 }
 
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function cleanCondition(condition, type) {
   if (!condition) return ''
   var t = (type || '').trim()
   if (!t) return condition
-  // Strip leading "Type - " or "Type -" or "Type—" since the type is already shown above the card.
-  var pattern = new RegExp('^' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[-:]\\s*', 'i')
+  var pattern = new RegExp('^' + escapeRegex(t) + '\\s*[-:]\\s*', 'i')
   return condition.replace(pattern, '').trim()
 }
 
@@ -80,23 +84,151 @@ function highlight(text, query) {
   )
 }
 
-// Pull a few "tag-worthy" tokens out of the comp/notes text so they pop visually.
-// Keep this conservative: well-known champ/item names with enough specificity.
 var KEYWORD_HINTS = [
-  { test: /reroll/i,      icon: 'casino',          color: '#d9b9ff' },
-  { test: /tempo/i,       icon: 'trending_up',     color: '#67e2d9' },
-  { test: /fast\s*9/i,    icon: 'speed',           color: '#ff6b9d' },
-  { test: /fast\s*8/i,    icon: 'speed',           color: '#ff9d6b' },
-  { test: /flex/i,        icon: 'tune',            color: '#9d8eff' },
-  { test: /winstreak/i,   icon: 'trending_up',     color: '#67e2d9' },
-  { test: /lose\s*streak/i, icon: 'trending_down', color: '#ff9d6b' }
+  { test: /reroll/i,        icon: 'casino',          color: '#d9b9ff' },
+  { test: /tempo/i,         icon: 'trending_up',     color: '#67e2d9' },
+  { test: /fast\s*9/i,      icon: 'speed',           color: '#ff6b9d' },
+  { test: /fast\s*8/i,      icon: 'speed',           color: '#ff9d6b' },
+  { test: /flex/i,          icon: 'tune',            color: '#9d8eff' },
+  { test: /winstreak/i,     icon: 'trending_up',     color: '#67e2d9' },
+  { test: /lose\s*streak/i, icon: 'trending_down',   color: '#ff9d6b' }
 ]
+
+// Curated item alias map: each entry maps a regex pattern to a canonical item apiName.
+// We keep this list short and confident -- only items that show up in the prep sheet.
+var ITEM_ALIASES = [
+  { re: /\badaptive\s+helm\b|\badaptive\b/i,    api: 'TFT_Item_AdaptiveHelm' },
+  { re: /\bshojin\b/i,                          api: 'TFT_Item_SpearOfShojin' },
+  { re: /\bnashor[\s']*s?\s*tooth\b|\bnashor\b/i, api: 'TFT_Item_Leviathan' },
+  { re: /\brageblade\b|\bguinsoo[\s']*s?\b/i,   api: 'TFT_Item_GuinsoosRageblade' },
+  { re: /\bjeweled\s+gauntlet\b|\bjg\b/i,       api: 'TFT_Item_JeweledGauntlet' },
+  { re: /\bblue\s+buff\b/i,                     api: 'TFT_Item_BlueBuff' },
+  { re: /\btear\b/i,                            api: 'TFT_Item_TearOfTheGoddess' },
+  { re: /\bbloodthirster\b/i,                   api: 'TFT_Item_Bloodthirster' },
+  { re: /\bhand\s+of\s+justice\b|\bhoj\b/i,     api: 'TFT_Item_HandOfJustice' },
+  { re: /\bquicksilver\b|\bqss\b/i,             api: 'TFT_Item_Quicksilver' },
+  { re: /\bbramble(\s+vest)?\b/i,               api: 'TFT_Item_BrambleVest' },
+  { re: /\bedge\s+of\s+night\b|\beon\b/i,       api: 'TFT_Item_EdgeOfNight' },
+  { re: /\bsteraks?\b/i,                        api: 'TFT_Item_SteraksGage' },
+  { re: /\btitans?\b/i,                         api: 'TFT_Item_TitansResolve' },
+  { re: /\bgiant\s+slayer\b|\bgs\b/i,           api: 'TFT_Item_GiantSlayer' },
+  { re: /\bmorello[\s']*s?\b/i,                 api: 'TFT_Item_MorellonomiconEmblem' },
+  { re: /\bdeathblade\b/i,                      api: 'TFT_Item_Deathblade' },
+  { re: /\binfinity\s+edge\b|\bie\b/i,          api: 'TFT_Item_InfinityEdge' },
+  { re: /\blast\s+whisper\b|\blw\b/i,           api: 'TFT_Item_LastWhisper' },
+  { re: /\bdragon[\s']*s?\s*claw\b/i,           api: 'TFT_Item_DragonsClaw' },
+  { re: /\bgargoyle[\s']*s?\b|\bstoneplate\b/i, api: 'TFT_Item_GargoyleStoneplate' },
+  { re: /\bredemption\b/i,                      api: 'TFT_Item_Redemption' },
+  { re: /\bsunfire\s+cape\b|\bsunfire\b/i,      api: 'TFT_Item_SunfireCape' },
+  { re: /\barchangel[\s']*s?\b|\bstaff\b/i,     api: 'TFT_Item_ArchangelsStaff' },
+  { re: /\bhextech\s+gunblade\b|\bgunblade\b/i, api: 'TFT_Item_HextechGunblade' },
+  { re: /\bwarmog[\s']*s?\b/i,                  api: 'TFT_Item_Warmogs' },
+  { re: /\bevenshroud\b/i,                      api: 'TFT_Item_Evenshroud' },
+  { re: /\bcrownguard\b/i,                      api: 'TFT_Item_Crownguard' }
+]
+
+function findChampions(text, champLookup) {
+  if (!text || !champLookup) return []
+  var seen = {}
+  var found = []
+  champLookup.patterns.forEach(function (p) {
+    if (p.re.test(text) && !seen[p.key]) {
+      seen[p.key] = true
+      var champ = champLookup.byKey[p.key]
+      if (champ) found.push(champ)
+    }
+  })
+  return found
+}
+
+function findItems(text, itemByApi) {
+  if (!text || !itemByApi) return []
+  var seen = {}
+  var found = []
+  ITEM_ALIASES.forEach(function (a) {
+    if (a.re.test(text) && !seen[a.api]) {
+      var item = itemByApi[a.api]
+      if (item) {
+        seen[a.api] = true
+        found.push(item)
+      }
+    }
+  })
+  return found
+}
+
+function ChampChip(props) {
+  var ch = props.champ
+  return (
+    <div
+      className="flex items-center gap-2 px-1.5 py-1"
+      style={{ background: '#0e0d15', border: '1px solid ' + costColor(ch.cost) + '55' }}
+      title={ch.name + ' (cost ' + ch.cost + ')'}
+    >
+      <img
+        alt={ch.name}
+        src={ch.assets && ch.assets.face}
+        onError={makeImgFallback(ch.cost)}
+        className="w-7 h-7 object-cover shrink-0"
+        style={{ border: '1px solid ' + costColor(ch.cost) }}
+      />
+      <span className="font-mono text-[10px] uppercase tracking-wide pr-1" style={{ color: '#E4E1EC' }}>
+        {ch.name}
+      </span>
+    </div>
+  )
+}
+
+function ItemChip(props) {
+  var it = props.item
+  return (
+    <div
+      className="flex items-center gap-2 px-1.5 py-1"
+      style={{ background: '#0e0d15', border: '1px solid rgba(103, 226, 217, 0.35)' }}
+      title={it.name}
+    >
+      {it.icon && (
+        <img
+          alt={it.name}
+          src={it.icon}
+          className="w-6 h-6 object-cover shrink-0"
+          style={{ border: '1px solid rgba(103, 226, 217, 0.40)' }}
+          onError={function (e) { e.target.style.display = 'none' }}
+        />
+      )}
+      <span className="font-mono text-[10px] uppercase tracking-wide pr-1" style={{ color: '#67e2d9' }}>
+        {it.name}
+      </span>
+    </div>
+  )
+}
+
+function MentionsRow(props) {
+  var champs = props.champs || []
+  var items = props.items || []
+  if (champs.length === 0 && items.length === 0) return null
+  return (
+    <div className="mt-3 pt-3" style={{ borderTop: '1px dashed rgba(157,142,124,0.20)' }}>
+      {champs.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap mb-2">
+          <span className="font-mono uppercase tracking-widest text-[9px]" style={{ color: '#9d8e7c' }}>Units</span>
+          {champs.map(function (c) { return <ChampChip key={c.apiName || c.key} champ={c}/> })}
+        </div>
+      )}
+      {items.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono uppercase tracking-widest text-[9px]" style={{ color: '#9d8e7c' }}>Items</span>
+          {items.map(function (i) { return <ItemChip key={i.apiName} item={i}/> })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function CompTags(props) {
   var comp = (props.comp || '').trim()
   if (!comp) return null
   var query = props.query
-  // Split on slashes/commas/" or " to get distinct comp chunks.
   var parts = comp.split(/\s*\/\s*|\s+or\s+/i).map(function (s) { return s.trim() }).filter(Boolean)
   if (parts.length === 1) {
     var hint = KEYWORD_HINTS.find(function (h) { return h.test.test(comp) })
@@ -139,7 +271,6 @@ function NotesBlock(props) {
   var notes = (props.notes || '').trim()
   if (!notes) return null
   var query = props.query
-  // If notes contain explicit blank lines, render as separate paragraphs for breathing room.
   var paragraphs = notes.split(/\n{2,}/).map(function (p) { return p.trim() }).filter(Boolean)
   return (
     <div
@@ -163,8 +294,13 @@ function NotesBlock(props) {
 function MeetCard(props) {
   var row = props.row
   var query = props.query
+  var champLookup = props.champLookup
+  var itemByApi = props.itemByApi
   var meta = metaFor(row.type)
   var titleText = cleanCondition(row.condition, row.type)
+  var hay = (row.condition || '') + ' ' + (row.comp || '') + ' ' + (row.notes || '')
+  var champs = useMemo(function () { return findChampions(hay, champLookup) }, [hay, champLookup])
+  var items  = useMemo(function () { return findItems(hay, itemByApi) }, [hay, itemByApi])
 
   return (
     <article
@@ -200,6 +336,8 @@ function MeetCard(props) {
       <CompTags comp={row.comp} query={query} />
 
       <NotesBlock notes={row.notes} query={query} />
+
+      <MentionsRow champs={champs} items={items} />
     </article>
   )
 }
@@ -245,7 +383,11 @@ function FilterBtn(props) {
   )
 }
 
-export default function Meet() {
+export default function Meet(props) {
+  var data = props && props.data ? props.data : {}
+  var champions = data.champions || []
+  var items = data.items || []
+
   var _q = useState('')
   var query = _q[0]
   var setQuery = _q[1]
@@ -259,6 +401,29 @@ export default function Meet() {
   var setStageFilter = _s[1]
 
   var rows = meetData
+
+  var champLookup = useMemo(function () {
+    var byKey = {}
+    var patterns = []
+    champions.forEach(function (c) {
+      if (!c || !c.key || !c.name) return
+      byKey[c.key] = c
+      var safeName = escapeRegex(c.name)
+      patterns.push({ key: c.key, re: new RegExp('\\b' + safeName + '\\b', 'i') })
+    })
+    patterns.sort(function (a, b) {
+      var la = (byKey[a.key] && byKey[a.key].name || '').length
+      var lb = (byKey[b.key] && byKey[b.key].name || '').length
+      return lb - la
+    })
+    return { byKey: byKey, patterns: patterns }
+  }, [champions])
+
+  var itemByApi = useMemo(function () {
+    var m = {}
+    items.forEach(function (it) { if (it && it.apiName) m[it.apiName] = it })
+    return m
+  }, [items])
 
   var counts = useMemo(function () {
     var byType = {}
@@ -332,10 +497,10 @@ export default function Meet() {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>The Decision Sheet</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Meet</h1>
+        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Line Selection</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           A clean, searchable view of the live Donut 17 prep sheet. Every condition you can roll into on stage 2 or 3, what
-          comp it points at, and the notes that turn it into a placement.
+          comp it points at, and the units and items that make it pop.
         </p>
       </header>
 
@@ -481,7 +646,7 @@ export default function Meet() {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {group.rows.map(function (r) {
-                return <MeetCard key={r.id} row={r} query={query} />
+                return <MeetCard key={r.id} row={r} query={query} champLookup={champLookup} itemByApi={itemByApi} />
               })}
             </div>
           </section>

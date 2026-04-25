@@ -63,7 +63,7 @@ export default function Donut17Screen() {
           {hasData && tab === 'gods'      && <Gods data={dataset}/>}
           {hasData && tab === 'items'     && <Items data={dataset}/>}
           {hasData && tab === 'augments'  && <Augments data={dataset}/>}
-          {tab === 'meet'      && <Meet/>}
+          {tab === 'meet'      && <Meet data={dataset}/>}
         </main>
       </div>
     </div>
