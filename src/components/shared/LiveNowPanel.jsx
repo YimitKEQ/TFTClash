@@ -111,7 +111,7 @@ export default function LiveNowPanel(props) {
       return
     }
     var cancelled = false
-    supabase.from('tournaments').select('*').in('phase', ACTIVE_PHASES).order('date', { ascending: true }).limit(20)
+    supabase.from('tournaments').select('id,name,phase,date,region,host,max_players,status').in('phase', ACTIVE_PHASES).order('date', { ascending: true }).limit(20)
       .then(function (res) {
         if (cancelled) return
         setLoading(false)
@@ -128,7 +128,7 @@ export default function LiveNowPanel(props) {
     if (items.length === 0) return
     var ids = items.map(function (t) { return t.id })
     var cancelled = false
-    supabase.from('registrations').select('tournament_id').in('tournament_id', ids)
+    supabase.from('registrations').select('tournament_id').in('tournament_id', ids).limit(2000)
       .then(function (res) {
         if (cancelled || !res || !res.data) return
         var c = {}

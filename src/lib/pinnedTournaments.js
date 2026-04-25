@@ -33,16 +33,20 @@ export function isPinned(id) {
 export function togglePinned(id) {
   if (!id) return false
   var sid = String(id)
-  var ids = readRaw()
-  var idx = ids.indexOf(sid)
-  if (idx === -1) {
-    ids.unshift(sid)
-    if (ids.length > MAX) ids = ids.slice(0, MAX)
-    writeRaw(ids)
+  var snap = readRaw()
+  var willPin = snap.indexOf(sid) === -1
+  var fresh = readRaw()
+  var idx = fresh.indexOf(sid)
+  if (willPin) {
+    if (idx === -1) {
+      fresh.unshift(sid)
+      if (fresh.length > MAX) fresh = fresh.slice(0, MAX)
+    }
+    writeRaw(fresh)
     return true
   } else {
-    ids.splice(idx, 1)
-    writeRaw(ids)
+    if (idx !== -1) fresh.splice(idx, 1)
+    writeRaw(fresh)
     return false
   }
 }

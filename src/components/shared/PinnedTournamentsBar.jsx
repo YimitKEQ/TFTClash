@@ -58,7 +58,7 @@ export default function PinnedTournamentsBar(props) {
     supabase.from('tournaments').select('id,name,phase,date,region,host,status').in('id', ids)
       .then(function (res) {
         if (cancelled) return
-        if (res && res.data) {
+        if (res && res.data && res.data.length > 0) {
           var byId = {}
           res.data.forEach(function (t) { byId[t.id] = t })
           var ordered = ids.map(function (id) { return byId[id] }).filter(function (t) { return !!t })
