@@ -27,6 +27,56 @@ function ordinal(n) {
   return n + (s[(v - 20) % 10] || s[v] || s[0])
 }
 
+function fmtDate(iso) {
+  if (!iso) return ''
+  try {
+    var d = new Date(iso)
+    if (isNaN(d.getTime())) return ''
+    var month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getUTCMonth()]
+    var day = d.getUTCDate()
+    var year = d.getUTCFullYear()
+    var h = d.getUTCHours()
+    var m = d.getUTCMinutes()
+    var hh = (h < 10 ? '0' : '') + h
+    var mm = (m < 10 ? '0' : '') + m
+    return month + ' ' + day + ' ' + year + ' · ' + hh + ':' + mm + ' UTC'
+  } catch (e) {
+    return ''
+  }
+}
+
+function buildTournamentSvg(opts) {
+  var title = escapeXml(String(opts.name || 'Tournament').slice(0, 36)).toUpperCase()
+  var host = escapeXml(String(opts.host || '').slice(0, 36))
+  var region = escapeXml(String(opts.region || '').slice(0, 12)).toUpperCase()
+  var dateStr = escapeXml(fmtDate(opts.start))
+
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">' +
+    '<defs>' +
+      '<linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+        '<stop offset="0%" stop-color="#0F0F16"/>' +
+        '<stop offset="100%" stop-color="#1B1B27"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="g2" x1="0" y1="0" x2="1" y2="0">' +
+        '<stop offset="0%" stop-color="#9B72CF"/>' +
+        '<stop offset="100%" stop-color="#67E2D9"/>' +
+      '</linearGradient>' +
+    '</defs>' +
+    '<rect width="1200" height="630" fill="url(#g)"/>' +
+    '<circle cx="950" cy="120" r="280" fill="#9B72CF" fill-opacity="0.06"/>' +
+    '<circle cx="200" cy="500" r="220" fill="#67E2D9" fill-opacity="0.05"/>' +
+    '<rect x="0" y="0" width="6" height="630" fill="url(#g2)"/>' +
+    '<text x="60" y="80" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="6" fill="#67E2D9">TFT CLASH · TOURNAMENT</text>' +
+    (region ? '<text x="1140" y="80" text-anchor="end" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="3" fill="#9B72CF">' + region + '</text>' : '') +
+    '<text x="60" y="220" font-family="\'Russo One\', Impact, sans-serif" font-size="86" font-weight="900" fill="#FFFFFF" letter-spacing="-1">' + title + '</text>' +
+    (host ? '<text x="60" y="280" font-family="Georgia, serif" font-style="italic" font-size="32" fill="#D9B9FF">Hosted by ' + host + '</text>' : '') +
+    (dateStr ? '<text x="60" y="430" font-family="\'JetBrains Mono\', monospace" font-size="32" font-weight="700" fill="#67E2D9">' + dateStr + '</text>' : '') +
+    '<line x1="60" y1="470" x2="1140" y2="470" stroke="#2a2a35" stroke-width="2"/>' +
+    '<text x="60" y="540" font-family="Inter, Arial, sans-serif" font-size="20" font-weight="600" fill="#9aa0aa" letter-spacing="2">FREE TO COMPETE · WEEKLY CLASHES · COMMUNITY DRIVEN</text>' +
+    '<text x="1140" y="600" text-anchor="end" font-family="\'JetBrains Mono\', monospace" font-size="14" fill="#5C7A8C">tftclash.com</text>' +
+  '</svg>'
+}
+
 function buildSvg(opts) {
   var name = escapeXml(opts.name || 'Player')
   var rank = escapeXml(opts.rank || '')
@@ -88,33 +138,46 @@ function buildSvg(opts) {
 
 export default async function handler(req, res) {
   try {
-    var name = (req.query && req.query.name) || ''
+    var variant = (req.query && req.query.v) || 'profile'
+    var name = (req.query && req.query.name) ? String(req.query.name).slice(0, 80) : ''
     if (!name) {
       res.status(400).json({ error: 'name required' })
       return
     }
-    if (!SUPABASE_URL || !SUPABASE_ANON) {
-      res.status(500).json({ error: 'supabase not configured' })
-      return
+
+    var svg
+    if (variant === 'tournament') {
+      svg = buildTournamentSvg({
+        name: name,
+        host: req.query.host ? String(req.query.host).slice(0, 60) : '',
+        start: req.query.start ? String(req.query.start).slice(0, 40) : '',
+        region: req.query.region ? String(req.query.region).slice(0, 20) : '',
+      })
+    } else {
+      if (!SUPABASE_URL || !SUPABASE_ANON) {
+        res.status(500).json({ error: 'supabase not configured' })
+        return
+      }
+      var sb = createClient(SUPABASE_URL, SUPABASE_ANON)
+      var r = await sb.from('players')
+        .select('name, rank, pts, wins, top4, games')
+        .ilike('name', name)
+        .limit(1)
+        .single()
+      var p = r && r.data ? r.data : { name: name, pts: 0, wins: 0, top4: 0, games: 0 }
+      svg = buildSvg({
+        name: p.name,
+        rank: p.rank,
+        pts: p.pts,
+        wins: p.wins,
+        top4: p.top4,
+        games: p.games,
+        variant: variant,
+        place: req.query.place ? parseInt(req.query.place, 10) : null,
+        placePts: req.query.pts ? parseInt(req.query.pts, 10) : null,
+      })
     }
-    var sb = createClient(SUPABASE_URL, SUPABASE_ANON)
-    var r = await sb.from('players')
-      .select('name, rank, pts, wins, top4, games')
-      .ilike('name', name)
-      .limit(1)
-      .single()
-    var p = r && r.data ? r.data : { name: name, pts: 0, wins: 0, top4: 0, games: 0 }
-    var svg = buildSvg({
-      name: p.name,
-      rank: p.rank,
-      pts: p.pts,
-      wins: p.wins,
-      top4: p.top4,
-      games: p.games,
-      variant: req.query.v || 'profile',
-      place: req.query.place ? parseInt(req.query.place, 10) : null,
-      placePts: req.query.pts ? parseInt(req.query.pts, 10) : null
-    })
+
     res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8')
     res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=900')
     res.status(200).send(svg)

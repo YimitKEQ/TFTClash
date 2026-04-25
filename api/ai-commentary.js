@@ -3,10 +3,24 @@
 
 const RATE_WINDOW_MS = 60 * 1000;
 const RATE_MAX = 10;
+const RATE_KEY_CAP = 5000;
 const attempts = new Map();
+let lastSweep = 0;
+
+function sweepStale(now) {
+  if (now - lastSweep < RATE_WINDOW_MS) return;
+  lastSweep = now;
+  for (const [k, v] of attempts) {
+    const fresh = v.filter(t => t > now - RATE_WINDOW_MS);
+    if (fresh.length === 0) attempts.delete(k);
+    else attempts.set(k, fresh);
+  }
+}
 
 function isRateLimited(ip) {
   const now = Date.now();
+  sweepStale(now);
+  if (attempts.size > RATE_KEY_CAP && !attempts.has(ip)) return true;
   const prev = attempts.get(ip) ?? [];
   const recent = prev.filter(t => t > now - RATE_WINDOW_MS);
   recent.push(now);

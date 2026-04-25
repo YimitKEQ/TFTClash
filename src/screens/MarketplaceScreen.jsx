@@ -311,7 +311,7 @@ export default function MarketplaceScreen() {
         </div>
         <span className="text-xs text-on-surface-variant/50 ml-2">{visible.length + ' listing' + (visible.length === 1 ? '' : 's')}</span>
         <div className="ml-auto flex gap-2">
-          {(isApprovedHost || currentUser) && (
+          {isApprovedHost && (
             <Btn variant="primary" size="sm" icon="add" onClick={function () { setShowForm(function (v) { return !v }) }}>
               {showForm ? 'Cancel' : 'List a slot'}
             </Btn>

@@ -114,6 +114,7 @@ export default function VodGallery(props) {
       label: trimmedLabel.slice(0, MAX_LABEL),
       platform: detectPlatform(trimmedUrl),
       addedBy: currentUser && currentUser.name ? currentUser.name : 'Anon',
+      addedById: currentUser && currentUser.id ? currentUser.id : '',
       ts: Date.now(),
     }
     var next = [].concat(vods, [entry])
@@ -177,7 +178,8 @@ export default function VodGallery(props) {
       ) : (
         <ul className="space-y-3">
           {vods.slice().reverse().map(function (v) {
-            var canDelete = currentUser && currentUser.id && (currentUser.name === v.addedBy || (hostId && currentUser.id === hostId))
+            var ownsEntry = v.addedById ? currentUser && currentUser.id === v.addedById : currentUser && currentUser.name === v.addedBy
+            var canDelete = currentUser && currentUser.id && (ownsEntry || (hostId && currentUser.id === hostId))
             var ytId = v.platform === 'youtube' ? youtubeId(v.url) : ''
             var twId = v.platform === 'twitch' ? twitchVodId(v.url) : ''
             return (

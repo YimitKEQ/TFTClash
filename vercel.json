@@ -25,7 +25,7 @@
       ]
     },
     {
-      "source": "/api/((?!public-players|public-tournaments|widget|calendar|share-card).*)",
+      "source": "/api/(ai-commentary|delete-account|paypal-webhook|check-admin|cron-retention-notify|ping-search-engines|health)(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },

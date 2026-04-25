@@ -25,11 +25,16 @@ function writeCached(threadId, text) {
   } catch (e) {}
 }
 
+function sanitize(s) {
+  return String(s == null ? '' : s).replace(/[<>"'`\\{}]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60)
+}
+
 function buildPrompt(eventName, players) {
-  var names = (players || []).slice(0, 12).map(function (p) { return p.name }).filter(Boolean).join(', ')
-  if (!names) return 'Preview the upcoming TFT Clash event "' + (eventName || 'tournament') + '" in 2 sentences. Hype the mystery.'
+  var safeName = sanitize(eventName) || 'Untitled'
+  var names = (players || []).slice(0, 12).map(function (p) { return sanitize(p && p.name) }).filter(Boolean).join(', ')
+  if (!names) return 'Preview the upcoming TFT Clash event "' + safeName + '" in 2 sentences. Hype the mystery.'
   return [
-    'You are previewing an upcoming TFT Clash tournament called "' + (eventName || 'Untitled') + '".',
+    'You are previewing an upcoming TFT Clash tournament called "' + safeName + '".',
     'Registered competitors: ' + names + '.',
     'Write a 2-3 sentence scout report. Pick a likely winner and a dark horse. Be punchy and entertaining. Do not include disclaimers or instructions.',
   ].join(' ')

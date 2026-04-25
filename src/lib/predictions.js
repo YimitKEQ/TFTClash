@@ -97,3 +97,17 @@ export function leaderboard(threadId, actualWinnerId, actualTop4Ids) {
   rows.sort(function (a, b) { return b.score - a.score })
   return rows
 }
+
+// Returns [{ threadId, prediction }] for every thread the current user has predicted.
+// Most recent first.
+export function readMyPredictionsAcrossThreads(currentUser) {
+  var all = read()
+  var k = userKey(currentUser)
+  var out = []
+  Object.keys(all).forEach(function (threadId) {
+    var entry = all[threadId] && all[threadId][k]
+    if (entry) out.push({ threadId: threadId, prediction: entry })
+  })
+  out.sort(function (a, b) { return (b.prediction.ts || 0) - (a.prediction.ts || 0) })
+  return out
+}

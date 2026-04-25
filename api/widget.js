@@ -30,7 +30,8 @@ export default async function handler(req, res) {
   }
 
   var url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
-  var key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+  // Public-facing widget — must use anon key so RLS is enforced.
+  var key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 
   var hostFilter = req.query && req.query.host ? String(req.query.host).slice(0, 60) : ''
   var theme = req.query && req.query.theme ? String(req.query.theme).slice(0, 12) : 'dark'

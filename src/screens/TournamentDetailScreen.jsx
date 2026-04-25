@@ -13,6 +13,7 @@ import BountyBoard from '../components/shared/BountyBoard'
 import VodGallery from '../components/shared/VodGallery'
 import PredictionGame from '../components/shared/PredictionGame'
 import AiScoutReport from '../components/shared/AiScoutReport'
+import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
@@ -314,6 +315,54 @@ export default function TournamentDetailScreen() {
               })}
             </div>
           )}
+          <div className="flex gap-2 flex-wrap mt-4">
+            <button
+              type="button"
+              onClick={function() {
+                var url = '/api/share-card?v=tournament' +
+                  '&name=' + encodeURIComponent(event.name || '') +
+                  (event.host ? '&host=' + encodeURIComponent(String(event.host).slice(0, 60)) : '') +
+                  (event.starts_at ? '&start=' + encodeURIComponent(event.starts_at) : '') +
+                  (event.region ? '&region=' + encodeURIComponent(event.region) : '');
+                window.open(url, '_blank', 'noopener,noreferrer');
+              }}
+              className="text-[10px] font-label uppercase tracking-widest text-tertiary hover:text-tertiary/80 flex items-center gap-1 border border-tertiary/30 bg-tertiary/10 px-2.5 py-1 rounded"
+            >
+              <Icon name="image" size={12} />
+              Share card
+            </button>
+            <button
+              type="button"
+              onClick={function() {
+                try {
+                  var url = window.location.href;
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(url);
+                    toast && toast('Link copied', 'success');
+                  } else {
+                    toast && toast('Copy not supported', 'error');
+                  }
+                } catch (e) { toast && toast('Copy failed', 'error') }
+              }}
+              className="text-[10px] font-label uppercase tracking-widest text-on-surface/60 hover:text-on-surface flex items-center gap-1 border border-outline-variant/20 bg-surface-container-high px-2.5 py-1 rounded"
+            >
+              <Icon name="link" size={12} />
+              Copy link
+            </button>
+            {event.starts_at && (
+              <AddToCalendarBtn
+                start={event.starts_at}
+                end={event.ends_at}
+                durationMinutes={180}
+                title={event.name || 'TFT Clash'}
+                description={event.description || 'TFT Clash tournament on tftclash.com'}
+                url={typeof window !== 'undefined' ? window.location.href : 'https://tftclash.com'}
+                uid={'tftclash-' + (eventId || 'unknown')}
+                filename={'tft-clash-' + (eventId || 'event') + '.ics'}
+                variant="ghost"
+              />
+            )}
+          </div>
         </div>
 
         {prizes.length > 0 && (

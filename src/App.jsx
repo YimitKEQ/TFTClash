@@ -100,6 +100,7 @@ var Donut17ScreenNew = lazyWithRetry(function(){ return import('./donut17/Donut1
 var BrosephTechScreen = lazyWithRetry(function(){ return import('./screens/BrosephTechScreen'); });
 var MarketplaceScreenNew = lazyWithRetry(function(){ return import('./screens/MarketplaceScreen'); });
 var RoadmapScreenNew = lazyWithRetry(function(){ return import('./screens/RoadmapScreen'); });
+var PredictionsScreenNew = lazyWithRetry(function(){ return import('./screens/PredictionsScreen'); });
 import NewsletterSignup from './components/shared/NewsletterSignup';
 import ClashReminderBtn from './components/shared/ClashReminderBtn';
 import WeeklyRecapCard from './components/shared/WeeklyRecapCard';
@@ -249,7 +250,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -349,7 +350,7 @@ function TFTClash(){
   // URL is now managed by React Router; no more hash pushState
   useEffect(function(){
     navSourceRef.current="user";
-    var titles={home:"Home",standings:"Standings",clash:"Clash",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear",changelog:"Changelog",marketplace:"Sponsor Marketplace",roadmap:"Roadmap"};
+    var titles={home:"Home",standings:"Standings",clash:"Clash",bracket:"Bracket",leaderboard:"Leaderboard",hof:"Hall of Fame",archive:"Archive",milestones:"Milestones",challenges:"Challenges",results:"Results",pricing:"Pricing",admin:"Admin",scrims:"Scrims",rules:"Rules",faq:"FAQ",featured:"Events",account:"Account",recap:"Season Recap",roster:"Roster","host-apply":"Host Application","host-dashboard":"Host Dashboard",profile:"Player Profile",privacy:"Privacy Policy",terms:"Terms of Service",gear:"Recommended Gear",changelog:"Changelog",marketplace:"Sponsor Marketplace",roadmap:"Roadmap",predictions:"My Predictions"};
     var t=titles[screen]||(screen.indexOf("tournament-")===0?"Tournament":"");
     document.title="TFT Clash"+(t?" - "+t:"");
     var descs={home:"Weekly TFT tournaments for competitive players. Free to compete, real rankings, community-driven.",standings:"Live season standings and rankings for TFT Clash tournaments.",bracket:"Tournament bracket, lobby assignments, and live results.",leaderboard:"Full leaderboard with stats, comparisons, and streak tracking.",hof:"Hall of Fame - records, champions, and legends of TFT Clash.",archive:"Past tournament results and clash history.",pricing:"TFT Clash subscription plans - Player (free), Pro, and Host tiers.",rules:"Official TFT Clash tournament rules, scoring, and tiebreaker system.",faq:"Frequently asked questions about TFT Clash tournaments.",featured:"Browse upcoming and featured TFT tournaments.",privacy:"TFT Clash privacy policy - how we handle your data.",gear:"Recommended gear for competitive TFT players.",terms:"TFT Clash terms of service - rules for using the platform."};
@@ -727,6 +728,7 @@ function TFTClash(){
         {screen==="brosephtech"&&<BrosephTechScreen/>}
         {screen==="marketplace"&&<MarketplaceScreenNew/>}
         {screen==="roadmap"&&<RoadmapScreenNew/>}
+        {screen==="predictions"&&<PredictionsScreenNew/>}
 
 
         </ScreenBoundary>
