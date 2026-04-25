@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Icon, Btn } from '../ui';
+import OnlineCount from '../shared/OnlineCount';
 import { DISCORD_URL } from '../../lib/constants';
 
 var SCREEN_TO_ROUTE = {
@@ -104,8 +105,13 @@ export default function Sidebar() {
     <aside className="hidden xl:flex fixed left-0 top-0 h-screen w-64 bg-[#13131A] border-r border-white/[0.05] flex-col z-40 pt-20">
       {/* Brand */}
       <div className="px-6 py-6 border-b border-white/[0.05]">
-        <div className="font-display font-bold text-primary text-base uppercase tracking-tight">TFT Clash</div>
-        <div className="font-label uppercase text-[10px] font-semibold text-on-surface/30 tracking-widest mt-0.5">Elite Competition</div>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-display font-bold text-primary text-base uppercase tracking-tight">TFT Clash</div>
+            <div className="font-label uppercase text-[10px] font-semibold text-on-surface/30 tracking-widest mt-0.5">Elite Competition</div>
+          </div>
+          <OnlineCount label="online" />
+        </div>
       </div>
 
       {/* Nav items */}

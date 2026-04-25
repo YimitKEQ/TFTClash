@@ -10,6 +10,7 @@ import RegionBadge from '../components/shared/RegionBadge'
 import LiveOdds from '../components/shared/LiveOdds'
 import MatchThread from '../components/shared/MatchThread'
 import BountyBoard from '../components/shared/BountyBoard'
+import VodGallery from '../components/shared/VodGallery'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
@@ -565,6 +566,14 @@ export default function TournamentDetailScreen() {
                 threadId={'t-' + (eventId || 'unknown')}
                 currentUser={currentUser}
                 registeredIds={registeredIds}
+              />
+
+              {/* VOD gallery - host + registered players post replays */}
+              <VodGallery
+                threadId={'t-' + (eventId || 'unknown')}
+                currentUser={currentUser}
+                registeredIds={registeredIds}
+                hostId={event && event.host_id}
               />
 
               {/* Host management link */}
