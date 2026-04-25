@@ -409,18 +409,20 @@ export default function HostDashboardScreen() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <button
-              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-2 hover:bg-white/5 transition-all"
+            <Btn
+              variant="secondary"
+              size="md"
               onClick={function() { setShowCreate(false); setWizStep(0); }}
             >
               Cancel
-            </button>
-            <button
-              className="bg-primary text-on-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+            </Btn>
+            <Btn
+              variant="primary"
+              size="md"
               onClick={function() { if (!wizData.name.trim() || !wizData.date.trim()) { toast("Name and date required", "error"); return; } setWizStep(1); }}
             >
               Next: Format
-            </button>
+            </Btn>
             <span className="text-xs font-mono text-slate-500">All fields auto-save to cloud.</span>
           </div>
         </div>
@@ -486,8 +488,8 @@ export default function HostDashboardScreen() {
             <span className="text-sm text-on-surface-variant">Invite-only registration</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(0); }}>Back</button>
-            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(2); }}>Next: Branding</button>
+            <Btn variant="secondary" size="md" onClick={function() { setWizStep(0); }}>Back</Btn>
+            <Btn variant="primary" size="md" onClick={function() { setWizStep(2); }}>Next: Branding</Btn>
           </div>
         </div>
       );
@@ -517,8 +519,8 @@ export default function HostDashboardScreen() {
             <div className="text-xs font-mono mt-1" style={{ color: wizData.accentColor }}>{wizData.type === "swiss" ? "Swiss" : "Standard"} - {wizData.maxPlayers} players</div>
           </div>
           <div className="flex items-center gap-4">
-            <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(1); }}>Back</button>
-            <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all" onClick={function() { setWizStep(3); }}>Review</button>
+            <Btn variant="secondary" size="md" onClick={function() { setWizStep(1); }}>Back</Btn>
+            <Btn variant="primary" size="md" onClick={function() { setWizStep(3); }}>Review</Btn>
           </div>
         </div>
       );
@@ -558,14 +560,16 @@ export default function HostDashboardScreen() {
           </div>
         )}
         <div className="flex items-center gap-4">
-          <button className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant hover:bg-white/5 transition-all" onClick={function() { setWizStep(2); }}>Back</button>
-          <button
-            className="bg-primary text-on-primary px-10 py-4 rounded-full font-label font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+          <Btn variant="secondary" size="md" onClick={function() { setWizStep(2); }}>Back</Btn>
+          <Btn
+            variant="primary"
+            size="lg"
             onClick={submitWizard}
             disabled={wizCreating}
+            loading={wizCreating}
           >
             {wizCreating ? "Creating..." : "Create Tournament"}
-          </button>
+          </Btn>
         </div>
       </div>
     );
@@ -583,8 +587,10 @@ export default function HostDashboardScreen() {
             <p className="text-on-surface-variant font-body max-w-xl">Run your tournaments, track engagement, and brand every detail. One dashboard, total control.</p>
           </div>
           <div className="flex gap-4">
-            <button
-              className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-3 rounded-full font-label font-bold uppercase tracking-wider text-secondary flex items-center gap-2 hover:bg-white/5 transition-all"
+            <Btn
+              variant="secondary"
+              size="md"
+              icon="file_upload"
               onClick={function() {
                 var data = JSON.stringify(tournaments, null, 2);
                 var blob = new Blob([data], { type: 'application/json' });
@@ -597,16 +603,16 @@ export default function HostDashboardScreen() {
                 toast('Data exported!', 'success');
               }}
             >
-              <Icon name="file_upload" size={16} />
               Export Data
-            </button>
-            <button
-              className="bg-gradient-to-br from-primary to-primary-container px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest text-on-primary flex items-center gap-2 active:scale-95 transition-all"
+            </Btn>
+            <Btn
+              variant="primary"
+              size="md"
+              icon="add"
               onClick={function() { setShowCreate(function(s) { return !s; }); setWizStep(0); }}
             >
-              <Icon name="add" size={20} />
               {showCreate ? "Cancel" : "Create Tournament"}
-            </button>
+            </Btn>
           </div>
         </div>
 
@@ -1180,8 +1186,9 @@ export default function HostDashboardScreen() {
                         })}
                       </div>
                       <div className="flex gap-3 pt-2">
-                        <button
-                          className="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label font-bold uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all"
+                        <Btn
+                          variant="primary"
+                          size="sm"
                           onClick={function() {
                             if (currentRound < roundCount) {
                               updateTournamentAndFeatured(t.id, { currentRound: currentRound + 1 });
@@ -1196,13 +1203,14 @@ export default function HostDashboardScreen() {
                           }}
                         >
                           {currentRound < roundCount ? "Advance to Round " + (currentRound + 1) : "Finalize Tournament"}
-                        </button>
-                        <button
-                          className="bg-surface-variant/20 border border-outline-variant/15 px-6 py-2.5 rounded-full font-label font-bold uppercase tracking-wider text-on-surface-variant text-sm hover:bg-white/5 transition-all"
+                        </Btn>
+                        <Btn
+                          variant="secondary"
+                          size="sm"
                           onClick={function() { setScreen("tournament-host-" + t.id); }}
                         >
                           View Public Page
-                        </button>
+                        </Btn>
                       </div>
                     </div>
                   )}

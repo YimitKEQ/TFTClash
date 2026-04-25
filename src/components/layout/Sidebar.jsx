@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { Icon } from '../ui';
+import { Icon, Btn } from '../ui';
 import { DISCORD_URL } from '../../lib/constants';
 
 var SCREEN_TO_ROUTE = {
@@ -148,12 +148,14 @@ export default function Sidebar() {
 
       {/* CTA */}
       <div className="px-5 py-5 border-t border-white/[0.05] shrink-0 space-y-2">
-        <button
+        <Btn
+          variant="primary"
+          size="md"
           onClick={function() { navTo(currentUser ? 'clash' : 'signup'); }}
-          className="w-full py-3 rounded-full bg-gradient-to-br from-primary to-[#CC8A28] text-[#07070E] font-label font-bold uppercase tracking-widest text-sm cursor-pointer border-none active:scale-95 transition-transform shadow-[0_4px_20px_rgba(232,168,56,0.3)]"
+          className="w-full"
         >
           {currentUser ? 'Join Clash' : 'Sign Up Free'}
-        </button>
+        </Btn>
         <a
           href={DISCORD_URL}
           target="_blank"

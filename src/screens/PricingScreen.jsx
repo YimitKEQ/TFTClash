@@ -361,15 +361,9 @@ export default function PricingScreen() {
               <p className="text-sm text-on-surface-variant mb-6 max-w-sm">
                 Running tournaments costs time and money. If you enjoy competing here, consider a one-time donation to help keep the lights on.
               </p>
-              <a
-                href={getDonateUrl()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-8 py-3 rounded-full font-label font-bold uppercase tracking-widest text-sm hover:bg-primary/20 transition-all"
-              >
-                <Icon name="volunteer_activism" size={18} />
+              <Btn variant="primary" size="md" href={getDonateUrl()} icon="volunteer_activism">
                 Donate via PayPal
-              </a>
+              </Btn>
               <p className="text-[10px] text-on-surface-variant/40 mt-3 font-mono uppercase tracking-widest">
                 Every contribution helps
               </p>
@@ -438,25 +432,16 @@ export default function PricingScreen() {
               Still unsure? Our support team is active on Discord.
             </p>
             <div className="mt-8 flex gap-4 flex-wrap">
-              <a
-                href="mailto:contact@tftclash.com"
-                className="inline-flex items-center justify-center gap-2 rounded-full font-label font-bold uppercase tracking-widest transition-all duration-300 py-3 px-6 text-sm min-h-[44px] bg-surface-container-high text-on-surface border border-outline-variant/15 hover:bg-surface-container-highest"
-              >
+              <Btn variant="secondary" size="md" href="mailto:contact@tftclash.com">
                 Email Support
-              </a>
+              </Btn>
               <Btn variant="tertiary" size="md" onClick={handleHostApplyClick}>
                 Host Application
               </Btn>
               {getDonateUrl() ? (
-                <a
-                  href={getDonateUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-error/10 border border-error/30 text-error px-6 py-3 rounded-full text-sm font-label font-bold uppercase tracking-widest hover:bg-error/20 transition-colors inline-flex items-center gap-2"
-                >
-                  <Icon name="favorite" size={16} fill />
+                <Btn variant="destructive" size="md" href={getDonateUrl()} icon="favorite">
                   Donate
-                </a>
+                </Btn>
               ) : null}
             </div>
           </div>

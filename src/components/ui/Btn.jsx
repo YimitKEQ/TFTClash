@@ -1,9 +1,9 @@
 const variants = {
-  primary: 'bg-gradient-to-br from-primary to-primary-container text-on-primary shadow-lg shadow-primary/10 hover:shadow-[0_0_30px_rgba(232,168,56,0.3)] hover:scale-[1.02] active:scale-95',
-  secondary: 'bg-surface-container-high text-on-surface border border-outline-variant/15 hover:bg-surface-container-highest',
+  primary: 'bg-primary/10 border border-primary/30 text-primary shadow-sm shadow-primary/10 hover:bg-primary/20 hover:border-primary/50 hover:shadow-md hover:shadow-primary/20 active:scale-[0.98]',
+  secondary: 'bg-surface-container-low/40 border border-outline-variant/10 text-on-surface/80 hover:text-on-surface hover:bg-surface-container-low hover:border-outline-variant/20 active:scale-[0.98]',
   ghost: 'text-on-surface/60 hover:text-on-surface hover:bg-white/5',
-  destructive: 'bg-error-container/20 text-error border border-error/20 hover:bg-error-container/30',
-  tertiary: 'bg-tertiary/10 text-tertiary border border-tertiary/30 hover:bg-tertiary/20',
+  destructive: 'bg-error/10 border border-error/30 text-error hover:bg-error/20 hover:border-error/50 active:scale-[0.98]',
+  tertiary: 'bg-tertiary/10 border border-tertiary/30 text-tertiary hover:bg-tertiary/20 hover:border-tertiary/50 active:scale-[0.98]',
   link: 'text-primary hover:underline underline-offset-4 decoration-2',
 }
 

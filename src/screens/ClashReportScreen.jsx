@@ -357,7 +357,10 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
           Share this clash
         </h5>
         <div className="flex flex-wrap justify-center gap-3">
-          <button
+          <Btn
+            variant="secondary"
+            size="md"
+            icon="share"
             onClick={function() {
               var text = champion + ' won ' + clashName + '! ' + sorted.length + ' players competed.'
               navigator.clipboard.writeText(text).then(function() {
@@ -366,11 +369,9 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
                 toast('Could not copy to clipboard', 'error')
               })
             }}
-            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-label tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
-            >
-            <Icon name="share" size={16} className="text-on-surface-variant" />
+          >
             Share Summary
-          </button>
+          </Btn>
           <Btn
             variant="primary"
             size="md"
@@ -403,13 +404,14 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
           >
             Export Results
           </Btn>
-          <button
+          <Btn
+            variant="secondary"
+            size="md"
+            icon="sports_esports"
             onClick={function() { navigate('/events') }}
-            className="bg-surface-container-highest px-6 py-2.5 rounded-full font-label tracking-widest uppercase text-sm border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-variant transition-colors"
-            >
-            <Icon name="sports_esports" size={16} className="text-on-surface-variant" />
+          >
             Join Next Clash
-          </button>
+          </Btn>
         </div>
       </section>
     </div>
