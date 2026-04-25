@@ -128,6 +128,9 @@ export default function LiveNowPanel(props) {
     if (items.length === 0) return
     var ids = items.map(function (t) { return t.id })
     var cancelled = false
+    // Cap defensively. With up to 20 active tournaments the realistic ceiling is
+    // ~2k regs total; if we ever exceed this the count becomes a lower bound,
+    // which is a benign UX degradation (bar fill caps at max_players anyway).
     supabase.from('registrations').select('tournament_id').in('tournament_id', ids).limit(2000)
       .then(function (res) {
         if (cancelled || !res || !res.data) return

@@ -18,7 +18,11 @@ function writeRaw(ids) {
   try {
     window.localStorage.setItem(KEY, JSON.stringify(ids.slice(0, MAX)))
     window.dispatchEvent(new CustomEvent('tft-pinned-tournaments-changed'))
-  } catch (e) {}
+  } catch (e) {
+    if (typeof console !== 'undefined' && console.warn && import.meta && import.meta.env && import.meta.env.DEV) {
+      console.warn('[pinnedTournaments] localStorage write failed:', e && e.message)
+    }
+  }
 }
 
 export function getPinnedIds() {
@@ -33,22 +37,17 @@ export function isPinned(id) {
 export function togglePinned(id) {
   if (!id) return false
   var sid = String(id)
-  var snap = readRaw()
-  var willPin = snap.indexOf(sid) === -1
-  var fresh = readRaw()
-  var idx = fresh.indexOf(sid)
-  if (willPin) {
-    if (idx === -1) {
-      fresh.unshift(sid)
-      if (fresh.length > MAX) fresh = fresh.slice(0, MAX)
-    }
-    writeRaw(fresh)
+  var ids = readRaw()
+  var idx = ids.indexOf(sid)
+  if (idx === -1) {
+    var pinned = [sid].concat(ids)
+    if (pinned.length > MAX) pinned = pinned.slice(0, MAX)
+    writeRaw(pinned)
     return true
-  } else {
-    if (idx !== -1) fresh.splice(idx, 1)
-    writeRaw(fresh)
-    return false
   }
+  var unpinned = ids.filter(function (x) { return x !== sid })
+  writeRaw(unpinned)
+  return false
 }
 
 export function unpinId(id) {

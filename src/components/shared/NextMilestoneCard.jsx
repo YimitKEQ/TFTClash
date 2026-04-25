@@ -2,11 +2,14 @@ import { Icon } from '../ui'
 import { MILESTONES } from '../../lib/stats.js'
 
 function ptsTier(pts) {
+  // Tones map to MD3 tokens. Champion/Diamond share tertiary because Diamond is
+  // a stepping stone to Champion; Bronze uses the neutral on-surface so Silver
+  // (secondary) and Gold (primary) read distinctly between them.
   if (pts >= 1000) return { tone: 'tertiary', label: 'CHAMPION' }
-  if (pts >= 800) return { tone: 'primary', label: 'DIAMOND' }
-  if (pts >= 600) return { tone: 'tertiary', label: 'GOLD' }
+  if (pts >= 800) return { tone: 'tertiary', label: 'DIAMOND' }
+  if (pts >= 600) return { tone: 'primary', label: 'GOLD' }
   if (pts >= 300) return { tone: 'secondary', label: 'SILVER' }
-  if (pts >= 100) return { tone: 'primary', label: 'BRONZE' }
+  if (pts >= 100) return { tone: 'on-surface', label: 'BRONZE' }
   return { tone: 'on-surface-variant', label: 'UNRANKED' }
 }
 
@@ -25,6 +28,12 @@ function findNextMilestone(player) {
     withPts.sort(function (a, b) { return a.pts - b.pts })
     return withPts[0]
   }
+  // Only condition-based milestones remain. Their checks read clashHistory and
+  // currentStreak which are populated asynchronously by AppContext enrichment.
+  // If those fields aren't present, the checks return false for all players and
+  // would mislead the card. Suppress the card until enrichment lands.
+  var hasHistData = player.clashHistory && player.clashHistory.length > 0
+  if (!hasHistData) return null
   return unmet[0]
 }
 
@@ -35,6 +44,9 @@ function iconForMilestone(m) {
   if (m.icon === 'trophy-fill') return 'emoji_events'
   if (m.icon === 'fire') return 'local_fire_department'
   if (m.icon === 'lightning-charge-fill') return 'bolt'
+  if (typeof console !== 'undefined' && console.warn && import.meta && import.meta.env && import.meta.env.DEV) {
+    console.warn('[NextMilestoneCard] Unmapped milestone icon:', m.icon)
+  }
   return 'flag'
 }
 
@@ -110,7 +122,14 @@ export default function NextMilestoneCard(props) {
           )}
           {hasPts ? (
             <div className="mt-2">
-              <div className="h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+              <div
+                role="progressbar"
+                aria-valuenow={pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-label={next.name + ' progress'}
+                className="h-1.5 rounded-full bg-surface-container-high overflow-hidden"
+              >
                 <div className={'h-full rounded-full ' + toneFill} style={{ width: pct + '%' }}></div>
               </div>
               <div className="flex items-center justify-between mt-1">
