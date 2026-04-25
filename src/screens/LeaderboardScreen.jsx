@@ -8,6 +8,7 @@ import { Btn, Icon, Panel, Skeleton } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import WatchButton from '../components/shared/WatchButton'
+import TopMoversCard from '../components/shared/TopMoversCard'
 
 // MEDAL_COLORS imported from constants.js
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
@@ -250,6 +251,11 @@ export default function LeaderboardScreen(props) {
             <PodiumCard player={top3[2]} rank={3} onClick={function() { openPlayer(top3[2]) }} />
           </section>
         )}
+
+        {/* Recent Movers */}
+        <div className="mb-10">
+          <TopMoversCard players={players} gamesWindow={5} limit={5} />
+        </div>
 
         {/* Ad Banner (standalone only — StandingsScreen injects its own when embedded) */}
         {!embedded && <AdBanner size="banner" className="w-full mb-8" />}
