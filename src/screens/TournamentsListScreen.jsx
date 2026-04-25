@@ -45,6 +45,86 @@ function getTopPrize(prizes) {
   return first ? first.prize : null;
 }
 
+// Filling-rate threshold under which a tournament is not interesting enough to
+// surface in the urgency strip. Anything below 60% is "still has plenty of
+// room" and shouldn't be flagged as filling.
+var FILLING_MIN_PCT = 60
+
+function AlmostFullStrip(props) {
+  var tournaments = props.tournaments || []
+  var regCounts = props.regCounts || {}
+  var navigate = props.navigate
+
+  var rows = []
+  for (var i = 0; i < tournaments.length; i++) {
+    var t = tournaments[i]
+    if (!t) continue
+    if (t.phase !== 'registration') continue
+    var max = Number(t.max_players) || 128
+    if (max <= 0) continue
+    var count = Number(regCounts[t.id]) || 0
+    var pct = Math.round((count / max) * 100)
+    if (pct < FILLING_MIN_PCT) continue
+    if (pct >= 100) continue
+    rows.push({ t: t, count: count, max: max, pct: pct })
+  }
+  if (rows.length === 0) return null
+
+  rows.sort(function (a, b) { return b.pct - a.pct })
+  var visible = rows.slice(0, 4)
+
+  return (
+    <div className="mb-8 rounded-2xl border border-tertiary/25 bg-surface-container/30 backdrop-blur p-4 sm:p-5">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <Icon name="bolt" className="text-tertiary" />
+          <h3 className="font-display text-base tracking-wide">FILLING UP FAST</h3>
+        </div>
+        <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
+          {rows.length + (rows.length === 1 ? ' clash' : ' clashes') + ' near capacity'}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+        {visible.map(function (row) {
+          var t = row.t
+          var barColor = row.pct >= 90 ? '#FF6B6B' : (row.pct >= 75 ? '#FFB84D' : '#52D6A0')
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={function () { navigate('/flash/' + t.id) }}
+              className="text-left rounded-xl border border-outline-variant/15 bg-surface-container-low/60 hover:bg-surface-container hover:border-tertiary/40 transition-colors p-3 sm:p-4 group"
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex-1 min-w-0">
+                  <div className="font-display text-sm sm:text-base tracking-wide text-on-surface truncate">
+                    {t.name || 'Untitled clash'}
+                  </div>
+                  <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/50 mt-0.5">
+                    {(t.region || 'EU') + ' · ' + (row.count + '/' + row.max + ' registered')}
+                  </div>
+                </div>
+                <span
+                  className="font-mono text-xs font-bold px-2 py-1 rounded flex-shrink-0"
+                  style={{ background: barColor + '22', color: barColor }}
+                >
+                  {row.pct + '%'}
+                </span>
+              </div>
+              <div className="h-1.5 rounded-full bg-surface-container-high overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all"
+                  style={{ width: row.pct + '%', background: barColor }}
+                ></div>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function FeaturedSpotlight(props) {
   var t = props.tournament;
   var regCount = props.regCount || 0;
@@ -310,6 +390,12 @@ export default function TournamentsListScreen() {
                 <p className="text-xs text-on-surface-variant/50 mt-2">Check back soon for upcoming events.</p>
               </Panel>
             )}
+
+            <AlmostFullStrip
+              tournaments={visible}
+              regCounts={regCounts}
+              navigate={navigate}
+            />
 
             <section className="space-y-6">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
