@@ -8,6 +8,168 @@ import { Sel, Bar, StatusPill, ACCENT_COLORS, WIZ_STEPS } from './host-dashboard
 import { RoundControl } from './host-dashboard/CommandCenter'
 import { readTemplates, saveTemplate, deleteTemplate } from '../lib/tournamentTemplates.js'
 
+function slugify(s) {
+  return String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60)
+}
+
+function CopyableSnippet(props) {
+  var label = props.label
+  var value = props.value
+  var hint = props.hint
+  var toast = props.toast
+  var _copied = useState(false)
+  var copied = _copied[0]
+  var setCopied = _copied[1]
+
+  function copy() {
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(value)
+        setCopied(true)
+        toast && toast('Copied', 'success')
+        setTimeout(function() { setCopied(false) }, 1500)
+      } else {
+        toast && toast('Copy not supported in this browser', 'error')
+      }
+    } catch (e) {
+      toast && toast('Copy failed', 'error')
+    }
+  }
+
+  return (
+    <div className="bg-surface-container-low border border-outline-variant/15 rounded-lg p-4">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <h4 className="font-editorial text-base text-on-surface">{label}</h4>
+        <button
+          type="button"
+          onClick={copy}
+          className="text-[10px] font-label uppercase tracking-widest text-primary hover:text-primary/80 flex items-center gap-1"
+        >
+          <Icon name={copied ? 'check' : 'content_copy'} size={14} />
+          {copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      {hint && <p className="text-xs text-on-surface-variant mb-2">{hint}</p>}
+      <pre className="bg-black/30 border border-outline-variant/10 rounded px-3 py-2 text-xs text-on-surface font-mono overflow-x-auto whitespace-pre-wrap break-all">
+        {value}
+      </pre>
+    </div>
+  )
+}
+
+function EmbedTab(props) {
+  var brandName = props.brandName || ''
+  var toast = props.toast
+  var _slug = useState(function() { return slugify(brandName) })
+  var slug = _slug[0]
+  var setSlug = _slug[1]
+  var _theme = useState('dark')
+  var theme = _theme[0]
+  var setTheme = _theme[1]
+
+  useEffect(function() { setSlug(slugify(brandName)) }, [brandName])
+
+  var origin = 'https://tftclash.com'
+  var hostQuery = slug ? '?host=' + encodeURIComponent(slug) : ''
+  var widgetUrl = origin + '/api/widget' + (hostQuery || '?') + (hostQuery ? '&' : '') + 'theme=' + theme
+  var calendarUrl = origin + '/api/calendar' + hostQuery
+  var tournamentsJson = origin + '/api/public-tournaments?status=upcoming' + (slug ? '' : '')
+  var leaderboardJson = origin + '/api/public-players?limit=100'
+
+  var markdown = '![TFT Clash next event](' + widgetUrl + ')\n[tftclash.com' + (slug ? '/?host=' + slug : '') + '](' + origin + ')'
+  var htmlEmbed = '<a href="' + origin + '"><img src="' + widgetUrl + '" alt="Next TFT Clash event" width="480" height="160"/></a>'
+  var iframeEmbed = '<iframe src="' + widgetUrl + '" width="480" height="160" frameborder="0" style="border:0"></iframe>'
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 border-b border-outline-variant/10 pb-4">
+        <h2 className="font-editorial text-2xl text-on-background flex-1">Embed Code</h2>
+      </div>
+      <p className="text-on-surface-variant text-sm">
+        Drop these snippets into Discord, your sponsor decks, your stream overlay, or your homepage. The widget auto-updates from your scheduled events.
+      </p>
+
+      <div className="bg-surface-container-low border border-outline-variant/15 rounded-lg p-4 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[10px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Host slug</label>
+            <input
+              type="text"
+              value={slug}
+              onChange={function(e) { setSlug(slugify(e.target.value)) }}
+              placeholder="my-org"
+              className="w-full bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface placeholder-on-surface-variant/40 focus:outline-none focus:border-primary/40"
+            />
+            <p className="text-[10px] text-on-surface-variant/50 mt-1">Leave empty for platform-wide next event.</p>
+          </div>
+          <div>
+            <label className="block text-[10px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-1">Theme</label>
+            <select
+              value={theme}
+              onChange={function(e) { setTheme(e.target.value) }}
+              className="w-full bg-surface-container-high border border-outline-variant/15 rounded px-3 py-2 text-sm text-on-surface focus:outline-none focus:border-primary/40"
+            >
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-outline-variant/10">
+          <div className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant/50 mb-2">Live preview</div>
+          <img src={widgetUrl} alt="Widget preview" className="rounded border border-outline-variant/15 max-w-full" />
+        </div>
+      </div>
+
+      <CopyableSnippet
+        label="Discord / Markdown"
+        hint="Paste in Discord, GitHub README, or any markdown channel."
+        value={markdown}
+        toast={toast}
+      />
+
+      <CopyableSnippet
+        label="HTML embed"
+        hint="Paste into a sponsor page, blog, or homepage."
+        value={htmlEmbed}
+        toast={toast}
+      />
+
+      <CopyableSnippet
+        label="iframe embed"
+        hint="Use when image embeds aren't allowed."
+        value={iframeEmbed}
+        toast={toast}
+      />
+
+      <CopyableSnippet
+        label="iCal calendar URL"
+        hint="Subscribers get every event you publish auto-synced. Works with Google, Apple, Outlook."
+        value={calendarUrl}
+        toast={toast}
+      />
+
+      <CopyableSnippet
+        label="Public tournaments JSON"
+        hint="For Discord bots or third-party integrations."
+        value={tournamentsJson}
+        toast={toast}
+      />
+
+      <CopyableSnippet
+        label="Public leaderboard JSON"
+        hint="Top 100 players + region filter via &region=EU"
+        value={leaderboardJson}
+        toast={toast}
+      />
+    </div>
+  )
+}
+
 function TemplatesTab(props) {
   var toast = props.toast
   var _list = useState(function() { return readTemplates() })
@@ -1387,6 +1549,11 @@ export default function HostDashboardScreen() {
           <TemplatesTab toast={toast} />
         )}
 
+        {/* Embed tab */}
+        {tab === "embed" && (
+          <EmbedTab brandName={brandName} toast={toast} />
+        )}
+
         {/* Command Center tab */}
         {tab === "commandcenter" && (
           <div className="flex flex-col gap-4 lg:flex-row lg:gap-4 lg:items-start">
@@ -1594,7 +1761,8 @@ export default function HostDashboardScreen() {
               ["branding", "Branding", "palette"],
               ["game-flow", "Game Flow", "shuffle"],
               ["registrations", "Players", "group"],
-              ["templates", "Templates", "bookmark"]
+              ["templates", "Templates", "bookmark"],
+              ["embed", "Embed", "code"]
             ].map(function(arr) {
               return (
                 <PillTab

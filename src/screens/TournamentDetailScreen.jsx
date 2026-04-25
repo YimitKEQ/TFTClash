@@ -11,6 +11,7 @@ import LiveOdds from '../components/shared/LiveOdds'
 import MatchThread from '../components/shared/MatchThread'
 import BountyBoard from '../components/shared/BountyBoard'
 import VodGallery from '../components/shared/VodGallery'
+import PredictionGame from '../components/shared/PredictionGame'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
 
@@ -574,6 +575,20 @@ export default function TournamentDetailScreen() {
                 currentUser={currentUser}
                 registeredIds={registeredIds}
                 hostId={event && event.host_id}
+              />
+
+              {/* Prediction game - fans pick winner + top4 */}
+              <PredictionGame
+                threadId={'t-' + (eventId || 'unknown')}
+                currentUser={currentUser}
+                registeredPlayers={registeredIds.map(function (un) {
+                  var p = (players || []).find(function (pl) { return pl.name && pl.name.toLowerCase() === String(un).toLowerCase() })
+                  return p || { id: un, name: un }
+                })}
+                startsAt={event.starts_at || event.startTime || event.startsAt}
+                isCompleted={isCompleted}
+                actualWinnerId={isCompleted && standings[0] ? standings[0].player_id : null}
+                actualTop4Ids={isCompleted ? standings.slice(0, 4).map(function (s) { return s.player_id }) : []}
               />
 
               {/* Host management link */}
