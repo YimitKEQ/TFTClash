@@ -38,6 +38,8 @@ export default function OnboardingHint(props) {
     var map = readDismissed()
     setDismissed(!!map[variant])
   }, [variant])
+  // dismissed defaults to true so SSR / pre-effect renders do not flash the banner;
+  // the effect above flips it to false only when the variant has not been dismissed.
 
   function dismiss() {
     var map = readDismissed()

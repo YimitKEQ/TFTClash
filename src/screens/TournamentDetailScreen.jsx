@@ -18,6 +18,7 @@ import SocialShareBar from '../components/shared/SocialShareBar'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { resolveLinkedPlayer } from '../lib/linkedPlayer.js'
+import { isPinned, togglePinned, PINNED_EVENT } from '../lib/pinnedTournaments.js'
 
 var PLACE_POINTS = [
   { place: '1st', pts: '8 PTS', color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20' },
@@ -73,6 +74,10 @@ export default function TournamentDetailScreen() {
   var liveReg = _liveReg[0]
   var setLiveReg = _liveReg[1]
 
+  var _pinned = useState(false)
+  var pinned = _pinned[0]
+  var setPinned = _pinned[1]
+
   useEffect(function() {
     if (!contextEvent && eventId && supabase.from) {
       supabase.from('tournaments').select('*').eq('id', eventId).single()
@@ -84,6 +89,24 @@ export default function TournamentDetailScreen() {
 
   var event = contextEvent || fallbackEvent
   var dbTournamentId = event && (event.dbTournamentId || (typeof event.id === 'string' && event.id.length > 20 ? event.id : null))
+
+  var pinTargetId = dbTournamentId || (event && event.id) || eventId
+
+  useEffect(function () {
+    if (!pinTargetId) return
+    setPinned(isPinned(pinTargetId))
+    function onChange() { setPinned(isPinned(pinTargetId)) }
+    if (typeof window !== 'undefined') {
+      window.addEventListener(PINNED_EVENT, onChange)
+      window.addEventListener('storage', onChange)
+    }
+    return function () {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(PINNED_EVENT, onChange)
+        window.removeEventListener('storage', onChange)
+      }
+    }
+  }, [pinTargetId])
 
   useEffect(function() {
     if (!dbTournamentId || !supabase.from) return
@@ -350,6 +373,22 @@ export default function TournamentDetailScreen() {
             >
               <Icon name="link" size={12} />
               Copy link
+            </button>
+            <button
+              type="button"
+              onClick={function () {
+                if (!pinTargetId) return
+                var nowPinned = togglePinned(pinTargetId)
+                setPinned(nowPinned)
+                if (toast) toast(nowPinned ? 'Pinned' : 'Unpinned', 'success')
+              }}
+              disabled={!pinTargetId}
+              className={'text-[10px] font-label uppercase tracking-widest flex items-center gap-1 border px-2.5 py-1 rounded ' + (pinned ? 'text-primary border-primary/40 bg-primary/10' : 'text-on-surface/60 hover:text-on-surface border-outline-variant/20 bg-surface-container-high')}
+              title={pinned ? 'Unpin tournament' : 'Pin tournament'}
+              aria-pressed={pinned}
+            >
+              <Icon name={pinned ? 'push_pin' : 'keep'} size={12} />
+              {pinned ? 'Pinned' : 'Pin'}
             </button>
             {event.starts_at && (
               <AddToCalendarBtn

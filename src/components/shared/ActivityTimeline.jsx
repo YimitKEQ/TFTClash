@@ -56,10 +56,11 @@ function buildEvents(player) {
     var ts = entryTimestamp(g) || (i + 1)
     var name = g.name || ('Clash #' + (i + 1))
     var pts = g.pts || 0
+    var stableKey = g.clashId || g.date || ('idx-' + i)
 
     if (place === 1) {
       events.push({
-        id: 'win-' + (g.clashId || i),
+        id: 'win-' + stableKey,
         type: 'win',
         ts: ts,
         title: 'Won ' + name,
@@ -69,7 +70,7 @@ function buildEvents(player) {
       })
     } else if (place && place <= 4) {
       events.push({
-        id: 'top4-' + (g.clashId || i),
+        id: 'top4-' + stableKey,
         type: 'top4',
         ts: ts,
         title: ordinal(place) + ' in ' + name,
@@ -79,7 +80,7 @@ function buildEvents(player) {
       })
     } else if (place) {
       events.push({
-        id: 'game-' + (g.clashId || i),
+        id: 'game-' + stableKey,
         type: 'game',
         ts: ts,
         title: ordinal(place) + ' in ' + name,
@@ -91,7 +92,7 @@ function buildEvents(player) {
 
     if (g.claimedClutch || g.clutch) {
       events.push({
-        id: 'clutch-' + (g.clashId || i),
+        id: 'clutch-' + stableKey,
         type: 'clutch',
         ts: ts + 1,
         title: 'Clutch moment',
@@ -102,7 +103,7 @@ function buildEvents(player) {
     }
     if (g.comebackTriggered) {
       events.push({
-        id: 'comeback-' + (g.clashId || i),
+        id: 'comeback-' + stableKey,
         type: 'comeback',
         ts: ts + 2,
         title: 'Comeback bonus',
@@ -113,7 +114,7 @@ function buildEvents(player) {
     }
     if (g.attendanceMilestone) {
       events.push({
-        id: 'streak-' + (g.clashId || i),
+        id: 'streak-' + stableKey,
         type: 'streak',
         ts: ts + 3,
         title: g.attendanceMilestone + '-week attendance',
@@ -127,12 +128,13 @@ function buildEvents(player) {
   var unlocked = ACHIEVEMENTS.filter(function (a) {
     try { return a.check(player) } catch (e) { return false }
   })
-  var anchorTs = hist.length > 0 ? entryTimestamp(hist[hist.length - 1]) : 0
+  var lastHistTs = hist.length > 0 ? entryTimestamp(hist[hist.length - 1]) : 0
+  var anchorTs = lastHistTs || Date.now()
   unlocked.slice(-3).forEach(function (a, i) {
     events.push({
       id: 'ach-' + a.id,
       type: 'achievement',
-      ts: anchorTs ? anchorTs + 100 + i : i + 1,
+      ts: anchorTs + 100 + i,
       title: 'Unlocked: ' + a.name,
       body: a.desc,
       icon: 'military_tech',

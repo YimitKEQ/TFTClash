@@ -10,6 +10,8 @@ import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import RegionBadge from '../components/shared/RegionBadge'
 import OnboardingHint from '../components/shared/OnboardingHint'
+import LiveNowPanel from '../components/shared/LiveNowPanel'
+import PinnedTournamentsBar from '../components/shared/PinnedTournamentsBar'
 import { REGION_META, normalizeRegion, canRegisterInRegion } from '../lib/regions'
 import { supabase } from '../lib/supabase'
 import { getDonateUrl } from '../lib/paypal'
@@ -486,9 +488,8 @@ export default function HomeScreen() {
 
   var seasonLabel = sharedCountdown.clashName || seasonConfig.seasonName || 'TFT Clash'
 
-  var hasLinkedPlayer = !!(currentUser && players.find(function (p) {
-    return (p.authUserId && currentUser.id && String(p.authUserId) === String(currentUser.id)) ||
-      (p.name && currentUser.username && p.name.toLowerCase() === String(currentUser.username).toLowerCase())
+  var hasLinkedPlayer = !!(currentUser && currentUser.id && players.find(function (p) {
+    return p.authUserId && String(p.authUserId) === String(currentUser.id)
   }))
 
   return (
@@ -519,6 +520,9 @@ export default function HomeScreen() {
             onCta={function () { navigate('/account') }}
           />
         )}
+
+        <PinnedTournamentsBar compact={true} />
+        <LiveNowPanel limit={4} />
 
         {/* ── Hero Section ──────────────────────────────────────────────────── */}
         <section className="relative text-center space-y-6 sm:space-y-8 py-8 sm:py-12">

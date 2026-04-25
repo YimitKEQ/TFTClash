@@ -15,6 +15,7 @@ import PerformanceHeatmap from '../components/shared/PerformanceHeatmap'
 import TwitchEmbed from '../components/shared/TwitchEmbed'
 import TrophyCase from '../components/shared/TrophyCase'
 import ActivityTimeline from '../components/shared/ActivityTimeline'
+import ProfileShareCard from '../components/shared/ProfileShareCard'
 import { supabase } from '../lib/supabase'
 
 // ─── RATE BAR ─────────────────────────────────────────────────────────────────
@@ -724,6 +725,9 @@ export default function PlayerProfileScreen() {
             />
             <ActivityTimeline player={player} limit={6} />
           </div>
+
+          {/* Share card */}
+          <ProfileShareCard player={player} />
 
           {/* Career Stats + Rates Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
