@@ -317,7 +317,10 @@ function LeaderboardRow(props) {
 export default function MilestonesScreen() {
   var navigate = useNavigate();
   var ctx = useApp();
-  var players = ctx.players || [];
+  // Stabilize the players reference so TierRarityStrip's useMemo doesn't
+  // recompute every render when ctx.players is initially undefined.
+  var ctxPlayers = ctx.players;
+  var players = useMemo(function() { return ctxPlayers || []; }, [ctxPlayers]);
   var currentUser = ctx.currentUser;
   var setProfilePlayer = ctx.setProfilePlayer;
 

@@ -246,7 +246,10 @@ function PrizePoolPodium(props) {
             <button
               key={ev.id || ('rank-' + rank)}
               type="button"
-              onClick={function() { if (navigate && ev.id) navigate('/tournament/' + ev.id) }}
+              onClick={function() {
+                var dest = ev.dbTournamentId || ev.id
+                if (navigate && dest) navigate('/tournament/' + dest)
+              }}
               className={'rounded-xl bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/30 transition-colors border p-4 flex flex-col items-center text-center ' + borderColor(rank) + ' ' + heightForRank(rank) + ' justify-end'}
             >
               <div className={'font-display text-2xl sm:text-3xl ' + medalColor(rank)}>
@@ -320,9 +323,9 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
       return (a.name || '').localeCompare(b.name || '')
     }
     if (sortBy === 'prize') {
-      var aVal = parseFloat((a.prizePool || '0').replace(/[^0-9.]/g, '')) || 0
-      var bVal = parseFloat((b.prizePool || '0').replace(/[^0-9.]/g, '')) || 0
-      return bVal - aVal
+      // Use the shared parser so the prize sort honors k/M suffixes the
+      // same way the podium does — otherwise '$5K' sorts below '$2000'.
+      return parsePrizeAmount(b.prizePool) - parsePrizeAmount(a.prizePool)
     }
     if (sortBy === 'status') {
       var order = { live: 0, upcoming: 1, complete: 2 }
@@ -457,8 +460,10 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
         </Panel>
       )}
 
-      {/* Prize pool podium - Wave 25 */}
-      <PrizePoolPodium events={allEvents} navigate={navigate} />
+      {/* Prize pool podium - Wave 25 (active events only, completed events
+          retire from the podium so it always reflects what players can
+          still register for) */}
+      <PrizePoolPodium events={active} navigate={navigate} />
 
       {/* Calendar subscribe banner */}
       <Panel className="mb-8 p-4 flex items-center gap-4 flex-wrap">
