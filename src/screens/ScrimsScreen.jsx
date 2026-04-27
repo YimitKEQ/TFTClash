@@ -1260,10 +1260,10 @@ export default function ScrimsScreen() {
                             {winnerPlayer && <span className="text-[10px] font-label text-on-surface-variant/60">Winner: <span className="font-bold text-amber-400">{winnerPlayer.name}</span></span>}
                             {isAdmin && (
                               <div className="flex gap-1">
-                                <button onClick={function() { setEditGame({id: g.id, note: g.note, tag: g.tag}); }}
-                                  className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name="edit" size={12} className="text-current"/></button>
-                                <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
-                                  className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                                <button type="button" aria-label="Edit game" onClick={function() { setEditGame({id: g.id, note: g.note, tag: g.tag}); }}
+                                  className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"><Icon name="edit" size={12} className="text-current"/></button>
+                                <button type="button" aria-label="Delete game" onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
+                                  className="p-1 text-on-surface-variant/30 hover:text-error transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"><Icon name="delete" size={12} className="text-current"/></button>
                               </div>
                             )}
                           </div>
@@ -1703,10 +1703,10 @@ export default function ScrimsScreen() {
                                     {winnerPlayer && <span className="text-[10px] font-label text-on-surface-variant/60">Winner: <span className="font-bold text-amber-400">{winnerPlayer.name}</span></span>}
                                     {isAdmin && (
                                       <div className="flex gap-1 flex-shrink-0">
-                                        <button onClick={function() { setEditGame(isEditing ? null : {id: g.id, note: g.note, tag: g.tag}); }}
-                                          className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors"><Icon name={isEditing ? 'close' : 'edit'} size={12} className="text-current"/></button>
-                                        <button onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
-                                          className="p-1 text-on-surface-variant/30 hover:text-error transition-colors"><Icon name="delete" size={12} className="text-current"/></button>
+                                        <button type="button" aria-label={isEditing ? 'Cancel edit' : 'Edit game'} onClick={function() { setEditGame(isEditing ? null : {id: g.id, note: g.note, tag: g.tag}); }}
+                                          className="p-1 text-on-surface-variant/30 hover:text-primary transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"><Icon name={isEditing ? 'close' : 'edit'} size={12} className="text-current"/></button>
+                                        <button type="button" aria-label="Delete game" onClick={function() { setConfirmDelete({type: 'game', id: g.id}); }}
+                                          className="p-1 text-on-surface-variant/30 hover:text-error transition-colors rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"><Icon name="delete" size={12} className="text-current"/></button>
                                       </div>
                                     )}
                                   </div>

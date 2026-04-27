@@ -101,8 +101,9 @@ export default function AiScoutReport(props) {
             type="button"
             onClick={refresh}
             disabled={loading}
-            className="ml-auto text-xs text-white/40 hover:text-white disabled:opacity-50"
+            className="ml-auto text-xs text-white/40 hover:text-white disabled:opacity-50 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             title="Regenerate"
+            aria-label="Regenerate scout report"
           >
             <Icon name="refresh" size={14} />
           </button>

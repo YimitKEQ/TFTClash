@@ -12,9 +12,9 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
 
   if (!clashData || !players) {
     var emptyContent = (
-      <div className="text-center py-20 text-on-surface/50 text-sm">
-        <Icon name="search_off" size={40} className="text-on-surface/30 mb-4" />
-        <p>No clash data available.</p>
+      <div className="text-center py-20">
+        <Icon name="search_off" size={48} className="mx-auto text-on-surface/20 block mb-4" aria-hidden="true" />
+        <p className="text-sm text-on-surface/50">No clash data available.</p>
       </div>
     )
     return embedded ? emptyContent : <PageLayout>{emptyContent}</PageLayout>
@@ -45,7 +45,12 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
   var top3 = sorted.slice(0, 3)
 
   if (sorted.length === 0) {
-    var emptySort = <div className="text-center py-8 text-on-surface/50 text-sm">No detailed data for this clash yet.</div>
+    var emptySort = (
+      <div className="text-center py-12">
+        <Icon name="bar_chart" size={48} className="mx-auto text-on-surface/20 block mb-4" aria-hidden="true" />
+        <p className="text-sm text-on-surface/50">No detailed data for this clash yet.</p>
+      </div>
+    )
     return embedded ? emptySort : <PageLayout>{emptySort}</PageLayout>
   }
 

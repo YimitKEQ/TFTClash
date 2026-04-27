@@ -111,8 +111,9 @@ export default function AiMatchRecap(props) {
             type="button"
             onClick={refresh}
             disabled={loading}
-            className="ml-auto text-xs text-on-surface-variant/40 hover:text-on-surface disabled:opacity-50"
+            className="ml-auto text-xs text-on-surface-variant/40 hover:text-on-surface disabled:opacity-50 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             title="Regenerate"
+            aria-label="Regenerate match recap"
           >
             <Icon name="refresh" size={14} />
           </button>

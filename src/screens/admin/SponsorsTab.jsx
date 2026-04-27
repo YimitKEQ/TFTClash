@@ -77,16 +77,17 @@ function SponsorCard(props) {
           <button
             type="button"
             onClick={function() { onToggle(sponsor) }}
-            className={'w-7 h-7 rounded flex items-center justify-center transition-colors border-0 cursor-pointer ' + (isActive ? 'bg-secondary/10 text-secondary' : 'bg-on-surface/5 text-on-surface/30')}
+            className={'w-7 h-7 rounded flex items-center justify-center transition-colors border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 ' + (isActive ? 'bg-secondary/10 text-secondary' : 'bg-on-surface/5 text-on-surface/30')}
+            aria-label={(isActive ? 'Deactivate ' : 'Activate ') + (sponsor.name || 'sponsor')}
             title={isActive ? 'Deactivate' : 'Activate'}
           >
-            <Icon name={isActive ? 'visibility' : 'visibility_off'} size={14} />
+            <Icon name={isActive ? 'visibility' : 'visibility_off'} size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={function() { onEdit(sponsor) }} className="w-7 h-7 rounded flex items-center justify-center bg-primary/10 text-primary transition-colors border-0 cursor-pointer" title="Edit">
-            <Icon name="edit" size={14} />
+          <button type="button" onClick={function() { onEdit(sponsor) }} className="w-7 h-7 rounded flex items-center justify-center bg-primary/10 text-primary transition-colors border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60" aria-label={"Edit " + (sponsor.name || 'sponsor')} title="Edit">
+            <Icon name="edit" size={14} aria-hidden="true" />
           </button>
-          <button type="button" onClick={function() { onDelete(sponsor) }} className="w-7 h-7 rounded flex items-center justify-center bg-error/10 text-error transition-colors border-0 cursor-pointer" title="Delete">
-            <Icon name="delete" size={14} />
+          <button type="button" onClick={function() { onDelete(sponsor) }} className="w-7 h-7 rounded flex items-center justify-center bg-error/10 text-error transition-colors border-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60" aria-label={"Delete " + (sponsor.name || 'sponsor')} title="Delete">
+            <Icon name="delete" size={14} aria-hidden="true" />
           </button>
         </div>
       </div>

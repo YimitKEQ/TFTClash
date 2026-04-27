@@ -993,7 +993,10 @@ export default function PlayerProfileScreen() {
           </div>
           {(player.clashHistory || []).length === 0
             ? (
-              <div className="text-center py-12 text-on-surface/40 font-label text-sm">No history yet</div>
+              <div className="text-center py-12">
+                <Icon name="history" size={48} className="mx-auto text-on-surface/20 block mb-4" aria-hidden="true" />
+                <div className="text-on-surface/40 font-label text-sm uppercase tracking-widest">No clash history yet</div>
+              </div>
             )
             : renderClashHistoryRows(player.clashHistory, seasonConfig)
           }

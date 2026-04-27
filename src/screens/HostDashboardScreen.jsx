@@ -1066,9 +1066,10 @@ export default function HostDashboardScreen() {
           {/* Tournament List */}
           <div className="space-y-3">
             {filteredTournaments.length === 0 && (
-              <div className="bg-surface-container-low p-12 rounded-lg text-center">
-                <Icon name="military_tech" size={40} className="text-slate-500 mx-auto mb-3" />
-                <p className="text-slate-500 text-sm">No tournaments yet. Create your first one above.</p>
+              <div className="bg-surface-container-low p-12 rounded-lg text-center border border-outline-variant/10">
+                <Icon name="military_tech" size={48} className="text-on-surface/20 mx-auto mb-4 block" aria-hidden="true" />
+                <p className="text-on-surface text-sm font-bold mb-1">No tournaments yet</p>
+                <p className="text-on-surface/50 text-xs">Create your first one with the form above.</p>
               </div>
             )}
             {filteredTournaments.map(function(t) {
@@ -1169,25 +1170,31 @@ export default function HostDashboardScreen() {
                       </button>
                     )}
                     <button
-                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                      type="button"
+                      aria-label="View tournament analytics"
+                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                       onClick={function() { setTab("analytics"); }}
                     >
-                      <Icon name="analytics" size={18} />
+                      <Icon name="analytics" size={18} aria-hidden="true" />
                     </button>
                     {!isComplete && (
                       <button
-                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                        type="button"
+                        aria-label="Edit tournament"
+                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                         onClick={function() { setTab("game-flow"); }}
                       >
-                        <Icon name="edit" size={18} />
+                        <Icon name="edit" size={18} aria-hidden="true" />
                       </button>
                     )}
                     {isComplete && (
                       <button
-                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors"
+                        type="button"
+                        aria-label="View tournament results"
+                        className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                         onClick={function() { navigate("/results"); }}
                       >
-                        <Icon name="history_edu" size={18} />
+                        <Icon name="history_edu" size={18} aria-hidden="true" />
                       </button>
                     )}
                     {t.status === 'complete' && (
@@ -1200,7 +1207,9 @@ export default function HostDashboardScreen() {
                       </button>
                     )}
                     <button
-                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors"
+                      type="button"
+                      aria-label="Delete tournament"
+                      className="w-10 h-10 bg-surface-container-high rounded-full flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error/60"
                       onClick={function() {
                         if (confirm("Delete this tournament?")) {
                           setTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id; }); });
@@ -1211,7 +1220,7 @@ export default function HostDashboardScreen() {
                         }
                       }}
                     >
-                      <Icon name="more_vert" size={18} />
+                      <Icon name="more_vert" size={18} aria-hidden="true" />
                     </button>
                   </div>
                 </div>
@@ -1411,7 +1420,10 @@ export default function HostDashboardScreen() {
                     <span className="px-2 py-0.5 bg-primary/10 text-primary font-label text-[10px] uppercase tracking-tighter rounded">{regIds.length} players</span>
                   </div>
                   {regIds.length === 0 && (
-                    <p className="text-slate-500 text-sm text-center py-6">No players registered yet.</p>
+                    <div className="text-center py-8">
+                      <Icon name="person_add" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
+                      <p className="text-on-surface/50 text-sm">No players registered yet.</p>
+                    </div>
                   )}
                   {regIds.length > 0 && (
                     <div className="space-y-4">
@@ -1504,7 +1516,10 @@ export default function HostDashboardScreen() {
                     </span>
                   </div>
                   {regIds.length === 0 && (
-                    <p className="text-slate-500 text-sm text-center py-6">No players registered yet.</p>
+                    <div className="text-center py-8">
+                      <Icon name="person_add" size={36} className="mx-auto text-on-surface/20 block mb-3" aria-hidden="true" />
+                      <p className="text-on-surface/50 text-sm">No players registered yet.</p>
+                    </div>
                   )}
                   <div className="space-y-1">
                     {regIds.map(function(username, i) {

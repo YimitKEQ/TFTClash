@@ -1363,9 +1363,11 @@ export default function FlashTournamentScreen(props) {
                                   <div className="flex items-center gap-1">
                                     <span className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId || p.riot_id}</span>
                                     <button
+                                      type="button"
                                       onClick={function() { navigator.clipboard.writeText(p.riotId || p.riot_id || ''); toast("Copied Riot ID", "success"); }}
-                                      className="text-on-surface-variant/25 hover:text-primary transition-colors flex-shrink-0 bg-transparent border-0 cursor-pointer"
-                                      title="Copy Riot ID">
+                                      className="text-on-surface-variant/25 hover:text-primary transition-colors flex-shrink-0 bg-transparent border-0 cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                                      title="Copy Riot ID"
+                                      aria-label={'Copy Riot ID for ' + (p.name || 'player')}>
                                       <Icon name="content_copy" size={10} />
                                     </button>
                                   </div>

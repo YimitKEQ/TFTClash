@@ -81,8 +81,10 @@ export default function Sidebar() {
     var isActive = screen === id;
     return (
       <button
+        type="button"
         onClick={function() { navTo(id); }}
-        className={'flex items-center gap-4 px-6 py-3.5 w-full text-left border-none cursor-pointer transition-all duration-200 font-label uppercase text-xs font-semibold tracking-widest relative ' +
+        aria-current={isActive ? 'page' : undefined}
+        className={'flex items-center gap-4 px-6 py-3.5 w-full text-left border-none cursor-pointer transition-colors duration-200 font-label uppercase text-xs font-semibold tracking-widest relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset ' +
           (isActive
             ? 'text-primary bg-primary/10 border border-primary/30'
             : 'text-on-surface/40 hover:text-on-surface hover:bg-white/[0.04] bg-transparent')}

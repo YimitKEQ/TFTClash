@@ -167,8 +167,10 @@ export default function FAQScreen() {
                 className={'group overflow-hidden ' + (isOpen ? '' : 'hover:bg-surface-container transition-colors')}
               >
                 <button
+                  type="button"
+                  aria-expanded={isOpen}
                   onClick={function () { toggleItem(key) }}
-                  className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
+                  className="w-full flex items-center justify-between p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset rounded"
                 >
                   <span className="text-xl font-display font-bold text-on-surface pr-4">
                     {item.q}

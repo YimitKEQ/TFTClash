@@ -11,8 +11,12 @@ function Toggle({ checked, onChange, label, desc }) {
         {desc && <div className="text-xs text-on-surface/50">{desc}</div>}
       </div>
       <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        aria-label={label}
         onClick={function() { onChange(!checked) }}
-        className={'relative w-12 h-6 rounded-full border-2 transition-all focus:outline-none ' + (checked ? 'bg-primary border-primary' : 'bg-surface-container-high border-outline-variant/30')}
+        className={'relative w-12 h-6 rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface ' + (checked ? 'bg-primary border-primary' : 'bg-surface-container-high border-outline-variant/30')}
       >
         <div className={'absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ' + (checked ? 'left-6' : 'left-0.5')} />
       </button>

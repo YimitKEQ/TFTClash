@@ -17,13 +17,14 @@ const toastIcons = {
 export default function Toast({ message, type = 'info', onDismiss }) {
   var tone = toastTone[type] || toastTone.info
   var iconName = toastIcons[type] || 'info'
+  var liveRole = type === 'error' || type === 'warning' ? 'alert' : 'status'
   return (
-    <div className={'flex items-center gap-3 p-4 rounded border ' + tone.bg + ' ' + tone.border}>
-      <Icon name={iconName} size={20} className={tone.text + ' flex-shrink-0'} />
+    <div role={liveRole} aria-live={liveRole === 'alert' ? 'assertive' : 'polite'} className={'flex items-center gap-3 p-4 rounded border ' + tone.bg + ' ' + tone.border}>
+      <Icon name={iconName} size={20} className={tone.text + ' flex-shrink-0'} aria-hidden="true" />
       <span className="flex-1 text-sm text-on-surface">{message}</span>
       {onDismiss && (
-        <button onClick={onDismiss} aria-label="Dismiss notification" className="text-on-surface/40 hover:text-on-surface transition-colors flex-shrink-0">
-          <Icon name="close" size={18} />
+        <button type="button" onClick={onDismiss} aria-label="Dismiss notification" className="text-on-surface/40 hover:text-on-surface transition-colors flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 rounded">
+          <Icon name="close" size={18} aria-hidden="true" />
         </button>
       )}
     </div>

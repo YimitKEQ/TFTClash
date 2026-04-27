@@ -710,10 +710,12 @@ export default function AccountScreen() {
                     </label>
                   ) : (
                     <button
+                      type="button"
+                      aria-label="Edit profile"
                       onClick={function() { setEdit(true); }}
-                      className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all"
+                      className="absolute -bottom-2 -right-2 bg-surface-container-highest p-2 rounded-full border border-outline-variant hover:bg-primary hover:text-on-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                     >
-                      <Icon name="edit" size={18} />
+                      <Icon name="edit" size={18} aria-hidden="true" />
                     </button>
                   )}
                 </div>

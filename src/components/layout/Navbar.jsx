@@ -69,7 +69,7 @@ function NotificationBell(props) {
             <div className="px-4 py-3 border-b border-white/[0.06] flex justify-between items-center">
               <span className="text-[13px] font-bold text-on-surface font-label uppercase tracking-widest">Notifications</span>
               {unread > 0 && (
-                <button onClick={function() { onMarkAllRead && onMarkAllRead(); }} className="text-primary text-[11px] font-semibold bg-transparent border-none cursor-pointer font-[inherit]">
+                <button type="button" onClick={function() { onMarkAllRead && onMarkAllRead(); }} className="text-primary text-[11px] font-semibold bg-transparent border-none cursor-pointer font-[inherit] rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
                   Mark all read
                 </button>
               )}
@@ -230,7 +230,7 @@ export default function Navbar() {
           <div className="fixed top-0 right-0 h-full w-72 bg-[#13131A] border-l border-white/[0.06] z-[61] flex flex-col overflow-y-auto">
             <div className="flex items-center justify-between px-6 h-20 border-b border-white/[0.06] shrink-0">
               <span className="font-display text-primary text-lg uppercase tracking-tight">Menu</span>
-              <button onClick={function() { setDrawer(false); }} className="p-2 text-on-surface/40 hover:text-on-surface bg-transparent border-none cursor-pointer">
+              <button type="button" aria-label="Close menu" onClick={function() { setDrawer(false); }} className="p-2 text-on-surface/40 hover:text-on-surface bg-transparent border-none cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
                 <Icon name="close" size={20} />
               </button>
             </div>

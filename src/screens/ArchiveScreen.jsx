@@ -287,7 +287,10 @@ export default function ArchiveScreen() {
                             </p>
                           </div>
                         ) : (
-                          <p className="text-sm text-slate-500">No events match your search.</p>
+                          <div>
+                            <Icon name="search_off" size={48} className="mx-auto text-on-surface/20 block mb-4" />
+                            <p className="text-sm text-on-surface/50">No events match your search.</p>
+                          </div>
                         )}
                       </td>
                     </tr>

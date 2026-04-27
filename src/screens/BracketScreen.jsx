@@ -999,8 +999,8 @@ function BracketScreen(){
                     <div className="mt-3 bg-surface-container-lowest rounded border border-tertiary/15 overflow-hidden">
                       <div className="px-4 py-2.5 border-b border-tertiary/10 flex items-center justify-between">
                         <span className="font-label text-xs font-bold uppercase tracking-widest text-tertiary">{"Round " + viewingRound + " Results"}</span>
-                        <button onClick={function(){setViewingRound(null);}} className="text-on-surface-variant/40 hover:text-on-surface bg-transparent border-0 cursor-pointer">
-                          <Icon name="close" size={14} />
+                        <button type="button" aria-label="Close round results" onClick={function(){setViewingRound(null);}} className="text-on-surface-variant/40 hover:text-on-surface bg-transparent border-0 cursor-pointer rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+                          <Icon name="close" size={14} aria-hidden="true" />
                         </button>
                       </div>
                       <div className="max-h-[500px] overflow-y-auto">
@@ -1151,10 +1151,12 @@ function BracketScreen(){
                                   {(p.riotId||p.riot_id_eu)&&<div className="flex items-center gap-1 max-w-[160px] sm:max-w-none">
                                     <span className="text-[10px] text-on-surface-variant/30 truncate">{p.riotId||p.riot_id_eu}</span>
                                     <button
+                                      type="button"
                                       onClick={function(e){e.stopPropagation();navigator.clipboard.writeText(p.riotId||p.riot_id_eu||"");toast("Copied "+p.name+"'s Riot ID","success");}}
-                                      className="text-on-surface-variant/25 hover:text-primary transition-colors flex-shrink-0"
+                                      className="text-on-surface-variant/25 hover:text-primary transition-colors flex-shrink-0 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                                      aria-label={"Copy " + p.name + "'s Riot ID"}
                                       title="Copy Riot ID">
-                                      <Icon name="content_copy" size={11} />
+                                      <Icon name="content_copy" size={11} aria-hidden="true" />
                                     </button>
                                   </div>}
                                 </div>
