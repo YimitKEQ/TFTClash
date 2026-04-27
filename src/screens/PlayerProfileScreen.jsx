@@ -7,7 +7,7 @@ import { isFollowing, isRival, toggleFollow, toggleRival } from '../lib/follows.
 import { rc, ordinal, avgCol, shareToTwitter, buildShareText } from '../lib/utils.js'
 import { CLASH_RANKS, getSeasonChampion } from '../lib/constants.js'
 import PageLayout from '../components/layout/PageLayout'
-import { Panel, Btn, Icon, Badge, Tag, StatCard, CopyBtn, PillTab, PillTabGroup } from '../components/ui'
+import { Panel, Btn, Icon, Badge, Tag, StatCard, CopyBtn, PillTab, PillTabGroup, Skeleton } from '../components/ui'
 import SectionHeader from '../components/shared/SectionHeader.jsx'
 import RankBadge from '../components/shared/RankBadge'
 import PlacementDistribution from '../components/shared/PlacementDistribution'
@@ -209,6 +209,7 @@ export default function PlayerProfileScreen() {
   var seasonConfig = ctx.seasonConfig;
   var setComparePlayer = ctx.setComparePlayer;
   var toast = ctx.toast;
+  var isLoadingData = ctx.isLoadingData;
 
   var subRoute = ctx.subRoute || '';
   var urlName = params.name || subRoute;
@@ -330,10 +331,39 @@ export default function PlayerProfileScreen() {
   }, [tab, player ? player.id : null]);
 
   if (!player) {
+    if (isLoadingData) {
+      return (
+        <PageLayout>
+          <div className="max-w-5xl mx-auto px-4 py-8">
+            <Panel padding="lg">
+              <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                <Skeleton className="w-28 h-28 rounded-full flex-shrink-0" />
+                <div className="flex-1 w-full space-y-3">
+                  <Skeleton className="h-8 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
+                    <Skeleton className="h-16" />
+                    <Skeleton className="h-16" />
+                    <Skeleton className="h-16" />
+                    <Skeleton className="h-16" />
+                  </div>
+                </div>
+              </div>
+            </Panel>
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <Skeleton className="h-48" />
+              <Skeleton className="h-48" />
+              <Skeleton className="h-48" />
+            </div>
+          </div>
+        </PageLayout>
+      );
+    }
     return (
       <PageLayout>
         <div className="flex flex-col items-center justify-center py-24 gap-4">
-          <div className="text-on-surface/30 text-lg">Player not found</div>
+          <Icon name="person_search" size={48} className="text-on-surface/20" aria-hidden="true" />
+          <div className="text-on-surface/40 font-label text-sm uppercase tracking-widest">Player not found</div>
           <Btn onClick={function() { navigate(-1); }}>Go Back</Btn>
         </div>
       </PageLayout>
