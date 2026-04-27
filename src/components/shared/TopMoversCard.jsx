@@ -70,7 +70,7 @@ export default function TopMoversCard(props) {
 
   if (movers.length === 0) {
     return (
-      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5">
+      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-4 sm:p-5">
         <div className="flex items-center gap-2 mb-2">
           <Icon name="trending_up" className="text-tertiary" />
           <h3 className="font-display text-base tracking-wide">RECENT MOVERS</h3>
@@ -83,7 +83,7 @@ export default function TopMoversCard(props) {
   }
 
   return (
-    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5">
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-4 sm:p-5">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="trending_up" className="text-tertiary" />

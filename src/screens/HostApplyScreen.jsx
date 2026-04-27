@@ -234,7 +234,7 @@ export default function HostApplyScreen() {
         <div className="col-span-12 lg:col-span-4 space-y-6">
 
           {/* Requirements Checklist */}
-          <div className="bg-surface-container/60 backdrop-blur-[24px] p-8 rounded-xl border border-outline-variant/10">
+          <div className="bg-surface-container p-8 rounded-xl border border-outline-variant/10">
             <h4 className="font-label text-xs tracking-widest text-slate-400 uppercase mb-6">Partner Requirements</h4>
             <ul className="space-y-4">
               {REQUIREMENTS.map(function(req, i) {

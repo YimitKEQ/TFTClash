@@ -52,7 +52,7 @@ export default function OnboardingHint(props) {
   if (dismissed) return null
 
   return (
-    <div className="rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/15 via-primary/5 to-transparent backdrop-blur p-4 sm:p-5 relative">
+    <div className="rounded-2xl border border-primary/30 bg-primary/10 p-4 sm:p-5 relative">
       <button
         type="button"
         onClick={dismiss}

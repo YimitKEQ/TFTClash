@@ -8,7 +8,7 @@ var SEED_VOTE_DELTAS_KEY = 'tft-roadmap-seed-deltas-v2'
 var MAX_IDEAS = 200
 
 export var DEFAULT_ROADMAP = [
-  { id: 'r-shipping-riot-api', title: 'Riot API auto-scoring', body: 'Pull placements directly from Riot match data — no more manual entry.', status: 'shipping', votes: 47 },
+  { id: 'r-shipping-riot-api', title: 'Riot API auto-scoring', body: 'Pull placements directly from Riot match data: no more manual entry.', status: 'shipping', votes: 47 },
   { id: 'r-shipping-custom-domain', title: 'Custom host domains', body: 'Run tournaments under events.<yourbrand>.com to white-label the experience.', status: 'shipping', votes: 38 },
   { id: 'r-planned-multi-host', title: 'Multi-host events', body: 'Co-host tournaments with revenue split between two organizers.', status: 'planned', votes: 29 },
   { id: 'r-planned-tournament-series', title: 'Tournament series (8-week leagues)', body: 'Cumulative standings across multi-week leagues with a season finale.', status: 'planned', votes: 24 },

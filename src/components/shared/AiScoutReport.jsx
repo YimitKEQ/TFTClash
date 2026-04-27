@@ -92,7 +92,7 @@ export default function AiScoutReport(props) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-[var(--md-tertiary)]/10 to-transparent backdrop-blur p-4">
+    <div className="rounded-2xl border border-tertiary/20 bg-tertiary/5 p-4">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="auto_awesome" className="text-[var(--md-tertiary)]" />
         <h3 className="font-display text-base tracking-wide">AI SCOUT REPORT</h3>

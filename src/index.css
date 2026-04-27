@@ -18,26 +18,6 @@
 }
 
 @layer components {
-  .glass-panel {
-    background: rgba(52, 52, 60, 0.6);
-    backdrop-filter: blur(24px);
-  }
-  .glass-card {
-    background: rgba(52, 52, 60, 0.4);
-    backdrop-filter: blur(16px);
-  }
-  .obsidian-shadow {
-    box-shadow: 0 40px 40px rgba(228, 225, 236, 0.06);
-  }
-  .gold-gradient {
-    background: linear-gradient(135deg, #ffc66b 0%, #e8a838 100%);
-  }
-  .gold-gradient-text {
-    background: linear-gradient(135deg, #ffc66b 0%, #e8a838 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
   .gold-glow {
     box-shadow: 0 0 30px rgba(253, 186, 73, 0.15);
   }
@@ -146,7 +126,7 @@
 
 html,body,#root{background:#07070E;}
 
-html{color:#D4CEC9;font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%;}
+html{font-size:16px;line-height:1.6;-webkit-text-size-adjust:100%;}
 
 body{overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);min-height:100vh;}
 
@@ -393,12 +373,6 @@ h1,h2,h3,h4{font-weight:700;letter-spacing:.01em;}
 .hex-logo{filter:drop-shadow(0 0 6px rgba(232,168,56,.55));transition:filter .3s;}
 
 .hex-logo:hover{filter:drop-shadow(0 0 14px rgba(232,168,56,.95)) drop-shadow(0 0 30px rgba(232,168,56,.4));}
-
-
-
-/* Gold shimmer text */
-
-.gold-shimmer{background:linear-gradient(135deg,#E8A838,#C8882A,#E8A838);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
 
 

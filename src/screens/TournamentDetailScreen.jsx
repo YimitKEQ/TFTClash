@@ -604,9 +604,9 @@ export default function TournamentDetailScreen() {
                 ) : (
                   <div className="divide-y divide-outline-variant/5">
                     {registeredIds.slice(0, 12).map(function(username, i) {
-                      var borderColor = i === 0 ? 'border-l-primary' : 'border-l-transparent'
+                      var leadingClass = i === 0 ? ' bg-primary/5' : ''
                       return (
-                        <div key={username} className={"flex items-center gap-3 px-5 py-2.5 border-l-2 " + borderColor}>
+                        <div key={username} className={"flex items-center gap-3 px-5 py-2.5" + leadingClass}>
                           <div className="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center flex-shrink-0">
                             <Icon name="person" size={14} className="text-on-surface-variant/40" />
                           </div>
@@ -659,13 +659,13 @@ export default function TournamentDetailScreen() {
               )}
 
               {/* Social share bar - always visible on tournament pages */}
-              <div className="rounded-2xl border border-outline-variant/10 bg-surface-container/60 backdrop-blur p-4">
+              <div className="rounded-2xl border border-outline-variant/10 bg-surface-container p-4">
                 <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60 mb-2">Spread the word</div>
                 <SocialShareBar
                   url={typeof window !== 'undefined' ? window.location.href : 'https://tftclash.com'}
                   text={isCompleted
                     ? ((event.name || 'TFT Clash') + ' just wrapped on tftclash.com')
-                    : ((event.name || 'TFT Clash tournament') + ' — coming up on tftclash.com')}
+                    : ((event.name || 'TFT Clash tournament') + ' is coming up on tftclash.com')}
                 />
               </div>
 

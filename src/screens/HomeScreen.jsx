@@ -299,7 +299,7 @@ function LeaderboardPreview({ top5, onNavigate, onViewAll }) {
                 key={player.id || player.name}
                 role="button"
                 tabIndex={0}
-                className="group relative overflow-hidden bg-surface-container-high p-4 rounded-lg flex items-center justify-between border-l-4 border-primary cursor-pointer hover:bg-surface-container-highest transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="group relative overflow-hidden bg-primary/5 p-4 rounded-lg flex items-center justify-between border border-primary/30 cursor-pointer hover:bg-primary/10 hover:border-primary/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                 onClick={function() { onNavigate(playerPath) }}
                 onKeyDown={handleKey}
               >
@@ -419,7 +419,7 @@ function LatestChampionStrip(props) {
           navigate('/results')
         }
       }}
-      className="w-full text-left rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-surface-container/40 to-tertiary/10 backdrop-blur p-4 sm:p-5 flex items-center gap-4 hover:border-primary/45 hover:shadow-[0_0_36px_rgba(255,198,107,0.18)] transition-all group"
+      className="w-full text-left rounded-2xl border border-primary/25 bg-surface-container p-4 sm:p-5 flex items-center gap-4 hover:border-primary/45 hover:shadow-[0_0_36px_rgba(255,198,107,0.18)] transition-all group"
     >
       <span className="relative flex-shrink-0">
         <span className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full border-4 border-primary/60 bg-surface-container-highest font-display text-primary text-xl">

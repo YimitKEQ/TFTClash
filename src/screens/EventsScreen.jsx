@@ -224,7 +224,7 @@ function PrizePoolPodium(props) {
   }
 
   return (
-    <section className="mb-8 rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-5">
+    <section className="mb-8 rounded-2xl border border-outline-variant/15 bg-surface-container p-5">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="emoji_events" className="text-primary" />

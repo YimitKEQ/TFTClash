@@ -461,7 +461,7 @@ export default function SponsorsScreen() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
           {PLATFORM_FEATURES.map(function(f) {
             return (
-              <Panel key={f.title} elevation="elevated" radius="xl" padding="default" className="flex gap-4 items-start border-l-2 border-l-primary hover:border-l-primary transition-colors">
+              <Panel key={f.title} elevation="elevated" radius="xl" padding="default" className="flex gap-4 items-start border border-primary/20 hover:border-primary/40 transition-colors">
                 <Icon name={f.icon} className="text-primary text-xl shrink-0 mt-0.5" />
                 <div>
                   <p className="font-label text-xs tracking-widest uppercase text-on-surface font-semibold mb-1">{f.title}</p>

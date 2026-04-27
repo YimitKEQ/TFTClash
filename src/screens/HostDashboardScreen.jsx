@@ -781,7 +781,7 @@ export default function HostDashboardScreen() {
               <span className="text-xs text-on-surface-variant font-mono">{wizData.accentColor}</span>
             </div>
           </div>
-          <div className="bg-surface-container p-4 rounded border-l-4" style={{ borderColor: wizData.accentColor }}>
+          <div className="bg-surface-container p-4 rounded border" style={{ borderColor: wizData.accentColor }}>
             <div className="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Preview</div>
             <div className="font-bold text-on-surface font-editorial">{wizData.name || "Tournament Name"}</div>
             <div className="text-xs font-mono mt-1" style={{ color: wizData.accentColor }}>{wizData.type === "swiss" ? "Swiss" : "Standard"} - {wizData.maxPlayers} players</div>
@@ -938,7 +938,7 @@ export default function HostDashboardScreen() {
           </div>
 
           {/* Branding Quick Tool */}
-          <div className="bg-secondary-container/10 p-6 rounded-lg border-r-4 border-secondary flex flex-col justify-between">
+          <div className="bg-secondary-container/10 p-6 rounded-lg border border-secondary/30 flex flex-col justify-between">
             <div>
               <h3 className="font-editorial text-xl mb-4">Branding</h3>
               <div className="space-y-4">
@@ -1005,7 +1005,7 @@ export default function HostDashboardScreen() {
                   })}
                 </div>
               </div>
-              <div className="p-8 rounded-lg border border-outline-variant/5 space-y-8 bg-surface-container/60 backdrop-blur-2xl">
+              <div className="p-8 rounded-lg border border-outline-variant/5 space-y-8 bg-surface-container">
                 {renderWizardStep()}
               </div>
             </div>
@@ -1274,7 +1274,7 @@ export default function HostDashboardScreen() {
           <div className="space-y-6">
             <h2 className="font-editorial text-2xl text-on-background border-b border-outline-variant/10 pb-4">Host Branding</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8 p-8 rounded-lg border border-outline-variant/5 bg-surface-container/60 backdrop-blur-2xl">
+              <div className="lg:col-span-2 space-y-8 p-8 rounded-lg border border-outline-variant/5 bg-surface-container">
                 <div className="space-y-2">
                   <label className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">Org / Display Name</label>
                   <input

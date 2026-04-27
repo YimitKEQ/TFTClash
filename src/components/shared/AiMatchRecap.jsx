@@ -102,7 +102,7 @@ export default function AiMatchRecap(props) {
   }
 
   return (
-    <div className="rounded-2xl border border-success/20 bg-gradient-to-br from-success/10 to-transparent backdrop-blur p-4">
+    <div className="rounded-2xl border border-success/20 bg-success/5 p-4">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="emoji_events" className="text-success" />
         <h3 className="font-display text-base tracking-wide">MATCH RECAP</h3>

@@ -125,7 +125,7 @@ function MilestoneRow(props) {
   var iconName = mapIcon(m.icon);
 
   return (
-    <div className={'bg-surface-container-low p-6 relative overflow-hidden transition-all duration-300 ' + (myUnlocked ? 'border-l-4 border-primary' : 'border-l-4 border-outline-variant/20')}>
+    <div className={'bg-surface-container-low p-6 relative overflow-hidden transition-all duration-300 ' + (myUnlocked ? 'border border-primary/40' : 'border border-outline-variant/15')}>
       <div className="flex gap-4 items-start">
         <div className={'w-12 h-12 flex items-center justify-center flex-shrink-0 ' + (myUnlocked ? 'bg-primary/10 text-primary' : 'bg-surface-container-highest text-on-surface-variant')}>
           <Icon name={iconName} fill={myUnlocked} size={26} />
@@ -419,7 +419,7 @@ export default function MilestonesScreen() {
                   var textCol = feedTextColors[idx] || 'text-on-surface-variant';
                   var timeLabel = feedTimeLabels[idx] || 'Recently';
                   return (
-                    <div key={a.id} className={'bg-surface-container p-4 flex gap-4 border-l-2 backdrop-blur-2xl ' + borderCol}>
+                    <div key={a.id} className={'bg-surface-container p-4 flex gap-4 border ' + borderCol}>
                       <div className={'flex-shrink-0 w-10 h-10 flex items-center justify-center ' + TIER_COLORS[a.tier].bg + ' ' + TIER_COLORS[a.tier].text}>
                         <Icon name={mapIcon(a.icon)} fill={true} size={20} />
                       </div>
@@ -435,7 +435,7 @@ export default function MilestonesScreen() {
 
                 {/* Fallback feed items if no real data */}
                 {recentFeedItems.length < 3 && (
-                  <div className="bg-surface-container p-4 flex gap-4 border-l-2 border-outline-variant/30 backdrop-blur-2xl">
+                  <div className="bg-surface-container p-4 flex gap-4 border border-outline-variant/30">
                     <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-surface-container-highest text-on-surface-variant">
                       <Icon name="emoji_events" size={20} />
                     </div>

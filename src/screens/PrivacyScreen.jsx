@@ -137,7 +137,7 @@ export default function PrivacyScreen() {
 
             <button
               onClick={function() { navigate('/privacy') }}
-              className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border-r-4 border-primary transition-all w-full text-left"
+              className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary border border-primary/30 transition-all w-full text-left"
             >
               <Icon name="gavel" size={18} />
               <span className="font-label text-sm font-bold uppercase tracking-wide">Privacy Policy</span>
@@ -190,7 +190,7 @@ export default function PrivacyScreen() {
                 return (
                   <div key={sec.id} id={'privacy-' + sec.id} className="relative overflow-hidden">
                     <div className="absolute inset-0 bg-primary/5 -skew-y-1 translate-y-2 pointer-events-none"></div>
-                    <div className="relative bg-surface-container-high p-8 rounded border-l-4 border-primary">
+                    <div className="relative bg-primary/5 p-8 rounded border border-primary/30">
                       <div className="flex items-center gap-4 mb-5">
                         <span className="font-mono text-primary text-base">{sec.num}</span>
                         <h3 className="font-editorial text-2xl text-on-surface">{sec.title}</h3>

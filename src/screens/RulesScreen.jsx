@@ -210,7 +210,7 @@ export default function RulesScreen() {
                 <Panel
                   key={acc.id}
                   padding="none"
-                  className={'group overflow-hidden' + (isOpen ? ' border-l-2 border-l-primary' : '')}
+                  className={'group overflow-hidden' + (isOpen ? ' border border-primary/30' : '')}
                 >
                   <button
                     onClick={function () { toggleSection(acc.id) }}

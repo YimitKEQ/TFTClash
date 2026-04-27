@@ -1,0 +1,316 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-27T22:00:00Z",
+  "title": "Design System: TFT Clash",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Spotlight Gold",
+        "canonical": "oklch(82% 0.12 75)",
+        "tonalRamp": ["#2a1d04", "#432f08", "#5e430d", "#8a6519", "#b48929", "#d6a448", "#ffc66b", "#fee4ba"]
+      },
+      "primary-deep": {
+        "role": "primary",
+        "displayName": "Deep Amber",
+        "canonical": "oklch(70% 0.13 75)",
+        "tonalRamp": ["#221703", "#3a2706", "#523a0a", "#7a5713", "#a07423", "#c8902a", "#e8a838", "#f5c870"]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Pale Lavender",
+        "canonical": "oklch(82% 0.10 305)",
+        "tonalRamp": ["#1f0a3d", "#2a0054", "#421773", "#59328b", "#7a4fb8", "#9b72cf", "#b89ae0", "#d9b9ff"]
+      },
+      "secondary-deep": {
+        "role": "secondary",
+        "displayName": "Twilight Purple",
+        "canonical": "oklch(40% 0.16 305)",
+        "tonalRamp": ["#1f0a3d", "#2a0054", "#421773", "#5c348d", "#7a4fb8", "#9b72cf", "#b89ae0", "#d9b9ff"]
+      },
+      "tertiary": {
+        "role": "tertiary",
+        "displayName": "Mint Teal",
+        "canonical": "oklch(85% 0.13 195)",
+        "tonalRamp": ["#003734", "#00504c", "#007a72", "#2ba89f", "#45c6bd", "#5dd9d0", "#67e2d9", "#7cf6ec"]
+      },
+      "background": {
+        "role": "neutral",
+        "displayName": "Arena Black",
+        "canonical": "oklch(15% 0.005 280)",
+        "tonalRamp": ["#07070c", "#0e0d15", "#13131a", "#1b1b23", "#1f1f27", "#2a2931", "#34343c", "#393841"]
+      },
+      "surface-container-lowest": {
+        "role": "neutral",
+        "displayName": "Surface Lowest",
+        "canonical": "oklch(13% 0.005 280)"
+      },
+      "surface-container-low": {
+        "role": "neutral",
+        "displayName": "Surface Low",
+        "canonical": "oklch(18% 0.006 280)"
+      },
+      "surface-container": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "oklch(20% 0.006 280)"
+      },
+      "surface-container-high": {
+        "role": "neutral",
+        "displayName": "Surface High",
+        "canonical": "oklch(24% 0.006 280)"
+      },
+      "surface-container-highest": {
+        "role": "neutral",
+        "displayName": "Surface Highest",
+        "canonical": "oklch(28% 0.006 280)"
+      },
+      "on-surface": {
+        "role": "neutral",
+        "displayName": "Warm Cream",
+        "canonical": "oklch(91% 0.012 285)"
+      },
+      "on-surface-variant": {
+        "role": "neutral",
+        "displayName": "Warm Cream Muted",
+        "canonical": "oklch(83% 0.04 75)"
+      },
+      "outline": {
+        "role": "neutral",
+        "displayName": "Tan Outline",
+        "canonical": "oklch(63% 0.04 75)"
+      },
+      "outline-variant": {
+        "role": "neutral",
+        "displayName": "Tan Outline Variant",
+        "canonical": "oklch(33% 0.03 75)"
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Success Mint",
+        "canonical": "oklch(82% 0.13 158)"
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Warning Tangerine",
+        "canonical": "oklch(72% 0.16 50)"
+      },
+      "error": {
+        "role": "status",
+        "displayName": "Error Coral",
+        "canonical": "oklch(75% 0.10 27)"
+      },
+      "medal-gold": {
+        "role": "medal",
+        "displayName": "Medal Gold",
+        "canonical": "oklch(70% 0.13 75)"
+      },
+      "medal-silver": {
+        "role": "medal",
+        "displayName": "Medal Silver",
+        "canonical": "oklch(78% 0.005 280)"
+      },
+      "medal-bronze": {
+        "role": "medal",
+        "displayName": "Medal Bronze",
+        "canonical": "oklch(56% 0.10 50)"
+      },
+      "discord-blurple": {
+        "role": "brand",
+        "displayName": "Discord Blurple",
+        "canonical": "oklch(57% 0.20 270)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Russo One. Hero numerals, section anchors, the wordmark. Heavy condensed authority. One weight only."
+      },
+      "editorial": {
+        "displayName": "Editorial",
+        "purpose": "Playfair Display italic. One or two accents per page max. The league's voice. Never in interactive elements."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Inter. Paragraphs, descriptions, button helpers. 16px / 1.6 line-height. Cap line length 65-75ch on prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Barlow Condensed bold uppercase tracking-widest. Eyebrows, tags, button text, tab labels, status pills."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "JetBrains Mono. Every numeral. Points, placements, percentages, timestamps, countdown, ranks. No exceptions."
+      }
+    },
+    "shadows": [
+      {
+        "name": "gold-glow",
+        "value": "0 0 30px rgba(253, 186, 73, 0.15)",
+        "purpose": "Ambient halo on celebrated content. Champion-row hover state, home CTA at rest, first-place markers."
+      },
+      {
+        "name": "cta-glow-primary",
+        "value": "0 0 0 1px rgba(255, 198, 107, 0.35), 0 10px 40px rgba(232, 168, 56, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+        "purpose": "The signature big-CTA. Hairline ring + ambient drop + inner highlight. Hover deepens all three."
+      },
+      {
+        "name": "halo-gold",
+        "value": "0 0 40px rgba(232, 168, 56, 0.3)",
+        "purpose": "First-place medal halo. Used on podium avatars and trophy markers."
+      },
+      {
+        "name": "halo-silver",
+        "value": "0 0 32px rgba(192, 192, 192, 0.22)",
+        "purpose": "Second-place medal halo."
+      },
+      {
+        "name": "halo-bronze",
+        "value": "0 0 32px rgba(205, 127, 50, 0.22)",
+        "purpose": "Third-place medal halo."
+      },
+      {
+        "name": "card-lift",
+        "value": "0 8px 24px rgba(155, 114, 207, 0.12)",
+        "purpose": "Opt-in panel hover lift. Soft lavender glow, 24px blur, paired with translateY(-2px)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-button",
+        "value": "transition-all 300ms ease",
+        "purpose": "Default button transition. State change, hover, active. 300ms reads as confident, not snappy."
+      },
+      {
+        "name": "ease-tab",
+        "value": "transition-all 200ms ease",
+        "purpose": "Pill-tab and small-element transitions. Faster for high-frequency interactions."
+      },
+      {
+        "name": "fade-up",
+        "value": "@keyframes: opacity 0->1, translateY 12px->0, 400ms ease both",
+        "purpose": "Stagger entry for lists, cards on first paint. Used as `.au` / `.fade-up` utility."
+      },
+      {
+        "name": "screen-enter",
+        "value": "@keyframes: opacity 0->1, translateY 12px->0, 300ms ease-out both",
+        "purpose": "Page-level entry, applied to `.page` wrapper on every screen mount."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "@media (prefers-reduced-motion: reduce) → all animations 0.001ms, scroll-behavior auto",
+        "purpose": "Global a11y override. Already present in index.css; new components inherit automatically."
+      }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "375px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Pill-shaped, tinted not solid. The 10% gold fill with 30% gold border is the canon — never a solid gold fill.",
+      "html": "<button class=\"ds-btn-primary\">REGISTER FOR SATURDAY</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 24px; background: rgba(255, 198, 107, 0.10); border: 1px solid rgba(255, 198, 107, 0.30); color: #ffc66b; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.18em; border-radius: 9999px; box-shadow: 0 1px 2px 0 rgba(255, 198, 107, 0.10); cursor: pointer; transition: all 300ms ease; } .ds-btn-primary:hover { background: rgba(255, 198, 107, 0.20); border-color: rgba(255, 198, 107, 0.50); box-shadow: 0 4px 6px -1px rgba(255, 198, 107, 0.20); } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #13131a, 0 0 0 4px #ffc66b; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Same pill envelope as primary. Surface-tonal fill instead of gold tint. Used for low-emphasis actions next to a primary.",
+      "html": "<button class=\"ds-btn-secondary\">VIEW STANDINGS</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 24px; background: rgba(27, 27, 35, 0.40); border: 1px solid rgba(80, 69, 53, 0.10); color: rgba(228, 225, 236, 0.80); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.18em; border-radius: 9999px; cursor: pointer; transition: all 300ms ease; } .ds-btn-secondary:hover { background: #1b1b23; border-color: rgba(80, 69, 53, 0.20); color: #e4e1ec; } .ds-btn-secondary:active { transform: scale(0.98); }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel-default",
+      "description": "Flat surface with hairline outline. Tonal layering carries depth. No shadow at rest. Use elevation prop to step up to surface-container or surface-container-high.",
+      "html": "<div class=\"ds-panel\"><div class=\"ds-panel-eyebrow\">SEASON 1</div><div class=\"ds-panel-title\">CURRENT STANDINGS</div><div class=\"ds-panel-body\">Live leaderboard, updated after every Saturday clash. Tiebreakers applied by EMEA Esports Rulebook.</div></div>",
+      "css": ".ds-panel { background: #1b1b23; border: 1px solid rgba(80, 69, 53, 0.10); border-radius: 4px; padding: 24px; color: #e4e1ec; } .ds-panel-eyebrow { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.20em; color: #ffc66b; margin-bottom: 8px; } .ds-panel-title { font-family: 'Russo One', sans-serif; font-size: 20px; line-height: 1.1; color: #e4e1ec; margin-bottom: 12px; } .ds-panel-body { font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.6; color: rgba(228, 225, 236, 0.80); }"
+    },
+    {
+      "name": "Pill Tab (active)",
+      "kind": "nav",
+      "refersTo": "pill-tab-active",
+      "description": "The canonical tab for filter rows, category switchers, and section toggles. Active state is gold-tinted; inactive is surface-tonal.",
+      "html": "<div class=\"ds-pill-tabs\"><button class=\"ds-pill-tab ds-pill-tab--active\">STANDINGS</button><button class=\"ds-pill-tab\">BRACKET</button><button class=\"ds-pill-tab\">RESULTS</button></div>",
+      "css": ".ds-pill-tabs { display: inline-flex; gap: 8px; padding: 8px; } .ds-pill-tab { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 12px 20px; background: rgba(27, 27, 35, 0.40); border: 1px solid rgba(80, 69, 53, 0.10); color: rgba(228, 225, 236, 0.60); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 0.18em; border-radius: 9999px; cursor: pointer; transition: all 200ms ease; white-space: nowrap; } .ds-pill-tab:hover { background: #1b1b23; color: #e4e1ec; } .ds-pill-tab--active { background: rgba(255, 198, 107, 0.10); border-color: rgba(255, 198, 107, 0.30); color: #ffc66b; box-shadow: 0 1px 2px 0 rgba(255, 198, 107, 0.10); } .ds-pill-tab--active:hover { background: rgba(255, 198, 107, 0.10); color: #ffc66b; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Square corners, bottom-border-only. The system's only deliberately un-rounded element. Magazine-style, not card-style.",
+      "html": "<div class=\"ds-input-group\"><label class=\"ds-input-label\">SUMMONER NAME</label><div class=\"ds-input-wrap\"><input class=\"ds-input\" type=\"text\" placeholder=\"Enter your Riot ID\" /></div></div>",
+      "css": ".ds-input-group { display: flex; flex-direction: column; gap: 8px; } .ds-input-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.18em; color: rgba(228, 225, 236, 0.70); margin-left: 4px; } .ds-input-wrap { position: relative; } .ds-input { width: 100%; padding: 16px; background: #0e0d15; border: 0; border-bottom: 1px solid rgba(80, 69, 53, 0.60); border-radius: 0; font-family: 'Inter', sans-serif; font-size: 15px; color: #e4e1ec; transition: border-color 200ms ease, box-shadow 200ms ease; } .ds-input::placeholder { color: rgba(228, 225, 236, 0.40); } .ds-input:focus { outline: none; border-bottom-color: #ffc66b; box-shadow: 0 1px 0 0 #ffc66b; }"
+    },
+    {
+      "name": "Status Pill (Live)",
+      "kind": "chip",
+      "refersTo": "pill-tab-active",
+      "description": "Tournament-state chip. Four variants total: live (coral), open (mint), upcoming (gold), complete (muted). Always paired with state, never decorative.",
+      "html": "<div class=\"ds-status-row\"><span class=\"ds-status ds-status--live\"><span class=\"ds-status-dot\"></span>LIVE</span><span class=\"ds-status ds-status--open\">OPEN</span><span class=\"ds-status ds-status--upcoming\">UPCOMING</span><span class=\"ds-status ds-status--complete\">COMPLETE</span></div>",
+      "css": ".ds-status-row { display: inline-flex; gap: 8px; align-items: center; } .ds-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.10em; } .ds-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: ds-pulse 2s ease-in-out infinite; } @keyframes ds-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } } .ds-status--live { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.30); } .ds-status--open { background: rgba(103, 226, 217, 0.12); color: #6ee7b7; border: 1px solid rgba(103, 226, 217, 0.30); } .ds-status--upcoming { background: rgba(255, 198, 107, 0.12); color: #fcd34d; border: 1px solid rgba(255, 198, 107, 0.30); } .ds-status--complete { background: rgba(255, 255, 255, 0.04); color: #9aabbf; border: 1px solid rgba(255, 255, 255, 0.08); }"
+    },
+    {
+      "name": "Standings Row",
+      "kind": "custom",
+      "refersTo": "panel-default",
+      "description": "The signature row pattern. Mono numerals on rank, body text on player name, gold mono on points. Hover slides 4px right with gold left highlight. First-place row gets a 1st-only gold tint.",
+      "html": "<table class=\"ds-standings\"><tbody><tr class=\"ds-standings-row ds-standings-row--first\"><td class=\"ds-rank\">1</td><td class=\"ds-name\">Levitate</td><td class=\"ds-region\">EUW</td><td class=\"ds-pts\">1024</td></tr><tr class=\"ds-standings-row\"><td class=\"ds-rank\">2</td><td class=\"ds-name\">Zounderkite</td><td class=\"ds-region\">EUW</td><td class=\"ds-pts\">982</td></tr><tr class=\"ds-standings-row\"><td class=\"ds-rank\">3</td><td class=\"ds-name\">BingBing</td><td class=\"ds-region\">EUNE</td><td class=\"ds-pts\">947</td></tr></tbody></table>",
+      "css": ".ds-standings { width: 100%; border-collapse: collapse; background: #1b1b23; border: 1px solid rgba(80, 69, 53, 0.10); border-radius: 4px; overflow: hidden; } .ds-standings-row { transition: background 150ms ease, transform 100ms ease, box-shadow 150ms ease; } .ds-standings-row td { padding: 14px 20px; border-bottom: 1px solid rgba(80, 69, 53, 0.10); color: #e4e1ec; } .ds-standings-row:last-child td { border-bottom: none; } .ds-standings-row:hover { background: rgba(255, 198, 107, 0.06); transform: translateX(4px); box-shadow: inset 4px 0 0 #ffc66b, 0 2px 20px rgba(255, 198, 107, 0.06); } .ds-rank { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: rgba(228, 225, 236, 0.60); width: 56px; } .ds-name { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 15px; } .ds-region { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.10em; color: rgba(228, 225, 236, 0.60); } .ds-pts { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 16px; color: #ffc66b; text-align: right; text-shadow: 0 0 12px rgba(232, 168, 56, 0.40); } .ds-standings-row--first { background: rgba(232, 168, 56, 0.05); } .ds-standings-row--first .ds-rank { color: #e8a838; text-shadow: 0 0 12px rgba(232, 168, 56, 0.80); font-size: 20px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Saturday Arena",
+    "overview": "TFT Clash is the building where players show up every Saturday night to compete. The visual system feels like that arena: warm spotlight gold against deep matte black, mono numerics on a tournament scoreboard, condensed Barlow labels stamping every section like a fight card, with rare Playfair Display italic accents carrying the league's voice. Not a stats site, not a SaaS dashboard. Where competitors stack data, TFT Clash uses Russo One headlines, mono numerals, and generous whitespace. Where competitors lean on glassmorphism and gradient text, TFT Clash leans on type scale and tonal layering. The mood is competitive but composed: high-stakes legibility, no over-stimulation. Drama through scale and weight contrast, never through effects.",
+    "keyCharacteristics": [
+      "Warm amber-gold primary on a dark blue-black canvas. Lavender and teal as supporting accents, used sparingly.",
+      "Five typefaces, strict lanes. Russo One for headlines, Playfair Display italic for editorial accents, Inter for prose, Barlow Condensed uppercase for labels, JetBrains Mono for every numeral.",
+      "Tonal elevation, not shadow elevation. Material Design 3 surface-container scale handles depth.",
+      "Pill buttons and pill tabs. Rectangular cards with 4px corner radius. Bottom-border-only inputs.",
+      "Numerals always tabular. Scores, points, placements, timestamps, ranks all sit in font-mono."
+    ],
+    "rules": [
+      { "name": "The Spotlight Gold Rule", "body": "Spotlight Gold is the anchor. Any moment of celebration, focus, or primacy is in this hue family. Lavender and teal are supporting cast and never carry the lead.", "section": "colors" },
+      { "name": "The 10% Tint Rule", "body": "Most uses of Spotlight Gold are at /10 opacity as a fill, with /30 as a border. Solid gold fills are reserved for the Champion 1st-place podium tile and animated count-up numerals.", "section": "colors" },
+      { "name": "The Status-Only Status Color Rule", "body": "Success mint, warning tangerine, and error coral never appear in decorative gradients or hover effects. They communicate state. If you need a sparkle accent, use Spotlight Gold.", "section": "colors" },
+      { "name": "The Mono-For-Every-Numeral Rule", "body": "A score, a placement, a percentage, a date, a rank, a player count, a timer all sit in JetBrains Mono. This produces tabular alignment in tables and signals to screen readers that the value is numeric.", "section": "typography" },
+      { "name": "The Italic Frugality Rule", "body": "Playfair Display italic appears at most twice per page, and never in interactive elements. Italics are load-bearing emotion, not decoration.", "section": "typography" },
+      { "name": "The All-Caps Tracking Rule", "body": "Anything in Barlow Condensed gets tracking-widest (0.18em letter-spacing). All-caps without tracking reads as shouting; all-caps with the right tracking reads as authority.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat. Tonal contrast (surface-container-low over background) is how depth is read. Shadows on panels at rest are forbidden. Shadows appear as a response to state or to mark a first-place moment.", "section": "elevation" },
+      { "name": "The No-Glassmorphism Rule", "body": "backdrop-filter blur and rgba glass surfaces are forbidden as a default panel treatment. Legacy glass-panel, glass-card, panel-glass, panel-elite classes reflect older redesigns and should not be reached for in new work. The top-nav blur is the only allowed exception.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use <Btn>, <Panel>, <PillTab>, <Inp>, <Icon> from src/components/ui/. Never inline a raw button.",
+      "Do put every numeral in font-mono. Scores, points, placements, percentages, dates, timers, ranks.",
+      "Do use one Playfair Display italic per page maximum, two if it earns it.",
+      "Do raise depth through surface-container-low → container → container-high. Tonal layering is the elevation strategy.",
+      "Do use Spotlight Gold #ffc66b at /10 fill and /30 border. The 10% tint is the canon.",
+      "Do keep button shapes pill. rounded-full is the only button radius.",
+      "Do keep input corners square (rounded-none). The bottom-border-only treatment is signature.",
+      "Do cap body line length at 65-75ch on prose surfaces.",
+      "Do respect prefers-reduced-motion. Animations are flair, not function."
+    ],
+    "donts": [
+      "Don't clone op.gg's spreadsheet density. Tables in TFT Clash breathe.",
+      "Don't clone Mobalytics's neon-on-dark gradient cliché. No multi-color border gradients, no gradient-text headlines, no neon underglows on every panel.",
+      "Don't use background-clip: text with a gradient. gold-gradient-text and gold-shimmer are deprecated.",
+      "Don't use border-left or border-right greater than 1px as a colored accent stripe. Side-stripe borders are banned.",
+      "Don't use glass-panel, glass-card, panel-glass, panel-elite. Glassmorphism is forbidden as a default panel treatment.",
+      "Don't use the hero-metric template (giant gradient number plus tiny label plus three supporting stats). SaaS cliché.",
+      "Don't add new font families. The five lanes are locked.",
+      "Don't use exotic radii: rounded-2xl, rounded-3xl, rounded-[Npx], rounded-sm.",
+      "Don't animate CSS layout properties. Use transform and opacity.",
+      "Don't add em dashes anywhere. Use commas, colons, semicolons, periods, or parentheses.",
+      "Don't ship placeholder buttons or 'Coming soon' text without a dated commitment."
+    ]
+  }
+}

@@ -429,10 +429,10 @@ export default function AccountScreen() {
 
   if (!user || !user.id) {
     var guestFeatures = [
-      { icon: 'badge',           title: 'Custom Profile',       desc: 'Banner, accent color, bio, and social links — your competitive identity.' },
+      { icon: 'badge',           title: 'Custom Profile',       desc: 'Banner, accent color, bio, and social links: your competitive identity.' },
       { icon: 'leaderboard',     title: 'Live Season Stats',    desc: 'Avg placement, top4 rate, win rate, point trend. All tracked automatically.' },
       { icon: 'workspace_premium', title: 'Achievements + Awards', desc: '40+ achievements plus algorithmic flair like "Comeback King" and "Iron Butt".' },
-      { icon: 'notifications',   title: 'Smart Notifications',  desc: 'Clash reminders, result confirmations, dispute pings — never miss a window.' },
+      { icon: 'notifications',   title: 'Smart Notifications',  desc: 'Clash reminders, result confirmations, dispute pings, so you never miss a window.' },
       { icon: 'redeem',          title: 'Prize Claim Center',   desc: 'Win? Submit your claim form, track payout status, see your full history.' },
       { icon: 'sell',            title: 'Pro + Host Upgrades',  desc: 'Unlock advanced stats, banners, multi-tournament management, and more.' }
     ];
@@ -901,7 +901,7 @@ export default function AccountScreen() {
                                       onClick={function() { setProfileAccent(clr); }}
                                       style={{ width: 26, height: 26, borderRadius: '50%', background: clr || ('linear-gradient(135deg,' + rankColor + '44,' + rankColor + '11)'), cursor: 'pointer', border: isActive ? '3px solid #fff' : '3px solid transparent', transition: 'border .15s', position: 'relative', flexShrink: 0 }}
                                     >
-                                      {!clr && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: '#9AAABF' }}>Auto</span>}
+                                      {!clr && <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, color: 'var(--md-on-surface-variant)' }}>Auto</span>}
                                     </div>
                                   );
                                 })}
@@ -1022,7 +1022,7 @@ export default function AccountScreen() {
             </Panel>
 
             {/* Riot Accounts */}
-            <Panel padding="spacious" className="md:col-span-4 flex flex-col justify-between border-l-4 border-tertiary">
+            <Panel padding="spacious" className="md:col-span-4 flex flex-col justify-between border border-tertiary/30 bg-tertiary/5">
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="font-label text-sm font-bold uppercase tracking-widest">Riot Accounts</h3>
@@ -1065,7 +1065,7 @@ export default function AccountScreen() {
               <div className="space-y-4">
 
                 {/* Discord */}
-                <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (discordId ? ' border-l-2 border-[#5865F2]' : '')}>
+                <div className={'flex items-center justify-between p-4 rounded-lg group border ' + (discordId ? 'bg-discord-blurple/10 border-discord-blurple/30' : 'bg-surface-container-lowest border-outline-variant/15')}>
                   <div className="flex items-center space-x-4">
                     <svg width="20" height="16" viewBox="0 0 71 55" fill={discordId ? '#5865F2' : 'rgba(228,225,236,0.3)'} xmlns="http://www.w3.org/2000/svg">
                       <path d="M60.1 4.9A58.5 58.5 0 0 0 45.6.9a.22.22 0 0 0-.23.11 40.8 40.8 0 0 0-1.8 3.7 54 54 0 0 0-16.2 0 37.3 37.3 0 0 0-1.83-3.7.23.23 0 0 0-.23-.11A58.3 58.3 0 0 0 10.9 4.9a.21.21 0 0 0-.1.08C1.58 18.73-.96 32.16.3 45.43a.24.24 0 0 0 .09.17 58.8 58.8 0 0 0 17.7 8.95.23.23 0 0 0 .25-.09 42 42 0 0 0 3.62-5.89.23.23 0 0 0-.12-.31 38.7 38.7 0 0 1-5.52-2.63.23.23 0 0 1-.02-.38c.37-.28.74-.57 1.1-.86a.22.22 0 0 1 .23-.03c11.58 5.29 24.12 5.29 35.56 0a.22.22 0 0 1 .23.03c.36.29.73.58 1.1.86a.23.23 0 0 1-.02.38 36.3 36.3 0 0 1-5.52 2.63.23.23 0 0 0-.13.31 47.2 47.2 0 0 0 3.62 5.89c.06.09.17.12.26.09a58.7 58.7 0 0 0 17.71-8.95.23.23 0 0 0 .09-.16c1.48-15.32-2.48-28.64-10.5-40.45a.18.18 0 0 0-.09-.09ZM23.7 37.3c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.82 7.15-6.37 7.15Zm23.58 0c-3.49 0-6.37-3.21-6.37-7.15s2.82-7.15 6.37-7.15c3.58 0 6.43 3.24 6.37 7.15 0 3.94-2.79 7.15-6.37 7.15Z"/>
@@ -1103,7 +1103,7 @@ export default function AccountScreen() {
                 </div>
 
                 {/* Twitch */}
-                <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (((user.user_metadata && user.user_metadata.twitch) || user.twitch) ? ' border-l-2 border-secondary' : '')}>
+                <div className={'flex items-center justify-between p-4 rounded-lg group border ' + (((user.user_metadata && user.user_metadata.twitch) || user.twitch) ? 'bg-secondary/10 border-secondary/30' : 'bg-surface-container-lowest border-outline-variant/15')}>
                   <div className="flex items-center space-x-4">
                     <Icon name="videogame_asset" size={24} fill={true} className="text-on-surface/40 group-hover:text-secondary transition-colors" />
                     <div>
@@ -1129,7 +1129,7 @@ export default function AccountScreen() {
                 </div>
 
                 {/* Twitter / X */}
-                <div className={'flex items-center justify-between p-4 bg-surface-container-lowest rounded-lg group' + (((user.user_metadata && user.user_metadata.twitter) || user.twitter) ? ' border-l-2 border-primary' : '')}>
+                <div className={'flex items-center justify-between p-4 rounded-lg group border ' + (((user.user_metadata && user.user_metadata.twitter) || user.twitter) ? 'bg-primary/10 border-primary/30' : 'bg-surface-container-lowest border-outline-variant/15')}>
                   <div className="flex items-center space-x-4">
                     <Icon name="share" size={24} className="text-on-surface/40 group-hover:text-primary transition-colors" />
                     <div>
@@ -1234,7 +1234,7 @@ export default function AccountScreen() {
                     <div className="relative h-24 rounded-lg overflow-hidden cursor-pointer border-2 border-primary group">
                       <div
                         className="w-full h-full"
-                        style={{ background: bannerUrl ? ('url(' + bannerUrl + ') center/cover') : ('linear-gradient(135deg,' + (profileAccent || rankColor) + '88,#13131a 80%)') }}
+                        style={{ background: bannerUrl ? ('url(' + bannerUrl + ') center/cover') : ('linear-gradient(135deg,' + (profileAccent || rankColor) + '88,var(--md-surface) 80%)') }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
                         <span className="font-label text-[10px] uppercase tracking-widest text-primary">Active Banner</span>
@@ -1709,10 +1709,10 @@ export default function AccountScreen() {
                           name={a.icon === 'trophy' ? 'emoji_events' : a.icon === 'fire' || a.icon === 'flame' ? 'local_fire_department' : a.icon === 'star' ? 'star' : a.icon === 'shield' ? 'shield' : a.icon === 'target' || a.icon === 'bullseye' ? 'my_location' : 'military_tech'}
                           size={22}
                           className="flex-shrink-0"
-                          style={{ color: unlocked ? col : '#9AAABF' }}
+                          style={{ color: unlocked ? col : 'var(--md-on-surface-variant)' }}
                         />
                         <div className="min-w-0">
-                          <div className="font-label text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : '#9AAABF' }}>{a.name}</div>
+                          <div className="font-label text-xs font-bold uppercase tracking-widest truncate" style={{ color: unlocked ? col : 'var(--md-on-surface-variant)' }}>{a.name}</div>
                           <div className="text-on-surface/40 text-xs font-body mt-0.5">{a.desc}</div>
                         </div>
                         {unlocked && <Icon name="check_circle" size={16} fill={true} className="text-tertiary ml-auto flex-shrink-0" />}
@@ -1809,7 +1809,7 @@ export default function AccountScreen() {
                     { l: 'Clash Points', v: linkedPlayer.pts, c: '#ffc66b' },
                     { l: 'Total Wins', v: linkedPlayer.wins, c: '#67e2d9' },
                     { l: 'Top 4 Rate', v: s ? (s.top4Rate + '%') : '-', c: '#d9b9ff' },
-                    { l: 'Avg Placement', v: s ? s.avgPlacement : '-', c: s ? avgCol(s.avgPlacement) : '#9AAABF' },
+                    { l: 'Avg Placement', v: s ? s.avgPlacement : '-', c: s ? avgCol(s.avgPlacement) : 'var(--md-on-surface-variant)' },
                     { l: 'Games Played', v: linkedPlayer.games, c: '#67e2d9' },
                     { l: 'Best Streak', v: linkedPlayer.bestStreak, c: '#F87171' },
                     { l: 'PPG', v: s ? s.ppg : '-', c: '#ffc66b' },

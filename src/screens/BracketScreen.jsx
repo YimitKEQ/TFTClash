@@ -852,7 +852,7 @@ function BracketScreen(){
             <div className="lg:col-span-4 space-y-5">
 
               {/* Live status card */}
-              <div className="bg-surface-container-low rounded p-6 border-l-4 border-primary relative overflow-hidden">
+              <div className="bg-surface-container-low rounded p-6 border border-primary/30 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
                   <Icon name="sensors" size={56} />
                 </div>

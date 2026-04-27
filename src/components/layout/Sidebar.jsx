@@ -84,7 +84,7 @@ export default function Sidebar() {
         onClick={function() { navTo(id); }}
         className={'flex items-center gap-4 px-6 py-3.5 w-full text-left border-none cursor-pointer transition-all duration-200 font-label uppercase text-xs font-semibold tracking-widest relative ' +
           (isActive
-            ? 'text-primary bg-primary/10 border-r-2 border-primary'
+            ? 'text-primary bg-primary/10 border border-primary/30'
             : 'text-on-surface/40 hover:text-on-surface hover:bg-white/[0.04] bg-transparent')}
       >
         <Icon name={icon} size={20} className={isActive ? 'opacity-100' : 'opacity-60'} />

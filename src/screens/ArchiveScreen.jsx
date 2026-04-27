@@ -92,7 +92,7 @@ function SeasonCard(props) {
             </div>
 
             {/* Champion spotlight */}
-            <div className={'flex items-center gap-4 p-4' + (isLegacy ? ' bg-surface-container-lowest/50 border-l-4 border-slate-700' : ' bg-surface-container-lowest border-l-4 border-primary')}>
+            <div className={'flex items-center gap-4 p-4' + (isLegacy ? ' bg-surface-container-lowest/50 border border-outline-variant/20' : ' bg-surface-container-lowest border border-primary/30')}>
               <div className="flex flex-col">
                 <span className="font-label text-xs text-slate-500 uppercase">CHAMPION</span>
                 <span className={'font-display text-xl tracking-tight' + (isLegacy ? ' text-on-surface opacity-70' : ' text-primary')}>

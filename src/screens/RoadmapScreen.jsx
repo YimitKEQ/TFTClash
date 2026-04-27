@@ -125,7 +125,7 @@ export default function RoadmapScreen() {
         </h1>
         <p className="text-on-surface-variant max-w-2xl">
           Vote on what matters. Top-voted ideas get bumped into Planned each month.
-          Submit your own — we read every one.
+          Submit your own. We read every one.
         </p>
         <div className="mt-5 flex gap-2 flex-wrap">
           <Btn variant="primary" size="sm" icon="lightbulb" onClick={function () { setShowSubmit(function (v) { return !v }) }}>

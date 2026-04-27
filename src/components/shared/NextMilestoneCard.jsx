@@ -63,7 +63,7 @@ export default function NextMilestoneCard(props) {
 
   if (!next) {
     return (
-      <div className={'rounded-2xl border border-tertiary/30 bg-tertiary/5 backdrop-blur ' + (dense ? 'p-4' : 'p-5')}>
+      <div className={'rounded-2xl border border-tertiary/30 bg-tertiary/5 ' + (dense ? 'p-4' : 'p-5')}>
         {!hideHeader && (
           <div className="flex items-center gap-2 mb-2">
             <Icon name="workspace_premium" className="text-tertiary" />
@@ -88,7 +88,7 @@ export default function NextMilestoneCard(props) {
   var toneFill = tier.tone === 'on-surface-variant' ? 'bg-on-surface' : 'bg-' + tier.tone
 
   return (
-    <div className={'rounded-2xl border ' + toneBorder + ' bg-surface-container/40 backdrop-blur ' + (dense ? 'p-4' : 'p-5')}>
+    <div className={'rounded-2xl border ' + toneBorder + ' bg-surface-container ' + (dense ? 'p-4' : 'p-5')}>
       {!hideHeader && (
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <div className="flex items-center gap-2">

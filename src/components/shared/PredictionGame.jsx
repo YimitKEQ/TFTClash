@@ -75,7 +75,7 @@ export default function PredictionGame(props) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-4">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="psychology" className="text-[var(--md-secondary)]" />
         <h3 className="font-display text-base tracking-wide">PREDICTION GAME</h3>
@@ -121,7 +121,7 @@ export default function PredictionGame(props) {
               onChange={function (e) { setWinner(e.target.value) }}
               className="w-full px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm focus:outline-none focus:border-white/30"
             >
-              <option value="">— pick —</option>
+              <option value="">- pick -</option>
               {pool.map(function (p) {
                 return <option key={p.id} value={p.id}>{p.name}</option>
               })}
@@ -209,7 +209,7 @@ export default function PredictionGame(props) {
 }
 
 function nameOf(pool, id) {
-  if (!id) return '—'
+  if (!id) return '-'
   var p = pool.find(function (x) { return String(x.id) === String(id) })
   return p ? p.name : '?'
 }

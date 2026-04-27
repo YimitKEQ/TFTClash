@@ -203,7 +203,7 @@ export default function ChallengesScreen() {
             {/* Active Challenges Column */}
             <div className="col-span-12 lg:col-span-8 space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Active Quests</h2>
+                <h2 className="font-label text-xl uppercase tracking-widest text-primary">Active Quests</h2>
                 <PillTabGroup align="start" className="pb-0">
                   <PillTab
                     active={questTab === 'daily'}
@@ -229,7 +229,7 @@ export default function ChallengesScreen() {
                 var pct = Math.min(100, Math.round((c.progress / Math.max(c.goal, 1)) * 100));
                 var isWeekly = c.type === 'weekly';
                 var accentColor = done ? 'text-tertiary' : (isWeekly ? 'text-secondary' : 'text-primary');
-                var borderAccent = done ? 'border-l-4 border-tertiary/50' : (isWeekly && idx === 1 ? 'border-l-4 border-secondary/50' : '');
+                var borderAccent = done ? 'border border-tertiary/30 bg-tertiary/5' : (isWeekly && idx === 1 ? 'border border-secondary/30 bg-secondary/5' : '');
                 var progressBg = done ? 'bg-tertiary' : (isWeekly ? 'bg-secondary-container' : '');
                 var progressStyle = done ? {} : (isWeekly ? {} : { background: 'linear-gradient(135deg, #FFC66B 0%, #E8A838 100%)' });
                 var iconName = mapMaterialIcon(c.icon);
@@ -310,7 +310,7 @@ export default function ChallengesScreen() {
               </div>
 
               {/* Stats Card */}
-              <div className="glass-panel p-6 border border-outline-variant/10">
+              <div className="bg-surface-container p-6 border border-outline-variant/10">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <span className="font-label text-xs uppercase text-on-surface/50">COMPLETION RATE</span>
@@ -349,7 +349,7 @@ export default function ChallengesScreen() {
         {mainTab === 'completed' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">Completed Challenges</h2>
+              <h2 className="font-label text-xl uppercase tracking-widest text-primary">Completed Challenges</h2>
               <span className="font-mono text-xs text-on-surface/40">{completedChallenges.length + ' TOTAL'}</span>
             </div>
 
@@ -363,7 +363,7 @@ export default function ChallengesScreen() {
               <div className="space-y-3">
                 {completedChallenges.map(function(c) {
                   return (
-                    <div key={c.id} className="bg-surface-container-low p-5 flex items-center gap-5 border-l-4 border-tertiary/50">
+                    <div key={c.id} className="bg-tertiary/5 p-5 flex items-center gap-5 border border-tertiary/30">
                       <div className="w-12 h-12 bg-surface-container-high flex items-center justify-center border border-tertiary/20 flex-shrink-0">
                         <Icon name="check_circle" fill size={22} className="text-tertiary" />
                       </div>
@@ -383,7 +383,7 @@ export default function ChallengesScreen() {
         {mainTab === 'xp-log' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="font-label text-xl uppercase tracking-widest border-l-4 border-primary pl-4">XP History</h2>
+              <h2 className="font-label text-xl uppercase tracking-widest text-primary">XP History</h2>
             </div>
             {xpLogLoading && (
               <div className="text-center py-10 text-on-surface/40 text-sm">Loading...</div>

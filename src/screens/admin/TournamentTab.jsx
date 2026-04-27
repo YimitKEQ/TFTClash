@@ -780,7 +780,7 @@ export default function TournamentTab() {
           <Sel value={formatPreset} onChange={applyFormatPreset}>
             {Object.keys(TOURNAMENT_FORMATS).map(function(k) {
               var f = TOURNAMENT_FORMATS[k]
-              return <option key={k} value={k}>{f.name + ' — ' + f.games + ' games, ' + f.maxPlayers + 'p'}</option>
+              return <option key={k} value={k}>{f.name + ' - ' + f.games + ' games, ' + f.maxPlayers + 'p'}</option>
             })}
             <option value="custom">Custom</option>
           </Sel>

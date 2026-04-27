@@ -125,7 +125,7 @@ export default function BountyBoard(props) {
           <div className="bg-surface-container-low p-4">
             <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-1">Top Bountied</div>
             <div className="font-mono text-base font-bold text-on-surface truncate">
-              {topPlayer ? topPlayer + ' — €' + byPlayer[topPlayer].toFixed(2) : '—'}
+              {topPlayer ? topPlayer + ': €' + byPlayer[topPlayer].toFixed(2) : '-'}
             </div>
           </div>
         </div>

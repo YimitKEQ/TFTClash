@@ -53,7 +53,7 @@ export default function RecentMatchesStrip(props) {
 
   if (recent.length === 0) {
     return (
-      <div className={'rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur ' + (dense ? 'p-4' : 'p-5')}>
+      <div className={'rounded-2xl border border-outline-variant/15 bg-surface-container ' + (dense ? 'p-4' : 'p-5')}>
         <div className="flex items-center gap-2 mb-2">
           <Icon name="history" className="text-secondary" />
           <h3 className={'font-display tracking-wide ' + (dense ? 'text-sm' : 'text-base')}>{title}</h3>
@@ -69,7 +69,7 @@ export default function RecentMatchesStrip(props) {
   var totalPts = recent.reduce(function (sum, g) { return sum + (g.pts || 0) }, 0)
 
   return (
-    <div className={'rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur ' + (dense ? 'p-4' : 'p-5')}>
+    <div className={'rounded-2xl border border-outline-variant/15 bg-surface-container ' + (dense ? 'p-4' : 'p-5')}>
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="history" className="text-secondary" />

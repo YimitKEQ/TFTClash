@@ -254,7 +254,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
         {/* AI Commentary + Awards Sidebar */}
         <div className="space-y-4">
           {/* Glass recap panel */}
-          <div className="p-6 rounded-xl border border-outline-variant/15 relative bg-surface-container/60 backdrop-blur-2xl">
+          <div className="p-6 rounded-xl border border-outline-variant/15 relative bg-surface-container">
             <div className="absolute -top-3 left-5 bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-widest font-label">
               Clash Recap
             </div>

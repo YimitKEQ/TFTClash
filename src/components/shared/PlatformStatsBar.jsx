@@ -20,7 +20,7 @@ function StatTile(props) {
   var iconWrap = 'bg-' + tone + '/15 text-' + tone
 
   return (
-    <div className={'rounded-2xl border ' + ring + ' bg-surface-container/40 backdrop-blur p-4 sm:p-5 flex items-center gap-3'}>
+    <div className={'rounded-2xl border ' + ring + ' bg-surface-container p-4 sm:p-5 flex items-center gap-3'}>
       <div className={'flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center ' + iconWrap}>
         <Icon name={icon} size={20} />
       </div>
@@ -112,7 +112,7 @@ export default function PlatformStatsBar(props) {
   }
 
   return (
-    <div className="rounded-3xl border border-outline-variant/15 bg-surface-container/30 backdrop-blur p-4 sm:p-5">
+    <div className="rounded-3xl border border-outline-variant/15 bg-surface-container p-4 sm:p-5">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="leaderboard" className="text-primary" />
         <h3 className="font-display text-base tracking-wide">PLATFORM STATS</h3>

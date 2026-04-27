@@ -74,7 +74,7 @@ export default function PinnedTournamentsBar(props) {
   if (items.length === 0) return null
 
   return (
-    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-3 sm:p-4">
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-3 sm:p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Icon name="push_pin" size={14} className="text-primary" />

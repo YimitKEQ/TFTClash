@@ -114,7 +114,7 @@ export default function FAQScreen() {
         {/* Left Column: Featured Card */}
         <Panel
           padding="spacious"
-          className="lg:col-span-4 flex flex-col justify-between border-l-2 border-l-primary"
+          className="lg:col-span-4 flex flex-col justify-between border border-primary/30 bg-primary/5"
         >
           <div>
             <span className="text-primary font-mono text-xs uppercase tracking-[0.2em] mb-4 block">

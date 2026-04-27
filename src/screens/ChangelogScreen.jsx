@@ -42,14 +42,14 @@ var CHANGELOG = [
   {
     date: "2026-04-05",
     items: [
-      { type: "feat",  text: "PayPal subscription pivot — full 5-tier integration with webhook." },
+      { type: "feat",  text: "PayPal subscription pivot: full 5-tier integration with webhook." },
       { type: "feat",  text: "Pricing page rebuilt around the real tier matrix." }
     ]
   },
   {
     date: "2026-04-03",
     items: [
-      { type: "feat",  text: "Sponsor system shipped — admin tab, public showcase, RLS lockdown." },
+      { type: "feat",  text: "Sponsor system shipped: admin tab, public showcase, RLS lockdown." },
       { type: "fix",   text: "Bracket lobby-grouped results, HOST badge, Riot ID copy." }
     ]
   }

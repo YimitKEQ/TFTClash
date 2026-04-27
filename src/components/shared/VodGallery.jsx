@@ -131,7 +131,7 @@ export default function VodGallery(props) {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur p-4">
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-4">
       <div className="flex items-center gap-2 mb-3">
         <Icon name="play_circle" className="text-[var(--md-tertiary)]" />
         <h3 className="font-display text-base tracking-wide">VOD GALLERY</h3>
@@ -149,7 +149,7 @@ export default function VodGallery(props) {
           />
           <input
             type="text"
-            placeholder="Round 4 final lobby — Levitate POV"
+            placeholder="Round 4 final lobby (Levitate POV)"
             value={label}
             onChange={function (e) { setLabel(e.target.value) }}
             maxLength={MAX_LABEL}
@@ -174,7 +174,7 @@ export default function VodGallery(props) {
       )}
 
       {vods.length === 0 ? (
-        <div className="text-sm text-white/40 italic py-4 text-center">No VODs yet — be the first.</div>
+        <div className="text-sm text-white/40 italic py-4 text-center">No VODs yet. Be the first.</div>
       ) : (
         <ul className="space-y-3">
           {vods.slice().reverse().map(function (v) {

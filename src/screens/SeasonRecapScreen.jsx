@@ -397,7 +397,7 @@ export default function SeasonRecapScreen() {
                   return (
                     <div
                       key={item.title}
-                      className={'flex items-center justify-between p-4 bg-surface-container-lowest border-l-4 ' + item.borderColor}
+                      className={'flex items-center justify-between p-4 bg-surface-container-lowest border ' + item.borderColor}
                     >
                       <div className="flex items-center gap-4">
                         <Icon name={item.icon} size={24} className={item.color} />

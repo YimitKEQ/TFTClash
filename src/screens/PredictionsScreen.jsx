@@ -80,7 +80,7 @@ function PredictionRow(props) {
         <div className="rounded-lg bg-surface-container-high border border-outline-variant/10 p-3">
           <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60 mb-1">Your winner pick</div>
           <div className="flex items-center gap-2">
-            <span className="font-display text-base text-on-surface">{winnerName || '—'}</span>
+            <span className="font-display text-base text-on-surface">{winnerName || '-'}</span>
             {isCompleted && (winnerHit ? (
               <span className="text-xs px-1.5 py-0.5 rounded bg-success/15 text-success font-label tracking-wide">+5 HIT</span>
             ) : (
@@ -115,7 +115,7 @@ function PredictionRow(props) {
       </div>
 
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/10 text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
-        <span>Submitted {entry.prediction.ts ? new Date(entry.prediction.ts).toLocaleDateString() : '—'}</span>
+        <span>Submitted {entry.prediction.ts ? new Date(entry.prediction.ts).toLocaleDateString() : '-'}</span>
         {!locked && (
           <button
             type="button"

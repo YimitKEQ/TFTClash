@@ -74,7 +74,7 @@ function AlmostFullStrip(props) {
   var visible = rows.slice(0, 4)
 
   return (
-    <div className="mb-8 rounded-2xl border border-tertiary/25 bg-surface-container/30 backdrop-blur p-4 sm:p-5">
+    <div className="mb-8 rounded-2xl border border-tertiary/25 bg-surface-container p-4 sm:p-5">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="bolt" className="text-tertiary" />

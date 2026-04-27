@@ -5,7 +5,7 @@ export var WEIRD_AWARDS = {
   curse_of_4th:  { id: "curse_of_4th",  label: "Curse of 4th",   blurb: "3+ fourth places in a row." },
   hot_streak:    { id: "hot_streak",    label: "Hot Streak",     blurb: "3+ wins in a row." },
   iron_butt:     { id: "iron_butt",     label: "Iron Butt",      blurb: "20+ games played this season." },
-  glass_cannon:  { id: "glass_cannon",  label: "Glass Cannon",   blurb: "Wins or eighths only — no middle ground." },
+  glass_cannon:  { id: "glass_cannon",  label: "Glass Cannon",   blurb: "Wins or eighths only, no middle ground." },
   iceman:        { id: "iceman",        label: "The Iceman",     blurb: "All placements within two of average. Consistency king." },
   comeback_king: { id: "comeback_king", label: "Comeback King",  blurb: "Won the last game after starting 7th or 8th." },
   bridesmaid:    { id: "bridesmaid",    label: "Always 2nd",     blurb: "More 2nds than any other place." },

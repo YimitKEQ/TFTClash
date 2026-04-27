@@ -1027,7 +1027,7 @@ export default function FlashTournamentScreen(props) {
 
               {/* Live status card */}
               {(isLive || isComplete) && (
-                <div className={"bg-surface-container-low rounded p-5 border-l-4 relative overflow-hidden " + (isLive ? "border-primary" : "border-tertiary")}>
+                <div className={"bg-surface-container-low rounded p-5 border relative overflow-hidden " + (isLive ? "border-primary/30" : "border-tertiary/30")}>
                   <div className="absolute top-0 right-0 p-3 opacity-5">
                     <Icon name="sensors" size={48} />
                   </div>
@@ -1109,7 +1109,7 @@ export default function FlashTournamentScreen(props) {
 
             {/* My placement report panel */}
             {isLive && myPlayer && myLobby && (
-              <div className="bg-surface-container-low rounded border-l-4 border-secondary p-5 relative overflow-hidden">
+              <div className="bg-secondary/5 rounded border border-secondary/30 p-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-3 opacity-5">
                   <Icon name="edit_note" size={48} />
                 </div>

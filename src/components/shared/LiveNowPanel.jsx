@@ -146,7 +146,7 @@ export default function LiveNowPanel(props) {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-5">
+      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-5">
         <div className="flex items-center gap-2 mb-3">
           <Icon name="bolt" className="text-tertiary" />
           <h3 className="font-display text-base tracking-wide">LIVE NOW</h3>
@@ -162,7 +162,7 @@ export default function LiveNowPanel(props) {
   var hidden = Math.max(0, items.length - visibleItems.length)
 
   return (
-    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5">
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-4 sm:p-5">
       <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <span className="relative flex h-2.5 w-2.5">

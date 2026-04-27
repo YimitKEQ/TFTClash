@@ -62,7 +62,7 @@ export default function TrophyCase(props) {
 
   if (totalUnlocked === 0) {
     return (
-      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/60 backdrop-blur p-5 text-center">
+      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-5 text-center">
         <Icon name="emoji_events" className="text-on-surface-variant/30 text-4xl mb-2" />
         <div className="font-display text-base text-on-surface mb-1">Trophy case is empty</div>
         <div className="text-xs text-on-surface-variant/60">
@@ -73,7 +73,7 @@ export default function TrophyCase(props) {
   }
 
   return (
-    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/60 backdrop-blur p-4 sm:p-5">
+    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <Icon name="emoji_events" className="text-primary" />

@@ -256,7 +256,7 @@ export default function MarketplaceScreen() {
   function onInterest(input) {
     expressInterest(input)
     refresh()
-    toast && toast('Interest recorded — host can see your contact', 'success')
+    toast && toast('Interest recorded. The host can see your contact.', 'success')
   }
 
   var isApprovedHost = currentUser && hostApps.some(function (a) {
@@ -290,7 +290,7 @@ export default function MarketplaceScreen() {
         </h1>
         <p className="text-on-surface-variant max-w-2xl">
           Hosts list open sponsor slots. Sponsors browse, find a fit, and reach out directly.
-          The platform doesn't take a cut on contacts here — only on revenue that flows through the platform's invoicing system.
+          The platform doesn't take a cut on contacts here, only on revenue that flows through the platform's invoicing system.
         </p>
       </div>
 

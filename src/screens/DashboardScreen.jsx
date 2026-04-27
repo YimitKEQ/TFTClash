@@ -126,7 +126,7 @@ function PulseHeader({
   if (D > 0) countdownStr = D + 'd ' + countdownStr
 
   return (
-    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6 bg-surface-container/60 backdrop-blur-2xl shadow-[inset_0_0_20px_rgba(217,185,255,0.15)]"
+    <section className="relative overflow-hidden p-8 rounded-lg border border-secondary/10 mb-6 bg-surface-container shadow-[inset_0_0_20px_rgba(217,185,255,0.15)]"
     >
       {/* Top-right countdown */}
       <div className="absolute top-0 right-0 p-4 text-right">
@@ -281,7 +281,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
             return (
               <div
                 key={h.clashId || ("recent-" + i)}
-                className={'flex items-center justify-between p-3 bg-surface-container rounded border-l-4 ' + (isTop4 ? 'border-tertiary' : 'border-outline-variant/30')}
+                className={'flex items-center justify-between p-3 bg-surface-container rounded border ' + (isTop4 ? 'border-tertiary/40' : 'border-outline-variant/20')}
               >
                 <div className="flex items-center gap-3">
                   <span className={'font-mono font-bold ' + (isTop4 ? 'text-tertiary' : 'text-on-surface/60')}>
@@ -744,7 +744,7 @@ function ClashCard() {
   var weekLabel = seasonName + ' \u00b7 Week ' + weekNum
 
   return (
-    <div className="rounded-xl overflow-hidden border border-outline-variant/10 mb-6 bg-[rgba(52,52,60,0.5)] backdrop-blur-[24px]"
+    <div className="rounded-xl overflow-hidden border border-outline-variant/10 mb-6 bg-surface-container"
     >
       <div className="p-5 pb-4">
         <div className="flex items-baseline justify-between mb-1">
