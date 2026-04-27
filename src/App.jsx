@@ -630,7 +630,7 @@ function TFTClash(){
         </div>
       )}
 
-      {(isLoadingData||isAuthLoading)&&(
+      {currentUser&&(isLoadingData||isAuthLoading)&&(
         <div style={{position:"fixed",inset:0,background:"#13131a",zIndex:9999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{width:72,height:72,opacity:0.9}}/>
           <div style={{textAlign:"center"}}>

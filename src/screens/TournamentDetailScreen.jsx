@@ -8,11 +8,7 @@ import PrizePoolCard from '../components/shared/PrizePoolCard'
 import Podium from '../components/shared/Podium'
 import RegionBadge from '../components/shared/RegionBadge'
 import LiveOdds from '../components/shared/LiveOdds'
-import MatchThread from '../components/shared/MatchThread'
-import BountyBoard from '../components/shared/BountyBoard'
-import VodGallery from '../components/shared/VodGallery'
 import PredictionGame from '../components/shared/PredictionGame'
-import AiScoutReport from '../components/shared/AiScoutReport'
 import AiMatchRecap from '../components/shared/AiMatchRecap'
 import SocialShareBar from '../components/shared/SocialShareBar'
 import AddToCalendarBtn from '../components/shared/AddToCalendarBtn'
@@ -648,36 +644,6 @@ export default function TournamentDetailScreen() {
                   var p = (players || []).find(function (pl) { return pl.name && pl.name.toLowerCase() === String(un).toLowerCase() })
                   return p || { id: un, name: un, pts: 0, top4: 0, games: 0 }
                 })} max={8} />
-              )}
-
-              {/* Match thread - localStorage chat board */}
-              <MatchThread threadId={'t-' + (eventId || 'unknown')} currentUser={currentUser} />
-
-              {/* Fan bounty board - localStorage pledge tracker */}
-              <BountyBoard
-                threadId={'t-' + (eventId || 'unknown')}
-                currentUser={currentUser}
-                registeredIds={registeredIds}
-              />
-
-              {/* VOD gallery - host + registered players post replays */}
-              <VodGallery
-                threadId={'t-' + (eventId || 'unknown')}
-                currentUser={currentUser}
-                registeredIds={registeredIds}
-                hostId={event && event.host_id}
-              />
-
-              {/* AI scout report - on-demand preview */}
-              {!isCompleted && (
-                <AiScoutReport
-                  threadId={'t-' + (eventId || 'unknown')}
-                  eventName={event.name || event.title || ''}
-                  players={registeredIds.map(function (un) {
-                    var p = (players || []).find(function (pl) { return pl.name && pl.name.toLowerCase() === String(un).toLowerCase() })
-                    return p || { id: un, name: un }
-                  })}
-                />
               )}
 
               {/* AI match recap - completed events */}

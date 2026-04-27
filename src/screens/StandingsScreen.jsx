@@ -23,108 +23,6 @@ var SORT_OPTIONS = [
   { value: 'name', label: 'Name' },
 ]
 
-function TierDistributionCard(props) {
-  var players = props.players || []
-  if (players.length === 0) return null
-
-  var counts = {}
-  for (var i = 0; i < RANKS.length; i++) counts[RANKS[i]] = 0
-  var unranked = 0
-
-  for (var j = 0; j < players.length; j++) {
-    var p = players[j]
-    if (!p || p.banned) continue
-    var r = p.rank
-    if (r && counts[r] !== undefined) {
-      counts[r] += 1
-    } else {
-      unranked += 1
-    }
-  }
-
-  var total = 0
-  for (var k = 0; k < RANKS.length; k++) total += counts[RANKS[k]]
-  total += unranked
-  if (total === 0) return null
-
-  var maxCount = unranked
-  for (var m = 0; m < RANKS.length; m++) {
-    if (counts[RANKS[m]] > maxCount) maxCount = counts[RANKS[m]]
-  }
-  if (maxCount === 0) maxCount = 1
-
-  var rows = []
-  for (var n = 0; n < RANKS.length; n++) {
-    var rank = RANKS[n]
-    var c = counts[rank]
-    if (c === 0) continue
-    var raw = (c / total) * 100
-    rows.push({ rank: rank, count: c, color: rc(rank), pct: Math.floor(raw), frac: raw - Math.floor(raw) })
-  }
-  if (unranked > 0) {
-    var rawU = (unranked / total) * 100
-    rows.push({ rank: 'Unranked', count: unranked, color: rc('Unranked'), pct: Math.floor(rawU), frac: rawU - Math.floor(rawU) })
-  }
-
-  // Largest-remainder rounding so the displayed percents always sum to 100.
-  // Math.round on each cell can yield 99 or 101 when several fractions sit
-  // either side of .5; floor + redistribute leftover by largest fractional
-  // part avoids that without showing a misleading per-row number.
-  var sumPct = 0
-  for (var p1 = 0; p1 < rows.length; p1++) sumPct += rows[p1].pct
-  var leftover = 100 - sumPct
-  if (leftover > 0 && rows.length > 0) {
-    var order = rows.slice().sort(function (a, b) { return b.frac - a.frac })
-    for (var p2 = 0; p2 < leftover && p2 < order.length; p2++) order[p2].pct += 1
-  }
-
-  return (
-    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5 mb-6">
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Icon name="signal_cellular_alt" className="text-tertiary" />
-          <h3 className="font-display text-base tracking-wide">TIER DISTRIBUTION</h3>
-        </div>
-        <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
-          {total} active players
-        </span>
-      </div>
-      <div className="space-y-2">
-        {rows.map(function (row) {
-          var widthPct = Math.max(2, Math.round((row.count / maxCount) * 100))
-          return (
-            <div
-              key={row.rank}
-              className="flex items-center gap-3"
-              role="img"
-              aria-label={row.rank + ': ' + row.count + ' players, ' + row.pct + ' percent'}
-            >
-              <div className="w-20 sm:w-24 flex-shrink-0 text-right">
-                <span
-                  className="font-label text-[10px] sm:text-xs font-bold uppercase tracking-wide"
-                  style={{ color: row.color }}
-                >
-                  {row.rank}
-                </span>
-              </div>
-              <div className="flex-1 h-4 sm:h-5 rounded-full bg-surface-container-high overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all"
-                  style={{ width: widthPct + '%', background: row.color, boxShadow: '0 0 8px ' + row.color + '40' }}
-                ></div>
-              </div>
-              <div className="w-16 sm:w-20 flex-shrink-0 text-right font-mono text-xs">
-                <span className="text-on-surface font-bold">{row.count}</span>
-                <span className="text-on-surface-variant/40 ml-1">{row.pct + '%'}</span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 export default function StandingsScreen() {
   var ctx = useApp()
   var players = ctx.players || []
@@ -195,8 +93,6 @@ export default function StandingsScreen() {
       </PillTabGroup>
 
       <AdBanner size="banner" className="w-full mb-6" />
-
-      <TierDistributionCard players={players} />
 
       {tab === '' && <LeaderboardScreen embedded={true} />}
 

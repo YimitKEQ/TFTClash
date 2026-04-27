@@ -3,127 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { getStats } from '../lib/stats.js'
 import { MEDAL_COLORS, REGIONS } from '../lib/constants.js'
-import { normalizeRegion, REGION_META } from '../lib/regions.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Icon, Panel, Skeleton } from '../components/ui'
 import AdBanner from '../components/shared/AdBanner'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
 import WatchButton from '../components/shared/WatchButton'
-import TopMoversCard from '../components/shared/TopMoversCard'
 
-// MEDAL_COLORS imported from constants.js
-
-function regionStats(players, regionKey) {
-  var roster = []
-  for (var i = 0; i < players.length; i++) {
-    var p = players[i]
-    if (!p || p.banned) continue
-    var norm = normalizeRegion(p.region)
-    if (norm !== regionKey) continue
-    roster.push(p)
-  }
-  if (roster.length === 0) return null
-  roster.sort(function (a, b) { return (Number(b.pts) || 0) - (Number(a.pts) || 0) })
-  return {
-    region: regionKey,
-    leader: roster[0],
-    count: roster.length,
-  }
-}
-
-function RegionCard(props) {
-  var data = props.data
-  var meta = props.meta
-  var navigate = props.navigate
-  if (!data) {
-    return (
-      <div className="rounded-xl border border-outline-variant/15 bg-surface-container-low/40 p-4 flex items-center gap-3">
-        <span className="font-display text-2xl">{meta.flag}</span>
-        <div className="flex-1 min-w-0">
-          <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/50 truncate">
-            {meta.full}
-          </div>
-          <div className="font-display text-sm tracking-wide text-on-surface-variant/40 mt-0.5">
-            No players yet
-          </div>
-        </div>
-      </div>
-    )
-  }
-  var leader = data.leader
-  var leaderInitial = leader && leader.name ? leader.name[0].toUpperCase() : '?'
-  return (
-    <button
-      type="button"
-      onClick={function () {
-        if (leader && leader.name) navigate('/player/' + encodeURIComponent(leader.name))
-      }}
-      className="rounded-xl border border-outline-variant/15 bg-surface-container-low/60 hover:bg-surface-container hover:border-primary/30 transition-colors p-4 flex items-center gap-3 text-left group"
-      style={{ borderColor: meta.color + '40' }}
-    >
-      <div className="flex-shrink-0 flex flex-col items-center gap-1">
-        <span className="font-display text-2xl leading-none">{meta.flag}</span>
-        <span className="text-[9px] font-label tracking-widest uppercase font-bold" style={{ color: meta.color }}>
-          {meta.label}
-        </span>
-      </div>
-      <div
-        className="flex-shrink-0 w-10 h-10 rounded-full border-2 flex items-center justify-center font-display text-base"
-        style={{ borderColor: meta.color, color: meta.color, background: meta.color + '15' }}
-      >
-        {leaderInitial}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60 truncate">
-          Region Leader
-        </div>
-        <div className="font-display text-base tracking-wide text-on-surface mt-0.5 truncate">
-          {leader.name}
-        </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[10px] font-mono text-on-surface-variant/60 flex-wrap">
-          <span className="font-bold" style={{ color: meta.color }}>{(leader.pts || 0) + ' pts'}</span>
-          <span>{data.count + ' players'}</span>
-        </div>
-      </div>
-      <Icon name="chevron_right" size={18} className="text-on-surface-variant/40 group-hover:text-primary flex-shrink-0" />
-    </button>
-  )
-}
-
-function RegionRaceStrip(props) {
-  var players = props.players
-  var navigate = props.navigate
-
-  var both = useMemo(function () {
-    return {
-      EU: regionStats(players || [], 'EU'),
-      NA: regionStats(players || [], 'NA'),
-    }
-  }, [players])
-
-  if (!both.EU && !both.NA) return null
-
-  var euMeta = REGION_META.EU || { label: 'EU', full: 'EU', color: '#888' }
-  var naMeta = REGION_META.NA || { label: 'NA', full: 'NA', color: '#888' }
-
-  return (
-    <div className="rounded-2xl border border-outline-variant/15 bg-surface-container/40 backdrop-blur p-4 sm:p-5">
-      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Icon name="public" className="text-secondary" />
-          <h3 className="font-display text-base tracking-wide">REGION RACE</h3>
-        </div>
-        <span className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/40">
-          EU vs NA
-        </span>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <RegionCard data={both.EU} meta={euMeta} navigate={navigate} />
-        <RegionCard data={both.NA} meta={naMeta} navigate={navigate} />
-      </div>
-    </div>
-  )
-}
 var TIERS_OPTIONS = ['All', 'Challenger', 'Grandmaster', 'Master', 'Diamond', 'Platinum', 'Gold', 'Silver', 'Bronze']
 
 var TIER_DIVIDERS = [
@@ -364,16 +249,6 @@ export default function LeaderboardScreen(props) {
             <PodiumCard player={top3[2]} rank={3} onClick={function() { openPlayer(top3[2]) }} />
           </section>
         )}
-
-        {/* Region Race */}
-        <div className="mb-6">
-          <RegionRaceStrip players={players} navigate={navigate} />
-        </div>
-
-        {/* Recent Movers */}
-        <div className="mb-10">
-          <TopMoversCard players={players} gamesWindow={5} limit={5} />
-        </div>
 
         {/* Ad Banner (standalone only — StandingsScreen injects its own when embedded) */}
         {!embedded && <AdBanner size="banner" className="w-full mb-8" />}

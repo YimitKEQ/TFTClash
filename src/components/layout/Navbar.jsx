@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { Btn, Icon } from '../ui';
-import PatchBanner from '../shared/PatchBanner';
 
 var SCREEN_TO_ROUTE = {
   home: '/', login: '/login', signup: '/signup', standings: '/standings',
@@ -301,7 +300,6 @@ export default function Navbar() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 shrink-0">
-            <PatchBanner />
             {dispCount > 0 && (
               <button onClick={function() { navTo('admin'); }}
                 className="flex items-center gap-1.5 px-2.5 py-1 bg-red-500/10 border border-red-500/30 rounded-full cursor-pointer animate-pulse">

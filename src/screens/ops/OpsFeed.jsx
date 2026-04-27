@@ -46,15 +46,13 @@ export default function OpsFeed() {
   var filter = _filter[0]
   var setFilter = _filter[1]
 
-  useEffect(function() {
-    var cancelled = false
+  function fetchFeed() {
     setLoading(true)
-    Promise.all([
+    return Promise.all([
       supabase.from('activity_feed').select('*').order('created_at', { ascending: false }).limit(50),
       supabase.from('registrations').select('id, player_id, tournament_id, status, created_at, players(username), tournaments(name)').order('created_at', { ascending: false }).limit(20),
       supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(30),
     ]).then(function(results) {
-      if (cancelled) return
       if (results[0].error) console.warn('Activity feed query failed:', results[0].error.message)
       if (results[1].error) console.warn('Registrations query failed:', results[1].error.message)
       if (results[2].error) console.warn('Audit log query failed:', results[2].error.message)
@@ -62,8 +60,11 @@ export default function OpsFeed() {
       setRecentRegs(results[1].data || [])
       setAuditLog(results[2].data || [])
       setLoading(false)
-    }).catch(function(err) { if (!cancelled) { console.warn('Feed fetch error:', err); setLoading(false) } })
-    return function() { cancelled = true }
+    }).catch(function(err) { console.warn('Feed fetch error:', err); setLoading(false) })
+  }
+
+  useEffect(function() {
+    fetchFeed()
   }, [])
 
   var filteredActivity = filter === 'all'
