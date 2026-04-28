@@ -276,7 +276,10 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
 
   useEffect(function() {
     if (!currentUser || !featuredEvents || featuredEvents.length === 0) return
-    var ids = featuredEvents.map(function(e) { return e.id })
+    var ids = featuredEvents
+      .map(function(e) { return e.id })
+      .filter(function(id) { return typeof id === 'number' || (typeof id === 'string' && /^\d+$/.test(id)) })
+    if (ids.length === 0) return
     supabase
       .from('event_registrations')
       .select('event_id')

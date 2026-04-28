@@ -307,16 +307,19 @@ export function checkAchievements(player, rank) {
 }
 
 export function syncAchievements(playerId, earnedIds) {
-  // Lazy import to avoid circular dependency
+  if (!playerId || !earnedIds || earnedIds.length === 0) return;
   var rows = earnedIds.map(function(aid) {
-    return {player_id: playerId, achievement_id: aid};
+    var def = ACHIEVEMENTS.find(function(a) { return a.id === aid; });
+    return {player_id: playerId, achievement_id: aid, tier: (def && def.tier) || 'bronze'};
   });
-  if (rows.length > 0) {
-    import('./supabase.js').then(function(mod) {
+  // Lazy import to avoid circular dependency
+  import('./supabase.js').then(function(mod) {
+    mod.supabase.auth.getSession().then(function(s) {
+      if (!s || !s.data || !s.data.session) return;
       mod.supabase.from("player_achievements").upsert(rows, {onConflict: "player_id,achievement_id"})
         .then(function(r) { });
     });
-  }
+  });
 }
 
 export function isHotStreak(p) { return (p.currentStreak || 0) >= 3; }

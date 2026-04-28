@@ -492,11 +492,11 @@ export default function HofScreen(props) {
               SEASON CHAMPIONS
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {SEASON_CHAMPS.map(function(s) {
+              {SEASON_CHAMPS.map(function(s, i) {
                 var isActive = s.status === 'active'
                 return (
                   <Panel
-                    key={s.season}
+                    key={i + '-' + s.season + '-' + (s.champion || '')}
                     elevation={isActive ? 'default' : 'elevated'}
                     padding="default"
                     radius="xl"
@@ -602,7 +602,7 @@ export default function HofScreen(props) {
                             var runnerClasses = ['text-[#C0C0C0]', 'text-[#CD7F32]']
                             var labels = ['2nd', '3rd']
                             return (
-                              <div key={ru} className="flex items-center gap-2 text-xs text-on-surface/50">
+                              <div key={i + '-' + ru} className="flex items-center gap-2 text-xs text-on-surface/50">
                                 <span className={'font-label text-[10px] font-bold min-w-[24px] ' + runnerClasses[i]}>
                                   {labels[i]}
                                 </span>

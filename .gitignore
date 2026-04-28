@@ -37,3 +37,4 @@ tests/sim-results/
 # Python
 __pycache__/
 *.pyc
+tests/sim-results-tournament/

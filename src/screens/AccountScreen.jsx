@@ -178,7 +178,7 @@ export default function AccountScreen() {
 
   useEffect(function() {
     if (!user || !user.id) return;
-    supabase.from('user_subscriptions').select('*').eq('user_id', user.auth_user_id || user.id).single()
+    supabase.from('user_subscriptions').select('*').eq('user_id', user.auth_user_id || user.id).maybeSingle()
       .then(function(res) { if (res.data && res.data.status === 'active') setSubscription(res.data); }).catch(function() {});
   }, [user && user.id]);
 

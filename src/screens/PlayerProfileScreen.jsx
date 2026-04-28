@@ -262,7 +262,7 @@ export default function PlayerProfileScreen() {
   var setProfileSubTier = _subTier[1];
   useEffect(function() {
     if (!player || !player.auth_user_id) { setProfileSubTier(null); return; }
-    supabase.from('user_subscriptions').select('tier, status').eq('user_id', player.auth_user_id).single()
+    supabase.from('user_subscriptions').select('tier, status').eq('user_id', player.auth_user_id).maybeSingle()
       .then(function(res) {
         if (res.data && res.data.status === 'active' && res.data.tier !== 'free') {
           setProfileSubTier(res.data.tier);
