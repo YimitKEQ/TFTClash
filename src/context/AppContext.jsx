@@ -624,7 +624,7 @@ export function AppProvider(props) {
             });
           // Reconcile prize pool / finale flag / rules from tournaments table — source of truth.
           supabase.from('tournaments').select('prize_pool_json,rules_text,is_finale,name,date,max_players,round_count,region')
-            .eq('id',ts.dbTournamentId).single()
+            .eq('id',ts.dbTournamentId).maybeSingle()
             .then(function(tRes){
               if(tRes.error||!tRes.data)return;
               var pool=tRes.data.prize_pool_json;

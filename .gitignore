@@ -32,6 +32,7 @@ Codebase/
 # Test output
 playwright-report/
 test-results/
+tests/sim-results/
 
 # Python
 __pycache__/

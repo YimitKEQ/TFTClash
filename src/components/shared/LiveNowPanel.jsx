@@ -4,7 +4,7 @@ import { Icon } from '../ui'
 import { supabase } from '../../lib/supabase.js'
 import RegionBadge from './RegionBadge'
 
-var ACTIVE_PHASES = ['registration', 'check_in', 'in_progress', 'live']
+var ACTIVE_PHASES = ['registration', 'check_in', 'in_progress']
 
 var PHASE_META = {
   registration: { label: 'Registration', icon: 'how_to_reg', tone: 'secondary' },
@@ -111,14 +111,11 @@ export default function LiveNowPanel(props) {
       return
     }
     var cancelled = false
-    supabase.from('tournaments').select('id,name,phase,date,region,host,max_players,status').in('phase', ACTIVE_PHASES).order('date', { ascending: true }).limit(20)
+    supabase.from('tournaments').select('id,name,phase,date,region,max_players').in('phase', ACTIVE_PHASES).order('date', { ascending: true }).limit(20)
       .then(function (res) {
         if (cancelled) return
         setLoading(false)
-        if (res && res.data) {
-          var visible = res.data.filter(function (t) { return t.status !== 'draft' })
-          setItems(visible)
-        }
+        if (res && res.data) setItems(res.data)
       })
       .catch(function () { if (!cancelled) setLoading(false) })
     return function () { cancelled = true }

@@ -55,7 +55,7 @@ export default function PinnedTournamentsBar(props) {
     }
     if (!supabase || !supabase.from) return
     var cancelled = false
-    supabase.from('tournaments').select('id,name,phase,date,region,host,status').in('id', ids)
+    supabase.from('tournaments').select('id,name,phase,date,region').in('id', ids)
       .then(function (res) {
         if (cancelled) return
         if (res && !res.error && res.data) {

@@ -177,7 +177,7 @@ export default function LinksScreen() {
         .from('site_settings')
         .select('value')
         .eq('key', 'social_links')
-        .single()
+        .maybeSingle()
         .then(function (res) {
           if (!alive) return
           if (res.error || !res.data) {

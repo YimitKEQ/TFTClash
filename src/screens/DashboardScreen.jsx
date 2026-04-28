@@ -280,7 +280,7 @@ function RecentFormCard({ linkedPlayer, clashHistory, onViewProfile }) {
             var timeStr = h.date || ''
             return (
               <div
-                key={h.clashId || ("recent-" + i)}
+                key={"recent-" + i + "-" + (h.round || h.clashId || '')}
                 className={'flex items-center justify-between p-3 bg-surface-container rounded border ' + (isTop4 ? 'border-tertiary/40' : 'border-outline-variant/20')}
               >
                 <div className="flex items-center gap-3">
