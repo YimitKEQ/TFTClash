@@ -979,7 +979,7 @@ export function AppProvider(props) {
   var playersLoadedCount=players.length;
   useEffect(function(){
     if(!supabase.from||!playersLoadedCount)return;
-    supabase.from('tournaments').select('id,name,date').eq('phase','complete').order('date',{ascending:false}).limit(50)
+    supabase.from('tournaments').select('id,name,date').eq('phase','complete').eq('type','season_clash').order('date',{ascending:false}).limit(50)
       .then(function(res){
         if(res.error){return;}
         if(!res.data||!res.data.length){setPastClashes([]);return;}
