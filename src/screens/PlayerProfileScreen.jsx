@@ -310,7 +310,9 @@ export default function PlayerProfileScreen() {
     Promise.all([
       supabase.from('player_consistency_stats').select('*').eq('player_id', player.id).single(),
       supabase.from('player_h2h_stats').select('*').or('player_a_id.eq.' + player.id + ',player_b_id.eq.' + player.id),
-      supabase.from('game_results').select('placement, tournament_id').eq('player_id', player.id).gte('placement', 1).lte('placement', 8).order('tournament_id'),
+      // Player profile deep stats are season-only. Custom/flash placements
+      // belong on the per-tournament page, not in season aggregates.
+      supabase.from('game_results').select('placement, tournament_id, tournaments!inner(type)').eq('tournaments.type', 'season_clash').eq('player_id', player.id).gte('placement', 1).lte('placement', 8).order('tournament_id'),
     ]).then(function(results) {
       var sRes = results[0];
       var hRes = results[1];

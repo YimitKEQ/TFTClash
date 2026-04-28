@@ -273,8 +273,12 @@ export function AppProvider(props) {
         // Set players immediately so the UI is never empty while enrichment loads
         setPlayers(mapped);
         // Enrich with game_results for detailed stats (clashHistory, streaks, etc.)
+        // CRITICAL: scope to season_clash tournaments only. Custom and flash
+        // tournaments record into the same game_results table but must NOT
+        // pollute leaderboard / standings totals (they are isolated flows).
         var freshMapped=mapped;
-        supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
+        supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number,tournaments!inner(type)')
+          .eq('tournaments.type','season_clash')
           .order('tournament_id',{ascending:true}).order('round_number',{ascending:true}).order('game_number',{ascending:true})
           .limit(50000)
           .then(function(gr){

@@ -141,7 +141,7 @@ export default function OpsMaintenance(props) {
     if (!active) { toast('No active season found', 'error'); return }
     if (!window.confirm('Recompute standings for season ' + active.number + ' (' + active.name + ')?\n\nThis recalculates season_pts, wins, top4, games, avg_placement for every player from the game_results table.')) return
     setBusy('recompute')
-    supabase.from('tournaments').select('id').eq('season_id', active.id).then(function(tr) {
+    supabase.from('tournaments').select('id').eq('season_id', active.id).eq('type', 'season_clash').then(function(tr) {
       if (tr.error) { toast('Load tournaments failed: ' + tr.error.message, 'error'); setBusy(''); return }
       var tids = (tr.data || []).map(function(x) { return x.id })
       if (tids.length === 0) { toast('No tournaments in active season', 'info'); setBusy(''); return }

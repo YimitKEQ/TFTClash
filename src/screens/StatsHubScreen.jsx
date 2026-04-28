@@ -711,8 +711,11 @@ export default function StatsHubScreen() {
     Promise.all([
       supabase.from('player_consistency_stats').select('*').order('consistency_score', { ascending: false }),
       supabase.from('player_h2h_stats').select('*'),
-      supabase.from('game_results').select('player_id, placement, tournament_id').gte('placement', 1).lte('placement', 8),
-      supabase.from('tournaments').select('id, name, created_at').order('created_at'),
+      // StatsHub is the season stats hub. Custom and flash tournaments must
+      // not skew season placement averages, so we scope both lists to
+      // type=season_clash.
+      supabase.from('game_results').select('player_id, placement, tournament_id, tournaments!inner(type)').eq('tournaments.type', 'season_clash').gte('placement', 1).lte('placement', 8),
+      supabase.from('tournaments').select('id, name, created_at').eq('type', 'season_clash').order('created_at'),
     ]).then(function(results) {
       var cRes = results[0];
       var hRes = results[1];
