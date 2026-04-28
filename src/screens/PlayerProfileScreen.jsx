@@ -307,12 +307,16 @@ export default function PlayerProfileScreen() {
     if (deepStats !== null) return; // already loaded
     setDeepLoading(true);
     setDeepError(null);
-    Promise.all([
+    // Player profile deep stats are season-only. Two-step query: pull
+    // season_clash tournament ids, then constrain game_results.
+    supabase.from('tournaments').select('id').eq('type', 'season_clash').limit(2000).then(function(tIdRes) {
+      var seasonIds = (tIdRes && tIdRes.data ? tIdRes.data : []).map(function(t) { return t.id; });
+      Promise.all([
       supabase.from('player_consistency_stats').select('*').eq('player_id', player.id).single(),
       supabase.from('player_h2h_stats').select('*').or('player_a_id.eq.' + player.id + ',player_b_id.eq.' + player.id),
-      // Player profile deep stats are season-only. Custom/flash placements
-      // belong on the per-tournament page, not in season aggregates.
-      supabase.from('game_results').select('placement, tournament_id, tournaments!inner(type)').eq('tournaments.type', 'season_clash').eq('player_id', player.id).gte('placement', 1).lte('placement', 8).order('tournament_id'),
+      seasonIds.length === 0
+        ? Promise.resolve({ data: [], error: null })
+        : supabase.from('game_results').select('placement, tournament_id').in('tournament_id', seasonIds).eq('player_id', player.id).gte('placement', 1).lte('placement', 8).order('tournament_id'),
     ]).then(function(results) {
       var sRes = results[0];
       var hRes = results[1];
@@ -328,6 +332,10 @@ export default function PlayerProfileScreen() {
       setDeepLoading(false);
     }).catch(function(e) {
       setDeepError(e.message || 'Failed to load');
+      setDeepLoading(false);
+    });
+    }).catch(function(e) {
+      setDeepError(e.message || 'Failed to load season tournaments');
       setDeepLoading(false);
     });
   }, [tab, player ? player.id : null]);

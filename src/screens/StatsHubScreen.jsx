@@ -708,14 +708,19 @@ export default function StatsHubScreen() {
   function load() {
     setLoading(true);
     setError(null);
-    Promise.all([
-      supabase.from('player_consistency_stats').select('*').order('consistency_score', { ascending: false }),
-      supabase.from('player_h2h_stats').select('*'),
-      // StatsHub is the season stats hub. Custom and flash tournaments must
-      // not skew season placement averages, so we scope both lists to
-      // type=season_clash.
-      supabase.from('game_results').select('player_id, placement, tournament_id, tournaments!inner(type)').eq('tournaments.type', 'season_clash').gte('placement', 1).lte('placement', 8),
-      supabase.from('tournaments').select('id, name, created_at').eq('type', 'season_clash').order('created_at'),
+    // Two-step: pull the season_clash id list first, then constrain the
+    // game_results query to it. Avoids relying on PostgREST !inner filter
+    // semantics for the season-isolation guarantee.
+    supabase.from('tournaments').select('id, name, created_at').eq('type', 'season_clash').order('created_at').then(function(tRes) {
+      if (tRes.error) { setError(tRes.error.message || 'Failed to load tournaments'); setLoading(false); return; }
+      var seasonIds = (tRes.data || []).map(function(t) { return t.id; });
+      Promise.all([
+        supabase.from('player_consistency_stats').select('*').order('consistency_score', { ascending: false }),
+        supabase.from('player_h2h_stats').select('*'),
+        seasonIds.length === 0
+          ? Promise.resolve({ data: [], error: null })
+          : supabase.from('game_results').select('player_id, placement, tournament_id').in('tournament_id', seasonIds).gte('placement', 1).lte('placement', 8),
+        Promise.resolve(tRes),
     ]).then(function(results) {
       var cRes = results[0];
       var hRes = results[1];
@@ -733,6 +738,10 @@ export default function StatsHubScreen() {
       setLoading(false);
     }).catch(function(e) {
       setError(e.message || 'Failed to load stats');
+      setLoading(false);
+    });
+    }).catch(function(e) {
+      setError(e.message || 'Failed to load tournaments');
       setLoading(false);
     });
   }

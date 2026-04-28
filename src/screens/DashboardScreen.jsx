@@ -1069,8 +1069,10 @@ function ClashCard() {
         if (r.error) {
           var code = r.error.code || ''
           if (code === '23503' && setTournamentState) {
-            // dbTournamentId points to a deleted tournament. Self-heal so the
-            // next click sees "registration not open" instead of the FK error.
+            // dbTournamentId points to a deleted tournament. Self-heal
+            // locally AND ask the server to clear the stale site_settings
+            // pointer so the next user to register isn't stuck on the same
+            // dangling reference.
             setTournamentState(function(ts) {
               return Object.assign({}, ts, {
                 dbTournamentId: null,
@@ -1079,6 +1081,8 @@ function ClashCard() {
                 registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== sid })
               })
             })
+            var region = (tournamentState && tournamentState.server === 'NA') ? 'NA' : 'EU'
+            if (supabase && supabase.rpc) supabase.rpc('clear_stale_tournament_state', { p_region: region }).then(function() {}).catch(function() {})
             toast('Registration is not open. The clash was reset, please refresh.', 'error')
             return
           }

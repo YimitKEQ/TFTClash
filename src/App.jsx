@@ -553,9 +553,13 @@ function TFTClash(){
           if(!r||!r.error)return;
           var code=r.error.code||'';
           if(code==='23503'){
-            // The dbTournamentId points at a deleted tournament. Self-heal:
-            // clear it so the next click hits the "registration not open" gate.
+            // The dbTournamentId points at a deleted tournament. Self-heal
+            // locally AND ask the server to clear site_settings so the next
+            // user to load doesn't hit the same dangling reference. The RPC
+            // is a no-op if the tournament still exists (admin protected).
             if(setTournamentState){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:null,activeTournamentId:null,phase:'idle',registeredIds:(ts.registeredIds||[]).filter(function(id){return id!==sid})})});}
+            var region=(tournamentState&&tournamentState.server==='NA')?'NA':'EU';
+            if(supabase&&supabase.rpc)supabase.rpc('clear_stale_tournament_state',{p_region:region}).then(function(){}).catch(function(){});
             toast('Registration is not open. The clash was reset.','error');
             return;
           }

@@ -276,9 +276,15 @@ export function AppProvider(props) {
         // CRITICAL: scope to season_clash tournaments only. Custom and flash
         // tournaments record into the same game_results table but must NOT
         // pollute leaderboard / standings totals (they are isolated flows).
+        // Two-step query (fetch ids, then filter) instead of an !inner join —
+        // the join-side filter is fragile across PostgREST versions and we
+        // can't risk silent leakage on the season standings.
         var freshMapped=mapped;
-        supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number,tournaments!inner(type)')
-          .eq('tournaments.type','season_clash')
+        supabase.from('tournaments').select('id').eq('type','season_clash').limit(2000).then(function(tIdRes){
+          var seasonIds=(tIdRes&&tIdRes.data?tIdRes.data:[]).map(function(t){return t.id;});
+          if(!seasonIds.length){return;}
+          supabase.from('game_results').select('player_id,placement,points,round_number,tournament_id,game_number')
+          .in('tournament_id',seasonIds)
           .order('tournament_id',{ascending:true}).order('round_number',{ascending:true}).order('game_number',{ascending:true})
           .limit(50000)
           .then(function(gr){
@@ -321,6 +327,7 @@ export function AppProvider(props) {
               setPlayers(mapped);
             }
           }).catch(function(e){ console.error('[TFT] game_results enrich error:', e); });
+        }).catch(function(e){ console.error('[TFT] season tournament id fetch failed:', e); });
       }).catch(function(e){
         console.error('[TFT] Players fetch failed:', e);
         if(playerRetryCount.current<3){
@@ -635,10 +642,23 @@ export function AppProvider(props) {
               });
             });
           // Reconcile prize pool / finale flag / rules from tournaments table — source of truth.
-          supabase.from('tournaments').select('prize_pool_json,rules_text,is_finale,name,date,max_players,round_count,region')
+          // If the tournament row is GONE (admin deleted it but site_settings still references it),
+          // clear dbTournamentId locally so a player attempting to register
+          // does not crash with FK 23503 against a dangling reference. The
+          // server-side site_settings will be re-synced by the next admin
+          // action; non-admin clients can't write to site_settings directly.
+          supabase.from('tournaments').select('id,prize_pool_json,rules_text,is_finale,name,date,max_players,round_count,region')
             .eq('id',ts.dbTournamentId).maybeSingle()
             .then(function(tRes){
-              if(tRes.error||!tRes.data)return;
+              if(tRes.error)return;
+              if(!tRes.data){
+                setTournamentState(function(ts2){
+                  if(!ts2||ts2.dbTournamentId!==ts.dbTournamentId)return ts2;
+                  rtRef.current.tournament_state=true;
+                  return Object.assign({},ts2,{dbTournamentId:null,activeTournamentId:null,phase:'idle',registeredIds:[],checkedInIds:[],waitlistIds:[],lobbies:[],lockedLobbies:[]});
+                });
+                return;
+              }
               var pool=tRes.data.prize_pool_json;
               if(typeof pool==='string'){try{pool=JSON.parse(pool);}catch(e){pool=null;}}
               setTournamentState(function(ts2){

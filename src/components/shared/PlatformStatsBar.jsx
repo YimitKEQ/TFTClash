@@ -55,39 +55,57 @@ export default function PlatformStatsBar(props) {
     var cancelled = false
 
     function load() {
-      // Filter tournaments to phase=complete on the server so we don't pull
-      // in-progress rows just to discard them client-side. Prize pool still
-      // needs the rows to sum across — selecting only id,prize_pool keeps
-      // payload tight.
-      var tournamentsQ = supabase.from('tournaments').select('id,prize_pool').eq('phase', 'complete').limit(2000)
+      // Marketing stats are season-only — completed tournament count and
+      // total games shown publicly must not include custom or flash events.
+      // Read the canonical prize pool from prize_pool_json (the flat
+      // prize_pool column is legacy and was never populated by the rebuilt
+      // admin flow).
+      var tournamentsQ = supabase.from('tournaments').select('id,prize_pool,prize_pool_json').eq('type', 'season_clash').eq('phase', 'complete').limit(2000)
       var playersQ = supabase.from('players').select('id', { count: 'exact', head: true }).eq('banned', false)
-      var gamesQ = supabase.from('game_results').select('id', { count: 'exact', head: true })
 
-      Promise.all([tournamentsQ, playersQ, gamesQ])
-        .then(function (results) {
+      tournamentsQ
+        .then(function (tRes) {
           if (cancelled) return
-          var tournRes = results[0]
-          var playerRes = results[1]
-          var gamesRes = results[2]
+          var seasonIds = (tRes && tRes.data ? tRes.data : []).map(function (t) { return t.id })
+          var gamesQ = seasonIds.length === 0
+            ? Promise.resolve({ count: 0 })
+            : supabase.from('game_results').select('id', { count: 'exact', head: true }).in('tournament_id', seasonIds)
+          Promise.all([Promise.resolve(tRes), playersQ, gamesQ])
+            .then(function (results) {
+              if (cancelled) return
+              var tournRes = results[0]
+              var playerRes = results[1]
+              var gamesRes = results[2]
 
-          var completedTournaments = 0
-          var prizePool = 0
-          if (tournRes && tournRes.data) {
-            completedTournaments = tournRes.data.length
-            for (var i = 0; i < tournRes.data.length; i++) {
-              prizePool += Number(tournRes.data[i].prize_pool) || 0
-            }
-          }
-          var playerCount = (playerRes && typeof playerRes.count === 'number') ? playerRes.count : 0
-          var gameCount = (gamesRes && typeof gamesRes.count === 'number') ? gamesRes.count : 0
+              var completedTournaments = 0
+              var prizePool = 0
+              if (tournRes && tournRes.data) {
+                completedTournaments = tournRes.data.length
+                for (var i = 0; i < tournRes.data.length; i++) {
+                  var row = tournRes.data[i]
+                  var poolJson = row.prize_pool_json
+                  if (typeof poolJson === 'string') { try { poolJson = JSON.parse(poolJson) } catch (e) { poolJson = null } }
+                  if (Array.isArray(poolJson)) {
+                    for (var j = 0; j < poolJson.length; j++) prizePool += Number(poolJson[j].amount) || 0
+                  } else {
+                    prizePool += Number(row.prize_pool) || 0
+                  }
+                }
+              }
+              var playerCount = (playerRes && typeof playerRes.count === 'number') ? playerRes.count : 0
+              var gameCount = (gamesRes && typeof gamesRes.count === 'number') ? gamesRes.count : 0
 
-          setStats({
-            tournaments: completedTournaments,
-            players: playerCount,
-            prizePool: prizePool,
-            totalGames: gameCount,
-          })
-          setLoading(false)
+              setStats({
+                tournaments: completedTournaments,
+                players: playerCount,
+                prizePool: prizePool,
+                totalGames: gameCount,
+              })
+              setLoading(false)
+            })
+            .catch(function () {
+              if (!cancelled) setLoading(false)
+            })
         })
         .catch(function () {
           if (!cancelled) setLoading(false)

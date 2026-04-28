@@ -2250,7 +2250,9 @@ function ClashLobbyView(props) {
         if (r.error) {
           var code = r.error.code || ''
           if (code === '23503' && setTournamentState) {
-            // dbTournamentId points to a deleted tournament. Self-heal.
+            // dbTournamentId points to a deleted tournament. Self-heal
+            // locally AND server-side via RPC so the staleness doesn't
+            // outlive the current session.
             setTournamentState(function(ts) {
               return Object.assign({}, ts, {
                 dbTournamentId: null,
@@ -2259,6 +2261,8 @@ function ClashLobbyView(props) {
                 registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== psid })
               })
             })
+            var region = (tournamentState && tournamentState.server === 'NA') ? 'NA' : 'EU'
+            if (supabase && supabase.rpc) supabase.rpc('clear_stale_tournament_state', { p_region: region }).then(function() {}).catch(function() {})
             toast('Registration is not open. The clash was reset, please refresh.', 'error')
             return
           }
