@@ -57,35 +57,35 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
   var mainContent = (
     <div>
       {/* Winner Banner */}
-      <section className="flex flex-col items-center justify-center text-center py-12 relative overflow-hidden">
-        <div className="relative z-10 mb-4">
-          <Icon name="emoji_events" size={72} fill={true} className="text-primary" />
+      <section className="flex flex-col items-center justify-center text-center py-16 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent pointer-events-none" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(253,186,73,0.08),transparent_70%)] pointer-events-none" aria-hidden="true" />
+        <div className="relative z-10 mb-5 animate-fadeup">
+          <Icon name="emoji_events" size={84} fill={true} className="text-primary animate-crown-glow" aria-hidden="true" />
         </div>
-        <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-3 italic drop-shadow-[0_0_50px_rgba(253,186,73,0.3)]">
+        <p className="font-label text-xs text-primary/70 uppercase tracking-[0.4em] mb-2 animate-fadeup-d1">Grand Champion</p>
+        <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-4 italic drop-shadow-[0_0_60px_rgba(253,186,73,0.4)] animate-champ-reveal">
           {champion || 'TBD'}
         </h2>
-        <p className="font-editorial text-xl md:text-2xl italic text-on-surface-variant max-w-xl mx-auto"
-          >
-          {'"' + clashName + '" Grand Champion'}
+        <p className="font-editorial text-xl md:text-2xl italic text-on-surface-variant max-w-xl mx-auto animate-fadeup-d2">
+          {'"' + clashName + '"'}
         </p>
-        <div className="mt-6 flex gap-4 flex-wrap justify-center">
+        <div className="mt-8 flex gap-4 flex-wrap justify-center animate-fadeup-d3">
           {sorted[0] && (
-            <div className="bg-surface-container-high px-5 py-2 rounded-lg border border-outline-variant/10">
-              <p className="font-label text-xs text-on-surface-variant uppercase tracking-widest mb-0.5"
-                >
+            <div className="bg-surface-container-high px-5 py-2.5 rounded-lg border border-primary/20">
+              <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest mb-0.5">
                 Points Secured
               </p>
-              <p className="font-mono text-2xl text-primary"
-                >
+              <p className="font-mono text-2xl text-primary font-bold">
                 {sorted[0].entry ? (sorted[0].entry.clashPts || sorted[0].entry.pts || 0) : 0}
               </p>
             </div>
           )}
-          <div className="bg-surface-container-high px-5 py-2 rounded-lg border border-outline-variant/10">
-            <p className="font-label text-xs text-on-surface-variant uppercase tracking-widest mb-0.5">
+          <div className="bg-surface-container-high px-5 py-2.5 rounded-lg border border-tertiary/20">
+            <p className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest mb-0.5">
               Players
             </p>
-            <p className="font-mono text-2xl text-tertiary">
+            <p className="font-mono text-2xl text-tertiary font-bold">
               {sorted.length}
             </p>
           </div>

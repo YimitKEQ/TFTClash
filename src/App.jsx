@@ -324,7 +324,7 @@ function TFTClash(){
   var loadPlayersFromTable=ctx.loadPlayersFromTable;
   var userTier=ctx.userTier;
 
-  // ── Command palette (Cmd/Ctrl + K) ──
+  // ── Command palette (Cmd/Ctrl + K, plus global "tft:open-cmd" event) ──
   var _cmdOpen=useState(false);
   var cmdOpen=_cmdOpen[0];
   var setCmdOpen=_cmdOpen[1];
@@ -336,8 +336,13 @@ function TFTClash(){
         setCmdOpen(function(v){return !v;});
       }
     }
+    function onOpen(){setCmdOpen(true);}
     window.addEventListener("keydown",onKey);
-    return function(){window.removeEventListener("keydown",onKey);};
+    window.addEventListener("tft:open-cmd",onOpen);
+    return function(){
+      window.removeEventListener("keydown",onKey);
+      window.removeEventListener("tft:open-cmd",onOpen);
+    };
   },[]);
 
   // ── Redirect legacy screens ──
@@ -624,9 +629,16 @@ function TFTClash(){
       <Hexbg/>
 
       {isOffline&&(
-        <div style={{position:"fixed",top:0,left:0,right:0,zIndex:9998,background:"rgba(220,38,38,.9)",color:"#fff",textAlign:"center",padding:"8px 16px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
-          <span>Connection lost  -  trying to reconnect...</span>
-          <button onClick={function(){window.location.reload();}} style={{background:"rgba(255,255,255,.2)",border:"1px solid rgba(255,255,255,.3)",borderRadius:6,padding:"4px 12px",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer"}}>Retry</button>
+        <div role="status" aria-live="assertive" className="fixed top-0 left-0 right-0 z-[9998] bg-error text-on-error flex items-center justify-center gap-3 px-4 py-2 text-sm font-semibold shadow-lg">
+          <span className="live-dot live-dot--off" aria-hidden="true" />
+          <span>Connection lost. Trying to reconnect...</span>
+          <button
+            type="button"
+            onClick={function(){window.location.reload();}}
+            className="px-3 py-1 rounded text-xs font-bold uppercase tracking-wider bg-on-error/10 border border-on-error/30 hover:bg-on-error/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-error/50"
+          >
+            Retry
+          </button>
         </div>
       )}
 

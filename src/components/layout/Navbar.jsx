@@ -308,6 +308,17 @@ export default function Navbar() {
               </button>
             )}
 
+            <button
+              type="button"
+              aria-label="Open search palette"
+              onClick={function() { window.dispatchEvent(new CustomEvent('tft:open-cmd')); }}
+              className="hidden sm:flex items-center gap-2 pl-2.5 pr-2 py-1.5 rounded-lg border border-outline-variant/15 bg-surface-container-low/40 hover:bg-surface-container-low hover:border-outline-variant/30 transition-colors text-on-surface/40 hover:text-on-surface/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+            >
+              <Icon name="search" size={16} />
+              <span className="text-[11px] font-label tracking-wider hidden lg:inline">Search</span>
+              <kbd className="font-mono text-[10px] border border-outline-variant/25 rounded px-1 py-px text-on-surface/40">{typeof navigator !== 'undefined' && navigator.platform && navigator.platform.indexOf('Mac') >= 0 ? '\u2318K' : 'Ctrl K'}</kbd>
+            </button>
+
             <NotificationBell notifications={notifications || []} onMarkAllRead={markAllRead} />
 
             {currentUser ? (
