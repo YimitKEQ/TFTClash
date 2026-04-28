@@ -31,6 +31,8 @@ export default function OpsTournaments(props) {
   var ctx = useApp()
   var tournamentState = ctx.tournamentState
   var setTournamentState = ctx.setTournamentState
+  var tournamentStateNa = ctx.tournamentStateNa
+  var setTournamentStateNa = ctx.setTournamentStateNa
   var currentUser = ctx.currentUser
   var toast = ctx.toast
 
@@ -111,6 +113,14 @@ export default function OpsTournaments(props) {
     ]).then(function() {
       supabase.from('tournaments').delete().eq('id', tId).then(function(res) {
         if (res.error) { toast('Delete failed: ' + res.error.message, 'error'); return }
+        // Clear any active region pointer to this tournament so subsequent
+        // registration attempts do not crash on a dangling FK.
+        if (tournamentState && tournamentState.dbTournamentId === tId && setTournamentState) {
+          setTournamentState(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+        }
+        if (tournamentStateNa && tournamentStateNa.dbTournamentId === tId && setTournamentStateNa) {
+          setTournamentStateNa(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+        }
         addAudit('ACTION', 'Tournament deleted: ' + name)
         toast('Deleted: ' + name, 'success')
         if (onRefresh) onRefresh()

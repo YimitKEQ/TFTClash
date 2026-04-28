@@ -543,13 +543,25 @@ function TFTClash(){
         supabase.from('registrations').delete()
           .eq('tournament_id',tournamentState.dbTournamentId)
           .eq('player_id',playerId)
-          .then(function(r){});
+          .then(function(r){if(r&&r.error)toast('Unregister may not have saved','error')});
       }else{
         supabase.from('registrations').upsert({
           tournament_id:tournamentState.dbTournamentId,
           player_id:playerId,
           status:'registered'
-        },{onConflict:'tournament_id,player_id'}).then(function(r){});
+        },{onConflict:'tournament_id,player_id'}).then(function(r){
+          if(!r||!r.error)return;
+          var code=r.error.code||'';
+          if(code==='23503'){
+            // The dbTournamentId points at a deleted tournament. Self-heal:
+            // clear it so the next click hits the "registration not open" gate.
+            if(setTournamentState){setTournamentState(function(ts){return Object.assign({},ts,{dbTournamentId:null,activeTournamentId:null,phase:'idle',registeredIds:(ts.registeredIds||[]).filter(function(id){return id!==sid})})});}
+            toast('Registration is not open. The clash was reset.','error');
+            return;
+          }
+          if(setTournamentState){setTournamentState(function(ts){return Object.assign({},ts,{registeredIds:(ts.registeredIds||[]).filter(function(id){return id!==sid})})});}
+          toast('Registration failed: '+(r.error.message||'unknown'),'error');
+        });
       }
     }
     if(!isRegistered&&currentUser){

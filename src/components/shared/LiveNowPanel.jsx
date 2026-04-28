@@ -4,11 +4,12 @@ import { Icon } from '../ui'
 import { supabase } from '../../lib/supabase.js'
 import RegionBadge from './RegionBadge'
 
-var ACTIVE_PHASES = ['registration', 'check_in', 'in_progress']
+// LIVE NOW must only surface tournaments that are actually live mid-broadcast.
+// Registration / check-in clashes belong on the events page, not under a label
+// that promises a live stream.
+var ACTIVE_PHASES = ['in_progress', 'live']
 
 var PHASE_META = {
-  registration: { label: 'Registration', icon: 'how_to_reg', tone: 'secondary' },
-  check_in:     { label: 'Check-In',     icon: 'task_alt',   tone: 'primary' },
   in_progress:  { label: 'Live Now',     icon: 'bolt',       tone: 'tertiary' },
   live:         { label: 'Live Now',     icon: 'bolt',       tone: 'tertiary' },
 }
@@ -35,7 +36,7 @@ function LiveTournamentRow(props) {
   var t = props.tournament
   var regCount = props.regCount || 0
   var onView = props.onView
-  var meta = PHASE_META[t.phase] || PHASE_META.registration
+  var meta = PHASE_META[t.phase] || PHASE_META.in_progress
   var badge = TONE_BADGE[meta.tone] || TONE_BADGE.primary
   var maxP = t.max_players || 128
   var pct = Math.min(100, Math.round((regCount / maxP) * 100))
@@ -141,18 +142,9 @@ export default function LiveNowPanel(props) {
     return function () { cancelled = true }
   }, [items])
 
-  if (loading) {
-    return (
-      <div className="rounded-2xl border border-outline-variant/15 bg-surface-container p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Icon name="bolt" className="text-tertiary" />
-          <h3 className="font-display text-base tracking-wide">LIVE NOW</h3>
-        </div>
-        <div className="text-xs text-on-surface-variant/50 font-mono">Loading active tournaments...</div>
-      </div>
-    )
-  }
-
+  // While loading, render nothing rather than showing a misleading
+  // "LIVE NOW" header for what may be an empty result set.
+  if (loading) return null
   if (items.length === 0) return null
 
   var visibleItems = items.slice(0, limit)

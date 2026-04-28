@@ -958,6 +958,13 @@ export default function TournamentTab() {
                     supabase.from('tournaments').delete().eq('id', t.id).then(function(r) {
                       if (r.error) { toast('Failed: ' + r.error.message, 'error'); return }
                       setFlashTournaments(function(ts) { return ts.filter(function(x) { return x.id !== t.id }) })
+                      // Clear active region pointers so future registrations don't FK-crash.
+                      if (tournamentStateEu && tournamentStateEu.dbTournamentId === t.id && setTournamentStateEu) {
+                        setTournamentStateEu(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+                      }
+                      if (tournamentStateNa && tournamentStateNa.dbTournamentId === t.id && setTournamentStateNa) {
+                        setTournamentStateNa(function(s) { return Object.assign({}, s, { dbTournamentId: null, activeTournamentId: null, phase: 'idle', registeredIds: [], checkedInIds: [], waitlistIds: [], lobbies: [], lockedLobbies: [] }) })
+                      }
                       addAudit('ACTION', 'Tournament deleted: ' + t.name)
                       toast('Deleted', 'success')
                     }).catch(function() { toast('Delete failed', 'error') })

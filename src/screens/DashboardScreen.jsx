@@ -1067,6 +1067,21 @@ function ClashCard() {
         status: 'registered'
       }, { onConflict: 'tournament_id,player_id' }).then(function(r) {
         if (r.error) {
+          var code = r.error.code || ''
+          if (code === '23503' && setTournamentState) {
+            // dbTournamentId points to a deleted tournament. Self-heal so the
+            // next click sees "registration not open" instead of the FK error.
+            setTournamentState(function(ts) {
+              return Object.assign({}, ts, {
+                dbTournamentId: null,
+                activeTournamentId: null,
+                phase: 'idle',
+                registeredIds: (ts.registeredIds || []).filter(function(id) { return id !== sid })
+              })
+            })
+            toast('Registration is not open. The clash was reset, please refresh.', 'error')
+            return
+          }
           toast('Registration failed: ' + (r.error.message || 'unknown'), 'error')
           if (setTournamentState) {
             setTournamentState(function(ts) {
