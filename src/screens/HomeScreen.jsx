@@ -500,7 +500,11 @@ export default function HomeScreen() {
   useEffect(function() {
     if (!supabase || !supabase.from) return
     var cancelled = false
+    // The hero deck is the OFFICIAL Clash. Custom and flash tournaments have
+    // their own pages (/tournament/:id, /flash/:id) and must never show up
+    // here, otherwise a host-created event poses as "the EU/NA Clash".
     supabase.from('tournaments').select('id,name,date,region,phase,type,is_finale,started_at,registration_close_at,checkin_open_at,host_profile_id')
+      .eq('type', 'season_clash')
       .in('phase', ['registration', 'check_in', 'in_progress', 'draft'])
       .order('date', { ascending: true })
       .limit(40)
