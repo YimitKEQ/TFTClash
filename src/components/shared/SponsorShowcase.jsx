@@ -1,20 +1,22 @@
 import { useApp } from '../../context/AppContext'
 
+function normalizeHref(raw) {
+  if (!raw) return ''
+  var s = String(raw).trim()
+  if (!s) return ''
+  if (/^https?:\/\//i.test(s) || /^mailto:/i.test(s)) return s
+  return 'https://' + s.replace(/^\/+/, '')
+}
+
 function SponsorLogo(props) {
   var sponsor = props.sponsor
   var size = props.size
   var heightClass = size === 'lg' ? 'h-20' : size === 'md' ? 'h-12' : 'h-8'
-  var href = sponsor.url || sponsor.link_url || '#'
+  var href = normalizeHref(sponsor.website || sponsor.url || sponsor.link_url || '')
   var initial = (sponsor.name || '?').charAt(0).toUpperCase()
 
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="sponsored noopener noreferrer"
-      className="flex flex-col items-center gap-2 group no-underline"
-      title={sponsor.name}
-    >
+  var content = (
+    <>
       {sponsor.logo_url ? (
         <img
           src={sponsor.logo_url}
@@ -33,6 +35,26 @@ function SponsorLogo(props) {
           {sponsor.tagline}
         </span>
       ) : null}
+    </>
+  )
+
+  if (!href) {
+    return (
+      <div className="flex flex-col items-center gap-2 group" title={sponsor.name}>
+        {content}
+      </div>
+    )
+  }
+
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="sponsored noopener noreferrer"
+      className="flex flex-col items-center gap-2 group no-underline"
+      title={sponsor.name}
+    >
+      {content}
     </a>
   )
 }
