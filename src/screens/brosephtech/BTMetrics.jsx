@@ -94,7 +94,7 @@ function KpiCard(props) {
             <Sparkline values={props.sparklineValues} color={props.color} />
           )}
         </div>
-        <p className="text-3xl font-bold text-white leading-none tracking-tight" style={{ fontFamily: 'Russo One, sans-serif' }}>
+        <p className="text-3xl font-bold text-white leading-none tracking-tight" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
           {props.value !== null && props.value !== undefined ? Number(props.value).toLocaleString() : '--'}
         </p>
         {delta !== null && delta !== undefined && delta !== 0 ? (
@@ -210,7 +210,7 @@ function BTMetrics() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Channel Metrics</h2>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Channel Metrics</h2>
           <p className="text-sm text-white/40 mt-0.5">Log snapshots to track BrosephTech growth over time</p>
         </div>
         <button

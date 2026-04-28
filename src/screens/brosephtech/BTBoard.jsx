@@ -2501,7 +2501,7 @@ function BTBoard() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="min-w-0">
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Content Board</h2>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Content Board</h2>
           <p className="text-sm text-white/40 mt-0.5">
             {cards.length} cards total
             {filterAssignee && ' - filtered: ' + filterAssignee}

@@ -134,7 +134,7 @@ var surfaceBase = { background: 'rgba(255,255,255,0.02)' }
 function SectionLabel(props) {
   return (
     <div className="text-[11px] uppercase font-semibold tracking-wider mb-2 text-on-surface/60"
-      style={{ fontFamily: 'Barlow Condensed, sans-serif' }}>
+      style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
       {props.children}
     </div>
   )
@@ -155,7 +155,7 @@ function StatPill(props) {
     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10">
       <Icon name={props.icon} size={14} className="text-primary"/>
       <div>
-        <div className="text-[10px] uppercase tracking-wider text-on-surface/50 leading-none" style={{fontFamily:'Barlow Condensed'}}>{props.label}</div>
+        <div className="text-[10px] uppercase tracking-wider text-on-surface/50 leading-none" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>{props.label}</div>
         <div className="text-sm font-bold text-on-surface leading-tight">{props.value}</div>
       </div>
     </div>
@@ -352,7 +352,7 @@ function GenerateTab(props) {
                     transform: active ? 'translateY(-1px)' : 'none',
                   }}>
                   <Icon name={p.icon} size={22}/>
-                  <span className="text-sm font-bold" style={{fontFamily:'Barlow Condensed, sans-serif', letterSpacing:'0.05em'}}>{p.name.toUpperCase()}</span>
+                  <span className="text-sm font-bold" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.05em'}}>{p.name.toUpperCase()}</span>
                 </button>
               )
             })}
@@ -375,7 +375,7 @@ function GenerateTab(props) {
                     boxShadow: active ? '0 0 10px rgba(232,168,56,0.15)' : 'none',
                   }}>
                   <Icon name={t.icon} size={14}/>
-                  <span className="font-semibold" style={{fontFamily:'Barlow Condensed'}}>{t.label.toUpperCase()}</span>
+                  <span className="font-semibold" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>{t.label.toUpperCase()}</span>
                 </button>
               )
             })}
@@ -414,10 +414,10 @@ function GenerateTab(props) {
             <input type="checkbox" checked={includeTrends} onChange={function(e){setIncludeTrends(e.target.checked)}}
               style={{accentColor:'#E8A838'}}/>
             <Icon name="trending_up" size={14} style={{color:'#E8A838'}}/>
-            <span style={{fontFamily:'Barlow Condensed', letterSpacing:'0.03em'}}>INJECT LIVE TFT TRENDS</span>
+            <span style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.03em'}}>INJECT LIVE TFT TRENDS</span>
           </label>
           <div className="flex items-center gap-3">
-            <span className="text-[10px] uppercase tracking-widest text-on-surface/50" style={{fontFamily:'Barlow Condensed'}}>Variations</span>
+            <span className="text-[10px] uppercase tracking-widest text-on-surface/50" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>Variations</span>
             <div className="flex gap-1">
               {[1,2,3].map(function(n){
                 var active = variations===n
@@ -444,7 +444,7 @@ function GenerateTab(props) {
               boxShadow: loading ? 'none' : '0 0 30px rgba(232,168,56,0.4), 0 4px 12px rgba(0,0,0,0.3)',
               textTransform: 'uppercase',
               letterSpacing: '0.15em',
-              fontFamily: 'Barlow Condensed, sans-serif',
+              fontFamily: 'Subtle, system-ui, sans-serif',
               fontSize: '15px',
               border: 'none',
               cursor: loading ? 'wait' : 'pointer',
@@ -489,8 +489,8 @@ function GenerateTab(props) {
           {!results.length && !loading && (
             <div className="flex flex-col items-center justify-center text-center py-24">
               <div className="mb-4 text-5xl" style={{color:'#E8A838'}}>{'\u2728'}</div>
-              <div className="text-lg font-bold text-on-surface/80 mb-2" style={{fontFamily:'Playfair Display, serif'}}>Ready to cook</div>
-              <div className="text-xs text-on-surface/40 max-w-sm" style={{fontFamily:'Barlow Condensed'}}>
+              <div className="text-lg font-bold text-on-surface/80 mb-2" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>Ready to cook</div>
+              <div className="text-xs text-on-surface/40 max-w-sm" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
                 PICK PLATFORM. PICK TYPE. PICK TONE. SMASH GENERATE. STEAL THE ALGORITHM.
               </div>
             </div>
@@ -503,7 +503,7 @@ function GenerateTab(props) {
                 <div className="absolute inset-2 rounded-full" style={{background:'linear-gradient(135deg,#E8A838,#B8860B)'}}/>
                 <Icon name="auto_awesome" size={24} className="absolute inset-0 m-auto text-black"/>
               </div>
-              <div className="text-sm text-on-surface/80 font-bold" style={{fontFamily:'Barlow Condensed', letterSpacing:'0.1em'}}>{(loadingMsg || 'COOKING').toUpperCase()}</div>
+              <div className="text-sm text-on-surface/80 font-bold" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.1em'}}>{(loadingMsg || 'COOKING').toUpperCase()}</div>
             </div>
           )}
 
@@ -531,7 +531,7 @@ function GenerateTab(props) {
                 <div className="flex items-center gap-3">
                   <div className="text-xs font-bold" style={{
                     color: twitterOver ? '#F87171' : '#BECBD9',
-                    fontFamily: 'Barlow Condensed',
+                    fontFamily: 'Subtle, system-ui, sans-serif',
                     letterSpacing: '0.05em'
                   }}>
                     {charCount} CHARS {twitterOver && '\u26a0 OVER 280 LIMIT'}
@@ -540,7 +540,7 @@ function GenerateTab(props) {
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px]"
                       style={{background:'rgba(0,171,108,0.15)', color:'#00AB6C', border:'1px solid rgba(0,171,108,0.3)'}}>
                       <Icon name="trending_up" size={10}/>
-                      <span style={{fontFamily:'Barlow Condensed'}}>TRENDS INJECTED</span>
+                      <span style={{fontFamily:'Subtle, system-ui, sans-serif'}}>TRENDS INJECTED</span>
                     </div>
                   )}
                 </div>
@@ -563,7 +563,7 @@ function GenerateTab(props) {
                   style={{
                     background: 'linear-gradient(135deg,' + platformObj.color + ',' + platformObj.color + 'aa)',
                     color: '#fff',
-                    fontFamily: 'Barlow Condensed',
+                    fontFamily: 'Subtle, system-ui, sans-serif',
                     letterSpacing: '0.08em',
                     border: 'none',
                     boxShadow: '0 0 14px ' + platformObj.glow,
@@ -574,7 +574,7 @@ function GenerateTab(props) {
 
               {/* REMIX BAR */}
               <div className="pt-3" style={{borderTop:'1px dashed rgba(232,168,56,0.2)'}}>
-                <div className="text-[10px] uppercase tracking-widest text-on-surface/50 mb-2" style={{fontFamily:'Barlow Condensed'}}>Quick Remix</div>
+                <div className="text-[10px] uppercase tracking-widest text-on-surface/50 mb-2" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>Quick Remix</div>
                 <div className="flex gap-1.5 flex-wrap">
                   {REMIX_ACTIONS.map(function(a){
                     return (
@@ -584,7 +584,7 @@ function GenerateTab(props) {
                           background: 'rgba(232,168,56,0.06)',
                           border: '1px solid rgba(232,168,56,0.2)',
                           color: '#E8A838',
-                          fontFamily: 'Barlow Condensed',
+                          fontFamily: 'Subtle, system-ui, sans-serif',
                         }}>
                         <Icon name={a.icon} size={11}/>{a.label.toUpperCase()}
                       </button>
@@ -696,7 +696,7 @@ function CampaignTab(props) {
                 )
               })}
             </div>
-            <div className="text-[10px] text-on-surface/40 mt-2" style={{fontFamily:'Barlow Condensed'}}>
+            <div className="text-[10px] text-on-surface/40 mt-2" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
               TOTAL: {postsPerPlatform * PLATFORMS.length} POSTS ACROSS 4 PLATFORMS
             </div>
           </div>
@@ -708,13 +708,13 @@ function CampaignTab(props) {
               boxShadow: loading ? 'none' : '0 0 30px rgba(232,168,56,0.4)',
               textTransform: 'uppercase',
               letterSpacing: '0.15em',
-              fontFamily: 'Barlow Condensed',
+              fontFamily: 'Subtle, system-ui, sans-serif',
               border: 'none',
               cursor: loading ? 'wait' : 'pointer',
             }}>
             {loading ? (progress || 'Running...') : '\ud83d\ude80 Launch Campaign'}
           </button>
-          <div className="text-[11px] text-on-surface/50" style={{fontFamily:'Barlow Condensed'}}>
+          <div className="text-[11px] text-on-surface/50" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
             Generates {postsPerPlatform * PLATFORMS.length} unique posts and saves all as drafts. Review in Library.
           </div>
         </div>
@@ -725,7 +725,7 @@ function CampaignTab(props) {
           {!generated.length && !loading && (
             <div className="text-center py-16 text-on-surface/40">
               <Icon name="rocket_launch" size={40} style={{color:'#E8A838'}}/>
-              <div className="mt-3 text-xs" style={{fontFamily:'Barlow Condensed', letterSpacing:'0.1em'}}>SET A THEME. LAUNCH. WATCH IT COOK.</div>
+              <div className="mt-3 text-xs" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.1em'}}>SET A THEME. LAUNCH. WATCH IT COOK.</div>
             </div>
           )}
           <div className="space-y-3">
@@ -737,7 +737,7 @@ function CampaignTab(props) {
                   style={{background:'rgba(11,18,32,0.6)', border:'1px solid rgba(255,255,255,0.06)', borderLeft:'3px solid '+p.color}}>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded"
-                      style={{background:p.color+'20', color:p.color, fontFamily:'Barlow Condensed'}}>{p.name.toUpperCase()}</span>
+                      style={{background:p.color+'20', color:p.color, fontFamily:'Subtle, system-ui, sans-serif'}}>{p.name.toUpperCase()}</span>
                     <span className="text-[10px] text-on-surface/50">{g.type}</span>
                   </div>
                   <pre className="whitespace-pre-wrap text-xs text-on-surface/80 font-body max-h-32 overflow-auto">{g.content}</pre>
@@ -790,7 +790,7 @@ function IdeasTab(props) {
             style={{
               background: loading ? 'rgba(232,168,56,0.15)' : 'linear-gradient(135deg, #E8A838, #B8860B)',
               color: loading ? '#E8A838' : '#0B1220',
-              textTransform:'uppercase', letterSpacing:'0.1em', fontFamily:'Barlow Condensed', border:'none',
+              textTransform:'uppercase', letterSpacing:'0.1em', fontFamily:'Subtle, system-ui, sans-serif', border:'none',
               boxShadow: loading ? 'none' : '0 0 20px rgba(232,168,56,0.3)',
               cursor: loading ? 'wait' : 'pointer',
             }}>{loading ? 'Cooking' : '\u26a1 15 Ideas'}</button>
@@ -873,10 +873,10 @@ function LibraryTab(props) {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
-                    style={{background:plat.color+'20', color:plat.color, fontFamily:'Barlow Condensed'}}>
+                    style={{background:plat.color+'20', color:plat.color, fontFamily:'Subtle, system-ui, sans-serif'}}>
                     <Icon name={plat.icon} size={10}/>{plat.name.toUpperCase()}
                   </span>
-                  <span className="text-[10px] text-on-surface/50" style={{fontFamily:'Barlow Condensed'}}>{p.content_type.toUpperCase()} / {p.tone.toUpperCase()}</span>
+                  <span className="text-[10px] text-on-surface/50" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>{p.content_type.toUpperCase()} / {p.tone.toUpperCase()}</span>
                   {p.status !== 'draft' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded" style={{background:'rgba(232,168,56,0.15)', color:'#E8A838'}}>{p.status.toUpperCase()}</span>
                   )}
@@ -891,19 +891,19 @@ function LibraryTab(props) {
                 <Btn onClick={function(){navigator.clipboard.writeText(content); toast('Copied','success')}}><Icon name="content_copy" size={12}/></Btn>
                 <button onClick={function(){post(p)}}
                   className="flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold"
-                  style={{background:'linear-gradient(135deg,'+plat.color+','+plat.color+'aa)', color:'#fff', border:'none', fontFamily:'Barlow Condensed'}}>
+                  style={{background:'linear-gradient(135deg,'+plat.color+','+plat.color+'aa)', color:'#fff', border:'none', fontFamily:'Subtle, system-ui, sans-serif'}}>
                   <Icon name="send" size={11}/>POST
                 </button>
                 <Btn onClick={function(){markPosted(p)}}><Icon name="check" size={12}/></Btn>
                 <Btn onClick={function(){archive(p)}}><Icon name="archive" size={12}/></Btn>
                 <Btn onClick={function(){del(p)}}><Icon name="delete" size={12}/></Btn>
               </div>
-              <div className="text-[10px] text-on-surface/40 mt-2" style={{fontFamily:'Barlow Condensed'}}>{new Date(p.created_at).toLocaleString()}</div>
+              <div className="text-[10px] text-on-surface/40 mt-2" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>{new Date(p.created_at).toLocaleString()}</div>
             </div>
           )
         })}
         {!filtered.length && (
-          <div className="text-on-surface/40 text-sm col-span-2 text-center py-10" style={{fontFamily:'Barlow Condensed', letterSpacing:'0.1em'}}>
+          <div className="text-on-surface/40 text-sm col-span-2 text-center py-10" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.1em'}}>
             NO POSTS YET. GENERATE SOMETHING.
           </div>
         )}
@@ -933,7 +933,7 @@ function TrendsTab(props) {
   return (
     <div className="max-w-4xl">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-on-surface/60" style={{fontFamily:'Barlow Condensed', letterSpacing:'0.08em'}}>AI-GENERATED TFT TALKING POINTS (CACHED 2H)</div>
+        <div className="text-sm text-on-surface/60" style={{fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.08em'}}>AI-GENERATED TFT TALKING POINTS (CACHED 2H)</div>
         <Btn onClick={load} disabled={loading}>
           <Icon name="refresh" size={14}/>{loading ? ' Loading' : ' Refresh'}
         </Btn>
@@ -953,10 +953,10 @@ function TrendsTab(props) {
               className="block py-3 px-4 border-b border-white/5 hover:bg-white/5 transition-all rounded"
               style={{textDecoration:'none'}}>
               <div className="flex items-start gap-3">
-                <div className="text-xs font-bold w-8 flex-shrink-0" style={{color:'#E8A838', fontFamily:'Barlow Condensed'}}>#{i+1}</div>
+                <div className="text-xs font-bold w-8 flex-shrink-0" style={{color:'#E8A838', fontFamily:'Subtle, system-ui, sans-serif'}}>#{i+1}</div>
                 <div className="flex-1">
                   <div className="text-sm text-on-surface leading-snug">{p.title}</div>
-                  <div className="text-[10px] text-on-surface/50 mt-1 flex items-center gap-3" style={{fontFamily:'Barlow Condensed'}}>
+                  <div className="text-[10px] text-on-surface/50 mt-1 flex items-center gap-3" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>
                     <span>{p.score} UPVOTES</span>
                     <span>{p.num_comments} COMMENTS</span>
                     {p.flair && <span style={{color:'#E8A838'}}>{p.flair.toUpperCase()}</span>}
@@ -1028,7 +1028,7 @@ function SocialsTab(props) {
         {fields.map(function(f){
           return (
             <div key={f.label} className="mb-4">
-              <div className="text-[10px] uppercase font-bold tracking-widest mb-1.5" style={{color:f.color, fontFamily:'Barlow Condensed'}}>{f.label}</div>
+              <div className="text-[10px] uppercase font-bold tracking-widest mb-1.5" style={{color:f.color, fontFamily:'Subtle, system-ui, sans-serif'}}>{f.label}</div>
               <input value={f.value} onChange={function(e){f.setter(e.target.value)}} placeholder={f.placeholder}
                 className="w-full rounded-md p-3 text-sm text-on-surface"
                 style={{background:'rgba(11,18,32,0.6)', border:'1px solid '+f.color+'30', outline:'none'}}/>
@@ -1041,7 +1041,7 @@ function SocialsTab(props) {
             background:'linear-gradient(135deg, #E8A838, #B8860B)',
             color:'#0B1220', border:'none',
             boxShadow:'0 0 20px rgba(232,168,56,0.3)',
-            textTransform:'uppercase', letterSpacing:'0.15em', fontFamily:'Barlow Condensed', cursor:'pointer',
+            textTransform:'uppercase', letterSpacing:'0.15em', fontFamily:'Subtle, system-ui, sans-serif', cursor:'pointer',
           }}>Save Handles</button>
       </div>
     </div>
@@ -1114,10 +1114,10 @@ export default function ContentEngineScreen(){
         {/* HEADER */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold" style={{fontFamily:'Playfair Display, serif', color:'#F5F2EA', letterSpacing:'-0.01em'}}>
+            <h1 className="text-3xl font-bold" style={{fontFamily:'Subtle, system-ui, sans-serif', color:'#F5F2EA', letterSpacing:'-0.01em'}}>
               Content Engine
             </h1>
-            <div className="text-[11px] uppercase tracking-widest mt-1" style={{color:'#E8A838', fontFamily:'Barlow Condensed', letterSpacing:'0.15em'}}>
+            <div className="text-[11px] uppercase tracking-widest mt-1" style={{color:'#E8A838', fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.15em'}}>
               AI SOCIAL COMMAND CENTER / POWERED BY GEMINI
             </div>
           </div>

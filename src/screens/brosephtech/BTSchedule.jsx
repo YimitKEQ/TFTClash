@@ -145,7 +145,7 @@ function FocusPanel(props) {
             <Icon name="wb_sunny" className="text-[#5BA3DB] text-xl" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Today's Focus</h3>
+            <h3 className="text-lg font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Today's Focus</h3>
             <p className="text-[11px] text-white/40 mt-0.5 tracking-wide">
               {today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
             </p>
@@ -908,7 +908,7 @@ function BTSchedule() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div className="min-w-0">
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Schedule</h2>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Schedule</h2>
           <p className="text-sm text-white/40 mt-0.5 hidden sm:block">Drag cards across days to reschedule. Patch days are highlighted gold.</p>
           <p className="text-xs text-white/40 mt-0.5 sm:hidden">Tap any day to add a card.</p>
         </div>

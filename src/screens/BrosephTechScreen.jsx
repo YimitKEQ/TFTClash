@@ -155,7 +155,7 @@ function PinGate(props) {
         </div>
 
         <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'Russo One, sans-serif' }}>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
             Command Center
           </h1>
           <p className="text-xs text-white/55 mt-1.5 tracking-wide">Team access only</p>
@@ -368,7 +368,7 @@ function BrosephTechScreen() {
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
             <img src="/btlogo.png" alt="BrosephTech" className="h-7 sm:h-9 shrink-0" style={{ filter: 'drop-shadow(0 4px 14px rgba(232,160,32,0.45))' }} />
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-bold text-white leading-none tracking-tight truncate" style={{ fontFamily: 'Russo One, sans-serif' }}>
+              <h1 className="text-base sm:text-lg font-bold text-white leading-none tracking-tight truncate" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
                 BROSEPHTECH
               </h1>
               <p className="text-[10px] sm:text-xs text-[#FFD487] leading-none mt-1 tracking-wider font-semibold">COMMAND CENTER</p>

@@ -72,14 +72,14 @@ export default function ObsOverlayScreen() {
     : lobbyKeys
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'transparent', color: fg, fontFamily: '"Inter", system-ui, sans-serif', padding: 24 }}>
+    <div style={{ position: 'fixed', inset: 0, background: 'transparent', color: fg, fontFamily: '"Subtle", system-ui, sans-serif', padding: 24 }}>
       <div style={{ background: card, backdropFilter: 'blur(12px)', borderRadius: 14, padding: 18, border: '1px solid ' + (isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)'), maxWidth: 460 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
           <span style={{ width: 8, height: 8, borderRadius: 4, background: state.phase === 'live' || state.phase === 'inprogress' ? '#FF5050' : '#666' }} />
           <span style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: sub }}>{state.phase || 'idle'}</span>
           <span style={{ marginLeft: 'auto', fontSize: 11, color: sub }}>Round {state.round_number || 1} / {state.total_games || 4}</span>
         </div>
-        <div style={{ fontFamily: '"Russo One", sans-serif', fontSize: 22, letterSpacing: '-0.02em', textTransform: 'uppercase', color: accent, marginBottom: 6 }}>{state.name || 'TFT Clash'}</div>
+        <div style={{ fontFamily: '"Subtle", system-ui, sans-serif', fontSize: 22, letterSpacing: '-0.02em', textTransform: 'uppercase', color: accent, marginBottom: 6 }}>{state.name || 'TFT Clash'}</div>
         {filtered.length === 0 && <div style={{ fontSize: 13, color: sub }}>No lobbies assigned yet.</div>}
         {filtered.map(function (k, i) {
           var rows = lobbies[k] || []

@@ -334,7 +334,7 @@ function BTSops() {
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Production SOPs</h2>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Production SOPs</h2>
           <p className="text-sm text-white/40 mt-0.5">Standard operating procedures for BrosephTech content</p>
         </div>
         <div className="relative">
@@ -354,22 +354,22 @@ function BTSops() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-gradient-to-br from-[#5BA3DB]/10 to-transparent border border-[#5BA3DB]/15 rounded-xl p-4">
           <Icon name="rocket_launch" className="text-[#5BA3DB] text-xl mb-2" />
-          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Russo One, sans-serif' }}>{SOPS.length}</p>
+          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>{SOPS.length}</p>
           <p className="text-[11px] text-white/50 mt-1.5 uppercase tracking-wider">Workflows documented</p>
         </div>
         <div className="bg-gradient-to-br from-[#E8A020]/10 to-transparent border border-[#E8A020]/15 rounded-xl p-4">
           <Icon name="fast_forward" className="text-[#E8A020] text-xl mb-2" />
-          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Russo One, sans-serif' }}>3-5</p>
+          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>3-5</p>
           <p className="text-[11px] text-white/50 mt-1.5 uppercase tracking-wider">Shorts per week</p>
         </div>
         <div className="bg-gradient-to-br from-[#10B981]/10 to-transparent border border-[#10B981]/15 rounded-xl p-4">
           <Icon name="videocam" className="text-[#10B981] text-xl mb-2" />
-          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Russo One, sans-serif' }}>1-2</p>
+          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>1-2</p>
           <p className="text-[11px] text-white/50 mt-1.5 uppercase tracking-wider">Long-form per week</p>
         </div>
         <div className="bg-gradient-to-br from-[#FF424D]/10 to-transparent border border-[#FF424D]/15 rounded-xl p-4">
           <Icon name="volunteer_activism" className="text-[#FF424D] text-xl mb-2" />
-          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Russo One, sans-serif' }}>2+</p>
+          <p className="text-2xl font-bold text-white leading-none" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>2+</p>
           <p className="text-[11px] text-white/50 mt-1.5 uppercase tracking-wider">Patreon posts/week</p>
         </div>
       </div>

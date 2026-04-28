@@ -284,7 +284,7 @@ function BTStudio() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Studio</h2>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Studio</h2>
           <p className="text-sm text-white/40 mt-0.5">
             {hooks.length} hooks · {ideas.length} in inbox
             <span className="ml-3 text-[11px] text-white/25">

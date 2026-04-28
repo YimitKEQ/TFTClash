@@ -134,13 +134,13 @@ class ErrorBoundary extends Component {
 
           <div style={{fontSize:48,color:"#E8A838"}}>&#9888;</div>
 
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,color:"#F2EDE4",textAlign:"center"}}>Something went wrong</div>
+          <div style={{fontFamily:"'Subtle',system-ui,sans-serif",fontSize:22,color:"#F2EDE4",textAlign:"center"}}>Something went wrong</div>
 
           <div style={{fontSize:14,color:"#9AAABF",maxWidth:340,textAlign:"center",lineHeight:1.6}}>The app hit an unexpected error. Your data is safe - refresh to get back in.</div>
 
-          <button onClick={function(){this.setState({hasError:false})}.bind(this)} style={{marginTop:8,padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:14}}>Try Again</button>
+          <button onClick={function(){this.setState({hasError:false})}.bind(this)} style={{marginTop:8,padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:14}}>Try Again</button>
 
-          <button onClick={function(){window.location.reload()}} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:13}}>Reload Page</button>
+          <button onClick={function(){window.location.reload()}} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:13}}>Reload Page</button>
 
         </div>
 
@@ -169,12 +169,12 @@ class ScreenBoundary extends Component {
       return(
         <div className="page wrap" style={{textAlign:"center",paddingTop:80,maxWidth:440,margin:"0 auto"}}>
           <div style={{fontSize:42,marginBottom:16,color:"#E8A838"}}>&#9888;</div>
-          <h2 style={{color:"#F2EDE4",marginBottom:8,fontFamily:"'Playfair Display',serif"}}>{"Something went wrong"}</h2>
+          <h2 style={{color:"#F2EDE4",marginBottom:8,fontFamily:"'Subtle',system-ui,sans-serif"}}>{"Something went wrong"}</h2>
           <div style={{fontSize:14,color:"#9AAABF",marginBottom:8,lineHeight:1.6}}>{"This screen ran into an error. Your data is safe."}</div>
-          {this.state.error&&<div style={{fontSize:11,color:"#F87171",background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:6,padding:"8px 12px",marginBottom:16,textAlign:"left",fontFamily:"monospace",wordBreak:"break-all",maxHeight:120,overflow:"auto"}}>{String(this.state.error)}</div>}
+          {this.state.error&&<div style={{fontSize:11,color:"#F87171",background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)",borderRadius:6,padding:"8px 12px",marginBottom:16,textAlign:"left",fontFamily:"'Subtle',ui-monospace,monospace",wordBreak:"break-all",maxHeight:120,overflow:"auto"}}>{String(this.state.error)}</div>}
           <div style={{display:"flex",gap:10,justifyContent:"center"}}>
-            <button onClick={function(){self.setState({hasError:false,error:null});}} style={{padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:14}}>Try Again</button>
-            <button onClick={function(){self.setState({hasError:false,error:null});if(self.props.onHome)self.props.onHome();}} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:13}}>Go Home</button>
+            <button onClick={function(){self.setState({hasError:false,error:null});}} style={{padding:"10px 24px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:14}}>Try Again</button>
+            <button onClick={function(){self.setState({hasError:false,error:null});if(self.props.onHome)self.props.onHome();}} style={{padding:"8px 20px",background:"transparent",border:"1px solid rgba(155,114,207,.4)",borderRadius:8,color:"#C4B5FD",cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:13}}>Go Home</button>
           </div>
         </div>
       );
@@ -647,7 +647,7 @@ function TFTClash(){
         <div style={{position:"fixed",inset:0,background:"#13131a",zIndex:9999,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:32}}>
           <img src="/icon-border.png" alt="TFT Clash" style={{width:72,height:72,opacity:0.9}}/>
           <div style={{textAlign:"center"}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:800,fontStyle:"italic",color:"#E8A838",letterSpacing:"-0.02em",marginBottom:8}}>TFT CLASH</div>
+            <div style={{fontFamily:"'Subtle',system-ui,sans-serif",fontSize:22,fontWeight:800,color:"#E8A838",letterSpacing:"-0.02em",marginBottom:8}}>TFT CLASH</div>
             <div style={{width:160,height:2,background:"rgba(232,168,56,0.15)",borderRadius:2,overflow:"hidden",margin:"0 auto"}}>
               <div style={{height:"100%",background:"linear-gradient(90deg,transparent,#E8A838,transparent)",animation:"tft-scan 1.4s ease-in-out infinite"}}/>
             </div>
@@ -757,7 +757,7 @@ function TFTClash(){
       {!cookieConsent&&(
         <div className="mb-16 md:mb-0" style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(17,24,39,.97)",borderTop:"1px solid rgba(155,114,207,.2)",padding:"14px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:16,zIndex:9997,flexWrap:"wrap",backdropFilter:"blur(8px)"}}>
           <span style={{fontSize:13,color:"#BECBD9",maxWidth:480}}>We use essential cookies for authentication. No tracking cookies. <button onClick={function(){navTo("privacy");}} style={{background:"none",border:"none",color:"#9B72CF",cursor:"pointer",fontFamily:"inherit",fontSize:13,textDecoration:"underline",padding:0}}>Privacy Policy</button></span>
-          <button onClick={function(){setCookieConsent(true);try{localStorage.setItem("tft-cookie-consent","1");}catch(e){}}} style={{padding:"8px 20px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Inter',sans-serif",fontSize:13,flexShrink:0}}>Got it</button>
+          <button onClick={function(){setCookieConsent(true);try{localStorage.setItem("tft-cookie-consent","1");}catch(e){}}} style={{padding:"8px 20px",background:"#9B72CF",border:"none",borderRadius:8,color:"#fff",fontWeight:700,cursor:"pointer",fontFamily:"'Subtle',system-ui,sans-serif",fontSize:13,flexShrink:0}}>Got it</button>
         </div>
       )}
 

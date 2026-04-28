@@ -244,7 +244,7 @@ function TierRow(props) {
     >
       <div
         className="w-12 sm:w-16 shrink-0 flex items-center justify-center font-bold text-2xl sm:text-3xl"
-        style={{ color: tier.color, fontFamily: 'Russo One, sans-serif' }}
+        style={{ color: tier.color, fontFamily: 'Subtle, system-ui, sans-serif' }}
       >
         {tier.label}
       </div>
@@ -443,7 +443,7 @@ function TierListEditor(props) {
             <div className="flex items-center gap-4 mb-6">
               <img src="/btlogo.png" alt="BT" className="h-14" style={{ filter: 'drop-shadow(0 4px 12px rgba(91,163,219,0.4))' }} />
               <div className="flex-1 min-w-0">
-                <h1 className="text-3xl text-white font-bold tracking-tight" style={{ fontFamily: 'Russo One, sans-serif' }}>
+                <h1 className="text-3xl text-white font-bold tracking-tight" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
                   {title || 'Tier List'}
                 </h1>
                 {patchLabel && (
@@ -714,7 +714,7 @@ function TierListCard(props) {
     >
       <div className="flex items-start justify-between mb-3 gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-bold text-lg leading-tight" style={{ fontFamily: 'Russo One, sans-serif' }}>{l.title}</h3>
+          <h3 className="text-white font-bold text-lg leading-tight" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>{l.title}</h3>
           <span className="inline-flex items-center gap-1 text-[10px] mt-1 text-white/40 uppercase tracking-wider">
             <Icon name={kind === 'items' ? 'shield' : 'group'} className="text-xs" />
             {kind === 'items' ? 'Items' : 'Champions'}
@@ -810,7 +810,7 @@ function BTTierLists() {
     <div>
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Russo One, sans-serif' }}>Tier Lists</h2>
+          <h2 className="text-xl font-bold text-white" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>Tier Lists</h2>
           <p className="text-sm text-white/40 mt-0.5">{lists.length} saved . champion or item lists, branded for thumbnails</p>
         </div>
         <button

@@ -625,7 +625,7 @@ function BTMarketing() {
           <Icon name="campaign" className="text-[#E8A020] text-2xl" />
         </div>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'Russo One, sans-serif' }}>
+          <h2 className="text-base sm:text-lg font-bold text-white tracking-tight" style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
             MARKETING LAB
           </h2>
           <p className="text-xs text-white/60 mt-1 leading-relaxed">

@@ -64,11 +64,11 @@ export default {
         "discord-blurple-hover": "#4752C4",
       },
       fontFamily: {
-        "display":   ["Russo One", "sans-serif"],
-        "editorial": ["Playfair Display", "serif"],
-        "body":      ["Inter", "sans-serif"],
-        "label":     ["Barlow Condensed", "sans-serif"],
-        "mono":      ["JetBrains Mono", "monospace"],
+        "display":   ["Subtle", "system-ui", "sans-serif"],
+        "editorial": ["Subtle", "system-ui", "sans-serif"],
+        "body":      ["Subtle", "system-ui", "sans-serif"],
+        "label":     ["Subtle", "system-ui", "sans-serif"],
+        "mono":      ["Subtle", "ui-monospace", "monospace"],
       },
       borderRadius: {
         DEFAULT: "0.125rem",
