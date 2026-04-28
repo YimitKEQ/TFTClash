@@ -6,6 +6,9 @@ import { isSimulation, buildSimulationState } from '../lib/simulation.js';
 
 var AppContext = createContext(null);
 
+var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(v){return typeof v==='string'&&UUID_RE.test(v);}
+
 export function AppProvider(props) {
   var children = props.children;
 
@@ -329,8 +332,9 @@ export function AppProvider(props) {
   // ── useEffect: load notifications ──
   useEffect(function(){
     if(!currentUser)return;
+    if(!isUuid(currentUser.auth_user_id))return;
     supabase.from('notifications').select('*')
-      .eq('user_id',currentUser.id)
+      .eq('user_id',currentUser.auth_user_id)
       .order('created_at',{ascending:false})
       .limit(20)
       .then(function(res){
@@ -346,7 +350,8 @@ export function AppProvider(props) {
 
   // ── useEffect: load own subscription ──
   useEffect(function(){
-    if(!currentUser || !currentUser.auth_user_id || !supabase.from) return;
+    if(!currentUser || !supabase.from) return;
+    if(!isUuid(currentUser.auth_user_id)) return;
     supabase.from("user_subscriptions").select("*").eq("user_id", currentUser.auth_user_id).limit(1).then(function(res){
       if(res.data && res.data.length){
         var map={};
@@ -506,19 +511,22 @@ export function AppProvider(props) {
   // ── useEffect: load host data from DB tables on auth ──
   useEffect(function(){
     if(!currentUser||!supabase.from)return;
+    var hasUuid=isUuid(currentUser.auth_user_id);
     // Load host branding from host_profiles
-    supabase.from("host_profiles").select("*").eq("user_id",currentUser.auth_user_id).maybeSingle()
-      .then(function(res){
-        if(res.data&&res.data.status==="approved"){
-          setHostBranding({name:res.data.org_name||"",logo:res.data.logo_url||"\ud83c\udfae",color:res.data.brand_color||"#9B72CF",bio:res.data.bio||"",logoUrl:res.data.logo_url||"",bannerUrl:res.data.banner_url||""});
-        }
-      });
+    if(hasUuid){
+      supabase.from("host_profiles").select("*").eq("user_id",currentUser.auth_user_id).maybeSingle()
+        .then(function(res){
+          if(res.data&&res.data.status==="approved"){
+            setHostBranding({name:res.data.org_name||"",logo:res.data.logo_url||"\ud83c\udfae",color:res.data.brand_color||"#9B72CF",bio:res.data.bio||"",logoUrl:res.data.logo_url||"",bannerUrl:res.data.banner_url||""});
+          }
+        });
+    }
     // Load host applications from host_applications table
     if(isAdmin){
       supabase.from("host_applications").select("*").order("applied_at",{ascending:false}).then(function(res){
         if(res.data)setHostApps(res.data);
       });
-    } else {
+    } else if(hasUuid){
       supabase.from("host_applications").select("*").eq("user_id",currentUser.auth_user_id).then(function(res){
         if(res.data)setHostApps(res.data);
       });

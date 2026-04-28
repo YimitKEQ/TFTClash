@@ -383,7 +383,9 @@ export default function HostDashboardScreen() {
   // Load host profile from DB on mount
   useEffect(function() {
     if (!currentUser || !supabase.from || dbProfileLoaded) return;
-    supabase.from("host_profiles").select("*").eq("user_id", currentUser.auth_user_id).maybeSingle().then(function(res) {
+    var aid = currentUser.auth_user_id;
+    if (typeof aid !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(aid)) return;
+    supabase.from("host_profiles").select("*").eq("user_id", aid).maybeSingle().then(function(res) {
       if (res.data) {
         var hp = res.data;
         setBrandName(hp.org_name || brandName);
