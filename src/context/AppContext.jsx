@@ -1060,6 +1060,67 @@ export function AppProvider(props) {
     return function(){supabase.removeChannel(adminPrChannel);};
   },[isAdmin,tournamentState.dbTournamentId]);
 
+  // ── Load + subscribe to lobbies for the active tournament/round ──
+  // Hydrates tournamentState.lobbies so DashboardScreen and BroadcastOverlay
+  // can show the player's lobby roster, lobby_code, and submission progress.
+  useEffect(function(){
+    var tid=tournamentState&&tournamentState.dbTournamentId;
+    var rd=(tournamentState&&tournamentState.round)||1;
+    if(!tid||!supabase.from)return;
+
+    function normalize(rows){
+      return (rows||[]).map(function(row){
+        return{
+          lobby_number:row.lobby_number,
+          num:row.lobby_number,
+          number:row.lobby_number,
+          playerIds:row.player_ids||[],
+          lobby_code:row.lobby_code||null,
+          status:row.status||'pending',
+          host_player_id:row.host_player_id||null,
+          id:row.id
+        };
+      }).sort(function(a,b){return (a.lobby_number||0)-(b.lobby_number||0);});
+    }
+
+    function hydrate(rows){
+      var normalized=normalize(rows);
+      setTournamentState(function(ts){
+        var prev=(ts&&ts.lobbies)||[];
+        if(JSON.stringify(prev)===JSON.stringify(normalized))return ts;
+        return Object.assign({},ts,{lobbies:normalized});
+      });
+    }
+
+    supabase.from('lobbies')
+      .select('*')
+      .eq('tournament_id',tid)
+      .eq('round_number',rd)
+      .then(function(res){
+        if(res&&res.data)hydrate(res.data);
+      });
+
+    var lobChannel=supabase
+      .channel('lobbies-realtime-'+tid+'-'+rd)
+      .on('postgres_changes',{
+        event:'*',
+        schema:'public',
+        table:'lobbies',
+        filter:'tournament_id=eq.'+tid
+      },function(){
+        supabase.from('lobbies')
+          .select('*')
+          .eq('tournament_id',tid)
+          .eq('round_number',rd)
+          .then(function(res){
+            if(res&&res.data)hydrate(res.data);
+          });
+      })
+      .subscribe();
+
+    return function(){supabase.removeChannel(lobChannel);};
+  },[tournamentState&&tournamentState.dbTournamentId,tournamentState&&tournamentState.round]);
+
   // ── Load pending disputes for admin badge ──
   useEffect(function(){
     if(!isAdmin||!supabase.from)return;

@@ -98,6 +98,7 @@ var CommandCenterScreen = lazyWithRetry(function(){ return import('./screens/Com
 var ContentEngineScreen = lazyWithRetry(function(){ return import('./screens/ContentEngineScreen'); });
 var Donut17ScreenNew = lazyWithRetry(function(){ return import('./donut17/Donut17Screen'); });
 var BrosephTechScreen = lazyWithRetry(function(){ return import('./screens/BrosephTechScreen'); });
+var LinksScreenNew = lazyWithRetry(function(){ return import('./screens/LinksScreen'); });
 var MarketplaceScreenNew = lazyWithRetry(function(){ return import('./screens/MarketplaceScreen'); });
 var RoadmapScreenNew = lazyWithRetry(function(){ return import('./screens/RoadmapScreen'); });
 var PredictionsScreenNew = lazyWithRetry(function(){ return import('./screens/PredictionsScreen'); });
@@ -250,7 +251,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -741,6 +742,7 @@ function TFTClash(){
         {screen==="marketplace"&&<MarketplaceScreenNew/>}
         {screen==="roadmap"&&<RoadmapScreenNew/>}
         {screen==="predictions"&&<PredictionsScreenNew/>}
+        {screen==="links"&&<LinksScreenNew/>}
 
 
         </ScreenBoundary>

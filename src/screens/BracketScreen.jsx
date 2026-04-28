@@ -113,6 +113,42 @@ function BracketScreen(){
   var placementEntry=_placementEntry[0];
   var setPlacementEntry=_placementEntry[1];
 
+  var _lobbyCodeInputs=useState({});
+  var lobbyCodeInputs=_lobbyCodeInputs[0];
+  var setLobbyCodeInputs=_lobbyCodeInputs[1];
+
+  function getLobbyMeta(li){
+    var stateLobbies=(tournamentState&&tournamentState.lobbies)||[];
+    return stateLobbies.find(function(L){return L.lobby_number===li+1;})||null;
+  }
+
+  function saveLobbyCode(li,code){
+    var meta=getLobbyMeta(li);
+    var trimmed=(code||"").trim().toUpperCase();
+    if(!supabase.from||!tournamentState.dbTournamentId){toast("Tournament not synced","error");return;}
+    if(!meta||!meta.id){
+      supabase.from('lobbies')
+        .update({lobby_code:trimmed||null})
+        .eq('tournament_id',tournamentState.dbTournamentId)
+        .eq('round_number',round)
+        .eq('lobby_number',li+1)
+        .then(function(res){
+          if(res&&res.error){toast("Failed to save code","error");return;}
+          toast(trimmed?"Lobby "+(li+1)+" code saved":"Lobby "+(li+1)+" code cleared","success");
+          setLobbyCodeInputs(function(prev){var next=Object.assign({},prev);delete next[li];return next;});
+        }).catch(function(){toast("Failed to save code","error");});
+      return;
+    }
+    supabase.from('lobbies')
+      .update({lobby_code:trimmed||null})
+      .eq('id',meta.id)
+      .then(function(res){
+        if(res&&res.error){toast("Failed to save code","error");return;}
+        toast(trimmed?"Lobby "+(li+1)+" code saved":"Lobby "+(li+1)+" code cleared","success");
+        setLobbyCodeInputs(function(prev){var next=Object.assign({},prev);delete next[li];return next;});
+      }).catch(function(){toast("Failed to save code","error");});
+  }
+
   var _playerSubmissions=useState({});
   var playerSubmissions=_playerSubmissions[0];
   var setPlayerSubmissions=_playerSubmissions[1];
@@ -1092,6 +1128,8 @@ function BracketScreen(){
                   var locked=lockedLobbies.includes(li);
                   var lobbyLetter=lobbyLetters[li]||String(li+1);
                   var hasPlacements=placementEntry[li]&&placementEntry[li].open;
+                  var lobbyMeta=getLobbyMeta(li);
+                  var lobbyCode=lobbyMeta&&lobbyMeta.lobby_code;
 
                   return(
                     <div key={li} className={"bg-surface-container-high rounded overflow-hidden border-2 transition-all " + (isMyLobby?"border-secondary shadow-[0_0_30px_rgba(217,185,255,0.08)]":locked?"border-tertiary/30":"border-outline-variant/15")}>
@@ -1113,6 +1151,16 @@ function BracketScreen(){
                           )}
                         </div>
                         <div className="flex items-center gap-2">
+                          {lobbyCode&&(
+                            <button
+                              type="button"
+                              onClick={function(e){e.stopPropagation();navigator.clipboard.writeText(lobbyCode);toast("Copied lobby code","success");}}
+                              className="font-mono text-xs font-bold text-primary bg-primary/10 border border-primary/30 rounded px-2 py-0.5 tracking-widest hover:bg-primary/15 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                              aria-label={"Copy code for Lobby " + lobbyLetter}
+                              title="Click to copy">
+                              {lobbyCode}
+                            </button>
+                          )}
                           <span className="font-mono text-xs text-on-surface-variant/40">{lobby.length + " players"}</span>
                           {locked&&isAdmin&&(
                             <button
@@ -1188,6 +1236,37 @@ function BracketScreen(){
                           );
                         })}
                       </div>
+
+                      {/* Admin lobby_code entry */}
+                      {isAdmin&&!locked&&(
+                        <div className="border-t border-outline-variant/10 p-3 bg-surface-container-low/40 flex gap-2 items-center">
+                          <Icon name="vpn_key" size={14} className="text-on-surface-variant/50 flex-shrink-0" aria-hidden="true" />
+                          <input
+                            type="text"
+                            placeholder={lobbyCode?"":"Enter custom lobby code"}
+                            value={(lobbyCodeInputs[li]!==undefined)?lobbyCodeInputs[li]:(lobbyCode||"")}
+                            onChange={function(e){var v=e.target.value;setLobbyCodeInputs(function(prev){var next=Object.assign({},prev);next[li]=v;return next;});}}
+                            onKeyDown={function(e){if(e.key==='Enter'){saveLobbyCode(li,e.target.value);}}}
+                            aria-label={"Lobby code for Lobby "+lobbyLetter}
+                            className="flex-1 bg-surface-container-lowest border-b border-outline-variant/30 rounded-none text-sm text-on-surface font-mono tracking-widest placeholder:text-on-surface-variant/30 px-2 py-1.5 focus:outline-none focus:border-primary uppercase"
+                          />
+                          <button
+                            type="button"
+                            onClick={function(){saveLobbyCode(li,(lobbyCodeInputs[li]!==undefined)?lobbyCodeInputs[li]:(lobbyCode||""));}}
+                            className="px-3 py-1.5 bg-primary/10 border border-primary/30 text-primary font-label font-bold text-[10px] tracking-widest uppercase rounded hover:bg-primary/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+                            Save
+                          </button>
+                          {lobbyCode&&(
+                            <button
+                              type="button"
+                              onClick={function(){saveLobbyCode(li,"");}}
+                              aria-label={"Clear code for Lobby "+lobbyLetter}
+                              className="px-2 py-1.5 bg-on-surface/5 border border-outline-variant/20 text-on-surface/50 font-label text-[10px] uppercase rounded hover:bg-on-surface/10 hover:text-on-surface/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      )}
 
                       {/* Admin placement entry */}
                       {isAdmin&&!locked&&(

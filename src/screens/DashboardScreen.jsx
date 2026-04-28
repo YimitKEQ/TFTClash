@@ -507,6 +507,250 @@ function CompleteTopThree(props) {
   )
 }
 
+// --- LOBBY ROSTER CARD ---
+// Live-phase only: shows the player's full 8-person lobby with HOST badges,
+// lobby code (click to copy), Riot IDs, and per-player submission status.
+// This is the "moat" experience - no spreadsheets, every lobby member visible
+// to every player on the same screen.
+
+function LobbyRosterCard() {
+  var ctx = useApp()
+  var currentUser = ctx.currentUser
+  var players = ctx.players || []
+  var tournamentState = ctx.tournamentState || {}
+  var pendingResults = ctx.pendingResults || []
+  var toast = ctx.toast
+
+  var phase = tournamentState.phase || 'idle'
+  if (phase !== 'live' && phase !== 'inprogress') return null
+
+  var lobbies = tournamentState.lobbies || []
+  if (lobbies.length === 0) return null
+
+  var linkedPlayer = currentUser && players.find(function(p){
+    return p.name === (currentUser.username || currentUser.name)
+  })
+  if (!linkedPlayer) return null
+
+  var myLobby = null
+  var myLobbyIdx = -1
+  for (var i = 0; i < lobbies.length; i++) {
+    var lob = lobbies[i]
+    var lobIds = lob.playerIds || lob.player_ids || []
+    var inLobby = lobIds.some(function(pid){
+      var pidVal = typeof pid === 'object' ? pid.id : pid
+      return String(pidVal) === String(linkedPlayer.id)
+    })
+    if (inLobby) { myLobby = lob; myLobbyIdx = i; break; }
+  }
+  if (!myLobby) return null
+
+  var lobbyNumber = myLobby.lobby_number || myLobby.num || (myLobbyIdx + 1)
+  var totalLobbies = lobbies.length
+  var lobbyCode = myLobby.lobby_code || ''
+  var lobbyStatus = myLobby.status || 'pending'
+  var isLocked = lobbyStatus === 'locked' || lobbyStatus === 'completed'
+  var hostId = myLobby.host_player_id || null
+  var tRound = tournamentState.round || 1
+  var totalGames = tournamentState.totalGames || 3
+
+  var rosterIds = (myLobby.playerIds || myLobby.player_ids || []).map(function(pid){
+    return typeof pid === 'object' ? pid.id : pid
+  })
+  var roster = rosterIds.map(function(pid){
+    return players.find(function(p){ return String(p.id) === String(pid) })
+  }).filter(Boolean)
+
+  var server = tournamentState.server || 'EU'
+  var riotField = server === 'NA' ? 'riot_id_na' : 'riot_id_eu'
+
+  function getSubmission(playerId) {
+    return pendingResults.find(function(r){
+      return String(r.player_id) === String(playerId) &&
+        r.round === tRound &&
+        r.status !== 'disputed'
+    })
+  }
+
+  var submittedCount = roster.filter(function(p){ return !!getSubmission(p.id) }).length
+  var allSubmitted = submittedCount === roster.length && roster.length > 0
+
+  function copyLobbyCode() {
+    if (!lobbyCode) return
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(lobbyCode).then(function(){
+        if (toast) toast('Lobby code copied', 'success')
+      }).catch(function(){
+        if (toast) toast('Could not copy. Type it manually.', 'error')
+      })
+    }
+  }
+  function copyRiotId(rid, name) {
+    if (!rid) return
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(rid).then(function(){
+        if (toast) toast('Copied ' + (name || 'Riot ID'), 'success')
+      })
+    }
+  }
+
+  return (
+    <section className="lobby-reveal mb-6 rounded-lg border border-primary/15 bg-surface-container overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-outline-variant/10 bg-gradient-to-r from-primary/[0.04] to-transparent flex-wrap">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+            <Icon name="groups" size={20} className="text-primary" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-display text-base text-on-surface tracking-wide">
+                {'LOBBY ' + lobbyNumber + ' / ' + totalLobbies}
+              </span>
+              <span className="font-label text-[9px] uppercase tracking-widest text-secondary bg-secondary/10 border border-secondary/20 rounded px-2 py-0.5">
+                Your lobby
+              </span>
+              {isLocked && (
+                <span className="font-label text-[9px] uppercase tracking-widest text-tertiary bg-tertiary/10 border border-tertiary/20 rounded px-2 py-0.5 inline-flex items-center gap-1">
+                  <Icon name="lock" size={10} />
+                  Locked
+                </span>
+              )}
+            </div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">
+              {'Round ' + tRound + ' of ' + totalGames + ' \u00b7 ' + submittedCount + '/' + roster.length + ' submitted'}
+            </div>
+          </div>
+        </div>
+
+        {/* Lobby code pill */}
+        <div className="flex items-center gap-2">
+          {lobbyCode ? (
+            <button
+              type="button"
+              onClick={copyLobbyCode}
+              className="lobby-code-pulse group inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/[0.06] px-3 py-2 hover:bg-primary/10 hover:border-primary/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              aria-label="Copy lobby code"
+              title="Click to copy"
+            >
+              <div className="text-left">
+                <div className="font-label text-[9px] uppercase tracking-widest text-primary/70">Lobby code</div>
+                <div className="font-mono text-base font-bold text-primary tracking-widest leading-none mt-0.5">{lobbyCode}</div>
+              </div>
+              <Icon name="content_copy" size={14} className="text-primary/60 group-hover:text-primary" />
+            </button>
+          ) : (
+            <div className="inline-flex items-center gap-2 rounded-md border border-outline-variant/20 bg-surface-container-low px-3 py-2">
+              <Icon name="hourglass_empty" size={14} className="text-on-surface-variant/60" />
+              <div>
+                <div className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant/70">Lobby code</div>
+                <div className="font-mono text-xs text-on-surface-variant mt-0.5">Awaiting host</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Submission progress bar */}
+      <div className="h-1 bg-outline-variant/10">
+        <div
+          className={'h-full transition-all duration-500 ' + (allSubmitted ? 'bg-tertiary' : 'bg-primary')}
+          style={{ width: roster.length > 0 ? Math.round((submittedCount / roster.length) * 100) + '%' : '0%' }}
+        />
+      </div>
+
+      {/* Roster */}
+      <div className="divide-y divide-outline-variant/5">
+        {roster.map(function(p, idx) {
+          var isMe = String(p.id) === String(linkedPlayer.id)
+          var isHost = hostId && String(p.id) === String(hostId)
+          var sub = getSubmission(p.id)
+          var rid = p[riotField] || p.riot_id || ''
+          var rankLbl = p.rank || 'Unranked'
+          var seasonPts = p.pts || p.season_pts || 0
+          var rowCls = 'lobby-row-in flex items-center gap-3 px-5 py-3 transition-colors '
+          if (isMe) rowCls += 'bg-secondary/[0.06]'
+          else rowCls += 'hover:bg-on-surface/[0.02]'
+          var rowDelay = (160 + idx * 70) + 'ms'
+
+          return (
+            <div key={p.id || idx} className={rowCls} style={{ animationDelay: rowDelay }}>
+              <span className={'font-mono text-xs w-5 text-right ' + (isMe ? 'text-secondary' : 'text-on-surface-variant/40')}>
+                {String(idx + 1).padStart(2, '0')}
+              </span>
+              <div className={'w-8 h-8 rounded flex items-center justify-center flex-shrink-0 ' + (isMe ? 'bg-secondary/15 border border-secondary/30' : 'bg-surface-container-low border border-outline-variant/15')}>
+                <span className={'font-display text-xs font-bold ' + (isMe ? 'text-secondary' : 'text-on-surface-variant/70')}>
+                  {(p.name || '?').charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={'text-sm font-semibold truncate ' + (isMe ? 'text-secondary' : 'text-on-surface')}>
+                    {p.name || 'Unknown'}
+                  </span>
+                  {isMe && (
+                    <span className="font-label text-[8px] uppercase tracking-widest bg-secondary/15 text-secondary px-1.5 py-0.5 rounded">You</span>
+                  )}
+                  {isHost && (
+                    <span className="font-label text-[8px] uppercase tracking-widest bg-primary/15 text-primary px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                      <Icon name="vpn_key" size={9} />
+                      Host
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant/60">
+                    {rankLbl + ' \u00b7 ' + seasonPts + ' pts'}
+                  </span>
+                  {rid && (
+                    <button
+                      type="button"
+                      onClick={function(){ copyRiotId(rid, p.name) }}
+                      className="inline-flex items-center gap-1 text-[10px] font-mono text-on-surface-variant/50 hover:text-primary transition-colors max-w-[180px] truncate bg-transparent border-0 cursor-pointer rounded px-1 -mx-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/60"
+                      title={'Copy ' + (p.name || 'player') + "'s Riot ID"}
+                      aria-label={'Copy ' + (p.name || 'player') + ' Riot ID'}
+                    >
+                      <Icon name="content_copy" size={9} />
+                      <span className="truncate">{rid}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+              {/* Submission status */}
+              <div className="flex-shrink-0 flex items-center gap-2">
+                {sub ? (
+                  <span className={'font-mono text-sm font-bold rounded px-2 py-1 border ' +
+                    (sub.placement === 1
+                      ? 'text-medal-gold bg-medal-gold/10 border-medal-gold/30'
+                      : sub.placement <= 4
+                        ? 'text-tertiary bg-tertiary/10 border-tertiary/20'
+                        : 'text-on-surface-variant/70 bg-surface-container-low border-outline-variant/20')
+                  }>
+                    {'#' + sub.placement}
+                  </span>
+                ) : (
+                  <span className="font-label text-[9px] uppercase tracking-widest text-on-surface-variant/40 bg-surface-container-low border border-outline-variant/15 rounded px-2 py-1 inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-on-surface-variant/30 animate-pulse" />
+                    Pending
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Footer status */}
+      {allSubmitted && !isLocked && (
+        <div className="px-5 py-3 bg-tertiary/[0.06] border-t border-tertiary/15 flex items-center gap-2">
+          <Icon name="check_circle" size={14} className="text-tertiary" />
+          <span className="font-label text-[10px] uppercase tracking-widest text-tertiary font-bold">All placements in - awaiting admin lock</span>
+        </div>
+      )}
+    </section>
+  )
+}
+
 // --- CLASH CARD ---
 
 function ClashCard() {
@@ -804,10 +1048,10 @@ function ClashCard() {
             </div>
             <div>
               <div className="font-display text-sm font-bold text-on-surface mb-1">No clash this week - yet</div>
-              <div className="text-xs text-on-surface/40 leading-relaxed max-w-[220px] mx-auto">Next clash is scheduled for Saturday night. Registration opens 24h before.</div>
+              <div className="text-xs text-on-surface/40 leading-relaxed max-w-[240px] mx-auto">A new weekly clash will be announced soon. Registration opens 24h before kickoff.</div>
             </div>
             <div className="cond text-[9px] font-bold uppercase tracking-widest text-on-surface/30 px-3 py-1.5 rounded-full border border-on-surface/10 bg-on-surface/[0.02]">
-              Next: Saturday - 20:00 CET
+              Watch this space
             </div>
             <div className="flex gap-2 w-full">
               <Btn variant="primary" size="sm" className="flex-1" onClick={function() { navigate('/standings') }}>View Standings</Btn>
@@ -1457,6 +1701,9 @@ export default function DashboardScreen() {
       <div id="dashboard-clash-card">
         <ClashCard />
       </div>
+
+      {/* Lobby roster - live phase only, the moat experience */}
+      <LobbyRosterCard />
 
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}
