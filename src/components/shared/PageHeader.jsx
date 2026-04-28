@@ -15,7 +15,7 @@ export default function PageHeader({ title, subtitle, description, goldWord, gri
         ) : title}
       </h1>
       {description && (
-        <p className="max-w-2xl mx-auto text-on-surface-variant text-lg leading-relaxed italic">
+        <p className="max-w-2xl mx-auto text-on-surface-variant text-lg leading-relaxed">
           {description}
         </p>
       )}

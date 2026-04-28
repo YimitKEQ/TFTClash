@@ -72,7 +72,7 @@ export default function FAQScreen() {
       <section className="text-center mb-16 mt-4">
         <h1 className="text-5xl md:text-7xl font-display font-bold text-on-background mb-6 leading-tight">
           {'How can we '}
-          <span className="text-primary italic font-editorial">assist</span>
+          <span className="text-primary font-editorial">assist</span>
           {' you?'}
         </h1>
         <p className="text-on-surface-variant text-lg max-w-2xl mx-auto mb-10 font-body">
@@ -201,7 +201,7 @@ export default function FAQScreen() {
           <div className="relative z-10 max-w-xl">
             <h2 className="text-3xl font-display font-bold mb-4 text-on-background">
               {'Still need '}
-              <span className="italic text-primary font-editorial">human</span>
+              <span className="text-primary font-editorial">human</span>
               {' support?'}
             </h2>
             <p className="text-on-surface-variant font-body">

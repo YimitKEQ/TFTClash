@@ -198,7 +198,7 @@ export default function PrivacyScreen() {
                       <p className="leading-relaxed text-on-surface mb-6">{sec.body}</p>
                       {sec.quote && (
                         <div className="p-5 bg-surface-container-lowest rounded border border-outline-variant/10">
-                          <p className="text-sm italic text-on-surface-variant">
+                          <p className="text-sm text-on-surface-variant">
                             "{sec.quote}"
                           </p>
                         </div>

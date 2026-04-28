@@ -780,7 +780,7 @@ export default function FlashTournamentScreen(props) {
             <div className="font-label text-[11px] font-bold text-secondary tracking-[.18em] uppercase mb-1.5">
               Flash Tournament
             </div>
-            <h1 className="font-editorial italic text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
+            <h1 className="font-editorial text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
               {tournament.name}
             </h1>
             <div className="flex items-center gap-3 flex-wrap">
@@ -1636,7 +1636,7 @@ export default function FlashTournamentScreen(props) {
                         <div className="text-xs text-on-surface-variant/50 font-mono mb-0.5">
                           {"Claimed: #" + (d.claimed_placement || '?') + " - Reported: #" + (d.reported_placement || '?')}
                         </div>
-                        {d.reason && <div className="text-xs text-on-surface-variant/40 italic">{d.reason}</div>}
+                        {d.reason && <div className="text-xs text-on-surface-variant/40">{d.reason}</div>}
                         {isSafeUrl(d.screenshot_url) && <a href={d.screenshot_url} target="_blank" rel="noopener noreferrer nofollow" className="text-[10px] text-secondary hover:underline">View screenshot</a>}
                       </div>
                       {isOpen && (

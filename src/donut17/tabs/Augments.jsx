@@ -61,7 +61,7 @@ export default function Augments(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>The Gifts</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Augments</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Augments</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           Every augment in the pool, grouped by rarity. {totalUsed} appear in tracked meta comps.
         </p>
@@ -112,7 +112,7 @@ export default function Augments(props) {
                 ) : null}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-editorial italic text-base truncate" style={{ color: color }}>{a.name}</p>
+                    <p className="font-editorial text-base truncate" style={{ color: color }}>{a.name}</p>
                     {metaStats && metaStats.tier && (
                       <span className="px-1.5 py-0.5 font-mono text-[9px] uppercase shrink-0" style={{ background: color + '22', color: color, border: '1px solid ' + color + '55' }}>{metaStats.tier}</span>
                     )}

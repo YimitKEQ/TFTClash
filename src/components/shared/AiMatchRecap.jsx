@@ -132,7 +132,7 @@ export default function AiMatchRecap(props) {
       )}
 
       {loading && (
-        <div className="text-sm text-on-surface-variant italic flex items-center gap-2">
+        <div className="text-sm text-on-surface-variant flex items-center gap-2">
           <Icon name="psychology" className="animate-pulse" /> Writing the recap...
         </div>
       )}

@@ -60,7 +60,7 @@ function HookCard(props) {
       </div>
       <p className="text-white text-sm font-medium leading-snug mb-2">{hook.template}</p>
       {hook.example && (
-        <p className="text-white/40 text-xs italic mb-3">e.g. "{hook.example}"</p>
+        <p className="text-white/40 text-xs mb-3">e.g. "{hook.example}"</p>
       )}
       <div className="flex gap-2">
         <button

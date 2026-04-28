@@ -22,7 +22,7 @@ export default function SideNav(props) {
       <div className="px-6 mb-8">
         <div className="p-4" style={{ background: '#2a2931', border: '1px solid rgba(157, 142, 124, 0.08)' }}>
           <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>Current Set</p>
-          <p className="font-editorial italic text-2xl mt-1 d17-gold-text">Space Gods</p>
+          <p className="font-editorial text-2xl mt-1 d17-gold-text">Space Gods</p>
           <p className="font-mono text-[10px] mt-1" style={{ color: '#9d8e7c' }}>PBE - Patch 17.x</p>
         </div>
       </div>

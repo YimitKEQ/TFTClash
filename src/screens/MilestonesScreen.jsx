@@ -252,7 +252,7 @@ export default function MilestonesScreen() {
 
         {/* Header */}
         <header className="mb-10">
-          <h1 className="font-editorial italic text-5xl md:text-7xl font-black text-on-surface mb-4 tracking-tight">Milestones</h1>
+          <h1 className="font-editorial text-5xl md:text-7xl font-black text-on-surface mb-4 tracking-tight">Milestones</h1>
           <p className="text-on-surface-variant max-w-2xl text-lg leading-relaxed">
             Track your achievements across the season. Every match moves you closer to milestone unlocks and season rewards.
           </p>

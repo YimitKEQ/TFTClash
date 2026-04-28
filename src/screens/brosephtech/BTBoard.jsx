@@ -739,7 +739,7 @@ function ListEditor(props) {
     <div>
       <div className="flex flex-col gap-1.5 mb-2">
         {items.length === 0 && (
-          <p className="text-[11px] text-white/25 italic px-1">No {props.singular || 'items'} yet</p>
+          <p className="text-[11px] text-white/25 px-1">No {props.singular || 'items'} yet</p>
         )}
         {items.map(function(item, idx) {
           return (
@@ -907,7 +907,7 @@ function TitleWorkshop(props) {
       )}
 
       {sortedTitles.length === 0 ? (
-        <p className="text-[11px] text-white/30 italic text-center py-3">Add 3-5 variants to compare</p>
+        <p className="text-[11px] text-white/30 text-center py-3">Add 3-5 variants to compare</p>
       ) : (
         <div className="flex flex-col gap-1.5">
           {sortedTitles.map(function(entry, idx) {

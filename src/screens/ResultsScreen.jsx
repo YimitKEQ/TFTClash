@@ -285,7 +285,7 @@ export default function ResultsScreen() {
             <div className="font-label text-[11px] font-bold text-secondary uppercase tracking-widest mb-1">
               Season 1
             </div>
-            <h1 className="font-editorial italic text-3xl md:text-4xl font-black text-on-surface leading-none">
+            <h1 className="font-editorial text-3xl md:text-4xl font-black text-on-surface leading-none">
               {clashName + ' - Final Results'}
             </h1>
             <div className="text-xs text-on-surface/40 mt-1 font-mono">
@@ -608,7 +608,7 @@ export default function ResultsScreen() {
             {/* Clash Report tab */}
             {tab === 'report' && (
               <Panel>
-                <h3 className="font-editorial italic text-lg font-bold text-on-surface mb-1">
+                <h3 className="font-editorial text-lg font-bold text-on-surface mb-1">
                   {clashName + ' - Round by Round'}
                 </h3>
                 <p className="text-sm text-on-surface/50 mb-5">
@@ -671,13 +671,13 @@ export default function ResultsScreen() {
                 </h3>
               </div>
               <div className="space-y-3">
-                <p className="italic text-on-surface/70 leading-relaxed text-sm">
+                <p className="text-on-surface/70 leading-relaxed text-sm">
                   {'The ' + clashName + ' delivered high-level competition from start to finish. '}
                   <span className="text-on-surface font-bold">{champ.name}</span>
                   {' dominated the field, finishing with ' + champ.pts + ' points and setting the pace all night.'}
                 </p>
                 {sorted[3] && (
-                  <p className="italic text-on-surface/70 leading-relaxed text-sm">
+                  <p className="text-on-surface/70 leading-relaxed text-sm">
                     {'An honorable mention goes to '}
                     <span className="text-secondary font-bold">{sorted[3].name}</span>
                     {', who held firm in 4th place and kept the top spots under pressure in the final lobbies.'}

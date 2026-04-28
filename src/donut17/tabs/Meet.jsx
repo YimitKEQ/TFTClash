@@ -325,7 +325,7 @@ function MeetCard(props) {
             {stageBadge(row.stage)}
           </div>
           <h3
-            className="font-editorial italic text-xl leading-snug"
+            className="font-editorial text-xl leading-snug"
             style={{ color: '#F5F2EC' }}
           >
             {highlight(titleText, query)}
@@ -351,7 +351,7 @@ function StatChip(props) {
       <span className="material-symbols-outlined" style={{ color: props.color || '#FFC66B', fontSize: 18 }}>{props.icon}</span>
       <div>
         <p className="font-mono uppercase tracking-widest text-[9px]" style={{ color: '#9d8e7c' }}>{props.label}</p>
-        <p className="font-editorial italic text-base leading-none mt-0.5" style={{ color: props.color || '#FFC66B' }}>{props.value}</p>
+        <p className="font-editorial text-base leading-none mt-0.5" style={{ color: props.color || '#FFC66B' }}>{props.value}</p>
       </div>
     </div>
   )
@@ -497,7 +497,7 @@ export default function Meet(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>The Decision Sheet</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Line Selection</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Line Selection</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           A clean, searchable view of the live Donut 17 prep sheet. Every condition you can roll into on stage 2 or 3, what
           comp it points at, and the units and items that make it pop.
@@ -603,7 +603,7 @@ export default function Meet(props) {
       {grouped.length === 0 && (
         <div className="d17-panel p-12 text-center">
           <span className="material-symbols-outlined" style={{ color: '#9d8e7c', fontSize: 40 }}>search_off</span>
-          <p className="font-editorial italic text-2xl mt-4" style={{ color: '#E4E1EC' }}>No matches</p>
+          <p className="font-editorial text-2xl mt-4" style={{ color: '#E4E1EC' }}>No matches</p>
           <p className="font-body text-sm mt-2" style={{ color: 'rgba(228,225,236,0.55)' }}>
             Nothing in the prep sheet matches these filters. Try clearing search or pick another category.
           </p>
@@ -632,7 +632,7 @@ export default function Meet(props) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <h2 className="font-editorial italic text-3xl" style={{ color: meta.color }}>{group.type}</h2>
+                  <h2 className="font-editorial text-3xl" style={{ color: meta.color }}>{group.type}</h2>
                   <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>
                     {group.rows.length} {group.rows.length === 1 ? 'entry' : 'entries'}
                   </span>

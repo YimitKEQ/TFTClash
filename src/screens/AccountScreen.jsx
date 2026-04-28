@@ -441,7 +441,7 @@ export default function AccountScreen() {
         <div className="max-w-6xl mx-auto px-6 py-16">
           <div className="text-center mb-12">
             <span className="font-label text-xs uppercase tracking-widest text-secondary">Your account</span>
-            <h1 className="font-editorial italic text-4xl md:text-5xl text-on-surface mt-3 mb-4">Sign in to claim your throne</h1>
+            <h1 className="font-editorial text-4xl md:text-5xl text-on-surface mt-3 mb-4">Sign in to claim your throne</h1>
             <p className="text-on-surface-variant max-w-xl mx-auto mb-6">
               Free to compete, always. Create an account to track your season, earn awards, and customize your competitive identity.
             </p>
@@ -540,7 +540,7 @@ export default function AccountScreen() {
         <header className="mb-12">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h1 className="font-editorial italic text-5xl md:text-6xl text-on-surface mb-2">Account Settings</h1>
+              <h1 className="font-editorial text-5xl md:text-6xl text-on-surface mb-2">Account Settings</h1>
               <p className="text-on-surface/60 font-body max-w-2xl">
                 Manage your competitive identity, link external accounts, and customize how you show up on TFT Clash.
               </p>
@@ -975,7 +975,7 @@ export default function AccountScreen() {
                             {(user.user_metadata && user.user_metadata.bio) || user.bio}
                           </p>
                         ) : (
-                          <p className="font-body text-on-surface/30 text-sm p-3 border-b border-outline-variant/20 h-24 italic">
+                          <p className="font-body text-on-surface/30 text-sm p-3 border-b border-outline-variant/20 h-24">
                             No bio set yet...
                           </p>
                         )}

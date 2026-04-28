@@ -159,7 +159,7 @@ export default function TeamPlanner(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>Sandbox</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Team Planner</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Team Planner</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           Pick a unit from the roster, then tap a hex to place it. Click a placed unit to remove. Toggle "Carry mode" to mark damage carries (gold ring). Trait counter updates live.
         </p>
@@ -174,7 +174,7 @@ export default function TeamPlanner(props) {
               {armed && champByKey[armed] ? (
                 <span className="inline-flex items-center gap-2">
                   <ChampImg champion={champByKey[armed]} size={28} style={{ width: 28, height: 28 }}/>
-                  <span className="font-editorial italic text-sm" style={{ color: '#FFC66B' }}>{champByKey[armed].name}</span>
+                  <span className="font-editorial text-sm" style={{ color: '#FFC66B' }}>{champByKey[armed].name}</span>
                   <button
                     type="button"
                     onClick={function(){ setArmed(null) }}
@@ -296,7 +296,7 @@ export default function TeamPlanner(props) {
                     }}
                   >{armedRec.curated ? 'Curated' : 'Archetype'}</span>
                 </div>
-                <p className="font-editorial italic text-lg mt-1.5" style={{ color: '#e4e1ec' }}>{armedRec.champion.name}</p>
+                <p className="font-editorial text-lg mt-1.5" style={{ color: '#e4e1ec' }}>{armedRec.champion.name}</p>
                 <p className="text-[10px] font-body mt-1 leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>{armedRec.reason}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {armedRec.items.map(function (it) {
@@ -335,7 +335,7 @@ export default function TeamPlanner(props) {
                           {t.icon && (
                             <img alt={t.name} src={t.icon} onError={function(e){e.target.style.display='none'}} className="w-5 h-5 shrink-0"/>
                           )}
-                          <span className="font-editorial italic text-sm truncate" style={{ color: color }}>{t.name}</span>
+                          <span className="font-editorial text-sm truncate" style={{ color: color }}>{t.name}</span>
                         </div>
                         <span className="font-mono text-[10px] tabular-nums shrink-0" style={{ color: color }}>
                           {t.count}/{t.maxBreakpoint}

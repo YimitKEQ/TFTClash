@@ -174,7 +174,7 @@ export default function VodGallery(props) {
       )}
 
       {vods.length === 0 ? (
-        <div className="text-sm text-white/40 italic py-4 text-center">No VODs yet. Be the first.</div>
+        <div className="text-sm text-white/40 py-4 text-center">No VODs yet. Be the first.</div>
       ) : (
         <ul className="space-y-3">
           {vods.slice().reverse().map(function (v) {

@@ -114,7 +114,7 @@ export default function WatchlistPanel(props) {
                       <span>{(p.wins || 0)}W</span>
                     </>
                   ) : (
-                    <span className="text-on-surface-variant/40 italic">Not in current season</span>
+                    <span className="text-on-surface-variant/40">Not in current season</span>
                   )}
                 </div>
               </button>

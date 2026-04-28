@@ -54,7 +54,7 @@ export default function AdminScreen() {
       <div className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center gap-2 mb-6">
           <Icon name="admin_panel_settings" size={20} className="text-primary" />
-          <h1 className="font-editorial italic text-xl font-bold text-on-surface">Admin Panel</h1>
+          <h1 className="font-editorial text-xl font-bold text-on-surface">Admin Panel</h1>
         </div>
 
         <PillTabGroup align="start" className="mb-6">

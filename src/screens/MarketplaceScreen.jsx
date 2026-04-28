@@ -284,7 +284,7 @@ export default function MarketplaceScreen() {
           <Icon name="storefront" className="text-tertiary text-sm" />
           <span className="font-label text-xs tracking-widest uppercase text-tertiary font-semibold">Sponsor Marketplace</span>
         </div>
-        <h1 className="font-editorial italic text-on-background font-extrabold leading-tight mb-2" style={{ fontSize: 'clamp(28px,4vw,42px)' }}>
+        <h1 className="font-editorial text-on-background font-extrabold leading-tight mb-2" style={{ fontSize: 'clamp(28px,4vw,42px)' }}>
           Find a sponsor.<br />
           <span className="text-tertiary">Or find a tournament to sponsor.</span>
         </h1>

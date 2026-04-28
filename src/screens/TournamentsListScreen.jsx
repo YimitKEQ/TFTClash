@@ -153,7 +153,7 @@ function FeaturedSpotlight(props) {
           <span className={'px-3 py-1 text-[10px] font-bold font-label uppercase rounded ' + (phaseBadgeClasses[t.phase] || 'bg-surface-variant text-on-surface')}>{phaseLabels[t.phase] || t.phase}</span>
           {t.region && <RegionBadge region={t.region} size="md" />}
         </div>
-        <h1 className="text-4xl lg:text-6xl font-black italic font-editorial text-on-background uppercase leading-tight mb-3">{t.name}</h1>
+        <h1 className="text-4xl lg:text-6xl font-black font-editorial text-on-background uppercase leading-tight mb-3">{t.name}</h1>
         {t.description && (
           <p className="text-on-surface-variant max-w-xl text-base mb-6 leading-relaxed">{t.description}</p>
         )}

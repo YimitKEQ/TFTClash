@@ -64,10 +64,10 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
           <Icon name="emoji_events" size={84} fill={true} className="text-primary animate-crown-glow" aria-hidden="true" />
         </div>
         <p className="font-label text-xs text-primary/70 uppercase tracking-[0.4em] mb-2 animate-fadeup-d1">Grand Champion</p>
-        <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-4 italic drop-shadow-[0_0_60px_rgba(253,186,73,0.4)] animate-champ-reveal">
+        <h2 className="font-display text-6xl md:text-8xl text-primary uppercase tracking-tighter leading-none mb-4 drop-shadow-[0_0_60px_rgba(253,186,73,0.4)] animate-champ-reveal">
           {champion || 'TBD'}
         </h2>
-        <p className="font-editorial text-xl md:text-2xl italic text-on-surface-variant max-w-xl mx-auto animate-fadeup-d2">
+        <p className="font-editorial text-xl md:text-2xl text-on-surface-variant max-w-xl mx-auto animate-fadeup-d2">
           {'"' + clashName + '"'}
         </p>
         <div className="mt-8 flex gap-4 flex-wrap justify-center animate-fadeup-d3">
@@ -263,7 +263,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
             <div className="absolute -top-3 left-5 bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 uppercase tracking-widest font-label">
               Clash Recap
             </div>
-            <h4 className="font-editorial text-xl mb-3 italic mt-1">
+            <h4 className="font-editorial text-xl mb-3 mt-1">
               {clashName}
             </h4>
             <p className="text-on-surface-variant leading-relaxed text-sm">
@@ -357,7 +357,7 @@ export default function ClashReportScreen({ clashData, players, embedded }) {
 
       {/* Share and Actions footer */}
       <section className="mt-6 border-t border-outline-variant/10 pt-8 flex flex-col items-center">
-        <h5 className="font-editorial text-lg italic mb-6 text-on-surface-variant"
+        <h5 className="font-editorial text-lg mb-6 text-on-surface-variant"
           >
           Share this clash
         </h5>

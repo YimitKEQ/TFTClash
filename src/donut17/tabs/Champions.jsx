@@ -60,7 +60,7 @@ export default function Champions(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>Roster of Set 17</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Champions</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Champions</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           Every unit in the pool. Click any champion for ability, scaling, and trait details.
         </p>
@@ -147,7 +147,7 @@ export default function Champions(props) {
           ) : (
             <div className="d17-panel p-6 sticky top-28">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: 32 }}>arrow_back</span>
-              <p className="font-editorial italic text-lg mt-3" style={{ color: '#e4e1ec' }}>Select a champion</p>
+              <p className="font-editorial text-lg mt-3" style={{ color: '#e4e1ec' }}>Select a champion</p>
               <p className="text-xs font-body mt-1" style={{ color: 'rgba(228,225,236,0.55)' }}>
                 Detail, traits, and ability will load here.
               </p>
@@ -175,7 +175,7 @@ function Detail(props) {
       />
       <div className="p-5">
         <div className="flex items-baseline justify-between">
-          <h3 className="font-editorial italic text-2xl" style={{ color: '#e4e1ec' }}>{c.name}</h3>
+          <h3 className="font-editorial text-2xl" style={{ color: '#e4e1ec' }}>{c.name}</h3>
           <span className="font-mono text-sm" style={{ color: costColor(c.cost) }}>${c.cost}</span>
         </div>
 
@@ -194,7 +194,7 @@ function Detail(props) {
         <div className="d17-divider my-4"/>
 
         <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: '#9d8e7c' }}>Ability</p>
-        <p className="font-editorial italic text-base" style={{ color: '#FFC66B' }}>{c.ability.name || 'Unknown'}</p>
+        <p className="font-editorial text-base" style={{ color: '#FFC66B' }}>{c.ability.name || 'Unknown'}</p>
         <p className="text-xs mt-2 leading-relaxed font-body" style={{ color: 'rgba(228,225,236,0.75)' }}>
           {stripHtml(c.ability.desc || '-- ability data pending --')}
         </p>

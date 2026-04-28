@@ -230,7 +230,7 @@ export default function LeaderboardScreen(props) {
           <div className="flex justify-center mb-4">
             <span className="brand-eyebrow">Global Competition</span>
           </div>
-          <h1 className="font-editorial italic text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
+          <h1 className="font-editorial text-5xl md:text-7xl font-bold text-on-surface mb-4">Ranked Standings</h1>
           <p className="text-on-surface-variant max-w-2xl mx-auto font-body opacity-80 leading-relaxed">
             Every placement earns points. Every week is a chance to climb. One season, one ladder, every region.
           </p>

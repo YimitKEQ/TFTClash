@@ -122,7 +122,7 @@ export default function AiScoutReport(props) {
       )}
 
       {loading && (
-        <div className="text-sm text-white/60 italic flex items-center gap-2">
+        <div className="text-sm text-white/60 flex items-center gap-2">
           <Icon name="psychology" className="animate-pulse" /> Scouting the field...
         </div>
       )}

@@ -311,7 +311,7 @@ export default function SponsorsScreen() {
             <span className="font-label text-xs tracking-widest uppercase text-primary font-semibold">Partnership Opportunities</span>
           </div>
 
-          <h1 className="font-editorial italic text-4xl sm:text-5xl md:text-6xl font-bold text-on-surface mb-5 leading-tight">
+          <h1 className="font-editorial text-4xl sm:text-5xl md:text-6xl font-bold text-on-surface mb-5 leading-tight">
             Put Your Brand Where<br />
             <span className="text-primary">Competitors Are Watching</span>
           </h1>

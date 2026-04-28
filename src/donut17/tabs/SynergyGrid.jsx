@@ -60,7 +60,7 @@ export default function SynergyGrid(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>Intersections</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Synergy Grid</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Synergy Grid</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           Every trait, its breakpoints, and the units that bring it. Counts to the right show how often each trait shows up in tracked meta comps.
         </p>
@@ -100,7 +100,7 @@ export default function SynergyGrid(props) {
                   className="w-8 h-8"
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="font-editorial italic text-base truncate" style={{ color: '#FFC66B' }}>{t.name}</p>
+                  <p className="font-editorial text-base truncate" style={{ color: '#FFC66B' }}>{t.name}</p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>{champs.length} units</span>
                     {usage > 0 && (

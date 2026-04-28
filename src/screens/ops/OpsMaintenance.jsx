@@ -510,7 +510,7 @@ export default function OpsMaintenance(props) {
           )}
 
           {selectedT && dqRegs.length === 0 && (
-            <div className="text-xs text-on-surface/40 italic">No registrations found.</div>
+            <div className="text-xs text-on-surface/40">No registrations found.</div>
           )}
         </div>
       </Panel>
@@ -534,7 +534,7 @@ export default function OpsMaintenance(props) {
             />
           </div>
           {subs.length === 0 ? (
-            <div className="text-xs text-on-surface/40 italic">No active subscriptions.</div>
+            <div className="text-xs text-on-surface/40">No active subscriptions.</div>
           ) : (
             <div className="max-h-64 overflow-y-auto border border-outline-variant/10 rounded">
               {subs.map(function(s) {
@@ -584,7 +584,7 @@ export default function OpsMaintenance(props) {
           Read-only list. Role changes require service_role (update via Supabase SQL editor or a secure edge function).
         </div>
         {roles.length === 0 ? (
-          <div className="text-xs text-on-surface/40 italic">No admins or hosts configured.</div>
+          <div className="text-xs text-on-surface/40">No admins or hosts configured.</div>
         ) : (
           <div className="space-y-1.5">
             {roles.map(function(r) {

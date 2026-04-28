@@ -311,7 +311,7 @@ export default function HofScreen(props) {
           <h1 className="font-display text-4xl sm:text-6xl md:text-8xl text-primary leading-none tracking-tight drop-shadow-2xl">
             HALL OF FAME
           </h1>
-          <p className="font-editorial italic text-lg sm:text-2xl text-on-surface-variant mt-4 opacity-80">
+          <p className="font-editorial text-lg sm:text-2xl text-on-surface-variant mt-4 opacity-80">
             Celebrating the Architects of Victory
           </p>
         </div>

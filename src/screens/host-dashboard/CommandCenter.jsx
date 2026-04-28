@@ -61,7 +61,7 @@ function PlacementSlots(props) {
             {player ? (
               <span className="text-xs text-on-surface/80 flex-1">{player.name}</span>
             ) : (
-              <span className={'text-[10px] flex-1 ' + (isTarget ? 'text-primary/60 italic' : 'text-on-surface/20 italic')}>
+              <span className={'text-[10px] flex-1 ' + (isTarget ? 'text-primary/60' : 'text-on-surface/20')}>
                 {isTarget ? 'click to place' : 'empty'}
               </span>
             )}

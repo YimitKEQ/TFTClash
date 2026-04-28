@@ -92,7 +92,7 @@ function SponsorCard(props) {
         </div>
       </div>
       <div className="px-4 py-2.5 flex flex-wrap gap-1.5">
-        {placements.length === 0 && <span className="text-[11px] text-on-surface/30 italic">No placements configured</span>}
+        {placements.length === 0 && <span className="text-[11px] text-on-surface/30">No placements configured</span>}
         {placements.map(function(pid) {
           var pl = PLACEMENT_OPTIONS.find(function(p) { return p.id === pid })
           if (!pl) return null
@@ -426,7 +426,7 @@ export default function SponsorsTab() {
                   <Icon name={pl.icon} size={14} className="text-on-surface/40 flex-shrink-0" />
                   <span className="text-xs font-semibold text-on-surface/70 w-32 flex-shrink-0">{pl.label}</span>
                   <div className="flex-1 flex flex-wrap gap-1">
-                    {sponsorsHere.length === 0 && <span className="text-[10px] text-on-surface/25 italic">No sponsors assigned</span>}
+                    {sponsorsHere.length === 0 && <span className="text-[10px] text-on-surface/25">No sponsors assigned</span>}
                     {sponsorsHere.map(function(s) {
                       var tierInfo = SPONSOR_TIERS.find(function(t) { return t.id === s.tier }) || SPONSOR_TIERS[0]
                       return (
@@ -465,7 +465,7 @@ export default function SponsorsTab() {
                 )
               })}
               {active.filter(function(s) { return (s.placements || []).indexOf('footer') > -1 }).length === 0 && (
-                <span className="text-xs text-on-surface/30 italic">No sponsors assigned to footer placement</span>
+                <span className="text-xs text-on-surface/30">No sponsors assigned to footer placement</span>
               )}
             </div>
           </div>

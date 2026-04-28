@@ -717,7 +717,7 @@ function BracketScreen(){
         {/* Page header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
-            <h1 className="font-editorial italic text-4xl md:text-5xl text-on-background mb-2">
+            <h1 className="font-editorial text-4xl md:text-5xl text-on-background mb-2">
               {clashName.includes(":")
                 ? clashName.split(":")[0]+":"
                 : "TFT Clash:"

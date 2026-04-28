@@ -158,7 +158,7 @@ export default function PredictionGame(props) {
       )}
 
       {locked && !isCompleted && (
-        <div className="text-xs text-white/50 italic">Predictions locked. Check back when results post.</div>
+        <div className="text-xs text-white/50">Predictions locked. Check back when results post.</div>
       )}
 
       {isCompleted && prediction && (

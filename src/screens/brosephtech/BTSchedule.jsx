@@ -441,7 +441,7 @@ function CardDetailDrawer(props) {
                 {c.brief.hookLine && c.brief.hookLine.trim() && (
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Hook</p>
-                    <p className="text-sm text-white/85 italic">"{c.brief.hookLine}"</p>
+                    <p className="text-sm text-white/85">"{c.brief.hookLine}"</p>
                   </div>
                 )}
                 {c.brief.talkingPoints && c.brief.talkingPoints.length > 0 && (
@@ -716,7 +716,7 @@ function StandupView(props) {
                   <p className="text-[10px] text-white/40">{row.activeCount} active card{row.activeCount === 1 ? '' : 's'}</p>
                 </div>
                 {empty && (
-                  <span className="text-[10px] text-white/30 italic">Clear today</span>
+                  <span className="text-[10px] text-white/30">Clear today</span>
                 )}
               </div>
               <Bucket label="Overdue" icon="warning" color="#FCA5A5" cards={row.overdue} />

@@ -57,7 +57,7 @@ export default function ItemIcon(props) {
             boxShadow: '0 12px 32px rgba(0,0,0,0.6)',
           }}
         >
-          <span className="block font-editorial italic text-sm" style={{ color: '#FFC66B' }}>
+          <span className="block font-editorial text-sm" style={{ color: '#FFC66B' }}>
             {item.name}
           </span>
           {item.desc && (

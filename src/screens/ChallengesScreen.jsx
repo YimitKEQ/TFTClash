@@ -156,7 +156,7 @@ export default function ChallengesScreen() {
           <div className="flex justify-between items-end mb-4">
             <div>
               <span className="font-label text-primary uppercase tracking-[0.2em] text-xs font-bold">{seasonName}</span>
-              <h1 className="font-editorial italic text-5xl mt-2">Challenges &amp; Progression</h1>
+              <h1 className="font-editorial text-5xl mt-2">Challenges &amp; Progression</h1>
             </div>
             <div className="text-right">
               {rankInfo.next && (
@@ -334,7 +334,7 @@ export default function ChallengesScreen() {
                   </div>
                 </div>
                 <div className="mt-8 pt-6 border-t border-outline-variant/10">
-                  <p className="font-editorial italic text-on-surface/80 text-center text-sm leading-relaxed">
+                  <p className="font-editorial text-on-surface/80 text-center text-sm leading-relaxed">
                     "Show up. Stack wins. Repeat."
                   </p>
                 </div>

@@ -61,7 +61,7 @@ export default function Items(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>The Forge</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Items</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Items</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           Components, combined items, and artifacts. Tap any item to read its full effect.
         </p>
@@ -91,7 +91,7 @@ export default function Items(props) {
             ) : null}
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-3">
-                <p className="font-editorial italic text-2xl" style={{ color: '#FFC66B' }}>{selected.name}</p>
+                <p className="font-editorial text-2xl" style={{ color: '#FFC66B' }}>{selected.name}</p>
                 <button
                   type="button"
                   onClick={function(){ setSelected(null) }}
@@ -147,7 +147,7 @@ export default function Items(props) {
               ) : (
                 <div className="w-14 h-14 mx-auto" style={{ background: '#0e0d15', border: '1px solid #504535' }}/>
               )}
-              <p className="font-editorial italic text-xs mt-2 truncate" style={{ color: isSel ? '#FFC66B' : 'rgba(228,225,236,0.85)' }}>{it.name}</p>
+              <p className="font-editorial text-xs mt-2 truncate" style={{ color: isSel ? '#FFC66B' : 'rgba(228,225,236,0.85)' }}>{it.name}</p>
             </button>
           )
         })}

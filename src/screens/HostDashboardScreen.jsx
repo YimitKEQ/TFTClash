@@ -1026,7 +1026,7 @@ export default function HostDashboardScreen() {
                   </div>
                   <div className="mt-4 flex flex-col gap-2 items-center">
                     <div className="w-16 h-1 bg-secondary shadow-[0_0_15px_rgba(217,185,255,0.4)]"></div>
-                    <span className="font-editorial italic text-slate-400">{wizData.name || "Tournament Name"}</span>
+                    <span className="font-editorial text-slate-400">{wizData.name || "Tournament Name"}</span>
                   </div>
                 </div>
               </div>

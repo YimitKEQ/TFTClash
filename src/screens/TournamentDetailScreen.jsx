@@ -303,7 +303,7 @@ export default function TournamentDetailScreen() {
           <div className="font-label text-[11px] font-bold text-secondary tracking-[.18em] uppercase mb-1.5">
             {event.host ? "Hosted by " + event.host : "Custom Tournament"}
           </div>
-          <h1 className="font-editorial italic text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
+          <h1 className="font-editorial text-on-background font-extrabold leading-none mb-3" style={{ fontSize: "clamp(28px,4.2vw,46px)" }}>
             {event.logo && <span className="mr-3 not-italic">{event.logo}</span>}
             {event.name}
           </h1>
@@ -629,11 +629,11 @@ export default function TournamentDetailScreen() {
               {/* Host info */}
               <div className="bg-surface-container-low rounded border border-outline-variant/15 p-5 text-center">
                 <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-2">Hosted By</div>
-                <div className="font-editorial italic text-xl text-primary">{event.host || 'TFT Clash'}</div>
+                <div className="font-editorial text-xl text-primary">{event.host || 'TFT Clash'}</div>
                 {event.sponsor && (
                   <div className="mt-4 pt-4 border-t border-outline-variant/10">
                     <div className="text-[10px] font-label text-on-surface-variant/50 uppercase tracking-wider mb-2">Presented By</div>
-                    <div className="font-editorial italic text-lg text-on-surface/60">{event.sponsor}</div>
+                    <div className="font-editorial text-lg text-on-surface/60">{event.sponsor}</div>
                   </div>
                 )}
               </div>

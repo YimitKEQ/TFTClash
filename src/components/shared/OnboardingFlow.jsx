@@ -142,7 +142,7 @@ function OnboardingFlow(props) {
               Status: Not yet registered
             </div>
           </div>
-          <div className="text-xs italic text-primary mt-3">
+          <div className="text-xs text-primary mt-3">
             Every champion started here.
           </div>
         </div>

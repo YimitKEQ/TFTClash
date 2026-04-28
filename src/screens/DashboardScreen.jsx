@@ -191,7 +191,7 @@ function PulseHeader({
 
         {/* Name + season label */}
         <div>
-          <h1 className="font-editorial text-2xl sm:text-4xl text-on-surface leading-none italic">{playerName}</h1>
+          <h1 className="font-editorial text-2xl sm:text-4xl text-on-surface leading-none">{playerName}</h1>
           <p className="font-label text-xs uppercase tracking-[0.2em] text-secondary mt-2">
             {linkedPlayer
               ? ('Season - ' + (playerRank ? playerRank + ' - ' : '') + 'Top ' + (totalPlayers > 0 ? Math.max(1, Math.round((myRankIdx / totalPlayers) * 100)) : myRankIdx) + '%')

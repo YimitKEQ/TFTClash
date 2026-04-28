@@ -91,7 +91,7 @@ function PredictionRow(props) {
         <div className="rounded-lg bg-surface-container-high border border-outline-variant/10 p-3">
           <div className="text-[10px] font-label tracking-widest uppercase text-on-surface-variant/60 mb-1">Your top 4</div>
           {top4.length === 0 ? (
-            <div className="text-xs text-on-surface-variant/40 italic">none</div>
+            <div className="text-xs text-on-surface-variant/40">none</div>
           ) : (
             <ul className="flex flex-wrap gap-1.5">
               {top4.map(function (id) {

@@ -257,7 +257,7 @@ function TierRow(props) {
         style={{ borderLeftColor: tier.color + '40' }}
       >
         {ids.length === 0 ? (
-          <span className="text-white/20 text-xs italic self-center">
+          <span className="text-white/20 text-xs self-center">
             {props.readOnly ? '' : (armed ? 'Tap to place here' : 'Drop or tap to place')}
           </span>
         ) : (
@@ -458,7 +458,7 @@ function TierListEditor(props) {
               })}
             </div>
             {notes && (
-              <p className="mt-6 text-white/60 text-sm italic text-center">{notes}</p>
+              <p className="mt-6 text-white/60 text-sm text-center">{notes}</p>
             )}
           </div>
         </div>
@@ -491,7 +491,7 @@ function TierListEditor(props) {
       <div className="mb-5 flex items-center gap-3 flex-wrap">
         <KindToggle value={kind} onChange={handleKindChange} disabled={kindLocked} />
         {kindLocked && (
-          <span className="text-[10px] text-white/30 italic">Kind locked once placements exist</span>
+          <span className="text-[10px] text-white/30">Kind locked once placements exist</span>
         )}
       </div>
 
@@ -600,7 +600,7 @@ function TierListEditor(props) {
           className="flex flex-wrap gap-2 min-h-[120px] p-2 rounded-lg border-2 border-dashed border-white/5"
         >
           {availableItems.length === 0 ? (
-            <p className="text-white/30 text-xs italic self-center">No {kind === 'items' ? 'items' : 'champions'} match the filter</p>
+            <p className="text-white/30 text-xs self-center">No {kind === 'items' ? 'items' : 'champions'} match the filter</p>
           ) : kind === 'items' ? (
             availableItems.map(function(it) {
               return (

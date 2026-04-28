@@ -265,7 +265,7 @@ export default function Navbar() {
             className="flex items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity shrink-0 bg-transparent border-none p-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
           >
             <img src="/icon-border.png" alt="" aria-hidden="true" className="w-8 h-8 object-contain drop-shadow-[0_0_10px_rgba(232,168,56,0.4)]" />
-            <span className="font-display font-black italic text-xl text-primary uppercase tracking-tighter leading-none">TFT CLASH</span>
+            <span className="font-display font-black text-xl text-primary uppercase tracking-tighter leading-none">TFT CLASH</span>
           </button>
 
           {/* Desktop nav links */}

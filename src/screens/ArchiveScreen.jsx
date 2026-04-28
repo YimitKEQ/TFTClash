@@ -222,7 +222,7 @@ export default function ArchiveScreen() {
 
         {/* Page header */}
         <header className="mb-12">
-          <h1 className="font-editorial italic text-5xl md:text-7xl text-on-surface mb-4">
+          <h1 className="font-editorial text-5xl md:text-7xl text-on-surface mb-4">
             Season Archive
           </h1>
           <p className="text-on-surface-variant max-w-2xl text-lg leading-relaxed">

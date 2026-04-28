@@ -32,7 +32,7 @@ export default function LoginScreen() {
             <h1 className="text-primary text-4xl font-display tracking-tighter uppercase leading-none">
               TFT CLASH
             </h1>
-            <p className="font-editorial text-base text-on-surface/50 italic">Welcome back, Challenger</p>
+            <p className="font-editorial text-base text-on-surface/50">Welcome back, Challenger</p>
           </div>
 
           {/* Auth panel */}

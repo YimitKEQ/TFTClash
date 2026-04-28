@@ -775,7 +775,7 @@ export default function ScrimsScreen() {
         {/* Header */}
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h1 className="font-editorial italic text-5xl font-black text-on-surface tracking-tight">Practice Arena</h1>
+            <h1 className="font-editorial text-5xl font-black text-on-surface tracking-tight">Practice Arena</h1>
             <p className="text-on-surface-variant text-sm mt-1">{allGames.length} games logged across {safeSessions.length} sessions</p>
           </div>
           <div className="flex gap-2 flex-wrap justify-end flex-shrink-0">
@@ -1268,7 +1268,7 @@ export default function ScrimsScreen() {
                             )}
                           </div>
                         </div>
-                        {g.note && <div className="text-[10px] text-on-surface-variant/50 px-4 pt-2 italic">"{g.note}"</div>}
+                        {g.note && <div className="text-[10px] text-on-surface-variant/50 px-4 pt-2">"{g.note}"</div>}
                         <div className="px-4 py-2.5 divide-y divide-outline-variant/5">
                           {sorted.map(function(entry) {
                             var pid = entry[0]; var place = entry[1];
@@ -1626,7 +1626,7 @@ export default function ScrimsScreen() {
                               <span className="text-[10px] font-label text-amber-400">MVP: {sessStats[0].name} ({sessStats[0].pts}pts)</span>
                             </>
                           )}
-                          {sess.notes && <span className="text-[10px] text-on-surface-variant/50 italic truncate">{sess.notes}</span>}
+                          {sess.notes && <span className="text-[10px] text-on-surface-variant/50 truncate">{sess.notes}</span>}
                         </div>
                       </div>
                       {/* Mini podium */}
@@ -1697,7 +1697,7 @@ export default function ScrimsScreen() {
                                     {g.lobbyIndex != null && <span className="text-[9px] font-label bg-tertiary/15 text-tertiary px-1.5 py-0.5 uppercase">Lobby {String.fromCharCode(65 + g.lobbyIndex)}</span>}
                                     {g.tag !== 'standard' && <span className="text-[9px] font-label bg-secondary/10 text-secondary px-1.5 py-0.5 uppercase">{g.tag}</span>}
                                     {g.duration > 0 && <span className="font-mono text-[10px] text-on-surface-variant/50">{fmt(g.duration)}</span>}
-                                    {!isEditing && g.note && <span className="text-[10px] text-on-surface-variant/50 italic">"{g.note}"</span>}
+                                    {!isEditing && g.note && <span className="text-[10px] text-on-surface-variant/50">"{g.note}"</span>}
                                   </div>
                                   <div className="flex items-center gap-2">
                                     {winnerPlayer && <span className="text-[10px] font-label text-on-surface-variant/60">Winner: <span className="font-bold text-amber-400">{winnerPlayer.name}</span></span>}

@@ -119,7 +119,7 @@ export default function RoadmapScreen() {
           <Icon name="rocket_launch" className="text-primary text-sm" />
           <span className="font-label text-xs tracking-widest uppercase text-primary font-semibold">Public Roadmap</span>
         </div>
-        <h1 className="font-editorial italic text-on-background font-extrabold leading-tight mb-3" style={{ fontSize: 'clamp(28px,4vw,42px)' }}>
+        <h1 className="font-editorial text-on-background font-extrabold leading-tight mb-3" style={{ fontSize: 'clamp(28px,4vw,42px)' }}>
           What we're building<br />
           <span className="text-primary">and what's coming next.</span>
         </h1>

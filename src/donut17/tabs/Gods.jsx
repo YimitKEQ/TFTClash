@@ -35,7 +35,7 @@ export default function Gods(props) {
                   style={{ border: '1px solid ' + g.color + '55' }}
                 />
                 <div>
-                  <p className="font-editorial italic text-lg" style={{ color: active ? g.color : '#e4e1ec' }}>{g.name}</p>
+                  <p className="font-editorial text-lg" style={{ color: active ? g.color : '#e4e1ec' }}>{g.name}</p>
                   <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: 'rgba(228,225,236,0.45)' }}>{g.title}</p>
                 </div>
               </button>
@@ -67,7 +67,7 @@ function GodDetail(props) {
         <div className="flex items-start justify-between gap-6">
           <div>
             <span className="font-mono text-xs uppercase tracking-[0.2em]" style={{ color: god.color }}>{god.title}</span>
-            <h2 className="font-editorial italic text-5xl mt-1" style={{ color: god.color }}>{god.name}</h2>
+            <h2 className="font-editorial text-5xl mt-1" style={{ color: god.color }}>{god.name}</h2>
             <p className="font-body text-sm mt-4 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.80)' }}>
               {god.blessing}
             </p>
@@ -97,7 +97,7 @@ function GodDetail(props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <p className="font-label uppercase tracking-widest text-xs mb-2" style={{ color: 'rgba(228,225,236,0.55)' }}>Tip</p>
-            <p className="font-editorial italic text-lg leading-relaxed" style={{ color: '#e4e1ec' }}>"{god.tip}"</p>
+            <p className="font-editorial text-lg leading-relaxed" style={{ color: '#e4e1ec' }}>"{god.tip}"</p>
           </div>
           <div>
             <p className="font-label uppercase tracking-widest text-xs mb-2" style={{ color: 'rgba(228,225,236,0.55)' }}>Best Comps</p>
@@ -143,7 +143,7 @@ function Header() {
   return (
     <div className="mb-10">
       <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>The Pantheon</span>
-      <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Space Gods</h1>
+      <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Space Gods</h1>
       <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
         Choose your patron at Stage 2-1. Each god grants a unique blessing and stage-gated offerings. Pick the one that matches your opener and your god-given comp.
       </p>

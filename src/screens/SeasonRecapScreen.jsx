@@ -15,37 +15,37 @@ function buildNarrativeParts(player, s, position, totalPlayers, seasonName) {
   var sn = seasonName || 'Season 1'
   if (!position || !totalPlayers || totalPlayers === 0) {
     return [
-      { text: name + ' competed this season. ', italic: false },
-      { text: wins + ' wins', italic: true },
-      { text: ' recorded so far. Keep climbing.', italic: false },
+      { text: name + ' competed this season. ', highlight: false },
+      { text: wins + ' wins', highlight: true },
+      { text: ' recorded so far. Keep climbing.', highlight: false },
     ]
   }
   if (position === 1) {
     return [
-      { text: name + ' stood above every challenger this season. ', italic: false },
-      { text: wins + ' victories', italic: true },
-      { text: ' across ' + games + ' games, an average placement of ' + avp + ', and a ', italic: false },
-      { text: winRate + '% win rate', italic: true },
-      { text: ' cemented a historic ' + sn + ' run. Dominant, consistent, and clinical - a true ' + sn + ' Champion.', italic: false },
+      { text: name + ' stood above every challenger this season. ', highlight: false },
+      { text: wins + ' victories', highlight: true },
+      { text: ' across ' + games + ' games, an average placement of ' + avp + ', and a ', highlight: false },
+      { text: winRate + '% win rate', highlight: true },
+      { text: ' cemented a historic ' + sn + ' run. Dominant, consistent, and clinical - a true ' + sn + ' Champion.', highlight: false },
     ]
   }
   if (position <= 3) {
     return [
-      { text: name + ' delivered a top-3 season to be proud of. ', italic: false },
-      { text: wins + ' wins', italic: true },
-      { text: ' and a ', italic: false },
-      { text: avp + ' average placement', italic: true },
-      { text: ' across ' + games + ' games shows the consistency of an elite competitor. A force in every lobby they entered.', italic: false },
+      { text: name + ' delivered a top-3 season to be proud of. ', highlight: false },
+      { text: wins + ' wins', highlight: true },
+      { text: ' and a ', highlight: false },
+      { text: avp + ' average placement', highlight: true },
+      { text: ' across ' + games + ' games shows the consistency of an elite competitor. A force in every lobby they entered.', highlight: false },
     ]
   }
   var rawPct = Math.round(position / totalPlayers * 100)
   var clampedPct = Math.min(100, Math.max(1, rawPct))
   return [
-    { text: name + ' competed hard across ' + sn + ' - ', italic: false },
-    { text: wins + ' wins', italic: true },
-    { text: ' and a ', italic: false },
-    { text: avp + ' average placement', italic: true },
-    { text: ' across ' + games + ' games. Top ' + clampedPct + '% overall. The grind continues.', italic: false },
+    { text: name + ' competed hard across ' + sn + ' - ', highlight: false },
+    { text: wins + ' wins', highlight: true },
+    { text: ' and a ', highlight: false },
+    { text: avp + ' average placement', highlight: true },
+    { text: ' across ' + games + ' games. Top ' + clampedPct + '% overall. The grind continues.', highlight: false },
   ]
 }
 
@@ -266,13 +266,13 @@ export default function SeasonRecapScreen() {
           <div className="inline-block mb-4 px-6 py-1 bg-tertiary-container/10 text-tertiary font-label uppercase tracking-[0.2em] text-sm border border-tertiary/20 rounded">
             Season Achievement Unlocked
           </div>
-          <h1 className="text-6xl md:text-8xl font-editorial italic font-black tracking-tight leading-none mb-4">
+          <h1 className="text-6xl md:text-8xl font-editorial font-black tracking-tight leading-none mb-4">
             {seasonName + ' '}
             <span className="font-editorial gold-gradient-text">
               Recap
             </span>
           </h1>
-          <p className="max-w-2xl mx-auto text-on-surface-variant text-lg leading-relaxed italic">
+          <p className="max-w-2xl mx-auto text-on-surface-variant text-lg leading-relaxed">
             Your season, by the numbers. Every clash, every placement, every point.
           </p>
         </header>
@@ -306,8 +306,8 @@ export default function SeasonRecapScreen() {
             <Icon name="format_quote" fill size={32} className="text-primary mb-4" />
             <p className="text-2xl font-editorial text-on-surface leading-snug">
               {narrativeParts.map(function(part, idx) {
-                if (part.italic) {
-                  return <span key={"part-" + idx + "-" + part.text.slice(0, 20)} className="text-primary italic">{part.text}</span>
+                if (part.highlight) {
+                  return <span key={"part-" + idx + "-" + part.text.slice(0, 20)} className="text-primary">{part.text}</span>
                 }
                 return <span key={"part-" + idx + "-" + part.text.slice(0, 20)}>{part.text}</span>
               })}
@@ -388,7 +388,7 @@ export default function SeasonRecapScreen() {
               Season Highlights
             </h3>
             {highlights.length === 0 ? (
-              <p className="text-on-surface-variant text-sm italic">
+              <p className="text-on-surface-variant text-sm">
                 Play in more clashes to unlock season highlights.
               </p>
             ) : (

@@ -403,10 +403,10 @@ function FeaturedTab({ featuredEvents, setFeaturedEvents, currentUser, onAuthCli
                 </span>
               )}
             </div>
-            <h1 className="font-editorial italic text-5xl lg:text-7xl font-black mb-4 leading-none tracking-tight">
+            <h1 className="font-editorial text-5xl lg:text-7xl font-black mb-4 leading-none tracking-tight">
               {hero.name ? hero.name.split(' ').slice(0, 2).join(' ') : 'Featured'}
               <br />
-              <span className="text-primary italic">
+              <span className="text-primary">
                 {hero.name ? hero.name.split(' ').slice(2).join(' ') : 'Event'}
               </span>
             </h1>

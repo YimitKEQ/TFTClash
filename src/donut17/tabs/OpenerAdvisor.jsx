@@ -120,7 +120,7 @@ export default function OpenerAdvisor(props) {
         <div className="flex justify-between items-end mb-3 flex-wrap gap-3">
           <div>
             <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>Divine Counsel</span>
-            <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Opener Advisor</h1>
+            <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Opener Advisor</h1>
             <p className="font-mono text-[10px] uppercase tracking-widest mt-2" style={{ color: 'rgba(228,225,236,0.45)' }}>
               Data sourced from tftflow.com{sourcePatch ? ' · ' + sourcePatch : ''} · {comps.length} comps
             </p>
@@ -213,7 +213,7 @@ export default function OpenerAdvisor(props) {
           {picked.length === 0 && (
             <div className="d17-panel p-8 text-center">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: 36 }}>touch_app</span>
-              <p className="font-editorial italic text-lg mt-3" style={{ color: '#e4e1ec' }}>
+              <p className="font-editorial text-lg mt-3" style={{ color: '#e4e1ec' }}>
                 Pick units to begin
               </p>
               <p className="font-body text-xs mt-2" style={{ color: 'rgba(228,225,236,0.55)' }}>
@@ -290,7 +290,7 @@ function RankedComp(props) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-mono text-xs" style={{ color: accent }}>#{props.rank}</span>
-              <h3 className="font-editorial italic text-xl" style={{ color: '#e4e1ec' }}>{c.name}</h3>
+              <h3 className="font-editorial text-xl" style={{ color: '#e4e1ec' }}>{c.name}</h3>
               {c.econ && (
                 <span className="font-mono text-[10px] uppercase tracking-widest px-2 py-0.5" style={{ background: 'rgba(14,13,21,0.8)', color: '#9d8e7c', border: '1px solid rgba(157,142,124,0.3)' }}>
                   {econLabel(c.econ)}

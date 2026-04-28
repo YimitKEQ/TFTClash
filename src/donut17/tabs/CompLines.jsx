@@ -118,7 +118,7 @@ export default function CompLines(props) {
     <div>
       <header className="mb-8">
         <span className="font-label text-xs uppercase tracking-[0.2em]" style={{ color: '#FFC66B' }}>Patch 17.1 Meta</span>
-        <h1 className="font-editorial italic text-5xl mt-2 d17-gold-text">Team Comps</h1>
+        <h1 className="font-editorial text-5xl mt-2 d17-gold-text">Team Comps</h1>
         <p className="text-sm mt-3 max-w-2xl leading-relaxed" style={{ color: 'rgba(228,225,236,0.65)' }}>
           {comps.length} comps from tftflow.com, sorted by their best tier placement. Tier chips are conditional on augments + emblems. Click any card for the full flowchart.
         </p>
@@ -215,7 +215,7 @@ function CompCard(props) {
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-editorial italic text-xl" style={{ color: '#e4e1ec' }}>{comp.name}</h3>
+              <h3 className="font-editorial text-xl" style={{ color: '#e4e1ec' }}>{comp.name}</h3>
               {comp.econ && (
                 <span className="font-mono text-[10px] uppercase tracking-widest px-2 py-0.5" style={{ background: 'rgba(14,13,21,0.8)', color: '#9d8e7c', border: '1px solid rgba(157,142,124,0.3)' }}>
                   {econLabel(comp.econ)}

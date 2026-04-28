@@ -193,7 +193,7 @@ function StageRail(props) {
             <div className="flex flex-col items-start gap-0.5 min-w-[110px]">
               <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>{s.label}</span>
               <div className="flex items-baseline gap-2">
-                <span className="font-editorial italic text-lg" style={{ color: s.isFinal ? accent : '#e4e1ec' }}>{s.stage}</span>
+                <span className="font-editorial text-lg" style={{ color: s.isFinal ? accent : '#e4e1ec' }}>{s.stage}</span>
                 <span className="font-mono text-[10px]" style={{ color: '#67e2d9' }}>LVL {s.level}</span>
               </div>
             </div>
@@ -252,7 +252,7 @@ function Hero(props) {
                 </span>
               )}
             </div>
-            <h1 className="font-editorial italic text-4xl md:text-5xl mt-2" style={{ color: '#e4e1ec' }}>
+            <h1 className="font-editorial text-4xl md:text-5xl mt-2" style={{ color: '#e4e1ec' }}>
               {comp.name}
             </h1>
             {summary && (
@@ -289,7 +289,7 @@ function Hero(props) {
 
 function SectionHead(props) {
   return (
-    <h2 className="font-editorial italic text-3xl mb-1" style={{ color: '#e4e1ec' }}>
+    <h2 className="font-editorial text-3xl mb-1" style={{ color: '#e4e1ec' }}>
       <span style={{ color: props.accent }}>/</span> {props.label}
     </h2>
   )
@@ -313,7 +313,7 @@ function StageCard(props) {
         <div className="col-span-12 md:col-span-3">
           <div className="flex items-baseline gap-2">
             <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#9d8e7c' }}>Stage</span>
-            <span className="font-editorial italic text-3xl" style={{ color: stage.isFinal ? accent : '#e4e1ec' }}>{stage.stage}</span>
+            <span className="font-editorial text-3xl" style={{ color: stage.isFinal ? accent : '#e4e1ec' }}>{stage.stage}</span>
           </div>
           <div className="mt-1 flex items-baseline gap-2">
             <span className="font-mono text-[10px] uppercase tracking-widest" style={{ color: '#67e2d9' }}>Level {stage.level}</span>
@@ -401,7 +401,7 @@ function CarryItemCard(props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-editorial italic text-xl leading-tight" style={{ color: '#e4e1ec' }}>{ch.name}</h3>
+            <h3 className="font-editorial text-xl leading-tight" style={{ color: '#e4e1ec' }}>{ch.name}</h3>
             <span
               className="font-mono text-[9px] uppercase tracking-widest px-2 py-0.5"
               style={{
@@ -474,7 +474,7 @@ function PivotCard(props) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-editorial italic text-lg truncate" style={{ color: '#e4e1ec' }}>{c.name}</p>
+            <p className="font-editorial text-lg truncate" style={{ color: '#e4e1ec' }}>{c.name}</p>
             {tier && (
               <span className="font-mono text-[10px] uppercase tracking-widest px-1.5 py-0.5"
                 style={{ background: accent + '22', color: accent, border: '1px solid ' + accent + '55' }}>{tier}</span>

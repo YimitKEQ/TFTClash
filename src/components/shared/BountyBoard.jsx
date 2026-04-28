@@ -194,7 +194,7 @@ export default function BountyBoard(props) {
                   <span className={'font-mono ' + (b.target === 'pool' ? 'text-on-surface' : 'text-primary')}>{label}</span>
                   <span className="text-on-surface-variant/40 ml-auto truncate">{b.pledger}</span>
                 </div>
-                {b.note && <div className="text-on-surface-variant/60 italic pl-1">"{b.note}"</div>}
+                {b.note && <div className="text-on-surface-variant/60 pl-1">"{b.note}"</div>}
               </div>
             )
           })}

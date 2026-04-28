@@ -125,7 +125,7 @@ export default function HostApplyScreen() {
               <span className="font-label text-xs tracking-widest">Verified Partner Program</span>
             </div>
           </div>
-          <h1 className="font-editorial italic text-6xl font-bold tracking-tight text-on-surface mb-2">
+          <h1 className="font-editorial text-6xl font-bold tracking-tight text-on-surface mb-2">
             Host Application
           </h1>
           <p className="text-on-surface-variant max-w-2xl text-lg font-light leading-relaxed">
@@ -221,7 +221,7 @@ export default function HostApplyScreen() {
             <div className="pt-6 flex items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-slate-500">
                 <Icon name="info" size={16} />
-                <span className="text-xs italic">Review takes up to 48 hours</span>
+                <span className="text-xs">Review takes up to 48 hours</span>
               </div>
               <Btn variant="primary" size="lg" type="button" onClick={submit}>
                 Apply Now

@@ -45,7 +45,7 @@ export default function SignUpScreen() {
             <h1 className="text-primary text-4xl font-display tracking-tighter uppercase leading-none">
               TFT CLASH
             </h1>
-            <p className="font-editorial text-base text-on-surface/50 italic">Your leaderboard spot is free. Always.</p>
+            <p className="font-editorial text-base text-on-surface/50">Your leaderboard spot is free. Always.</p>
           </div>
 
           {/* Auth panel */}
