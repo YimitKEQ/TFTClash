@@ -9,7 +9,7 @@ import useCountdown from '../lib/useCountdown'
 import PageLayout from '../components/layout/PageLayout'
 import { Btn, Panel, Icon } from '../components/ui'
 import SponsorShowcase from '../components/shared/SponsorShowcase'
-import { DISCORD_URL } from '../lib/constants'
+import { DISCORD_URL, PTS } from '../lib/constants'
 import { LEADERBOARD_TIERS as TIER_THRESHOLDS, getPlayerTierInfo, getNextTierInfo } from '../lib/tiers.js'
 import { canRegisterInRegion, regionMismatchMessage } from '../lib/regions.js'
 import { RegionBadge } from '../components/shared'
@@ -751,6 +751,144 @@ function LobbyRosterCard() {
   )
 }
 
+// --- MY BRACKET PATH ---
+// Read-only timeline of the player's path through the current tournament:
+// per-round placement, points earned, current total vs cut line.
+
+function MyBracketPath() {
+  var ctx = useApp()
+  var currentUser = ctx.currentUser
+  var players = ctx.players || []
+  var tournamentState = ctx.tournamentState || {}
+  var pendingResults = ctx.pendingResults || []
+
+  var phase = tournamentState.phase
+  var tournamentId = tournamentState.id || tournamentState.dbTournamentId
+  var totalGames = tournamentState.totalGames || 4
+  var currentRound = tournamentState.round || 1
+  var cutLine = tournamentState.cutLine || tournamentState.cut_line || 0
+
+  var linkedPlayer = currentUser && players.find(function(p) {
+    return p.name === (currentUser.username || currentUser.name)
+  })
+  var playerId = linkedPlayer ? linkedPlayer.id : null
+
+  var _rounds = useState([])
+  var rounds = _rounds[0]
+  var setRounds = _rounds[1]
+
+  useEffect(function() {
+    if (!playerId || !tournamentId) { setRounds([]); return }
+    var alive = true
+    supabase.from('game_results')
+      .select('round_number,placement,points')
+      .eq('tournament_id', tournamentId)
+      .eq('player_id', playerId)
+      .order('round_number', { ascending: true })
+      .then(function(res) {
+        if (!alive) return
+        if (res.error || !res.data) { setRounds([]); return }
+        setRounds(res.data)
+      })
+    var ch = supabase.channel('mybracket-'+tournamentId+'-'+playerId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_results', filter: 'tournament_id=eq.'+tournamentId }, function() {
+        supabase.from('game_results')
+          .select('round_number,placement,points')
+          .eq('tournament_id', tournamentId)
+          .eq('player_id', playerId)
+          .order('round_number', { ascending: true })
+          .then(function(res) {
+            if (!alive) return
+            if (!res.error && res.data) setRounds(res.data)
+          })
+      })
+      .subscribe()
+    return function() {
+      alive = false
+      if (supabase.removeChannel) supabase.removeChannel(ch)
+    }
+  }, [playerId, tournamentId])
+
+  if (phase !== 'live' && phase !== 'inprogress' && phase !== 'complete') return null
+  if (!linkedPlayer || !tournamentId) return null
+
+  var pendingRound = pendingResults.find(function(r){
+    return r.round === currentRound && r.status !== 'disputed' && String(r.player_id) === String(playerId)
+  })
+
+  var totalPts = rounds.reduce(function(s, r){ return s + (r.points || 0) }, 0)
+  if (pendingRound) totalPts += (PTS[pendingRound.placement] || 0)
+
+  var aboveCut = cutLine > 0 ? totalPts >= cutLine : null
+
+  var rowsByRound = {}
+  rounds.forEach(function(r){ rowsByRound[r.round_number] = r })
+
+  function ordSuffix(n) {
+    var s = ['th','st','nd','rd'], v = n % 100
+    return n + (s[(v-20)%10] || s[v] || s[0])
+  }
+
+  return (
+    <section className="mb-6 rounded-lg border border-outline-variant/15 bg-surface-container overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-outline-variant/10 bg-surface-container-low/50">
+        <div className="flex items-center gap-2">
+          <Icon name="route" size={16} className="text-secondary" />
+          <span className="font-display text-sm uppercase tracking-tight text-on-surface">Your Path</span>
+        </div>
+        <div className="flex items-center gap-3 text-[11px]">
+          <span className="font-label uppercase tracking-widest text-on-surface-variant">Total</span>
+          <span className="font-mono text-base font-bold text-primary tabular-nums leading-none">{totalPts}</span>
+          {cutLine > 0 && (
+            <span className={'font-label text-[10px] uppercase tracking-widest px-2 py-0.5 rounded ' + (aboveCut ? 'bg-tertiary/15 text-tertiary border border-tertiary/30' : 'bg-error/10 text-error border border-error/25')}>
+              {aboveCut ? 'Surviving' : 'Below Cut'}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="px-4 py-4">
+        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(' + Math.max(totalGames, 1) + ', minmax(0, 1fr))' }}>
+          {Array.from({ length: totalGames }, function(_, i){ return i + 1 }).map(function(rn) {
+            var conf = rowsByRound[rn]
+            var isCurrent = rn === currentRound && phase !== 'complete'
+            var isPending = isCurrent && pendingRound && !conf
+            var isFuture = !conf && !isCurrent
+            var place = conf ? conf.placement : (isPending ? pendingRound.placement : null)
+            var pts = conf ? conf.points : (isPending ? (PTS[pendingRound.placement] || 0) : null)
+
+            var stateClass = conf
+              ? 'border-tertiary/40 bg-tertiary/10 text-tertiary'
+              : isPending
+                ? 'border-primary/50 bg-primary/10 text-primary'
+                : isCurrent
+                  ? 'border-primary/40 bg-primary/[0.04] text-primary/80'
+                  : 'border-outline-variant/15 bg-on-surface/3 text-on-surface/40'
+
+            return (
+              <div
+                key={rn}
+                className={'rounded-md border px-2 py-2.5 text-center transition-colors ' + stateClass}
+                title={conf ? 'Round ' + rn + ': confirmed' : (isPending ? 'Round ' + rn + ': submission pending' : (isCurrent ? 'Round ' + rn + ': in progress' : 'Round ' + rn))}
+              >
+                <div className="font-label text-[9px] uppercase tracking-widest opacity-70 leading-none">
+                  {'R' + rn}
+                </div>
+                <div className="font-mono text-base font-bold leading-none mt-1.5 tabular-nums">
+                  {place ? ordSuffix(place) : (isCurrent ? 'NOW' : '-')}
+                </div>
+                <div className="font-mono text-[10px] mt-1 opacity-80 tabular-nums">
+                  {pts !== null ? '+' + pts : (isFuture ? '...' : '\u00a0')}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // --- CLASH CARD ---
 
 function ClashCard() {
@@ -843,6 +981,26 @@ function ClashCard() {
   var mySubmission = pendingResults && pendingResults.find(function(r) {
     return r.round === tournamentState.round && r.status !== 'disputed'
   })
+
+  var lobbyRosterIds = myLobby
+    ? (myLobby.playerIds && myLobby.playerIds.length > 0
+        ? myLobby.playerIds
+        : (myLobby.players || []).map(function(p){ return typeof p === 'object' ? p.id : p }))
+    : []
+  var lobbyRosterDetails = lobbyRosterIds.map(function(pid) {
+    var found = players.find(function(p) { return String(p.id) === String(pid) })
+    return found || null
+  }).filter(Boolean)
+  var lobbyRoundSubmissions = {}
+  ;(pendingResults || []).forEach(function(r) {
+    if (r.round !== tournamentState.round) return
+    if (r.status === 'disputed') return
+    lobbyRoundSubmissions[String(r.player_id)] = r
+  })
+  var lobbySubmittedCount = lobbyRosterDetails.filter(function(p){
+    return !!lobbyRoundSubmissions[String(p.id)]
+  }).length
+  var lobbyTotal = lobbyRosterDetails.length || 8
 
   function handleSubmitPlacement() {
     if (!selectedPlace || !currentUser || !tournamentState.id) return
@@ -1132,11 +1290,66 @@ function ClashCard() {
                 <div className="bg-tertiary/[0.06] border border-tertiary/20 rounded-lg p-3 text-center mb-3">
                   <div className="font-display text-[40px] text-primary leading-none">{ordinal(mySubmission.placement)}</div>
                   <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">{'Your submission \u00b7 Lobby ' + myLobbyNumber}</div>
-                  <div className="flex items-center justify-center gap-1 text-[11px] text-tertiary mt-1.5">
-                    <Icon name="schedule" size={13} />Waiting for admin to confirm
+                  <div className="font-mono text-[11px] text-tertiary mt-1.5">
+                    {'+' + (PTS[mySubmission.placement] || 0) + ' pts pending'}
                   </div>
                 </div>
-                <div className="text-[11px] text-on-surface-variant text-center">Results lock in once admin confirms all lobbies.</div>
+
+                {lobbyRosterDetails.length > 0 && (
+                  <div className="mb-3 rounded-lg border border-outline-variant/15 bg-surface-container-low/50 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">
+                        {'Lobby ' + myLobbyNumber + ' \u00b7 Round ' + tRound}
+                      </span>
+                      <span className="font-mono text-[11px] text-on-surface tabular-nums">
+                        {lobbySubmittedCount + '/' + lobbyTotal}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-8 gap-1">
+                      {lobbyRosterDetails.map(function(p) {
+                        var sub = lobbyRoundSubmissions[String(p.id)]
+                        var isMe = currentUser && String(p.id) === String(currentUser.id)
+                        var key = String(p.id) + (sub ? '-in' : '-wait')
+                        var nameInitial = (p.username || p.name || '?').charAt(0).toUpperCase()
+                        var titleAttr = (p.username || p.name) + (sub ? ' \u00b7 ' + ordinal(sub.placement) : ' \u00b7 awaiting')
+                        return (
+                          <div
+                            key={key}
+                            title={titleAttr}
+                            className={
+                              'lobby-row-in aspect-square rounded flex flex-col items-center justify-center text-center ' +
+                              (sub
+                                ? 'bg-tertiary/15 border border-tertiary/40 text-tertiary'
+                                : 'bg-on-surface/5 border border-outline-variant/15 text-on-surface/35')
+                              + (isMe ? ' ring-1 ring-primary/70' : '')
+                            }
+                          >
+                            <div className="font-mono text-[13px] font-bold leading-none">
+                              {sub ? sub.placement : nameInitial}
+                            </div>
+                            <div className="font-label text-[7px] uppercase tracking-wider mt-0.5 opacity-70 leading-none truncate w-full px-0.5">
+                              {sub ? 'IN' : (p.username || p.name || '').slice(0, 4)}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="font-body text-[11px] text-on-surface-variant text-center mt-2.5">
+                      {lobbySubmittedCount === lobbyTotal
+                        ? 'All in. Admin will confirm shortly.'
+                        : (lobbyTotal - lobbySubmittedCount === 1
+                            ? '1 placement left. Almost there.'
+                            : (lobbyTotal - lobbySubmittedCount) + ' placements left to submit.')}
+                    </div>
+                  </div>
+                )}
+
+                <Btn
+                  variant="ghost"
+                  size="sm"
+                  className="w-full"
+                  onClick={function() { navigate('/bracket') }}
+                >View Live Bracket</Btn>
               </div>
             ) : showPicker ? (
               <div>
@@ -1704,6 +1917,9 @@ export default function DashboardScreen() {
 
       {/* Lobby roster - live phase only, the moat experience */}
       <LobbyRosterCard />
+
+      {/* Player path - cross-round timeline in current tournament */}
+      <MyBracketPath />
 
       {/* Announcements */}
       {announcement && <AnnouncementStrip text={announcement} />}
