@@ -98,6 +98,7 @@ var CommandCenterScreen = lazyWithRetry(function(){ return import('./screens/Com
 var ContentEngineScreen = lazyWithRetry(function(){ return import('./screens/ContentEngineScreen'); });
 var Donut17ScreenNew = lazyWithRetry(function(){ return import('./donut17/Donut17Screen'); });
 var BrosephTechScreen = lazyWithRetry(function(){ return import('./screens/BrosephTechScreen'); });
+var TfttechScreen = lazyWithRetry(function(){ return import('./screens/TfttechScreen'); });
 var LinksScreenNew = lazyWithRetry(function(){ return import('./screens/LinksScreen'); });
 var MarketplaceScreenNew = lazyWithRetry(function(){ return import('./screens/MarketplaceScreen'); });
 var RoadmapScreenNew = lazyWithRetry(function(){ return import('./screens/RoadmapScreen'); });
@@ -251,7 +252,7 @@ function TFTClash(){
     "/archive":"archive","/season-recap":"recap","/rules":"rules","/faq":"faq",
     "/account":"account","/host/apply":"host-apply","/host/dashboard":"host-dashboard",
     "/admin":"admin","/privacy":"privacy","/terms":"terms","/clash":"clash",
-    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links"
+    "/tournaments":"tournaments","/roster":"roster","/featured":"featured","/gear":"gear","/stats":"stats","/sponsors":"sponsors","/ops":"ops","/content-engine":"content-engine","/status":"status","/donut17":"donut17","/brosephtech":"brosephtech","/tfttech":"tfttech","/changelog":"changelog","/marketplace":"marketplace","/roadmap":"roadmap","/predictions":"predictions","/links":"links"
   };
   useEffect(function(){
     var path=location.pathname;
@@ -447,7 +448,7 @@ function TFTClash(){
     var isAuthCallback=h.startsWith("access_token")||h.startsWith("error_description")||params.get("code");
     if(isAuthCallback)return;
     if(h){
-      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login","status","sponsors","ops","content-engine","stats","brosephtech","donut17"];
+      var safeScreens=["home","standings","clash","events","bracket","leaderboard","profile","results","hof","archive","milestones","challenges","rules","faq","pricing","recap","account","host-apply","host-dashboard","scrims","admin","roster","featured","privacy","terms","gear","tournaments","signup","login","status","sponsors","ops","content-engine","stats","brosephtech","tfttech","donut17"];
       var hParts=h.split("/");var hBase=hParts[0];var hSub=hParts[1]||"";
       var isSafe=safeScreens.includes(hBase)||hBase.indexOf("tournament-")===0;
       if(isSafe){
@@ -755,6 +756,7 @@ function TFTClash(){
         {screen==="donut17"&&<Donut17ScreenNew/>}
 
         {screen==="brosephtech"&&<BrosephTechScreen/>}
+        {screen==="tfttech"&&<TfttechScreen/>}
         {screen==="marketplace"&&<MarketplaceScreenNew/>}
         {screen==="roadmap"&&<RoadmapScreenNew/>}
         {screen==="predictions"&&<PredictionsScreenNew/>}

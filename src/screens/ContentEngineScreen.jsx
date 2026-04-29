@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
@@ -1051,6 +1052,7 @@ function SocialsTab(props) {
 // ═══════════════════════════════ MAIN SCREEN ═══════════════════════════════
 
 export default function ContentEngineScreen(){
+  var navigate = useNavigate()
   var ctx = useApp()
   var currentUser = ctx.currentUser
   var toast = ctx.toast
@@ -1114,8 +1116,16 @@ export default function ContentEngineScreen(){
         {/* HEADER */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
+            <button
+              type="button"
+              onClick={function() { navigate('/tfttech') }}
+              className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface/50 hover:text-primary transition-colors mb-2"
+            >
+              <Icon name="arrow_back" size={12} />
+              Back to TFTTech
+            </button>
             <h1 className="text-3xl font-bold" style={{fontFamily:'Subtle, system-ui, sans-serif', color:'#F5F2EA', letterSpacing:'-0.01em'}}>
-              Content Engine
+              TFT Clash Studio
             </h1>
             <div className="text-[11px] uppercase tracking-widest mt-1" style={{color:'#E8A838', fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.15em'}}>
               AI SOCIAL COMMAND CENTER / POWERED BY GEMINI

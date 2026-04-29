@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import BTBoard from './brosephtech/BTBoard';
 import BTSchedule from './brosephtech/BTSchedule';
 import BTStudio from './brosephtech/BTStudio';
@@ -317,6 +318,7 @@ function BottomNav(props) {
 }
 
 function BrosephTechScreen() {
+  var navigate = useNavigate();
   var [unlocked, setUnlocked] = React.useState(function() {
     return localStorage.getItem(SESSION_KEY) === '1';
   });
@@ -375,6 +377,10 @@ function BrosephTechScreen() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <GlassPill onClick={function() { navigate('/tfttech'); }} variant="ghost" size="sm" className="!gap-1">
+              <BTIcon name="apps" className="text-base" />
+              <span className="hidden sm:inline">TFTTech</span>
+            </GlassPill>
             <div className="hidden sm:block">
               <GlassToast accent="emerald">Live</GlassToast>
             </div>
