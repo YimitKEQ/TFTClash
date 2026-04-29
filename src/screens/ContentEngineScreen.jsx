@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase.js'
 import PageLayout from '../components/layout/PageLayout'
 import { Icon, Btn, Panel, PillTab, PillTabGroup } from '../components/ui'
+
+var TCS_PIN = '133199'
+var TCS_SESSION_KEY = 'tcs_unlocked'
 
 var SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
 var SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -203,14 +206,22 @@ async function callEdgeFn(body) {
 
 // ═══════════════════════════════ SHARED STYLE HELPERS ═══════════════════════════════
 
-var goldBorder = { border: '1px solid rgba(255,255,255,0.08)' }
-var goldGlow = {}
-var surfaceBase = { background: 'rgba(255,255,255,0.02)' }
+var surfaceBase = {
+  background: 'linear-gradient(180deg, rgba(20,24,36,0.85), rgba(13,16,24,0.92))',
+}
+var goldBorder = {
+  border: '1px solid rgba(232,168,56,0.18)',
+  boxShadow: 'inset 0 1px 0 rgba(255,212,135,0.06)',
+}
+var goldGlow = {
+  boxShadow: '0 18px 60px -28px rgba(232,168,56,0.45), inset 0 1px 0 rgba(255,212,135,0.08)',
+}
 
 function SectionLabel(props) {
   return (
-    <div className="text-[11px] uppercase font-semibold tracking-wider mb-2 text-on-surface/60"
-      style={{ fontFamily: 'Subtle, system-ui, sans-serif' }}>
+    <div className="text-[10px] uppercase font-bold tracking-[0.22em] mb-2 flex items-center gap-2"
+      style={{ fontFamily: 'Subtle, system-ui, sans-serif', color: '#E8A838' }}>
+      <span className="h-px w-3" style={{ background: 'rgba(232,168,56,0.6)' }} />
       {props.children}
     </div>
   )
@@ -220,7 +231,13 @@ function GoldChip(props) {
   var active = props.active
   return (
     <button onClick={props.onClick} disabled={props.disabled}
-      className={'px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ' + (active ? 'bg-primary text-on-primary border-primary' : 'bg-white/[0.03] text-on-surface/70 border-white/10 hover:border-white/20')}>
+      className={'px-3 py-1.5 rounded-md text-[11px] font-bold transition-all border tracking-wider ' + (active ? 'border-primary' : 'border-white/10 hover:border-white/25')}
+      style={{
+        fontFamily: 'Subtle, system-ui, sans-serif',
+        background: active ? 'linear-gradient(135deg, #FFD487, #E8A838)' : 'rgba(255,255,255,0.03)',
+        color: active ? '#0B0E16' : 'rgba(245,242,234,0.75)',
+        boxShadow: active ? '0 6px 20px -8px rgba(232,168,56,0.55)' : 'none',
+      }}>
       {props.children}
     </button>
   )
@@ -228,11 +245,26 @@ function GoldChip(props) {
 
 function StatPill(props) {
   return (
-    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/10">
-      <Icon name={props.icon} size={14} className="text-primary"/>
+    <div
+      className="flex items-center gap-2.5 px-3 py-2 rounded-xl border"
+      style={{
+        background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))',
+        borderColor: 'rgba(232,168,56,0.18)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+      }}
+    >
+      <div
+        className="w-7 h-7 rounded-lg flex items-center justify-center"
+        style={{
+          background: 'linear-gradient(135deg, rgba(232,168,56,0.22), rgba(232,168,56,0.06))',
+          border: '1px solid rgba(232,168,56,0.30)',
+        }}
+      >
+        <Icon name={props.icon} size={14} style={{ color: '#FFD487' }}/>
+      </div>
       <div>
-        <div className="text-[10px] uppercase tracking-wider text-on-surface/50 leading-none" style={{fontFamily:'Subtle, system-ui, sans-serif'}}>{props.label}</div>
-        <div className="text-sm font-bold text-on-surface leading-tight">{props.value}</div>
+        <div className="text-[9px] uppercase tracking-[0.18em] leading-none" style={{fontFamily:'Subtle, system-ui, sans-serif', color:'rgba(245,242,234,0.55)'}}>{props.label}</div>
+        <div className="text-sm font-bold leading-tight mt-0.5" style={{ color: '#F5F2EA' }}>{props.value}</div>
       </div>
     </div>
   )
@@ -1627,9 +1659,210 @@ function IdeaInboxTab(props) {
   )
 }
 
+// ═══════════════════════════════ PIN GATE ═══════════════════════════════════
+
+function TCSPinDot(props){
+  var bg, border, color
+  if (props.error) { bg = 'rgba(239,68,68,0.18)'; border = 'rgba(239,68,68,0.65)'; color = '#FCA5A5' }
+  else if (props.filled) { bg = 'rgba(232,168,56,0.20)'; border = 'rgba(232,168,56,0.70)'; color = '#FFD487' }
+  else { bg = 'rgba(255,255,255,0.04)'; border = 'rgba(255,255,255,0.12)'; color = 'rgba(255,255,255,0.30)' }
+  return (
+    <div
+      className="w-11 h-13 rounded-xl flex items-center justify-center text-xl font-bold transition-all border"
+      style={{ background: bg, borderColor: border, color: color, height: '52px', boxShadow: props.filled || props.error ? 'inset 0 1px 0 rgba(255,255,255,0.18)' : 'inset 0 1px 0 rgba(255,255,255,0.06)' }}
+    >
+      {props.filled ? '\u2022' : ''}
+    </div>
+  )
+}
+
+function TCSPinKey(props){
+  return (
+    <button
+      type="button"
+      onClick={props.onClick}
+      className="h-14 rounded-xl flex items-center justify-center text-lg font-bold border transition-all hover:bg-primary/10 hover:border-primary/40 active:scale-95"
+      style={{
+        fontFamily: 'Subtle, system-ui, sans-serif',
+        background: 'rgba(255,255,255,0.03)',
+        borderColor: 'rgba(255,255,255,0.10)',
+        color: '#F5F2EA',
+      }}
+    >
+      {props.children}
+    </button>
+  )
+}
+
+function TCSPinGate(props){
+  var [input, setInput] = useState('')
+  var [error, setError] = useState(false)
+  var [shake, setShake] = useState(false)
+  var bufferRef = useRef('')
+  var lockedRef = useRef(false)
+
+  function tryUnlock(next){
+    if (next.length !== TCS_PIN.length) return
+    lockedRef.current = true
+    if (next === TCS_PIN) {
+      try { localStorage.setItem(TCS_SESSION_KEY, '1') } catch(e) {}
+      setTimeout(function(){ props.onUnlock() }, 150)
+    } else {
+      setError(true)
+      setShake(true)
+      setTimeout(function(){
+        setShake(false)
+        setInput('')
+        setError(false)
+        bufferRef.current = ''
+        lockedRef.current = false
+      }, 700)
+    }
+  }
+
+  function handlePress(k){
+    if (lockedRef.current) return
+    if (bufferRef.current.length >= TCS_PIN.length) return
+    var next = bufferRef.current + k
+    bufferRef.current = next
+    setInput(next)
+    setError(false)
+    tryUnlock(next)
+  }
+
+  function handleBackspace(){
+    if (lockedRef.current) return
+    bufferRef.current = bufferRef.current.slice(0, -1)
+    setInput(bufferRef.current)
+    setError(false)
+  }
+
+  useEffect(function(){
+    function onKey(e){
+      if (e.key >= '0' && e.key <= '9') handlePress(e.key)
+      else if (e.key === 'Backspace') handleBackspace()
+    }
+    window.addEventListener('keydown', onKey)
+    return function(){ window.removeEventListener('keydown', onKey) }
+  }, [])
+
+  var keys = ['1','2','3','4','5','6','7','8','9','','0','back']
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden"
+      style={{
+        background: 'radial-gradient(120% 80% at 50% 0%, rgba(232,168,56,0.10) 0%, rgba(15,18,28,0.0) 55%), #0B0E16',
+      }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.10]"
+        aria-hidden="true"
+        style={{
+          backgroundImage: 'radial-gradient(rgba(232,168,56,0.6) 1px, transparent 1px)',
+          backgroundSize: '34px 34px',
+        }}
+      />
+      <Panel
+        className={'relative z-10 w-full max-w-sm flex flex-col items-center gap-6 px-7 py-8 sm:px-9 sm:py-10 ' + (shake ? 'animate-[tcs-wiggle_0.5s]' : '')}
+        style={{
+          background: 'linear-gradient(180deg, rgba(20,24,36,0.92), rgba(11,14,22,0.96))',
+          border: '1px solid rgba(232,168,56,0.22)',
+          boxShadow: '0 30px 80px -30px rgba(232,168,56,0.35), 0 0 0 1px rgba(255,255,255,0.04) inset',
+        }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black tracking-tight"
+            style={{
+              background: 'linear-gradient(135deg, #FFD487 0%, #E8A838 50%, #B07820 100%)',
+              color: '#0B0E16',
+              boxShadow: '0 14px 40px -10px rgba(232,168,56,0.55), inset 0 1px 0 rgba(255,255,255,0.45)',
+              fontFamily: 'Subtle, system-ui, sans-serif',
+            }}
+          >
+            TC
+          </div>
+          <div
+            className="h-px w-32"
+            style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(232,168,56,0.6) 50%, transparent 100%)' }}
+          />
+        </div>
+
+        <div className="text-center">
+          <h1
+            className="text-2xl sm:text-3xl font-bold tracking-tight"
+            style={{ fontFamily: 'Subtle, system-ui, sans-serif', color: '#F5F2EA' }}
+          >
+            TFT Clash Studio
+          </h1>
+          <p
+            className="text-[10px] mt-2 tracking-[0.3em] uppercase font-bold"
+            style={{ color: '#E8A838' }}
+          >
+            Operator access only
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          {[0,1,2,3,4,5].map(function(i){
+            return <TCSPinDot key={i} filled={input.length > i} error={error} />
+          })}
+        </div>
+
+        {error ? (
+          <p className="text-red-300 text-sm font-medium">Wrong PIN</p>
+        ) : (
+          <p className="text-on-surface/45 text-xs tracking-wide">Enter 6-digit PIN</p>
+        )}
+
+        <div className="grid grid-cols-3 gap-2.5 w-64">
+          {keys.map(function(k, i){
+            if (k === '') return <div key={'empty-' + i} />
+            if (k === 'back') {
+              return (
+                <TCSPinKey key="back" onClick={handleBackspace}>
+                  <Icon name="backspace" size={18} />
+                </TCSPinKey>
+              )
+            }
+            return (
+              <TCSPinKey key={k} onClick={function(){ handlePress(k) }}>
+                {k}
+              </TCSPinKey>
+            )
+          })}
+        </div>
+
+        <p
+          className="text-[10px] tracking-[0.3em] uppercase font-bold"
+          style={{ color: 'rgba(255,255,255,0.30)' }}
+        >
+          TFT Clash - Private
+        </p>
+      </Panel>
+
+      <style>{'@keyframes tcs-wiggle { 0%,100% { transform: translateX(0); } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }'}</style>
+    </div>
+  )
+}
+
 // ═══════════════════════════════ MAIN SCREEN ═══════════════════════════════
 
 export default function ContentEngineScreen(){
+  var [unlocked, setUnlocked] = useState(function(){
+    try { return localStorage.getItem(TCS_SESSION_KEY) === '1' } catch(e) { return false }
+  })
+  if (!unlocked) {
+    return <TCSPinGate onUnlock={function(){ setUnlocked(true) }} />
+  }
+  return <ContentEngineScreenInner onLock={function(){
+    try { localStorage.removeItem(TCS_SESSION_KEY) } catch(e) {}
+    setUnlocked(false)
+  }} />
+}
+
+function ContentEngineScreenInner(props){
   var navigate = useNavigate()
   var ctx = useApp()
   var currentUser = ctx.currentUser
@@ -1692,28 +1925,97 @@ export default function ContentEngineScreen(){
     <PageLayout>
       <div className="page wrap max-w-7xl mx-auto px-4 py-6">
         {/* HEADER */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <div>
-            <button
-              type="button"
-              onClick={function() { navigate('/tfttech') }}
-              className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface/50 hover:text-primary transition-colors mb-2"
-            >
-              <Icon name="arrow_back" size={12} />
-              Back to TFTTech
-            </button>
-            <h1 className="text-3xl font-bold" style={{fontFamily:'Subtle, system-ui, sans-serif', color:'#F5F2EA', letterSpacing:'-0.01em'}}>
-              TFT Clash Studio
-            </h1>
-            <div className="text-[11px] uppercase tracking-widest mt-1" style={{color:'#E8A838', fontFamily:'Subtle, system-ui, sans-serif', letterSpacing:'0.15em'}}>
-              AI SOCIAL COMMAND CENTER / POWERED BY GEMINI
+        <div
+          className="relative overflow-hidden rounded-2xl mb-6 px-5 py-5 sm:px-7 sm:py-6"
+          style={{
+            background: 'linear-gradient(180deg, rgba(28,32,46,0.88) 0%, rgba(13,16,24,0.94) 100%)',
+            border: '1px solid rgba(232,168,56,0.22)',
+            boxShadow: '0 24px 60px -30px rgba(232,168,56,0.35), inset 0 1px 0 rgba(255,212,135,0.08)',
+          }}
+        >
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.10]"
+            aria-hidden="true"
+            style={{
+              backgroundImage: 'radial-gradient(rgba(232,168,56,0.6) 1px, transparent 1px)',
+              backgroundSize: '34px 34px',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute -top-24 -right-16 w-72 h-72 rounded-full opacity-30"
+            style={{ background: 'radial-gradient(circle, rgba(232,168,56,0.55), transparent 70%)' }}
+            aria-hidden="true"
+          />
+          <div className="relative flex items-start justify-between flex-wrap gap-5">
+            <div className="flex items-start gap-4 min-w-0">
+              <div
+                className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: 'linear-gradient(135deg, #FFD487 0%, #E8A838 50%, #B07820 100%)',
+                  color: '#0B0E16',
+                  fontFamily: 'Subtle, system-ui, sans-serif',
+                  fontSize: '22px',
+                  fontWeight: 900,
+                  boxShadow: '0 14px 36px -10px rgba(232,168,56,0.55), inset 0 1px 0 rgba(255,255,255,0.45)',
+                }}
+              >
+                TC
+              </div>
+              <div className="min-w-0">
+                <button
+                  type="button"
+                  onClick={function() { navigate('/tfttech') }}
+                  className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.22em] font-bold mb-1.5 transition-colors"
+                  style={{ color: 'rgba(245,242,234,0.45)' }}
+                  onMouseEnter={function(e){ e.currentTarget.style.color = '#FFD487' }}
+                  onMouseLeave={function(e){ e.currentTarget.style.color = 'rgba(245,242,234,0.45)' }}
+                >
+                  <Icon name="arrow_back" size={12} />
+                  Back to TFTTech
+                </button>
+                <h1
+                  className="text-2xl sm:text-3xl font-bold tracking-tight"
+                  style={{ fontFamily: 'Subtle, system-ui, sans-serif', color: '#F5F2EA', letterSpacing: '-0.015em' }}
+                >
+                  TFT Clash Studio
+                </h1>
+                <div className="flex items-center gap-2 mt-2">
+                  <span
+                    className="h-px w-6"
+                    style={{ background: 'linear-gradient(90deg, #E8A838, transparent)' }}
+                  />
+                  <div
+                    className="text-[10px] uppercase font-bold tracking-[0.22em]"
+                    style={{ color: '#E8A838', fontFamily: 'Subtle, system-ui, sans-serif' }}
+                  >
+                    AI Social Command Center / Powered by Gemini
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <StatPill icon="edit_note"    label="Drafts"    value={drafts}/>
-            <StatPill icon="schedule"     label="Scheduled" value={scheduled}/>
-            <StatPill icon="send"         label="Posted"    value={posted}/>
-            <StatPill icon="local_fire_department" label="Streak" value={streak + (streak > 0 ? 'd' : '')}/>
+            <div className="flex gap-2 flex-wrap items-center">
+              <StatPill icon="edit_note"    label="Drafts"    value={drafts}/>
+              <StatPill icon="schedule"     label="Scheduled" value={scheduled}/>
+              <StatPill icon="send"         label="Posted"    value={posted}/>
+              <StatPill icon="local_fire_department" label="Streak" value={streak + (streak > 0 ? 'd' : '')}/>
+              <button
+                type="button"
+                onClick={props.onLock}
+                title="Lock studio"
+                className="ml-1 flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] uppercase tracking-[0.2em] font-bold border transition-colors"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  borderColor: 'rgba(255,255,255,0.10)',
+                  color: 'rgba(245,242,234,0.65)',
+                  fontFamily: 'Subtle, system-ui, sans-serif',
+                }}
+                onMouseEnter={function(e){ e.currentTarget.style.borderColor = 'rgba(232,168,56,0.40)'; e.currentTarget.style.color = '#FFD487' }}
+                onMouseLeave={function(e){ e.currentTarget.style.borderColor = 'rgba(255,255,255,0.10)'; e.currentTarget.style.color = 'rgba(245,242,234,0.65)' }}
+              >
+                <Icon name="lock" size={12} />
+                Lock
+              </button>
+            </div>
           </div>
         </div>
 
