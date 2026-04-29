@@ -275,7 +275,7 @@ export default function LinksScreen() {
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded font-label text-[10px] uppercase tracking-widest bg-on-surface/6 text-on-surface/70 border border-outline-variant/15">
               <span className="w-1.5 h-1.5 rounded-full bg-tertiary" aria-hidden="true" />
-              EU League
+              NA & EU
             </span>
             <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded font-label text-[10px] uppercase tracking-widest bg-on-surface/6 text-on-surface/70 border border-outline-variant/15">
               <Icon name="schedule" size={11} />

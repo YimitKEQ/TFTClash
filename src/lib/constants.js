@@ -206,7 +206,7 @@ export var PREMIUM_TIERS = [
 // ─── RULES SECTIONS ──────────────────────────────────────────────────────────
 
 export var RULES_SECTIONS = [
-  {id:"format",title:"Tournament Format",icon:"tournament",content:"Weekly Saturday clashes with 3-5 games per session. 8 players per lobby. Standard EMEA scoring."},
+  {id:"format",title:"Tournament Format",icon:"tournament",content:"Weekly clashes with 3-5 games per session. 8 players per lobby. Standard placement scoring."},
   {id:"points",title:"Points System",icon:"chart-bar",content:"1st: 8 pts, 2nd: 7 pts, 3rd: 6 pts, 4th: 5 pts, 5th: 4 pts, 6th: 3 pts, 7th: 2 pts, 8th: 1 pt",isPointsTable:true},
   {id:"tiebreakers",title:"Tiebreakers",icon:"arrows-sort",content:"1. Total tournament points. 2. Wins + top 4s (wins count twice). 3. Most of each placement (1st, then 2nd, then 3rd...). 4. Most recent game finish."},
   {id:"registration",title:"Registration and Check-in",icon:"clipboard-check",content:"Register anytime before the clash. Check-in opens 60 minutes before start and closes at start time. No-shows lose their spot to the next waitlisted player."},
@@ -230,7 +230,7 @@ export var FAQ_DATA = [
     {q:"What if results are wrong?",a:"Click Dispute on the result. An admin will review within 24 hours."}
   ]},
   {cat:"Scoring and Rankings",icon:"chart-bar",items:[
-    {q:"How does scoring work?",a:"Standard EMEA scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
+    {q:"How does scoring work?",a:"Standard TFT placement scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash."},
     {q:"How are tiebreakers resolved?",a:"Total points first, then wins + top 4s (wins count double), then most of each placement starting from 1st, then most recent finish."},
     {q:"What are seasons?",a:"Seasons run for a set period. Points reset each season. Season champions are enshrined in the Hall of Fame."}
   ]},

@@ -11,7 +11,7 @@ var CATEGORIES = FAQ_DATA.map(function (cat) {
 var FEATURED = {
   label: 'Essential Knowledge',
   q: 'What is the scoring system?',
-  a: 'Standard EMEA scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash.'
+  a: 'Standard TFT placement scoring: 1st gets 8 pts, 2nd gets 7 pts, down to 8th getting 1 pt. Points accumulate across all games in a clash.'
 }
 
 export default function FAQScreen() {

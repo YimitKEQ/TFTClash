@@ -1,0 +1,45 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../_base.css"><style>
+.ad{width:1200px;height:628px;background:#05040f}
+.bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse at 25% 35%,rgba(255,0,170,.38) 0%,transparent 55%),
+  radial-gradient(ellipse at 80% 65%,rgba(0,240,255,.34) 0%,transparent 55%),
+  linear-gradient(135deg,#05040f 0%,#0f0618 60%,#1a0425 100%)}
+.grid{position:absolute;inset:0;background-image:
+  linear-gradient(rgba(0,240,255,.08) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(0,240,255,.08) 1px,transparent 1px);
+  background-size:55px 55px;mask-image:radial-gradient(circle at 50% 50%,#000 40%,transparent 85%)}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 4px);pointer-events:none}
+.frame{position:absolute;inset:38px;border:1px solid rgba(0,240,255,.18);pointer-events:none}
+.frame::before,.frame::after,.frame i,.frame em{position:absolute;width:18px;height:18px;border:2px solid #00f0ff;content:'';filter:drop-shadow(0 0 10px rgba(0,240,255,.7))}
+.frame::before{top:-2px;left:-2px;border-right:0;border-bottom:0}
+.frame::after{top:-2px;right:-2px;border-left:0;border-bottom:0}
+.frame i{bottom:-2px;left:-2px;border-right:0;border-top:0}
+.frame em{bottom:-2px;right:-2px;border-left:0;border-top:0}
+.c{position:absolute;inset:90px 80px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;z-index:6;text-align:center}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.45em;color:#00f0ff;text-transform:uppercase;padding:9px 18px;border:1px solid rgba(0,240,255,.5);background:rgba(0,240,255,.06);text-shadow:0 0 14px rgba(0,240,255,.7)}
+.kicker b{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.7);font-weight:700}
+.head{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:-4px}
+.h1{font-family:'Orbitron',sans-serif;font-weight:900;font-size:148px;line-height:.84;letter-spacing:-.02em;color:#fff;text-transform:uppercase;
+  text-shadow:0 0 30px rgba(0,240,255,.7),0 0 80px rgba(255,0,170,.45)}
+.h2{font-family:'Orbitron',sans-serif;font-weight:900;font-size:148px;line-height:.84;letter-spacing:-.02em;text-transform:uppercase;
+  color:transparent;-webkit-text-stroke:3px #ff00aa;text-shadow:0 0 26px rgba(255,0,170,.8);margin-top:-2px}
+.sub{font-family:'JetBrains Mono',monospace;font-size:17px;letter-spacing:.32em;color:#f0c46d;text-transform:uppercase;text-shadow:0 0 14px rgba(240,196,109,.5);margin-top:18px}
+.sub span{color:#fff;opacity:.55;margin:0 10px}
+.bot{display:flex;align-items:center;justify-content:center;gap:28px;width:100%}
+.urlbar{font-family:'JetBrains Mono',monospace;font-size:20px;letter-spacing:.35em;color:#00f0ff;text-transform:uppercase;text-shadow:0 0 14px rgba(0,240,255,.8);padding:14px 30px;border:1px solid rgba(0,240,255,.55);background:rgba(0,240,255,.06)}
+.urlbar b{color:#ff00aa;text-shadow:0 0 14px rgba(255,0,170,.8);font-weight:700}
+</style></head><body>
+<div class="ad"><div class="bg"></div><div class="grid"></div><div class="scan"></div>
+  <div class="frame"><i></i><em></em></div>
+  <div class="c">
+    <div class="kicker">◆ SEASON OPENING <b>·</b> NA + EU ◆</div>
+    <div class="head">
+      <div class="h1">TFT</div>
+      <div class="h2">Clash</div>
+    </div>
+    <div class="sub">REAL POINTS<span>//</span>ONE LADDER<span>//</span>FREE TO PLAY</div>
+    <div class="bot">
+      <div class="urlbar">▸ TFTCLASH<b>.</b>COM</div>
+    </div>
+  </div>
+</div></body></html>
