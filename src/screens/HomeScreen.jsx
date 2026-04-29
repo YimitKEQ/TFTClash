@@ -578,7 +578,14 @@ export default function HomeScreen() {
     if (!t) return
     if (t.type === 'flash_tournament') navigate('/flash/' + t.id)
     else if (t.type === 'custom' || t.host_profile_id) navigate('/tournament/' + t.id)
-    else navigate('/events')
+    else {
+      // season_clash (real or preview): deep-link to the Weekly Clash panel on /events.
+      // The region anchor scrolls + highlights the matching card so the CTA actually
+      // lands somewhere meaningful instead of dropping users on Featured Events.
+      var region = String((t && t.region) || 'EU').toUpperCase()
+      var slug = region === 'NA' ? 'NA' : 'EU'
+      navigate('/events#weekly-' + slug)
+    }
   }
 
   function handleViewStandings() {

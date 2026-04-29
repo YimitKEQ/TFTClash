@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useApp } from '../context/AppContext'
 import { supabase } from '../lib/supabase'
 import PageLayout from '../components/layout/PageLayout'
@@ -1065,6 +1065,434 @@ function ArchiveTab({ pastClashes, players, navigate, setProfilePlayer }) {
   )
 }
 
+// ── Weekly Clashes (EU + NA) — top of /events ─────────────────────────────────
+
+// Build a synthetic clash from site_settings tournament_state when no DB row
+// exists yet (admin scheduled but didn't open registration). Mirrors the logic
+// HomeScreen uses so both surfaces stay in sync.
+function previewFromState(state, region) {
+  if (!state || !state.clashTimestamp) return null
+  var when = new Date(state.clashTimestamp)
+  if (isNaN(when.getTime())) return null
+  if (when.getTime() < Date.now() - 6 * 60 * 60 * 1000) return null
+  var statePhase = state.phase
+  var phase = statePhase && statePhase !== 'idle' && statePhase !== 'registration' ? statePhase : 'draft'
+  if (phase === 'checkin') phase = 'check_in'
+  if (phase === 'inprogress') phase = 'in_progress'
+  return {
+    id: 'preview-' + region,
+    name: state.clashName || 'Weekly Clash',
+    date: state.clashTimestamp,
+    region: region,
+    phase: phase,
+    type: 'season_clash',
+    is_finale: !!state.isFinale,
+    max_players: state.maxPlayers || 24,
+    prize_pool_json: Array.isArray(state.prizePool) ? state.prizePool : null,
+    __preview: true
+  }
+}
+
+function formatCountdown(target) {
+  if (!target) return ''
+  var diff = new Date(target).getTime() - Date.now()
+  if (diff <= 0) return ''
+  var days = Math.floor(diff / 86400000)
+  var hours = Math.floor((diff % 86400000) / 3600000)
+  var mins = Math.floor((diff % 3600000) / 60000)
+  if (days > 0) return days + 'd ' + hours + 'h'
+  if (hours > 0) return hours + 'h ' + mins + 'm'
+  return mins + 'm'
+}
+
+var WEEKLY_PHASE_LABELS = {
+  draft: 'Scheduled',
+  registration: 'Registering',
+  check_in: 'Check-in Open',
+  in_progress: 'Live Now',
+  complete: 'Complete'
+}
+var WEEKLY_PHASE_BADGE = {
+  draft: 'bg-surface-container-highest text-on-surface-variant border-outline-variant/20',
+  registration: 'bg-tertiary/15 text-tertiary border-tertiary/30',
+  check_in: 'bg-secondary/15 text-secondary border-secondary/30',
+  in_progress: 'bg-error/15 text-error border-error/30',
+  complete: 'bg-success/15 text-success border-success/30'
+}
+
+function WeeklyRegionCard(props) {
+  var clash = props.clash
+  var region = props.region
+  var regCount = props.regCount || 0
+  var amRegistered = !!props.amRegistered
+  var currentUser = props.currentUser
+  var linkedPlayer = props.linkedPlayer
+  var navigate = props.navigate
+  var onAuthClick = props.onAuthClick
+  var toast = props.toast
+  var onRegister = props.onRegister
+  var highlighted = !!props.highlighted
+
+  var anchorId = 'weekly-' + region
+
+  if (!clash) {
+    return (
+      <Panel
+        id={anchorId}
+        padding="none"
+        className={'p-6 ' + (highlighted ? 'border-primary/60 ring-2 ring-primary/30' : '')}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+            {region} Region
+          </span>
+          <span className={'text-[10px] font-bold rounded px-2 py-0.5 uppercase tracking-widest font-label border bg-surface-container-highest text-on-surface-variant border-outline-variant/20'}>
+            No Clash Scheduled
+          </span>
+        </div>
+        <div className="font-display text-xl text-on-surface mb-2">No upcoming {region} clash</div>
+        <div className="text-on-surface-variant text-sm font-body leading-relaxed">
+          The next {region} weekly clash will appear here as soon as a host schedules it.
+        </div>
+      </Panel>
+    )
+  }
+
+  var phase = clash.phase || 'draft'
+  var phaseLabel = WEEKLY_PHASE_LABELS[phase] || 'Scheduled'
+  var badgeCls = WEEKLY_PHASE_BADGE[phase] || WEEKLY_PHASE_BADGE.draft
+  var maxP = clash.max_players || 24
+  var pct = maxP > 0 ? Math.min(100, Math.round((regCount / maxP) * 100)) : 0
+  var barColor = pct >= 90 ? '#F87171' : pct >= 60 ? '#E8A838' : '#9B72CF'
+  var when = clash.date ? new Date(clash.date) : null
+  var dateStr = when && !isNaN(when.getTime())
+    ? when.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : 'TBD'
+  var countdown = formatCountdown(clash.date)
+  var prizes = Array.isArray(clash.prize_pool_json) ? clash.prize_pool_json : []
+  var isPreview = !!clash.__preview
+
+  var actionBtn = null
+  if (phase === 'in_progress') {
+    actionBtn = (
+      <Btn variant="primary" size="md" className="w-full" onClick={function() { navigate('/bracket') }}>
+        Watch Live
+      </Btn>
+    )
+  } else if (phase === 'complete') {
+    actionBtn = (
+      <Btn variant="secondary" size="md" className="w-full" onClick={function() { navigate('/results') }}>
+        View Results
+      </Btn>
+    )
+  } else if (isPreview || phase === 'draft') {
+    actionBtn = (
+      <Btn variant="secondary" size="md" className="w-full" disabled>
+        Registration Opens Soon
+      </Btn>
+    )
+  } else if (!currentUser) {
+    actionBtn = (
+      <Btn variant="primary" size="md" className="w-full" onClick={function() { onAuthClick && onAuthClick('login') }}>
+        Sign In to Register
+      </Btn>
+    )
+  } else if (amRegistered) {
+    actionBtn = (
+      <Btn variant="secondary" size="md" className="w-full" disabled>
+        Registered
+      </Btn>
+    )
+  } else if (regCount >= maxP) {
+    actionBtn = (
+      <Btn variant="secondary" size="md" className="w-full" disabled>
+        Full
+      </Btn>
+    )
+  } else if (phase === 'check_in') {
+    actionBtn = (
+      <Btn variant="primary" size="md" className="w-full" onClick={function() { navigate('/clash') }}>
+        Check In Now
+      </Btn>
+    )
+  } else {
+    // registration phase
+    actionBtn = (
+      <Btn
+        variant="primary"
+        size="md"
+        className="w-full"
+        onClick={function() {
+          if (!linkedPlayer) {
+            if (toast) toast('Link your player profile in Account first', 'error')
+            navigate('/account')
+            return
+          }
+          if (clash.region && !canRegisterInRegion(linkedPlayer.region, clash.region)) {
+            var msg = regionMismatchMessage(linkedPlayer.region, clash.region)
+            if (toast) toast(msg || 'Region mismatch. Check your account region.', 'error')
+            return
+          }
+          onRegister && onRegister(clash)
+        }}
+      >
+        Register Now
+      </Btn>
+    )
+  }
+
+  var regionLabel = region === 'NA' ? 'North America' : 'Europe'
+
+  return (
+    <Panel
+      id={anchorId}
+      padding="none"
+      className={'p-6 transition-all ' + (highlighted ? 'border-primary/60 ring-2 ring-primary/30 shadow-[0_0_36px_rgba(255,198,107,0.18)]' : '')}
+    >
+      <div className="flex items-start justify-between mb-4 gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-3 py-1 bg-primary/10 text-primary border border-primary/30 font-label text-[10px] font-bold uppercase tracking-widest rounded">
+            {region}
+          </span>
+          <span className="font-label text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+            {regionLabel}
+          </span>
+          {clash.is_finale && (
+            <span className="px-2 py-0.5 bg-primary/20 text-primary font-label text-[9px] font-bold uppercase tracking-widest rounded border border-primary/30">
+              Finale
+            </span>
+          )}
+        </div>
+        <span className={'text-[10px] font-bold rounded px-2.5 py-1 uppercase tracking-widest font-label border ' + badgeCls}>
+          {phaseLabel}
+        </span>
+      </div>
+
+      <h3 className="font-display text-2xl font-bold text-on-surface mb-3">{clash.name || 'Weekly Clash'}</h3>
+
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center text-on-surface-variant text-xs font-label uppercase tracking-wider">
+          <Icon name="event" size={14} className="mr-2" />
+          {dateStr}
+          {countdown && (
+            <span className="ml-auto font-mono font-bold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 normal-case tracking-normal">
+              {countdown}
+            </span>
+          )}
+        </div>
+        {!isPreview && (phase === 'registration' || phase === 'check_in') && (
+          <div className="flex items-center text-on-surface-variant text-xs font-label uppercase tracking-wider">
+            <Icon name="group" size={14} className="mr-2" />
+            {regCount + ' / ' + maxP + ' players'}
+          </div>
+        )}
+      </div>
+
+      {(phase === 'registration' || phase === 'check_in') && !isPreview && (
+        <div className="mb-4 h-1 rounded-full bg-surface-container-highest">
+          <div
+            className="h-1 rounded-full transition-all duration-300"
+            style={{ width: pct + '%', background: barColor }}
+          />
+        </div>
+      )}
+
+      {prizes.length > 0 && (
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {prizes.slice(0, 3).map(function(p, i) {
+            var label = p.prize || (p.amount ? p.amount + (p.currency || '') : '')
+            if (!label) return null
+            return (
+              <span
+                key={'p-' + i}
+                className="text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded px-2 py-0.5 font-label"
+              >
+                {'#' + (p.placement || (i + 1)) + ' ' + label}
+              </span>
+            )
+          })}
+        </div>
+      )}
+
+      {actionBtn}
+    </Panel>
+  )
+}
+
+function WeeklyClashesPanel(props) {
+  var navigate = props.navigate
+  var currentUser = props.currentUser
+  var onAuthClick = props.onAuthClick
+  var toast = props.toast
+  var players = props.players
+
+  var ctx = useApp()
+  var tournamentStateEu = ctx.tournamentState
+  var tournamentStateNa = ctx.tournamentStateNa
+  var location = useLocation()
+  var euRef = useRef(null)
+  var naRef = useRef(null)
+
+  var _euRow = useState(null); var euRow = _euRow[0]; var setEuRow = _euRow[1]
+  var _naRow = useState(null); var naRow = _naRow[0]; var setNaRow = _naRow[1]
+  var _regCounts = useState({}); var regCounts = _regCounts[0]; var setRegCounts = _regCounts[1]
+  var _myRegIds = useState([]); var myRegIds = _myRegIds[0]; var setMyRegIds = _myRegIds[1]
+
+  var linkedPlayer = resolveLinkedPlayer(currentUser, players)
+  var linkedPlayerId = linkedPlayer ? linkedPlayer.id : null
+
+  var euTsId = tournamentStateEu ? tournamentStateEu.dbTournamentId : null
+  var euTsPhase = tournamentStateEu ? tournamentStateEu.phase : null
+  var euTsAt = tournamentStateEu ? tournamentStateEu.clashTimestamp : null
+  var naTsId = tournamentStateNa ? tournamentStateNa.dbTournamentId : null
+  var naTsPhase = tournamentStateNa ? tournamentStateNa.phase : null
+  var naTsAt = tournamentStateNa ? tournamentStateNa.clashTimestamp : null
+
+  // Pull live EU + NA weekly clashes from DB; fall back to scheduled-but-unopened
+  // previews from site_settings so a region card never blanks out for the public.
+  useEffect(function() {
+    if (!supabase || !supabase.from) return
+    var cancelled = false
+    supabase.from('tournaments')
+      .select('id,name,date,region,phase,type,is_finale,max_players,prize_pool_json')
+      .eq('type', 'season_clash')
+      .in('phase', ['registration', 'check_in', 'in_progress', 'draft'])
+      .order('date', { ascending: true })
+      .limit(40)
+      .then(function(res) {
+        if (cancelled || res.error || !res.data) return
+        var eu = null
+        var na = null
+        var priority = { in_progress: 0, check_in: 1, registration: 2, draft: 3 }
+        res.data.forEach(function(t) {
+          var r = normalizeRegion(t.region)
+          if (!r) return
+          if (r === 'EU') {
+            if (!eu || (priority[t.phase] || 9) < (priority[eu.phase] || 9)) eu = t
+          } else if (r === 'NA') {
+            if (!na || (priority[t.phase] || 9) < (priority[na.phase] || 9)) na = t
+          }
+        })
+        if (!eu) eu = previewFromState(tournamentStateEu, 'EU')
+        if (!na) na = previewFromState(tournamentStateNa, 'NA')
+        setEuRow(eu)
+        setNaRow(na)
+      }).catch(function() { /* swallow — region cards just stay empty */ })
+    return function() { cancelled = true }
+  }, [euTsId, euTsPhase, euTsAt, naTsId, naTsPhase, naTsAt])
+
+  // Registration counts for whatever real clash rows we landed on.
+  useEffect(function() {
+    var ids = []
+    if (euRow && !euRow.__preview) ids.push(euRow.id)
+    if (naRow && !naRow.__preview) ids.push(naRow.id)
+    if (ids.length === 0) return
+    supabase.from('registrations').select('tournament_id, player_id').in('tournament_id', ids)
+      .then(function(res) {
+        if (!res.data) return
+        var counts = {}
+        var mine = []
+        res.data.forEach(function(r) {
+          counts[r.tournament_id] = (counts[r.tournament_id] || 0) + 1
+          if (linkedPlayerId && r.player_id === linkedPlayerId) mine.push(r.tournament_id)
+        })
+        setRegCounts(counts)
+        setMyRegIds(mine)
+      }).catch(function() {})
+  }, [euRow && euRow.id, naRow && naRow.id, linkedPlayerId])
+
+  // Scroll the matching card into view + briefly highlight it whenever the
+  // hash matches (set by HomeScreen "Check event details" CTA).
+  useEffect(function() {
+    var hash = (location.hash || '').replace('#', '')
+    if (hash !== 'weekly-EU' && hash !== 'weekly-NA') return
+    var el = hash === 'weekly-EU' ? euRef.current : naRef.current
+    if (!el) {
+      // wait one tick for DOM
+      var t = setTimeout(function() {
+        var lateEl = hash === 'weekly-EU' ? euRef.current : naRef.current
+        if (lateEl && lateEl.scrollIntoView) lateEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 120)
+      return function() { clearTimeout(t) }
+    }
+    if (el.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [location.hash, euRow && euRow.id, naRow && naRow.id])
+
+  function handleRegister(clash) {
+    if (!currentUser) { if (onAuthClick) onAuthClick('login'); return }
+    if (!linkedPlayer) { if (toast) toast('Link your Riot ID in Account first', 'error'); navigate('/account'); return }
+    if (clash.__preview) { if (toast) toast('Registration is not open yet for this clash', 'info'); return }
+    var maxP = clash.max_players || 24
+    if ((regCounts[clash.id] || 0) >= maxP) { if (toast) toast('Tournament is full', 'error'); return }
+    if (myRegIds.indexOf(clash.id) !== -1) { if (toast) toast('Already registered', 'info'); return }
+    supabase.from('registrations').upsert({
+      tournament_id: clash.id,
+      player_id: linkedPlayer.id,
+      status: 'registered'
+    }, { onConflict: 'tournament_id,player_id' }).then(function(res) {
+      if (res.error) { if (toast) toast('Registration failed: ' + res.error.message, 'error'); return }
+      setMyRegIds(function(ids) { return ids.concat([clash.id]) })
+      setRegCounts(function(c) {
+        var next = Object.assign({}, c)
+        next[clash.id] = (c[clash.id] || 0) + 1
+        return next
+      })
+      if (toast) toast('Registered for ' + (clash.name || 'Weekly Clash'), 'success')
+    }).catch(function() { if (toast) toast('Registration failed', 'error') })
+  }
+
+  // Hide entirely if BOTH regions have nothing scheduled — keeps the page tidy
+  // before a season starts.
+  if (!euRow && !naRow) return null
+
+  var hash = (location.hash || '').replace('#', '')
+
+  return (
+    <section className="mb-12">
+      <div className="flex items-end justify-between mb-5 gap-3 flex-wrap">
+        <div>
+          <h2 className="font-display text-2xl font-bold text-on-surface tracking-wide">Weekly Clash</h2>
+          <p className="text-on-surface-variant text-sm font-body mt-1">
+            The official EU + NA brackets. Free to enter every week.
+          </p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div ref={euRef}>
+          <WeeklyRegionCard
+            clash={euRow}
+            region="EU"
+            regCount={euRow && !euRow.__preview ? (regCounts[euRow.id] || 0) : 0}
+            amRegistered={euRow && myRegIds.indexOf(euRow.id) !== -1}
+            currentUser={currentUser}
+            linkedPlayer={linkedPlayer}
+            navigate={navigate}
+            onAuthClick={onAuthClick}
+            toast={toast}
+            onRegister={handleRegister}
+            highlighted={hash === 'weekly-EU'}
+          />
+        </div>
+        <div ref={naRef}>
+          <WeeklyRegionCard
+            clash={naRow}
+            region="NA"
+            regCount={naRow && !naRow.__preview ? (regCounts[naRow.id] || 0) : 0}
+            amRegistered={naRow && myRegIds.indexOf(naRow.id) !== -1}
+            currentUser={currentUser}
+            linkedPlayer={linkedPlayer}
+            navigate={navigate}
+            onAuthClick={onAuthClick}
+            toast={toast}
+            onRegister={handleRegister}
+            highlighted={hash === 'weekly-NA'}
+          />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ── Main EventsScreen ──────────────────────────────────────────────────────────
 
 export default function EventsScreen() {
@@ -1087,6 +1515,15 @@ export default function EventsScreen() {
   return (
     <PageLayout>
       <div className="pt-8 pb-24">
+        {/* Weekly Clash overview — deep-link target for HomeScreen "Check event details" */}
+        <WeeklyClashesPanel
+          navigate={navigate}
+          currentUser={currentUser}
+          onAuthClick={handleAuthClick}
+          toast={toast}
+          players={players}
+        />
+
         {/* Tab bar */}
         <PillTabGroup align="start" className="mb-12">
           {tabs.map(function(t) {

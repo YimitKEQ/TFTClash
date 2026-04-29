@@ -512,13 +512,129 @@ export default function TournamentTab() {
     }).catch(function() { toast('Failed to create tournament', 'error') })
   }
 
+  // Switch the form below to a different region: pulls that region's state into clashForm
+  // and updates which setter saves will hit. Used by the EU/NA region cards above.
+  function selectRegion(region) {
+    var v = region === 'NA' ? 'NA' : 'EU'
+    setAdminRegion(v)
+    var nextTs = v === 'NA' ? tournamentStateNa : tournamentStateEu
+    setClashForm({
+      name: (nextTs && nextTs.clashName) || 'Weekly Clash',
+      clashLocal: isoToLocalInput((nextTs && nextTs.clashTimestamp) || ''),
+      server: v,
+      isFinale: !!(nextTs && nextTs.isFinale),
+      rulesOverride: (nextTs && nextTs.rulesOverride) || '',
+      prizeRows: (nextTs && Array.isArray(nextTs.prizePool) && nextTs.prizePool.length > 0)
+        ? nextTs.prizePool.map(function(r) { return {
+            placement: String(r.placement || ''),
+            prize: String(r.prize || ''),
+            image: String(r.image || ''),
+            type: String(r.type || 'other'),
+            amount: r.amount != null ? String(r.amount) : '',
+            currency: String(r.currency || 'EUR'),
+            sponsor_id: String(r.sponsor_id || ''),
+            eligibility: String(r.eligibility || '')
+          } })
+        : [emptyPrizeRow(1), emptyPrizeRow(2), emptyPrizeRow(3)]
+    })
+  }
+
+  // Phase pill metadata for the region overview cards.
+  var REGION_PHASE_LABELS = { idle: 'Not Scheduled', draft: 'Scheduled', registration: 'Registering', checkin: 'Check-in Open', inprogress: 'Live Now', complete: 'Complete' }
+  var REGION_PHASE_TONE = {
+    idle: 'bg-surface-container-highest text-on-surface/60 border-outline-variant/20',
+    draft: 'bg-secondary/15 text-secondary border-secondary/30',
+    registration: 'bg-tertiary/15 text-tertiary border-tertiary/30',
+    checkin: 'bg-primary/15 text-primary border-primary/30',
+    inprogress: 'bg-error/15 text-error border-error/30',
+    complete: 'bg-success/15 text-success border-success/30'
+  }
+  function regionCardSummary(rs) {
+    var phase = (rs && rs.phase) || 'idle'
+    var label = REGION_PHASE_LABELS[phase] || 'Not Scheduled'
+    var tone = REGION_PHASE_TONE[phase] || REGION_PHASE_TONE.idle
+    var when = ''
+    if (rs && rs.clashTimestamp) {
+      var d = new Date(rs.clashTimestamp)
+      if (!isNaN(d.getTime())) {
+        when = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + ' - ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+      }
+    }
+    var registered = (rs && Array.isArray(rs.registeredIds)) ? rs.registeredIds.length : 0
+    var checkedIn = (rs && Array.isArray(rs.checkedInIds)) ? rs.checkedInIds.length : 0
+    var maxP = (rs && rs.maxPlayers) || 0
+    var name = (rs && rs.clashName) || 'Weekly Clash'
+    return { phase: phase, label: label, tone: tone, when: when, registered: registered, checkedIn: checkedIn, maxP: maxP, name: name }
+  }
+
+  function renderRegionCard(region, rs) {
+    var s = regionCardSummary(rs)
+    var isActive = adminRegion === region
+    var hasClash = !!(rs && (rs.dbTournamentId || rs.activeTournamentId))
+    var ringClass = isActive ? 'border-primary/60 bg-primary/[0.04] shadow-[0_0_0_1px_rgba(155,114,207,0.4)]' : 'border-outline-variant/15 bg-surface-container/40 hover:border-outline-variant/30'
+    return (
+      <button
+        type="button"
+        onClick={function() { selectRegion(region) }}
+        className={'text-left p-4 rounded-xl border transition-all ' + ringClass}
+      >
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-display text-2xl font-black text-on-surface tracking-wide">{region}</span>
+            {isActive && (
+              <span className="text-[9px] font-label font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">
+                Managing
+              </span>
+            )}
+          </div>
+          <span className={'text-[10px] font-label font-black uppercase tracking-widest px-2 py-1 rounded border ' + s.tone}>
+            {s.label}
+          </span>
+        </div>
+        <div className="text-sm font-bold text-on-surface truncate mb-0.5">{hasClash ? s.name : 'No active clash'}</div>
+        <div className="text-[11px] text-on-surface-variant mb-3">{s.when || 'Pick a date below to schedule'}</div>
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div className="px-2.5 py-1.5 rounded bg-surface-container border border-outline-variant/10">
+            <div className="text-[9px] font-label uppercase tracking-wider text-on-surface/50">Registered</div>
+            <div className="font-mono font-bold text-on-surface">{s.registered}{s.maxP ? ' / ' + s.maxP : ''}</div>
+          </div>
+          <div className="px-2.5 py-1.5 rounded bg-surface-container border border-outline-variant/10">
+            <div className="text-[9px] font-label uppercase tracking-wider text-on-surface/50">Checked In</div>
+            <div className="font-mono font-bold text-on-surface">{s.checkedIn}</div>
+          </div>
+        </div>
+      </button>
+    )
+  }
+
   return (
     <div className="p-4 md:p-6 space-y-6">
 
       <Panel>
-        <div className="flex items-center gap-2 mb-4">
-          <Icon name="calendar_month" size={16} className="text-primary" />
-          <span className="font-bold text-sm text-on-surface">Weekly Clash</span>
+        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Icon name="public" size={16} className="text-primary" />
+            <span className="font-bold text-sm text-on-surface">Region Overview</span>
+          </div>
+          <div className="text-[10px] text-on-surface/50 font-label uppercase tracking-wider">
+            Click a region to manage it below
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {renderRegionCard('EU', tournamentStateEu)}
+          {renderRegionCard('NA', tournamentStateNa)}
+        </div>
+      </Panel>
+
+      <Panel>
+        <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Icon name="calendar_month" size={16} className="text-primary" />
+            <span className="font-bold text-sm text-on-surface">Weekly Clash</span>
+          </div>
+          <span className="text-[10px] font-label font-black uppercase tracking-widest text-primary bg-primary/10 px-2 py-1 rounded">
+            Editing: {adminRegion}
+          </span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-2">
           <div>
@@ -529,38 +645,9 @@ export default function TournamentTab() {
             <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Clash Date & Time</label>
             <Inp type="datetime-local" value={clashForm.clashLocal} onChange={function(v) { setClashForm(Object.assign({}, clashForm, { clashLocal: typeof v === 'string' ? v : v.target.value })) }} />
           </div>
-          <div>
-            <label className="block text-[11px] text-on-surface/60 font-bold uppercase tracking-wider mb-1">Server</label>
-            <Sel value={clashForm.server} onChange={function(v) {
-              setAdminRegion(v)
-              var nextTs = v === 'NA' ? tournamentStateNa : tournamentStateEu
-              setClashForm({
-                name: (nextTs && nextTs.clashName) || 'Weekly Clash',
-                clashLocal: isoToLocalInput((nextTs && nextTs.clashTimestamp) || ''),
-                server: v,
-                isFinale: !!(nextTs && nextTs.isFinale),
-                rulesOverride: (nextTs && nextTs.rulesOverride) || '',
-                prizeRows: (nextTs && Array.isArray(nextTs.prizePool) && nextTs.prizePool.length > 0)
-                  ? nextTs.prizePool.map(function(r) { return {
-                      placement: String(r.placement || ''),
-                      prize: String(r.prize || ''),
-                      image: String(r.image || ''),
-                      type: String(r.type || 'other'),
-                      amount: r.amount != null ? String(r.amount) : '',
-                      currency: String(r.currency || 'EUR'),
-                      sponsor_id: String(r.sponsor_id || ''),
-                      eligibility: String(r.eligibility || '')
-                    } })
-                  : [emptyPrizeRow(1), emptyPrizeRow(2), emptyPrizeRow(3)]
-              })
-            }}>
-              <option value="EU">EU</option>
-              <option value="NA">NA</option>
-            </Sel>
-          </div>
-          <div className="flex items-end">
+          <div className="md:col-span-2 flex items-end">
             <Btn variant="primary" size="sm" onClick={saveClashSchedule} disabled={clashSaving || !clashForm.clashLocal}>
-              {clashSaving ? 'Saving...' : 'Save Schedule'}
+              {clashSaving ? 'Saving...' : 'Save Schedule for ' + adminRegion}
             </Btn>
           </div>
         </div>
